@@ -1196,16 +1196,16 @@ class ExpressionTransformerTest {
     void testCoalesceWithLastEventValue() throws JSQLParserException {
       String sql =
           """
-                    SELECT COALESCE(
-                        (SELECT "de_xyz"
-                        FROM events
-                        WHERE events.enrollment = subax.enrollment
-                        AND "de_xyz" IS NOT NULL
-                        AND ps = 'stage1'
-                        ORDER BY occurreddate DESC
-                        LIMIT 1),
-                        'default_value'
-                    )""";
+          SELECT COALESCE(
+              (SELECT "de_xyz"
+              FROM events
+              WHERE events.enrollment = subax.enrollment
+              AND "de_xyz" IS NOT NULL
+              AND ps = 'stage1'
+              ORDER BY occurreddate DESC
+              LIMIT 1),
+              'default_value'
+          )""";
 
       Expression expr = parseExpression(sql);
       expr.accept(transformer);
@@ -1234,23 +1234,23 @@ class ExpressionTransformerTest {
     void testCoalesceWithMultipleLastValues() throws JSQLParserException {
       String sql =
           """
-                    SELECT COALESCE(
-                        (SELECT "de_xyz"
-                        FROM events
-                        WHERE events.enrollment = subax.enrollment
-                        AND "de_xyz" IS NOT NULL
-                        AND ps = 'stage1'
-                        ORDER BY occurreddate DESC
-                        LIMIT 1),
-                        (SELECT "de_abc"
-                        FROM events
-                        WHERE events.enrollment = subax.enrollment
-                        AND "de_abc" IS NOT NULL
-                        AND ps = 'stage2'
-                        ORDER BY occurreddate DESC
-                        LIMIT 1),
-                        'default'
-                    )""";
+          SELECT COALESCE(
+              (SELECT "de_xyz"
+              FROM events
+              WHERE events.enrollment = subax.enrollment
+              AND "de_xyz" IS NOT NULL
+              AND ps = 'stage1'
+              ORDER BY occurreddate DESC
+              LIMIT 1),
+              (SELECT "de_abc"
+              FROM events
+              WHERE events.enrollment = subax.enrollment
+              AND "de_abc" IS NOT NULL
+              AND ps = 'stage2'
+              ORDER BY occurreddate DESC
+              LIMIT 1),
+              'default'
+          )""";
 
       Expression expr = parseExpression(sql);
       expr.accept(transformer);
@@ -1274,15 +1274,15 @@ class ExpressionTransformerTest {
     void testExtractWithLastEventValue() throws JSQLParserException {
       String sql =
           """
-                    SELECT EXTRACT(epoch FROM
-                        (SELECT "de_date"
-                        FROM events
-                        WHERE events.enrollment = subax.enrollment
-                        AND "de_date" IS NOT NULL
-                        AND ps = 'stage1'
-                        ORDER BY occurreddate DESC
-                        LIMIT 1)
-                    )""";
+          SELECT EXTRACT(epoch FROM
+              (SELECT "de_date"
+              FROM events
+              WHERE events.enrollment = subax.enrollment
+              AND "de_date" IS NOT NULL
+              AND ps = 'stage1'
+              ORDER BY occurreddate DESC
+              LIMIT 1)
+          )""";
 
       Expression expr = parseExpression(sql);
       expr.accept(transformer);
@@ -1319,15 +1319,15 @@ class ExpressionTransformerTest {
         String sql =
             String.format(
                 """
-                        SELECT EXTRACT(%s FROM
-                            (SELECT "de_date"
-                            FROM events
-                            WHERE events.enrollment = subax.enrollment
-                            AND "de_date" IS NOT NULL
-                            AND ps = 'stage1'
-                            ORDER BY occurreddate DESC
-                            LIMIT 1)
-                        )""",
+                SELECT EXTRACT(%s FROM
+                    (SELECT "de_date"
+                    FROM events
+                    WHERE events.enrollment = subax.enrollment
+                    AND "de_date" IS NOT NULL
+                    AND ps = 'stage1'
+                    ORDER BY occurreddate DESC
+                    LIMIT 1)
+                )""",
                 field);
 
         Expression expr = parseExpression(sql);
@@ -1373,18 +1373,18 @@ class ExpressionTransformerTest {
     void testNestedFunctionsWithLastEventValue() throws JSQLParserException {
       String sql =
           """
-                    SELECT COALESCE(
-                        EXTRACT(epoch FROM
-                            (SELECT "de_date"
-                            FROM events
-                            WHERE events.enrollment = subax.enrollment
-                            AND "de_date" IS NOT NULL
-                            AND ps = 'stage1'
-                            ORDER BY occurreddate DESC
-                            LIMIT 1)
-                        ),
-                        0
-                    )""";
+          SELECT COALESCE(
+              EXTRACT(epoch FROM
+                  (SELECT "de_date"
+                  FROM events
+                  WHERE events.enrollment = subax.enrollment
+                  AND "de_date" IS NOT NULL
+                  AND ps = 'stage1'
+                  ORDER BY occurreddate DESC
+                  LIMIT 1)
+              ),
+              0
+          )""";
 
       Expression expr = parseExpression(sql);
       expr.accept(transformer);
@@ -1436,22 +1436,22 @@ class ExpressionTransformerTest {
       void testDaysBetweenFunction() throws JSQLParserException {
         String sql =
             """
-                        SELECT TIMESTAMPDIFF(DAY,
-                            (SELECT "enrollment_date"
-                            FROM events
-                            WHERE events.enrollment = subax.enrollment
-                            AND "enrollment_date" IS NOT NULL
-                            AND ps = 'stage1'
-                            ORDER BY occurreddate DESC
-                            LIMIT 1),
-                            (SELECT "incident_date"
-                            FROM events
-                            WHERE events.enrollment = subax.enrollment
-                            AND "incident_date" IS NOT NULL
-                            AND ps = 'stage1'
-                            ORDER BY occurreddate DESC
-                            LIMIT 1)
-                        )""";
+            SELECT TIMESTAMPDIFF(DAY,
+                (SELECT "enrollment_date"
+                FROM events
+                WHERE events.enrollment = subax.enrollment
+                AND "enrollment_date" IS NOT NULL
+                AND ps = 'stage1'
+                ORDER BY occurreddate DESC
+                LIMIT 1),
+                (SELECT "incident_date"
+                FROM events
+                WHERE events.enrollment = subax.enrollment
+                AND "incident_date" IS NOT NULL
+                AND ps = 'stage1'
+                ORDER BY occurreddate DESC
+                LIMIT 1)
+            )""";
 
         Expression expr = parseExpression(sql);
         expr.accept(transformer);
@@ -1499,15 +1499,15 @@ class ExpressionTransformerTest {
       void testYearsBetweenFunction() throws JSQLParserException {
         String sql =
             """
-                        SELECT EXTRACT(YEAR FROM
-                            (SELECT "birth_date"
-                            FROM events
-                            WHERE events.enrollment = subax.enrollment
-                            AND "birth_date" IS NOT NULL
-                            AND ps = 'stage1'
-                            ORDER BY occurreddate DESC
-                            LIMIT 1)
-                        )""";
+            SELECT EXTRACT(YEAR FROM
+                (SELECT "birth_date"
+                FROM events
+                WHERE events.enrollment = subax.enrollment
+                AND "birth_date" IS NOT NULL
+                AND ps = 'stage1'
+                ORDER BY occurreddate DESC
+                LIMIT 1)
+            )""";
 
         Expression expr = parseExpression(sql);
         expr.accept(transformer);
@@ -1543,15 +1543,15 @@ class ExpressionTransformerTest {
       void testFloorFunction() throws JSQLParserException {
         String sql =
             """
-                        SELECT FLOOR(
-                            (SELECT "numeric_value"
-                            FROM events
-                            WHERE events.enrollment = subax.enrollment
-                            AND "numeric_value" IS NOT NULL
-                            AND ps = 'stage1'
-                            ORDER BY occurreddate DESC
-                            LIMIT 1)
-                        )""";
+            SELECT FLOOR(
+                (SELECT "numeric_value"
+                FROM events
+                WHERE events.enrollment = subax.enrollment
+                AND "numeric_value" IS NOT NULL
+                AND ps = 'stage1'
+                ORDER BY occurreddate DESC
+                LIMIT 1)
+            )""";
 
         Expression expr = parseExpression(sql);
         expr.accept(transformer);
@@ -1572,15 +1572,15 @@ class ExpressionTransformerTest {
       void testCeilFunction() throws JSQLParserException {
         String sql =
             """
-                        SELECT CEIL(
-                            (SELECT "numeric_value"
-                            FROM events
-                            WHERE events.enrollment = subax.enrollment
-                            AND "numeric_value" IS NOT NULL
-                            AND ps = 'stage1'
-                            ORDER BY occurreddate DESC
-                            LIMIT 1)
-                        )""";
+            SELECT CEIL(
+                (SELECT "numeric_value"
+                FROM events
+                WHERE events.enrollment = subax.enrollment
+                AND "numeric_value" IS NOT NULL
+                AND ps = 'stage1'
+                ORDER BY occurreddate DESC
+                LIMIT 1)
+            )""";
 
         Expression expr = parseExpression(sql);
         expr.accept(transformer);
@@ -1657,17 +1657,17 @@ class ExpressionTransformerTest {
       void testIfConditionFunction() throws JSQLParserException {
         String sql =
             """
-                    SELECT CASE
-                        WHEN (SELECT "condition_value"
-                             FROM events
-                             WHERE events.enrollment = subax.enrollment
-                             AND "condition_value" IS NOT NULL
-                             AND ps = 'stage1'
-                             ORDER BY occurreddate DESC
-                             LIMIT 1) = 'true'
-                        THEN 1
-                        ELSE 0
-                    END""";
+            SELECT CASE
+                WHEN (SELECT "condition_value"
+                     FROM events
+                     WHERE events.enrollment = subax.enrollment
+                     AND "condition_value" IS NOT NULL
+                     AND ps = 'stage1'
+                     ORDER BY occurreddate DESC
+                     LIMIT 1) = 'true'
+                THEN 1
+                ELSE 0
+            END""";
 
         Expression expr = parseExpression(sql);
         expr.accept(transformer);
@@ -1701,6 +1701,189 @@ class ExpressionTransformerTest {
         assertInstanceOf(
             LongValue.class, caseExpr.getElseExpression(), "Else expression should be 0");
       }
+    }
+  }
+
+  @Nested
+  class FunctionWithSubqueryTests {
+    @Test
+    void testAvgFunctionWithSubquery() throws JSQLParserException {
+      String sql =
+          """
+              SELECT AVG(
+                  (SELECT "de_value"
+                  FROM events
+                  WHERE events.enrollment = subax.enrollment
+                  AND "de_value" IS NOT NULL
+                  AND ps = 'stage1'
+                  ORDER BY occurreddate DESC
+                  LIMIT 1)
+              )""";
+
+      Expression expr = parseExpression(sql);
+      expr.accept(transformer);
+      Expression result = transformer.getTransformedExpression();
+
+      // Verify function structure
+      assertInstanceOf(Function.class, result, "Result should be an AVG function");
+      Function avgFunc = (Function) result;
+      assertEquals("AVG", avgFunc.getName().toUpperCase(), "Function should be AVG");
+
+      // Verify parameter (transformed column)
+      List<Expression> params = avgFunc.getParameters().getExpressions();
+      assertEquals(1, params.size(), "AVG should have 1 parameter");
+      assertInstanceOf(Column.class, params.get(0), "Parameter should be a transformed column");
+      Column col = (Column) params.get(0);
+      assertTrue(
+          col.getTable().getName().startsWith("lv_"),
+          "Should reference the transformed table alias");
+
+      // Verify that the subselect was captured
+      assertFalse(
+          transformer.getExtractedSubSelects().isEmpty(), "Should have captured the subselect");
+    }
+
+    @Test
+    void testComplexFunctionWithMultipleSubqueries() throws JSQLParserException {
+      String sql =
+          """
+              SELECT AVG(
+                  COALESCE(
+                      (SELECT "de_value1"
+                      FROM events
+                      WHERE events.enrollment = subax.enrollment
+                      AND "de_value1" IS NOT NULL
+                      AND ps = 'stage1'
+                      ORDER BY occurreddate DESC
+                      LIMIT 1),
+                      (SELECT "de_value2"
+                      FROM events
+                      WHERE events.enrollment = subax.enrollment
+                      AND "de_value2" IS NOT NULL
+                      AND ps = 'stage2'
+                      ORDER BY occurreddate DESC
+                      LIMIT 1),
+                      0
+                  )
+              )""";
+
+      Expression expr = parseExpression(sql);
+      expr.accept(transformer);
+      Expression result = transformer.getTransformedExpression();
+
+      // Verify outer function
+      assertInstanceOf(Function.class, result, "Result should be an AVG function");
+      Function avgFunc = (Function) result;
+      assertEquals("AVG", avgFunc.getName().toUpperCase(), "Function should be AVG");
+
+      // Verify inner function (COALESCE)
+      List<Expression> avgParams = avgFunc.getParameters().getExpressions();
+      assertEquals(1, avgParams.size(), "AVG should have 1 parameter");
+      assertInstanceOf(
+          Function.class, avgParams.get(0), "AVG parameter should be a COALESCE function");
+
+      Function coalesceFunc = (Function) avgParams.get(0);
+      assertEquals(
+          "COALESCE", coalesceFunc.getName().toUpperCase(), "Inner function should be COALESCE");
+
+      // Verify COALESCE parameters
+      List<Expression> coalesceParams = coalesceFunc.getParameters().getExpressions();
+      assertEquals(3, coalesceParams.size(), "COALESCE should have 3 parameters");
+
+      // First two parameters should be transformed columns
+      assertInstanceOf(
+          Column.class, coalesceParams.get(0), "First parameter should be a transformed column");
+      assertInstanceOf(
+          Column.class, coalesceParams.get(1), "Second parameter should be a transformed column");
+
+      // Third parameter should be 0
+      assertEquals("0", coalesceParams.get(2).toString(), "Third parameter should be 0");
+
+      // Verify that both subselects were captured
+      assertEquals(
+          2, transformer.getExtractedSubSelects().size(), "Should have captured both subselects");
+    }
+
+    @Test
+    void testArithmeticExpressionWithSubqueries() throws JSQLParserException {
+      String sql =
+          """
+              SELECT (
+                  (SELECT "de_value1"
+                  FROM events
+                  WHERE events.enrollment = subax.enrollment
+                  AND "de_value1" IS NOT NULL
+                  AND ps = 'stage1'
+                  ORDER BY occurreddate DESC
+                  LIMIT 1) -
+                  (SELECT "de_value2"
+                  FROM events
+                  WHERE events.enrollment = subax.enrollment
+                  AND "de_value2" IS NOT NULL
+                  AND ps = 'stage2'
+                  ORDER BY occurreddate DESC
+                  LIMIT 1)
+              )""";
+
+      Expression expr = parseExpression(sql);
+      expr.accept(transformer);
+      Expression result = transformer.getTransformedExpression();
+
+      // Verify the result is a parenthesized subtraction
+      assertInstanceOf(Parenthesis.class, result, "Result should be a parenthesized expression");
+      Parenthesis paren = (Parenthesis) result;
+
+      assertInstanceOf(
+          Subtraction.class, paren.getExpression(), "Expression should be a subtraction");
+      Subtraction sub = (Subtraction) paren.getExpression();
+
+      // Both operands should be transformed columns
+      assertInstanceOf(
+          Column.class, sub.getLeftExpression(), "Left operand should be a transformed column");
+      assertInstanceOf(
+          Column.class, sub.getRightExpression(), "Right operand should be a transformed column");
+
+      // Verify that both subselects were captured
+      assertEquals(
+          2, transformer.getExtractedSubSelects().size(), "Should have captured both subselects");
+    }
+
+    @Test
+    void testCastFunctionWithSubquery() throws JSQLParserException {
+      String sql =
+          """
+              SELECT CAST(
+                  (SELECT "de_value"
+                  FROM events
+                  WHERE events.enrollment = subax.enrollment
+                  AND "de_value" IS NOT NULL
+                  AND ps = 'stage1'
+                  ORDER BY occurreddate DESC
+                  LIMIT 1) AS DECIMAL
+              )""";
+
+      Expression expr = parseExpression(sql);
+      expr.accept(transformer);
+      Expression result = transformer.getTransformedExpression();
+
+      // Verify CAST structure
+      assertInstanceOf(CastExpression.class, result, "Result should be a CAST expression");
+      CastExpression cast = (CastExpression) result;
+
+      // Verify that the expression inside CAST is a transformed column
+      assertInstanceOf(
+          Column.class, cast.getLeftExpression(), "Expression should be a transformed column");
+      Column col = (Column) cast.getLeftExpression();
+      assertTrue(
+          col.getTable().getName().startsWith("lv_"),
+          "Should reference the transformed table alias");
+
+      // Verify that the subselect was captured
+      assertFalse(
+          transformer.getExtractedSubSelects().isEmpty(), "Should have captured the subselect");
+
+      // Verify the cast type
+      assertEquals("DECIMAL", cast.getType().getDataType(), "Cast type should be DECIMAL");
     }
   }
 

@@ -28,9 +28,11 @@
 package org.hisp.dhis.analytics.util.optimizer.cte.pipeline;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import net.sf.jsqlparser.expression.Alias;
@@ -69,6 +71,10 @@ public class CteSqlRebuilder implements SqlOptimizationStep {
    */
   public Select rebuildSql(Select originalCte, DecomposedCtes decomposedCtes) {
     PlainSelect oldSelect = decomposedCtes.originalSelect();
+    if (oldSelect == null) {
+      return originalCte;
+    }
+
     // Get the original FROM item
     FromItem fromItem = oldSelect.getFromItem();
     String fromAlias = getFromAlias(fromItem);
@@ -97,19 +103,43 @@ public class CteSqlRebuilder implements SqlOptimizationStep {
     return originalCte;
   }
 
+  /**
+   * Builds the list of JOIN clauses for all extracted CTEs, including those from both WHERE and
+   * SELECT clauses.
+   *
+   * @param decomposedCtes The DecomposedCtes object containing all generated CTEs
+   * @param fromAlias The alias of the main table in the FROM clause
+   * @return A list of Join objects for all CTEs
+   */
   private List<Join> buildJoins(DecomposedCtes decomposedCtes, String fromAlias) {
     List<Join> joins = new ArrayList<>();
+
+    // Create a joined Set to track CTEs that have already been added
+    // This prevents duplicate joins if the same CTE is referenced in both WHERE and SELECT
+    Set<String> addedCtes = new HashSet<>();
+
+    // Add joins for each CTE
     for (GeneratedCte cte : decomposedCtes.ctes()) {
-      addJoinItem(joins, fromAlias, cte);
+      String cteName = cte.name();
+      if (!addedCtes.contains(cteName)) {
+        addJoinItem(joins, fromAlias, cte);
+        addedCtes.add(cteName);
+      }
     }
+
     return joins;
   }
 
+  /**
+   * Builds the SELECT items for the transformed query, replacing any subqueries with references to
+   * the generated CTEs.
+   */
   private List<SelectItem> buildSelectItems(PlainSelect select, String fromAlias) {
     List<SelectItem> newSelectItems = new ArrayList<>();
     for (SelectItem item : select.getSelectItems()) {
       if (item instanceof SelectExpressionItem sei) {
         Expression expr = sei.getExpression();
+
         // If it's a column without a table alias, add the table alias
         if (expr instanceof Column col
             && (col.getTable() == null || col.getTable().getName() == null)) {
@@ -121,7 +151,7 @@ public class CteSqlRebuilder implements SqlOptimizationStep {
           }
           newSelectItems.add(newSei);
         } else {
-          // For other expressions, preserve as is
+          // For other expressions (transformed expressions), preserve as is
           newSelectItems.add(sei);
         }
       } else {
@@ -164,14 +194,11 @@ public class CteSqlRebuilder implements SqlOptimizationStep {
   }
 
   /**
-   * Adds a JOIN clause to the list of joins and a corresponding SELECT item for the given generated
-   * CTE. The JOIN is a LEFT JOIN, and the ON condition is an equality comparison between the
-   * `enrollment` column of the main table (aliased by `fromAlias`) and the `enrollment` column of
-   * the CTE (aliased by the CTE's generated alias).
+   * Adds a JOIN clause for the given CTE.
    *
-   * @param joins The list of Join objects to which the new JOIN clause will be added.
-   * @param fromAlias The alias of the main table in the original query (usually "subax").
-   * @param cte The GeneratedCte object representing the CTE to be joined.
+   * @param joins The list of Join objects to add to
+   * @param fromAlias The alias of the main table in the FROM clause
+   * @param cte The GeneratedCte to create a join for
    */
   private void addJoinItem(List<Join> joins, String fromAlias, GeneratedCte cte) {
     // Create LEFT JOIN

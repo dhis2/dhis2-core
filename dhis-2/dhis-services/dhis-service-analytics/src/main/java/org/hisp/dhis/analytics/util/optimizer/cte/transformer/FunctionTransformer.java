@@ -64,7 +64,12 @@ public class FunctionTransformer {
 
     String nameLower = function.getName().toLowerCase();
 
-    // Decide bracket usage or function name overrides
+    // Special handling for aggregate functions that might contain subqueries
+    if (isAggregateFunction(nameLower)) {
+      return transformAggregateFunction(function);
+    }
+
+    // Existing switch for other function types
     return switch (nameLower) {
       case FUNCTION_COALESCE ->
           // coalesce typically does not use brackets around parameters
@@ -74,9 +79,17 @@ public class FunctionTransformer {
           transformFunction(FUNCTION_EXTRACT, true, function);
       default ->
           // For any other function, keep the original name and
-          // choose whether to use brackets (example: false).
+          // choose whether or not to use brackets (example: false).
           transformFunction(function.getName(), false, function);
     };
+  }
+
+  private boolean isAggregateFunction(String functionName) {
+    return "avg".equals(functionName)
+        || "sum".equals(functionName)
+        || "count".equals(functionName)
+        || "min".equals(functionName)
+        || "max".equals(functionName);
   }
 
   /**
@@ -138,5 +151,32 @@ public class FunctionTransformer {
       }
     }
     return new ProcessedExpressions(transformed, changed);
+  }
+
+  private Expression transformAggregateFunction(Function function) {
+    // Process parameters the same way as other functions
+    ProcessedExpressions processed =
+        processExpressions(
+            function.getParameters() != null
+                ? function.getParameters().getExpressions()
+                : List.of());
+
+    // If nothing changed, return the original
+    if (!processed.hasChanges()) {
+      return function;
+    }
+
+    // Create a new function with the processed parameters
+    Function newFunction = new Function();
+    newFunction.setName(function.getName());
+    newFunction.setDistinct(function.isDistinct());
+    newFunction.setAllColumns(function.isAllColumns());
+    newFunction.setEscaped(function.isEscaped());
+
+    ExpressionList paramList = new ExpressionList(processed.expressions());
+    paramList.setUsingBrackets(true); // Aggregate functions typically use brackets
+    newFunction.setParameters(paramList);
+
+    return newFunction;
   }
 }

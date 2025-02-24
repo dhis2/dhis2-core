@@ -125,32 +125,34 @@ class CteSubqueryIdentifierTest {
 
     Statement statement = CCJSqlParserUtil.parse(sql);
     List<WithItem> withItems = identifier.findQualifyingPiCtes(statement);
-    assertTrue(withItems.isEmpty(), "Should find NO WithItems (subquery in SELECT)");
+    assertEquals(1, withItems.size(), "Should find one qualifying WithItem with SELECT subquery");
+    assertEquals(
+        "pi_inputcte", withItems.get(0).getName(), "Correct WithItem should be identified");
   }
 
   @Test
   void testFindQualifyingPiCtes_MultiplePiCtes_OneQualifying() throws Exception {
     String sql =
         """
-            with pi_first as (
-                select subax.enrollment
-                from analytics_enrollment_ur1edk5oe2n as subax
-                where (
-                    select scheduleddate
-                    from analytics_event_ur1edk5oe2n
-                    where analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
-                    and scheduleddate is not null
-                    order by occurreddate desc
-                    limit 1
-                ) is not null
-            ), pi_second as (
-                select subax.id
-                from another_table as subax
-            ), non_pi_cte as (
-                select * from some_table
-            )
-            select * from pi_first, pi_second;
-            """;
+        with pi_first as (
+            select subax.enrollment
+            from analytics_enrollment_ur1edk5oe2n as subax
+            where (
+                select scheduleddate
+                from analytics_event_ur1edk5oe2n
+                where analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                and scheduleddate is not null
+                order by occurreddate desc
+                limit 1
+            ) is not null
+        ), pi_second as (
+            select subax.id
+            from another_table as subax
+        ), non_pi_cte as (
+            select * from some_table
+        )
+        select * from pi_first, pi_second;
+        """;
 
     Statement statement = CCJSqlParserUtil.parse(sql);
     List<WithItem> withItems = identifier.findQualifyingPiCtes(statement);
@@ -163,23 +165,23 @@ class CteSubqueryIdentifierTest {
   void testFindQualifyingPiCtes_SubqueryInWhereOfAnotherCte() throws Exception {
     String sql =
         """
-            with pi_inputcte as (
-                select subax.enrollment
-                from analytics_enrollment_ur1edk5oe2n as subax
-            ), another_cte as (
-                select subax.enrollment
-                from analytics_enrollment_ur1edk5oe2n as subax
-                where (
-                    select scheduleddate
-                    from analytics_event_ur1edk5oe2n
-                    where analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
-                    and scheduleddate is not null
-                    order by occurreddate desc
-                    limit 1
-                ) is not null
-            )
-            select * from pi_inputcte;
-            """;
+        with pi_inputcte as (
+            select subax.enrollment
+            from analytics_enrollment_ur1edk5oe2n as subax
+        ), another_cte as (
+            select subax.enrollment
+            from analytics_enrollment_ur1edk5oe2n as subax
+            where (
+                select scheduleddate
+                from analytics_event_ur1edk5oe2n
+                where analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                and scheduleddate is not null
+                order by occurreddate desc
+                limit 1
+            ) is not null
+        )
+        select * from pi_inputcte;
+        """;
 
     Statement statement = CCJSqlParserUtil.parse(sql);
     List<WithItem> withItems = identifier.findQualifyingPiCtes(statement);
@@ -191,20 +193,20 @@ class CteSubqueryIdentifierTest {
   void testFindQualifyingPiCtes_NoCorrelatedSubquery() throws Exception {
     String sql =
         """
-            with pi_inputcte as (
-                select enrollment
-                from analytics_enrollment_ur1edk5oe2n
-                where (
-                    select scheduleddate
-                    from analytics_event_ur1edk5oe2n
-                    where enrollment = 'some_value'
-                    and scheduleddate is not null
-                    order by occurreddate desc
-                    limit 1
-                ) is not null
-            )
-            select * from pi_inputcte;
-            """;
+        with pi_inputcte as (
+            select enrollment
+            from analytics_enrollment_ur1edk5oe2n
+            where (
+                select scheduleddate
+                from analytics_event_ur1edk5oe2n
+                where enrollment = 'some_value'
+                and scheduleddate is not null
+                order by occurreddate desc
+                limit 1
+            ) is not null
+        )
+        select * from pi_inputcte;
+        """;
 
     Statement statement = CCJSqlParserUtil.parse(sql);
     List<WithItem> withItems = identifier.findQualifyingPiCtes(statement);
@@ -215,37 +217,97 @@ class CteSubqueryIdentifierTest {
   void testFindQualifyingPiCtes_MultiplePiCtes_AllQualifying() throws Exception {
     String sql =
         """
-            with pi_first as (
-                select subax.enrollment
-                from analytics_enrollment_ur1edk5oe2n as subax
-                where (
-                    select scheduleddate
-                    from analytics_event_ur1edk5oe2n
-                    where analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
-                    and scheduleddate is not null
-                    order by occurreddate desc
-                    limit 1
-                ) is not null
-            ), pi_second as (
-                select subax.id
-                from another_table as subax
-                where (
-                    select date
-                    from yet_another_table
-                    where yet_another_table.id = subax.id
-                    and date is not null
-                    order by date desc
-                    limit 1
-                ) is not null
-            )
-            select * from pi_first, pi_second;
-            """;
+        with pi_first as (
+            select subax.enrollment
+            from analytics_enrollment_ur1edk5oe2n as subax
+            where (
+                select scheduleddate
+                from analytics_event_ur1edk5oe2n
+                where analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                and scheduleddate is not null
+                order by occurreddate desc
+                limit 1
+            ) is not null
+        ), pi_second as (
+            select subax.id
+            from another_table as subax
+            where (
+                select date
+                from yet_another_table
+                where yet_another_table.id = subax.id
+                and date is not null
+                order by date desc
+                limit 1
+            ) is not null
+        )
+        select * from pi_first, pi_second;
+        """;
 
     Statement statement = CCJSqlParserUtil.parse(sql);
     List<WithItem> withItems = identifier.findQualifyingPiCtes(statement);
 
     assertEquals(2, withItems.size(), "Should find two qualifying WithItems");
     // You might want to add checks for the specific names, depending on your requirements
+  }
+
+  @Test
+  void testFindQualifyingPiCtes_WithSubqueryInSelectClause() throws Exception {
+    String sql =
+        """
+            with pi_select_subquery as (
+                select
+                    subax.enrollment,
+                    (
+                        select count(*)
+                        from analytics_event_ur1edk5oe2n
+                        where analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                    ) as event_count
+                from analytics_enrollment_ur1edk5oe2n as subax
+            )
+            select * from pi_select_subquery;
+            """;
+
+    Statement statement = CCJSqlParserUtil.parse(sql);
+    List<WithItem> withItems = identifier.findQualifyingPiCtes(statement);
+
+    assertEquals(1, withItems.size(), "Should find one qualifying WithItem with SELECT subquery");
+    assertEquals(
+        "pi_select_subquery", withItems.get(0).getName(), "Correct WithItem should be identified");
+  }
+
+  @Test
+  void testFindQualifyingPiCtes_WithSubqueriesInBothClauses() throws Exception {
+    String sql =
+        """
+            with pi_both_clauses as (
+                select
+                    subax.enrollment,
+                    (
+                        select avg(cast(`value` as DECIMAL))
+                        from analytics_event_ur1edk5oe2n
+                        where analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                        and `value` is not null
+                    ) as avg_value
+                from analytics_enrollment_ur1edk5oe2n as subax
+                where (
+                    select count(*)
+                    from analytics_event_ur1edk5oe2n
+                    where analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                ) > 0
+            ), pi_no_subquery as (
+                select enrollment, enrollmentdate
+                from analytics_enrollment_ur1edk5oe2n
+            )
+            select * from pi_both_clauses, pi_no_subquery;
+            """;
+
+    Statement statement = CCJSqlParserUtil.parse(sql);
+    List<WithItem> withItems = identifier.findQualifyingPiCtes(statement);
+
+    assertEquals(
+        1, withItems.size(), "Should find one qualifying WithItem with subqueries in both clauses");
+    assertEquals(
+        "pi_both_clauses", withItems.get(0).getName(), "Correct WithItem should be identified");
   }
 
   @Test

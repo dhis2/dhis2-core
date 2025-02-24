@@ -120,7 +120,34 @@ public class ExpressionTransformer extends ExpressionVisitorAdapter {
 
   @Override
   public void visit(Function function) {
-    currentTransformedExpression = functionTransformer.transform(function);
+    // First, use the existing FunctionTransformer to process the function
+    Expression processedFunc = functionTransformer.transform(function);
+
+    // If the function contains subquery parameters, we need additional processing
+    if (function.getParameters() != null && function.getParameters().getExpressions() != null) {
+      boolean hasSubqueries = false;
+      List<Expression> originalParams = function.getParameters().getExpressions();
+
+      // Check if any parameters are subqueries
+      for (Expression param : originalParams) {
+        if (param instanceof SubSelect) {
+          hasSubqueries = true;
+          break;
+        }
+      }
+
+      // If there are subqueries in the parameters, they would have been transformed
+      // by functionTransformer.transform() through recursive visiting
+      if (hasSubqueries) {
+        // The function with transformed parameters is in processedFunc
+        // We can use it directly
+        currentTransformedExpression = processedFunc;
+        return;
+      }
+    }
+
+    // If no special handling was needed, use the result from functionTransformer
+    currentTransformedExpression = processedFunc;
   }
 
   public Map<SubSelect, FoundSubSelect> getExtractedSubSelects() {

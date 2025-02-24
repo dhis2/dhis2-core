@@ -41,6 +41,7 @@ import org.hisp.dhis.analytics.util.optimizer.cte.data.DecomposedCtes;
 import org.hisp.dhis.analytics.util.optimizer.cte.data.GeneratedCte;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class CteDecomposerTest {
@@ -49,20 +50,20 @@ class CteDecomposerTest {
   void t1() throws JSQLParserException {
     String withItemSql =
         """
-                WITH pi_inputcte AS (
-                    SELECT subax.enrollment
-                    FROM analytics_enrollment_ur1edk5oe2n AS subax
-                    WHERE (
-                        SELECT scheduleddate
-                        FROM analytics_event_ur1edk5oe2n
-                        WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
-                        AND scheduleddate IS NOT NULL
-                        ORDER BY occurreddate DESC
-                        LIMIT 1
-                    ) IS NOT NULL
-                )
-                SELECT * FROM analytics_enrollment_ur1edk5oe2n;
-                """;
+        WITH pi_inputcte AS (
+            SELECT subax.enrollment
+            FROM analytics_enrollment_ur1edk5oe2n AS subax
+            WHERE (
+                SELECT scheduleddate
+                FROM analytics_event_ur1edk5oe2n
+                WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                AND scheduleddate IS NOT NULL
+                ORDER BY occurreddate DESC
+                LIMIT 1
+            ) IS NOT NULL
+        )
+        SELECT * FROM analytics_enrollment_ur1edk5oe2n;
+        """;
 
     Select select = (Select) CCJSqlParserUtil.parse(withItemSql);
 
@@ -84,51 +85,51 @@ class CteDecomposerTest {
   void t4() throws JSQLParserException {
     String originalQuery =
         """
-                    WITH pi_hgtnuhsqbml AS (
-                        SELECT
-                            enrollment
-                        FROM analytics_enrollment_ur1edk5oe2n AS subax
-                        WHERE ((
-                            date_part('year',age(cast(
-                                                 (
-                                                 SELECT   scheduleddate
-                                                 FROM     analytics_event_ur1edk5oe2n
-                                                 WHERE    analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
-                                                 AND      scheduleddate IS NOT NULL
-                                                 ORDER BY occurreddate DESC
-                                                 LIMIT    1 ) AS date), cast(coalesce(completeddate,
-                                      (
-                                               SELECT   created
-                                               FROM     analytics_event_ur1edk5oe2n
-                                               WHERE    analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
-                                               AND      created IS NOT NULL
-                                               ORDER BY occurreddate DESC
-                                               LIMIT    1 )) AS date)))) * 12 + date_part('month',age(cast(
-                                                        (
-                                                        SELECT   scheduleddate
-                                                        FROM     analytics_event_ur1edk5oe2n
-                                                        WHERE    analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
-                                                        AND      scheduleddate IS NOT NULL
-                                                        ORDER BY occurreddate DESC
-                                                        LIMIT    1 ) AS date), cast(coalesce(completeddate,
-                             (
-                                      SELECT   created
-                                      FROM     analytics_event_ur1edk5oe2n
-                                      WHERE    analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
-                                      AND      created IS NOT NULL
-                                      ORDER BY occurreddate DESC
-                                      LIMIT    1 )) AS date)))) > 1
-                    GROUP BY enrollment
-                )
-                SELECT
-                    ax.enrollment
-                FROM analytics_enrollment_ur1edk5oe2n AS ax
-                LEFT JOIN pi_hgtnuhsqbml kektm ON kektm.enrollment = ax.enrollment
-                WHERE (lastupdated >= '2015-01-01' AND lastupdated < '2025-01-01')
-                AND ax."uidlevel1" = 'ImspTQPwCqd'
-                LIMIT 101
-                OFFSET 0
-                """;
+        WITH pi_hgtnuhsqbml AS (
+            SELECT
+                enrollment
+            FROM analytics_enrollment_ur1edk5oe2n AS subax
+            WHERE ((
+                date_part('year',age(cast(
+                     (
+                     SELECT   scheduleddate
+                     FROM     analytics_event_ur1edk5oe2n
+                     WHERE    analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                     AND      scheduleddate IS NOT NULL
+                     ORDER BY occurreddate DESC
+                     LIMIT    1 ) AS date), cast(coalesce(completeddate,
+                          (
+                           SELECT   created
+                           FROM     analytics_event_ur1edk5oe2n
+                           WHERE    analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                           AND      created IS NOT NULL
+                           ORDER BY occurreddate DESC
+                           LIMIT    1 )) AS date)))) * 12 + date_part('month',age(cast(
+                                  (
+                                  SELECT   scheduleddate
+                                  FROM     analytics_event_ur1edk5oe2n
+                                  WHERE    analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                                  AND      scheduleddate IS NOT NULL
+                                  ORDER BY occurreddate DESC
+                                  LIMIT    1 ) AS date), cast(coalesce(completeddate,
+                                  (
+                                    SELECT   created
+                                    FROM     analytics_event_ur1edk5oe2n
+                                    WHERE    analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                                  AND      created IS NOT NULL
+                                  ORDER BY occurreddate DESC
+                                  LIMIT    1 )) AS date)))) > 1
+              GROUP BY enrollment
+          )
+          SELECT
+              ax.enrollment
+          FROM analytics_enrollment_ur1edk5oe2n AS ax
+          LEFT JOIN pi_hgtnuhsqbml kektm ON kektm.enrollment = ax.enrollment
+          WHERE (lastupdated >= '2015-01-01' AND lastupdated < '2025-01-01')
+          AND ax."uidlevel1" = 'ImspTQPwCqd'
+          LIMIT 101
+          OFFSET 0
+          """;
 
     Select select = (Select) CCJSqlParserUtil.parse(originalQuery);
 
@@ -150,29 +151,29 @@ class CteDecomposerTest {
   void shouldDecomposeTwoSubqueries() throws JSQLParserException {
     String withItemSql =
         """
-                WITH pi_inputcte AS (
-                    SELECT subax.enrollment
-                    FROM analytics_enrollment_ur1edk5oe2n AS subax
-                    WHERE (
-                        SELECT scheduleddate
-                        FROM analytics_event_ur1edk5oe2n
-                        WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
-                        AND scheduleddate IS NOT NULL
-                        ORDER BY occurreddate DESC
-                        LIMIT 1
-                    ) IS NOT NULL
-                    AND (
-                        SELECT "de_value"
-                        FROM analytics_event_ur1edk5oe2n
-                        WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
-                        AND "de_value" IS NOT NULL
-                        AND ps = 'stage1'
-                        ORDER BY occurreddate DESC
-                        LIMIT 1
-                    ) IS NOT NULL
-                )
-                SELECT * FROM analytics_enrollment_ur1edk5oe2n;
-                """;
+        WITH pi_inputcte AS (
+            SELECT subax.enrollment
+            FROM analytics_enrollment_ur1edk5oe2n AS subax
+            WHERE (
+                SELECT scheduleddate
+                FROM analytics_event_ur1edk5oe2n
+                WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                AND scheduleddate IS NOT NULL
+                ORDER BY occurreddate DESC
+                LIMIT 1
+            ) IS NOT NULL
+            AND (
+                SELECT "de_value"
+                FROM analytics_event_ur1edk5oe2n
+                WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                AND "de_value" IS NOT NULL
+                AND ps = 'stage1'
+                ORDER BY occurreddate DESC
+                LIMIT 1
+            ) IS NOT NULL
+        )
+        SELECT * FROM analytics_enrollment_ur1edk5oe2n;
+        """;
 
     Select select = (Select) CCJSqlParserUtil.parse(withItemSql);
     WithItem withItem = select.getWithItemsList().get(0);
@@ -196,20 +197,20 @@ class CteDecomposerTest {
   void t3() throws JSQLParserException {
     String withItemSql =
         """
-                WITH pi_inputcte AS (
-                    SELECT subax.enrollment
-                    FROM analytics_enrollment_ur1edk5oe2n AS subax
-                    WHERE (
-                        (select
-                            sum(relationship_count)
-                        from
-                            analytics_rs_relationship arr
-                        where
-                            arr.trackedentityid = subax.trackedentity) > 10
-                    )
-                )
-                SELECT * FROM analytics_enrollment_ur1edk5oe2n;
-                """;
+        WITH pi_inputcte AS (
+            SELECT subax.enrollment
+            FROM analytics_enrollment_ur1edk5oe2n AS subax
+            WHERE (
+                (select
+                    sum(relationship_count)
+                from
+                    analytics_rs_relationship arr
+                where
+                    arr.trackedentityid = subax.trackedentity) > 10
+            )
+        )
+        SELECT * FROM analytics_enrollment_ur1edk5oe2n;
+        """;
 
     Select select = (Select) CCJSqlParserUtil.parse(withItemSql);
 
@@ -233,17 +234,17 @@ class CteDecomposerTest {
     String sql =
         String.format(
             """
-        WITH pi_inputcte AS (
-            SELECT subax.enrollment
-            FROM analytics_enrollment_ur1edk5oe2n AS subax
-            WHERE (
-                SELECT relationship_count
-                FROM analytics_rs_relationship arr
-                WHERE arr.trackedentityid = subax.trackedentity
-            ) %s 10
-        )
-        SELECT * FROM analytics_enrollment_ur1edk5oe2n;
-        """,
+            WITH pi_inputcte AS (
+                SELECT subax.enrollment
+                FROM analytics_enrollment_ur1edk5oe2n AS subax
+                WHERE (
+                    SELECT relationship_count
+                    FROM analytics_rs_relationship arr
+                    WHERE arr.trackedentityid = subax.trackedentity
+                ) %s 10
+            )
+            SELECT * FROM analytics_enrollment_ur1edk5oe2n;
+            """,
             operator);
 
     assertCteDecomposition(sql, 1, "relationship_count");
@@ -259,29 +260,29 @@ class CteDecomposerTest {
     String sql =
         String.format(
             """
-        WITH pi_inputcte AS (
-            SELECT subax.enrollment
-            FROM analytics_enrollment_ur1edk5oe2n AS subax
-            WHERE (
-                SELECT scheduleddate
-                FROM analytics_event_ur1edk5oe2n
-                WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
-                AND scheduleddate IS NOT NULL
-                ORDER BY occurreddate DESC
-                LIMIT 1
-            ) IS NOT NULL
-            %s (
-                SELECT "de_value"
-                FROM analytics_event_ur1edk5oe2n
-                WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
-                AND "de_value" IS NOT NULL
-                AND ps = 'stage1'
-                ORDER BY occurreddate DESC
-                LIMIT 1
-            ) IS NOT NULL
-        )
-        SELECT * FROM analytics_enrollment_ur1edk5oe2n;
-        """,
+            WITH pi_inputcte AS (
+                SELECT subax.enrollment
+                FROM analytics_enrollment_ur1edk5oe2n AS subax
+                WHERE (
+                    SELECT scheduleddate
+                    FROM analytics_event_ur1edk5oe2n
+                    WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                    AND scheduleddate IS NOT NULL
+                    ORDER BY occurreddate DESC
+                    LIMIT 1
+                ) IS NOT NULL
+                %s (
+                    SELECT "de_value"
+                    FROM analytics_event_ur1edk5oe2n
+                    WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                    AND "de_value" IS NOT NULL
+                    AND ps = 'stage1'
+                    ORDER BY occurreddate DESC
+                    LIMIT 1
+                ) IS NOT NULL
+            )
+            SELECT * FROM analytics_enrollment_ur1edk5oe2n;
+            """,
             operator);
 
     assertCteDecomposition(sql, 2, "last_sched", "last_value_");
@@ -297,60 +298,177 @@ class CteDecomposerTest {
     assertCteDecomposition(testCase.sql(), testCase.expectedCtes(), testCase.expectedPatterns());
   }
 
+  @Test
+  void shouldDecomposeSubqueryInSelectClause() throws JSQLParserException {
+    String withItemSql =
+        """
+            WITH pi_inputcte AS (
+                SELECT
+                    subax.enrollment,
+                    (
+                        SELECT scheduleddate
+                        FROM analytics_event_ur1edk5oe2n
+                        WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                        AND scheduleddate IS NOT NULL
+                        ORDER BY occurreddate DESC
+                        LIMIT 1
+                    ) AS last_scheduled_date
+                FROM analytics_enrollment_ur1edk5oe2n AS subax
+            )
+            SELECT * FROM analytics_enrollment_ur1edk5oe2n;
+            """;
+
+    Select select = (Select) CCJSqlParserUtil.parse(withItemSql);
+    WithItem withItem = select.getWithItemsList().get(0);
+    CteDecomposer decomposer = new CteDecomposer();
+    DecomposedCtes result = decomposer.processCTE(List.of(withItem));
+
+    // Verify the result
+    assertNotNull(result, "Result should not be null");
+    assertEquals(1, result.ctes().size(), "Should find one subquery in SELECT clause");
+
+    // Verify specific patterns were found
+    List<String> cteNames = result.ctes().stream().map(GeneratedCte::name).toList();
+    assertTrue(cteNames.contains("last_sched"), "Should contain last_sched CTE");
+  }
+
+  @Test
+  void shouldDecomposeSubqueriesInBothWhereAndSelectClauses() throws JSQLParserException {
+    String withItemSql =
+        """
+            WITH pi_inputcte AS (
+                SELECT
+                    subax.enrollment,
+                    (
+                        SELECT "de_value"
+                        FROM analytics_event_ur1edk5oe2n
+                        WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                        AND "de_value" IS NOT NULL
+                        AND ps = 'stage1'
+                        ORDER BY occurreddate DESC
+                        LIMIT 1
+                    ) AS last_data_element_value
+                FROM analytics_enrollment_ur1edk5oe2n AS subax
+                WHERE (
+                    SELECT relationship_count
+                    FROM analytics_rs_relationship arr
+                    WHERE arr.trackedentityid = subax.trackedentity
+                ) > 0
+            )
+            SELECT * FROM analytics_enrollment_ur1edk5oe2n;
+            """;
+
+    Select select = (Select) CCJSqlParserUtil.parse(withItemSql);
+    WithItem withItem = select.getWithItemsList().get(0);
+    CteDecomposer decomposer = new CteDecomposer();
+    DecomposedCtes result = decomposer.processCTE(List.of(withItem));
+
+    // Verify the result
+    assertNotNull(result, "Result should not be null");
+    assertEquals(
+        2, result.ctes().size(), "Should find two subqueries (one in SELECT, one in WHERE)");
+
+    // Verify specific patterns were found
+    List<String> cteNames = result.ctes().stream().map(GeneratedCte::name).toList();
+    assertTrue(
+        cteNames.stream().anyMatch(name -> name.startsWith("last_value_")),
+        "Should contain last_value CTE for SELECT subquery");
+    assertTrue(
+        cteNames.contains("relationship_count"),
+        "Should contain relationship_count CTE for WHERE subquery");
+  }
+
+  @ParameterizedTest
+  @MethodSource("selectExpressionTestCases")
+  void shouldHandleSubqueriesInSelectExpressions(String expression, String expectedCteName)
+      throws JSQLParserException {
+    String sql =
+        String.format(
+            """
+                    WITH pi_inputcte AS (
+                        SELECT
+                            subax.enrollment,
+                            %s AS calculated_value
+                        FROM analytics_enrollment_ur1edk5oe2n AS subax
+                    )
+                    SELECT * FROM analytics_enrollment_ur1edk5oe2n;
+                    """,
+            expression);
+
+    Select select = (Select) CCJSqlParserUtil.parse(sql);
+    WithItem withItem = select.getWithItemsList().get(0);
+    CteDecomposer decomposer = new CteDecomposer();
+    DecomposedCtes result = decomposer.processCTE(List.of(withItem));
+
+    assertNotNull(result, "Result should not be null");
+    assertEquals(1, result.ctes().size(), "Should find exactly one subquery");
+    assertEquals(expectedCteName, result.ctes().get(0).name(), "Should match expected CTE name");
+  }
+
+  static Stream<Arguments> selectExpressionTestCases() {
+    return Stream.of(
+        Arguments.of(
+            "(SELECT scheduleddate FROM analytics_event_ur1edk5oe2n WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment AND scheduleddate IS NOT NULL ORDER BY occurreddate DESC LIMIT 1)",
+            "last_sched"),
+        Arguments.of(
+            "(SELECT created FROM analytics_event_ur1edk5oe2n WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment AND created IS NOT NULL ORDER BY occurreddate DESC LIMIT 1)",
+            "last_created"));
+  }
+
   static Stream<SpecialOperatorTestCase> specialOperatorTestCases() {
     return Stream.of(
         // IS NULL case
         new SpecialOperatorTestCase(
             """
-                        WITH pi_inputcte AS (
-                            SELECT subax.enrollment
-                            FROM analytics_enrollment_ur1edk5oe2n AS subax
-                            WHERE (
-                                SELECT scheduleddate
-                                FROM analytics_event_ur1edk5oe2n
-                                WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
-                                AND scheduleddate IS NOT NULL
-                                ORDER BY occurreddate DESC
-                                LIMIT 1
-                            ) IS NOT NULL
-                        )
-                        SELECT * FROM analytics_enrollment_ur1edk5oe2n;
-                        """,
+                WITH pi_inputcte AS (
+                    SELECT subax.enrollment
+                    FROM analytics_enrollment_ur1edk5oe2n AS subax
+                    WHERE (
+                        SELECT scheduleddate
+                        FROM analytics_event_ur1edk5oe2n
+                        WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                        AND scheduleddate IS NOT NULL
+                        ORDER BY occurreddate DESC
+                        LIMIT 1
+                    ) IS NOT NULL
+                )
+                SELECT * FROM analytics_enrollment_ur1edk5oe2n;
+                """,
             1,
             new String[] {"last_sched"}),
         // IN case
         new SpecialOperatorTestCase(
             """
-                        WITH pi_inputcte AS (
-                            SELECT subax.enrollment
-                            FROM analytics_enrollment_ur1edk5oe2n AS subax
-                            WHERE subax.enrollment IN (
-                                SELECT scheduleddate
-                                FROM analytics_event_ur1edk5oe2n
-                                WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
-                                AND scheduleddate IS NOT NULL
-                                ORDER BY occurreddate DESC
-                                LIMIT 1
-                            )
-                        )
-                        SELECT * FROM analytics_enrollment_ur1edk5oe2n;
-                        """,
+                WITH pi_inputcte AS (
+                    SELECT subax.enrollment
+                    FROM analytics_enrollment_ur1edk5oe2n AS subax
+                    WHERE subax.enrollment IN (
+                        SELECT scheduleddate
+                        FROM analytics_event_ur1edk5oe2n
+                        WHERE analytics_event_ur1edk5oe2n.enrollment = subax.enrollment
+                        AND scheduleddate IS NOT NULL
+                        ORDER BY occurreddate DESC
+                        LIMIT 1
+                    )
+                )
+                SELECT * FROM analytics_enrollment_ur1edk5oe2n;
+                """,
             1,
             new String[] {"last_sched"}),
         // BETWEEN case
         new SpecialOperatorTestCase(
             """
-                        WITH pi_inputcte AS (
-                            SELECT subax.enrollment
-                            FROM analytics_enrollment_ur1edk5oe2n AS subax
-                            WHERE 5 BETWEEN (
-                                SELECT relationship_count
-                                FROM analytics_rs_relationship arr
-                                WHERE arr.trackedentityid = subax.trackedentity
-                            ) AND 10
-                        )
-                        SELECT * FROM analytics_enrollment_ur1edk5oe2n;
-                        """,
+                WITH pi_inputcte AS (
+                    SELECT subax.enrollment
+                    FROM analytics_enrollment_ur1edk5oe2n AS subax
+                    WHERE 5 BETWEEN (
+                        SELECT relationship_count
+                        FROM analytics_rs_relationship arr
+                        WHERE arr.trackedentityid = subax.trackedentity
+                    ) AND 10
+                )
+                SELECT * FROM analytics_enrollment_ur1edk5oe2n;
+                """,
             1,
             new String[] {"relationship_count"}));
   }

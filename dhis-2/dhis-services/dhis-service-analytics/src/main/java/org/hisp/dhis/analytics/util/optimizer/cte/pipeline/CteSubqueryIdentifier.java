@@ -34,6 +34,8 @@ import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.statement.select.SelectExpressionItem;
+import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.select.SelectVisitorAdapter;
 import net.sf.jsqlparser.statement.select.SubSelect;
 import net.sf.jsqlparser.statement.select.WithItem;
@@ -86,7 +88,8 @@ public class CteSubqueryIdentifier implements SqlOptimizationStep {
    */
   private boolean isQualifyingPiCte(WithItem withItem) {
     return withItem.getName().toLowerCase().startsWith(CTE_IDENTIFIER)
-        && hasCorrelatedSubqueryInWhereClause(withItem);
+        && (hasCorrelatedSubqueryInWhereClause(withItem)
+            || hasCorrelatedSubqueryInSelectClause(withItem));
   }
 
   /**
@@ -158,5 +161,38 @@ public class CteSubqueryIdentifier implements SqlOptimizationStep {
               }
             });
     return isCorrelated.get(); // Only need to check for correlation
+  }
+
+  private boolean hasCorrelatedSubqueryInSelectClause(WithItem withItem) {
+    AtomicBoolean hasSubquery = new AtomicBoolean(false);
+
+    withItem
+        .getSubSelect()
+        .getSelectBody()
+        .accept(
+            new SelectVisitorAdapter() {
+              @Override
+              public void visit(PlainSelect plainSelect) {
+                List<SelectItem> selectItems = plainSelect.getSelectItems();
+                if (selectItems != null) {
+                  for (SelectItem item : selectItems) {
+                    if (item instanceof SelectExpressionItem sei) {
+                      sei.getExpression()
+                          .accept(
+                              new ExpressionDeParser() {
+                                @Override
+                                public void visit(SubSelect subSelect) {
+                                  if (isCorrelatedSubquery(subSelect)) {
+                                    hasSubquery.set(true);
+                                  }
+                                  super.visit(subSelect);
+                                }
+                              });
+                    }
+                  }
+                }
+              }
+            });
+    return hasSubquery.get();
   }
 }
