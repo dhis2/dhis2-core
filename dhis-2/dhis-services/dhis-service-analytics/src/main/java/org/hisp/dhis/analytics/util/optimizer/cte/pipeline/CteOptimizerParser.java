@@ -45,7 +45,7 @@ public class CteOptimizerParser implements SqlOptimizationStep {
    * @throws CteOptimizerException if an error occurs during parsing
    */
   public Statement parse(String sql) {
-    if (StringUtils.isEmpty(sql)) {
+    if (StringUtils.isBlank(sql)) {
       throw new CteOptimizerException("SQL is empty");
     }
     try {

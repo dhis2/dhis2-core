@@ -59,7 +59,7 @@ public class RelationshipCountMatcher extends AbstractCountMatcher {
       return Optional.empty();
     }
 
-    Optional<Expression> selectExpr = hasSingleExpression(plain);
+    Optional<Expression> selectExpr = getSingleExpression(plain);
     if (selectExpr.isEmpty()) {
       return Optional.empty();
     }

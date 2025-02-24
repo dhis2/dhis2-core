@@ -183,7 +183,7 @@ public class SubqueryTransformer {
              from %s
              where %s is not null
            ) t
-           WHERE rn = 1
+           where rn = 1
            """
         .formatted(columnName, columnName, table, columnName);
   }

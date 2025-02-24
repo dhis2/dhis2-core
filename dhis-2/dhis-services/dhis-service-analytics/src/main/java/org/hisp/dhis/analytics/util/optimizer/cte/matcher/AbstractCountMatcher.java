@@ -41,6 +41,7 @@ import net.sf.jsqlparser.statement.select.SelectBody;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.select.SubSelect;
+import org.apache.commons.collections4.CollectionUtils;
 
 public abstract class AbstractCountMatcher implements SubselectMatcher {
 
@@ -52,9 +53,9 @@ public abstract class AbstractCountMatcher implements SubselectMatcher {
     return Optional.of((PlainSelect) selectBody);
   }
 
-  protected Optional<Expression> hasSingleExpression(PlainSelect select) {
+  protected Optional<Expression> getSingleExpression(PlainSelect select) {
     List<SelectItem> selectItems = select.getSelectItems();
-    if (selectItems == null || selectItems.size() != 1) {
+    if (CollectionUtils.size(selectItems) != 1) {
       return Optional.empty();
     }
     SelectItem item = selectItems.get(0);

@@ -52,7 +52,7 @@ public class DataElementCountMatcher extends AbstractCountMatcher {
     }
     PlainSelect plain = maybePlain.get();
 
-    Optional<Expression> selectExpr = hasSingleExpression(plain);
+    Optional<Expression> selectExpr = getSingleExpression(plain);
     if (selectExpr.isEmpty()) {
       return Optional.empty();
     }

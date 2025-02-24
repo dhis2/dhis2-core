@@ -37,6 +37,7 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.statement.select.SelectItem;
 import net.sf.jsqlparser.statement.select.SubSelect;
+import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.analytics.util.optimizer.cte.data.FoundSubSelect;
 
 /** An abstract matcher that implements the common logic for matching last-value subselects. */
@@ -104,7 +105,7 @@ public abstract class AbstractLastValueMatcher implements SubselectMatcher {
    * @param col the column from the SELECT clause.
    * @return true if the column meets the expected criteria.
    */
-  protected abstract boolean validateColumn(Column co);
+  protected abstract boolean validateColumn(Column col);
 
   /**
    * Provides the CTE name for the matched subselect.
@@ -137,7 +138,7 @@ public abstract class AbstractLastValueMatcher implements SubselectMatcher {
 
   protected Optional<SelectExpressionItem> extractSingleSelectExpressionItem(PlainSelect plain) {
     List<SelectItem> items = plain.getSelectItems();
-    if (items == null || items.size() != 1) {
+    if (CollectionUtils.size(items) != 1) {
       return Optional.empty();
     }
     SelectItem item = items.get(0);

@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.util.optimizer.cte.transformer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
@@ -73,7 +74,7 @@ public class FunctionTransformer {
           transformFunction(FUNCTION_EXTRACT, true, function);
       default ->
           // For any other function, keep the original name and
-          // choose whether or not to use brackets (example: false).
+          // choose whether to use brackets (example: false).
           transformFunction(function.getName(), false, function);
     };
   }
@@ -123,17 +124,11 @@ public class FunctionTransformer {
    * 'hasChanges' flag to indicate if any expression changed.
    */
   private ProcessedExpressions processExpressions(List<Expression> expressions) {
-    List<Expression> transformed = new ArrayList<>(expressions.size());
-    boolean changed = false;
+    List<Expression> nonNullExpressions = expressions.stream().filter(Objects::nonNull).toList();
+    List<Expression> transformed = new ArrayList<>(nonNullExpressions.size());
+    boolean changed = expressions.size() != nonNullExpressions.size();
 
-    for (Expression expr : expressions) {
-      if (expr == null) {
-        // Just add null if that’s valid in your context
-        transformed.add(null);
-        continue;
-      }
-
-      // Recursively visit the param expression using the parent visitor
+    for (Expression expr : nonNullExpressions) {
       expr.accept(parentVisitor);
       Expression afterVisit = parentVisitor.getTransformedExpression();
 
