@@ -300,6 +300,11 @@
       <groupId>joda-time</groupId>
       <artifactId>joda-time</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.nimbusds</groupId>
+      <artifactId>nimbus-jose-jwt</artifactId>
+      <scope>compile</scope>
+    </dependency>
 
     <dependency>
       <groupId>io.micrometer</groupId>
