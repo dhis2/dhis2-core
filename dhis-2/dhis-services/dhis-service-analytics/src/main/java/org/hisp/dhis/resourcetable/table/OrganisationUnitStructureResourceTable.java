@@ -132,7 +132,7 @@ public class OrganisationUnitStructureResourceTable implements ResourceTable {
         values.add(unit.getId());
         values.add(unit.getUid());
         values.add(level);
-        values.add(unit.getPath());
+        values.add(unit.getStoredPath());
 
         Map<Integer, Long> identifiers = new HashMap<>();
         Map<Integer, String> uids = new HashMap<>();
