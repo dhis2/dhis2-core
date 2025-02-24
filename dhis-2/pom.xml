@@ -168,7 +168,7 @@
     <jts.version>1.20.0</jts.version>
 
     <!-- Apache Artemis -->
-    <artemis-jakarta.version>2.38.0</artemis-jakarta.version>
+    <artemis-jakarta.version>2.39.0</artemis-jakarta.version>
     <netty-all.version>4.1.118.Final</netty-all.version>
     <classgraph.version>4.8.179</classgraph.version>
 
