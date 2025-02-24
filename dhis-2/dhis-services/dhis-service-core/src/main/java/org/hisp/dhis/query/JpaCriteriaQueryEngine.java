@@ -54,6 +54,7 @@ import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.query.operators.Operator;
 import org.hisp.dhis.query.operators.TokenOperator;
+import org.hisp.dhis.query.planner.QueryPath;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.setting.UserSettings;
@@ -232,7 +233,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     if (filter == null || filter.getOperator() == null) return null;
     if (!filter.isVirtual()) {
       if (filter.getOperator().getClass().isAssignableFrom(TokenOperator.class))
-        setQueryPathLocale(filter);
+        setQueryPathLocale(filter.getQueryPath());
       return filter.getOperator().getPredicate(builder, root, filter.getQueryPath());
     }
     // handle special cases:
@@ -246,7 +247,11 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     Predicate or = builder.disjunction();
     Operator<?> op = filter.getOperator();
     Function<String, Predicate> getPredicate =
-        path -> op.getPredicate(builder, root, schemaService.getQueryPath(query.getSchema(), path));
+        path -> {
+          QueryPath p = schemaService.getQueryPath(query.getSchema(), path);
+          setQueryPathLocale(p);
+          return op.getPredicate(builder, root, p);
+        };
     Consumer<Predicate> add =
         predicate -> {
           if (predicate != null) or.getExpressions().add(predicate);
@@ -280,9 +285,9 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
    * locale if available, otherwise the system setting DB_Locale. If neither is available, the
    * {@link LocaleManager#DEFAULT_LOCALE} is used.
    *
-   * @param filter the {@link Restriction} which contains the query path.
+   * @param path of the {@link Restriction}
    */
-  private static void setQueryPathLocale(Restriction filter) {
-    filter.getQueryPath().setLocale(UserSettings.getCurrentSettings().getUserDbLocale());
+  private static void setQueryPathLocale(QueryPath path) {
+    path.setLocale(UserSettings.getCurrentSettings().getUserDbLocale());
   }
 }

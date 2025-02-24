@@ -120,39 +120,38 @@ public class InMemoryQueryEngine implements QueryEngine {
   private <T> boolean test(Query query, T object) {
     if (query.getRootJunctionType() == Junction.Type.OR) {
       // OR
-      for (Restriction restriction : query.getFilters()) {
-        if (test(query, object, restriction)) return true;
+      for (Restriction filter : query.getFilters()) {
+        if (test(query, object, filter)) return true;
       }
       return false;
     }
     // AND
-    for (Restriction restriction : query.getFilters()) {
-      if (!test(query, object, restriction)) return false;
+    for (Restriction filter : query.getFilters()) {
+      if (!test(query, object, filter)) return false;
     }
     return true;
   }
 
-  private <T> boolean test(Query query, T object, Restriction restriction) {
-    if (restriction.isVirtual()) {
-      if (restriction.isMentions()) return testMentions(query, object, restriction);
-      if (restriction.isIdentifiable()) return testIdentifiable(query, object, restriction);
-      if (restriction.isQuery()) return testQuery(query, object, restriction);
-      throw new UnsupportedOperationException(
-          "Special filter is not implemented yet :/ " + restriction);
+  private <T> boolean test(Query query, T object, Restriction filter) {
+    if (filter.isVirtual()) {
+      if (filter.isMentions()) return testMentions(query, object, filter);
+      if (filter.isIdentifiable()) return testIdentifiable(query, object, filter);
+      if (filter.isQuery()) return testQuery(query, object, filter);
+      throw new UnsupportedOperationException("Special filter is not implemented yet :/ " + filter);
     }
-    Object value = getValue(query, object, restriction);
-    if (!(value instanceof Collection<?> collection)) return restriction.getOperator().test(value);
-    return collection.stream().anyMatch(item -> restriction.getOperator().test(item));
+    Object value = getValue(query, object, filter);
+    if (!(value instanceof Collection<?> collection)) return filter.getOperator().test(value);
+    return collection.stream().anyMatch(item -> filter.getOperator().test(item));
   }
 
-  private <T> boolean testMentions(Query query, T object, Restriction restriction) {
-    Operator<?> op = restriction.getOperator();
+  private <T> boolean testMentions(Query query, T object, Restriction filter) {
+    Operator<?> op = filter.getOperator();
     return test(query, object, in("mentions.username", op.getArgs()))
         || test(query, object, in("comments.mentions.username", op.getArgs()));
   }
 
-  private <T> boolean testIdentifiable(Query query, T object, Restriction restriction) {
-    Operator<?> op = restriction.getOperator();
+  private <T> boolean testIdentifiable(Query query, T object, Restriction filter) {
+    Operator<?> op = filter.getOperator();
     return test(query, object, new Restriction("id", op))
         || test(query, object, new Restriction("code", op))
         || test(query, object, new Restriction("name", op))
