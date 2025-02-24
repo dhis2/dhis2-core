@@ -1484,11 +1484,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     return uids(eventService.getEvents(params));
   }
 
-  private List<String> getEvents(EventOperationParams params, PageParams pageParams)
-      throws ForbiddenException, BadRequestException {
-    return uids(eventService.getEvents(params, pageParams).getItems());
-  }
-
   private List<String> getRelationships(RelationshipOperationParams params)
       throws ForbiddenException, BadRequestException, NotFoundException {
     return uids(relationshipService.getRelationships(params));
