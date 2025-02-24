@@ -251,7 +251,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
         predicate -> {
           if (predicate != null) or.getExpressions().add(predicate);
         };
-    add.accept(getPredicate.apply("uid"));
+    add.accept(getPredicate.apply("id"));
     add.accept(getPredicate.apply("code"));
     add.accept(getPredicate.apply("name"));
     if (query.getSchema().hasPersistedProperty("shortName"))
