@@ -29,13 +29,10 @@ package org.hisp.dhis.query.planner;
 
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.Restriction;
-import org.hisp.dhis.query.operators.TokenOperator;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.setting.UserSettings;
 import org.springframework.stereotype.Component;
 
 /**
@@ -82,11 +79,6 @@ public class DefaultQueryPlanner implements QueryPlanner {
         restriction.setQueryPath(
             schemaService.getQueryPath(query.getSchema(), restriction.getPath()));
 
-      if (restriction.getOperator().getClass().isAssignableFrom(TokenOperator.class)) {
-        // TODO remove Locale from Restriction and get from query
-        setQueryPathLocale(restriction);
-      }
-
       if (isDbFilter(restriction)) {
         dbQuery.add(restriction);
       } else {
@@ -109,16 +101,5 @@ public class DefaultQueryPlanner implements QueryPlanner {
         && path.isPersisted()
         && !path.haveAlias()
         && !Attribute.ObjectType.isValidType(path.getPath());
-  }
-
-  /**
-   * Set the current locale on the query path. The current locale is the user's selected database
-   * locale if available, otherwise the system setting DB_Locale. If neither is available, the
-   * {@link LocaleManager#DEFAULT_LOCALE} is used.
-   *
-   * @param restriction the {@link Restriction} which contains the query path.
-   */
-  private void setQueryPathLocale(Restriction restriction) {
-    restriction.getQueryPath().setLocale(UserSettings.getCurrentSettings().getUserDbLocale());
   }
 }

@@ -96,8 +96,9 @@ public class DefaultQueryParser implements QueryParser {
 
   private Restriction getRestriction(Schema schema, String path, String operator, Object arg)
       throws QueryParserException {
-    Property property = getProperty(schema, path);
+    if ("identifiable".equals(path)) return getRestriction(null, String.class, path, operator, arg);
 
+    Property property = getProperty(schema, path);
     if (property == null) {
       if (!CodeGenerator.isValidUid(path.substring(path.indexOf('.') + 1))) {
         throw new QueryParserException("Unknown path property: " + path);

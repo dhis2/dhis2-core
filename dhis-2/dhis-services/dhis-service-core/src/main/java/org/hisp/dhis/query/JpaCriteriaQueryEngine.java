@@ -50,9 +50,12 @@ import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
+import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.query.operators.Operator;
+import org.hisp.dhis.query.operators.TokenOperator;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -226,8 +229,11 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
   private <Y> Predicate queryFilter(
       CriteriaBuilder builder, Root<Y> root, Restriction restriction, Query query) {
     if (restriction == null || restriction.getOperator() == null) return null;
-    if (!restriction.isVirtual())
+    if (!restriction.isVirtual()) {
+      if (restriction.getOperator().getClass().isAssignableFrom(TokenOperator.class))
+        setQueryPathLocale(restriction);
       return restriction.getOperator().getPredicate(builder, root, restriction.getQueryPath());
+    }
     // handle special cases:
     if (restriction.isIdentifiable())
       return queryIdentifiableFilter(builder, root, restriction, query);
@@ -261,5 +267,16 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
             stringPredicateIgnoreCase(
                 builder, root.get("name"), value, JpaQueryUtils.StringSearchMode.ANYWHERE));
     return or;
+  }
+
+  /**
+   * Set the current locale on the query path. The current locale is the user's selected database
+   * locale if available, otherwise the system setting DB_Locale. If neither is available, the
+   * {@link LocaleManager#DEFAULT_LOCALE} is used.
+   *
+   * @param restriction the {@link Restriction} which contains the query path.
+   */
+  private static void setQueryPathLocale(Restriction restriction) {
+    restriction.getQueryPath().setLocale(UserSettings.getCurrentSettings().getUserDbLocale());
   }
 }
