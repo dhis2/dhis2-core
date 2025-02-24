@@ -42,6 +42,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -94,7 +95,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     CriteriaQuery<T> criteriaQuery = builder.createQuery(klass);
     Root<T> root = criteriaQuery.from(klass);
 
-    Predicate predicate = queryFilters(builder, root, query);
+    Predicate predicate = buildFilters(builder, root, query);
     addSharingFilters(query, schema, predicate, store, builder, root);
     criteriaQuery.where(predicate);
 
@@ -160,7 +161,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
 
     criteriaQuery.select(builder.count(root));
 
-    Predicate predicate = queryFilters(builder, root, query);
+    Predicate predicate = buildFilters(builder, root, query);
     addSharingFilters(query, schema, predicate, store, builder, root);
     criteriaQuery.where(predicate);
 
@@ -206,8 +207,8 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     return (InternalHibernateGenericStore<E>) stores.get(klass);
   }
 
-  private <Y> Predicate queryFilters(CriteriaBuilder builder, Root<Y> root, Query query) {
-    if (query.getCriterions().isEmpty()) return builder.conjunction();
+  private <Y> Predicate buildFilters(CriteriaBuilder builder, Root<Y> root, Query query) {
+    if (query.getFilters().isEmpty()) return builder.conjunction();
 
     Predicate rootJunction =
         switch (query.getRootJunctionType()) {
@@ -215,57 +216,62 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
           case OR -> builder.disjunction();
         };
 
-    for (Restriction restriction : query.getCriterions()) {
-      Predicate filter = queryFilter(builder, root, restriction, query);
-      if (filter != null) rootJunction.getExpressions().add(filter);
+    for (Restriction filter : query.getFilters()) {
+      Predicate predicate = buildFilter(builder, root, filter, query);
+      if (predicate != null) rootJunction.getExpressions().add(predicate);
     }
 
     Set<String> aliases = new HashSet<>();
-    query.getCriterions().stream().flatMap(Restriction::aliases).forEach(aliases::add);
+    query.getFilters().stream().flatMap(Restriction::aliases).forEach(aliases::add);
     aliases.forEach(alias -> root.get(alias).alias(alias));
     return rootJunction;
   }
 
-  private <Y> Predicate queryFilter(
-      CriteriaBuilder builder, Root<Y> root, Restriction restriction, Query query) {
-    if (restriction == null || restriction.getOperator() == null) return null;
-    if (!restriction.isVirtual()) {
-      if (restriction.getOperator().getClass().isAssignableFrom(TokenOperator.class))
-        setQueryPathLocale(restriction);
-      return restriction.getOperator().getPredicate(builder, root, restriction.getQueryPath());
+  private <Y> Predicate buildFilter(
+      CriteriaBuilder builder, Root<Y> root, Restriction filter, Query query) {
+    if (filter == null || filter.getOperator() == null) return null;
+    if (!filter.isVirtual()) {
+      if (filter.getOperator().getClass().isAssignableFrom(TokenOperator.class))
+        setQueryPathLocale(filter);
+      return filter.getOperator().getPredicate(builder, root, filter.getQueryPath());
     }
     // handle special cases:
-    if (restriction.isIdentifiable())
-      return queryIdentifiableFilter(builder, root, restriction, query);
-    if (restriction.isQuery()) return queryQueryFilter(builder, root, restriction);
-    throw new UnsupportedOperationException(
-        "Special filter is not implemented yet :/ " + restriction);
+    if (filter.isIdentifiable()) return buildIdentifiableFilter(builder, root, filter, query);
+    if (filter.isQuery()) return buildQueryFilter(builder, root, filter);
+    throw new UnsupportedOperationException("Special filter is not implemented yet :/ " + filter);
   }
 
-  private <Y> Predicate queryIdentifiableFilter(
-      CriteriaBuilder builder, Root<Y> root, Restriction restriction, Query query) {
+  private <Y> Predicate buildIdentifiableFilter(
+      CriteriaBuilder builder, Root<Y> root, Restriction filter, Query query) {
     Predicate or = builder.disjunction();
-    Operator<?> op = restriction.getOperator();
+    Operator<?> op = filter.getOperator();
     Function<String, Predicate> getPredicate =
         path -> op.getPredicate(builder, root, schemaService.getQueryPath(query.getSchema(), path));
-    or.getExpressions().add(getPredicate.apply("id"));
-    or.getExpressions().add(getPredicate.apply("code"));
-    or.getExpressions().add(getPredicate.apply("name"));
+    Consumer<Predicate> add =
+        predicate -> {
+          if (predicate != null) or.getExpressions().add(predicate);
+        };
+    add.accept(getPredicate.apply("id"));
+    add.accept(getPredicate.apply("code"));
+    add.accept(getPredicate.apply("name"));
     if (query.getSchema().hasPersistedProperty("shortName"))
-      or.getExpressions().add(getPredicate.apply("shortName"));
+      add.accept(getPredicate.apply("shortName"));
     return or;
   }
 
-  private <Y> Predicate queryQueryFilter(
-      CriteriaBuilder builder, Root<Y> root, Restriction restriction) {
-    String value = (String) restriction.getOperator().getArgs().get(0);
+  private <Y> Predicate buildQueryFilter(
+      CriteriaBuilder builder, Root<Y> root, Restriction filter) {
+    String value = (String) filter.getOperator().getArgs().get(0);
     Predicate or = builder.disjunction();
-    or.getExpressions().add(builder.equal(root.get("id"), value));
-    or.getExpressions().add(builder.equal(root.get("code"), value));
-    or.getExpressions()
-        .add(
-            stringPredicateIgnoreCase(
-                builder, root.get("name"), value, JpaQueryUtils.StringSearchMode.ANYWHERE));
+    Consumer<Predicate> add =
+        predicate -> {
+          if (predicate != null) or.getExpressions().add(predicate);
+        };
+    add.accept(builder.equal(root.get("id"), value));
+    add.accept(builder.equal(root.get("code"), value));
+    add.accept(
+        stringPredicateIgnoreCase(
+            builder, root.get("name"), value, JpaQueryUtils.StringSearchMode.ANYWHERE));
     return or;
   }
 
@@ -274,9 +280,9 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
    * locale if available, otherwise the system setting DB_Locale. If neither is available, the
    * {@link LocaleManager#DEFAULT_LOCALE} is used.
    *
-   * @param restriction the {@link Restriction} which contains the query path.
+   * @param filter the {@link Restriction} which contains the query path.
    */
-  private static void setQueryPathLocale(Restriction restriction) {
-    restriction.getQueryPath().setLocale(UserSettings.getCurrentSettings().getUserDbLocale());
+  private static void setQueryPathLocale(Restriction filter) {
+    filter.getQueryPath().setLocale(UserSettings.getCurrentSettings().getUserDbLocale());
   }
 }

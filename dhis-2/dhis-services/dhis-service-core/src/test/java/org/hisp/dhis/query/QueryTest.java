@@ -70,6 +70,6 @@ class QueryTest {
     query.add(Restrictions.eq("id", "anc"));
     query.add(Restrictions.like("name", "anc", MatchMode.ANYWHERE));
     query.add(Restrictions.eq("code", "anc"));
-    assertEquals(3, query.getCriterions().size());
+    assertEquals(3, query.getFilters().size());
   }
 }

@@ -120,13 +120,13 @@ public class InMemoryQueryEngine implements QueryEngine {
   private <T> boolean test(Query query, T object) {
     if (query.getRootJunctionType() == Junction.Type.OR) {
       // OR
-      for (Restriction restriction : query.getCriterions()) {
+      for (Restriction restriction : query.getFilters()) {
         if (test(query, object, restriction)) return true;
       }
       return false;
     }
     // AND
-    for (Restriction restriction : query.getCriterions()) {
+    for (Restriction restriction : query.getFilters()) {
       if (!test(query, object, restriction)) return false;
     }
     return true;

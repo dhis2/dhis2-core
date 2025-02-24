@@ -47,7 +47,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
   @Override
   public QueryPlan planQuery(Query query) {
     // if only one filter, always set to Junction.Type AND
-    if (query.getCriterions().size() > 1 && Junction.Type.OR == query.getRootJunctionType()) {
+    if (query.getFilters().size() > 1 && Junction.Type.OR == query.getRootJunctionType()) {
       return new QueryPlan(Query.from(query.getSchema()), Query.copy(query));
     }
 
@@ -69,20 +69,19 @@ public class DefaultQueryPlanner implements QueryPlanner {
 
   private QueryPlan split(Query query) {
     Query memoryQuery = Query.copy(query);
-    memoryQuery.getCriterions().clear();
+    memoryQuery.getFilters().clear();
     Query dbQuery = Query.from(query.getSchema(), query.getRootJunctionType());
     dbQuery.setCurrentUserDetails(query.getCurrentUserDetails());
     dbQuery.setSkipSharing(query.isSkipSharing());
 
-    for (Restriction restriction : query.getCriterions()) {
-      if (!restriction.isVirtual())
-        restriction.setQueryPath(
-            schemaService.getQueryPath(query.getSchema(), restriction.getPath()));
+    for (Restriction filter : query.getFilters()) {
+      if (!filter.isVirtual())
+        filter.setQueryPath(schemaService.getQueryPath(query.getSchema(), filter.getPath()));
 
-      if (isDbFilter(restriction)) {
-        dbQuery.add(restriction);
+      if (isDbFilter(filter)) {
+        dbQuery.add(filter);
       } else {
-        memoryQuery.add(restriction);
+        memoryQuery.add(filter);
       }
     }
 
@@ -94,9 +93,9 @@ public class DefaultQueryPlanner implements QueryPlanner {
     return new QueryPlan(dbQuery, memoryQuery);
   }
 
-  private static boolean isDbFilter(Restriction restriction) {
-    if (restriction.isVirtual()) return restriction.isIdentifiable() || restriction.isQuery();
-    QueryPath path = restriction.getQueryPath();
+  private static boolean isDbFilter(Restriction filter) {
+    if (filter.isVirtual()) return filter.isIdentifiable() || filter.isQuery();
+    QueryPath path = filter.getQueryPath();
     return path != null
         && path.isPersisted()
         && !path.haveAlias()

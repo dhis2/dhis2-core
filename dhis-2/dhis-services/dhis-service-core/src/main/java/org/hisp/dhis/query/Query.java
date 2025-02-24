@@ -49,36 +49,36 @@ import org.hisp.dhis.user.UserDetails;
 @Getter
 @Setter
 @Accessors(chain = true)
-@ToString(onlyExplicitlyIncluded = true)
+@ToString
 public class Query {
 
-  @ToString.Include private final List<Restriction> criterions = new ArrayList<>();
+  private final List<Restriction> filters = new ArrayList<>();
 
-  @Getter private final Schema schema;
+  @ToString.Exclude @Getter private final Schema schema;
 
-  private UserDetails currentUserDetails;
+  @ToString.Exclude private UserDetails currentUserDetails;
 
-  @ToString.Include private String locale;
+  private String locale;
 
-  @ToString.Include private final List<Order> orders = new ArrayList<>();
+  private final List<Order> orders = new ArrayList<>();
 
-  @ToString.Include private boolean skipPaging;
+  private boolean skipPaging;
 
-  @ToString.Include private boolean skipSharing;
+  private boolean skipSharing;
 
-  @ToString.Include private boolean dataSharing;
+  private boolean dataSharing;
 
-  @ToString.Include private Integer firstResult = 0;
+  private Integer firstResult = 0;
 
-  @ToString.Include private Integer maxResults = Integer.MAX_VALUE;
+  private Integer maxResults = Integer.MAX_VALUE;
 
-  @ToString.Include private final Junction.Type rootJunctionType;
+  private final Junction.Type rootJunctionType;
 
-  @ToString.Include private Defaults defaults = Defaults.EXCLUDE;
+  private Defaults defaults = Defaults.EXCLUDE;
 
-  @ToString.Include private boolean cacheable = true;
+  private boolean cacheable = true;
 
-  private List<? extends IdentifiableObject> objects;
+  @ToString.Exclude private List<? extends IdentifiableObject> objects;
 
   public static Query from(Schema schema) {
     return new Query(schema);
@@ -96,7 +96,7 @@ public class Query {
     clone.addOrders(query.getOrders());
     clone.setFirstResult(query.getFirstResult());
     clone.setMaxResults(query.getMaxResults());
-    clone.add(query.getCriterions());
+    clone.add(query.getFilters());
     clone.setObjects(query.getObjects());
 
     return clone;
@@ -112,7 +112,7 @@ public class Query {
   }
 
   public boolean isEmpty() {
-    return criterions.isEmpty() && orders.isEmpty();
+    return filters.isEmpty() && orders.isEmpty();
   }
 
   public boolean ordersPersisted() {
@@ -142,17 +142,17 @@ public class Query {
   }
 
   public Query add(Restriction criterion) {
-    this.criterions.add(criterion);
+    this.filters.add(criterion);
     return this;
   }
 
   public Query add(Restriction... criterions) {
-    this.criterions.addAll(asList(criterions));
+    this.filters.addAll(asList(criterions));
     return this;
   }
 
   public Query add(Collection<Restriction> criterions) {
-    this.criterions.addAll(criterions);
+    this.filters.addAll(criterions);
     return this;
   }
 
