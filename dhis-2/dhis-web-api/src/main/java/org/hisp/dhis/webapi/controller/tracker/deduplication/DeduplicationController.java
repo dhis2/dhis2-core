@@ -46,7 +46,6 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.PageParams;
-import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.deduplication.DeduplicationMergeParams;
 import org.hisp.dhis.tracker.deduplication.DeduplicationService;
 import org.hisp.dhis.tracker.deduplication.DeduplicationStatus;
@@ -81,14 +80,12 @@ import org.springframework.web.client.HttpStatusCodeException;
 public class DeduplicationController {
   private final DeduplicationService deduplicationService;
 
-  private final TrackerAccessManager trackerAccessManager;
-
   private final FieldFilterService fieldFilterService;
 
   private final TrackedEntityService trackedEntityService;
 
   private static final String DEFAULT_FIELDS_PARAM =
-      "id, created, lastUpdated, original, duplicate, status";
+      "id,created,lastUpdated,original,duplicate,status";
 
   @OpenApi.Response(PotentialDuplicate[].class)
   @GetMapping
@@ -227,13 +224,9 @@ public class DeduplicationController {
           PotentialDuplicateConflictException,
           BadRequestException {
     checkValidTrackedEntity(potentialDuplicate.getOriginal(), "original");
-
     checkValidTrackedEntity(potentialDuplicate.getDuplicate(), "duplicate");
-
     trackedEntityService.getTrackedEntity(potentialDuplicate.getOriginal());
-
     trackedEntityService.getTrackedEntity(potentialDuplicate.getDuplicate());
-
     checkAlreadyExistingDuplicate(potentialDuplicate);
   }
 

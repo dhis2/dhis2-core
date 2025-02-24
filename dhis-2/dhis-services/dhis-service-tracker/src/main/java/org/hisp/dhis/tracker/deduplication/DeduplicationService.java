@@ -34,8 +34,10 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 
 public interface DeduplicationService {
+  // TODO(ivo) remove this method if its not used?
   PotentialDuplicate getPotentialDuplicateById(long id);
 
+  // TODO(ivo) move throws into this method
   PotentialDuplicate getPotentialDuplicateByUid(@Nonnull UID uid);
 
   boolean exists(PotentialDuplicate potentialDuplicate) throws PotentialDuplicateConflictException;
