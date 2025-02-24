@@ -409,7 +409,7 @@ public abstract class AbstractFullReadOnlyController<
 
     cachePrivate(response);
 
-    T entity = !currentUser.isSuper() ? getEntity(pvUid) : getEntityNoAcl(pvUid);
+    T entity = getEntity(pvUid);
 
     GetObjectListParams listParams = params.toListParams();
     addProgrammaticFilters(listParams::addFilter); // temporary workaround
@@ -571,30 +571,5 @@ public abstract class AbstractFullReadOnlyController<
 
   protected final Schema getSchema(Class<?> klass) {
     return schemaService.getDynamicSchema(klass);
-  }
-
-  /**
-   * Get an entity without ACL checks.
-   *
-   * @param uid of the entity.
-   * @param entityType of the entity
-   * @return {@link java.util.Optional} contains the entity if found.
-   */
-  private final <E extends IdentifiableObject> java.util.Optional<E> getEntityNoAcl(
-      String uid, Class<E> entityType) {
-    return java.util.Optional.ofNullable(manager.getNoAcl(entityType, uid));
-  }
-
-  /**
-   * Get an entity without ACL checks.
-   *
-   * @param uid of the entity
-   * @return The entity if found.
-   * @throws NotFoundException
-   */
-  @Nonnull
-  private T getEntityNoAcl(String uid) throws NotFoundException {
-    return getEntityNoAcl(uid, getEntityClass())
-        .orElseThrow(() -> new NotFoundException(getEntityClass(), uid));
   }
 }
