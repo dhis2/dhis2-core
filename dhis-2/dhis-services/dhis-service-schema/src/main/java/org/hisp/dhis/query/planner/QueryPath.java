@@ -30,10 +30,8 @@ package org.hisp.dhis.query.planner;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import java.util.Arrays;
-import java.util.Locale;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.hisp.dhis.schema.Property;
 
 /**
@@ -48,12 +46,6 @@ public class QueryPath {
   private final Property property;
   private final boolean persisted;
   private final String[] alias;
-
-  /**
-   * If this locale is not null then the query must use the translations jsonb column instead of
-   * default properties.
-   */
-  @Setter private Locale locale;
 
   public QueryPath(Property property, boolean persisted) {
     this(property, persisted, new String[0]);
