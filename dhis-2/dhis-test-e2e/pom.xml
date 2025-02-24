@@ -28,7 +28,7 @@
     <commons-lang3.version>3.17.0</commons-lang3.version>
     <json-path.version>2.9.0</json-path.version>
     <jsonassert.version>1.5.3</jsonassert.version>
-    <awaitility.version>4.2.2</awaitility.version>
+    <awaitility.version>4.3.0</awaitility.version>
     <lombok.version>1.18.36</lombok.version>
     <allure.version>2.29.1</allure.version>
     <selenium-java.version>4.29.0</selenium-java.version>
