@@ -390,7 +390,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .append(getFromSubQueryJoinOrgUnitConditions(params))
             .append(getFromSubQueryJoinEnrollmentConditions(params))
 
-            // LEFT JOIN attributes we need to sort on.
+            // LEFT JOIN attributes we need to sort on and/or filter by.
             .append(getLeftJoinFromAttributes(params))
 
             // WHERE
