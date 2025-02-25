@@ -132,7 +132,8 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
     assertNoErrors(
         trackerImportService.importTracker(TrackerImportParams.builder().build(), trackerObjects));
 
-    TrackerObjects duplicateTrackedEntities = fromJson("tracker/potential_duplicates.json");
+    TrackerObjects duplicateTrackedEntities =
+        fromJson("tracker/deduplication/potential_duplicates.json");
     assertNoErrors(
         trackerImportService.importTracker(
             TrackerImportParams.builder().build(), duplicateTrackedEntities));
