@@ -40,6 +40,8 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.period.Period;
 
 /**
@@ -159,9 +161,23 @@ public class SubexpressionPeriodOffsetUtils {
   // Supportive methods
   // -------------------------------------------------------------------------
 
-  /** Gets the report periods from paramms as a list of Periods. */
+  /**
+   * Gets the report periods from the parameters, or if there are no report periods, gets the filter
+   * periods.
+   *
+   * @param params parameters with reporting periods
+   * @return the report periods
+   */
   private static List<Period> getReportPeriods(DataQueryParams params) {
-    return params.getPeriods().stream().map(Period.class::cast).toList();
+    List<Period> periods = params.getPeriods().stream().map(Period.class::cast).toList();
+
+    if (periods.isEmpty()) {
+      periods = params.getFilterPeriods().stream().map(Period.class::cast).toList();
+    }
+    if (periods.isEmpty()) {
+      throw new IllegalQueryException(ErrorCode.E7150, "No periods found in the parameters.");
+    }
+    return periods;
   }
 
   /** Gets the sorted, distinct period offsets from items within the subexpression. */

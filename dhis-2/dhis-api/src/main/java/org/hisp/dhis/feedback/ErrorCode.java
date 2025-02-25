@@ -475,6 +475,7 @@ public enum ErrorCode {
   E7147("Query failed because of a missing column: `{0}`"),
   E7148("Could not create CTE SQL query, unexpected error: `{0}`"),
   E7149("Invalid measure filter operator: `{0}`"),
+  E7150("No periods found for Subexpression query"),
   /* Analytics outliers */
 
   E7180(

@@ -172,7 +172,8 @@ public class JdbcSubexpressionQueryGenerator {
 
     String where = "where " + subex.getSubexSql() + " is not null ";
 
-    String groupBy = jam.getGroupByClause(paramsWithoutData);
+    String groupBy =
+        paramsWithoutData.getDimensions().isEmpty() ? "" : jam.getGroupByClause(paramsWithoutData);
 
     return select + from + where + groupBy;
   }
@@ -192,17 +193,13 @@ public class JdbcSubexpressionQueryGenerator {
 
     String value = subex.getSubexSql();
 
-    return "select "
-        + dimensions
-        + ","
-        + data
-        + ","
-        + aggregate
-        + "("
-        + value
-        + ") as "
-        + quote(VALUE)
-        + " ";
+    // Dimensions can be empty if the query is a Single Value query.
+    if (dimensions == null || dimensions.isEmpty()) {
+      return String.format("select %s,%s(%s) as %s ", data, aggregate, value, quote(VALUE));
+    } else {
+      return String.format(
+          "select %s,%s,%s(%s) as %s ", dimensions, data, aggregate, value, quote(VALUE));
+    }
   }
 
   /** Gets the from clause for the main query, which is a subquery. */
