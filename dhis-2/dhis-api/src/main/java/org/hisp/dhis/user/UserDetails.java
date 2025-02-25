@@ -123,6 +123,7 @@ public interface UserDetails
             .isTwoFactorEnabled(user.isTwoFactorEnabled())
             .twoFactorType(user.getTwoFactorType())
             .secret(user.getSecret())
+            .email(user.getEmail())
             .isEmailVerified(user.isEmailVerified())
             .firstName(user.getFirstName())
             .surname(user.getSurname())
