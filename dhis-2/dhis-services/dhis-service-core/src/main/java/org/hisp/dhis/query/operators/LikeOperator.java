@@ -43,25 +43,11 @@ public class LikeOperator<T extends Comparable<T>> extends Operator<T> {
 
   private final JpaQueryUtils.StringSearchMode jpaMatchMode;
 
-  private final org.hibernate.criterion.MatchMode matchMode;
-
   public LikeOperator(
       T arg, boolean caseSensitive, org.hisp.dhis.query.operators.MatchMode matchMode) {
     super("like", List.of(String.class), arg);
     this.caseSensitive = caseSensitive;
     this.jpaMatchMode = getJpaMatchMode(matchMode);
-    this.matchMode = getMatchMode(matchMode);
-  }
-
-  public LikeOperator(
-      String name,
-      T arg,
-      boolean caseSensitive,
-      org.hisp.dhis.query.operators.MatchMode matchMode) {
-    super(name, List.of(String.class), arg);
-    this.caseSensitive = caseSensitive;
-    this.jpaMatchMode = getJpaMatchMode(matchMode);
-    this.matchMode = getMatchMode(matchMode);
   }
 
   @Override

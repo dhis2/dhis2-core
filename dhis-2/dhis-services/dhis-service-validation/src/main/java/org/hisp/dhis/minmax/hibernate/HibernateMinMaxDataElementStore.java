@@ -51,7 +51,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.QueryParser;
 import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -67,8 +66,6 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
     implements MinMaxDataElementStore {
   private final QueryParser queryParser;
 
-  private final QueryPlanner queryPlanner;
-
   private final SchemaService schemaService;
 
   public HibernateMinMaxDataElementStore(
@@ -76,16 +73,13 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       QueryParser queryParser,
-      QueryPlanner queryPlanner,
       SchemaService schemaService) {
     super(entityManager, jdbcTemplate, publisher, MinMaxDataElement.class, false);
 
     checkNotNull(queryParser);
-    checkNotNull(queryPlanner);
     checkNotNull(schemaService);
 
     this.queryParser = queryParser;
-    this.queryPlanner = queryPlanner;
     this.schemaService = schemaService;
   }
 
