@@ -171,7 +171,7 @@ class DataIntegrityYamlReaderTest {
   }
 
   @Test
-  void testTranslationsAreNotDuplicated()  {
+  void testTranslationsAreNotDuplicated() {
     ResourceBundle resourceBundle = ResourceBundle.getBundle("i18n_global");
 
     List<String> translationsSuffix = new ArrayList<>();
@@ -186,19 +186,28 @@ class DataIntegrityYamlReaderTest {
     for (DataIntegrityCheck check : checks) {
       for (String suffix : translationsSuffix) {
         String translationKey = "data_integrity." + check.getName() + "." + suffix;
-        //Get the translation from the key
+        // Get the translation from the key
         String translation = resourceBundle.getString(translationKey);
-        //Count the number of times the translation appears in the resource bundle
-        long count = resourceBundle.keySet().stream().filter(key -> resourceBundle.getString(key).equals(translation)).count();
-        //If the translation appears more than once, fail the test
+        // Count the number of times the translation appears in the resource bundle
+        long count =
+            resourceBundle.keySet().stream()
+                .filter(key -> resourceBundle.getString(key).equals(translation))
+                .count();
+        // If the translation appears more than once, fail the test
         assertTrue(count == 1, "Duplicate translation found for " + translationKey);
       }
     }
 
-    //Assert that all of the keys and strings are unique
-    List<String> keys = resourceBundle.keySet().stream().filter(key -> key.startsWith("data_integrity") && key.endsWith("name")).collect(toList());
+    // Assert that all of the keys and strings are unique
+    List<String> keys =
+        resourceBundle.keySet().stream()
+            .filter(key -> key.startsWith("data_integrity") && key.endsWith("name"))
+            .collect(toList());
     assertEquals(keys.size(), Set.copyOf(keys).size());
-    assertEquals(keys.size(), Set.copyOf(keys.stream().map(key -> resourceBundle.getString(key)).collect(toList())).size());
+    assertEquals(
+        keys.size(),
+        Set.copyOf(keys.stream().map(key -> resourceBundle.getString(key)).collect(toList()))
+            .size());
   }
 
   private void readYaml(
