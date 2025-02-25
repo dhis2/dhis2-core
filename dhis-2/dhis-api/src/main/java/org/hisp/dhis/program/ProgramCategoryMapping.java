@@ -33,6 +33,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -57,7 +58,7 @@ import org.hisp.dhis.common.EmbeddedObject;
 @NoArgsConstructor
 @EqualsAndHashCode
 @JacksonXmlRootElement(localName = "categoryMapping", namespace = DxfNamespaces.DXF_2_0)
-public class ProgramCategoryMapping implements EmbeddedObject {
+public class ProgramCategoryMapping implements EmbeddedObject, Serializable {
 
   /** The UID for this category mapping */
   private String id = "";

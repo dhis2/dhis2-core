@@ -30,6 +30,7 @@ package org.hisp.dhis.program;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -52,7 +53,7 @@ import org.hisp.dhis.common.EmbeddedObject;
 @NoArgsConstructor
 @EqualsAndHashCode
 @JacksonXmlRootElement(localName = "optionMapping", namespace = DxfNamespaces.DXF_2_0)
-public class ProgramCategoryOptionMapping implements EmbeddedObject {
+public class ProgramCategoryOptionMapping implements EmbeddedObject, Serializable {
 
   /** The category option UID to be mapped */
   private String optionId;
