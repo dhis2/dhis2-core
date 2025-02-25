@@ -194,20 +194,19 @@ class DataIntegrityYamlReaderTest {
                 .filter(key -> resourceBundle.getString(key).equals(translation))
                 .count();
         // If the translation appears more than once, fail the test
-        assertTrue(count == 1, "Duplicate translation found for " + translationKey);
+        assertEquals(1, count, "Duplicate translation found for " + translationKey);
       }
     }
 
-    // Assert that all of the keys and strings are unique
+    // Assert that all the keys and strings are unique
     List<String> keys =
         resourceBundle.keySet().stream()
             .filter(key -> key.startsWith("data_integrity") && key.endsWith("name"))
-            .collect(toList());
+            .toList();
     assertEquals(keys.size(), Set.copyOf(keys).size());
+    ;
     assertEquals(
-        keys.size(),
-        Set.copyOf(keys.stream().map(key -> resourceBundle.getString(key)).collect(toList()))
-            .size());
+        keys.size(), Set.copyOf(keys.stream().map(resourceBundle::getString).toList()).size());
   }
 
   private void readYaml(
