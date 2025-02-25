@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,38 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query;
+package org.hisp.dhis.apps;
 
-import static java.util.Arrays.stream;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.hisp.dhis.schema.Klass;
+import java.io.File;
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
-/**
- * Simple class for checking if an object is one of several allowed classes, mainly used in Operator
- * where a parameter can be type constrained.
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Getter
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public final class Typed {
-  private final Class<?>[] klasses;
+class AppResourceTest extends ApiTest {
 
-  public boolean isValid(Klass klass) {
-    return klass == null || isValid(klass.getKlass());
-  }
+  @Test
+  @DisplayName("Redirect location should have correct format")
+  void redirectLocationCorrectFormatTest() {
+    // given an app is installed
+    File file = new File("src/test/resources/apps/test-app-v1.zip");
+    given()
+        .multiPart("file", file)
+        .contentType("multipart/form-data")
+        .when()
+        .post("/apps")
+        .then()
+        .statusCode(201);
 
-  public boolean isValid(Class<?> klass) {
-    if (klasses.length == 0 || klass == null) {
-      return true;
-    }
-    return stream(klasses).anyMatch(k -> k != null && k.isAssignableFrom(klass));
-  }
+    // when called with missing trailing slash
+    ApiResponse response =
+        new ApiResponse(given().redirects().follow(false).get("/apps/test-minio"));
 
-  public static Typed from(Class<?>... klasses) {
-    return new Typed(klasses);
+    // then redirect should be returned with trailing slash
+    response.validate().header("location", equalTo("http://web:8080/api/apps/test-minio/"));
+    response.validate().statusCode(302);
   }
 }

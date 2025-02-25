@@ -36,12 +36,10 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.planner.DefaultQueryPlanner;
 import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.descriptors.OrganisationUnitSchemaDescriptor;
-import org.hisp.dhis.setting.SystemSettingsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,17 +57,15 @@ class DefaultQueryServiceTest {
 
   @Mock private QueryParser queryParser;
 
-  @Mock private JpaCriteriaQueryEngine<OrganisationUnit> criteriaQueryEngine;
+  @Mock private JpaCriteriaQueryEngine criteriaQueryEngine;
 
-  @Mock private InMemoryQueryEngine<OrganisationUnit> inMemoryQueryEngine;
+  @Mock private InMemoryQueryEngine inMemoryQueryEngine;
 
   @Mock private SchemaService schemaService;
 
-  @Mock private SystemSettingsService settingsService;
-
   @BeforeEach
   public void setUp() {
-    QueryPlanner queryPlanner = new DefaultQueryPlanner(schemaService, settingsService);
+    QueryPlanner queryPlanner = new DefaultQueryPlanner(schemaService);
     subject =
         new DefaultQueryService(
             queryParser, queryPlanner, schemaService, criteriaQueryEngine, inMemoryQueryEngine);
@@ -91,9 +87,9 @@ class DefaultQueryServiceTest {
     assertThat(orgUnits.size(), is(20));
   }
 
-  private List<OrganisationUnit> createOrgUnits(int size) {
+  private List<IdentifiableObject> createOrgUnits(int size) {
 
-    List<OrganisationUnit> result = new ArrayList<>();
+    List<IdentifiableObject> result = new ArrayList<>();
     for (int i = 0; i < size; i++) {
       result.add(createOrganisationUnit((char) (i + 'A')));
     }
