@@ -1,0 +1,159 @@
+{
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
+  "trackedEntities": [
+    {
+      "trackedEntity": "DS6w44flWAf",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "ja8NY4PW7Xm"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "h4w96yEMlzO"
+      },
+      "inactive": true,
+      "createdAtClient": "2018-10-02T12:17:30.163",
+      "updatedAtClient": "2018-10-07T12:17:30.163",
+      "attributes": [
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "toDelete000"
+          },
+          "value": "just day"
+        },
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "toUpdate000"
+          },
+          "value": "summer day"
+        },
+        {
+          "valueType": "INTEGER",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "numericAttr"
+          },
+          "value": "88"
+        }
+      ]
+    },
+    {
+      "trackedEntity": "DUE514NMOlo",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "ja8NY4PW7Xm"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "h4w96yEMlzO"
+      },
+      "createdAtClient": "2018-11-01T12:17:30.163",
+      "attributes": [
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "toDelete000"
+          },
+          "value": "just day"
+        },
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "toUpdate000"
+          },
+          "value": "rainy day"
+        },
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "notUpdated0"
+          },
+          "value": "winter day"
+        },
+        {
+          "valueType": "INTEGER",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "numericAttr"
+          },
+          "value": "70"
+        }
+      ]
+    },
+    {
+      "trackedEntity": "DHWCacsGYYn",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "ja8NY4PW7Xm"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "h4w96yEMlzO"
+      },
+      "attributes": [
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "toDelete000"
+          },
+          "value": "just day"
+        },
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "toUpdate000"
+          },
+          "value": "summer day"
+        },
+        {
+          "valueType": "INTEGER",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "numericAttr"
+          },
+          "value": "72"
+        }
+      ]
+    }
+      ],
+  "username": "system-process"
+}
