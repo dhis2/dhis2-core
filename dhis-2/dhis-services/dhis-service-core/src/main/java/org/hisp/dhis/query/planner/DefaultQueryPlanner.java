@@ -49,7 +49,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
   public <T extends IdentifiableObject> QueryPlan<T> planQuery(Query<T> query) {
     // if only one filter, always set to Junction.Type AND
     if (query.getFilters().size() > 1 && Junction.Type.OR == query.getRootJunctionType()) {
-      return new QueryPlan<>(Query.from(query.getObjectType()), Query.copy(query));
+      return new QueryPlan<>(Query.of(query.getObjectType()), Query.copy(query));
     }
 
     QueryPlan<T> plan = split(query);
@@ -71,7 +71,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
   private <T extends IdentifiableObject> QueryPlan<T> split(Query<T> query) {
     Query<T> memoryQuery = Query.copy(query);
     memoryQuery.getFilters().clear();
-    Query<T> dbQuery = Query.from(query.getObjectType(), query.getRootJunctionType());
+    Query<T> dbQuery = Query.of(query.getObjectType(), query.getRootJunctionType());
     dbQuery.setCurrentUserDetails(query.getCurrentUserDetails());
     dbQuery.setSkipSharing(query.isSkipSharing());
 

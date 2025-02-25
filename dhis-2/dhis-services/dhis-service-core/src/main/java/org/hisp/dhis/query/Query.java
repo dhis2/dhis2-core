@@ -54,7 +54,7 @@ public class Query<T extends IdentifiableObject> {
 
   private final List<Filter> filters = new ArrayList<>();
 
-  @ToString.Exclude @Getter private final Class<T> objectType;
+  @Getter private final Class<T> objectType;
 
   @ToString.Exclude private UserDetails currentUserDetails;
 
@@ -83,17 +83,17 @@ public class Query<T extends IdentifiableObject> {
 
   @ToString.Exclude private List<T> objects;
 
-  public static <T extends IdentifiableObject> Query<T> from(Class<T> objectType) {
+  public static <T extends IdentifiableObject> Query<T> of(Class<T> objectType) {
     return new Query<>(objectType);
   }
 
-  public static <T extends IdentifiableObject> Query<T> from(
+  public static <T extends IdentifiableObject> Query<T> of(
       Class<T> objectType, Junction.Type rootJunction) {
     return new Query<>(objectType, rootJunction);
   }
 
   public static <T extends IdentifiableObject> Query<T> copy(Query<T> query) {
-    Query<T> clone = Query.from(query.getObjectType(), query.getRootJunctionType());
+    Query<T> clone = Query.of(query.getObjectType(), query.getRootJunctionType());
     clone.setSkipSharing(query.isSkipSharing());
     clone.setCurrentUserDetails(query.getCurrentUserDetails());
     clone.setLocale(query.getLocale());

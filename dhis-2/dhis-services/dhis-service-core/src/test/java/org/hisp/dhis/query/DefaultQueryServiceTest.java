@@ -73,7 +73,7 @@ class DefaultQueryServiceTest {
 
   @Test
   void verifyQueryEngineUsesPaginationInformation() {
-    Query<OrganisationUnit> query = Query.from(OrganisationUnit.class);
+    Query<OrganisationUnit> query = Query.of(OrganisationUnit.class);
     query.setFirstResult(100);
     query.setMaxResults(50);
 

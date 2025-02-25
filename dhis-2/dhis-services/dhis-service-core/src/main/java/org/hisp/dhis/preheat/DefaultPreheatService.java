@@ -151,7 +151,7 @@ public class DefaultPreheatService implements PreheatService {
 
         if (!identifiers.isEmpty()) {
           for (List<String> ids : identifiers) {
-            Query<?> query = Query.from(klass);
+            Query<?> query = Query.of(klass);
             query.setCurrentUserDetails(UserDetails.fromUser(preheat.getUser()));
             query.setSkipSharing(true);
             query.add(Filters.in("id", ids));
@@ -169,7 +169,7 @@ public class DefaultPreheatService implements PreheatService {
 
         if (!identifiers.isEmpty()) {
           for (List<String> ids : identifiers) {
-            Query<?> query = Query.from(klass);
+            Query<?> query = Query.of(klass);
             query.setCurrentUserDetails(UserDetails.fromUser(preheat.getUser()));
             query.add(Filters.in("code", ids));
             List<? extends IdentifiableObject> objects = queryService.query(query);
@@ -183,7 +183,7 @@ public class DefaultPreheatService implements PreheatService {
             Lists.partition(Lists.newArrayList(uidMap.get(User.class)), 20000);
 
         for (List<String> ids : identifiers) {
-          Query<User> query = Query.from(User.class);
+          Query<User> query = Query.of(User.class);
           query.setCurrentUserDetails(UserDetails.fromUser(preheat.getUser()));
           query.add(Filters.in("id", ids));
           List<User> objects = queryService.query(query);
@@ -196,7 +196,7 @@ public class DefaultPreheatService implements PreheatService {
             Lists.partition(Lists.newArrayList(uidMap.get(UserRole.class)), 20000);
 
         for (List<String> ids : identifiers) {
-          Query<UserRole> query = Query.from(UserRole.class);
+          Query<UserRole> query = Query.of(UserRole.class);
           query.setCurrentUserDetails(UserDetails.fromUser(preheat.getUser()));
           query.add(Filters.in("id", ids));
           List<UserRole> objects = queryService.query(query);

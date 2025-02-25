@@ -40,7 +40,7 @@ class QueryTest {
 
   @Test
   void validFilterParameters() {
-    Query<?> query = Query.from(DataElement.class);
+    Query<?> query = Query.of(DataElement.class);
     query.add(Filters.eq("id", "anc"));
     query.add(Filters.like("name", "anc", MatchMode.ANYWHERE));
     query.add(Filters.eq("code", "anc"));

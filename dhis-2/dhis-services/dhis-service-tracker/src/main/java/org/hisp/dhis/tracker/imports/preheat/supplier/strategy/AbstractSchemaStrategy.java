@@ -200,7 +200,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
 
   private <T extends IdentifiableObject> Query<T> buildQuery(
       Class<T> objectType, TrackerIdScheme idScheme, List<String> ids) {
-    Query<T> query = Query.from(objectType);
+    Query<T> query = Query.of(objectType);
     query.setCurrentUserDetails(getCurrentUserDetails());
     query.add(generateRestrictionFromIdentifiers(idScheme, ids));
     query.setDefaults(Defaults.INCLUDE);

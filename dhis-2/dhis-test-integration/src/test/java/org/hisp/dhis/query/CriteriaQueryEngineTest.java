@@ -124,17 +124,17 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getAllQuery() {
-    Query<?> query = Query.from(DataElement.class);
+    Query<?> query = Query.of(DataElement.class);
     assertEquals(6, runQuery(query).size());
   }
 
   @Test
   void getMinMaxQuery() {
-    Query<?> query = Query.from(DataElement.class);
+    Query<?> query = Query.of(DataElement.class);
     query.setFirstResult(2);
     query.setMaxResults(10);
     assertEquals(4, runQuery(query).size());
-    query = Query.from(DataElement.class);
+    query = Query.of(DataElement.class);
     query.setFirstResult(2);
     query.setMaxResults(2);
     assertEquals(2, runQuery(query).size());
@@ -142,7 +142,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getEqQuery() {
-    Query<?> query = Query.from(DataElement.class);
+    Query<?> query = Query.of(DataElement.class);
     query.add(Filters.eq("id", "deabcdefghA"));
     List<? extends IdentifiableObject> objects = runQuery(query);
     assertEquals(1, objects.size());
@@ -151,7 +151,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getNeQuery() {
-    Query<?> query = Query.from(DataElement.class);
+    Query<?> query = Query.of(DataElement.class);
     query.add(Filters.ne("id", "deabcdefghA"));
     List<? extends IdentifiableObject> objects = runQuery(query);
     assertEquals(5, objects.size());
@@ -165,7 +165,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getLikeQuery() {
-    Query<?> query = Query.from(DataElement.class);
+    Query<?> query = Query.of(DataElement.class);
     query.add(Filters.like("name", "F", MatchMode.ANYWHERE));
     List<? extends IdentifiableObject> objects = runQuery(query);
     assertEquals(1, objects.size());
@@ -174,7 +174,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getNotLikeQueryAll() {
-    Query<?> query = Query.from(DataElement.class);
+    Query<?> query = Query.of(DataElement.class);
     query.add(Filters.notLike("name", "G", MatchMode.ANYWHERE));
     List<? extends IdentifiableObject> objects = runQuery(query);
     assertEquals(6, objects.size());
@@ -182,7 +182,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getNotILikeQueryAll() {
-    Query<?> query = Query.from(DataElement.class);
+    Query<?> query = Query.of(DataElement.class);
     query.add(Filters.notLike("name", "a", MatchMode.ANYWHERE));
     List<? extends IdentifiableObject> objects = runQuery(query);
     assertEquals(0, objects.size());
@@ -190,7 +190,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getNotILikeQueryOne() {
-    Query<?> query = Query.from(DataElement.class);
+    Query<?> query = Query.of(DataElement.class);
     query.add(Filters.notIlike("name", "b", MatchMode.ANYWHERE));
     List<? extends IdentifiableObject> objects = runQuery(query);
     assertEquals(5, objects.size());
@@ -198,7 +198,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getNotLikeQueryOne() {
-    Query<?> query = Query.from(DataElement.class);
+    Query<?> query = Query.of(DataElement.class);
     query.add(Filters.notLike("name", "A", MatchMode.ANYWHERE));
     List<? extends IdentifiableObject> objects = runQuery(query);
     assertEquals(5, objects.size());
@@ -206,7 +206,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getGtQuery() {
-    Query<?> query = Query.from(DataElement.class);
+    Query<?> query = Query.of(DataElement.class);
     query.add(Filters.gt("created", Year.parseYear("2003").getStart()));
     List<? extends IdentifiableObject> objects = runQuery(query);
     assertEquals(3, objects.size());
@@ -217,7 +217,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getLtQuery() {
-    Query<?> query = Query.from(DataElement.class);
+    Query<?> query = Query.of(DataElement.class);
     query.add(Filters.lt("created", Year.parseYear("2003").getStart()));
     List<? extends IdentifiableObject> objects = runQuery(query);
     assertEquals(2, objects.size());
@@ -227,7 +227,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getGeQuery() {
-    Query<?> query = Query.from(DataElement.class);
+    Query<?> query = Query.of(DataElement.class);
     query.add(Filters.ge("created", Year.parseYear("2003").getStart()));
     List<? extends IdentifiableObject> objects = runQuery(query);
     assertEquals(4, objects.size());
@@ -239,7 +239,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getLeQuery() {
-    Query<?> query = Query.from(DataElement.class);
+    Query<?> query = Query.of(DataElement.class);
     query.add(Filters.le("created", Year.parseYear("2003").getStart()));
     List<? extends IdentifiableObject> objects = runQuery(query);
     assertEquals(3, objects.size());
@@ -250,7 +250,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getBetweenQuery() {
-    Query<?> query = Query.from(DataElement.class);
+    Query<?> query = Query.of(DataElement.class);
     query.add(
         Filters.between(
             "created", Year.parseYear("2003").getStart(), Year.parseYear("2005").getStart()));
@@ -263,7 +263,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void testDateRange() {
-    Query<?> query = Query.from(DataElement.class);
+    Query<?> query = Query.of(DataElement.class);
     query.add(Filters.ge("created", Year.parseYear("2002").getStart()));
     query.add(Filters.le("created", Year.parseYear("2004").getStart()));
     List<? extends IdentifiableObject> objects = runQuery(query);
@@ -275,7 +275,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getInQuery() {
-    Query<?> query = Query.from(DataElement.class);
+    Query<?> query = Query.of(DataElement.class);
     query.add(Filters.in("id", Lists.newArrayList("deabcdefghD", "deabcdefghF")));
     List<? extends IdentifiableObject> objects = runQuery(query);
     assertEquals(2, objects.size());
@@ -286,7 +286,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
   @Test
   void sortNameDesc() {
     Schema schema = schemaService.getDynamicSchema(DataElement.class);
-    Query<?> query = Query.from(DataElement.class);
+    Query<?> query = Query.of(DataElement.class);
     query.addOrder(new Order(schema.getProperty("name"), Direction.DESCENDING));
     List<? extends IdentifiableObject> objects = runQuery(query);
     assertEquals(6, objects.size());
@@ -301,7 +301,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
   @Test
   void sortNameAsc() {
     Schema schema = schemaService.getDynamicSchema(DataElement.class);
-    Query<?> query = Query.from(DataElement.class);
+    Query<?> query = Query.of(DataElement.class);
     query.addOrder(new Order(schema.getProperty("name"), Direction.ASCENDING));
     List<? extends IdentifiableObject> objects = runQuery(query);
     assertEquals(6, objects.size());
@@ -316,7 +316,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
   @Test
   void sortCreatedDesc() {
     Schema schema = schemaService.getDynamicSchema(DataElement.class);
-    Query<?> query = Query.from(DataElement.class);
+    Query<?> query = Query.of(DataElement.class);
     query.addOrder(new Order(schema.getProperty("created"), Direction.DESCENDING));
     List<? extends IdentifiableObject> objects = runQuery(query);
     assertEquals(6, objects.size());
@@ -331,7 +331,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
   @Test
   void sortCreatedAsc() {
     Schema schema = schemaService.getDynamicSchema(DataElement.class);
-    Query<?> query = Query.from(DataElement.class);
+    Query<?> query = Query.of(DataElement.class);
     query.addOrder(new Order(schema.getProperty("created"), Direction.ASCENDING));
     List<? extends IdentifiableObject> objects = runQuery(query);
     assertEquals(6, objects.size());
@@ -345,7 +345,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void testIsNull() {
-    Query<?> query = Query.from(DataElement.class);
+    Query<?> query = Query.of(DataElement.class);
     query.add(Filters.isNull("categoryCombo"));
     List<? extends IdentifiableObject> objects = runQuery(query);
     assertEquals(0, objects.size());
@@ -353,7 +353,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void testIsNotNull() {
-    Query<?> query = Query.from(DataElement.class);
+    Query<?> query = Query.of(DataElement.class);
     query.add(Filters.isNotNull("categoryCombo"));
     List<? extends IdentifiableObject> objects = runQuery(query);
     assertEquals(6, objects.size());
@@ -367,7 +367,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void testCollectionEqSize4() {
-    Query<?> query = Query.from(DataElementGroup.class);
+    Query<?> query = Query.of(DataElementGroup.class);
     query.add(Filters.eq("dataElements", 4));
     List<? extends IdentifiableObject> objects = runQuery(query);
     assertEquals(1, objects.size());
@@ -376,7 +376,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void testCollectionEqSize2() {
-    Query<?> query = Query.from(DataElementGroup.class);
+    Query<?> query = Query.of(DataElementGroup.class);
     query.add(Filters.eq("dataElements", 2));
     List<? extends IdentifiableObject> objects = runQuery(query);
     assertEquals(1, objects.size());
@@ -385,7 +385,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void testIdentifiableSearch1() {
-    Query<?> query = Query.from(DataElementGroup.class, Junction.Type.OR);
+    Query<?> query = Query.of(DataElementGroup.class, Junction.Type.OR);
     query.add(Filters.eq("name", "DataElementGroupA"));
     query.add(Filters.eq("name", "DataElementGroupB"));
     List<? extends IdentifiableObject> objects = runQuery(query);
@@ -394,7 +394,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void testIdentifiableSearch3() {
-    Query<?> query = Query.from(DataElementGroup.class);
+    Query<?> query = Query.of(DataElementGroup.class);
     query.add(Filters.like("name", "GroupA", MatchMode.ANYWHERE));
     List<? extends IdentifiableObject> objects = runQuery(query);
     assertEquals(1, objects.size());
@@ -402,7 +402,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void testIdentifiableSearch4() {
-    Query<?> query = Query.from(DataElementGroup.class, Junction.Type.OR);
+    Query<?> query = Query.of(DataElementGroup.class, Junction.Type.OR);
     query.add(Filters.like("name", "GroupA", MatchMode.ANYWHERE));
     query.add(Filters.like("name", "GroupA", MatchMode.ANYWHERE));
     List<? extends IdentifiableObject> objects = runQuery(query);
@@ -411,7 +411,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void testIdentifiableSearch5() {
-    Query<?> query = Query.from(DataElementGroup.class, Junction.Type.OR);
+    Query<?> query = Query.of(DataElementGroup.class, Junction.Type.OR);
     query.add(Filters.like("name", "GroupA", MatchMode.ANYWHERE));
     query.add(Filters.like("name", "GroupA", MatchMode.ANYWHERE));
     query.add(Filters.like("name", "GroupB", MatchMode.ANYWHERE));
@@ -421,7 +421,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void testIdentifiableSearch6() {
-    Query<?> query = Query.from(DataElement.class, Junction.Type.OR);
+    Query<?> query = Query.of(DataElement.class, Junction.Type.OR);
     Filter nameFilter = Filters.like("name", "deF", MatchMode.ANYWHERE);
     Filter uidFilter = Filters.like("id", "deF", MatchMode.ANYWHERE);
     Filter codeFilter = Filters.like("code", "deF", MatchMode.ANYWHERE);
@@ -434,7 +434,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void testIdentifiableSearch7() {
-    Query<?> query = Query.from(DataElement.class, Junction.Type.OR);
+    Query<?> query = Query.of(DataElement.class, Junction.Type.OR);
     Filter nameFilter = Filters.like("name", "dataElement", MatchMode.ANYWHERE);
     Filter uidFilter = Filters.like("id", "dataElement", MatchMode.ANYWHERE);
     Filter codeFilter = Filters.like("code", "dataElement", MatchMode.ANYWHERE);
@@ -470,7 +470,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
     de = identifiableObjectManager.get(DataElement.class, "deabcdefghA");
     assertEquals(AccessStringHelper.DEFAULT, de.getSharing().getPublicAccess());
     assertEquals(userB.getUid(), de.getSharing().getOwner());
-    Query<?> query = Query.from(DataElement.class);
+    Query<?> query = Query.of(DataElement.class);
     query.add(Filters.eq("id", de.getUid()));
     query.setCurrentUserDetails(UserDetails.fromUser(userA));
     injectSecurityContextUser(userA);
@@ -492,7 +492,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
     de = identifiableObjectManager.get(DataElement.class, "deabcdefghA");
     assertEquals(userB.getUid(), de.getSharing().getOwner());
     assertEquals(AccessStringHelper.DEFAULT, de.getSharing().getPublicAccess());
-    Query<?> query = Query.from(DataElement.class);
+    Query<?> query = Query.of(DataElement.class);
     query.setCurrentUserDetails(UserDetails.fromUser(userB));
     injectSecurityContextUser(userB);
     List<? extends IdentifiableObject> objects = runQuery(query);
@@ -500,7 +500,7 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
     Optional<? extends IdentifiableObject> notPublicDe =
         objects.stream().filter(d -> d.getUid().equalsIgnoreCase("deabcdefghA")).findFirst();
     assertTrue(notPublicDe.isPresent());
-    query = Query.from(DataElement.class);
+    query = Query.of(DataElement.class);
     query.setCurrentUserDetails(UserDetails.fromUser(userA));
     injectSecurityContextUser(userA);
     objects = runQuery(query);
@@ -513,13 +513,13 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void testCountAndPaging() {
-    Query<?> query = Query.from(DataElement.class);
+    Query<?> query = Query.of(DataElement.class);
     assertEquals(6, runCount(query));
     assertEquals(6, runQuery(query).size());
     query.setMaxResults(2);
     query.setFirstResult(1);
     assertEquals(2, runQuery(query).size());
-    query = Query.from(DataElement.class);
+    query = Query.of(DataElement.class);
     query.add(Filters.eq("id", "deabcdefghA"));
     assertEquals(1, runCount(query));
     assertEquals(1, runQuery(query).size());

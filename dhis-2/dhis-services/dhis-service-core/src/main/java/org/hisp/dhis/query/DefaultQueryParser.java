@@ -62,7 +62,7 @@ public class DefaultQueryParser implements QueryParser {
       Class<T> objectType, @Nonnull List<String> filters, Junction.Type rootJunction)
       throws QueryParserException {
     Schema schema = schemaService.getDynamicSchema(objectType);
-    Query<T> query = Query.from(objectType, rootJunction);
+    Query<T> query = Query.of(objectType, rootJunction);
 
     List<String> mentions = new ArrayList<>();
     for (String filter : filters) {

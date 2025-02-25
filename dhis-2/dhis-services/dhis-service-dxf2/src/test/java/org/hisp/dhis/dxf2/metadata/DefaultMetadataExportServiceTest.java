@@ -216,7 +216,7 @@ class DefaultMetadataExportServiceTest {
     schemas.forEach(s -> s.setPersisted(true));
 
     when(queryService.getQueryFromUrl(eq(EventReport.class), any()))
-        .thenReturn(Query.from(EventReport.class));
+        .thenReturn(Query.of(EventReport.class));
 
     // return 5 schemas, including the 2 for the deprecated classes EventChart & EventReport
     when(schemaService.getMetadataSchemas()).thenReturn(schemas);
