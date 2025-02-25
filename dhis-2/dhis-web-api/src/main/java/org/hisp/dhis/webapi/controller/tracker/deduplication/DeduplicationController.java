@@ -29,11 +29,11 @@ package org.hisp.dhis.webapi.controller.tracker.deduplication;
 
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
-import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import static org.hisp.dhis.webapi.utils.ContextUtils.HEADER_CACHE_CONTROL;
+import static org.hisp.dhis.webapi.utils.ContextUtils.HEADER_VALUE_NO_STORE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -94,7 +94,6 @@ public class DeduplicationController {
   @GetMapping
   ResponseEntity<Page<ObjectNode>> getPotentialDuplicates(
       PotentialDuplicateRequestParams requestParams,
-      HttpServletResponse response,
       @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields,
       HttpServletRequest request)
       throws BadRequestException {
@@ -111,10 +110,8 @@ public class DeduplicationController {
           deduplicationService.getPotentialDuplicates(criteria, pageParams);
       List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(page.getItems(), fields);
 
-      // TODO(ivo) set header on response entity
-      setNoStore(response);
-
       return ResponseEntity.ok()
+          .header(HEADER_CACHE_CONTROL, HEADER_VALUE_NO_STORE)
           .contentType(MediaType.APPLICATION_JSON)
           .body(
               Page.withFullPager(
@@ -125,10 +122,8 @@ public class DeduplicationController {
         deduplicationService.getPotentialDuplicates(criteria);
     List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(potentialDuplicates, fields);
 
-    // TODO(ivo) set header on response entity
-    setNoStore(response);
-
     return ResponseEntity.ok()
+        .header(HEADER_CACHE_CONTROL, HEADER_VALUE_NO_STORE)
         .contentType(MediaType.APPLICATION_JSON)
         .body(Page.withoutPager("potentialDuplicates", objectNodes));
   }
