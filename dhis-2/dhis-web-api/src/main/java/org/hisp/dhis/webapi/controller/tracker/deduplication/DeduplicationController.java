@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -56,7 +57,8 @@ import org.hisp.dhis.tracker.deduplication.PotentialDuplicate;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateCriteria;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateForbiddenException;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
@@ -81,11 +83,11 @@ import org.springframework.web.client.HttpStatusCodeException;
 public class DeduplicationController {
   private final DeduplicationService deduplicationService;
 
+  private final IdentifiableObjectManager manager;
+
   private final TrackerAccessManager trackerAccessManager;
 
   private final FieldFilterService fieldFilterService;
-
-  private final TrackedEntityService trackedEntityService;
 
   private static final String DEFAULT_FIELDS_PARAM =
       "id, created, lastUpdated, original, duplicate, status";
@@ -170,8 +172,7 @@ public class DeduplicationController {
       throws NotFoundException,
           PotentialDuplicateConflictException,
           PotentialDuplicateForbiddenException,
-          ForbiddenException,
-          BadRequestException {
+          ForbiddenException {
     PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy(uid);
 
     if (potentialDuplicate.getOriginal() == null || potentialDuplicate.getDuplicate() == null) {
@@ -179,10 +180,8 @@ public class DeduplicationController {
           "PotentialDuplicate is missing references and cannot be merged.");
     }
 
-    TrackedEntity original =
-        trackedEntityService.getTrackedEntity(potentialDuplicate.getOriginal());
-    TrackedEntity duplicate =
-        trackedEntityService.getTrackedEntity(potentialDuplicate.getDuplicate());
+    TrackedEntity original = getTrackedEntity(potentialDuplicate.getOriginal());
+    TrackedEntity duplicate = getTrackedEntity(potentialDuplicate.getDuplicate());
 
     if (mergeObject == null) {
       mergeObject = new MergeObject();
@@ -230,9 +229,9 @@ public class DeduplicationController {
 
     checkValidTrackedEntity(potentialDuplicate.getDuplicate(), "duplicate");
 
-    trackedEntityService.getTrackedEntity(potentialDuplicate.getOriginal());
+    canReadTrackedEntity(getTrackedEntity(potentialDuplicate.getOriginal()));
 
-    trackedEntityService.getTrackedEntity(potentialDuplicate.getDuplicate());
+    canReadTrackedEntity(getTrackedEntity(potentialDuplicate.getDuplicate()));
 
     checkAlreadyExistingDuplicate(potentialDuplicate);
   }
@@ -255,6 +254,21 @@ public class DeduplicationController {
     if (trackedEntity == null) {
       throw new BadRequestException(
           "Missing required input property '" + trackedEntityFieldName + "'");
+    }
+  }
+
+  private TrackedEntity getTrackedEntity(UID uid) throws NotFoundException {
+    TrackedEntity trackedEntity = manager.get(TrackedEntity.class, uid.getValue());
+    // TODO(tracker) Do we need to apply ACL here?
+    return Optional.ofNullable(trackedEntity)
+        .orElseThrow(() -> new NotFoundException(TrackedEntity.class, uid));
+  }
+
+  private void canReadTrackedEntity(TrackedEntity trackedEntity) throws ForbiddenException {
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    if (!trackerAccessManager.canRead(currentUser, trackedEntity).isEmpty()) {
+      throw new ForbiddenException(
+          "You don't have read access to '" + trackedEntity.getUid() + "'.");
     }
   }
 }

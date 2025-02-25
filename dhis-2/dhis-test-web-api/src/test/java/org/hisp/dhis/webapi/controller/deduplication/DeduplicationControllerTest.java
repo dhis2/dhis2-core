@@ -267,6 +267,8 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
   void shouldThrowForbiddenExceptionWhenAutoMergingAndUserHasNoAccessToTrackedEntityType()
       throws Exception {
     TrackedEntityType trackedEntityType = createAndSaveTrackedEntityType('B');
+    trackedEntityType.setPublicAccess(AccessStringHelper.DEFAULT);
+    dbmsManager.save(trackedEntityType);
     TrackedEntity trackedEntity = createAndSaveTrackedEntity(orgUnit, trackedEntityType);
     injectSecurityContextUser(user);
     PotentialDuplicate potentialDuplicate =
@@ -276,7 +278,7 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
     POST(
             ENDPOINT + "/" + potentialDuplicate.getUid() + "/merge",
             objectMapper.writeValueAsString(mergeObject))
-        .content(HttpStatus.FORBIDDEN);
+        .content(HttpStatus.CONFLICT);
   }
 
   @Test
