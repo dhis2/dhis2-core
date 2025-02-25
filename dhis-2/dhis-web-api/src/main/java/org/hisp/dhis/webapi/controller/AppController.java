@@ -62,6 +62,7 @@ import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.i18n.I18nManager;
@@ -200,11 +201,10 @@ public class AppController {
     }
 
     if (application.isBundled()) {
-      String redirectPath = (application.getBaseUrl() + "/" + resource).replaceAll("/+", "/");
+      String cleanValidUrl = TextUtils.getCleanValidUrl(application.getBaseUrl(), resource);
+      log.info(String.format("Redirecting to bundled app: %s", cleanValidUrl));
 
-      log.info(String.format("Redirecting to bundled app: %s", redirectPath));
-
-      response.sendRedirect(redirectPath);
+      response.sendRedirect(cleanValidUrl);
       return;
     }
 
@@ -240,9 +240,9 @@ public class AppController {
         return;
       }
       if (resourceResult instanceof Redirect redirect) {
-        response.sendRedirect(application.getBaseUrl() + redirect.path());
-
-        return;
+        String cleanValidUrl =
+            TextUtils.getCleanValidUrl(application.getBaseUrl(), redirect.path());
+        response.sendRedirect(cleanValidUrl);
       }
       if (resourceResult instanceof ResourceNotFound) {
         response.sendError(HttpServletResponse.SC_NOT_FOUND);

@@ -50,6 +50,7 @@ import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -152,7 +153,9 @@ public class AppOverrideFilter extends OncePerRequestFilter {
         return;
       }
       if (resourceResult instanceof Redirect redirect) {
-        response.sendRedirect((app.getBaseUrl() + "/" + redirect.path()).replaceAll("/+", "/"));
+        String cleanValidUrl = TextUtils.getCleanValidUrl(app.getBaseUrl(), redirect.path());
+        log.debug("Redirecting to: {}", cleanValidUrl);
+        response.sendRedirect(cleanValidUrl);
       }
     }
   }
