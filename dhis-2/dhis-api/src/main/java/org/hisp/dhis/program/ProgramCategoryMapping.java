@@ -33,7 +33,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -44,6 +43,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
 
 /**
  * Defines one of the ways in which a {@link ProgramIndicator} for a {@link Program} can return
@@ -57,7 +57,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 @NoArgsConstructor
 @EqualsAndHashCode
 @JacksonXmlRootElement(localName = "categoryMapping", namespace = DxfNamespaces.DXF_2_0)
-public class ProgramCategoryMapping implements Serializable {
+public class ProgramCategoryMapping implements EmbeddedObject {
 
   /** The UID for this category mapping */
   private String id = "";

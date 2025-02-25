@@ -30,7 +30,6 @@ package org.hisp.dhis.program;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -39,6 +38,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
 
 /**
  * Defines a filter expression fragment for a {@link CategoryOption} within a {@link
@@ -52,7 +52,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 @NoArgsConstructor
 @EqualsAndHashCode
 @JacksonXmlRootElement(localName = "optionMapping", namespace = DxfNamespaces.DXF_2_0)
-public class ProgramCategoryOptionMapping implements Serializable {
+public class ProgramCategoryOptionMapping implements EmbeddedObject {
 
   /** The category option UID to be mapped */
   private String optionId;
