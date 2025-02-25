@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -503,7 +504,7 @@ class EventDataQueryServiceTest extends SingleSetupIntegrationTestBase {
         List.of("psigeometry"),
         dataQueryService.getCoordinateFields(prA.getUid(), null, "psigeometry", false));
     assertEquals(
-        List.of(deC.getUid()),
+        List.of(deC.getUid() + OU_GEOMETRY_COL_SUFFIX),
         dataQueryService.getCoordinateFields(prA.getUid(), deC.getUid(), null, false));
   }
 
