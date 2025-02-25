@@ -93,7 +93,6 @@ public class InMemoryQueryEngine implements QueryEngine {
     }
   }
 
-  @SuppressWarnings("unchecked")
   private <T extends IdentifiableObject> List<T> runQuery(Query<T> query) {
     return query.getObjects().stream()
         .filter(object -> matches(query, (T) object))
