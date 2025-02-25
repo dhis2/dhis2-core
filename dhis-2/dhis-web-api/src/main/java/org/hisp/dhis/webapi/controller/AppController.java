@@ -61,6 +61,7 @@ import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.i18n.I18nManager;
@@ -265,8 +266,8 @@ public class AppController {
         return;
       }
       if (resourceResult instanceof Redirect redirect) {
-        response.sendRedirect(
-            (application.getBaseUrl() + "/" + redirect.path()).replaceAll("/+", "/"));
+        String baseUrl = TextUtils.removeAnyTrailingSlash(application.getBaseUrl());
+        response.sendRedirect(baseUrl + ("/" + redirect.path()).replaceAll("/+", "/"));
         return;
       }
       if (resourceResult instanceof ResourceNotFound) {
