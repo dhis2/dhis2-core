@@ -28,9 +28,11 @@
 package org.hisp.dhis.webapi.controller.tracker.deduplication;
 
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationParameters;
+import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -58,6 +60,8 @@ import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -88,10 +92,11 @@ public class DeduplicationController {
 
   @OpenApi.Response(PotentialDuplicate[].class)
   @GetMapping
-  public Page<ObjectNode> getPotentialDuplicates(
+  ResponseEntity<Page<ObjectNode>> getPotentialDuplicates(
       PotentialDuplicateRequestParams requestParams,
       HttpServletResponse response,
-      @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields)
+      @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields,
+      HttpServletRequest request)
       throws BadRequestException {
     validatePaginationParameters(requestParams);
 
@@ -101,27 +106,31 @@ public class DeduplicationController {
     criteria.setOrder(requestParams.getOrder());
     if (requestParams.isPaging()) {
       PageParams pageParams =
-          new PageParams(
-              requestParams.getPage(), requestParams.getPageSize(), requestParams.isPaging());
-      criteria.setPageParams(pageParams);
+          new PageParams(requestParams.getPage(), requestParams.getPageSize(), false);
+      org.hisp.dhis.tracker.Page<PotentialDuplicate> page =
+          deduplicationService.getPotentialDuplicates(criteria, pageParams);
+      List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(page.getItems(), fields);
+
+      // TODO(ivo) set header on response entity
+      setNoStore(response);
+
+      return ResponseEntity.ok()
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+              Page.withFullPager(
+                  "potentialDuplicates", page.withItems(objectNodes), getRequestURL(request)));
     }
 
     List<PotentialDuplicate> potentialDuplicates =
         deduplicationService.getPotentialDuplicates(criteria);
     List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(potentialDuplicates, fields);
 
+    // TODO(ivo) set header on response entity
     setNoStore(response);
 
-    if (requestParams.isPaging()) {
-      org.hisp.dhis.tracker.Page<PotentialDuplicate> page =
-          org.hisp.dhis.tracker.Page.withoutTotals(
-              potentialDuplicates,
-              criteria.getPageParams().getPage(),
-              criteria.getPageParams().getPageSize());
-      return Page.withPager("potentialDuplicates", page.withItems(objectNodes));
-    }
-
-    return Page.withoutPager("potentialDuplicates", objectNodes);
+    return ResponseEntity.ok()
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(Page.withoutPager("potentialDuplicates", objectNodes));
   }
 
   @GetMapping(value = "/{uid}")

@@ -36,6 +36,7 @@ import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
 @Data
 public class PotentialDuplicateCriteria {
+  // TODO(ivo) remove them
   private PageParams pageParams;
 
   private List<OrderCriteria> order = new ArrayList<>();

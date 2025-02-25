@@ -39,6 +39,8 @@ import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
@@ -53,12 +55,11 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private DeduplicationService deduplicationService;
 
   private UID trackedEntityAOriginal;
-
   private UID trackedEntityADuplicate;
-
   private UID trackedEntityBOriginal;
-
   private UID trackedEntityBDuplicate;
+  private UID trackedEntityCOriginal;
+  private UID trackedEntityCDuplicate;
 
   @BeforeEach
   void setUp() throws IOException {
@@ -77,36 +78,9 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
     trackedEntityBOriginal = trackerObjects.findTrackedEntity(UID.of("dUE514NMOlo")).get().getUid();
     trackedEntityBDuplicate =
         duplicateTrackedEntities.findTrackedEntity(UID.of("DUE514NMOlo")).get().getUid();
-  }
-
-  @Test
-  void shouldGetPotentialDuplicatesByStatus() throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate1 =
-        new PotentialDuplicate(trackedEntityAOriginal, trackedEntityADuplicate);
-    deduplicationService.addPotentialDuplicate(potentialDuplicate1);
-    potentialDuplicate1.setStatus(DeduplicationStatus.INVALID);
-    deduplicationService.updatePotentialDuplicate(potentialDuplicate1);
-    PotentialDuplicate potentialDuplicate2 =
-        new PotentialDuplicate(trackedEntityBOriginal, trackedEntityBDuplicate);
-    deduplicationService.addPotentialDuplicate(potentialDuplicate2);
-
-    PotentialDuplicateCriteria criteria = new PotentialDuplicateCriteria();
-    criteria.setTrackedEntities(List.of(trackedEntityAOriginal, trackedEntityBOriginal));
-    criteria.setStatus(DeduplicationStatus.OPEN);
-
-    assertContainsOnly(
-        List.of(potentialDuplicate2), deduplicationService.getPotentialDuplicates(criteria));
-
-    criteria.setStatus(DeduplicationStatus.INVALID);
-
-    assertContainsOnly(
-        List.of(potentialDuplicate1), deduplicationService.getPotentialDuplicates(criteria));
-
-    criteria.setStatus(DeduplicationStatus.ALL);
-
-    assertContainsOnly(
-        List.of(potentialDuplicate1, potentialDuplicate2),
-        deduplicationService.getPotentialDuplicates(criteria));
+    trackedEntityCOriginal = trackerObjects.findTrackedEntity(UID.of("mHWCacsGYYn")).get().getUid();
+    trackedEntityCDuplicate =
+        duplicateTrackedEntities.findTrackedEntity(UID.of("DHWCacsGYYn")).get().getUid();
   }
 
   @Test
@@ -184,24 +158,99 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldGetAllPotentialDuplicatedByTrackedEntities()
-      throws PotentialDuplicateConflictException {
-    PotentialDuplicate potentialDuplicate =
-        new PotentialDuplicate(trackedEntityAOriginal, trackedEntityADuplicate);
+  void shouldGetPotentialDuplicatesByTrackedEntities() throws PotentialDuplicateConflictException {
     PotentialDuplicate potentialDuplicate1 =
-        new PotentialDuplicate(trackedEntityBOriginal, trackedEntityBDuplicate);
+        new PotentialDuplicate(trackedEntityAOriginal, trackedEntityADuplicate);
     PotentialDuplicate potentialDuplicate2 =
-        new PotentialDuplicate(trackedEntityAOriginal, trackedEntityBDuplicate);
-    deduplicationService.addPotentialDuplicate(potentialDuplicate);
+        new PotentialDuplicate(trackedEntityBOriginal, trackedEntityBDuplicate);
+    PotentialDuplicate potentialDuplicate3 =
+        new PotentialDuplicate(trackedEntityCOriginal, trackedEntityCDuplicate);
     deduplicationService.addPotentialDuplicate(potentialDuplicate1);
     deduplicationService.addPotentialDuplicate(potentialDuplicate2);
+    deduplicationService.addPotentialDuplicate(potentialDuplicate3);
 
     PotentialDuplicateCriteria criteria = new PotentialDuplicateCriteria();
     criteria.setTrackedEntities(List.of(trackedEntityAOriginal));
 
     List<PotentialDuplicate> list = deduplicationService.getPotentialDuplicates(criteria);
 
-    assertContainsOnly(List.of(potentialDuplicate, potentialDuplicate2), list);
+    assertContainsOnly(List.of(potentialDuplicate1, potentialDuplicate3), list);
+  }
+
+  @Test
+  void shouldGetPotentialDuplicatesByStatus() throws PotentialDuplicateConflictException {
+    PotentialDuplicate potentialDuplicate1 =
+        new PotentialDuplicate(trackedEntityAOriginal, trackedEntityADuplicate);
+    deduplicationService.addPotentialDuplicate(potentialDuplicate1);
+    potentialDuplicate1.setStatus(DeduplicationStatus.INVALID);
+    deduplicationService.updatePotentialDuplicate(potentialDuplicate1);
+    PotentialDuplicate potentialDuplicate2 =
+        new PotentialDuplicate(trackedEntityBOriginal, trackedEntityBDuplicate);
+    deduplicationService.addPotentialDuplicate(potentialDuplicate2);
+
+    PotentialDuplicateCriteria criteria = new PotentialDuplicateCriteria();
+    criteria.setTrackedEntities(List.of(trackedEntityAOriginal, trackedEntityBOriginal));
+    criteria.setStatus(DeduplicationStatus.OPEN);
+
+    assertContainsOnly(
+        List.of(potentialDuplicate2), deduplicationService.getPotentialDuplicates(criteria));
+
+    criteria.setStatus(DeduplicationStatus.INVALID);
+
+    assertContainsOnly(
+        List.of(potentialDuplicate1), deduplicationService.getPotentialDuplicates(criteria));
+
+    criteria.setStatus(DeduplicationStatus.ALL);
+
+    assertContainsOnly(
+        List.of(potentialDuplicate1, potentialDuplicate2),
+        deduplicationService.getPotentialDuplicates(criteria));
+  }
+
+  @Test
+  void shouldGetPaginatedPotentialDuplicatesGivenNonDefaultPageSize()
+      throws PotentialDuplicateConflictException {
+    PotentialDuplicate potentialDuplicate1 =
+        new PotentialDuplicate(trackedEntityAOriginal, trackedEntityADuplicate);
+    PotentialDuplicate potentialDuplicate2 =
+        new PotentialDuplicate(trackedEntityBOriginal, trackedEntityBDuplicate);
+    PotentialDuplicate potentialDuplicate3 =
+        new PotentialDuplicate(trackedEntityCOriginal, trackedEntityCDuplicate);
+    deduplicationService.addPotentialDuplicate(potentialDuplicate1);
+    deduplicationService.addPotentialDuplicate(potentialDuplicate2);
+    deduplicationService.addPotentialDuplicate(potentialDuplicate3);
+
+    PotentialDuplicateCriteria criteria = new PotentialDuplicateCriteria();
+    criteria.setOrder(List.of(OrderCriteria.of("original", SortDirection.ASC)));
+    criteria.setTrackedEntities(
+        List.of(trackedEntityAOriginal, trackedEntityBOriginal, trackedEntityCOriginal));
+
+    Page<UID> firstPage =
+        deduplicationService
+            .getPotentialDuplicates(criteria, new PageParams(1, 2, false))
+            .withItems(PotentialDuplicate::getOriginal);
+
+    assertEquals(
+        new Page<>(List.of(trackedEntityAOriginal, trackedEntityBOriginal), 1, 2, null, null, 2),
+        firstPage,
+        "first page");
+
+    Page<UID> secondPage =
+        deduplicationService
+            .getPotentialDuplicates(criteria, new PageParams(2, 2, false))
+            .withItems(PotentialDuplicate::getOriginal);
+
+    assertEquals(
+        new Page<>(List.of(trackedEntityCOriginal), 2, 2, null, 1, null),
+        secondPage,
+        "second (last) page");
+
+    Page<UID> thirdPage =
+        deduplicationService
+            .getPotentialDuplicates(criteria, new PageParams(3, 3, false))
+            .withItems(PotentialDuplicate::getOriginal);
+
+    assertEquals(new Page<>(List.of(), 3, 3, null, 2, null), thirdPage, "past the last page");
   }
 
   @Test

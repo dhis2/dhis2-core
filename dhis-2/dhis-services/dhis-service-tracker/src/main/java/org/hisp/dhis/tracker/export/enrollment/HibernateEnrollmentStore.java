@@ -110,9 +110,8 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
     query.setFirstResult(pageParams.getOffset());
     query.setMaxResults(
         pageParams.getPageSize() + 1); // get extra enrollment to determine if there is a nextPage
-    List<Enrollment> enrollments = query.list();
 
-    return new Page<>(enrollments, pageParams, () -> countEnrollments(params));
+    return new Page<>(query.list(), pageParams, () -> countEnrollments(params));
   }
 
   private long countEnrollments(EnrollmentQueryParams params) {

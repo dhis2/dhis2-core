@@ -32,14 +32,24 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 
 public interface DeduplicationService {
+  @Nonnull
   PotentialDuplicate getPotentialDuplicate(@Nonnull UID uid) throws NotFoundException;
 
   boolean exists(@Nonnull PotentialDuplicate potentialDuplicate)
       throws PotentialDuplicateConflictException;
 
+  /** Get all potential duplicates matching given criteria. */
+  @Nonnull
   List<PotentialDuplicate> getPotentialDuplicates(@Nonnull PotentialDuplicateCriteria criteria);
+
+  /** Get a page of duplicates matching given criteria. */
+  @Nonnull
+  Page<PotentialDuplicate> getPotentialDuplicates(
+      @Nonnull PotentialDuplicateCriteria criteria, PageParams pageParams);
 
   void addPotentialDuplicate(@Nonnull PotentialDuplicate potentialDuplicate)
       throws PotentialDuplicateConflictException;

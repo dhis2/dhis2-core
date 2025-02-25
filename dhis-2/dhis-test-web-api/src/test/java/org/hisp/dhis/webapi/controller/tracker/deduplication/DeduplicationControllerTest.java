@@ -32,6 +32,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertPagerLink;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -91,16 +92,11 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
 
   private TrackerObjects trackerObjects;
 
-  private User importUser;
-
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntityAOriginal;
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntityADuplicate;
   private JsonPotentialDuplicate potentialDuplicateA;
-  private org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntityBOriginal;
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntityBDuplicate;
   private JsonPotentialDuplicate potentialDuplicateB;
-  private org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntityCOriginal;
-  private org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntityCDuplicate;
   private JsonPotentialDuplicate potentialDuplicateC;
 
   protected ObjectBundle setUpMetadata(String path) throws IOException {
@@ -125,7 +121,7 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
   void setUp() throws IOException {
     setUpMetadata("tracker/simple_metadata.json");
 
-    importUser = userService.getUser("tTgjgobT1oS");
+    User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
     trackerObjects = fromJson("tracker/event_and_enrollment.json");
@@ -158,7 +154,8 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
             .content(HttpStatus.OK)
             .as(JsonPotentialDuplicate.class);
     // potential duplicate B
-    trackedEntityBOriginal = trackerObjects.findTrackedEntity(UID.of("dUE514NMOlo")).get();
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntityBOriginal =
+        trackerObjects.findTrackedEntity(UID.of("dUE514NMOlo")).get();
     trackedEntityBDuplicate =
         duplicateTrackedEntities.findTrackedEntity(UID.of("DUE514NMOlo")).get();
     potentialDuplicateB =
@@ -174,8 +171,9 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
             .content(HttpStatus.OK)
             .as(JsonPotentialDuplicate.class);
     // potential duplicate C
-    trackedEntityCOriginal = trackerObjects.findTrackedEntity(UID.of("mHWCacsGYYn")).get();
-    trackedEntityCDuplicate =
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntityCOriginal =
+        trackerObjects.findTrackedEntity(UID.of("mHWCacsGYYn")).get();
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntityCDuplicate =
         duplicateTrackedEntities.findTrackedEntity(UID.of("DHWCacsGYYn")).get();
     potentialDuplicateC =
         POST(
@@ -376,7 +374,7 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
   void shouldGetLastPage() {
     JsonPage page =
         GET(
-                "/potentialDuplicates?trackedEntities={uid},{uid}&page=2&pageSize=1&totalPages=true",
+                "/potentialDuplicates?trackedEntities={uid},{uid}&page=2&pageSize=1",
                 trackedEntityADuplicate.getUid(),
                 trackedEntityBDuplicate.getUid())
             .content(HttpStatus.OK)
@@ -390,7 +388,14 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
     JsonPager pager = page.getPager();
     assertEquals(2, pager.getPage());
     assertEquals(1, pager.getPageSize());
-    assertHasNoMember(pager, "total", "pageCount", "prevPage", "nextPage");
+    assertPagerLink(
+        pager.getPrevPage(),
+        1,
+        1,
+        String.format(
+            "http://localhost/api/potentialDuplicates?trackedEntities=%s,%s",
+            trackedEntityADuplicate.getUid(), trackedEntityBDuplicate.getUid()));
+    assertHasNoMember(pager, "total", "pageCount", "nextPage");
   }
 
   @Test

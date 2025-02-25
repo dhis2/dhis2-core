@@ -40,6 +40,8 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -58,6 +60,7 @@ public class DefaultDeduplicationService implements DeduplicationService {
 
   private final UserService userService;
 
+  @Nonnull
   @Override
   @Transactional(readOnly = true)
   public PotentialDuplicate getPotentialDuplicate(@Nonnull UID uid) throws NotFoundException {
@@ -75,11 +78,19 @@ public class DefaultDeduplicationService implements DeduplicationService {
     return potentialDuplicateStore.exists(potentialDuplicate);
   }
 
+  @Nonnull
   @Override
   @Transactional(readOnly = true)
   public List<PotentialDuplicate> getPotentialDuplicates(
       @Nonnull PotentialDuplicateCriteria criteria) {
     return potentialDuplicateStore.getPotentialDuplicates(criteria);
+  }
+
+  @Nonnull
+  @Override
+  public Page<PotentialDuplicate> getPotentialDuplicates(
+      @Nonnull PotentialDuplicateCriteria criteria, PageParams pageParams) {
+    return potentialDuplicateStore.getPotentialDuplicates(criteria, pageParams);
   }
 
   @Override
