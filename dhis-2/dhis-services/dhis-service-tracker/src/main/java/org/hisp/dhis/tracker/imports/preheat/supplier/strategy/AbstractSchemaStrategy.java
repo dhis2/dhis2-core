@@ -38,10 +38,10 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fieldfilter.Defaults;
+import org.hisp.dhis.query.Filter;
+import org.hisp.dhis.query.Filters;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.query.Restriction;
-import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -199,14 +199,13 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
     return query;
   }
 
-  private Restriction generateRestrictionFromIdentifiers(
-      TrackerIdScheme idScheme, List<String> ids) {
+  private Filter generateRestrictionFromIdentifiers(TrackerIdScheme idScheme, List<String> ids) {
     if (TrackerIdScheme.CODE.equals(idScheme)) {
-      return Restrictions.in("code", ids);
+      return Filters.in("code", ids);
     } else if (TrackerIdScheme.NAME.equals(idScheme)) {
-      return Restrictions.in("name", ids);
+      return Filters.in("name", ids);
     } else {
-      return Restrictions.in("id", ids);
+      return Filters.in("id", ids);
     }
   }
 

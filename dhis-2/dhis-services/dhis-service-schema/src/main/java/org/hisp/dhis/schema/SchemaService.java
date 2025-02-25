@@ -29,6 +29,7 @@ package org.hisp.dhis.schema;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.query.planner.PropertyPath;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -105,4 +106,6 @@ public interface SchemaService {
   Set<String> collectAuthorities();
 
   Class<?> getConcreteClass(Class<?> klass);
+
+  PropertyPath getQueryPath(Schema schema, String path);
 }
