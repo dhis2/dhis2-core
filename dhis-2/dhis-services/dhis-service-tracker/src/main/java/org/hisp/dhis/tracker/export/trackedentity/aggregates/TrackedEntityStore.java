@@ -114,7 +114,7 @@ class TrackedEntityStore extends AbstractStore {
     return "trackedentityid";
   }
 
-  Map<String, TrackedEntity> getTrackedEntities(List<Long> ids, Context ctx) {
+  Map<String, TrackedEntity> getTrackedEntities(List<Long> ids) {
     List<List<Long>> idPartitions = Lists.partition(ids, PARITITION_SIZE);
 
     Map<String, TrackedEntity> trackedEntityMap = new LinkedHashMap<>();

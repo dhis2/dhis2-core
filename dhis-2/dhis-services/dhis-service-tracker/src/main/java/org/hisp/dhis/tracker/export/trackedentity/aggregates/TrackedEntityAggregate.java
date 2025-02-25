@@ -189,7 +189,7 @@ public class TrackedEntityAggregate {
      * Async Fetch TrackedEntities by id
      */
     final CompletableFuture<Map<String, TrackedEntity>> trackedEntitiesAsync =
-        supplyAsync(() -> trackedEntityStore.getTrackedEntities(ids, ctx), getPool());
+        supplyAsync(() -> trackedEntityStore.getTrackedEntities(ids), getPool());
 
     /*
      * Async fetch TrackedEntity Attributes by TrackedEntity id
