@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.time.Instant;
+import java.util.Date;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +48,10 @@ class OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
   void testSaveAndGetByUid() {
     // Create a test authorization
     OAuth2Authorization authorization = new OAuth2Authorization();
+    authorization.setAutoFields();
+    authorization.setCreatedBy(getAdminUser());
+    authorization.setLastUpdatedBy(getAdminUser());
+
     authorization.setName("Test OAuth2 Authorization");
     authorization.setRegisteredClientId("test-client-id");
     authorization.setPrincipalName("test-user");
@@ -74,6 +79,9 @@ class OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
   void testGetByState() {
     // Create a test authorization with state
     OAuth2Authorization authorization = new OAuth2Authorization();
+    authorization.setAutoFields();
+    authorization.setCreatedBy(getAdminUser());
+    authorization.setLastUpdatedBy(getAdminUser());
     authorization.setName("State Test Auth");
     authorization.setRegisteredClientId("client-1");
     authorization.setPrincipalName("user-1");
@@ -98,13 +106,16 @@ class OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
   void testGetByAuthorizationCode() {
     // Create a test authorization with authorization code
     OAuth2Authorization authorization = new OAuth2Authorization();
+    authorization.setAutoFields();
+    authorization.setCreatedBy(getAdminUser());
+    authorization.setLastUpdatedBy(getAdminUser());
     authorization.setName("Auth Code Test");
     authorization.setRegisteredClientId("client-2");
     authorization.setPrincipalName("user-2");
     authorization.setAuthorizationGrantType("authorization_code");
     authorization.setAuthorizationCodeValue("test-auth-code");
-    authorization.setAuthorizationCodeIssuedAt(Instant.now());
-    authorization.setAuthorizationCodeExpiresAt(Instant.now().plusSeconds(600));
+    authorization.setAuthorizationCodeIssuedAt(new Date());
+    authorization.setAuthorizationCodeExpiresAt(Date.from(Instant.now().plusSeconds(600)));
 
     // Save the authorization
     oauth2AuthorizationStore.save(authorization);
@@ -121,13 +132,16 @@ class OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
   void testGetByAccessToken() {
     // Create a test authorization with access token
     OAuth2Authorization authorization = new OAuth2Authorization();
+    authorization.setAutoFields();
+    authorization.setCreatedBy(getAdminUser());
+    authorization.setLastUpdatedBy(getAdminUser());
     authorization.setName("Access Token Test");
     authorization.setRegisteredClientId("client-3");
     authorization.setPrincipalName("user-3");
     authorization.setAuthorizationGrantType("authorization_code");
     authorization.setAccessTokenValue("test-access-token");
-    authorization.setAccessTokenIssuedAt(Instant.now());
-    authorization.setAccessTokenExpiresAt(Instant.now().plusSeconds(3600));
+    authorization.setAccessTokenIssuedAt(new Date());
+    authorization.setAccessTokenExpiresAt(Date.from(Instant.now().plusSeconds(3600)));
 
     // Save the authorization
     oauth2AuthorizationStore.save(authorization);
@@ -143,13 +157,16 @@ class OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
   void testGetByRefreshToken() {
     // Create a test authorization with refresh token
     OAuth2Authorization authorization = new OAuth2Authorization();
+    authorization.setAutoFields();
+    authorization.setCreatedBy(getAdminUser());
+    authorization.setLastUpdatedBy(getAdminUser());
     authorization.setName("Refresh Token Test");
     authorization.setRegisteredClientId("client-4");
     authorization.setPrincipalName("user-4");
     authorization.setAuthorizationGrantType("authorization_code");
     authorization.setRefreshTokenValue("test-refresh-token");
-    authorization.setRefreshTokenIssuedAt(Instant.now());
-    authorization.setRefreshTokenExpiresAt(Instant.now().plusSeconds(86400));
+    authorization.setRefreshTokenIssuedAt(new Date());
+    authorization.setRefreshTokenExpiresAt(Date.from(Instant.now().plusSeconds(86400)));
 
     // Save the authorization
     oauth2AuthorizationStore.save(authorization);
@@ -166,6 +183,9 @@ class OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
   void testGetByToken() {
     // Create test authorizations with different token types
     OAuth2Authorization auth1 = new OAuth2Authorization();
+    auth1.setAutoFields();
+    auth1.setCreatedBy(getAdminUser());
+    auth1.setLastUpdatedBy(getAdminUser());
     auth1.setName("Token Test 1");
     auth1.setRegisteredClientId("client-5");
     auth1.setPrincipalName("user-5");
@@ -173,6 +193,9 @@ class OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
     auth1.setAccessTokenValue("multi-token-test-1");
 
     OAuth2Authorization auth2 = new OAuth2Authorization();
+    auth2.setAutoFields();
+    auth2.setCreatedBy(getAdminUser());
+    auth2.setLastUpdatedBy(getAdminUser());
     auth2.setName("Token Test 2");
     auth2.setRegisteredClientId("client-6");
     auth2.setPrincipalName("user-6");

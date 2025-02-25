@@ -46,6 +46,9 @@ class OAuth2AuthorizationConsentStoreTest extends PostgresIntegrationTestBase {
   void testSaveAndGetByUid() {
     // Create a test authorization consent
     OAuth2AuthorizationConsent consent = new OAuth2AuthorizationConsent();
+    consent.setAutoFields();
+    consent.setCreatedBy(getAdminUser());
+    consent.setLastUpdatedBy(getAdminUser());
     consent.setName("Test OAuth2 Authorization Consent");
     consent.setRegisteredClientId("test-client-id");
     consent.setPrincipalName("test-user");
@@ -68,6 +71,9 @@ class OAuth2AuthorizationConsentStoreTest extends PostgresIntegrationTestBase {
   void testGetByRegisteredClientIdAndPrincipalName() {
     // Create a test authorization consent
     OAuth2AuthorizationConsent consent = new OAuth2AuthorizationConsent();
+    consent.setAutoFields();
+    consent.setCreatedBy(getAdminUser());
+    consent.setLastUpdatedBy(getAdminUser());
     consent.setName("Client-Principal Test");
     consent.setRegisteredClientId("specific-client-id");
     consent.setPrincipalName("specific-user");
@@ -97,6 +103,9 @@ class OAuth2AuthorizationConsentStoreTest extends PostgresIntegrationTestBase {
   void testDeleteByRegisteredClientIdAndPrincipalName() {
     // Create a test authorization consent
     OAuth2AuthorizationConsent consent = new OAuth2AuthorizationConsent();
+    consent.setAutoFields();
+    consent.setCreatedBy(getAdminUser());
+    consent.setLastUpdatedBy(getAdminUser());
     consent.setName("Deletion Test");
     consent.setRegisteredClientId("delete-client-id");
     consent.setPrincipalName("delete-user");

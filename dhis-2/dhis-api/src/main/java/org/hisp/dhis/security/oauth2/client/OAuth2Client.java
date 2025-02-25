@@ -29,7 +29,7 @@ package org.hisp.dhis.security.oauth2.client;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.time.Instant;
+import java.util.Date;
 import lombok.Getter;
 import lombok.Setter;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -45,8 +45,8 @@ public class OAuth2Client extends BaseIdentifiableObject implements MetadataObje
 
   @JsonProperty private String clientId;
   @JsonProperty private String clientSecret;
-  @JsonProperty private Instant clientIdIssuedAt;
-  @JsonProperty private Instant clientSecretExpiresAt;
+  @JsonProperty private Date clientIdIssuedAt;
+  @JsonProperty private Date clientSecretExpiresAt;
   @JsonProperty private String clientAuthenticationMethods;
 
   @JsonProperty private String authorizationGrantTypes;

@@ -16,6 +16,7 @@
     </id>
 
     &identifiableProperties;
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="createdby" foreign-key="fk_oauth2_authorization_consent_userid" />
 
     <property name="name" column="name" not-null="true" length="230"/>
     <property name="registeredClientId" column="registered_client_id" not-null="true" length="255"/>
