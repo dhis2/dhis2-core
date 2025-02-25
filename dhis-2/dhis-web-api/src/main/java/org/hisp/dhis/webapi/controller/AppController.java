@@ -226,8 +226,8 @@ public class AppController {
     }
 
     if (application.isBundled()) {
-      String redirectPath = (application.getBaseUrl() + "/" + resource).replaceAll("/+", "/");
-
+      String baseUrl = TextUtils.removeAnyTrailingSlash(application.getBaseUrl());
+      String redirectPath = baseUrl + ("/" + resource).replaceAll("/+", "/");
       log.info(String.format("Redirecting to bundled app: %s", redirectPath));
 
       response.sendRedirect(redirectPath);
