@@ -41,6 +41,7 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.period.Period;
 
@@ -97,17 +98,17 @@ public class SubexpressionPeriodOffsetUtils {
             format("(%s,'%s','%s'),", delta, reportPeriod.getIsoDate(), dataPeriod.getIsoDate()));
       }
     }
-    sb.setLength(sb.length() - 1); // Remove final ","
 
-    sb.append(
-        format(
-            ") as %s (%s, %s, %s) on %s = %s",
-            SHIFT,
-            DELTA,
-            REPORTPERIOD,
-            DATAPERIOD,
-            DATAPERIOD,
-            quote(params.getPeriodType().toLowerCase())));
+    TextUtils.removeLastComma(sb)
+        .append(
+            format(
+                ") as %s (%s, %s, %s) on %s = %s",
+                SHIFT,
+                DELTA,
+                REPORTPERIOD,
+                DATAPERIOD,
+                DATAPERIOD,
+                quote(params.getPeriodType().toLowerCase())));
 
     return sb.toString();
   }
