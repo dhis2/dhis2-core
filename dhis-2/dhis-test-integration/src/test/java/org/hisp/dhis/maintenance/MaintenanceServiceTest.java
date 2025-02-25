@@ -157,6 +157,8 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     coA = categoryService.getDefaultCategoryOptionCombo();
     organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
+    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
+    trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
     program = createProgram('A', new HashSet<>(), organisationUnit);
     programService.addProgram(program);
     ProgramStage stageA = createProgramStage('A', program);
@@ -169,9 +171,8 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     programStages.add(stageA);
     programStages.add(stageB);
     program.setProgramStages(programStages);
+    program.setTrackedEntityType(trackedEntityType);
     programService.updateProgram(program);
-    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
-    trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
     trackedEntity = createTrackedEntity(organisationUnit, trackedEntityType);
     manager.save(trackedEntity);
     trackedEntityB = createTrackedEntity(organisationUnit, trackedEntityType);

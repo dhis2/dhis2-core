@@ -84,6 +84,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
@@ -121,6 +122,8 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
   @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private IncomingSmsService incomingSmsService;
+
+  @Autowired TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   @Autowired
   @Qualifier("smsMessageSender")
@@ -495,6 +498,8 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     manager.save(enrollment);
     te.getEnrollments().add(enrollment);
     manager.save(te);
+    trackedEntityProgramOwnerService.createOrUpdateTrackedEntityProgramOwner(
+        te, trackerProgram, orgUnit);
     return enrollment;
   }
 

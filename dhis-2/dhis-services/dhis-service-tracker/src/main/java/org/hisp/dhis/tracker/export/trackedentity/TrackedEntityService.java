@@ -44,12 +44,12 @@ public interface TrackedEntityService {
 
   /** Get a file for a tracked entities' attribute. */
   FileResourceStream getFileResource(UID trackedEntity, UID attribute, UID program)
-      throws NotFoundException;
+      throws NotFoundException, ForbiddenException;
 
   /** Get an image for a tracked entities' attribute in the given dimension. */
   FileResourceStream getFileResourceImage(
       UID trackedEntity, UID attribute, UID program, ImageFileDimension dimension)
-      throws NotFoundException;
+      throws NotFoundException, ForbiddenException;
 
   /**
    * Get the tracked entity matching given {@code UID} under the privileges of the currently

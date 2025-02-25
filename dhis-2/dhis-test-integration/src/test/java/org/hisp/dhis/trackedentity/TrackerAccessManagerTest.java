@@ -190,6 +190,10 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     eventB.setScheduledDate(DateUtils.addDays(new Date(), 10));
     eventB.setAttributeOptionCombo(coA);
     manager.save(eventB, false);
+
+    User adminUser = getAdminUser();
+    adminUser.setTeiSearchOrganisationUnits(Set.of(orgUnitA));
+    injectSecurityContextUser(adminUser);
   }
 
   @Test

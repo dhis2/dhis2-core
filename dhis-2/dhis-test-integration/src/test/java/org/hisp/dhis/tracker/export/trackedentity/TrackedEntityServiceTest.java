@@ -1873,7 +1873,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
                 trackedEntityService.getTrackedEntity(
                     UID.of(trackedEntityA), UID.of(inaccessibleProgram), TrackedEntityParams.TRUE));
     assertContains(
-        String.format("User has no data read access to program: %s", inaccessibleProgram.getUid()),
+        String.format("User has no access to program: %s", inaccessibleProgram.getUid()),
         exception.getMessage());
   }
 
@@ -1885,16 +1885,14 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     TrackedEntity trackedEntity = createTrackedEntity(orgUnitA, inaccessibleTrackedEntityType);
     manager.save(trackedEntity);
 
-    ForbiddenException exception =
+    NotFoundException exception =
         assertThrows(
-            ForbiddenException.class,
+            NotFoundException.class,
             () ->
                 trackedEntityService.getTrackedEntity(
                     UID.of(trackedEntity), UID.of(programA), TrackedEntityParams.TRUE));
     assertContains(
-        String.format(
-            "User has no data read access to tracked entity type: %s",
-            inaccessibleTrackedEntityType.getUid()),
+        String.format("TrackedEntity with id %s could not be found.", trackedEntity.getUid()),
         exception.getMessage());
   }
 
@@ -1939,14 +1937,14 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     makeProgramMetadataInaccessible(programC);
 
     injectSecurityContextUser(user);
-    ForbiddenException exception =
+    NotFoundException exception =
         assertThrows(
-            ForbiddenException.class,
+            NotFoundException.class,
             () ->
                 trackedEntityService.getTrackedEntity(
                     UID.of(trackedEntityA), null, TrackedEntityParams.TRUE));
     assertContains(
-        String.format("User has no access to TrackedEntity:%s", trackedEntityA.getUid()),
+        String.format("TrackedEntity with id %s could not be found.", trackedEntityA.getUid()),
         exception.getMessage());
   }
 
@@ -1960,15 +1958,15 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     manager.save(eventProgram, false);
 
     injectSecurityContextUser(user);
-    ForbiddenException exception =
+    NotFoundException exception =
         assertThrows(
-            ForbiddenException.class,
+            NotFoundException.class,
             () ->
                 trackedEntityService.getTrackedEntity(
                     UID.of(trackedEntityA), null, TrackedEntityParams.TRUE));
 
     assertContains(
-        String.format("User has no access to TrackedEntity:%s", trackedEntityA.getUid()),
+        String.format("TrackedEntity with id %s could not be found.", trackedEntityA.getUid()),
         exception.getMessage());
   }
 
@@ -1985,15 +1983,15 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     manager.update(programC);
 
     injectSecurityContextUser(user);
-    ForbiddenException exception =
+    NotFoundException exception =
         assertThrows(
-            ForbiddenException.class,
+            NotFoundException.class,
             () ->
                 trackedEntityService.getTrackedEntity(
                     UID.of(trackedEntityA), null, TrackedEntityParams.TRUE));
 
     assertContains(
-        String.format("User has no access to TrackedEntity:%s", trackedEntityA.getUid()),
+        String.format("TrackedEntity with id %s could not be found.", trackedEntityA.getUid()),
         exception.getMessage());
   }
 
@@ -2005,15 +2003,15 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     makeProgramMetadataAccessibleOnly(programC);
 
     injectSecurityContextUser(user);
-    ForbiddenException exception =
+    NotFoundException exception =
         assertThrows(
-            ForbiddenException.class,
+            NotFoundException.class,
             () ->
                 trackedEntityService.getTrackedEntity(
                     UID.of(trackedEntityA), null, TrackedEntityParams.TRUE));
 
     assertContains(
-        String.format("User has no access to TrackedEntity:%s", trackedEntityA.getUid()),
+        String.format("TrackedEntity with id %s could not be found.", trackedEntityA.getUid()),
         exception.getMessage());
   }
 
@@ -2031,9 +2029,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
                 trackedEntityService.getTrackedEntity(
                     UID.of(trackedEntityA), null, TrackedEntityParams.TRUE));
 
-    assertEquals(
-        String.format("User has no access to TrackedEntity:%s", trackedEntityA.getUid()),
-        exception.getMessage());
+    assertEquals("User has no access to any Tracked Entity Type", exception.getMessage());
   }
 
   @Test

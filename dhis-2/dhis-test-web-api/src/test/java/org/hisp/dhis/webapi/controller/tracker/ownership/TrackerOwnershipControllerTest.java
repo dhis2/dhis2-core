@@ -39,14 +39,12 @@ import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link TrackerOwnershipController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
-@Transactional
 class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBase {
 
   private String orgUnitAUid;
@@ -125,6 +123,8 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
                     }
                     """
                     .formatted(tetId, orgUnitAUid, orgUnitBUid)));
+    manager.flush();
+    manager.clear();
   }
 
   @Test
