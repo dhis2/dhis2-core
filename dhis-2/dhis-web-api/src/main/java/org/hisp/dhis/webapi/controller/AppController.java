@@ -226,11 +226,10 @@ public class AppController {
     }
 
     if (application.isBundled()) {
-      String baseUrl = TextUtils.removeAnyTrailingSlash(application.getBaseUrl());
-      String redirectPath = baseUrl + ("/" + resource).replaceAll("/+", "/");
-      log.info(String.format("Redirecting to bundled app: %s", redirectPath));
+      String cleanValidUrl = TextUtils.getCleanValidUrl(application.getBaseUrl(), resource);
+      log.info(String.format("Redirecting to bundled app: %s", cleanValidUrl));
 
-      response.sendRedirect(redirectPath);
+      response.sendRedirect(cleanValidUrl);
       return;
     }
 
@@ -266,8 +265,9 @@ public class AppController {
         return;
       }
       if (resourceResult instanceof Redirect redirect) {
-        String baseUrl = TextUtils.removeAnyTrailingSlash(application.getBaseUrl());
-        response.sendRedirect(baseUrl + ("/" + redirect.path()).replaceAll("/+", "/"));
+        String cleanValidUrl =
+            TextUtils.getCleanValidUrl(application.getBaseUrl(), redirect.path());
+        response.sendRedirect(cleanValidUrl);
         return;
       }
       if (resourceResult instanceof ResourceNotFound) {

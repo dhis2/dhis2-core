@@ -655,4 +655,22 @@ public class TextUtils {
   public static String format(String pattern, Object... arguments) {
     return MessageFormatter.arrayFormat(pattern, arguments).getMessage();
   }
+
+  /**
+   * Provides the ability to form a valid URL, by providing a 'baseUrl' and a 'path'. The 'baseUrl'
+   * has any trailing slash '/' removed, keeping it's scheme (e.g. 'http://') with 2 '/'s . The
+   * remaining string concatenation is put together with a '/' and the remaining 'path', which has
+   * any extra '/'s replaced with a single '/'. <br>
+   * This method is useful when you are stitching together URL parts and are not sure if any of the
+   * params start or end with '/'.
+   *
+   * @param baseUrl base URL e.g. 'http://localhost'
+   * @param path the remaining path to concatenate with the base URL
+   * @return the fully-cleaned URl, meaning the URL will have a valid URL scheme included (if
+   *     provided) and the remaining path will only have single '/'s.
+   */
+  public static String getCleanValidUrl(@Nonnull String baseUrl, @Nonnull String path) {
+    String base = removeAnyTrailingSlash(baseUrl);
+    return base + ("/" + path).replaceAll("/+", "/");
+  }
 }

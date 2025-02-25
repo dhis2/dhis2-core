@@ -152,10 +152,9 @@ public class AppOverrideFilter extends OncePerRequestFilter {
         return;
       }
       if (resourceResult instanceof Redirect redirect) {
-        String baseUrl = TextUtils.removeAnyTrailingSlash(app.getBaseUrl());
-        String redirectPath = baseUrl + ("/" + redirect.path()).replaceAll("/+", "/");
-        log.debug("Redirecting to: {}", redirectPath);
-        response.sendRedirect(redirectPath);
+        String cleanValidUrl = TextUtils.getCleanValidUrl(app.getBaseUrl(), redirect.path());
+        log.debug("Redirecting to: {}", cleanValidUrl);
+        response.sendRedirect(cleanValidUrl);
       }
     }
   }
