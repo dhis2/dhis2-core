@@ -107,53 +107,72 @@ entities. Only tracked entities with an enrollment into the `program` will be re
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentStatus`
 
-Get tracked entities with an enrollment in the given status.
+Get tracked entities that have at least one enrollment with the status specified.
+
+Valid options are:
+- `ACTIVE`
+- `COMPLETED`
+- `CANCELLED`
 
 ### `*.parameter.TrackedEntityRequestParams.programStatus`
 
-Get tracked entities with an enrollment in the given status.
+Get tracked entities that have at least one enrollment with the status specified.
+
+Valid options are:
+- `ACTIVE`
+- `COMPLETED`
+- `CANCELLED`
 
 **DEPRECATED as of 2.42:** Use parameter `enrollmentStatus` instead.
 
-See `enrollmentStatus` for details.
 
 ### `*.parameter.TrackedEntityRequestParams.followUp`
 
+Get tracked entities that have at least one enrollment that is marked with follow up.
+
 ### `*.parameter.TrackedEntityRequestParams.updatedAfter`
 
-Get tracked entities updated after given date and time.
+Get tracked entities that are updated after the given time. A tracked entity is considered updated if any of its tracked entity attributes,
+enrollments, events or relationships have been modified. The `updatedAt` property of the tracked entity reflects the latest time 
+at which any of its tracked entity attributes, enrollments, events or relationships were modified.  
 This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.updatedBefore`
 
-Get tracked entities updated before given date and time.
+Get tracked entities that is updated before the given time. A tracked entity is considered updated if any of its tracked entity attributes,
+enrollments, events or relationships have been modified. The `updatedAt` property of the tracked entity reflects the latest time
+at which any of its tracked entity attributes, enrollments, events or relationships were modified.
 This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.updatedWithin`
 
-Get tracked entities updated since given ISO-8601 duration.
+Get tracked entities updated since given ISO-8601 duration. A tracked entity is considered updated if any of its tracked entity attributes,
+enrollments, events or relationships have been modified. The `updatedAt` property of the tracked entity reflects the latest time
+at which any of its tracked entity attributes, enrollments, events or relationships were modified.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentEnrolledAfter`
 
-Get tracked entities with enrollments that were enrolled after given date and time.
+Get tracked entities that has at least one enrollment with an enrollment date after this date.
 This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentEnrolledBefore`
 
-Get tracked entities with enrollments that were enrolled before given date and time.
+Get tracked entities that has at least one enrollment with an enrollment date before this date.
 This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentOccurredAfter`
 
-Get tracked entities with enrollments occurred after given date and time.
+Get tracked entities that have at least one enrollment with an occurred date after this date.
 This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentOccurredBefore`
 
-Get tracked entities with enrollments occurred before given date and time.
+Get tracked entities that has at least one enrollment with an occurred date before this date.
 This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.trackedEntityType`
+
+Get tracked entities with the given tracked entity type. Required if no `program` is specified.
 
 ### `*.parameter.TrackedEntityRequestParams.trackedEntities`
 
@@ -166,6 +185,18 @@ Get tracked entities with given UID(s).
 Get tracked entities with events assigned to users according to the specified user mode. By default,
 all events will be retrieved, regardless of whether a user is assigned.
 
+- When `assignedUserMode=ALL` or no `assingedUserMode`(default) is given, tracked entities and
+  enrollments are returned irrespective of wether they contain events assigned to a user or not.
+  This is the default org unit mode. 
+- When `assignedUserMode=CURRENT` tracked entities and enrollments that has at least one event
+  assigned to the logged in user will be returned.
+- When `assignedUserMode=ANY` tracked entities and enrollments that has at least one event with
+  an assigned user will be returned.
+- When `assignedUserMode=NONE` tracked entities with no events assigned to any user will be
+  returned. 
+- When `assignedUserMode=PROVIDED` The `assignedUsers` parameter will be required, and the tracked
+  entities and enrollments that has any events assigned to the users specified will be returned.
+
 ### `*.parameter.TrackedEntityRequestParams.assignedUsers`
 
 `<user1-uid>[,<user2-uid>...]`
@@ -175,10 +206,15 @@ valid if `assignedUserMode` is either `PROVIDED` or not specified.
 
 ### `*.parameter.TrackedEntityRequestParams.programStage`
 
+Define which programStage the `eventStatus`, `eventOccurredBefore` and `eventOccurredAfter` parameters should be applied to.
+
 ### `*.parameter.TrackedEntityRequestParams.eventStatus`
 
-Get tracked entities with an event with the given status. `eventStatus` must be specified together
+Get tracked entities that has at least one event with the given status. `eventStatus` must be specified together
 with `eventOccurredAfter` and `eventOccurredBefore`.
+
+Only return tracked entities that have at least one event in the specified status. See also
+`programStage`.
 
 ### `*.parameter.TrackedEntityRequestParams.eventOccurredAfter`
 
@@ -194,7 +230,11 @@ This parameter is inclusive, so results with the exact date and time specified w
 
 ### `*.parameter.TrackedEntityRequestParams.includeDeleted`
 
+Include deleted tracked entities, enrollments, events and relationships in the response.
+
 ### `*.parameter.TrackedEntityRequestParams.potentialDuplicate`
+
+Get tracked entities that are marked as potential duplicates.
 
 ### `*.parameter.TrackedEntityRequestParams.order`
 
