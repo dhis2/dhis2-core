@@ -61,6 +61,8 @@ public class App implements Serializable {
 
   private AppType appType = AppType.APP;
 
+  private String basePath;
+
   private String launchPath;
 
   private String pluginLaunchPath;
@@ -117,7 +119,8 @@ public class App implements Serializable {
   public void init(String contextPath) {
     String appPathPrefix = isBundled() ? AppManager.BUNDLED_APP_PREFIX : INSTALLED_APP_PATH;
 
-    this.baseUrl = String.join("/", contextPath, appPathPrefix) + getUrlFriendlyName();
+    this.basePath = String.join("/", appPathPrefix, getUrlFriendlyName());
+    this.baseUrl = contextPath + basePath;
 
     if (contextPath != null && name != null && launchPath != null) {
       this.launchUrl = String.join("/", baseUrl, launchPath.replaceFirst("^/+", ""));
@@ -132,6 +135,11 @@ public class App implements Serializable {
   @JsonProperty
   public String getKey() {
     return getUrlFriendlyName();
+  }
+
+  @JsonProperty
+  public String getBasePath() {
+    return this.basePath;
   }
 
   /** Determine if this app will overload a bundled app */
@@ -420,6 +428,12 @@ public class App implements Serializable {
         + "\", "
         + "\"shortName:\""
         + getShortName()
+        + "\", "
+        + "\"key:\""
+        + getKey()
+        + "\", "
+        + "\"basePath:\""
+        + getBasePath()
         + "\", "
         + "\"appType:\""
         + appType
