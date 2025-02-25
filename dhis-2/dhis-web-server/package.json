@@ -9,6 +9,6 @@
   "author": "Viktor Varland",
   "license": "BSD-3-Clause",
   "dependencies": {
-    "node": "^22.9.0"
+    "node": "^22.13.1"
   }
 }
