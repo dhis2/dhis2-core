@@ -29,8 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static java.util.Collections.emptySet;
 import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
-import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.parseAttributeFilters;
-import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.parseDataElementFilters;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.parseFilters;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
@@ -84,10 +83,9 @@ class EventRequestParamsMapper {
             eventRequestParams.getEnrollmentStatus());
 
     validateFilter(eventRequestParams.getFilter(), eventRequestParams.getEvents());
-    Map<UID, List<QueryFilter>> dataElementFilters =
-        parseDataElementFilters(eventRequestParams.getFilter());
+    Map<UID, List<QueryFilter>> dataElementFilters = parseFilters(eventRequestParams.getFilter());
     Map<UID, List<QueryFilter>> attributeFilters =
-        parseAttributeFilters(eventRequestParams.getFilterAttributes());
+        parseFilters(eventRequestParams.getFilterAttributes());
 
     validateUpdateDurationParams(eventRequestParams);
     validateOrderParams(

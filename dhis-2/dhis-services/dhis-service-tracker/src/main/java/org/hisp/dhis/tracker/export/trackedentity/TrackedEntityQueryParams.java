@@ -45,6 +45,7 @@ import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
@@ -520,7 +521,7 @@ public class TrackedEntityQueryParams {
    * tea}.
    */
   public TrackedEntityQueryParams filterBy(TrackedEntityAttribute tea) {
-    this.filters.putIfAbsent(tea, new ArrayList<>());
+    this.filters.putIfAbsent(tea, List.of(new QueryFilter(QueryOperator.NNULL)));
     return this;
   }
 

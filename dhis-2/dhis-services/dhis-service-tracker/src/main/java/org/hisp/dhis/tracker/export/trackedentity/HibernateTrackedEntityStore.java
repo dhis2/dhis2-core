@@ -374,15 +374,16 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
             // INNER JOIN on constraints
             .append(joinPrograms(params))
-            .append(joinAttributeValue(params))
             .append(getFromSubQueryJoinProgramOwnerConditions(params))
             .append(getFromSubQueryJoinOrgUnitConditions(params))
             .append(getFromSubQueryJoinEnrollmentConditions(params))
 
             // LEFT JOIN attributes we need to sort on.
             .append(getFromSubQueryJoinOrderByAttributes(params))
+            .append(getLeftJoinFromFilterConditions(params))
 
             // WHERE
+            .append(getWhereClauseFromFilterConditions(whereAnd, params))
             .append(getFromSubQueryTrackedEntityConditions(whereAnd, params))
             .append(getFromSubQueryEnrollmentConditions(whereAnd, params));
 
@@ -529,21 +530,21 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   /**
-   * Generates a single INNER JOIN for each attribute we are searching on. We can search by a range
-   * of operators. All searching is using lower() since attribute values are case-insensitive.
+   * Generates a single LEFT JOIN for each attribute we are searching on. The filtering of
+   * attributes is done in {@link #getWhereClauseFromFilterConditions(SqlHelper,
+   * TrackedEntityQueryParams)}
    */
-  private String joinAttributeValue(TrackedEntityQueryParams params) {
+  private String getLeftJoinFromFilterConditions(TrackedEntityQueryParams params) {
     StringBuilder attributes = new StringBuilder();
 
     for (Map.Entry<TrackedEntityAttribute, List<QueryFilter>> filters :
         params.getFilters().entrySet()) {
       String col = quote(filters.getKey().getUid());
       String teaId = col + ".trackedentityattributeid";
-      String teav = "lower(" + col + ".value)";
       String ted = col + ".trackedentityid";
 
       attributes
-          .append(" INNER JOIN trackedentityattributevalue ")
+          .append(" LEFT JOIN trackedentityattributevalue ")
           .append(col)
           .append(" ON ")
           .append(teaId)
@@ -552,17 +553,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           .append(" AND ")
           .append(ted)
           .append(" = TE.trackedentityid ");
-
-      for (QueryFilter filter : filters.getValue()) {
-        String encodedFilter = escape(filter.getFilter());
-        attributes
-            .append("AND ")
-            .append(teav)
-            .append(SPACE)
-            .append(filter.getSqlOperator())
-            .append(SPACE)
-            .append(StringUtils.lowerCase(filter.getSqlFilter(encodedFilter)));
-      }
     }
 
     return attributes.toString();
@@ -830,6 +820,39 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     program.append(") ");
 
     return program.toString();
+  }
+
+  /**
+   * Generates the WHERE-clause related to the user provided filters. It will find the tracked
+   * entity attributes that match the given user filter criteria. This condition only applies when a
+   * filter is specified.
+   */
+  private String getWhereClauseFromFilterConditions(
+      SqlHelper whereAnd, TrackedEntityQueryParams params) {
+    StringBuilder filterClause = new StringBuilder();
+
+    for (Map.Entry<TrackedEntityAttribute, List<QueryFilter>> filters :
+        params.getFilters().entrySet()) {
+      String col = quote(filters.getKey().getUid());
+      String teav = "lower(" + col + ".value)";
+
+      for (QueryFilter filter : filters.getValue()) {
+        filterClause.append(whereAnd.whereAnd()).append(teav).append(SPACE);
+
+        filterClause.append(
+            switch (filter.getOperator()) {
+              case NULL, NNULL -> new StringBuilder().append(filter.getSqlOperator()).append(SPACE);
+              default ->
+                  new StringBuilder()
+                      .append(filter.getSqlOperator())
+                      .append(SPACE)
+                      .append(
+                          StringUtils.lowerCase(filter.getSqlFilter(escape(filter.getFilter()))));
+            });
+      }
+    }
+
+    return filterClause.toString();
   }
 
   /**

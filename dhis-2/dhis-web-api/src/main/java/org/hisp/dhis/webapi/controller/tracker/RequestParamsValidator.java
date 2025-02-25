@@ -281,7 +281,7 @@ public class RequestParamsValidator {
   /**
    * Validate the {@code filter} request parameter in change log tracker exporters. Allowed filter
    * values are {@code supportedFieldNames}. Only one field name at a time can be specified. If the
-   * endpoint supports UIDs use {@link #parseAttributeFilters(String)}.
+   * endpoint supports UIDs use {@link #parseFilters(String)}.
    */
   public static void validateFilter(String filter, Set<Pair<String, Class<?>>> supportedFields)
       throws BadRequestException {
@@ -336,8 +336,7 @@ public class RequestParamsValidator {
    *
    * @return filters by UIDs
    */
-  public static Map<UID, List<QueryFilter>> parseAttributeFilters(String input)
-      throws BadRequestException {
+  public static Map<UID, List<QueryFilter>> parseFilters(String input) throws BadRequestException {
     Map<UID, List<QueryFilter>> result = new HashMap<>();
     if (StringUtils.isBlank(input)) {
       return result;
@@ -345,26 +344,6 @@ public class RequestParamsValidator {
 
     for (String uidOperatorValue : filterList(input)) {
       parseSanitizedFilters(result, uidOperatorValue);
-    }
-    return result;
-  }
-
-  /**
-   * Parse given {@code input} string representing a filter for an object referenced by a UID like a
-   * data element. Refer to {@link #parseSanitizedDataElementFilters(Map, String)}} for details on
-   * the expected input format.
-   *
-   * @return filters by UIDs
-   */
-  public static Map<UID, List<QueryFilter>> parseDataElementFilters(String input)
-      throws BadRequestException {
-    Map<UID, List<QueryFilter>> result = new HashMap<>();
-    if (StringUtils.isBlank(input)) {
-      return result;
-    }
-
-    for (String uidOperatorValue : filterList(input)) {
-      parseSanitizedDataElementFilters(result, uidOperatorValue);
     }
     return result;
   }
@@ -391,30 +370,6 @@ public class RequestParamsValidator {
     result.putIfAbsent(uid, new ArrayList<>());
 
     String[] filters = FILTER_ITEM_SPLIT.split(input.substring(uidIndex));
-    validateFilterLength(filters, result, uid, input);
-  }
-
-  /**
-   * Accumulate {@link QueryFilter}s per DE UID by parsing given input string of format
-   * {uid}[:{operator}:{value}]. Only the DE ID is mandatory. Multiple operator:value pairs are
-   * allowed. A {@link QueryFilter} for each operator:value pair is added to the corresponding DE
-   * UID.
-   *
-   * @throws BadRequestException filter is neither multiple nor single operator:value format
-   */
-  private static void parseSanitizedDataElementFilters(
-      Map<UID, List<QueryFilter>> result, String input) throws BadRequestException {
-    int uidIndex = input.indexOf(DIMENSION_NAME_SEP) + 1;
-
-    if (uidIndex == 0 || input.length() == uidIndex) {
-      UID uid = UID.of(input.replace(DIMENSION_NAME_SEP, ""));
-      result.putIfAbsent(uid, List.of());
-      return;
-    }
-
-    UID uid = UID.of(input.substring(0, uidIndex - 1));
-    String[] filters = FILTER_ITEM_SPLIT.split(input.substring(uidIndex));
-    result.putIfAbsent(uid, new ArrayList<>());
     validateFilterLength(filters, result, uid, input);
   }
 
