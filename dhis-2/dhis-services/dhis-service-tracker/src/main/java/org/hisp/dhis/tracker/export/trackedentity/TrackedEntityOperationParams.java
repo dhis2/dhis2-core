@@ -41,6 +41,7 @@ import lombok.Getter;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
@@ -49,7 +50,6 @@ import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.Order;
 
@@ -62,9 +62,6 @@ public class TrackedEntityOperationParams {
   public static final int DEFAULT_PAGE_SIZE = 50;
 
   @Builder.Default private TrackedEntityParams trackedEntityParams = TrackedEntityParams.FALSE;
-
-  /** Tracked entity attribute filters per attribute UID. */
-  @Builder.Default private Map<UID, List<QueryFilter>> filters = new HashMap<>();
 
   /**
    * Organisation units for which instances in the response were registered at. Is related to the
@@ -171,9 +168,13 @@ public class TrackedEntityOperationParams {
    */
   private List<Order> order;
 
+  private final Map<UID, List<QueryFilter>> filters;
+
   public static class TrackedEntityOperationParamsBuilder {
 
     private final List<Order> order = new ArrayList<>();
+
+    private Map<UID, List<QueryFilter>> filters = new HashMap<>();
 
     // Do not remove this unused method. This hides the order field from the builder which Lombok
     // does not support. The repeated order field and private order method prevent access to order
@@ -249,10 +250,24 @@ public class TrackedEntityOperationParams {
       return this;
     }
 
-    public TrackedEntityOperationParamsBuilder filter(
-        TrackedEntityAttribute attribute, List<QueryFilter> queryFilters) {
-      this.filters$value = Map.of(UID.of(attribute), queryFilters);
-      this.filters$set = true;
+    // Do not remove this unused method. This hides the filters field from the builder which Lombok
+    // does not support. The repeated filters field and private filters method prevent access to
+    // order
+    // via the builder.
+    // Order should be added via the filterBy builder methods.
+    private TrackedEntityOperationParamsBuilder filters(Map<UID, List<QueryFilter>> filters) {
+      return this;
+    }
+
+    public TrackedEntityOperationParamsBuilder filterBy(
+        UID attribute, List<QueryFilter> queryFilters) {
+      this.filters.putIfAbsent(attribute, new ArrayList<>());
+      this.filters.get(attribute).addAll(queryFilters);
+      return this;
+    }
+
+    public TrackedEntityOperationParamsBuilder filterBy(UID attribute) {
+      this.filters.putIfAbsent(attribute, List.of(new QueryFilter(QueryOperator.NNULL)));
       return this;
     }
   }

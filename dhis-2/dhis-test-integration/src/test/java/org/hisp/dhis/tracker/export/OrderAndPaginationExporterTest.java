@@ -41,7 +41,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -473,8 +472,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orgUnitMode(SELECTED)
             .trackedEntityType(trackedEntityType)
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
-            .filters(
-                Map.of(UID.of("numericAttr"), List.of(new QueryFilter(QueryOperator.LT, "75"))))
+            .filterBy(UID.of("numericAttr"), List.of(new QueryFilter(QueryOperator.LT, "75")))
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -490,8 +488,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(orgUnit)
             .orgUnitMode(SELECTED)
             .trackedEntityType(trackedEntityType)
-            .filters(
-                Map.of(UID.of("numericAttr"), List.of(new QueryFilter(QueryOperator.LT, "75"))))
+            .filterBy(UID.of("numericAttr"), List.of(new QueryFilter(QueryOperator.LT, "75")))
             .orderBy(UID.of("numericAttr"), SortDirection.DESC)
             .build();
 

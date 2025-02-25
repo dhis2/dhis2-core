@@ -391,8 +391,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .append(getFromSubQueryJoinEnrollmentConditions(params))
 
             // LEFT JOIN attributes we need to sort on.
-            .append(getFromSubQueryJoinOrderByAttributes(params))
-            .append(getLeftJoinFromFilterConditions(params))
+            .append(getLeftJoinFromAttributes(params))
 
             // WHERE
             .append(getWhereClauseFromFilterConditions(whereAnd, params))
@@ -544,61 +543,34 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   /**
-   * Generates a single LEFT JOIN for each attribute we are searching on. The filtering of
-   * attributes is done in {@link #getWhereClauseFromFilterConditions(SqlHelper,
-   * TrackedEntityQueryParams)}
+   * Generates a single LEFT JOIN for each attribute used for filtering and sorting. The result of
+   * this LEFT JOIN is used in the subquery projection and for ordering in both the subquery and the
+   * main query.
+   *
+   * <p>Attribute filtering is handled in {@link #getWhereClauseFromFilterConditions(SqlHelper,
+   * TrackedEntityQueryParams)}.
+   *
+   * @return a SQL LEFT JOIN for the relevant attributes, or an empty string if none are provided.
    */
-  private String getLeftJoinFromFilterConditions(TrackedEntityQueryParams params) {
+  private String getLeftJoinFromAttributes(TrackedEntityQueryParams params) {
     StringBuilder attributes = new StringBuilder();
 
-    for (Map.Entry<TrackedEntityAttribute, List<QueryFilter>> filters :
-        params.getFilters().entrySet()) {
-      String col = quote(filters.getKey().getUid());
-      String teaId = col + ".trackedentityattributeid";
-      String ted = col + ".trackedentityid";
-
+    for (TrackedEntityAttribute attribute : params.getLeftJoinAttributes()) {
+      String col = quote(attribute.getUid());
       attributes
-          .append(" LEFT JOIN trackedentityattributevalue ")
+          .append(" LEFT JOIN trackedentityattributevalue AS ")
           .append(col)
           .append(" ON ")
-          .append(teaId)
-          .append(EQUALS)
-          .append(filters.getKey().getId())
-          .append(" AND ")
-          .append(ted)
-          .append(" = TE.trackedentityid ");
-    }
-
-    return attributes.toString();
-  }
-
-  /**
-   * Generates the LEFT JOINs used for attributes we are ordering by (If any). We use LEFT JOIN to
-   * avoid removing any rows if there is no value for a given attribute and te. The result of this
-   * LEFT JOIN is used in the sub-query projection, and ordering in the sub-query and main query.
-   *
-   * @return a SQL LEFT JOIN for attributes used for ordering, or empty string if no attributes is
-   *     used in order.
-   */
-  private String getFromSubQueryJoinOrderByAttributes(TrackedEntityQueryParams params) {
-    StringBuilder joinOrderAttributes = new StringBuilder();
-
-    for (TrackedEntityAttribute orderAttribute : params.getLeftJoinAttributes()) {
-
-      joinOrderAttributes
-          .append(" LEFT JOIN trackedentityattributevalue AS ")
-          .append(quote(orderAttribute.getUid()))
-          .append(" ON ")
-          .append(quote(orderAttribute.getUid()))
+          .append(col)
           .append(".trackedentityid = TE.trackedentityid ")
-          .append("AND ")
-          .append(quote(orderAttribute.getUid()))
+          .append(" AND ")
+          .append(col)
           .append(".trackedentityattributeid = ")
-          .append(orderAttribute.getId())
+          .append(attribute.getId())
           .append(SPACE);
     }
 
-    return joinOrderAttributes.toString();
+    return attributes.toString();
   }
 
   /**
@@ -855,7 +827,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
         filterClause.append(
             switch (filter.getOperator()) {
-              case NULL, NNULL -> new StringBuilder().append(filter.getSqlOperator()).append(SPACE);
+              case NULL, NNULL -> filter.getSqlOperator() + SPACE;
               default ->
                   new StringBuilder()
                       .append(filter.getSqlOperator())

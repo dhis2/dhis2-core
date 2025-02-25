@@ -35,6 +35,7 @@ import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.val
 
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.AssignedUserQueryParam;
@@ -136,12 +137,12 @@ class TrackedEntityRequestParamsMapper {
                     trackedEntityRequestParams.getAssignedUsers(),
                     UID.of(user)))
             .trackedEntities(trackedEntityRequestParams.getTrackedEntities())
-            .filters(filters)
             .includeDeleted(trackedEntityRequestParams.isIncludeDeleted())
             .potentialDuplicate(trackedEntityRequestParams.getPotentialDuplicate())
             .trackedEntityParams(fieldsParamMapper.map(fields));
 
     mapOrderParam(builder, trackedEntityRequestParams.getOrder());
+    mapFilterParam(builder, filters);
 
     return builder.build();
   }
@@ -230,6 +231,21 @@ class TrackedEntityRequestParamsMapper {
             TrackedEntityMapper.ORDERABLE_FIELDS.get(order.getField()), order.getDirection());
       } else {
         builder.orderBy(UID.of(order.getField()), order.getDirection());
+      }
+    }
+  }
+
+  private void mapFilterParam(
+      TrackedEntityOperationParamsBuilder builder, Map<UID, List<QueryFilter>> filters) {
+    if (filters == null || filters.isEmpty()) {
+      return;
+    }
+
+    for (Entry<UID, List<QueryFilter>> entry : filters.entrySet()) {
+      if (entry.getValue().isEmpty()) {
+        builder.filterBy(entry.getKey());
+      } else {
+        builder.filterBy(entry.getKey(), entry.getValue());
       }
     }
   }

@@ -236,7 +236,7 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
     queryFilter.setFilter(sms.getOriginator());
 
     return TrackedEntityOperationParams.builder()
-        .filter(attribute, List.of(queryFilter))
+        .filterBy(UID.of(attribute), List.of(queryFilter))
         .trackedEntityType(program.getTrackedEntityType())
         .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
         .build();

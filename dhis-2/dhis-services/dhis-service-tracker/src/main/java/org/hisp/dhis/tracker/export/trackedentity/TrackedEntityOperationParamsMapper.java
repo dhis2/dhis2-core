@@ -191,13 +191,7 @@ class TrackedEntityOperationParamsMapper {
                 attributeFilter.getKey()));
       }
 
-      if (attributeFilter.getValue().isEmpty()) {
-        params.filterBy(tea);
-      }
-
-      for (QueryFilter filter : attributeFilter.getValue()) {
-        params.filterBy(tea, filter);
-      }
+      params.filterBy(tea, attributeFilter.getValue());
     }
   }
 

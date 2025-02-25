@@ -59,7 +59,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -1647,7 +1646,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
             .orgUnitMode(DESCENDANTS)
             .trackedEntityType(trackedEntityTypeA)
-            .filters(Map.of(UID.of(teaA), List.of(new QueryFilter(QueryOperator.EQ, "M'M"))))
+            .filterBy(UID.of(teaA), List.of(new QueryFilter(QueryOperator.EQ, "M'M")))
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
@@ -1663,7 +1662,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
             .orgUnitMode(DESCENDANTS)
             .trackedEntityType(trackedEntityTypeA)
-            .filters(Map.of(UID.of(teaA), List.of(new QueryFilter(QueryOperator.EQ, "A"))))
+            .filterBy(UID.of(teaA), List.of(new QueryFilter(QueryOperator.EQ, "A")))
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
@@ -1679,7 +1678,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
             .orgUnitMode(DESCENDANTS)
             .trackedEntityType(trackedEntityTypeA)
-            .filters(Map.of(UID.of(teaA), List.of(new QueryFilter(QueryOperator.EQ, "Z"))))
+            .filterBy(UID.of(teaA), List.of(new QueryFilter(QueryOperator.EQ, "Z")))
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
@@ -1695,7 +1694,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
             .orgUnitMode(DESCENDANTS)
             .trackedEntityType(trackedEntityTypeA)
-            .filters(Map.of(UID.of(teaA), List.of()))
+            .filterBy(UID.of(teaA))
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
@@ -1714,7 +1713,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
             .orgUnitMode(DESCENDANTS)
             .program(programA)
-            .filters(Map.of(UID.of(teaC), List.of(new QueryFilter(QueryOperator.LIKE, "C"))))
+            .filterBy(UID.of(teaC), List.of(new QueryFilter(QueryOperator.LIKE, "C")))
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
@@ -1730,7 +1729,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ALL)
             .trackedEntityType(trackedEntityTypeA)
-            .filters(Map.of(UID.of(teaA), List.of(new QueryFilter(QueryOperator.LIKE, "A"))))
+            .filterBy(UID.of(teaA), List.of(new QueryFilter(QueryOperator.LIKE, "A")))
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
@@ -1748,7 +1747,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ALL)
             .program(programB)
-            .filters(Map.of(UID.of(teaA), List.of(new QueryFilter(QueryOperator.LIKE, "A"))))
+            .filterBy(UID.of(teaA), List.of(new QueryFilter(QueryOperator.LIKE, "A")))
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
@@ -1771,7 +1770,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
             .orgUnitMode(DESCENDANTS)
             .program(programB)
-            .filters(Map.of(UID.of(teaA), List.of(new QueryFilter(QueryOperator.NULL))))
+            .filterBy(UID.of(teaA), List.of(new QueryFilter(QueryOperator.NULL)))
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
@@ -1787,7 +1786,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
             .orgUnitMode(DESCENDANTS)
             .trackedEntityType(trackedEntityTypeA)
-            .filters(Map.of(UID.of(teaA), List.of(new QueryFilter(QueryOperator.NNULL))))
+            .filterBy(UID.of(teaA), List.of(new QueryFilter(QueryOperator.NNULL)))
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
@@ -1804,11 +1803,9 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
             .orgUnitMode(DESCENDANTS)
             .trackedEntityType(trackedEntityTypeA)
-            .filters(
-                Map.of(
-                    UID.of(teaA),
-                    List.of(
-                        new QueryFilter(QueryOperator.NNULL), new QueryFilter(QueryOperator.NULL))))
+            .filterBy(
+                UID.of(teaA),
+                List.of(new QueryFilter(QueryOperator.NNULL), new QueryFilter(QueryOperator.NULL)))
             .build();
 
     assertIsEmpty(trackedEntityService.getTrackedEntities(operationParams));
@@ -1822,12 +1819,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
             .orgUnitMode(DESCENDANTS)
             .trackedEntityType(trackedEntityTypeA)
-            .filters(
-                Map.of(
-                    UID.of(teaA),
-                    List.of(new QueryFilter(QueryOperator.NULL)),
-                    UID.of(teaB),
-                    List.of(new QueryFilter(QueryOperator.EQ, "B"))))
+            .filterBy(UID.of(teaA), List.of(new QueryFilter(QueryOperator.NULL)))
+            .filterBy(UID.of(teaB), List.of(new QueryFilter(QueryOperator.EQ, "B")))
             .build();
 
     assertIsEmpty(trackedEntityService.getTrackedEntities(operationParams));
@@ -1841,12 +1834,10 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
             .orgUnitMode(DESCENDANTS)
             .trackedEntityType(trackedEntityTypeA)
-            .filters(
-                Map.of(
-                    UID.of(teaB),
-                    List.of(
-                        new QueryFilter(QueryOperator.NNULL),
-                        new QueryFilter(QueryOperator.EQ, "B"))))
+            .filterBy(
+                UID.of(teaB),
+                List.of(
+                    new QueryFilter(QueryOperator.NNULL), new QueryFilter(QueryOperator.EQ, "B")))
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
