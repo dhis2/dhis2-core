@@ -27,11 +27,12 @@
  */
 package org.hisp.dhis.query.planner;
 
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.query.Query;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface QueryPlanner {
-  QueryPlan planQuery(Query query);
+  <T extends IdentifiableObject> QueryPlan<T> planQuery(Query<T> query);
 }

@@ -57,13 +57,20 @@ public class DefaultQueryService implements QueryService {
   private final InMemoryQueryEngine memoryQueryEngine;
 
   @Override
-  public List<? extends IdentifiableObject> query(Query query) {
+  public <T extends IdentifiableObject> List<T> query(Query<T> query) {
+    if (query.isDefaultOrders()) {
+      Schema schema = schemaService.getDynamicSchema(query.getObjectType());
+      if (schema.hasPersistedProperty("name"))
+        query.addOrder(Order.iasc(schema.getPersistedProperty("name")));
+      if (schema.hasPersistedProperty("id"))
+        query.addOrder(Order.asc(schema.getPersistedProperty("id")));
+    }
     return queryObjects(query);
   }
 
   @Override
-  public long count(Query query) {
-    Query cloned = Query.copy(query);
+  public long count(Query<?> query) {
+    Query<?> cloned = Query.copy(query);
 
     cloned.clearOrders();
     cloned.setFirstResult(0);
@@ -73,11 +80,11 @@ public class DefaultQueryService implements QueryService {
   }
 
   @Override
-  public Query getQueryFromUrl(Class<?> type, GetObjectListParams params)
-      throws QueryParserException {
+  public <T extends IdentifiableObject> Query<T> getQueryFromUrl(
+      Class<T> type, GetObjectListParams params) throws QueryParserException {
     List<String> filters = params.getFilters();
     if (filters == null) filters = List.of();
-    Query query = queryParser.parse(type, filters, params.getRootJunction());
+    Query<T> query = queryParser.parse(type, filters, params.getRootJunction());
 
     Schema schema = schemaService.getDynamicSchema(type);
     query.addOrders(QueryUtils.convertOrderStrings(params.getOrders(), schema));
@@ -95,11 +102,11 @@ public class DefaultQueryService implements QueryService {
   // Helper methods
   // ---------------------------------------------------------------------------------------------
 
-  private long countObjects(Query query) {
+  private <T extends IdentifiableObject> long countObjects(Query<T> query) {
     List<? extends IdentifiableObject> objects;
-    QueryPlan plan = queryPlanner.planQuery(query);
-    Query dbQuery = plan.dbQuery();
-    Query memoryQuery = plan.memoryQuery();
+    QueryPlan<T> plan = queryPlanner.planQuery(query);
+    Query<T> dbQuery = plan.dbQuery();
+    Query<T> memoryQuery = plan.memoryQuery();
     if (!memoryQuery.isEmpty()) {
       memoryQuery.setObjects(dbQueryEngine.query(dbQuery));
       objects = memoryQueryEngine.query(memoryQuery);
@@ -108,18 +115,18 @@ public class DefaultQueryService implements QueryService {
     return dbQueryEngine.count(dbQuery);
   }
 
-  private List<? extends IdentifiableObject> queryObjects(Query query) {
-    List<? extends IdentifiableObject> objects = query.getObjects();
+  private <T extends IdentifiableObject> List<T> queryObjects(Query<T> query) {
+    List<T> objects = query.getObjects();
 
     if (objects != null) {
       objects = memoryQueryEngine.query(query.setObjects(objects));
-      removeDefaultObject(query.getSchema().getKlass(), objects, query.getDefaults());
+      removeDefaultObject(query.getObjectType(), objects, query.getDefaults());
       return objects;
     }
 
-    QueryPlan queryPlan = queryPlanner.planQuery(query);
-    Query dbQuery = queryPlan.dbQuery();
-    Query memoryQuery = queryPlan.memoryQuery();
+    QueryPlan<T> queryPlan = queryPlanner.planQuery(query);
+    Query<T> dbQuery = queryPlan.dbQuery();
+    Query<T> memoryQuery = queryPlan.memoryQuery();
 
     objects = dbQueryEngine.query(dbQuery);
 
@@ -128,7 +135,7 @@ public class DefaultQueryService implements QueryService {
       objects = memoryQueryEngine.query(memoryQuery);
     }
 
-    removeDefaultObject(query.getSchema().getKlass(), objects, query.getDefaults());
+    removeDefaultObject(query.getObjectType(), objects, query.getDefaults());
     return objects;
   }
 

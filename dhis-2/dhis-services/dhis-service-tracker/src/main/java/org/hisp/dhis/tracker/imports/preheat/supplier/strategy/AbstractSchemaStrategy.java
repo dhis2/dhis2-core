@@ -150,7 +150,12 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
         // cache
         objects =
             map(
-                (List<IdentifiableObject>) queryService.query(buildQuery(schema, idScheme, ids)),
+                (List<IdentifiableObject>)
+                    queryService.query(
+                        buildQuery(
+                            (Class<? extends IdentifiableObject>) schema.getKlass(),
+                            idScheme,
+                            ids)),
                 mapper);
 
         // put objects in query based on given scheme. If the key
@@ -169,7 +174,10 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
     } else {
       objects =
           map(
-              (List<IdentifiableObject>) queryService.query(buildQuery(schema, idScheme, ids)),
+              (List<IdentifiableObject>)
+                  queryService.query(
+                      buildQuery(
+                          (Class<? extends IdentifiableObject>) schema.getKlass(), idScheme, ids)),
               mapper);
     }
 
@@ -190,8 +198,9 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
     }
   }
 
-  private Query buildQuery(Schema schema, TrackerIdScheme idScheme, List<String> ids) {
-    Query query = Query.from(schema);
+  private <T extends IdentifiableObject> Query<T> buildQuery(
+      Class<T> objectType, TrackerIdScheme idScheme, List<String> ids) {
+    Query<T> query = Query.from(objectType);
     query.setCurrentUserDetails(getCurrentUserDetails());
     query.add(generateRestrictionFromIdentifiers(idScheme, ids));
     query.setDefaults(Defaults.INCLUDE);

@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
@@ -214,8 +215,8 @@ class DefaultMetadataExportServiceTest {
             new Schema(Program.class, "program", "programs"));
     schemas.forEach(s -> s.setPersisted(true));
 
-    Query query = Query.from(new Schema(EventReport.class, "eventReport", "eventReports"));
-    when(queryService.getQueryFromUrl(any(), any())).thenReturn(query);
+    when(queryService.getQueryFromUrl(eq(EventReport.class), any()))
+        .thenReturn(Query.from(EventReport.class));
 
     // return 5 schemas, including the 2 for the deprecated classes EventChart & EventReport
     when(schemaService.getMetadataSchemas()).thenReturn(schemas);

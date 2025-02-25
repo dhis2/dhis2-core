@@ -36,10 +36,10 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.planner.DefaultQueryPlanner;
 import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.schema.descriptors.OrganisationUnitSchemaDescriptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -73,13 +73,13 @@ class DefaultQueryServiceTest {
 
   @Test
   void verifyQueryEngineUsesPaginationInformation() {
-    Query query = Query.from(new OrganisationUnitSchemaDescriptor().getSchema());
+    Query<OrganisationUnit> query = Query.from(OrganisationUnit.class);
     query.setFirstResult(100);
     query.setMaxResults(50);
 
     // Here we make sure that the pagination info are actually passed to the
     // Hibernate query engine
-    when(criteriaQueryEngine.query(argThat(new QueryWithPagination(query))))
+    when(criteriaQueryEngine.query(argThat(new QueryWithPagination<>(query))))
         .thenReturn(createOrgUnits(20));
 
     List<? extends IdentifiableObject> orgUnits = subject.query(query);
@@ -87,27 +87,28 @@ class DefaultQueryServiceTest {
     assertThat(orgUnits.size(), is(20));
   }
 
-  private List<IdentifiableObject> createOrgUnits(int size) {
+  private List<OrganisationUnit> createOrgUnits(int size) {
 
-    List<IdentifiableObject> result = new ArrayList<>();
+    List<OrganisationUnit> result = new ArrayList<>();
     for (int i = 0; i < size; i++) {
       result.add(createOrganisationUnit((char) (i + 'A')));
     }
     return result;
   }
 
-  static class QueryWithPagination implements ArgumentMatcher<Query> {
+  static class QueryWithPagination<T extends IdentifiableObject>
+      implements ArgumentMatcher<Query<T>> {
     int first;
 
     int size;
 
-    QueryWithPagination(Query query) {
+    QueryWithPagination(Query<T> query) {
       this.first = query.getFirstResult();
       this.size = query.getMaxResults();
     }
 
     @Override
-    public boolean matches(Query query) {
+    public boolean matches(Query<T> query) {
       return query.getFirstResult() == first && query.getMaxResults() == size;
     }
   }

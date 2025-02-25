@@ -50,17 +50,20 @@ import org.hisp.dhis.user.UserDetails;
 @Setter
 @Accessors(chain = true)
 @ToString
-public class Query {
+public class Query<T extends IdentifiableObject> {
 
   private final List<Filter> filters = new ArrayList<>();
 
-  @ToString.Exclude @Getter private final Schema schema;
+  @ToString.Exclude @Getter private final Class<T> objectType;
 
   @ToString.Exclude private UserDetails currentUserDetails;
 
   private String locale;
 
   private final List<Order> orders = new ArrayList<>();
+
+  /** Order by id and name if not other orders are defined and those properties exist */
+  private boolean defaultOrders;
 
   private boolean skipPaging;
 
@@ -78,18 +81,19 @@ public class Query {
 
   private boolean cacheable = true;
 
-  @ToString.Exclude private List<? extends IdentifiableObject> objects;
+  @ToString.Exclude private List<T> objects;
 
-  public static Query from(Schema schema) {
-    return new Query(schema);
+  public static <T extends IdentifiableObject> Query<T> from(Class<T> objectType) {
+    return new Query<>(objectType);
   }
 
-  public static Query from(Schema schema, Junction.Type rootJunction) {
-    return new Query(schema, rootJunction);
+  public static <T extends IdentifiableObject> Query<T> from(
+      Class<T> objectType, Junction.Type rootJunction) {
+    return new Query<>(objectType, rootJunction);
   }
 
-  public static Query copy(Query query) {
-    Query clone = Query.from(query.getSchema(), query.getRootJunctionType());
+  public static <T extends IdentifiableObject> Query<T> copy(Query<T> query) {
+    Query<T> clone = Query.from(query.getObjectType(), query.getRootJunctionType());
     clone.setSkipSharing(query.isSkipSharing());
     clone.setCurrentUserDetails(query.getCurrentUserDetails());
     clone.setLocale(query.getLocale());
@@ -102,13 +106,17 @@ public class Query {
     return clone;
   }
 
-  private Query(Schema schema) {
-    this(schema, Junction.Type.AND);
+  private Query(Class<T> objectType) {
+    this(objectType, Junction.Type.AND);
   }
 
-  private Query(Schema schema, Junction.Type rootJunctionType) {
-    this.schema = schema;
+  private Query(Class<T> objectType, Junction.Type rootJunctionType) {
+    this.objectType = objectType;
     this.rootJunctionType = rootJunctionType;
+  }
+
+  public Schema getSchema() {
+    return null;
   }
 
   public boolean isEmpty() {
@@ -131,44 +139,35 @@ public class Query {
     return skipPaging ? Integer.MAX_VALUE : maxResults;
   }
 
-  public Query addOrder(Order... orders) {
+  public Query<T> addOrder(Order... orders) {
     Stream.of(orders).filter(Objects::nonNull).forEach(this.orders::add);
     return this;
   }
 
-  public Query addOrders(Collection<Order> orders) {
+  public Query<T> addOrders(Collection<Order> orders) {
     this.orders.addAll(orders);
     return this;
   }
 
-  public Query add(Filter criterion) {
+  public Query<T> add(Filter criterion) {
     this.filters.add(criterion);
     return this;
   }
 
-  public Query add(Filter... criterions) {
+  public Query<T> add(Filter... criterions) {
     this.filters.addAll(asList(criterions));
     return this;
   }
 
-  public Query add(Collection<Filter> criterions) {
+  public Query<T> add(Collection<Filter> criterions) {
     this.filters.addAll(criterions);
     return this;
   }
 
-  public Query setDefaultOrder() {
-    if (!orders.isEmpty()) {
-      return this;
+  public Query<T> setDefaultOrder() {
+    if (orders.isEmpty()) {
+      defaultOrders = true;
     }
-
-    if (schema.hasPersistedProperty("name")) {
-      addOrder(Order.iasc(schema.getPersistedProperty("name")));
-    }
-
-    if (schema.hasPersistedProperty("id")) {
-      addOrder(Order.asc(schema.getPersistedProperty("id")));
-    }
-
     return this;
   }
 }

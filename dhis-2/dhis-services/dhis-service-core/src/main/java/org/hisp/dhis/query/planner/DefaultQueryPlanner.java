@@ -29,6 +29,7 @@ package org.hisp.dhis.query.planner;
 
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.query.Filter;
 import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.query.Query;
@@ -45,15 +46,15 @@ public class DefaultQueryPlanner implements QueryPlanner {
   private final SchemaService schemaService;
 
   @Override
-  public QueryPlan planQuery(Query query) {
+  public <T extends IdentifiableObject> QueryPlan<T> planQuery(Query<T> query) {
     // if only one filter, always set to Junction.Type AND
     if (query.getFilters().size() > 1 && Junction.Type.OR == query.getRootJunctionType()) {
-      return new QueryPlan(Query.from(query.getSchema()), Query.copy(query));
+      return new QueryPlan<>(Query.from(query.getObjectType()), Query.copy(query));
     }
 
-    QueryPlan plan = split(query);
-    Query memoryQuery = plan.memoryQuery();
-    Query dbQuery = plan.dbQuery();
+    QueryPlan<T> plan = split(query);
+    Query<T> memoryQuery = plan.memoryQuery();
+    Query<T> dbQuery = plan.dbQuery();
 
     // if there are any non persisted criterions left, we leave the paging
     // to the in-memory engine
@@ -67,16 +68,17 @@ public class DefaultQueryPlanner implements QueryPlanner {
     return plan;
   }
 
-  private QueryPlan split(Query query) {
-    Query memoryQuery = Query.copy(query);
+  private <T extends IdentifiableObject> QueryPlan<T> split(Query<T> query) {
+    Query<T> memoryQuery = Query.copy(query);
     memoryQuery.getFilters().clear();
-    Query dbQuery = Query.from(query.getSchema(), query.getRootJunctionType());
+    Query<T> dbQuery = Query.from(query.getObjectType(), query.getRootJunctionType());
     dbQuery.setCurrentUserDetails(query.getCurrentUserDetails());
     dbQuery.setSkipSharing(query.isSkipSharing());
 
     for (Filter filter : query.getFilters()) {
       if (!filter.isVirtual())
-        filter.setPropertyPath(schemaService.getQueryPath(query.getSchema(), filter.getPath()));
+        filter.setPropertyPath(
+            schemaService.getPropertyPath(query.getObjectType(), filter.getPath()));
 
       if (isDbFilter(filter)) {
         dbQuery.add(filter);
@@ -90,7 +92,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
       memoryQuery.clearOrders();
     }
 
-    return new QueryPlan(dbQuery, memoryQuery);
+    return new QueryPlan<>(dbQuery, memoryQuery);
   }
 
   private static boolean isDbFilter(Filter filter) {
