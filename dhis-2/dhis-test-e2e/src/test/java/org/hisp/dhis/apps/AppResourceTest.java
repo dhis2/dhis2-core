@@ -32,21 +32,24 @@ import static org.hamcrest.Matchers.equalTo;
 
 import java.io.File;
 import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.test.e2e.actions.RestApiActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class AppResourceTest extends ApiTest {
 
-  private final RestApiActions appActions = new RestApiActions("/api/apps");
-
   @Test
   @DisplayName("Redirect location should have correct format")
   void redirectLocationCorrectFormatTest() {
     // given an app is installed
     File file = new File("src/test/resources/apps/test-app-v1.zip");
-    appActions.postMultiPartFile(file).validateStatus(201);
+    given()
+        .multiPart("file", file)
+        .contentType("multipart/form-data")
+        .when()
+        .post("/apps")
+        .then()
+        .statusCode(201);
 
     // when called with missing trailing slash
     ApiResponse response =
