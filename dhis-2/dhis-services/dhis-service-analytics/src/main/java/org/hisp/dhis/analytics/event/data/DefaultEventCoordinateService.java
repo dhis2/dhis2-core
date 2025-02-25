@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 
 import java.util.ArrayList;
@@ -133,7 +134,7 @@ public class DefaultEventCoordinateService implements EventCoordinateService {
       throwIllegalQueryEx(errorCode, field);
     }
 
-    return field;
+    return field + OU_GEOMETRY_COL_SUFFIX;
   }
 
   @Override
