@@ -100,7 +100,7 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     assertEquals(
         potentialDuplicate,
-        deduplicationService.getPotentialDuplicateByUid(UID.of(potentialDuplicate.getUid())));
+        deduplicationService.getPotentialDuplicate(UID.of(potentialDuplicate.getUid())));
   }
 
   @Test
@@ -187,7 +187,8 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldUpdatePotentialDuplicate() throws PotentialDuplicateConflictException {
+  void shouldUpdatePotentialDuplicate()
+      throws PotentialDuplicateConflictException, NotFoundException {
     PotentialDuplicate potentialDuplicate =
         new PotentialDuplicate(TRACKED_ENTITY_A, TRACKED_ENTITY_B);
 
@@ -195,7 +196,9 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     assertEquals(
         DeduplicationStatus.OPEN,
-        deduplicationService.getPotentialDuplicateById(potentialDuplicate.getId()).getStatus());
+        deduplicationService
+            .getPotentialDuplicate(UID.of(potentialDuplicate.getUid()))
+            .getStatus());
 
     potentialDuplicate.setStatus(DeduplicationStatus.INVALID);
 
@@ -203,7 +206,9 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     assertEquals(
         DeduplicationStatus.INVALID,
-        deduplicationService.getPotentialDuplicateById(potentialDuplicate.getId()).getStatus());
+        deduplicationService
+            .getPotentialDuplicate(UID.of(potentialDuplicate.getUid()))
+            .getStatus());
   }
 
   @Test

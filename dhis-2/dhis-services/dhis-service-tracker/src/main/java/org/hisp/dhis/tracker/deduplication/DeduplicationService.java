@@ -34,26 +34,25 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 
 public interface DeduplicationService {
-  PotentialDuplicate getPotentialDuplicateById(long id);
+  PotentialDuplicate getPotentialDuplicate(@Nonnull UID uid) throws NotFoundException;
 
-  PotentialDuplicate getPotentialDuplicateByUid(@Nonnull UID uid) throws NotFoundException;
-
-  boolean exists(PotentialDuplicate potentialDuplicate) throws PotentialDuplicateConflictException;
-
-  List<PotentialDuplicate> getPotentialDuplicates(PotentialDuplicateCriteria criteria);
-
-  void addPotentialDuplicate(PotentialDuplicate potentialDuplicate)
+  boolean exists(@Nonnull PotentialDuplicate potentialDuplicate)
       throws PotentialDuplicateConflictException;
 
-  void updatePotentialDuplicate(PotentialDuplicate potentialDuplicate);
+  List<PotentialDuplicate> getPotentialDuplicates(@Nonnull PotentialDuplicateCriteria criteria);
 
-  void autoMerge(DeduplicationMergeParams deduplicationRequest)
+  void addPotentialDuplicate(@Nonnull PotentialDuplicate potentialDuplicate)
+      throws PotentialDuplicateConflictException;
+
+  void updatePotentialDuplicate(@Nonnull PotentialDuplicate potentialDuplicate);
+
+  void autoMerge(@Nonnull DeduplicationMergeParams deduplicationRequest)
       throws PotentialDuplicateConflictException,
           PotentialDuplicateForbiddenException,
           ForbiddenException,
           NotFoundException;
 
-  void manualMerge(DeduplicationMergeParams deduplicationRequest)
+  void manualMerge(@Nonnull DeduplicationMergeParams deduplicationRequest)
       throws PotentialDuplicateConflictException,
           PotentialDuplicateForbiddenException,
           ForbiddenException,

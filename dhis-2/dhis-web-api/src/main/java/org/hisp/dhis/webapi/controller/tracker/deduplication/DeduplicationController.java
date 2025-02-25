@@ -127,7 +127,7 @@ public class DeduplicationController {
   @GetMapping(value = "/{uid}")
   public PotentialDuplicate getPotentialDuplicateById(@PathVariable UID uid)
       throws NotFoundException, HttpStatusCodeException {
-    return deduplicationService.getPotentialDuplicateByUid(uid);
+    return deduplicationService.getPotentialDuplicate(uid);
   }
 
   @PostMapping
@@ -149,7 +149,7 @@ public class DeduplicationController {
   public void updatePotentialDuplicate(
       @PathVariable UID uid, @RequestParam(value = "status") DeduplicationStatus status)
       throws NotFoundException, BadRequestException {
-    PotentialDuplicate potentialDuplicate = deduplicationService.getPotentialDuplicateByUid(uid);
+    PotentialDuplicate potentialDuplicate = deduplicationService.getPotentialDuplicate(uid);
 
     checkDbAndRequestStatus(potentialDuplicate, status);
 
@@ -168,7 +168,7 @@ public class DeduplicationController {
           PotentialDuplicateForbiddenException,
           ForbiddenException,
           BadRequestException {
-    PotentialDuplicate potentialDuplicate = deduplicationService.getPotentialDuplicateByUid(uid);
+    PotentialDuplicate potentialDuplicate = deduplicationService.getPotentialDuplicate(uid);
 
     if (potentialDuplicate.getOriginal() == null || potentialDuplicate.getDuplicate() == null) {
       throw new PotentialDuplicateConflictException(
