@@ -684,7 +684,7 @@ public class TextUtils {
    * @return the fully-cleaned URl, meaning the URL will have a valid URL scheme included (if
    *     provided) and the remaining path will only have single '/'s.
    */
-  public static String getCleanValidUrl(@Nonnull String baseUrl, @Nonnull String path) {
+  public static String cleanUrlPathOnly(@Nonnull String baseUrl, @Nonnull String path) {
     String base = removeAnyTrailingSlash(baseUrl);
     return base + ("/" + path).replaceAll("/+", "/");
   }

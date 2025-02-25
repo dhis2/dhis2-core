@@ -201,7 +201,7 @@ public class AppController {
     }
 
     if (application.isBundled()) {
-      String cleanValidUrl = TextUtils.getCleanValidUrl(application.getBaseUrl(), resource);
+      String cleanValidUrl = TextUtils.cleanUrlPathOnly(application.getBaseUrl(), resource);
       log.info(String.format("Redirecting to bundled app: %s", cleanValidUrl));
 
       response.sendRedirect(cleanValidUrl);
@@ -241,7 +241,7 @@ public class AppController {
       }
       if (resourceResult instanceof Redirect redirect) {
         String cleanValidUrl =
-            TextUtils.getCleanValidUrl(application.getBaseUrl(), redirect.path());
+            TextUtils.cleanUrlPathOnly(application.getBaseUrl(), redirect.path());
         response.sendRedirect(cleanValidUrl);
       }
       if (resourceResult instanceof ResourceNotFound) {

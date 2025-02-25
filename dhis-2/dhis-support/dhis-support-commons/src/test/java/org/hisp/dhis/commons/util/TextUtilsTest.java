@@ -312,7 +312,7 @@ class TextUtilsTest {
   @MethodSource("urlFormatParams")
   @DisplayName("URL formats are valid and cleaned")
   void urlFormatsTest(String baseUrl, String path, String expected) {
-    String cleanValidUrl = TextUtils.getCleanValidUrl(baseUrl, path);
+    String cleanValidUrl = TextUtils.cleanUrlPathOnly(baseUrl, path);
     assertEquals(expected, cleanValidUrl);
   }
 

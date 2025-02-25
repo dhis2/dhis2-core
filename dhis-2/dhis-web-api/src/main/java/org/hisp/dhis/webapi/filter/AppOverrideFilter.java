@@ -153,7 +153,7 @@ public class AppOverrideFilter extends OncePerRequestFilter {
         return;
       }
       if (resourceResult instanceof Redirect redirect) {
-        String cleanValidUrl = TextUtils.getCleanValidUrl(app.getBaseUrl(), redirect.path());
+        String cleanValidUrl = TextUtils.cleanUrlPathOnly(app.getBaseUrl(), redirect.path());
         log.debug("Redirecting to: {}", cleanValidUrl);
         response.sendRedirect(cleanValidUrl);
       }
