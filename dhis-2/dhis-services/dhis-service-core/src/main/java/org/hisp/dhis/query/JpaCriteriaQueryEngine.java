@@ -92,9 +92,9 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     CriteriaQuery<T> criteriaQuery = builder.createQuery(klass);
     Root<T> root = criteriaQuery.from(klass);
 
-    Predicate predicate = buildFilters(builder, root, query);
-    addSharingFilters(query, schema, predicate, store, builder, root);
-    criteriaQuery.where(predicate);
+    Predicate filters = buildFilters(builder, root, query);
+    addSharingFilters(query, schema, filters, store, builder, root);
+    criteriaQuery.where(filters);
 
     if (!query.getOrders().isEmpty()) criteriaQuery.orderBy(getOrders(query, builder, root));
 
@@ -158,9 +158,9 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
 
     criteriaQuery.select(builder.count(root));
 
-    Predicate predicate = buildFilters(builder, root, query);
-    addSharingFilters(query, schema, predicate, store, builder, root);
-    criteriaQuery.where(predicate);
+    Predicate filters = buildFilters(builder, root, query);
+    addSharingFilters(query, schema, filters, store, builder, root);
+    criteriaQuery.where(filters);
 
     TypedQuery<Long> typedQuery = entityManager.createQuery(criteriaQuery);
 
@@ -213,22 +213,22 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
           case OR -> builder.disjunction();
         };
 
-    for (Restriction filter : query.getFilters()) {
+    for (Filter filter : query.getFilters()) {
       Predicate p = buildFilter(builder, root, filter, query);
       if (p != null) rootJunction.getExpressions().add(p);
     }
 
     Set<String> aliases = new HashSet<>();
-    query.getFilters().stream().flatMap(Restriction::aliases).forEach(aliases::add);
+    query.getFilters().stream().flatMap(Filter::aliases).forEach(aliases::add);
     aliases.forEach(alias -> root.get(alias).alias(alias));
     return rootJunction;
   }
 
   private <Y> Predicate buildFilter(
-      CriteriaBuilder builder, Root<Y> root, Restriction filter, Query query) {
+      CriteriaBuilder builder, Root<Y> root, Filter filter, Query query) {
     if (filter == null || filter.getOperator() == null) return null;
     if (!filter.isVirtual())
-      return filter.getOperator().getPredicate(builder, root, filter.getQueryPath());
+      return filter.getOperator().getPredicate(builder, root, filter.getPropertyPath());
     // handle special cases:
     if (filter.isIdentifiable()) return buildIdentifiableFilter(builder, root, filter, query);
     if (filter.isQuery()) return buildQueryFilter(builder, root, filter);
@@ -236,7 +236,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
   }
 
   private <Y> Predicate buildIdentifiableFilter(
-      CriteriaBuilder builder, Root<Y> root, Restriction filter, Query query) {
+      CriteriaBuilder builder, Root<Y> root, Filter filter, Query query) {
     Predicate or = builder.disjunction();
     Operator<?> op = filter.getOperator();
     Function<String, Predicate> getPredicate =
@@ -253,8 +253,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     return or;
   }
 
-  private <Y> Predicate buildQueryFilter(
-      CriteriaBuilder builder, Root<Y> root, Restriction filter) {
+  private <Y> Predicate buildQueryFilter(CriteriaBuilder builder, Root<Y> root, Filter filter) {
     String value = (String) filter.getOperator().getArgs().get(0);
     Predicate or = builder.disjunction();
     Consumer<Predicate> add =

@@ -63,26 +63,26 @@ public class DefaultQueryParser implements QueryParser {
 
     List<String> mentions = new ArrayList<>();
     for (String filter : filters) {
-      String[] split = rewriteFilter(filter).split(":");
+      String[] parts = rewriteFilter(filter).split(":");
 
-      if (split.length < 2) {
+      if (parts.length < 2) {
         throw new QueryParserException("Invalid filter => " + filter);
       }
 
-      String path = split[0];
-      String operator = split[1];
-      if (split.length >= 3) {
-        String arg = split.length == 3 ? split[2] : Stream.of(split).skip(2).collect(joining(":"));
+      String path = parts[0];
+      String operator = parts[1];
+      if (parts.length >= 3) {
+        String arg = parts.length == 3 ? parts[2] : Stream.of(parts).skip(2).collect(joining(":"));
         if ("mentions".equals(path) && "in".equals(operator)) {
           mentions.add(arg);
         } else {
-          query.add(getRestriction(schema, path, operator, arg));
+          query.add(createFilter(schema, path, operator, arg));
         }
       } else {
-        query.add(getRestriction(schema, path, operator, null));
+        query.add(createFilter(schema, path, operator, null));
       }
       if (!mentions.isEmpty()) {
-        query.add(getDisjunctionsFromCustomMentions(mentions));
+        query.add(createMensionsFilter(mentions));
       }
     }
     return query;
@@ -94,54 +94,53 @@ public class DefaultQueryParser implements QueryParser {
     return filter;
   }
 
-  private Restriction getRestriction(Schema schema, String path, String operator, Object arg)
+  private Filter createFilter(Schema schema, String path, String operator, Object arg)
       throws QueryParserException {
-    if ("identifiable".equals(path)) return getRestriction(null, String.class, path, operator, arg);
+    if ("identifiable".equals(path)) return createFilter(null, String.class, path, operator, arg);
 
     Property property = getProperty(schema, path);
     if (property == null) {
       if (!CodeGenerator.isValidUid(path.substring(path.indexOf('.') + 1))) {
         throw new QueryParserException("Unknown path property: " + path);
       }
-      return getRestriction(null, String.class, path, operator, arg).asAttribute();
+      return createFilter(null, String.class, path, operator, arg).asAttribute();
     }
-    return getRestriction(property, property.getKlass(), path, operator, arg);
+    return createFilter(property, property.getKlass(), path, operator, arg);
   }
 
   @SuppressWarnings("unchecked")
-  private Restriction getRestriction(
+  private Filter createFilter(
       Property property, Class<?> valueType, String path, String operator, Object arg)
       throws QueryParserException {
 
     return switch (operator) {
-      case "eq" -> Restrictions.eq(path, parseValue(valueType, arg));
-      case "ieq" -> Restrictions.ilike(path, parseValue(valueType, arg), MatchMode.EXACT);
-      case "!eq", "neq", "ne" -> Restrictions.ne(path, parseValue(valueType, arg));
-      case "gt" -> Restrictions.gt(path, parseValue(valueType, arg));
-      case "lt" -> Restrictions.lt(path, parseValue(valueType, arg));
-      case "gte", "ge" -> Restrictions.ge(path, parseValue(valueType, arg));
-      case "lte", "le" -> Restrictions.le(path, parseValue(valueType, arg));
-      case "like" -> Restrictions.like(path, parseValue(valueType, arg), MatchMode.ANYWHERE);
-      case "!like" -> Restrictions.notLike(path, parseValue(valueType, arg), MatchMode.ANYWHERE);
-      case "$like" -> Restrictions.like(path, parseValue(valueType, arg), MatchMode.START);
-      case "!$like" -> Restrictions.notLike(path, parseValue(valueType, arg), MatchMode.START);
-      case "like$" -> Restrictions.like(path, parseValue(valueType, arg), MatchMode.END);
-      case "!like$" -> Restrictions.notLike(path, parseValue(valueType, arg), MatchMode.END);
-      case "ilike" -> Restrictions.ilike(path, parseValue(valueType, arg), MatchMode.ANYWHERE);
-      case "!ilike" -> Restrictions.notIlike(path, parseValue(valueType, arg), MatchMode.ANYWHERE);
+      case "eq" -> Filters.eq(path, parseValue(valueType, arg));
+      case "ieq" -> Filters.ilike(path, parseValue(valueType, arg), MatchMode.EXACT);
+      case "!eq", "neq", "ne" -> Filters.ne(path, parseValue(valueType, arg));
+      case "gt" -> Filters.gt(path, parseValue(valueType, arg));
+      case "lt" -> Filters.lt(path, parseValue(valueType, arg));
+      case "gte", "ge" -> Filters.ge(path, parseValue(valueType, arg));
+      case "lte", "le" -> Filters.le(path, parseValue(valueType, arg));
+      case "like" -> Filters.like(path, parseValue(valueType, arg), MatchMode.ANYWHERE);
+      case "!like" -> Filters.notLike(path, parseValue(valueType, arg), MatchMode.ANYWHERE);
+      case "$like" -> Filters.like(path, parseValue(valueType, arg), MatchMode.START);
+      case "!$like" -> Filters.notLike(path, parseValue(valueType, arg), MatchMode.START);
+      case "like$" -> Filters.like(path, parseValue(valueType, arg), MatchMode.END);
+      case "!like$" -> Filters.notLike(path, parseValue(valueType, arg), MatchMode.END);
+      case "ilike" -> Filters.ilike(path, parseValue(valueType, arg), MatchMode.ANYWHERE);
+      case "!ilike" -> Filters.notIlike(path, parseValue(valueType, arg), MatchMode.ANYWHERE);
       case "startsWith", "$ilike" ->
-          Restrictions.ilike(path, parseValue(valueType, arg), MatchMode.START);
-      case "!$ilike" -> Restrictions.notIlike(path, parseValue(valueType, arg), MatchMode.START);
-      case "token" -> Restrictions.token(path, parseValue(valueType, arg), MatchMode.START);
-      case "!token" -> Restrictions.notToken(path, parseValue(valueType, arg), MatchMode.START);
-      case "endsWith", "ilike$" ->
-          Restrictions.ilike(path, parseValue(valueType, arg), MatchMode.END);
-      case "!ilike$" -> Restrictions.notIlike(path, parseValue(valueType, arg), MatchMode.END);
-      case "in" -> Restrictions.in(path, parseValues(property, valueType, arg));
-      case "!in" -> Restrictions.notIn(path, parseValues(property, valueType, arg));
-      case "null" -> Restrictions.isNull(path);
-      case "!null" -> Restrictions.isNotNull(path);
-      case "empty" -> Restrictions.isEmpty(path);
+          Filters.ilike(path, parseValue(valueType, arg), MatchMode.START);
+      case "!$ilike" -> Filters.notIlike(path, parseValue(valueType, arg), MatchMode.START);
+      case "token" -> Filters.token(path, parseValue(valueType, arg), MatchMode.START);
+      case "!token" -> Filters.notToken(path, parseValue(valueType, arg), MatchMode.START);
+      case "endsWith", "ilike$" -> Filters.ilike(path, parseValue(valueType, arg), MatchMode.END);
+      case "!ilike$" -> Filters.notIlike(path, parseValue(valueType, arg), MatchMode.END);
+      case "in" -> Filters.in(path, parseValues(property, valueType, arg));
+      case "!in" -> Filters.notIn(path, parseValues(property, valueType, arg));
+      case "null" -> Filters.isNull(path);
+      case "!null" -> Filters.isNotNull(path);
+      case "empty" -> Filters.isEmpty(path);
       default -> throw new QueryParserException("`" + operator + "` is not a valid operator.");
     };
   }
@@ -160,10 +159,10 @@ public class DefaultQueryParser implements QueryParser {
     return values;
   }
 
-  private Restriction getDisjunctionsFromCustomMentions(List<String> mentions) {
+  private Filter createMensionsFilter(List<String> mentions) {
     List<String> items = new ArrayList<>();
     for (String m : mentions) items.addAll(asList(m.substring(1, m.length() - 1).split(",")));
-    return Restrictions.in("mentions", items);
+    return Filters.in("mentions", items);
   }
 
   @Override

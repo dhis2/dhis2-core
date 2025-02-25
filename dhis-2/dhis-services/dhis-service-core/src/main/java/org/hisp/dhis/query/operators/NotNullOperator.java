@@ -32,7 +32,7 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.query.planner.PropertyPath;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -43,8 +43,8 @@ public class NotNullOperator<T extends Comparable<T>> extends Operator<T> {
   }
 
   @Override
-  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, QueryPath queryPath) {
-    return builder.isNotNull(root.get(queryPath.getPath()));
+  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, PropertyPath path) {
+    return builder.isNotNull(root.get(path.getPath()));
   }
 
   @Override

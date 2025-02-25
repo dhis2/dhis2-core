@@ -37,7 +37,7 @@ import java.util.Map;
 import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.query.Type;
-import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.query.planner.PropertyPath;
 import org.hisp.dhis.schema.Property;
 
 /**
@@ -49,8 +49,8 @@ public class LessThanOperator<T extends Comparable<T>> extends Operator<T> {
   }
 
   @Override
-  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, QueryPath queryPath) {
-    Property property = queryPath.getProperty();
+  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, PropertyPath path) {
+    Property property = path.getProperty();
 
     if (property.isCollection()) {
       Integer value = QueryUtils.parseValue(Integer.class, args.get(0));
@@ -60,10 +60,10 @@ public class LessThanOperator<T extends Comparable<T>> extends Operator<T> {
             "Left-side is collection, and right-side is not a valid integer, so can't compare by size.");
       }
 
-      return builder.lessThan(builder.size(root.get(queryPath.getPath())), value);
+      return builder.lessThan(builder.size(root.get(path.getPath())), value);
     }
 
-    return builder.lessThan(root.get(queryPath.getPath()), args.get(0));
+    return builder.lessThan(root.get(path.getPath()), args.get(0));
   }
 
   @Override

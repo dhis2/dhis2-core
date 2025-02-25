@@ -29,9 +29,9 @@ package org.hisp.dhis.query.planner;
 
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.query.Filter;
 import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.query.Query;
-import org.hisp.dhis.query.Restriction;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
 
@@ -74,9 +74,9 @@ public class DefaultQueryPlanner implements QueryPlanner {
     dbQuery.setCurrentUserDetails(query.getCurrentUserDetails());
     dbQuery.setSkipSharing(query.isSkipSharing());
 
-    for (Restriction filter : query.getFilters()) {
+    for (Filter filter : query.getFilters()) {
       if (!filter.isVirtual())
-        filter.setQueryPath(schemaService.getQueryPath(query.getSchema(), filter.getPath()));
+        filter.setPropertyPath(schemaService.getQueryPath(query.getSchema(), filter.getPath()));
 
       if (isDbFilter(filter)) {
         dbQuery.add(filter);
@@ -93,9 +93,9 @@ public class DefaultQueryPlanner implements QueryPlanner {
     return new QueryPlan(dbQuery, memoryQuery);
   }
 
-  private static boolean isDbFilter(Restriction filter) {
+  private static boolean isDbFilter(Filter filter) {
     if (filter.isVirtual()) return filter.isIdentifiable() || filter.isQuery();
-    QueryPath path = filter.getQueryPath();
+    PropertyPath path = filter.getPropertyPath();
     return path != null
         && path.isPersisted()
         && !path.haveAlias()

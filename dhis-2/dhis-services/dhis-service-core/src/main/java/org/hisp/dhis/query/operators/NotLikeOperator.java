@@ -33,7 +33,7 @@ import jakarta.persistence.criteria.Root;
 import java.util.List;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.Type;
-import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.query.planner.PropertyPath;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -51,17 +51,17 @@ public class NotLikeOperator<T extends Comparable<T>> extends Operator<T> {
   }
 
   @Override
-  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, QueryPath queryPath) {
+  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, PropertyPath path) {
     if (caseSensitive) {
       return JpaQueryUtils.stringPredicateCaseSensitive(
           builder,
-          root.get(queryPath.getPath()),
+          root.get(path.getPath()),
           String.valueOf(args.get(0)).replace("%", ""),
           jpaMatchMode);
     }
     return JpaQueryUtils.stringPredicateIgnoreCase(
         builder,
-        root.get(queryPath.getPath()),
+        root.get(path.getPath()),
         String.valueOf(args.get(0)).replace("%", ""),
         jpaMatchMode);
   }

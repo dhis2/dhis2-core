@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.query;
 
-import static org.hisp.dhis.query.Restrictions.eq;
-import static org.hisp.dhis.query.Restrictions.ilike;
-import static org.hisp.dhis.query.Restrictions.in;
+import static org.hisp.dhis.query.Filters.eq;
+import static org.hisp.dhis.query.Filters.ilike;
+import static org.hisp.dhis.query.Filters.in;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
@@ -96,7 +96,7 @@ public class InMemoryQueryEngine implements QueryEngine {
   @SuppressWarnings("unchecked")
   private <T extends IdentifiableObject> List<T> runQuery(Query query) {
     return query.getObjects().stream()
-        .filter(object -> test(query, (T) object))
+        .filter(object -> matches(query, (T) object))
         .map(object -> (T) object)
         .collect(Collectors.toList());
   }
@@ -117,22 +117,22 @@ public class InMemoryQueryEngine implements QueryEngine {
     return sorted;
   }
 
-  private <T> boolean test(Query query, T object) {
+  private <T> boolean matches(Query query, T object) {
     if (query.getRootJunctionType() == Junction.Type.OR) {
       // OR
-      for (Restriction filter : query.getFilters()) {
-        if (test(query, object, filter)) return true;
+      for (Filter filter : query.getFilters()) {
+        if (matches(query, object, filter)) return true;
       }
       return false;
     }
     // AND
-    for (Restriction filter : query.getFilters()) {
-      if (!test(query, object, filter)) return false;
+    for (Filter filter : query.getFilters()) {
+      if (!matches(query, object, filter)) return false;
     }
     return true;
   }
 
-  private <T> boolean test(Query query, T object, Restriction filter) {
+  private <T> boolean matches(Query query, T object, Filter filter) {
     if (filter.isVirtual()) {
       if (filter.isMentions()) return testMentions(query, object, filter);
       if (filter.isIdentifiable()) return testIdentifiable(query, object, filter);
@@ -144,29 +144,29 @@ public class InMemoryQueryEngine implements QueryEngine {
     return collection.stream().anyMatch(item -> filter.getOperator().test(item));
   }
 
-  private <T> boolean testMentions(Query query, T object, Restriction filter) {
+  private <T> boolean testMentions(Query query, T object, Filter filter) {
     Operator<?> op = filter.getOperator();
-    return test(query, object, in("mentions.username", op.getArgs()))
-        || test(query, object, in("comments.mentions.username", op.getArgs()));
+    return matches(query, object, in("mentions.username", op.getArgs()))
+        || matches(query, object, in("comments.mentions.username", op.getArgs()));
   }
 
-  private <T> boolean testIdentifiable(Query query, T object, Restriction filter) {
+  private <T> boolean testIdentifiable(Query query, T object, Filter filter) {
     Operator<?> op = filter.getOperator();
-    return test(query, object, new Restriction("id", op))
-        || test(query, object, new Restriction("code", op))
-        || test(query, object, new Restriction("name", op))
+    return matches(query, object, new Filter("id", op))
+        || matches(query, object, new Filter("code", op))
+        || matches(query, object, new Filter("name", op))
         || query.getSchema().hasPersistedProperty("shortName")
-            && test(query, object, new Restriction("shortName", op));
+            && matches(query, object, new Filter("shortName", op));
   }
 
-  private <T> boolean testQuery(Query query, T object, Restriction restriction) {
-    String value = (String) restriction.getOperator().getArgs().get(0);
-    return test(query, object, eq("id", value))
-        || test(query, object, eq("code", value))
-        || test(query, object, ilike("name", value, MatchMode.ANYWHERE));
+  private <T> boolean testQuery(Query query, T object, Filter filter) {
+    String value = (String) filter.getOperator().getArgs().get(0);
+    return matches(query, object, eq("id", value))
+        || matches(query, object, eq("code", value))
+        || matches(query, object, ilike("name", value, MatchMode.ANYWHERE));
   }
 
-  private Object getValue(Query query, Object object, Restriction filter) {
+  private Object getValue(Query query, Object object, Filter filter) {
     String path = filter.getPath();
     String[] paths = path.split("\\.");
     Schema currentSchema = query.getSchema();
