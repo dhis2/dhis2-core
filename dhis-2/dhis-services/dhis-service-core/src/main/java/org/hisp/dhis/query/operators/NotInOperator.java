@@ -31,22 +31,15 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.Collection;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.query.planner.QueryPath;
 import org.hisp.dhis.schema.Property;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class NotInOperator<T extends Comparable<? super T>> extends InOperator<T> {
+public class NotInOperator<T extends Comparable<T>> extends InOperator<T> {
   public NotInOperator(Collection<T> arg) {
     super("!in", arg);
-  }
-
-  @Override
-  public Criterion getHibernateCriterion(QueryPath queryPath) {
-    return Restrictions.not(super.getHibernateCriterion(queryPath));
   }
 
   @Override
@@ -56,14 +49,10 @@ public class NotInOperator<T extends Comparable<? super T>> extends InOperator<T
     if (property.isCollection()) {
       return builder.not(
           root.get(queryPath.getPath())
-              .in(
-                  getValue(
-                      Collection.class,
-                      queryPath.getProperty().getItemKlass(),
-                      getCollectionArgs().get(0))));
+              .in(getValue(Collection.class, queryPath.getProperty().getItemKlass(), getArgs())));
     }
 
-    return builder.not(root.get(queryPath.getPath()).in(getCollectionArgs().get(0)));
+    return builder.not(root.get(queryPath.getPath()).in(getArgs()));
   }
 
   @Override

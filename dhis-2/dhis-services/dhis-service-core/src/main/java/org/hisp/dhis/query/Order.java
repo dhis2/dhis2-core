@@ -38,11 +38,10 @@ import org.hisp.dhis.system.util.ReflectionUtils;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class Order {
-  private Direction direction;
 
+  private final Direction direction;
   private boolean ignoreCase;
-
-  private Property property;
+  private final Property property;
 
   public Order(Property property, Direction direction) {
     this.property = property;

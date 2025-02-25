@@ -31,22 +31,15 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.Date;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
-import org.hisp.dhis.query.Typed;
+import java.util.List;
 import org.hisp.dhis.query.planner.QueryPath;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class NotNullOperator<T extends Comparable<? super T>> extends Operator<T> {
+public class NotNullOperator<T extends Comparable<T>> extends Operator<T> {
   public NotNullOperator() {
-    super("!null", Typed.from(String.class, Boolean.class, Number.class, Date.class, Enum.class));
-  }
-
-  @Override
-  public Criterion getHibernateCriterion(QueryPath queryPath) {
-    return Restrictions.isNotNull(queryPath.getPath());
+    super("!null", List.of(String.class, Boolean.class, Number.class, Date.class, Enum.class));
   }
 
   @Override

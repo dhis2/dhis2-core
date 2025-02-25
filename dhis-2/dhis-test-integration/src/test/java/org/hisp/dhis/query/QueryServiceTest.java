@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -51,7 +50,6 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.jfree.data.time.Year;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -416,17 +414,6 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @SuppressWarnings("rawtypes")
-  void resultTransformerTest() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
-    List<? extends IdentifiableObject> objects =
-        queryService.query(query, result1 -> new ArrayList());
-    assertEquals(0, objects.size());
-    objects = queryService.query(query, result1 -> result1);
-    assertEquals(6, objects.size());
-  }
-
-  @Test
   void sortNameDesc() {
     Schema schema = schemaService.getDynamicSchema(DataElement.class);
     Query query = Query.from(schema);
@@ -489,21 +476,17 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testDoubleEqConjunction() {
     Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
-    Conjunction conjunction = query.conjunction();
-    conjunction.add(Restrictions.eq("id", "deabcdefghD"));
-    conjunction.add(Restrictions.eq("id", "deabcdefghF"));
-    query.add(conjunction);
+    query.add(Restrictions.eq("id", "deabcdefghD"));
+    query.add(Restrictions.eq("id", "deabcdefghF"));
     List<? extends IdentifiableObject> objects = queryService.query(query);
     assertEquals(0, objects.size());
   }
 
   @Test
   void testDoubleEqDisjunction() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
-    Disjunction disjunction = query.disjunction();
-    disjunction.add(Restrictions.eq("id", "deabcdefghD"));
-    disjunction.add(Restrictions.eq("id", "deabcdefghF"));
-    query.add(disjunction);
+    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class), Junction.Type.OR);
+    query.add(Restrictions.eq("id", "deabcdefghD"));
+    query.add(Restrictions.eq("id", "deabcdefghF"));
     List<? extends IdentifiableObject> objects = queryService.query(query);
     assertEquals(2, objects.size());
     assertTrue(collectionContainsUid(objects, "deabcdefghD"));
@@ -515,20 +498,6 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
     Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
     query.add(Restrictions.ge("created", Year.parseYear("2002").getStart()));
     query.add(Restrictions.le("created", Year.parseYear("2004").getStart()));
-    List<? extends IdentifiableObject> objects = queryService.query(query);
-    assertEquals(3, objects.size());
-    assertTrue(collectionContainsUid(objects, "deabcdefghB"));
-    assertTrue(collectionContainsUid(objects, "deabcdefghC"));
-    assertTrue(collectionContainsUid(objects, "deabcdefghD"));
-  }
-
-  @Test
-  void testDateRangeWithConjunction() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
-    Conjunction conjunction = query.conjunction();
-    conjunction.add(Restrictions.ge("created", Year.parseYear("2002").getStart()));
-    conjunction.add(Restrictions.le("created", Year.parseYear("2004").getStart()));
-    query.add(conjunction);
     List<? extends IdentifiableObject> objects = queryService.query(query);
     assertEquals(3, objects.size());
     assertTrue(collectionContainsUid(objects, "deabcdefghB"));
@@ -668,20 +637,6 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
     assertEquals("aaaaaaaaaaa", objects.get(0).getUid());
     assertEquals("bbbbbbbbbbb", objects.get(1).getUid());
     assertEquals("ccccccccccc", objects.get(2).getUid());
-  }
-
-  @Test
-  @Disabled
-  void testDisjunctionWithinQuery() {
-    Query query =
-        Query.from(schemaService.getDynamicSchema(DataElementGroup.class), Junction.Type.AND);
-    query.add(Restrictions.eq("dataElements.valueType", "NUMBER"));
-    Disjunction disjunction = query.addDisjunction();
-    disjunction.add(Restrictions.eq("displayName", "deabcdefghA"));
-    disjunction.add(Restrictions.eq("id", "deabcdefghA"));
-    disjunction.add(Restrictions.eq("code", "deabcdefghA"));
-    List<? extends IdentifiableObject> objects = queryService.query(query);
-    assertEquals(1, objects.size());
   }
 
   private boolean collectionContainsUid(

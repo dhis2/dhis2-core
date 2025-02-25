@@ -28,7 +28,6 @@
 package org.hisp.dhis.query;
 
 import java.util.Collection;
-import java.util.List;
 import org.hisp.dhis.query.operators.BetweenOperator;
 import org.hisp.dhis.query.operators.EmptyOperator;
 import org.hisp.dhis.query.operators.EqualOperator;
@@ -46,78 +45,74 @@ import org.hisp.dhis.query.operators.NotNullOperator;
 import org.hisp.dhis.query.operators.NotTokenOperator;
 import org.hisp.dhis.query.operators.NullOperator;
 import org.hisp.dhis.query.operators.TokenOperator;
-import org.hisp.dhis.schema.Schema;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public final class Restrictions {
-  public static <T extends Comparable<? super T>> Restriction eq(String path, T value) {
+  public static <T extends Comparable<T>> Restriction eq(String path, T value) {
     return new Restriction(path, new EqualOperator<>(value));
   }
 
-  public static <T extends Comparable<? super T>> Restriction ne(String path, T value) {
+  public static <T extends Comparable<T>> Restriction ne(String path, T value) {
     return new Restriction(path, new NotEqualOperator<>(value));
   }
 
-  public static <T extends Comparable<? super T>> Restriction gt(String path, T value) {
+  public static <T extends Comparable<T>> Restriction gt(String path, T value) {
     return new Restriction(path, new GreaterThanOperator<>(value));
   }
 
-  public static <T extends Comparable<? super T>> Restriction lt(String path, T value) {
+  public static <T extends Comparable<T>> Restriction lt(String path, T value) {
     return new Restriction(path, new LessThanOperator<>(value));
   }
 
-  public static <T extends Comparable<? super T>> Restriction ge(String path, T value) {
+  public static <T extends Comparable<T>> Restriction ge(String path, T value) {
     return new Restriction(path, new GreaterEqualOperator<>(value));
   }
 
-  public static <T extends Comparable<? super T>> Restriction le(String path, T value) {
+  public static <T extends Comparable<T>> Restriction le(String path, T value) {
     return new Restriction(path, new LessEqualOperator<>(value));
   }
 
-  public static <T extends Comparable<? super T>> Restriction between(
-      String path, T lside, T rside) {
+  public static <T extends Comparable<T>> Restriction between(String path, T lside, T rside) {
     return new Restriction(path, new BetweenOperator<>(lside, rside));
   }
 
-  public static <T extends Comparable<? super T>> Restriction like(
+  public static <T extends Comparable<T>> Restriction like(
       String path, T value, MatchMode matchMode) {
     return new Restriction(path, new LikeOperator<>(value, true, matchMode));
   }
 
-  public static <T extends Comparable<? super T>> Restriction notLike(
+  public static <T extends Comparable<T>> Restriction notLike(
       String path, T value, MatchMode matchMode) {
     return new Restriction(path, new NotLikeOperator<>(value, true, matchMode));
   }
 
-  public static <T extends Comparable<? super T>> Restriction ilike(
+  public static <T extends Comparable<T>> Restriction ilike(
       String path, T value, MatchMode matchMode) {
     return new Restriction(path, new LikeOperator<>(value, false, matchMode));
   }
 
-  public static <T extends Comparable<? super T>> Restriction notIlike(
+  public static <T extends Comparable<T>> Restriction notIlike(
       String path, T value, MatchMode matchMode) {
     return new Restriction(path, new NotLikeOperator<>(value, false, matchMode));
   }
 
-  public static <T extends Comparable<? super T>> Restriction token(
+  public static <T extends Comparable<T>> Restriction token(
       String path, T value, MatchMode matchMode) {
     return new Restriction(path, new TokenOperator<>(value, false, matchMode));
   }
 
-  public static <T extends Comparable<? super T>> Restriction notToken(
+  public static <T extends Comparable<T>> Restriction notToken(
       String path, T value, MatchMode matchMode) {
     return new Restriction(path, new NotTokenOperator<>(value, false, matchMode));
   }
 
-  public static <T extends Comparable<? super T>> Restriction in(
-      String path, Collection<T> values) {
+  public static <T extends Comparable<T>> Restriction in(String path, Collection<T> values) {
     return new Restriction(path, new InOperator<>(values));
   }
 
-  public static <T extends Comparable<? super T>> Restriction notIn(
-      String path, Collection<T> values) {
+  public static <T extends Comparable<T>> Restriction notIn(String path, Collection<T> values) {
     return new Restriction(path, new NotInOperator<>(values));
   }
 
@@ -133,30 +128,8 @@ public final class Restrictions {
     return new Restriction(path, new EmptyOperator<>());
   }
 
-  /**
-   * Builds a PR group to match the query string against id, code and name.
-   *
-   * @param schema of the root entity
-   * @param query the query string value used the URL {@code query} parameter
-   * @return OR group with the filters for the query string
-   */
-  public static Disjunction query(Schema schema, String query) {
-    Restriction name = ilike("name", query, MatchMode.ANYWHERE);
-    Restriction code = eq("code", query);
-    if (query.length() != 11) return or(schema, code, name);
-    // only a query with length 11 has a chance of matching a UID
-    Restriction id = eq("id", query);
-    return or(schema, id, code, name);
-  }
-
-  private static Disjunction or(Schema schema, Criterion... filters) {
-    return or(schema, List.of(filters));
-  }
-
-  private static Disjunction or(Schema schema, List<? extends Criterion> filters) {
-    Disjunction or = new Disjunction(schema);
-    or.add(filters);
-    return or;
+  public static Restriction query(String query) {
+    return new Restriction("$query", new EqualOperator<>(query));
   }
 
   private Restrictions() {}

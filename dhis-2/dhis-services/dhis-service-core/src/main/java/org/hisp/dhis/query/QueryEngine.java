@@ -28,18 +28,19 @@
 package org.hisp.dhis.query;
 
 import java.util.List;
+import org.hisp.dhis.common.IdentifiableObject;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface QueryEngine<T> {
+public interface QueryEngine {
   /**
    * Return objects matching given query, T typed according to QueryEngine implementation.
    *
    * @param query Query instance to use
    * @return Matching objects
    */
-  List<T> query(Query query);
+  <T extends IdentifiableObject> List<T> query(Query query);
 
   /**
    * Returns how many objects matches the given query.
@@ -47,5 +48,5 @@ public interface QueryEngine<T> {
    * @param query Query instance to use
    * @return N number of matching objects
    */
-  long count(Query query);
+  <T extends IdentifiableObject> long count(Query query);
 }

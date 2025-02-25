@@ -30,8 +30,6 @@ package org.hisp.dhis.query.operators;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.query.planner.QueryPath;
@@ -40,14 +38,9 @@ import org.hisp.dhis.schema.Property;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class NotEqualOperator<T extends Comparable<? super T>> extends EqualOperator<T> {
+public class NotEqualOperator<T extends Comparable<T>> extends EqualOperator<T> {
   public NotEqualOperator(T arg) {
     super("ne", arg);
-  }
-
-  @Override
-  public Criterion getHibernateCriterion(QueryPath queryPath) {
-    return Restrictions.not(super.getHibernateCriterion(queryPath));
   }
 
   @Override

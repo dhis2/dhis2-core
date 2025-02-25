@@ -25,38 +25,57 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query;
+package org.hisp.dhis.query.planner;
 
-import static java.util.Arrays.stream;
-
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import com.google.common.base.Joiner;
+import com.google.common.base.MoreObjects;
+import java.util.Arrays;
 import lombok.Getter;
-import org.hisp.dhis.schema.Klass;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.schema.Property;
 
 /**
- * Simple class for checking if an object is one of several allowed classes, mainly used in Operator
- * where a parameter can be type constrained.
- *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Getter
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public final class Typed {
-  private final Class<?>[] klasses;
+@RequiredArgsConstructor
+public class QueryPath {
 
-  public boolean isValid(Klass klass) {
-    return klass == null || isValid(klass.getKlass());
+  private static final Joiner PATH_JOINER = Joiner.on(".");
+
+  private final Property property;
+  private final boolean persisted;
+  private final String[] alias;
+
+  public QueryPath(Property property, boolean persisted) {
+    this(property, persisted, new String[0]);
   }
 
-  public boolean isValid(Class<?> klass) {
-    if (klasses.length == 0 || klass == null) {
-      return true;
+  public String getPath() {
+    String fieldName = property.getFieldName();
+
+    if (fieldName == null) {
+      fieldName = property.getName();
     }
-    return stream(klasses).anyMatch(k -> k != null && k.isAssignableFrom(klass));
+
+    return haveAlias() ? PATH_JOINER.join(alias) + "." + fieldName : fieldName;
   }
 
-  public static Typed from(Class<?>... klasses) {
-    return new Typed(klasses);
+  public boolean haveAlias() {
+    return haveAlias(0);
+  }
+
+  public boolean haveAlias(int n) {
+    return alias != null && alias.length > n;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("name", property.getName())
+        .add("path", getPath())
+        .add("persisted", persisted)
+        .add("alias", Arrays.toString(alias))
+        .toString();
   }
 }

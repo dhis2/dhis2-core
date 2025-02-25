@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.query;
 
-import com.google.common.base.MoreObjects;
+import static java.util.Arrays.asList;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -35,6 +36,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -47,8 +49,14 @@ import org.hisp.dhis.user.UserDetails;
 @Getter
 @Setter
 @Accessors(chain = true)
-public class Query extends Criteria {
-  private UserDetails currentUserDetails;
+@ToString
+public class Query {
+
+  private final List<Restriction> filters = new ArrayList<>();
+
+  @ToString.Exclude @Getter private final Schema schema;
+
+  @ToString.Exclude private UserDetails currentUserDetails;
 
   private String locale;
 
@@ -66,13 +74,11 @@ public class Query extends Criteria {
 
   private final Junction.Type rootJunctionType;
 
-  private boolean plannedQuery;
-
   private Defaults defaults = Defaults.EXCLUDE;
 
   private boolean cacheable = true;
 
-  private List<? extends IdentifiableObject> objects;
+  @ToString.Exclude private List<? extends IdentifiableObject> objects;
 
   public static Query from(Schema schema) {
     return new Query(schema);
@@ -82,7 +88,7 @@ public class Query extends Criteria {
     return new Query(schema, rootJunction);
   }
 
-  public static Query from(Query query) {
+  public static Query copy(Query query) {
     Query clone = Query.from(query.getSchema(), query.getRootJunctionType());
     clone.setSkipSharing(query.isSkipSharing());
     clone.setCurrentUserDetails(query.getCurrentUserDetails());
@@ -90,7 +96,7 @@ public class Query extends Criteria {
     clone.addOrders(query.getOrders());
     clone.setFirstResult(query.getFirstResult());
     clone.setMaxResults(query.getMaxResults());
-    clone.add(query.getCriterions());
+    clone.add(query.getFilters());
     clone.setObjects(query.getObjects());
 
     return clone;
@@ -101,16 +107,12 @@ public class Query extends Criteria {
   }
 
   private Query(Schema schema, Junction.Type rootJunctionType) {
-    super(schema);
+    this.schema = schema;
     this.rootJunctionType = rootJunctionType;
   }
 
-  public Schema getSchema() {
-    return schema;
-  }
-
   public boolean isEmpty() {
-    return criterions.isEmpty() && orders.isEmpty();
+    return filters.isEmpty() && orders.isEmpty();
   }
 
   public boolean ordersPersisted() {
@@ -139,44 +141,19 @@ public class Query extends Criteria {
     return this;
   }
 
-  @Override
-  public Query add(Criterion criterion) {
-    super.add(criterion);
+  public Query add(Restriction criterion) {
+    this.filters.add(criterion);
     return this;
   }
 
-  @Override
-  public Query add(Criterion... criterions) {
-    super.add(criterions);
+  public Query add(Restriction... criterions) {
+    this.filters.addAll(asList(criterions));
     return this;
   }
 
-  @Override
-  public Query add(Collection<? extends Criterion> criterions) {
-    super.add(criterions);
+  public Query add(Collection<Restriction> criterions) {
+    this.filters.addAll(criterions);
     return this;
-  }
-
-  public Disjunction addDisjunction() {
-    Disjunction disjunction = new Disjunction(schema);
-    add(disjunction);
-
-    return disjunction;
-  }
-
-  public Disjunction disjunction() {
-    return new Disjunction(schema);
-  }
-
-  public Conjunction addConjunction() {
-    Conjunction conjunction = new Conjunction(schema);
-    add(conjunction);
-
-    return conjunction;
-  }
-
-  public Conjunction conjunction() {
-    return new Conjunction(schema);
   }
 
   public Query setDefaultOrder() {
@@ -193,15 +170,5 @@ public class Query extends Criteria {
     }
 
     return this;
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("firstResult", firstResult)
-        .add("maxResults", maxResults)
-        .add("orders", orders)
-        .add("criterions", criterions)
-        .toString();
   }
 }
