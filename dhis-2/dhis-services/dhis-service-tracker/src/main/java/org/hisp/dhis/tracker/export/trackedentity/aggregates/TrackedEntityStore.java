@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -121,30 +120,15 @@ class TrackedEntityStore extends AbstractStore {
     Map<String, TrackedEntity> trackedEntityMap = new LinkedHashMap<>();
 
     idPartitions.forEach(
-        partition -> trackedEntityMap.putAll(getTrackedEntitiesPartitioned(partition, ctx)));
+        partition -> trackedEntityMap.putAll(getTrackedEntitiesPartitioned(partition)));
     return trackedEntityMap;
   }
 
-  private Map<String, TrackedEntity> getTrackedEntitiesPartitioned(List<Long> ids, Context ctx) {
+  private Map<String, TrackedEntity> getTrackedEntitiesPartitioned(List<Long> ids) {
     TrackedEntityRowCallbackHandler handler = new TrackedEntityRowCallbackHandler();
 
-    if (!ctx.isSuperUser() && ctx.getTrackedEntityTypes().isEmpty()) {
-      // If not super user and no tets are accessible. then simply return
-      // empty list.
-      return new HashMap<>();
-    }
-
-    String sql = GET_TE_SQL;
-    if (!ctx.isSuperUser()) {
-      sql = sql + " AND te.trackedentitytypeid in (:teTypeIds)";
-    }
-    if (!ctx.getQueryParams().isIncludeDeleted()) {
-      sql = sql + " AND te.deleted=false";
-    }
     jdbcTemplate.query(
-        applySortOrder(sql, StringUtils.join(ids, ",")),
-        createIdsParam(ids).addValue("teTypeIds", ctx.getTrackedEntityTypes()),
-        handler);
+        applySortOrder(GET_TE_SQL, StringUtils.join(ids, ",")), createIdsParam(ids), handler);
 
     return handler.getItems();
   }

@@ -33,7 +33,6 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.AsyncUtils.conditionalAsyncFetch;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolManager.getPool;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import java.util.Collection;
 import java.util.Collections;
@@ -146,26 +145,13 @@ public class TrackedEntityAggregate {
     Context ctx =
         user.map(
                 u ->
-                    securityCache
-                        .get(
-                            u.getUid(),
-                            userUID ->
-                                getSecurityContext(
-                                    userUID,
-                                    userGroupUIDCache.get(userUID).orElse(Lists.newArrayList())))
-                        .toBuilder()
+                    securityCache.get(u.getUid(), userUID -> Context.builder().build()).toBuilder()
                         .userId(u.getId())
                         .userUid(u.getUid())
                         .userGroups(
                             userGroupUIDCache.get(u.getUid()).orElse(Collections.emptyList()))
                         .superUser(u.isSuper()))
-            .orElse(
-                new Context.ContextBuilder()
-                    .superUser(true)
-                    .trackedEntityTypes(Collections.emptyList())
-                    .programs(Collections.emptyList())
-                    .programStages(Collections.emptyList())
-                    .relationshipTypes(Collections.emptyList()))
+            .orElse(Context.builder().superUser(true))
             .params(params)
             .queryParams(queryParams)
             .build();
@@ -240,10 +226,6 @@ public class TrackedEntityAggregate {
               Multimap<String, String> ownedTeis = ownedTeiAsync.join();
 
               Stream<String> teUidStream = trackedEntities.keySet().parallelStream();
-
-              if (user.isPresent() && queryParams.hasEnrolledInTrackerProgram()) {
-                teUidStream = teUidStream.filter(ownedTeis::containsKey);
-              }
 
               return teUidStream
                   .map(
@@ -322,47 +304,5 @@ public class TrackedEntityAggregate {
     return attributes.stream()
         .filter(av -> allowedAttributeUids.contains(av.getAttribute().getUid()))
         .collect(Collectors.toCollection(LinkedHashSet::new));
-  }
-
-  /**
-   * Fetch security related information and add them to the {@see Context}
-   *
-   * <p>- all Tracked Entity Types this user has READ access to
-   *
-   * <p>- all Programs Type this user has READ access to
-   *
-   * <p>- all Program Stages Type this user has READ access to
-   *
-   * <p>- all Relationship Types this user has READ access to
-   *
-   * @param userUID the user uid of a {@see User}
-   * @return an instance of {@see Context} populated with ACL-related info
-   */
-  private Context getSecurityContext(String userUID, List<String> userGroupUIDs) {
-    final CompletableFuture<List<Long>> getTrackedEntityTypes =
-        supplyAsync(
-            () -> aclStore.getAccessibleTrackedEntityTypes(userUID, userGroupUIDs), getPool());
-
-    final CompletableFuture<List<Long>> getPrograms =
-        supplyAsync(() -> aclStore.getAccessiblePrograms(userUID, userGroupUIDs), getPool());
-
-    final CompletableFuture<List<Long>> getProgramStages =
-        supplyAsync(() -> aclStore.getAccessibleProgramStages(userUID, userGroupUIDs), getPool());
-
-    final CompletableFuture<List<Long>> getRelationshipTypes =
-        supplyAsync(
-            () -> aclStore.getAccessibleRelationshipTypes(userUID, userGroupUIDs), getPool());
-
-    return allOf(getTrackedEntityTypes, getPrograms, getProgramStages, getRelationshipTypes)
-        .thenApplyAsync(
-            fn ->
-                Context.builder()
-                    .trackedEntityTypes(getTrackedEntityTypes.join())
-                    .programs(getPrograms.join())
-                    .programStages(getProgramStages.join())
-                    .relationshipTypes(getRelationshipTypes.join())
-                    .build(),
-            getPool())
-        .join();
   }
 }

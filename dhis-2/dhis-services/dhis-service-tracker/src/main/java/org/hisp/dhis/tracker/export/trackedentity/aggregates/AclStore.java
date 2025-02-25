@@ -64,30 +64,8 @@ class AclStore {
           + USER_GROUP_SQL_PARAM_NAME
           + ") = true";
 
-  private static final String GET_TE_TYPE_ACL =
-      "SELECT trackedentitytypeid FROM trackedentitytype "
-          + " WHERE "
-          + PUBLIC_ACCESS_CONDITION
-          + " OR "
-          + USERACCESS_CONDITION;
-
   static final String GET_PROGRAM_ACL =
       "SELECT p.programid FROM program p "
-          + " WHERE "
-          + PUBLIC_ACCESS_CONDITION
-          + " OR "
-          + USERACCESS_CONDITION;
-
-  static final String GET_PROGRAMSTAGE_ACL =
-      "SELECT ps.programstageid FROM programstage ps "
-          + " WHERE "
-          + PUBLIC_ACCESS_CONDITION
-          + " OR "
-          + USERACCESS_CONDITION;
-
-  private static final String GET_RELATIONSHIPTYPE_ACL =
-      "SELECT rs.relationshiptypeid "
-          + "FROM relationshiptype rs"
           + " WHERE "
           + PUBLIC_ACCESS_CONDITION
           + " OR "
@@ -97,20 +75,8 @@ class AclStore {
     this.jdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
   }
 
-  List<Long> getAccessibleTrackedEntityTypes(String userUID, List<String> userGroupUIDs) {
-    return executeAclQuery(userUID, userGroupUIDs, GET_TE_TYPE_ACL, "trackedentitytypeid");
-  }
-
   List<Long> getAccessiblePrograms(String userUID, List<String> userGroupUIDs) {
     return executeAclQuery(userUID, userGroupUIDs, GET_PROGRAM_ACL, "programid");
-  }
-
-  List<Long> getAccessibleProgramStages(String userUID, List<String> userGroupUIDs) {
-    return executeAclQuery(userUID, userGroupUIDs, GET_PROGRAMSTAGE_ACL, "programstageid");
-  }
-
-  List<Long> getAccessibleRelationshipTypes(String userUID, List<String> userGroupUIDs) {
-    return executeAclQuery(userUID, userGroupUIDs, GET_RELATIONSHIPTYPE_ACL, "relationshiptypeid");
   }
 
   private List<Long> executeAclQuery(
