@@ -27,32 +27,19 @@
  */
 package org.hisp.dhis.security.oauth2.client;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.time.Instant;
-import lombok.Getter;
-import lombok.Setter;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
-@Getter
-@Setter
-@JacksonXmlRootElement(localName = "oauth2Client", namespace = DxfNamespaces.DXF_2_0)
-public class OAuth2Client extends BaseIdentifiableObject implements MetadataObject {
+/** Store for OAuth2Client entities. */
+public interface OAuth2ClientStore extends IdentifiableObjectStore<OAuth2Client> {
 
-  OAuth2Client() {}
-
-  @JsonProperty private String clientId;
-  @JsonProperty private String clientSecret;
-  @JsonProperty private Instant clientIdIssuedAt;
-  @JsonProperty private Instant clientSecretExpiresAt;
-  @JsonProperty private String clientAuthenticationMethods;
-
-  @JsonProperty private String authorizationGrantTypes;
-  @JsonProperty private String redirectUris;
-  @JsonProperty private String postLogoutRedirectUris;
-  @JsonProperty private String scopes;
-  @JsonProperty private String clientSettings;
-  @JsonProperty private String tokenSettings;
+  /**
+   * Retrieves an OAuth2Client by its client ID.
+   *
+   * @param clientId the client ID to search for
+   * @return the OAuth2Client with the given client ID, or null if not found
+   */
+  @CheckForNull
+  OAuth2Client getByClientId(@Nonnull String clientId);
 }

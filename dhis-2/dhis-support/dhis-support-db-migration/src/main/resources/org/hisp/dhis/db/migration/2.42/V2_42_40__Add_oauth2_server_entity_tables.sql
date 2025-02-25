@@ -1,7 +1,6 @@
 -- OAuth2 Client table
 create table if not exists oauth2_client
 (
-
     id                            bigint                      not null primary key,
 
     uid                           character varying(11)       not null unique,
@@ -18,6 +17,7 @@ create table if not exists oauth2_client
     client_secret                 varchar(255),
     client_secret_expires_at      timestamp,
     client_authentication_methods varchar(1000),
+
     authorization_grant_types     varchar(1000),
     redirect_uris                 varchar(1000),
     post_logout_redirect_uris     varchar(1000),
@@ -38,6 +38,8 @@ create table if not exists oauth2_authorization
     lastUpdatedBy                 bigint                      not null,
     createdBy                     bigint                      not null,
 
+    name                          varchar(230)                not null,
+
     principal_name                varchar(255)                not null,
     registered_client_id          varchar(255)                not null,
     authorization_grant_type      varchar(255)                not null,
@@ -45,29 +47,35 @@ create table if not exists oauth2_authorization
     authorized_scopes             varchar(1000),
     attributes                    text,
     state                         varchar(500),
+
     authorization_code_value      varchar(4000),
     authorization_code_issued_at  timestamp,
     authorization_code_expires_at timestamp,
     authorization_code_metadata   text,
+
     access_token_value            varchar(4000),
     access_token_issued_at        timestamp,
     access_token_expires_at       timestamp,
     access_token_metadata         text,
     access_token_type             varchar(255),
     access_token_scopes           varchar(1000),
+
     refresh_token_value           varchar(4000),
     refresh_token_issued_at       timestamp,
     refresh_token_expires_at      timestamp,
     refresh_token_metadata        text,
+
     oidc_id_token_value           varchar(4000),
     oidc_id_token_issued_at       timestamp,
     oidc_id_token_expires_at      timestamp,
     oidc_id_token_metadata        text,
     oidc_id_token_claims          text,
+
     user_code_value               varchar(4000),
     user_code_issued_at           timestamp,
     user_code_expires_at          timestamp,
     user_code_metadata            text,
+
     device_code_value             varchar(4000),
     device_code_issued_at         timestamp,
     device_code_expires_at        timestamp,
@@ -85,6 +93,8 @@ create table if not exists oauth2_authorization_consent
     lastUpdated          timestamp without time zone not null,
     lastUpdatedBy        bigint                      not null,
     createdBy            bigint                      not null,
+
+    name                 varchar(230)                not null,
 
     principal_name       varchar(255)                not null,
     registered_client_id varchar(255)                not null,
