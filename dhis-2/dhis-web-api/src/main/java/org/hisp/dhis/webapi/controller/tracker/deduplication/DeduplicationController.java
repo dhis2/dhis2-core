@@ -33,7 +33,6 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -128,7 +127,7 @@ public class DeduplicationController {
   @GetMapping(value = "/{uid}")
   public PotentialDuplicate getPotentialDuplicateById(@PathVariable UID uid)
       throws NotFoundException, HttpStatusCodeException {
-    return getPotentialDuplicateBy(uid);
+    return deduplicationService.getPotentialDuplicateByUid(uid);
   }
 
   @PostMapping
@@ -150,7 +149,7 @@ public class DeduplicationController {
   public void updatePotentialDuplicate(
       @PathVariable UID uid, @RequestParam(value = "status") DeduplicationStatus status)
       throws NotFoundException, BadRequestException {
-    PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy(uid);
+    PotentialDuplicate potentialDuplicate = deduplicationService.getPotentialDuplicateByUid(uid);
 
     checkDbAndRequestStatus(potentialDuplicate, status);
 
@@ -169,7 +168,7 @@ public class DeduplicationController {
           PotentialDuplicateForbiddenException,
           ForbiddenException,
           BadRequestException {
-    PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy(uid);
+    PotentialDuplicate potentialDuplicate = deduplicationService.getPotentialDuplicateByUid(uid);
 
     if (potentialDuplicate.getOriginal() == null || potentialDuplicate.getDuplicate() == null) {
       throw new PotentialDuplicateConflictException(
@@ -210,11 +209,6 @@ public class DeduplicationController {
       throw new BadRequestException(
           "Can't update a potential duplicate that is already "
               + DeduplicationStatus.MERGED.name());
-  }
-
-  private PotentialDuplicate getPotentialDuplicateBy(UID uid) throws NotFoundException {
-    return Optional.ofNullable(deduplicationService.getPotentialDuplicateByUid(uid))
-        .orElseThrow(() -> new NotFoundException(PotentialDuplicate.class, uid));
   }
 
   private void validatePotentialDuplicate(PotentialDuplicate potentialDuplicate)

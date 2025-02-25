@@ -38,6 +38,7 @@ import java.util.Collections;
 import java.util.List;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -110,7 +111,8 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetPotentialDuplicateByUid() throws PotentialDuplicateConflictException {
+  void testGetPotentialDuplicateByUid()
+      throws PotentialDuplicateConflictException, NotFoundException {
     PotentialDuplicate potentialDuplicate =
         new PotentialDuplicate(TRACKED_ENTITY_A, TRACKED_ENTITY_B);
     deduplicationService.addPotentialDuplicate(potentialDuplicate);

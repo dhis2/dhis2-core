@@ -66,8 +66,12 @@ public class DefaultDeduplicationService implements DeduplicationService {
 
   @Override
   @Transactional(readOnly = true)
-  public PotentialDuplicate getPotentialDuplicateByUid(@Nonnull UID uid) {
-    return potentialDuplicateStore.getByUid(uid.getValue());
+  public PotentialDuplicate getPotentialDuplicateByUid(@Nonnull UID uid) throws NotFoundException {
+    PotentialDuplicate potentialDuplicate = potentialDuplicateStore.getByUid(uid.getValue());
+    if (potentialDuplicate == null) {
+      throw new NotFoundException(PotentialDuplicate.class, uid);
+    }
+    return potentialDuplicate;
   }
 
   @Override
