@@ -31,27 +31,20 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.Date;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
-import org.hisp.dhis.query.Typed;
-import org.hisp.dhis.query.planner.QueryPath;
+import java.util.List;
+import org.hisp.dhis.query.planner.PropertyPath;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class NullOperator<T extends Comparable<? super T>> extends Operator<T> {
+public class NullOperator<T extends Comparable<T>> extends Operator<T> {
   public NullOperator() {
-    super("null", Typed.from(String.class, Boolean.class, Number.class, Date.class, Enum.class));
+    super("null", List.of(String.class, Boolean.class, Number.class, Date.class, Enum.class));
   }
 
   @Override
-  public Criterion getHibernateCriterion(QueryPath queryPath) {
-    return Restrictions.isNull(queryPath.getPath());
-  }
-
-  @Override
-  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, QueryPath queryPath) {
-    return builder.isNull(root.get(queryPath.getPath()));
+  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, PropertyPath path) {
+    return builder.isNull(root.get(path.getPath()));
   }
 
   @Override

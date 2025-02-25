@@ -43,16 +43,6 @@ public interface QueryService {
   List<? extends IdentifiableObject> query(Query query);
 
   /**
-   * Return objects matching given query, T typed according to QueryEngine implementation.
-   *
-   * @param query Query instance to use
-   * @param transformer ResultTransformer to use for mutating the result
-   * @return Matching objects
-   */
-  @SuppressWarnings("rawtypes")
-  List<? extends IdentifiableObject> query(Query query, ResultTransformer transformer);
-
-  /**
    * Returns how many objects matches the given query.
    *
    * @param query Query instance to use
