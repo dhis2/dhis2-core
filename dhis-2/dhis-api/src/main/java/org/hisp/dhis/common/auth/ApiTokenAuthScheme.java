@@ -32,9 +32,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.UnaryOperator;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.springframework.context.ApplicationContext;
 import org.springframework.util.StringUtils;
 
 /**
@@ -46,6 +51,9 @@ import org.springframework.util.StringUtils;
 @Getter
 @Setter
 @Accessors(chain = true)
+@Builder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ApiTokenAuthScheme implements AuthScheme {
   public static final String API_TOKEN_TYPE = "api-token";
 
@@ -53,7 +61,10 @@ public class ApiTokenAuthScheme implements AuthScheme {
   private String token;
 
   @Override
-  public void apply(Map<String, List<String>> headers, Map<String, List<String>> queryParams) {
+  public void apply(
+      ApplicationContext applicationContext,
+      Map<String, List<String>> headers,
+      Map<String, List<String>> queryParams) {
     if (!StringUtils.hasText(token)) {
       return;
     }
@@ -63,23 +74,16 @@ public class ApiTokenAuthScheme implements AuthScheme {
 
   @Override
   public ApiTokenAuthScheme encrypt(UnaryOperator<String> encryptFunc) {
-    return copy(encryptFunc.apply(token));
+    return this.toBuilder().token(encryptFunc.apply(token)).build();
   }
 
   @Override
   public AuthScheme decrypt(UnaryOperator<String> decryptFunc) {
-    return copy(decryptFunc.apply(token));
+    return this.toBuilder().token(decryptFunc.apply(token)).build();
   }
 
   @Override
   public String getType() {
     return API_TOKEN_TYPE;
-  }
-
-  protected ApiTokenAuthScheme copy(String token) {
-    ApiTokenAuthScheme newApiTokenAuth = new ApiTokenAuthScheme();
-    newApiTokenAuth.setToken(token);
-
-    return newApiTokenAuth;
   }
 }

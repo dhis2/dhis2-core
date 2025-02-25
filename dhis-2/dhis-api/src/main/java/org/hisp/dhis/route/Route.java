@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -47,6 +48,7 @@ import org.hisp.dhis.common.auth.AuthScheme;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
+@NoArgsConstructor
 public class Route extends BaseIdentifiableObject implements MetadataObject {
   public static final int DEFAULT_RESPONSE_TIMEOUT_SECONDS = 5;
   public static final String PATH_WILDCARD_SUFFIX = "/**";

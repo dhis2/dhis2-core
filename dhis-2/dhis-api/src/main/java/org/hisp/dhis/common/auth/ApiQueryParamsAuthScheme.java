@@ -35,13 +35,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.springframework.context.ApplicationContext;
 
 @Getter
 @Setter
 @Accessors(chain = true)
+@Builder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ApiQueryParamsAuthScheme implements AuthScheme {
   public static final String API_QUERY_PARAMS_TYPE = "api-query-params";
 
@@ -49,7 +57,10 @@ public class ApiQueryParamsAuthScheme implements AuthScheme {
   private Map<String, String> queryParams = new HashMap<>();
 
   @Override
-  public void apply(Map<String, List<String>> headers, Map<String, List<String>> queryParams) {
+  public void apply(
+      ApplicationContext applicationContext,
+      Map<String, List<String>> headers,
+      Map<String, List<String>> queryParams) {
     for (Map.Entry<String, String> queryParam : this.queryParams.entrySet()) {
       queryParams
           .computeIfAbsent(queryParam.getKey(), v -> new LinkedList<>())
@@ -63,7 +74,8 @@ public class ApiQueryParamsAuthScheme implements AuthScheme {
         queryParams.entrySet().stream()
             .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), encryptFunc.apply(e.getValue())))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    return copy(encryptedQueryParams);
+
+    return this.toBuilder().queryParams(encryptedQueryParams).build();
   }
 
   @Override
@@ -72,18 +84,12 @@ public class ApiQueryParamsAuthScheme implements AuthScheme {
         queryParams.entrySet().stream()
             .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), decryptFunc.apply(e.getValue())))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    return copy(decryptedQueryParams);
+
+    return this.toBuilder().queryParams(decryptedQueryParams).build();
   }
 
   @Override
   public String getType() {
     return API_QUERY_PARAMS_TYPE;
-  }
-
-  protected ApiQueryParamsAuthScheme copy(Map<String, String> queryParams) {
-    ApiQueryParamsAuthScheme apiQueryParamsAuth = new ApiQueryParamsAuthScheme();
-    apiQueryParamsAuth.setQueryParams(queryParams);
-
-    return apiQueryParamsAuth;
   }
 }

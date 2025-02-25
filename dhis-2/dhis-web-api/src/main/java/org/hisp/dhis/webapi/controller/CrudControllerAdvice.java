@@ -615,6 +615,12 @@ public class CrudControllerAdvice {
     return forbidden(ex.getMessage());
   }
 
+  @ExceptionHandler(org.hisp.dhis.feedback.BadGatewayException.class)
+  @ResponseBody
+  public WebMessage badGatewayException(org.hisp.dhis.feedback.BadGatewayException ex) {
+    return createWebMessage(ex.getMessage(), Status.ERROR, HttpStatus.BAD_GATEWAY);
+  }
+
   /**
    * Catches default exception and send back to user, but re-throws internally so it still ends up
    * in server logs.
