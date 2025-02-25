@@ -39,17 +39,16 @@ import org.junit.jupiter.api.Test;
 
 class AppResourceTest extends ApiTest {
 
-  private final RestApiActions appActions = new RestApiActions("/apps");
+  private final RestApiActions appActions = new RestApiActions("/api/apps");
 
   @Test
   @DisplayName("Redirect location should have correct format")
   void redirectLocationCorrectFormatTest() {
     // given an app is installed
     File file = new File("src/test/resources/apps/test-app-v1.zip");
-    appActions.postMultiPartFile(file).validateStatus(204);
+    appActions.postMultiPartFile(file).validateStatus(201);
 
-    // when
-    // called with missing trailing slash
+    // when called with missing trailing slash
     ApiResponse response =
         new ApiResponse(given().redirects().follow(false).get("/apps/test-minio"));
 
