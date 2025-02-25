@@ -313,6 +313,11 @@ public class RestApiActions {
     return this.postFile(file, queryParamsBuilder, contentType);
   }
 
+  public ApiResponse postMultiPartFile(File file) {
+    return new ApiResponse(
+        given().multiPart("file", file).contentType("multipart/form-data").when().post());
+  }
+
   public ApiResponse postFile(
       File file, QueryParamsBuilder queryParamsBuilder, String contentType) {
     String url = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
