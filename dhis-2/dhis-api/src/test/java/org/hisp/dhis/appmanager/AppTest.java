@@ -75,6 +75,16 @@ class AppTest {
     assertEquals("en", app.getDefaultLocale());
   }
 
+  @Test
+  void testGetKey() {
+    assertEquals("Test-App", app.getKey());
+  }
+
+  @Test
+  void testGetBasePath() {
+    assertEquals("/api/apps/Test-App", app.getBasePath());
+  }
+
   // TODO: Complete test for skipped optional properties
   @Test
   void testOptionalProperties() {
