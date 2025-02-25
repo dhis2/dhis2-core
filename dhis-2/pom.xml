@@ -85,7 +85,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>3.3.6</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>3.3.7</dhis2-rule-engine.version>
     <kotlinx-datetime.version>0.6.2</kotlinx-datetime.version>
 
     <!-- HISP Quick and Staxwax -->
@@ -104,7 +104,7 @@
 
     <!-- Spring -->
     <spring.version>6.1.17</spring.version>
-    <spring-session-core.version>3.4.1</spring-session-core.version>
+    <spring-session-core.version>3.4.2</spring-session-core.version>
     <spring-data-redis.version>2.7.18</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.4</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
@@ -168,7 +168,7 @@
     <jts.version>1.20.0</jts.version>
 
     <!-- Apache Artemis -->
-    <artemis-jakarta.version>2.38.0</artemis-jakarta.version>
+    <artemis-jakarta.version>2.39.0</artemis-jakarta.version>
     <netty-all.version>4.1.118.Final</netty-all.version>
     <classgraph.version>4.8.179</classgraph.version>
 
@@ -213,7 +213,7 @@
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
-    <junit.version>5.11.4</junit.version>
+    <junit.version>5.12.0</junit.version>
     <mockito.version>5.2.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>3.0</hamcrest.version>

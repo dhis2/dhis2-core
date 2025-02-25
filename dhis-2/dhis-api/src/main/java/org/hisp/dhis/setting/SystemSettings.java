@@ -676,14 +676,6 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   /**
-   * @deprecated use {@link #getTrackedEntityMaxLimit()} instead
-   */
-  @Deprecated(forRemoval = true, since = "2.41")
-  default int getTrackedEntityInstanceMaxLimit() {
-    return asInt("KeyTrackedEntityInstanceMaxLimit", 50000);
-  }
-
-  /**
    * @return Max tracked entity records that can be retrieved from database.
    */
   default int getTrackedEntityMaxLimit() {
