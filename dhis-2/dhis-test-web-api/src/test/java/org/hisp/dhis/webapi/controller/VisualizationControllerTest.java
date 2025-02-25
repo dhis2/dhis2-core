@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
@@ -43,7 +42,7 @@ class VisualizationControllerTest extends DhisControllerConvenienceTest {
   void testGetVisualizationWithNestedFilters() {
     JsonImportSummary report =
         POST("/metadata", WebClient.Body("metadata/metadata_with_visualization.json"))
-            .content(HttpStatus.OK)
+            .content()
             .get("response")
             .as(JsonImportSummary.class);
     assertEquals("OK", report.getStatus());

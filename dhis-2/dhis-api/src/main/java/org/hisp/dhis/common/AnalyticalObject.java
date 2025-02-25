@@ -30,12 +30,14 @@ package org.hisp.dhis.common;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
 import org.hisp.dhis.category.CategoryOptionGroupSetDimension;
 import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
+import org.hisp.dhis.visualization.LegendDefinitions;
 
 /**
  * @author Lars Helge Overland
@@ -83,4 +85,9 @@ public interface AnalyticalObject
   boolean hasUserOrgUnit();
 
   void clearTransientState();
+
+  @Nullable
+  default LegendDefinitions getLegendDefinitions() {
+    return null;
+  }
 }
