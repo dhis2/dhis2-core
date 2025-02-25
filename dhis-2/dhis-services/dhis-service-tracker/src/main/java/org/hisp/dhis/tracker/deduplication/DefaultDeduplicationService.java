@@ -101,17 +101,10 @@ public class DefaultDeduplicationService implements DeduplicationService {
           PotentialDuplicateForbiddenException,
           ForbiddenException,
           NotFoundException {
-    String autoMergeConflicts =
-        getAutoMergeConflictErrors(params.getOriginal(), params.getDuplicate());
-
-    if (autoMergeConflicts != null) {
-      throw new PotentialDuplicateConflictException(
-          "PotentialDuplicate can not be merged automatically: " + autoMergeConflicts);
-    }
+    validateCanBeAutoMerged(params);
 
     params.setMergeObject(
         deduplicationHelper.generateMergeObject(params.getOriginal(), params.getDuplicate()));
-
     merge(params);
   }
 
@@ -131,17 +124,24 @@ public class DefaultDeduplicationService implements DeduplicationService {
     merge(deduplicationMergeParams);
   }
 
-  private String getAutoMergeConflictErrors(TrackedEntity original, TrackedEntity duplicate) {
+  private void validateCanBeAutoMerged(DeduplicationMergeParams params)
+      throws PotentialDuplicateConflictException {
+    TrackedEntity original = params.getOriginal();
+    TrackedEntity duplicate = params.getDuplicate();
+
     if (!original.getTrackedEntityType().equals(duplicate.getTrackedEntityType())) {
-      return "Entities have different Tracked Entity Types.";
+      throw new PotentialDuplicateConflictException(
+          "PotentialDuplicate cannot be merged automatically: Entities have different Tracked Entity Types.");
     }
 
     if (original.isDeleted() || duplicate.isDeleted()) {
-      return "One or both entities have already been marked as deleted.";
+      throw new PotentialDuplicateConflictException(
+          "PotentialDuplicate cannot be merged automatically: One or both entities have already been marked as deleted.");
     }
 
     if (haveSameEnrollment(original.getEnrollments(), duplicate.getEnrollments())) {
-      return "Both entities enrolled in the same program.";
+      throw new PotentialDuplicateConflictException(
+          "PotentialDuplicate cannot be merged automatically: Both entities enrolled in the same program.");
     }
 
     Set<TrackedEntityAttributeValue> trackedEntityAttributeValueA =
@@ -150,10 +150,9 @@ public class DefaultDeduplicationService implements DeduplicationService {
         duplicate.getTrackedEntityAttributeValues();
 
     if (sameAttributesAreEquals(trackedEntityAttributeValueA, trackedEntityAttributeValueB)) {
-      return "Entities have conflicting values for the same attributes.";
+      throw new PotentialDuplicateConflictException(
+          "PotentialDuplicate cannot be merged automatically: Entities have conflicting values for the same attributes.");
     }
-
-    return null;
   }
 
   private void merge(DeduplicationMergeParams params)
