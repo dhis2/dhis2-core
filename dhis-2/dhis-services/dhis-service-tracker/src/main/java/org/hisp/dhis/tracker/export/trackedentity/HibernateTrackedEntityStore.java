@@ -395,9 +395,9 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .append(getLeftJoinFromFilterConditions(params))
 
             // WHERE
+            .append(getWhereClauseFromFilterConditions(whereAnd, params))
             .append(getFromSubQueryTrackedEntityConditions(whereAnd, params))
-            .append(getFromSubQueryEnrollmentConditions(whereAnd, params))
-            .append(getWhereClauseFromFilterConditions(whereAnd, params));
+            .append(getFromSubQueryEnrollmentConditions(whereAnd, params));
 
     if (!isCountQuery) {
       // SORT
