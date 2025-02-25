@@ -61,6 +61,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
@@ -71,6 +72,7 @@ import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage.JsonPager;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
+import org.hisp.dhis.webapi.controller.tracker.JsonTrackedEntity;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -82,7 +84,9 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Tests how {@link org.hisp.dhis.webapi.controller.tracker.export} controllers serialize {@link
  * Page} to JSON. The logic and actual items returned in the pages is tested in the {@code
- * OrderAndPaginationExporterTest}
+ * OrderAndPaginationExporterTest}. Each controller has at least one or two tests. A couple more
+ * combinations are tested via the relationships controller which are also testing logic used by
+ * other controllers.
  */
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -101,8 +105,11 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
 
   private TrackerObjects trackerObjects;
 
+  private TrackedEntity trackedEntity1;
+  private TrackedEntity trackedEntity2;
   private Enrollment enrollment1;
   private Enrollment enrollment2;
+  private Enrollment enrollment3;
   private Event event1;
   private Event event2;
 
@@ -138,8 +145,11 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
     manager.flush();
     manager.clear();
 
+    trackedEntity1 = getTrackedEntity(UID.of("QS6w44flWAf"));
+    trackedEntity2 = getTrackedEntity(UID.of("dUE514NMOlo"));
     enrollment1 = getEnrollment(UID.of("nxP7UnKhomJ"));
     enrollment2 = getEnrollment(UID.of("nxP8UnKhomJ"));
+    enrollment3 = getEnrollment(UID.of("TvctPPhpD8z"));
     event1 = getEvent(UID.of("pTzf9KYMk72"));
     event2 = getEvent(UID.of("D9PbzJY8bJM"));
   }
@@ -147,6 +157,72 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
   @BeforeEach
   void setUpUser() {
     switchContextToUser(importUser);
+  }
+
+  @Test
+  void shouldGetEmptyTrackedEntitiesPage() {
+    JsonPage page =
+        GET("/tracker/trackedEntities?trackedEntities={uid}", UID.generate())
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
+
+    assertIsEmpty(page.getList("trackedEntities", JsonTrackedEntity.class).stream().toList());
+
+    JsonPager pager = page.getPager();
+    assertEquals(1, pager.getPage());
+    assertEquals(50, pager.getPageSize());
+    assertHasNoMember(pager, "total", "pageCount", "prevPage", "nextPage");
+  }
+
+  @Test
+  void shouldGetPaginatedTrackedEntitiesWithDefaults() {
+    JsonPage page =
+        GET(
+                "/tracker/trackedEntities?trackedEntities={uid},{uid}",
+                trackedEntity1.getUid(),
+                trackedEntity2.getUid())
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
+
+    assertContainsOnly(
+        List.of(trackedEntity1.getUid().getValue(), trackedEntity2.getUid().getValue()),
+        page.getList("trackedEntities", JsonTrackedEntity.class)
+            .toList(JsonTrackedEntity::getTrackedEntity));
+
+    JsonPager pager = page.getPager();
+    assertEquals(1, pager.getPage());
+    assertEquals(50, pager.getPageSize());
+    assertHasNoMember(pager, "total", "pageCount");
+  }
+
+  @Test
+  void shouldGetPaginatedTrackedEntitiesLastPage() {
+    JsonPage page =
+        GET(
+                "/tracker/trackedEntities?trackedEntities={uid},{uid}&page=2&pageSize=1&totalPages=true",
+                trackedEntity1.getUid(),
+                trackedEntity2.getUid())
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
+
+    assertHasSize(
+        1,
+        page.getList("trackedEntities", JsonTrackedEntity.class)
+            .toList(JsonTrackedEntity::getTrackedEntity));
+
+    JsonPager pager = page.getPager();
+    assertEquals(2, pager.getPage());
+    assertEquals(1, pager.getPageSize());
+    assertEquals(2, pager.getTotal());
+    assertEquals(2, pager.getPageCount());
+    assertPagerLink(
+        pager.getPrevPage(),
+        1,
+        1,
+        String.format(
+            "http://localhost/api/tracker/trackedEntities?trackedEntities=%s,%s",
+            trackedEntity1.getUid(), trackedEntity2.getUid()));
+    assertHasNoMember(pager, "nextPage");
   }
 
   @Test
@@ -185,12 +261,13 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
   }
 
   @Test
-  void shouldGetPaginatedEnrollmentsLastPage() {
+  void shouldGetPaginatedEnrollmentsMiddlePage() {
     JsonPage page =
         GET(
-                "/tracker/enrollments?enrollments={uid},{uid}&page=2&pageSize=1&totalPages=true",
+                "/tracker/enrollments?enrollments={uid},{uid},{uid}&page=2&pageSize=1&totalPages=true",
                 enrollment1.getUid(),
-                enrollment2.getUid())
+                enrollment2.getUid(),
+                enrollment3.getUid())
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
@@ -200,16 +277,22 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
     JsonPager pager = page.getPager();
     assertEquals(2, pager.getPage());
     assertEquals(1, pager.getPageSize());
-    assertEquals(2, pager.getTotal());
-    assertEquals(2, pager.getPageCount());
+    assertEquals(3, pager.getTotal());
+    assertEquals(3, pager.getPageCount());
     assertPagerLink(
         pager.getPrevPage(),
         1,
         1,
         String.format(
-            "http://localhost/api/tracker/enrollments?enrollments=%s,%s",
-            enrollment1.getUid(), enrollment2.getUid()));
-    assertHasNoMember(pager, "nextPage");
+            "http://localhost/api/tracker/enrollments?enrollments=%s,%s,%s",
+            enrollment1.getUid(), enrollment2.getUid(), enrollment3.getUid()));
+    assertPagerLink(
+        pager.getNextPage(),
+        3,
+        1,
+        String.format(
+            "http://localhost/api/tracker/enrollments?enrollments=%s,%s,%s",
+            enrollment1.getUid(), enrollment2.getUid(), enrollment3.getUid()));
   }
 
   @Test
@@ -300,8 +383,7 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
     JsonPager pager = page.getPager();
     assertEquals(1, pager.getPage());
     assertEquals(50, pager.getPageSize());
-    assertHasNoMember(pager, "total");
-    assertHasNoMember(pager, "pageCount");
+    assertHasNoMember(pager, "total", "pageCount");
   }
 
   @Test
@@ -324,44 +406,30 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
   }
 
   @Test
-  void shouldGetPaginatedRelationshipsWithDefaultsAndTotals() {
+  void shouldGetPaginatedRelationshipsLastPage() {
     JsonPage page =
-        GET("/tracker/relationships?event={uid}&paging=true&totalPages=true", event1.getUid())
+        GET(
+                "/tracker/relationships?event={uid}&paging=true&page=2&pageSize=1&totalPages=true",
+                event1.getUid())
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
-    assertContainsOnly(
-        List.of("oLT07jKRu9e", "yZxjxJli9mO"),
+    assertHasSize(
+        1,
         page.getList("relationships", JsonRelationship.class)
             .toList(JsonRelationship::getRelationship));
 
     JsonPager pager = page.getPager();
-    assertEquals(1, pager.getPage());
-    assertEquals(50, pager.getPageSize());
-    assertEquals(2, pager.getTotal());
-    assertEquals(1, pager.getPageCount());
-  }
-
-  @Test
-  void shouldGetPaginatedRelationshipsWithNonDefaults() {
-    JsonPage page =
-        GET("/tracker/relationships?event={uid}&paging=true&page=2&pageSize=1", event1.getUid())
-            .content(HttpStatus.OK)
-            .asA(JsonPage.class);
-
-    JsonList<JsonRelationship> relationships =
-        page.getList("relationships", JsonRelationship.class);
-    assertEquals(
-        1,
-        relationships.size(),
-        () ->
-            String.format("mismatch in number of expected relationship(s), got %s", relationships));
-
-    JsonPager pager = page.getPager();
     assertEquals(2, pager.getPage());
     assertEquals(1, pager.getPageSize());
-    assertHasNoMember(pager, "total");
-    assertHasNoMember(pager, "pageCount");
+    assertEquals(2, pager.getTotal());
+    assertEquals(2, pager.getPageCount());
+    assertPagerLink(
+        pager.getPrevPage(),
+        1,
+        1,
+        String.format("http://localhost/api/tracker/relationships?event=%s", event1.getUid()));
+    assertHasNoMember(pager, "nextPage");
   }
 
   @Test
@@ -398,6 +466,13 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
         page.getList("relationships", JsonRelationship.class)
             .toList(JsonRelationship::getRelationship));
     assertHasNoMember(page, "pager");
+  }
+
+  private org.hisp.dhis.tracker.imports.domain.TrackedEntity getTrackedEntity(UID trackedEntity) {
+    return trackerObjects.getTrackedEntities().stream()
+        .filter(ev -> ev.getTrackedEntity().equals(trackedEntity))
+        .findFirst()
+        .get();
   }
 
   private org.hisp.dhis.tracker.imports.domain.Enrollment getEnrollment(UID enrollment) {

@@ -31,9 +31,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -150,63 +148,69 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orderBy(UID.of("numericAttr"), SortDirection.ASC)
             .build();
 
-    Page<TrackedEntity> firstPage =
-        trackedEntityService.getTrackedEntities(params, new PageParams(1, 3, false));
+    Page<String> firstPage =
+        trackedEntityService
+            .getTrackedEntities(params, new PageParams(1, 3, false))
+            .withItems(IdentifiableObject::getUid);
 
-    assertAll(
-        "first page",
-        () -> assertPage(1, 3, firstPage),
-        () ->
-            assertEquals(
-                List.of("dUE514NMOlo", "mHWCacsGYYn", "QS6w44flWAf"), uids(firstPage.getItems())));
+    assertEquals(
+        new Page<>(List.of("dUE514NMOlo", "mHWCacsGYYn", "QS6w44flWAf"), 1, 3, null, null, 2),
+        firstPage,
+        "first page");
 
-    Page<TrackedEntity> secondPage =
-        trackedEntityService.getTrackedEntities(params, new PageParams(2, 3, false));
+    Page<String> secondPage =
+        trackedEntityService
+            .getTrackedEntities(params, new PageParams(2, 3, true))
+            .withItems(IdentifiableObject::getUid);
 
-    assertAll(
-        "second (last) page",
-        () -> assertPage(2, 3, secondPage),
-        () ->
-            assertEquals(
-                List.of("QesgJkTyTCk", "woitxQbWYNq", "guVNoAerxWo"), uids(secondPage.getItems())));
+    assertEquals(
+        new Page<>(List.of("QesgJkTyTCk", "woitxQbWYNq", "guVNoAerxWo"), 2, 3, 6L, 1, null),
+        secondPage,
+        "second (last) page");
 
-    assertIsEmpty(
-        trackedEntityService.getTrackedEntities(params, new PageParams(3, 3, false)).getItems());
+    Page<String> thirdPage =
+        trackedEntityService
+            .getTrackedEntities(params, new PageParams(3, 3, false))
+            .withItems(IdentifiableObject::getUid);
+
+    assertEquals(new Page<>(List.of(), 3, 3, null, 2, null), thirdPage, "past the last page");
   }
 
   @Test
-  void shouldReturnPaginatedTrackedEntitiesGivenNonDefaultPageSizeAndTotalPages()
+  void shouldReturnPaginatedTrackedEntitiesWithMaxTeCountToReturnOnProgram()
       throws ForbiddenException, BadRequestException, NotFoundException {
+    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
+
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
             .organisationUnits(orgUnit)
-            .orgUnitMode(DESCENDANTS)
-            .trackedEntityType(trackedEntityType)
+            .orgUnitMode(SELECTED)
+            .program(UID.of("BFcipDERJnf"))
+            .trackedEntities(UID.of("QS6w44flWAf", "dUE514NMOlo"))
             .orderBy(UID.of("numericAttr"), SortDirection.ASC)
             .build();
 
-    Page<TrackedEntity> firstPage =
-        trackedEntityService.getTrackedEntities(params, new PageParams(1, 3, true));
+    Page<String> firstPage =
+        trackedEntityService
+            .getTrackedEntities(params, new PageParams(1, 1, false))
+            .withItems(IdentifiableObject::getUid);
 
-    assertAll(
-        "first page",
-        () -> assertPage(1, 3, 6, firstPage),
-        () ->
-            assertEquals(
-                List.of("dUE514NMOlo", "mHWCacsGYYn", "QS6w44flWAf"), uids(firstPage.getItems())));
+    assertEquals(new Page<>(List.of("dUE514NMOlo"), 1, 1, null, null, 2), firstPage, "first page");
 
-    Page<TrackedEntity> secondPage =
-        trackedEntityService.getTrackedEntities(params, new PageParams(2, 3, true));
+    Page<String> secondPage =
+        trackedEntityService
+            .getTrackedEntities(params, new PageParams(2, 1, true))
+            .withItems(IdentifiableObject::getUid);
 
-    assertAll(
-        "second (last) page",
-        () -> assertPage(2, 3, 6, secondPage),
-        () ->
-            assertEquals(
-                List.of("QesgJkTyTCk", "woitxQbWYNq", "guVNoAerxWo"), uids(secondPage.getItems())));
+    assertEquals(
+        new Page<>(List.of("QS6w44flWAf"), 2, 1, 2L, 1, null), secondPage, "second (last) page");
 
-    assertIsEmpty(
-        trackedEntityService.getTrackedEntities(params, new PageParams(3, 3, true)).getItems());
+    Page<String> thirdPage =
+        trackedEntityService
+            .getTrackedEntities(params, new PageParams(3, 1, false))
+            .withItems(IdentifiableObject::getUid);
+
+    assertEquals(new Page<>(List.of(), 3, 1, null, 2, null), thirdPage, "past the last page");
   }
 
   @Test
@@ -779,19 +783,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnPaginatedEventsWithTotalPages() throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        eventParamsBuilder.orgUnit(orgUnit).programStage(programStage).build();
-
-    Page<Event> page = eventService.getEvents(params, new PageParams(1, 2, true));
-
-    assertAll(
-        "page with total counts",
-        () -> assertPage(1, 2, 2, page),
-        () -> assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), uids(page)));
-  }
-
-  @Test
   void shouldReturnPaginatedPublicEventsWithMultipleCategoryOptionsGivenNonDefaultPageSize()
       throws ForbiddenException, BadRequestException {
     OrganisationUnit orgUnit = get(OrganisationUnit.class, "DiszpKrYNg8");
@@ -983,21 +974,27 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
             .build();
 
-    Page<Event> firstPage = eventService.getEvents(operationParams, PageParams.single());
+    Page<String> firstPage =
+        eventService
+            .getEvents(operationParams, PageParams.single())
+            .withItems(IdentifiableObject::getUid);
 
-    assertAll(
-        "first page",
-        () -> assertPage(1, 1, firstPage),
-        () -> assertEquals(List.of("D9PbzJY8bJM"), uids(firstPage)));
+    assertEquals(new Page<>(List.of("D9PbzJY8bJM"), 1, 1, null, null, 2), firstPage, "first page");
 
-    Page<Event> secondPage = eventService.getEvents(operationParams, new PageParams(2, 1, false));
+    Page<String> secondPage =
+        eventService
+            .getEvents(operationParams, new PageParams(2, 1, false))
+            .withItems(IdentifiableObject::getUid);
 
-    assertAll(
-        "second (last) page",
-        () -> assertPage(2, 1, secondPage),
-        () -> assertEquals(List.of("pTzf9KYMk72"), uids(secondPage)));
+    assertEquals(
+        new Page<>(List.of("pTzf9KYMk72"), 2, 1, null, 1, null), secondPage, "second (last) page");
 
-    assertIsEmpty(getEvents(operationParams, new PageParams(3, 3, false)));
+    Page<String> thirdPage =
+        eventService
+            .getEvents(operationParams, new PageParams(3, 3, false))
+            .withItems(IdentifiableObject::getUid);
+
+    assertEquals(new Page<>(List.of(), 3, 3, null, 2, null), thirdPage, "past the last page");
   }
 
   @Test
@@ -1421,68 +1418,26 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     RelationshipOperationParams params =
         RelationshipOperationParams.builder(TrackerType.EVENT, UID.of("pTzf9KYMk72")).build();
 
-    Page<Relationship> firstPage =
-        relationshipService.getRelationships(params, PageParams.single());
+    Page<String> firstPage =
+        relationshipService
+            .getRelationships(params, PageParams.single())
+            .withItems(IdentifiableObject::getUid);
 
-    assertAll(
-        "first page",
-        () -> assertPage(1, 1, firstPage),
-        () -> assertEquals(List.of(expectedOnPage1), uids(firstPage)));
+    assertEquals(
+        new Page<>(List.of(expectedOnPage1), 1, 1, null, null, 2), firstPage, "first page");
 
-    Page<Relationship> secondPage =
-        relationshipService.getRelationships(params, new PageParams(2, 1, false));
+    Page<String> secondPage =
+        relationshipService
+            .getRelationships(params, new PageParams(2, 1, true))
+            .withItems(IdentifiableObject::getUid);
 
-    assertAll(
-        "second (last) page",
-        () -> assertPage(2, 1, secondPage),
-        () -> assertEquals(List.of(expectedOnPage2), uids(secondPage)));
-
-    Page<Relationship> thirdPage =
-        relationshipService.getRelationships(params, new PageParams(3, 1, false));
-
-    assertIsEmpty(thirdPage.getItems());
-  }
-
-  @Test
-  void shouldReturnPaginatedRelationshipsGivenNonDefaultPageSizeAndTotalPages()
-      throws ForbiddenException, BadRequestException, NotFoundException {
-    // relationships can only be ordered by created date which is not under our control during
-    // testing
-    // pagination is tested using default order by primary key desc. We thus need to get the
-    // expected order of the pages beforehand.
-    Relationship oLT07jKRu9e = get(Relationship.class, "oLT07jKRu9e");
-    Relationship yZxjxJli9mO = get(Relationship.class, "yZxjxJli9mO");
-    List<String> expected =
-        Stream.of(oLT07jKRu9e, yZxjxJli9mO)
-            .sorted(Comparator.comparing(Relationship::getId).reversed()) // reversed = desc
-            .map(Relationship::getUid)
-            .toList();
-    String expectedOnPage1 = expected.get(0);
-    String expectedOnPage2 = expected.get(1);
-
-    RelationshipOperationParams params =
-        RelationshipOperationParams.builder(TrackerType.EVENT, UID.of("pTzf9KYMk72")).build();
-
-    Page<Relationship> firstPage =
-        relationshipService.getRelationships(params, new PageParams(1, 1, true));
-
-    assertAll(
-        "first page",
-        () -> assertPage(1, 1, 2, firstPage),
-        () -> assertEquals(List.of(expectedOnPage1), uids(firstPage)));
-
-    Page<Relationship> secondPage =
-        relationshipService.getRelationships(params, new PageParams(2, 1, true));
-
-    assertAll(
-        "second (last) page",
-        () -> assertPage(2, 1, 2, secondPage),
-        () -> assertEquals(List.of(expectedOnPage2), uids(secondPage)));
+    assertEquals(
+        new Page<>(List.of(expectedOnPage2), 2, 1, 2L, 1, null), secondPage, "second (last) page");
 
     Page<Relationship> thirdPage =
         relationshipService.getRelationships(params, new PageParams(3, 1, true));
 
-    assertIsEmpty(thirdPage.getItems());
+    assertEquals(new Page<>(List.of(), 3, 1, 2L, 2, null), thirdPage, "past the last page");
   }
 
   @Test
@@ -1551,23 +1506,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     return t;
   }
 
-  private static <T> void assertPage(int pageNumber, int pageSize, Page<T> actual) {
-    assertNotNull(actual, "paginated results should have a page");
-    assertAll(
-        "pagination details",
-        () -> assertEquals(pageNumber, actual.getPage(), "number of current page"),
-        () -> assertEquals(pageSize, actual.getPageSize(), "page size"));
-  }
-
-  private static <T> void assertPage(int pageNumber, int pageSize, int totalCount, Page<T> actual) {
-    assertNotNull(actual, "paginated results should have a page");
-    assertAll(
-        "pagination details",
-        () -> assertEquals(pageNumber, actual.getPage(), "number of current page"),
-        () -> assertEquals(pageSize, actual.getPageSize(), "page size"),
-        () -> assertEquals(totalCount, actual.getTotal(), "total count of items"));
-  }
-
   private List<String> getTrackedEntities(TrackedEntityOperationParams params)
       throws ForbiddenException, BadRequestException, NotFoundException {
     return uids(trackedEntityService.getTrackedEntities(params));
@@ -1583,18 +1521,9 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     return uids(eventService.getEvents(params));
   }
 
-  private List<String> getEvents(EventOperationParams params, PageParams pageParams)
-      throws ForbiddenException, BadRequestException {
-    return uids(eventService.getEvents(params, pageParams).getItems());
-  }
-
   private List<String> getRelationships(RelationshipOperationParams params)
       throws ForbiddenException, BadRequestException, NotFoundException {
     return uids(relationshipService.getRelationships(params));
-  }
-
-  private static <T extends BaseIdentifiableObject> List<String> uids(Page<T> events) {
-    return uids(events.getItems());
   }
 
   private static List<String> uids(List<? extends BaseIdentifiableObject> identifiableObject) {

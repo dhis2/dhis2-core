@@ -162,7 +162,8 @@ public class HibernateTrackedEntityChangeLogStore {
     }
 
     query.setFirstResult(pageParams.getOffset());
-    query.setMaxResults(pageParams.getPageSize() + 1);
+    query.setMaxResults(
+        pageParams.getPageSize() + 1); // get extra changeLog to determine if there is a nextPage
 
     if (filter != null) {
       query.setParameter("filterValue", filter.getValue().getFilter());
@@ -195,18 +196,7 @@ public class HibernateTrackedEntityChangeLogStore {
                 })
             .toList();
 
-    Integer prevPage = pageParams.getPage() > 1 ? pageParams.getPage() - 1 : null;
-    if (trackedEntityChangeLogs.size() > pageParams.getPageSize()) {
-      return Page.withPrevAndNext(
-          trackedEntityChangeLogs.subList(0, pageParams.getPageSize()),
-          pageParams.getPage(),
-          pageParams.getPageSize(),
-          prevPage,
-          pageParams.getPage() + 1);
-    }
-
-    return Page.withPrevAndNext(
-        trackedEntityChangeLogs, pageParams.getPage(), pageParams.getPageSize(), prevPage, null);
+    return new Page<>(trackedEntityChangeLogs, pageParams);
   }
 
   public void deleteTrackedEntityChangeLogs(TrackedEntity trackedEntity) {

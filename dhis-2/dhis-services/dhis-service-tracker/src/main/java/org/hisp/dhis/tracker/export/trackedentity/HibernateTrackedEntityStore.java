@@ -46,7 +46,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
@@ -184,18 +183,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           new TrackedEntityIdentifiers(rowSet.getLong("trackedentityid"), rowSet.getString("uid")));
     }
 
-    LongSupplier teCount = () -> getTrackedEntityCount(params);
-    return getPage(pageParams, ids, teCount);
-  }
-
-  private Page<TrackedEntityIdentifiers> getPage(
-      PageParams pageParams, List<TrackedEntityIdentifiers> ids, LongSupplier enrollmentCount) {
-    if (pageParams.isPageTotal()) {
-      return Page.withTotals(
-          ids, pageParams.getPage(), pageParams.getPageSize(), enrollmentCount.getAsLong());
-    }
-
-    return Page.withoutTotals(ids, pageParams.getPage(), pageParams.getPageSize());
+    return new Page<>(ids, pageParams, () -> getTrackedEntityCount(params));
   }
 
   public Set<String> getOrderableFields() {
@@ -399,10 +387,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .append(getFromSubQueryEnrollmentConditions(whereAnd, params));
 
     if (!isCountQuery) {
-      // SORT
       fromSubQuery
           .append(getQueryOrderBy(params, true))
-          // LIMIT, OFFSET
           .append(getFromSubQueryLimitAndOffset(params, pageParams));
     }
 
@@ -1067,13 +1053,12 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .append(SPACE)
             .toString();
       }
-
       return limitOffset.toString();
     } else if (limit == 0) {
       return limitOffset
           .append(LIMIT)
           .append(SPACE)
-          .append(pageParams.getPageSize())
+          .append(pageParams.getPageSize() + 1) // get extra TE to determine if there is a nextPage
           .append(SPACE)
           .append(OFFSET)
           .append(SPACE)
@@ -1084,7 +1069,10 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       return limitOffset
           .append(LIMIT)
           .append(SPACE)
-          .append(Math.min(limit + 1, pageParams.getPageSize()))
+          .append(
+              Math.min(
+                  limit + 1,
+                  pageParams.getPageSize() + 1)) // get extra TE to determine if there is a nextPage
           .append(SPACE)
           .append(OFFSET)
           .append(SPACE)
