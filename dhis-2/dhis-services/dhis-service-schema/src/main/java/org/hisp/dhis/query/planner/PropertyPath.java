@@ -39,7 +39,7 @@ import org.hisp.dhis.schema.Property;
  */
 @Getter
 @RequiredArgsConstructor
-public class QueryPath {
+public class PropertyPath {
 
   private static final Joiner PATH_JOINER = Joiner.on(".");
 
@@ -47,7 +47,7 @@ public class QueryPath {
   private final boolean persisted;
   private final String[] alias;
 
-  public QueryPath(Property property, boolean persisted) {
+  public PropertyPath(Property property, boolean persisted) {
     this(property, persisted, new String[0]);
   }
 

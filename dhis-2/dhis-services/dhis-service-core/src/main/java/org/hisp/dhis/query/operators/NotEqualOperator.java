@@ -32,7 +32,7 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryUtils;
-import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.query.planner.PropertyPath;
 import org.hisp.dhis.schema.Property;
 
 /**
@@ -44,8 +44,8 @@ public class NotEqualOperator<T extends Comparable<T>> extends EqualOperator<T> 
   }
 
   @Override
-  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, QueryPath queryPath) {
-    Property property = queryPath.getProperty();
+  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, PropertyPath path) {
+    Property property = path.getProperty();
 
     if (property.isCollection()) {
       Integer value = QueryUtils.parseValue(Integer.class, args.get(0));
@@ -55,9 +55,9 @@ public class NotEqualOperator<T extends Comparable<T>> extends EqualOperator<T> 
             "Left-side is collection, and right-side is not a valid integer, so can't compare by size.");
       }
 
-      return builder.notEqual(builder.size(root.get(queryPath.getPath())), value);
+      return builder.notEqual(builder.size(root.get(path.getPath())), value);
     }
-    return builder.notEqual(root.get(queryPath.getPath()), args.get(0));
+    return builder.notEqual(root.get(path.getPath()), args.get(0));
   }
 
   @Override

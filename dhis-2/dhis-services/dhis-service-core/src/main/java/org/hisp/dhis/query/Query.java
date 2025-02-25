@@ -52,7 +52,7 @@ import org.hisp.dhis.user.UserDetails;
 @ToString
 public class Query {
 
-  private final List<Restriction> filters = new ArrayList<>();
+  private final List<Filter> filters = new ArrayList<>();
 
   @ToString.Exclude @Getter private final Schema schema;
 
@@ -141,17 +141,17 @@ public class Query {
     return this;
   }
 
-  public Query add(Restriction criterion) {
+  public Query add(Filter criterion) {
     this.filters.add(criterion);
     return this;
   }
 
-  public Query add(Restriction... criterions) {
+  public Query add(Filter... criterions) {
     this.filters.addAll(asList(criterions));
     return this;
   }
 
-  public Query add(Collection<Restriction> criterions) {
+  public Query add(Collection<Filter> criterions) {
     this.filters.addAll(criterions);
     return this;
   }

@@ -39,7 +39,7 @@ import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.query.Type;
-import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.query.planner.PropertyPath;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -124,7 +124,7 @@ public abstract class Operator<T extends Comparable<T>> {
   }
 
   public abstract <Y> Predicate getPredicate(
-      CriteriaBuilder builder, Root<Y> root, QueryPath queryPath);
+      CriteriaBuilder builder, Root<Y> root, PropertyPath path);
 
   public abstract boolean test(Object value);
 

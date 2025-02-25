@@ -33,7 +33,7 @@ import jakarta.persistence.criteria.Root;
 import java.util.List;
 import java.util.Locale;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
-import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.query.planner.PropertyPath;
 import org.hisp.dhis.setting.UserSettings;
 
 /**
@@ -51,9 +51,9 @@ public class TokenOperator<T extends Comparable<T>> extends Operator<T> {
   }
 
   @Override
-  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, QueryPath queryPath) {
+  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, PropertyPath path) {
     String value = caseSensitive ? getValue(String.class) : getValue(String.class).toLowerCase();
-    if (skipUidToken(value, queryPath)) {
+    if (skipUidToken(value, path)) {
       return null;
     }
     Predicate defaultSearch =
@@ -61,14 +61,14 @@ public class TokenOperator<T extends Comparable<T>> extends Operator<T> {
             builder.function(
                 JsonbFunctions.REGEXP_SEARCH,
                 Boolean.class,
-                root.get(queryPath.getPath()),
+                root.get(path.getPath()),
                 builder.literal(TokenUtils.createRegex(value).toString())),
             true);
 
     Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
     if (locale == null
-        || !queryPath.getProperty().isTranslatable()
-        || queryPath.getProperty().getTranslationKey() == null) {
+        || !path.getProperty().isTranslatable()
+        || path.getProperty().getTranslationKey() == null) {
       return defaultSearch;
     }
 
@@ -78,7 +78,7 @@ public class TokenOperator<T extends Comparable<T>> extends Operator<T> {
                 JsonbFunctions.SEARCH_TRANSLATION_TOKEN,
                 Boolean.class,
                 root.get("translations"),
-                builder.literal("{" + queryPath.getProperty().getTranslationKey() + "}"),
+                builder.literal("{" + path.getProperty().getTranslationKey() + "}"),
                 builder.literal(locale.getLanguage()),
                 builder.literal(TokenUtils.createRegex(value).toString())),
             true),
@@ -90,7 +90,7 @@ public class TokenOperator<T extends Comparable<T>> extends Operator<T> {
     return TokenUtils.test(value, getValue(String.class), caseSensitive, matchMode);
   }
 
-  private boolean skipUidToken(String value, QueryPath query) {
+  private boolean skipUidToken(String value, PropertyPath query) {
     return "uid".equals(query.getProperty().getFieldName()) && value.length() < 4;
   }
 }

@@ -29,7 +29,7 @@ package org.hisp.dhis.schema;
 
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.query.planner.PropertyPath;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -107,5 +107,5 @@ public interface SchemaService {
 
   Class<?> getConcreteClass(Class<?> klass);
 
-  QueryPath getQueryPath(Schema schema, String path);
+  PropertyPath getQueryPath(Schema schema, String path);
 }

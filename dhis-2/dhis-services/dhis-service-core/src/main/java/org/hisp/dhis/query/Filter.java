@@ -35,7 +35,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.query.operators.InOperator;
 import org.hisp.dhis.query.operators.Operator;
-import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.query.planner.PropertyPath;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -43,7 +43,7 @@ import org.hisp.dhis.query.planner.QueryPath;
 @Getter
 @Accessors(chain = true)
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public final class Restriction {
+public final class Filter {
   /**
    * Path to property you want to restrict only, one first-level properties are currently supported.
    */
@@ -53,20 +53,20 @@ public final class Restriction {
   private final Operator<?> operator;
 
   /**
-   * Indicates that the {@link #path} is an attribute UID. This also means the {@link Restriction}
-   * is an in-memory filter.
+   * Indicates that the {@link #path} is an attribute UID. This also means the {@link Filter} is an
+   * in-memory filter.
    */
   private final boolean attribute;
 
   /** Query Path used in persistent part of a query. */
-  @Setter private QueryPath queryPath;
+  @Setter private PropertyPath propertyPath;
 
-  public Restriction(String path, Operator<?> operator) {
+  public Filter(String path, Operator<?> operator) {
     this(path, operator, false);
   }
 
-  public Restriction asAttribute() {
-    return new Restriction(path, operator, true);
+  public Filter asAttribute() {
+    return new Filter(path, operator, true);
   }
 
   @Override
@@ -111,6 +111,6 @@ public final class Restriction {
   }
 
   public Stream<String> aliases() {
-    return queryPath == null ? Stream.empty() : Stream.of(queryPath.getAlias());
+    return propertyPath == null ? Stream.empty() : Stream.of(propertyPath.getAlias());
   }
 }

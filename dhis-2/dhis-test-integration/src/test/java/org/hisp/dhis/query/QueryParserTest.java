@@ -81,14 +81,14 @@ class QueryParserTest extends PostgresIntegrationTestBase {
   void eqOperator() throws QueryParserException {
     Query query = queryParser.parse(DataElement.class, Arrays.asList("id:eq:1", "id:eq:2"));
     assertEquals(2, query.getFilters().size());
-    Restriction restriction = (Restriction) query.getFilters().get(0);
-    assertEquals("id", restriction.getPath());
-    assertEquals("1", restriction.getOperator().getArgs().get(0));
-    assertTrue(restriction.getOperator() instanceof EqualOperator);
-    restriction = (Restriction) query.getFilters().get(1);
-    assertEquals("id", restriction.getPath());
-    assertEquals("2", restriction.getOperator().getArgs().get(0));
-    assertTrue(restriction.getOperator() instanceof EqualOperator);
+    Filter filter = (Filter) query.getFilters().get(0);
+    assertEquals("id", filter.getPath());
+    assertEquals("1", filter.getOperator().getArgs().get(0));
+    assertTrue(filter.getOperator() instanceof EqualOperator);
+    filter = (Filter) query.getFilters().get(1);
+    assertEquals("id", filter.getPath());
+    assertEquals("2", filter.getOperator().getArgs().get(0));
+    assertTrue(filter.getOperator() instanceof EqualOperator);
   }
 
   @Test
@@ -96,14 +96,14 @@ class QueryParserTest extends PostgresIntegrationTestBase {
     Query query =
         queryParser.parse(DataElement.class, Arrays.asList("name:ieq:Test1", "name:ieq:test2"));
     assertEquals(2, query.getFilters().size());
-    Restriction restriction = (Restriction) query.getFilters().get(0);
-    assertEquals("name", restriction.getPath());
-    assertEquals("Test1", restriction.getOperator().getArgs().get(0));
-    assertTrue(restriction.getOperator() instanceof LikeOperator<?>);
-    restriction = (Restriction) query.getFilters().get(1);
-    assertEquals("name", restriction.getPath());
-    assertEquals("test2", restriction.getOperator().getArgs().get(0));
-    assertTrue(restriction.getOperator() instanceof LikeOperator<?>);
+    Filter filter = (Filter) query.getFilters().get(0);
+    assertEquals("name", filter.getPath());
+    assertEquals("Test1", filter.getOperator().getArgs().get(0));
+    assertTrue(filter.getOperator() instanceof LikeOperator<?>);
+    filter = (Filter) query.getFilters().get(1);
+    assertEquals("name", filter.getPath());
+    assertEquals("test2", filter.getOperator().getArgs().get(0));
+    assertTrue(filter.getOperator() instanceof LikeOperator<?>);
   }
 
   @Test
@@ -113,14 +113,14 @@ class QueryParserTest extends PostgresIntegrationTestBase {
             DataElement.class,
             Arrays.asList("dataElementGroups.id:eq:1", "dataElementGroups.id:eq:2"));
     assertEquals(2, query.getFilters().size());
-    Restriction restriction = (Restriction) query.getFilters().get(0);
-    assertEquals("dataElementGroups.id", restriction.getPath());
-    assertEquals("1", restriction.getOperator().getArgs().get(0));
-    assertTrue(restriction.getOperator() instanceof EqualOperator);
-    restriction = (Restriction) query.getFilters().get(1);
-    assertEquals("dataElementGroups.id", restriction.getPath());
-    assertEquals("2", restriction.getOperator().getArgs().get(0));
-    assertTrue(restriction.getOperator() instanceof EqualOperator);
+    Filter filter = (Filter) query.getFilters().get(0);
+    assertEquals("dataElementGroups.id", filter.getPath());
+    assertEquals("1", filter.getOperator().getArgs().get(0));
+    assertTrue(filter.getOperator() instanceof EqualOperator);
+    filter = (Filter) query.getFilters().get(1);
+    assertEquals("dataElementGroups.id", filter.getPath());
+    assertEquals("2", filter.getOperator().getArgs().get(0));
+    assertTrue(filter.getOperator() instanceof EqualOperator);
   }
 
   @Test
@@ -137,11 +137,11 @@ class QueryParserTest extends PostgresIntegrationTestBase {
   void nullOperator() throws QueryParserException {
     Query query = queryParser.parse(DataElement.class, Arrays.asList("id:null", "name:null"));
     assertEquals(2, query.getFilters().size());
-    Restriction restriction = (Restriction) query.getFilters().get(0);
-    assertEquals("id", restriction.getPath());
-    assertTrue(restriction.getOperator() instanceof NullOperator);
-    restriction = (Restriction) query.getFilters().get(1);
-    assertEquals("name", restriction.getPath());
-    assertTrue(restriction.getOperator() instanceof NullOperator);
+    Filter filter = (Filter) query.getFilters().get(0);
+    assertEquals("id", filter.getPath());
+    assertTrue(filter.getOperator() instanceof NullOperator);
+    filter = (Filter) query.getFilters().get(1);
+    assertEquals("name", filter.getPath());
+    assertTrue(filter.getOperator() instanceof NullOperator);
   }
 }

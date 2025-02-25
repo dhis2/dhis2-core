@@ -60,7 +60,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.query.planner.PropertyPath;
 import org.hisp.dhis.schema.descriptors.AccessSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.AggregateDataExchangeSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.AnalyticsPeriodBoundarySchemaDescriptor;
@@ -522,7 +522,7 @@ public class DefaultSchemaService implements SchemaService {
   }
 
   @Override
-  public QueryPath getQueryPath(Schema schema, String path) {
+  public PropertyPath getQueryPath(Schema schema, String path) {
     Schema curSchema = schema;
     Property curProperty = null;
     boolean persisted = true;
@@ -552,7 +552,7 @@ public class DefaultSchemaService implements SchemaService {
       }
 
       if ((!curProperty.isSimple() && idx == pathComponents.length - 1)) {
-        return new QueryPath(curProperty, persisted, alias.toArray(new String[] {}));
+        return new PropertyPath(curProperty, persisted, alias.toArray(new String[] {}));
       }
 
       if (curProperty.isCollection()) {
@@ -562,10 +562,10 @@ public class DefaultSchemaService implements SchemaService {
         curSchema = getDynamicSchema(curProperty.getKlass());
         alias.add(curProperty.getFieldName());
       } else {
-        return new QueryPath(curProperty, persisted, alias.toArray(new String[] {}));
+        return new PropertyPath(curProperty, persisted, alias.toArray(new String[] {}));
       }
     }
-    return new QueryPath(curProperty, persisted, alias.toArray(new String[] {}));
+    return new PropertyPath(curProperty, persisted, alias.toArray(new String[] {}));
   }
 
   private boolean isFilterByAttributeId(Property curProperty, String propertyName) {

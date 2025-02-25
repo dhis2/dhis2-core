@@ -67,9 +67,9 @@ class QueryTest {
   @Test
   void validRestrictionParameters() {
     Query query = Query.from(createSchema());
-    query.add(Restrictions.eq("id", "anc"));
-    query.add(Restrictions.like("name", "anc", MatchMode.ANYWHERE));
-    query.add(Restrictions.eq("code", "anc"));
+    query.add(Filters.eq("id", "anc"));
+    query.add(Filters.like("name", "anc", MatchMode.ANYWHERE));
+    query.add(Filters.eq("code", "anc"));
     assertEquals(3, query.getFilters().size());
   }
 }

@@ -67,14 +67,14 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
+import org.hisp.dhis.query.Filter;
+import org.hisp.dhis.query.Filters;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.query.Restriction;
-import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
@@ -179,9 +179,9 @@ public abstract class AbstractFullReadOnlyController<
       P params,
       HttpServletResponse response,
       UserDetails currentUser,
-      List<Restriction> additionalFilters)
+      List<Filter> additionalFilters)
       throws ForbiddenException, BadRequestException, ConflictException {
-    List<Restriction> filters = getAdditionalFilters(params);
+    List<Filter> filters = getAdditionalFilters(params);
     filters.addAll(additionalFilters);
     return getObjectListInternal(params, response, currentUser, filters);
   }
@@ -190,7 +190,7 @@ public abstract class AbstractFullReadOnlyController<
       P params,
       HttpServletResponse response,
       UserDetails currentUser,
-      List<Restriction> additionalFilters)
+      List<Filter> additionalFilters)
       throws ForbiddenException, BadRequestException {
 
     if (!aclService.canRead(currentUser, getEntityClass())) {
@@ -204,7 +204,7 @@ public abstract class AbstractFullReadOnlyController<
     // list
     boolean isAlwaysEmpty =
         params.getRootJunction() == Junction.Type.AND
-            && additionalFilters.stream().anyMatch(Restriction::isAlwaysFalse);
+            && additionalFilters.stream().anyMatch(Filter::isAlwaysFalse);
     List<T> entities = isAlwaysEmpty ? List.of() : getEntityList(params, additionalFilters);
     postProcessResponseEntities(entities, params);
 
@@ -241,18 +241,18 @@ public abstract class AbstractFullReadOnlyController<
   }
 
   @Nonnull
-  protected List<Restriction> getAdditionalFilters(P params) throws ConflictException {
-    List<Restriction> filters = new ArrayList<>();
+  protected List<Filter> getAdditionalFilters(P params) throws ConflictException {
+    List<Filter> filters = new ArrayList<>();
     if (params.getQuery() != null && !params.getQuery().isEmpty() && getEntityClass() != User.class)
-      filters.add(Restrictions.query(params.getQuery()));
+      filters.add(Filters.query(params.getQuery()));
     List<UID> matches = getPreQueryMatches(params);
     // Note: null = no special filters, empty = no matches for special filters
     if (matches != null) filters.add(createIdInFilter(matches));
     return filters;
   }
 
-  protected final Restriction createIdInFilter(@Nonnull List<UID> matches) {
-    return Restrictions.in("id", UID.toValueList(matches));
+  protected final Filter createIdInFilter(@Nonnull List<UID> matches) {
+    return Filters.in("id", UID.toValueList(matches));
   }
 
   @GetMapping(produces = {"text/csv", "application/text"})
@@ -483,7 +483,7 @@ public abstract class AbstractFullReadOnlyController<
     return objectNodes.isEmpty() ? fieldFilterService.createObjectNode() : objectNodes.get(0);
   }
 
-  private List<T> getEntityList(P params, List<Restriction> additionalFilters)
+  private List<T> getEntityList(P params, List<Filter> additionalFilters)
       throws BadRequestException {
     Query query =
         BadRequestException.on(
@@ -508,7 +508,7 @@ public abstract class AbstractFullReadOnlyController<
 
   protected void getEntityListPostProcess(P params, List<T> entities) throws BadRequestException {}
 
-  private long countGetObjectList(P params, List<Restriction> additionalFilters)
+  private long countGetObjectList(P params, List<Filter> additionalFilters)
       throws BadRequestException {
     Query query =
         BadRequestException.on(

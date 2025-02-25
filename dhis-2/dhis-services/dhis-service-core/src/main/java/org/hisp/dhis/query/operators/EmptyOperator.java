@@ -34,7 +34,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.query.Type;
-import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.query.planner.PropertyPath;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -45,8 +45,8 @@ public class EmptyOperator<T extends Comparable<T>> extends Operator<T> {
   }
 
   @Override
-  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, QueryPath queryPath) {
-    return builder.equal(builder.size(root.get(queryPath.getPath())), 0);
+  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, PropertyPath path) {
+    return builder.equal(builder.size(root.get(path.getPath())), 0);
   }
 
   @Override
