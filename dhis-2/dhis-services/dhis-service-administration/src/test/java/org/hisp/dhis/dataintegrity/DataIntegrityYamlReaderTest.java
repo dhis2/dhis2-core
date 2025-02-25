@@ -204,7 +204,6 @@ class DataIntegrityYamlReaderTest {
             .filter(key -> key.startsWith("data_integrity") && key.endsWith("name"))
             .toList();
     assertEquals(keys.size(), Set.copyOf(keys).size());
-    ;
     assertEquals(
         keys.size(), Set.copyOf(keys.stream().map(resourceBundle::getString).toList()).size());
   }
