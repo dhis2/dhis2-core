@@ -109,11 +109,6 @@ class TrackedEntityStore extends AbstractStore {
     super(jdbcTemplate);
   }
 
-  @Override
-  String getRelationshipEntityColumn() {
-    return "trackedentityid";
-  }
-
   Map<String, TrackedEntity> getTrackedEntities(List<Long> ids) {
     List<List<Long>> idPartitions = Lists.partition(ids, PARITITION_SIZE);
 
