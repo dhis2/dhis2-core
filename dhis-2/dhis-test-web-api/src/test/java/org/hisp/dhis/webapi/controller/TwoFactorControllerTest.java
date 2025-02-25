@@ -117,6 +117,8 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     JsonMixed content = res.content();
     String base32Secret = content.getString("base32Secret").string();
     String base64QRImage = content.getString("base64QRImage").string();
+    assertNotNull(base32Secret, "Base32 secret is null");
+    assertFalse(base32Secret.isBlank(), "Base32 secret is blank");
     String codeFromQR = decodeBase64QRAndExtractBase32Secret(base64QRImage);
     assertEquals(base32Secret, codeFromQR);
 
@@ -154,7 +156,9 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
       throws ChecksumException, NotFoundException, FormatException {
     // Convert the BufferedImage to a ZXing binary bitmap source
     LuminanceSource source = new BufferedImageLuminanceSource(qrImage);
+    assertNotNull(source, "QR image could not be converted to luminance source");
     BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
+    assertNotNull(bitmap, "QR image could not be converted to binary bitmap");
     // Use the ZXing's QRCodeReader to decode the QR code image
     Result code = new QRCodeReader().decode(bitmap);
     return code.getText();
