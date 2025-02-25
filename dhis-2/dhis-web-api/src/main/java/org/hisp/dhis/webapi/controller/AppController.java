@@ -56,6 +56,7 @@ import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.commons.util.StreamUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.i18n.I18nManager;
@@ -168,11 +169,10 @@ public class AppController {
     }
 
     if (application.isBundled()) {
-      String redirectPath = (application.getBaseUrl() + "/" + resource).replaceAll("/+", "/");
+      String cleanValidUrl = TextUtils.cleanUrlPathOnly(application.getBaseUrl(), resource);
+      log.info(String.format("Redirecting to bundled app: %s", cleanValidUrl));
 
-      log.info(String.format("Redirecting to bundled app: %s", redirectPath));
-
-      response.sendRedirect(redirectPath);
+      response.sendRedirect(cleanValidUrl);
       return;
     }
 
@@ -213,9 +213,10 @@ public class AppController {
         return;
       }
       if (resourceResult instanceof Redirect) {
-        response.sendRedirect(
-            (application.getBaseUrl() + "/" + ((Redirect) resourceResult).getPath())
-                .replaceAll("/+", "/"));
+        String cleanValidUrl =
+            TextUtils.cleanUrlPathOnly(
+                application.getBaseUrl(), ((Redirect) resourceResult).getPath());
+        response.sendRedirect(cleanValidUrl);
         return;
       }
       if (resourceResult instanceof ResourceNotFound) {
