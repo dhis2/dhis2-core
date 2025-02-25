@@ -39,7 +39,7 @@ import org.junit.jupiter.api.Test;
 
 class AppResourceTest extends ApiTest {
 
-  private final RestApiActions appActions = new RestApiActions("/api/apps");
+  private final RestApiActions appActions = new RestApiActions("/apps");
 
   @Test
   @DisplayName("Redirect location should have correct format")
