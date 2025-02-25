@@ -108,6 +108,7 @@ class ProgramTest {
     assertEquals(original.getAccessLevel(), copy.getAccessLevel());
     assertEquals(original.getAnalyticsDataElements(), copy.getAnalyticsDataElements());
     assertEquals(original.getCategoryCombo(), copy.getCategoryCombo());
+    assertEquals(original.getCategoryMappings(), copy.getCategoryMappings());
     assertEquals(original.getCompleteEventsExpiryDays(), copy.getCompleteEventsExpiryDays());
     assertEquals(original.getDataElements(), copy.getDataElements());
     assertEquals(original.getDataEntryForm(), copy.getDataEntryForm());
@@ -181,6 +182,7 @@ class ProgramTest {
     assertEquals(original.getAccessLevel(), copy.getAccessLevel());
     assertEquals(original.getDescription(), copy.getDescription());
     assertTrue(copy.getAnalyticsDataElements().isEmpty());
+    assertTrue(copy.getCategoryMappings().isEmpty());
     assertTrue(copy.getDataElements().isEmpty());
     assertTrue(copy.getNonConfidentialTrackedEntityAttributes().isEmpty());
     assertTrue(copy.getNonConfidentialTrackedEntityAttributesWithLegendSet().isEmpty());
@@ -228,7 +230,7 @@ class ProgramTest {
   @Test
   void testExpectedFieldCount() {
     Field[] allClassFieldsIncludingInherited = getAllFields(Program.class);
-    assertEquals(62, allClassFieldsIncludingInherited.length);
+    assertEquals(63, allClassFieldsIncludingInherited.length);
   }
 
   public static boolean notEqualsOrBothNull(String original, String copy) {
@@ -241,6 +243,7 @@ class ProgramTest {
     p.setAccessLevel(AccessLevel.OPEN);
     p.setAutoFields();
     p.setCategoryCombo(new CategoryCombo("cat combo", DataDimensionType.ATTRIBUTE));
+    p.setCategoryMappings(Set.of(ProgramCategoryMapping.builder().id("UjaiJ5yiruk").build()));
     p.setCode(CodeGenerator.generateCode(CodeGenerator.UID_CODE_SIZE));
     p.setCompleteEventsExpiryDays(22);
     p.setDataEntryForm(new DataEntryForm("entry form"));
@@ -293,6 +296,7 @@ class ProgramTest {
   private Program getNewProgramWithNulls() {
     Program p = new Program();
     p.setAccessLevel(null);
+    p.setCategoryMappings(null);
     p.setCode(null);
     p.setCompleteEventsExpiryDays(0);
     p.setDescription(null);

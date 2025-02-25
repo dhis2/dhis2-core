@@ -61,6 +61,8 @@ import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EventProgramEnrollmentService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramCategoryMapping;
+import org.hisp.dhis.program.ProgramCategoryOptionMapping;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramSection;
@@ -302,6 +304,20 @@ class CopyServiceTest extends TestBase {
     assertEquals(1, programCopy.getProgramIndicators().size());
     assertNotSame(indicatorOrig.getUid(), indicatorCopy.getUid());
     assertNotSame(indicatorOrig.getProgram().getUid(), indicatorCopy.getProgram().getUid());
+    assertEquals(indicatorOrig.getCategoryMappingIds(), indicatorCopy.getCategoryMappingIds());
+  }
+
+  @Test
+  void testCopyProgramFromUidCheckCategoryMappings() throws NotFoundException, ForbiddenException {
+    when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
+
+    when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
+
+    Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
+
+    assertEquals(2, programCopy.getProgramAttributes().size());
+    assertEquals(original.getCategoryMappings(), programCopy.getCategoryMappings());
   }
 
   @Test
@@ -362,6 +378,31 @@ class CopyServiceTest extends TestBase {
   }
 
   Program createProgram() {
+    ProgramCategoryOptionMapping omA =
+        ProgramCategoryOptionMapping.builder().optionId("PWoocil1Oof").filter("Filter A").build();
+    ProgramCategoryOptionMapping omB =
+        ProgramCategoryOptionMapping.builder().optionId("dEeluoqu2ai").filter("Filter B").build();
+    ProgramCategoryOptionMapping omC =
+        ProgramCategoryOptionMapping.builder().optionId("Oiewaenai0E").filter("Filter C").build();
+    ProgramCategoryOptionMapping omD =
+        ProgramCategoryOptionMapping.builder().optionId("lAedahy6eye").filter("Filter D").build();
+    Set<ProgramCategoryOptionMapping> omSet1 = Set.of(omA, omB);
+    Set<ProgramCategoryOptionMapping> omSet2 = Set.of(omC, omD);
+    ProgramCategoryMapping cm1 =
+        ProgramCategoryMapping.builder()
+            .id("iOChed1vei4")
+            .categoryId("Proh3kafa6K")
+            .mappingName("Mapping 1")
+            .optionMappings(omSet1)
+            .build();
+    ProgramCategoryMapping cm2 =
+        ProgramCategoryMapping.builder()
+            .id("fshoocuL0sh")
+            .categoryId("Oieth9ahGhu")
+            .mappingName("Mapping 2")
+            .optionMappings(omSet2)
+            .build();
+
     Program p = new Program();
     p.setAutoFields();
     p.setAccessLevel(AccessLevel.OPEN);
@@ -402,6 +443,7 @@ class CopyServiceTest extends TestBase {
     p.setTrackedEntityType(createTrackedEntityType('A'));
     p.setUseFirstStageDuringRegistration(false);
     p.setUserRoles(Set.of(createUserRole("tester", "d")));
+    p.setCategoryMappings(Set.of(cm1, cm2));
     return p;
   }
 
@@ -415,6 +457,7 @@ class CopyServiceTest extends TestBase {
 
   private Set<ProgramIndicator> createIndicators(Program program) {
     ProgramIndicator pi = createProgramIndicator('a', program, "exp", "ind");
+    pi.setCategoryMappingIds(Set.of("nAigheQuae3", "SOongooCa6F", "seiDoh0AeNg"));
     return Set.of(pi);
   }
 

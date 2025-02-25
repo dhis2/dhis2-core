@@ -1941,6 +1941,10 @@ public abstract class TestBase {
     indicator.setExpression(expression);
     indicator.setAnalyticsType(analyticsType);
     indicator.setFilter(filter);
+    if (categoryService != null) {
+      indicator.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+      indicator.setAttributeCombo(categoryService.getDefaultCategoryCombo());
+    }
 
     Set<AnalyticsPeriodBoundary> boundaries = new HashSet<>();
     if (analyticsType == AnalyticsType.EVENT) {

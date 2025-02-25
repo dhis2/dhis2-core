@@ -128,6 +128,15 @@ public interface ProgramIndicatorService {
   String getFilterDescription(String expression);
 
   /**
+   * Gets a program indicator expression filter (must evaluate to a Boolean) without declaring a
+   * transaction.
+   *
+   * @param expression A program indicator expression or filter string
+   * @return The description
+   */
+  String getFilterDescriptionWithoutTransaction(String expression);
+
+  /**
    * Indicates whether the given program indicator expression is valid.
    *
    * @param expression the expression to evaluate.

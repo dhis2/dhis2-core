@@ -27,11 +27,16 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import static org.hisp.dhis.common.CodeGenerator.isValidUid;
+
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.InconsistentMetadataException;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -41,6 +46,9 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.EventProgramEnrollmentService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramCategoryMapping;
+import org.hisp.dhis.program.ProgramCategoryMappingResolver;
+import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramType;
@@ -64,6 +72,10 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
   private final AclService aclService;
 
   private final IdentifiableObjectManager identifiableObjectManager;
+
+  private final ProgramCategoryMappingResolver categoryMappingResolver;
+
+  private final ProgramIndicatorService programIndicatorService;
 
   @Override
   public void postCreate(Program object, ObjectBundle bundle) {
@@ -98,6 +110,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
               ProgramType.WITHOUT_REGISTRATION.name()));
     }
     validateAttributeSecurity(program, bundle, addReports);
+    validateCategoryMappings(program, addReports);
   }
 
   private void syncSharingForEventProgram(Program program) {
@@ -171,5 +184,58 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
                         identifier.getIdentifiersWithName(programAttr.getAttribute())));
               }
             });
+  }
+
+  /** Validates program category mappings. */
+  private void validateCategoryMappings(Program program, Consumer<ErrorReport> addReports) {
+    validateCategoryMappingObjects(program, addReports);
+    validateCategoryMappingUids(program, addReports);
+    validateCategoryMappingNameUniqueness(program, addReports);
+  }
+
+  /** Validates that program category mappings reference to valid objects. */
+  private void validateCategoryMappingObjects(Program program, Consumer<ErrorReport> addReports) {
+    try {
+      categoryMappingResolver.resolveProgramCategoryMappings(program);
+    } catch (InconsistentMetadataException ex) {
+      addReports.accept(new ErrorReport(Program.class, ex.getErrorCode(), ex.getArgs()));
+    }
+  }
+
+  /** Checks that mapping UIDs are valid and are unique within the program. */
+  private void validateCategoryMappingUids(Program program, Consumer<ErrorReport> addReports) {
+    Set<String> uniqueUids = new HashSet<>();
+
+    for (ProgramCategoryMapping mapping : program.getCategoryMappings()) {
+      String uid = mapping.getId();
+      if (!isValidUid(uid))
+        addReports.accept(new ErrorReport(Program.class, ErrorCode.E4075, program.getUid(), uid));
+
+      if (uniqueUids.contains(uid)) {
+        addReports.accept(new ErrorReport(Program.class, ErrorCode.E4076, program.getUid(), uid));
+      }
+      uniqueUids.add(uid);
+    }
+  }
+
+  /** Checks that mapping names are unique within each category. */
+  private void validateCategoryMappingNameUniqueness(
+      Program program, Consumer<ErrorReport> addReports) {
+
+    Set<String> uniqueMappingNames = new HashSet<>();
+    for (ProgramCategoryMapping mapping : program.getCategoryMappings()) {
+      // Ensure category mapping has a valid UID
+      String categoryAndMappingName = mapping.getCategoryId() + mapping.getMappingName();
+      if (uniqueMappingNames.contains(categoryAndMappingName)) {
+        addReports.accept(
+            new ErrorReport(
+                Program.class,
+                ErrorCode.E4077,
+                program.getUid(),
+                mapping.getCategoryId(),
+                mapping.getMappingName()));
+      }
+      uniqueMappingNames.add(categoryAndMappingName);
+    }
   }
 }

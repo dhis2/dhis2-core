@@ -51,6 +51,8 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.EventProgramEnrollmentService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramCategoryMappingResolver;
+import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramType;
@@ -79,17 +81,25 @@ class ProgramObjectBundleHookTest {
 
   @Mock private IdentifiableObjectManager identifiableObjectManager;
 
+  @Mock private ProgramIndicatorService programIndicatorService;
+
+  private ProgramCategoryMappingResolver categoryMappingResolver;
+
   private Program programA;
 
   @BeforeEach
   public void setUp() {
+    categoryMappingResolver = new ProgramCategoryMappingResolver(identifiableObjectManager);
+
     this.subject =
         new ProgramObjectBundleHook(
             eventProgramEnrollmentService,
             programStageService,
             organisationUnitService,
             aclService,
-            identifiableObjectManager);
+            identifiableObjectManager,
+            categoryMappingResolver,
+            programIndicatorService);
 
     programA = createProgram('A');
     programA.setId(100);

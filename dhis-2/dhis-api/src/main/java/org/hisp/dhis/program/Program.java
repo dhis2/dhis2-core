@@ -28,6 +28,7 @@
 package org.hisp.dhis.program;
 
 import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 import static org.hisp.dhis.util.ObjectUtils.copyOf;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -188,6 +189,9 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
 
   /** Property indicating level of access */
   private AccessLevel accessLevel = AccessLevel.OPEN;
+
+  /** Library of Category Mappings available to this program's program indicators */
+  private Set<ProgramCategoryMapping> categoryMappings = new HashSet<>();
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -935,6 +939,21 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
     this.accessLevel = accessLevel;
   }
 
+  @JsonProperty("categoryMappings")
+  @JacksonXmlElementWrapper(localName = "categoryMappings", namespace = DXF_2_0)
+  @JacksonXmlProperty(localName = "categoryMappings", namespace = DXF_2_0)
+  public Set<ProgramCategoryMapping> getCategoryMappings() {
+    return categoryMappings;
+  }
+
+  public void setCategoryMappings(Set<ProgramCategoryMapping> categoryMappings) {
+    this.categoryMappings = categoryMappings;
+  }
+
+  // -------------------------------------------------------------------------
+  // Copy logic
+  // -------------------------------------------------------------------------
+
   public static Program shallowCopy(Program original, Map<String, String> options) {
     Program copy = new Program();
     copy.setAutoFields();
@@ -948,6 +967,7 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
     copy.setAccessLevel(original.getAccessLevel());
     copy.setProgramAttributes(new ArrayList<>());
     copy.setCategoryCombo(original.getCategoryCombo());
+    copy.setCategoryMappings(copyOf(original.getCategoryMappings()));
     copy.setCompleteEventsExpiryDays(original.getCompleteEventsExpiryDays());
     copy.setDataEntryForm(original.getDataEntryForm());
     copy.setDescription(original.getDescription());

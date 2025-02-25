@@ -42,8 +42,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseDataDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
@@ -117,6 +120,21 @@ public class ProgramIndicator extends BaseDataDimensionalItemObject implements M
   private Set<AnalyticsPeriodBoundary> analyticsPeriodBoundaries = new HashSet<>();
 
   private ObjectStyle style;
+
+  /** Data Element ID (of some ID Type) for export to aggregate data exchange */
+  private String aggregateExportDataElement;
+
+  /** {@link CategoryCombo} for COC mappings for PI disaggregation */
+  private CategoryCombo categoryCombo;
+
+  /** {@link CategoryCombo} for AOC mappings for PI disaggregation */
+  private CategoryCombo attributeCombo;
+
+  /** Category mapping UIDs for both COC and AOC PI disaggregation */
+  private Set<String> categoryMappingIds = new HashSet<>();
+
+  /** Category mapping objects for both COC and AOC PI disaggregation */
+  @Getter @Setter private transient Set<ProgramCategoryMapping> categoryMappings;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -418,6 +436,52 @@ public class ProgramIndicator extends BaseDataDimensionalItemObject implements M
     this.orgUnitField = orgUnitField;
   }
 
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getAggregateExportDataElement() {
+    return aggregateExportDataElement;
+  }
+
+  public void setAggregateExportDataElement(String aggregateExportDataElement) {
+    this.aggregateExportDataElement = aggregateExportDataElement;
+  }
+
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public CategoryCombo getCategoryCombo() {
+    return categoryCombo;
+  }
+
+  public void setCategoryCombo(CategoryCombo categoryCombo) {
+    this.categoryCombo = categoryCombo;
+  }
+
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public CategoryCombo getAttributeCombo() {
+    return attributeCombo;
+  }
+
+  public void setAttributeCombo(CategoryCombo attributeCombo) {
+    this.attributeCombo = attributeCombo;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Set<String> getCategoryMappingIds() {
+    return categoryMappingIds;
+  }
+
+  public void setCategoryMappingIds(Set<String> categoryMappingIds) {
+    this.categoryMappingIds = categoryMappingIds;
+  }
+
+  // -------------------------------------------------------------------------
+  // Copy logic
+  // -------------------------------------------------------------------------
+
   public static ProgramIndicator copyOf(
       ProgramIndicator original, Program program, Map<String, String> copyOptions) {
     ProgramIndicator copy = new ProgramIndicator();
@@ -431,9 +495,12 @@ public class ProgramIndicator extends BaseDataDimensionalItemObject implements M
       ProgramIndicator copy, ProgramIndicator original, Map<String, String> copyOptions) {
     String prefix = copyOptions.getOrDefault(PREFIX_KEY, DEFAULT_PREFIX);
     copy.setAccess(original.getAccess());
+    copy.setAttributeCombo(original.getAttributeCombo());
     copy.setAttributeValues(original.getAttributeValues());
     copy.setAnalyticsPeriodBoundaries(ObjectUtils.copyOf(original.getAnalyticsPeriodBoundaries()));
     copy.setAnalyticsType(original.getAnalyticsType());
+    copy.setCategoryCombo(original.getCategoryCombo());
+    copy.setCategoryMappingIds(original.getCategoryMappingIds());
     copy.setDecimals(original.getDecimals());
     copy.setDescription(original.getDescription());
     copy.setDisplayInForm(original.getDisplayInForm());
