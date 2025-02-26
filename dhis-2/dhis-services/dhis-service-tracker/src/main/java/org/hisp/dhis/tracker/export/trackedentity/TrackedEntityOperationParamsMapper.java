@@ -42,6 +42,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -362,6 +363,12 @@ class TrackedEntityOperationParamsMapper {
   }
 
   private boolean isLocalSearch(TrackedEntityQueryParams params, UserDetails user) {
+    // If the organization unit selection mode is set to CAPTURE,
+    // the search scope becomes irrelevant, and we always treat it as local.
+    if (OrganisationUnitSelectionMode.CAPTURE.equals(params.getOrgUnitMode())) {
+      return true;
+    }
+
     List<OrganisationUnit> localOrgUnits =
         organisationUnitService.getOrganisationUnitsByUid(user.getUserOrgUnitIds());
     Set<OrganisationUnit> searchOrgUnits = new HashSet<>();
