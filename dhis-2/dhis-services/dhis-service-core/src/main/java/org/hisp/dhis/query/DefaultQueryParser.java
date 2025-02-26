@@ -63,6 +63,7 @@ public class DefaultQueryParser implements QueryParser {
       throws QueryParserException {
     Schema schema = schemaService.getDynamicSchema(objectType);
     Query<T> query = Query.of(objectType, rootJunction);
+    query.setShortNamePersisted(schema.hasPersistedProperty("shortName"));
 
     List<String> mentions = new ArrayList<>();
     for (String filter : filters) {

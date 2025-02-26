@@ -32,7 +32,9 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.query.Filter;
 import org.hisp.dhis.query.Junction;
+import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
+import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
 
@@ -47,9 +49,11 @@ public class DefaultQueryPlanner implements QueryPlanner {
 
   @Override
   public <T extends IdentifiableObject> QueryPlan<T> planQuery(Query<T> query) {
+    autoFill(query);
+
     // if only one filter, always set to Junction.Type AND
     if (query.getFilters().size() > 1 && Junction.Type.OR == query.getRootJunctionType()) {
-      return new QueryPlan<>(Query.of(query.getObjectType()), Query.copy(query));
+      return new QueryPlan<>(Query.emptyOf(query), Query.copyOf(query));
     }
 
     QueryPlan<T> plan = split(query);
@@ -68,12 +72,22 @@ public class DefaultQueryPlanner implements QueryPlanner {
     return plan;
   }
 
+  /** Modifies the query based on schema data */
+  private void autoFill(Query<?> query) {
+    Schema schema = schemaService.getDynamicSchema(query.getObjectType());
+    if (query.isDefaultOrders()) {
+      if (schema.hasPersistedProperty("name"))
+        query.addOrder(Order.iasc(schema.getPersistedProperty("name")));
+      if (schema.hasPersistedProperty("id"))
+        query.addOrder(Order.asc(schema.getPersistedProperty("id")));
+    }
+    query.setShortNamePersisted(schema.hasPersistedProperty("shortName"));
+  }
+
   private <T extends IdentifiableObject> QueryPlan<T> split(Query<T> query) {
-    Query<T> memoryQuery = Query.copy(query);
+    Query<T> memoryQuery = Query.copyOf(query);
     memoryQuery.getFilters().clear();
-    Query<T> dbQuery = Query.of(query.getObjectType(), query.getRootJunctionType());
-    dbQuery.setCurrentUserDetails(query.getCurrentUserDetails());
-    dbQuery.setSkipSharing(query.isSkipSharing());
+    Query<T> dbQuery = Query.emptyOf(query);
 
     for (Filter filter : query.getFilters()) {
       if (!filter.isVirtual())

@@ -40,7 +40,6 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfilter.Defaults;
-import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.user.UserDetails;
 
 /**
@@ -64,6 +63,9 @@ public class Query<T extends IdentifiableObject> {
 
   /** Order by id and name if not other orders are defined and those properties exist */
   private boolean defaultOrders;
+
+  /** true, if the schema of the {@link #objectType} has a persisted short name property */
+  private boolean shortNamePersisted;
 
   private boolean skipPaging;
 
@@ -92,18 +94,33 @@ public class Query<T extends IdentifiableObject> {
     return new Query<>(objectType, rootJunction);
   }
 
-  public static <T extends IdentifiableObject> Query<T> copy(Query<T> query) {
-    Query<T> clone = Query.of(query.getObjectType(), query.getRootJunctionType());
-    clone.setSkipSharing(query.isSkipSharing());
-    clone.setCurrentUserDetails(query.getCurrentUserDetails());
-    clone.setLocale(query.getLocale());
-    clone.addOrders(query.getOrders());
-    clone.setFirstResult(query.getFirstResult());
-    clone.setMaxResults(query.getMaxResults());
-    clone.add(query.getFilters());
-    clone.setObjects(query.getObjects());
+  public static <T extends IdentifiableObject> Query<T> emptyOf(Query<T> query) {
+    Query<T> copy = Query.of(query.getObjectType(), query.getRootJunctionType());
+    // context attributes
+    copy.setShortNamePersisted(query.isShortNamePersisted());
+    copy.setDefaultOrders(query.isDefaultOrders());
+    copy.setSkipSharing(query.isSkipSharing());
+    copy.setCurrentUserDetails(query.getCurrentUserDetails());
+    copy.setLocale(query.getLocale());
+    return copy;
+  }
 
-    return clone;
+  public static <T extends IdentifiableObject> Query<T> copyOf(Query<T> query) {
+    Query<T> copy = Query.of(query.getObjectType(), query.getRootJunctionType());
+    // context attributes
+    copy.setShortNamePersisted(query.isShortNamePersisted());
+    copy.setDefaultOrders(query.isDefaultOrders());
+    copy.setSkipSharing(query.isSkipSharing());
+    copy.setCurrentUserDetails(query.getCurrentUserDetails());
+    copy.setLocale(query.getLocale());
+    // specific attributes
+    copy.addOrders(query.getOrders());
+    copy.setFirstResult(query.getFirstResult());
+    copy.setMaxResults(query.getMaxResults());
+    copy.add(query.getFilters());
+    copy.setObjects(query.getObjects());
+
+    return copy;
   }
 
   private Query(Class<T> objectType) {
@@ -113,10 +130,6 @@ public class Query<T extends IdentifiableObject> {
   private Query(Class<T> objectType, Junction.Type rootJunctionType) {
     this.objectType = objectType;
     this.rootJunctionType = rootJunctionType;
-  }
-
-  public Schema getSchema() {
-    return null;
   }
 
   public boolean isEmpty() {
@@ -149,18 +162,18 @@ public class Query<T extends IdentifiableObject> {
     return this;
   }
 
-  public Query<T> add(Filter criterion) {
-    this.filters.add(criterion);
+  public Query<T> add(Filter filter) {
+    this.filters.add(filter);
     return this;
   }
 
-  public Query<T> add(Filter... criterions) {
-    this.filters.addAll(asList(criterions));
+  public Query<T> add(Filter... filters) {
+    this.filters.addAll(asList(filters));
     return this;
   }
 
-  public Query<T> add(Collection<Filter> criterions) {
-    this.filters.addAll(criterions);
+  public Query<T> add(Collection<Filter> filters) {
+    this.filters.addAll(filters);
     return this;
   }
 

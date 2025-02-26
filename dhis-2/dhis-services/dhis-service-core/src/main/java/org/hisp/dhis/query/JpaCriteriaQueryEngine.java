@@ -244,8 +244,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     add.accept(getPredicate.apply("id"));
     add.accept(getPredicate.apply("code"));
     add.accept(getPredicate.apply("name"));
-    if (schemaService.getDynamicSchema(query.getObjectType()).hasPersistedProperty("shortName"))
-      add.accept(getPredicate.apply("shortName"));
+    if (query.isShortNamePersisted()) add.accept(getPredicate.apply("shortName"));
     return or;
   }
 

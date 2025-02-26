@@ -58,25 +58,18 @@ public class DefaultQueryService implements QueryService {
 
   @Override
   public <T extends IdentifiableObject> List<T> query(Query<T> query) {
-    if (query.isDefaultOrders()) {
-      Schema schema = schemaService.getDynamicSchema(query.getObjectType());
-      if (schema.hasPersistedProperty("name"))
-        query.addOrder(Order.iasc(schema.getPersistedProperty("name")));
-      if (schema.hasPersistedProperty("id"))
-        query.addOrder(Order.asc(schema.getPersistedProperty("id")));
-    }
     return queryObjects(query);
   }
 
   @Override
   public long count(Query<?> query) {
-    Query<?> cloned = Query.copy(query);
+    Query<?> count = Query.copyOf(query);
 
-    cloned.clearOrders();
-    cloned.setFirstResult(0);
-    cloned.setMaxResults(Integer.MAX_VALUE);
+    count.clearOrders();
+    count.setFirstResult(0);
+    count.setMaxResults(Integer.MAX_VALUE);
 
-    return countObjects(cloned);
+    return countObjects(count);
   }
 
   @Override
