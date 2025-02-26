@@ -567,10 +567,10 @@ class TrackedEntityOperationParamsMapperTest {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder().orgUnitMode(ACCESSIBLE).build();
 
-    Exception badRequestException =
+    Exception forbiddenException =
         assertThrows(
-            BadRequestException.class, () -> mapper.map(operationParams, currentUserWithOrgUnits));
+            ForbiddenException.class, () -> mapper.map(operationParams, currentUserWithOrgUnits));
 
-    assertEquals("User has no access to any Tracked Entity Type", badRequestException.getMessage());
+    assertEquals("User has no access to any Tracked Entity Type", forbiddenException.getMessage());
   }
 }
