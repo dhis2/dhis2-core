@@ -29,6 +29,7 @@ package org.hisp.dhis.audit;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -37,15 +38,23 @@ import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.auth.ApiHeadersAuthScheme;
+import org.hisp.dhis.common.auth.ApiQueryParamsAuthScheme;
+import org.hisp.dhis.common.auth.ApiTokenAuthScheme;
+import org.hisp.dhis.common.auth.AuthScheme;
+import org.hisp.dhis.common.auth.HttpBasicAuthScheme;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -53,21 +62,42 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.route.Route;
+import org.hisp.dhis.test.config.PostgresDhisConfigurationProvider;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.support.TransactionTemplate;
 
 @ActiveProfiles(profiles = {"test-audit"})
-@Disabled("until we can inject dhis.conf property overrides")
+@ContextConfiguration(classes = {AuditIntegrationTest.DhisConfig.class})
 class AuditIntegrationTest extends PostgresIntegrationTestBase {
+
+  static class DhisConfig {
+    @Bean
+    public DhisConfigurationProvider dhisConfigurationProvider() {
+      Properties override = new Properties();
+      override.put("system.audit.enabled", "true");
+      override.put("audit.database", "true");
+      override.put("audit.metadata", "CREATE");
+      override.put("audit.tracker", "CREATE");
+      override.put("audit.aggregate", "CREATE");
+      PostgresDhisConfigurationProvider postgresDhisConfigurationProvider =
+          new PostgresDhisConfigurationProvider();
+      postgresDhisConfigurationProvider.addProperties(override);
+      return postgresDhisConfigurationProvider;
+    }
+  }
 
   private static final int TIMEOUT = 5;
 
@@ -89,6 +119,14 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private DbmsManager dbmsManager;
 
+  private static Stream<AuthScheme> provideAuthSchemes() {
+    return Stream.of(
+        new ApiTokenAuthScheme().setToken("passw0rd"),
+        new ApiQueryParamsAuthScheme().setQueryParams(Map.of("secret", "passw0rd")),
+        new ApiHeadersAuthScheme().setHeaders(Map.of("secret", "passw0rd")),
+        new HttpBasicAuthScheme().setUsername("alice").setPassword("passw0rd"));
+  }
+
   @Test
   void testSaveMetadata() {
     DataElement dataElement = createDataElement('A');
@@ -101,6 +139,28 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
     assertEquals(DataElement.class.getName(), audit.getKlass());
     assertEquals(dataElement.getUid(), audit.getAttributes().get("uid"));
     assertNotNull(audit.getData());
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideAuthSchemes")
+  void testSaveRoute(AuthScheme authScheme) {
+    Route route = new Route();
+    route.setUid(BASE_UID);
+    route.setName("foo");
+    route.setAuth(authScheme);
+    route.setUrl("http://stub");
+
+    transactionTemplate.execute(
+        status -> {
+          manager.save(route);
+          dbmsManager.clearSession();
+          return null;
+        });
+    AuditQuery query = AuditQuery.builder().uid(Sets.newHashSet(route.getUid())).build();
+    await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> auditService.countAudits(query) >= 0);
+    List<Audit> audits = auditService.getAudits(query);
+    assertEquals(1, audits.size());
+    assertFalse(audits.get(0).getData().contains("passw0rd"));
   }
 
   @Test
