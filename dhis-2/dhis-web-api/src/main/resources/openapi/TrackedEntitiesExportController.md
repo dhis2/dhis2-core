@@ -194,11 +194,11 @@ Get tracked entities with given UID(s).
 Get tracked entities with events assigned to users according to the specified user mode. By default,
 all events will be retrieved, regardless of whether a user is assigned.
 
-- When `assignedUserMode=ALL` or no `assingedUserMode`(default) is given, tracked entities are 
+- When `assignedUserMode=ALL` or no `assignedUserMode`(default) is given, tracked entities are 
   returned irrespective of whether they contain events assigned to a user or not.
  
 - When `assignedUserMode=CURRENT`, tracked entities that have at least one event
-  assigned to the logged in user will be returned.
+  assigned to the logged-in user will be returned.
 
 - When `assignedUserMode=ANY`,tracked entities that have at least one event with
   an assigned user will be returned.
@@ -206,8 +206,9 @@ all events will be retrieved, regardless of whether a user is assigned.
 - When `assignedUserMode=NONE`, tracked entities that have no events 
   that is assigned to any user will be returned. 
 
-- When `assignedUserMode=PROVIDED` The `assignedUsers` parameter will be required, and the tracked
-  entities that have any events assigned to the users specified in `assignedUsers` will be returned.
+- When `assignedUserMode=PROVIDED`, tracked
+  entities that have any events assigned to the users specified in `assignedUsers` will be 
+  returned. `assignedUsers` is required for this mode.
 
 ### `*.parameter.TrackedEntityRequestParams.assignedUsers`
 
