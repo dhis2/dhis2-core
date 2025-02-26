@@ -61,6 +61,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
@@ -71,6 +72,7 @@ import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage.JsonPager;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
+import org.hisp.dhis.webapi.controller.tracker.JsonTrackedEntity;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -103,6 +105,8 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
 
   private TrackerObjects trackerObjects;
 
+  private TrackedEntity trackedEntity1;
+  private TrackedEntity trackedEntity2;
   private Enrollment enrollment1;
   private Enrollment enrollment2;
   private Enrollment enrollment3;
@@ -141,6 +145,8 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
     manager.flush();
     manager.clear();
 
+    trackedEntity1 = getTrackedEntity(UID.of("QS6w44flWAf"));
+    trackedEntity2 = getTrackedEntity(UID.of("dUE514NMOlo"));
     enrollment1 = getEnrollment(UID.of("nxP7UnKhomJ"));
     enrollment2 = getEnrollment(UID.of("nxP8UnKhomJ"));
     enrollment3 = getEnrollment(UID.of("TvctPPhpD8z"));
@@ -151,6 +157,72 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
   @BeforeEach
   void setUpUser() {
     switchContextToUser(importUser);
+  }
+
+  @Test
+  void shouldGetEmptyTrackedEntitiesPage() {
+    JsonPage page =
+        GET("/tracker/trackedEntities?trackedEntities={uid}", UID.generate())
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
+
+    assertIsEmpty(page.getList("trackedEntities", JsonTrackedEntity.class).stream().toList());
+
+    JsonPager pager = page.getPager();
+    assertEquals(1, pager.getPage());
+    assertEquals(50, pager.getPageSize());
+    assertHasNoMember(pager, "total", "pageCount", "prevPage", "nextPage");
+  }
+
+  @Test
+  void shouldGetPaginatedTrackedEntitiesWithDefaults() {
+    JsonPage page =
+        GET(
+                "/tracker/trackedEntities?trackedEntities={uid},{uid}",
+                trackedEntity1.getUid(),
+                trackedEntity2.getUid())
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
+
+    assertContainsOnly(
+        List.of(trackedEntity1.getUid().getValue(), trackedEntity2.getUid().getValue()),
+        page.getList("trackedEntities", JsonTrackedEntity.class)
+            .toList(JsonTrackedEntity::getTrackedEntity));
+
+    JsonPager pager = page.getPager();
+    assertEquals(1, pager.getPage());
+    assertEquals(50, pager.getPageSize());
+    assertHasNoMember(pager, "total", "pageCount");
+  }
+
+  @Test
+  void shouldGetPaginatedTrackedEntitiesLastPage() {
+    JsonPage page =
+        GET(
+                "/tracker/trackedEntities?trackedEntities={uid},{uid}&page=2&pageSize=1&totalPages=true",
+                trackedEntity1.getUid(),
+                trackedEntity2.getUid())
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
+
+    assertHasSize(
+        1,
+        page.getList("trackedEntities", JsonTrackedEntity.class)
+            .toList(JsonTrackedEntity::getTrackedEntity));
+
+    JsonPager pager = page.getPager();
+    assertEquals(2, pager.getPage());
+    assertEquals(1, pager.getPageSize());
+    assertEquals(2, pager.getTotal());
+    assertEquals(2, pager.getPageCount());
+    assertPagerLink(
+        pager.getPrevPage(),
+        1,
+        1,
+        String.format(
+            "http://localhost/api/tracker/trackedEntities?trackedEntities=%s,%s",
+            trackedEntity1.getUid(), trackedEntity2.getUid()));
+    assertHasNoMember(pager, "nextPage");
   }
 
   @Test
@@ -394,6 +466,13 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
         page.getList("relationships", JsonRelationship.class)
             .toList(JsonRelationship::getRelationship));
     assertHasNoMember(page, "pager");
+  }
+
+  private org.hisp.dhis.tracker.imports.domain.TrackedEntity getTrackedEntity(UID trackedEntity) {
+    return trackerObjects.getTrackedEntities().stream()
+        .filter(ev -> ev.getTrackedEntity().equals(trackedEntity))
+        .findFirst()
+        .get();
   }
 
   private org.hisp.dhis.tracker.imports.domain.Enrollment getEnrollment(UID enrollment) {

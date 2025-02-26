@@ -1342,7 +1342,7 @@
       "lastUpdatedBy": {
         "id": "tTgjgobT1oS"
       },
-      "maxTeiCountToReturn": 0,
+      "maxTeiCountToReturn": 100,
       "minAttributesRequiredToSearch": 1,
       "name": "BFcipDERJnf name",
       "organisationUnits": [

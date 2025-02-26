@@ -35,50 +35,39 @@ import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.hibernate.criterion.Criterion;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.query.Type;
-import org.hisp.dhis.query.Typed;
-import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.query.planner.PropertyPath;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public abstract class Operator<T extends Comparable<? super T>> {
+public abstract class Operator<T extends Comparable<T>> {
+
   protected final String name;
-
-  protected final Typed typed;
-
+  protected final List<Class<?>> typed;
   protected final Type argumentType;
-
   @Getter protected final List<T> args;
 
-  @Getter protected final List<Collection<T>> collectionArgs;
-
-  Operator(String name, Typed typed) {
-    this(name, typed, null, List.of(), List.of());
+  Operator(String name, List<Class<?>> typed) {
+    this(name, typed, null, List.of());
   }
 
-  Operator(String name, Typed typed, Collection<T> collectionArg) {
-    this(name, typed, new Type(collectionArg), List.of(), List.of(collectionArg));
+  Operator(String name, List<Class<?>> typed, Collection<T> collectionArg) {
+    this(name, typed, new Type(collectionArg), List.copyOf(collectionArg));
   }
 
-  @SafeVarargs
-  Operator(String name, Typed typed, Collection<T>... collectionArgs) {
-    this(name, typed, new Type(collectionArgs[0]), List.of(), List.of(collectionArgs));
-  }
-
-  Operator(String name, Typed typed, T arg) {
-    this(name, typed, new Type(arg), List.of(arg), List.of());
+  Operator(String name, List<Class<?>> typed, T arg) {
+    this(name, typed, new Type(arg), List.of(arg));
     validateArgs();
   }
 
   @SafeVarargs
-  Operator(String name, Typed typed, T... args) {
-    this(name, typed, new Type(args[0]), List.of(args), List.of());
+  Operator(String name, List<Class<?>> typed, T... args) {
+    this(name, typed, new Type(args[0]), List.of(args));
     validateArgs();
   }
 
@@ -97,7 +86,8 @@ public abstract class Operator<T extends Comparable<? super T>> {
 
   protected <S> S getValue(Class<S> klass, Class<?> secondaryClass, int idx) {
     if (Collection.class.isAssignableFrom(klass)) {
-      return QueryUtils.parseValue(klass, secondaryClass, getCollectionArgs().get(idx));
+      if (idx != 0) throw new IndexOutOfBoundsException();
+      return QueryUtils.parseValue(klass, secondaryClass, getArgs());
     }
 
     return QueryUtils.parseValue(klass, secondaryClass, args.get(idx));
@@ -105,7 +95,8 @@ public abstract class Operator<T extends Comparable<? super T>> {
 
   protected <S> S getValue(Class<S> klass, int idx) {
     if (Collection.class.isAssignableFrom(klass)) {
-      return QueryUtils.parseValue(klass, null, getCollectionArgs().get(idx));
+      if (idx != 0) throw new IndexOutOfBoundsException();
+      return QueryUtils.parseValue(klass, null, getArgs());
     }
 
     return QueryUtils.parseValue(klass, null, args.get(idx));
@@ -113,7 +104,7 @@ public abstract class Operator<T extends Comparable<? super T>> {
 
   protected <S> S getValue(Class<S> klass) {
     if (Collection.class.isAssignableFrom(klass)) {
-      return QueryUtils.parseValue(klass, null, getCollectionArgs().get(0));
+      return QueryUtils.parseValue(klass, null, getArgs());
     }
 
     return getValue(klass, 0);
@@ -128,44 +119,31 @@ public abstract class Operator<T extends Comparable<? super T>> {
   }
 
   public boolean isValid(Class<?> klass) {
-    return typed.isValid(klass);
+    if (typed.isEmpty() || klass == null) return true;
+    return typed.stream().anyMatch(k -> k != null && k.isAssignableFrom(klass));
   }
 
-  public abstract Criterion getHibernateCriterion(QueryPath queryPath);
-
   public abstract <Y> Predicate getPredicate(
-      CriteriaBuilder builder, Root<Y> root, QueryPath queryPath);
+      CriteriaBuilder builder, Root<Y> root, PropertyPath path);
 
   public abstract boolean test(Object value);
 
   org.hibernate.criterion.MatchMode getMatchMode(MatchMode matchMode) {
-    switch (matchMode) {
-      case EXACT:
-        return org.hibernate.criterion.MatchMode.EXACT;
-      case START:
-        return org.hibernate.criterion.MatchMode.START;
-      case END:
-        return org.hibernate.criterion.MatchMode.END;
-      case ANYWHERE:
-        return org.hibernate.criterion.MatchMode.ANYWHERE;
-      default:
-        return null;
-    }
+    return switch (matchMode) {
+      case EXACT -> org.hibernate.criterion.MatchMode.EXACT;
+      case START -> org.hibernate.criterion.MatchMode.START;
+      case END -> org.hibernate.criterion.MatchMode.END;
+      case ANYWHERE -> org.hibernate.criterion.MatchMode.ANYWHERE;
+    };
   }
 
   protected JpaQueryUtils.StringSearchMode getJpaMatchMode(MatchMode matchMode) {
-    switch (matchMode) {
-      case EXACT:
-        return JpaQueryUtils.StringSearchMode.EQUALS;
-      case START:
-        return JpaQueryUtils.StringSearchMode.STARTING_LIKE;
-      case END:
-        return JpaQueryUtils.StringSearchMode.ENDING_LIKE;
-      case ANYWHERE:
-        return JpaQueryUtils.StringSearchMode.ANYWHERE;
-      default:
-        return null;
-    }
+    return switch (matchMode) {
+      case EXACT -> JpaQueryUtils.StringSearchMode.EQUALS;
+      case START -> JpaQueryUtils.StringSearchMode.STARTING_LIKE;
+      case END -> JpaQueryUtils.StringSearchMode.ENDING_LIKE;
+      case ANYWHERE -> JpaQueryUtils.StringSearchMode.ANYWHERE;
+    };
   }
 
   /**
@@ -175,18 +153,12 @@ public abstract class Operator<T extends Comparable<? super T>> {
    * @return {@link JpaQueryUtils.StringSearchMode} used for generating JPA Api Query
    */
   protected JpaQueryUtils.StringSearchMode getNotLikeJpaMatchMode(MatchMode matchMode) {
-    switch (matchMode) {
-      case EXACT:
-        return JpaQueryUtils.StringSearchMode.NOT_EQUALS;
-      case START:
-        return JpaQueryUtils.StringSearchMode.NOT_STARTING_LIKE;
-      case END:
-        return JpaQueryUtils.StringSearchMode.NOT_ENDING_LIKE;
-      case ANYWHERE:
-        return JpaQueryUtils.StringSearchMode.NOT_ANYWHERE;
-      default:
-        return null;
-    }
+    return switch (matchMode) {
+      case EXACT -> JpaQueryUtils.StringSearchMode.NOT_EQUALS;
+      case START -> JpaQueryUtils.StringSearchMode.NOT_STARTING_LIKE;
+      case END -> JpaQueryUtils.StringSearchMode.NOT_ENDING_LIKE;
+      case ANYWHERE -> JpaQueryUtils.StringSearchMode.NOT_ANYWHERE;
+    };
   }
 
   @Override

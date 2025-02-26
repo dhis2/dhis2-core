@@ -42,7 +42,6 @@ import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.test.webapi.json.domain.JsonOrganisationUnit;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -197,7 +196,6 @@ class OrganisationUnitControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  @Disabled("JB: temporary until count for query= is fixed")
   void testGetQuery() {
     assertListOfOrganisationUnits(GET("/organisationUnits?query=L21").content(), "L21");
     assertListOfOrganisationUnits(
@@ -210,7 +208,6 @@ class OrganisationUnitControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  @Disabled("JB: temporary until count for query= is fixed")
   void testGetLevelAndQuery() {
     // just to show what the result without level filter looks like
     assertListOfOrganisationUnits(GET("/organisationUnits?query=x").content(), "L1x", "L2x", "L3x");

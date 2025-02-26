@@ -25,20 +25,57 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query;
+package org.hisp.dhis.query.planner;
 
-import org.hisp.dhis.schema.Schema;
+import com.google.common.base.Joiner;
+import com.google.common.base.MoreObjects;
+import java.util.Arrays;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.schema.Property;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public final class Conjunction extends Junction {
-  public Conjunction(Schema schema) {
-    super(schema, Type.AND);
+@Getter
+@RequiredArgsConstructor
+public class PropertyPath {
+
+  private static final Joiner PATH_JOINER = Joiner.on(".");
+
+  private final Property property;
+  private final boolean persisted;
+  private final String[] alias;
+
+  public PropertyPath(Property property, boolean persisted) {
+    this(property, persisted, new String[0]);
+  }
+
+  public String getPath() {
+    String fieldName = property.getFieldName();
+
+    if (fieldName == null) {
+      fieldName = property.getName();
+    }
+
+    return haveAlias() ? PATH_JOINER.join(alias) + "." + fieldName : fieldName;
+  }
+
+  public boolean haveAlias() {
+    return haveAlias(0);
+  }
+
+  public boolean haveAlias(int n) {
+    return alias != null && alias.length > n;
   }
 
   @Override
   public String toString() {
-    return "AND[" + criterions + "]";
+    return MoreObjects.toStringHelper(this)
+        .add("name", property.getName())
+        .add("path", getPath())
+        .add("persisted", persisted)
+        .add("alias", Arrays.toString(alias))
+        .toString();
   }
 }
