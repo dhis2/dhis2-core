@@ -35,15 +35,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PagerUtils;
-import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.query.operators.Operator;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -129,9 +130,9 @@ public class InMemoryQueryEngine implements QueryEngine {
    * test from an object of the listed object type.
    *
    * @param filter the filter that is applied
-   * @param value a function to extract the filter property value from an object
+   * @param match a function to test if an object matches the filter
    */
-  private record Matcher(Filter filter, Function<IdentifiableObject, Object> value) {}
+  private record Matcher(Filter filter, Predicate<Object> match) {}
 
   private <T extends IdentifiableObject> boolean matches(
       Query<T> query, T object, Matcher matcher) {
@@ -142,9 +143,7 @@ public class InMemoryQueryEngine implements QueryEngine {
       if (filter.isQuery()) return matchesQuery(query, object, matcher);
       throw new UnsupportedOperationException("Special filter is not implemented yet :/ " + filter);
     }
-    Object value = matcher.value.apply(object);
-    if (!(value instanceof Collection<?> c)) return filter.getOperator().test(value);
-    return c.stream().anyMatch(item -> filter.getOperator().test(item));
+    return matcher.match.test(object);
   }
 
   private <T extends IdentifiableObject> boolean matchesMentions(
@@ -173,85 +172,68 @@ public class InMemoryQueryEngine implements QueryEngine {
   }
 
   private Matcher matcherOf(Query<?> query, Filter filter) {
-    return new Matcher(filter, obj -> getValue(query, obj, filter));
+    return new Matcher(filter, filterMatch(query, filter));
   }
 
-  private Object getValue(Query<?> query, Object object, Filter filter) {
-    String path = filter.getPath();
+  private Predicate<Object> filterMatch(Query<?> q, Filter f) {
+    if (f.isAttribute()) return filterMatchAttribute(f);
+
+    String path = f.getPath();
+    Schema schema = schemaService.getDynamicSchema(q.getObjectType());
+
+    // flat path
+    if (!path.contains(".")) return filterMatch(schema.getProperty(path), f);
+
+    // nested path
     String[] paths = path.split("\\.");
-    Schema currentSchema = schemaService.getDynamicSchema(query.getObjectType());
-
-    if (path.contains("access")) {
-      ((IdentifiableObject) object)
-          .setAccess(
-              aclService.getAccess((IdentifiableObject) object, query.getCurrentUserDetails()));
-    }
-
+    Property[] properties = new Property[paths.length];
     for (int i = 0; i < paths.length; i++) {
-      Property property = currentSchema.getProperty(paths[i]);
-
-      if (property == null) {
-        if (i == paths.length - 1 && filter.isAttribute()) {
-          return ((IdentifiableObject) object).getAttributeValues().get(paths[i]);
-        }
-        throw new QueryException("No property found for path " + path);
-      }
-
-      if (property.isCollection()) {
-        currentSchema = schemaService.getDynamicSchema(property.getItemKlass());
-      } else {
-        currentSchema = schemaService.getDynamicSchema(property.getKlass());
-      }
-
-      object = collect(object, property);
-
-      if (path.contains("access") && property.isIdentifiableObject()) {
-        if (property.isCollection()) {
-          for (Object item : ((Collection<?>) object)) {
-            ((IdentifiableObject) item)
-                .setAccess(
-                    aclService.getAccess((IdentifiableObject) item, query.getCurrentUserDetails()));
-          }
-        } else {
-          ((IdentifiableObject) object)
-              .setAccess(
-                  aclService.getAccess((IdentifiableObject) object, query.getCurrentUserDetails()));
-        }
-      }
-
-      if (i == (paths.length - 1)) {
-        if (property.isCollection()) {
-          return List.of(object);
-        }
-
-        return object;
-      }
+      Property p = schema.getProperty(paths[i]);
+      if (p == null) throw new QueryException("No property found for path " + path);
+      properties[i] = p;
+      schema =
+          p.isCollection()
+              ? schemaService.getDynamicSchema(p.getItemKlass())
+              : schemaService.getDynamicSchema(p.getKlass());
     }
-
-    throw new QueryException("No values found for path " + path);
+    Predicate<Object> res = filterMatch(properties[properties.length - 1], f);
+    for (int i = properties.length - 2; i >= 0; i--) {
+      Property p = properties[i];
+      res = filterMatch(p, res);
+      if (p.getKlass() == Access.class)
+        res =
+            filterMatchWithAccess(obj -> aclService.getAccess(obj, q.getCurrentUserDetails()), res);
+    }
+    return res;
   }
 
-  @SuppressWarnings({"rawtypes"})
-  private Object collect(Object object, Property property) {
-    object = HibernateProxyUtils.unproxy(object);
+  private Predicate<Object> filterMatchAttribute(Filter f) {
+    return obj ->
+        obj instanceof IdentifiableObject io
+            && f.getOperator().test(io.getAttributeValues().get(f.getPath()));
+  }
 
-    if (object instanceof Collection) {
-      Collection<?> collection = (Collection<?>) object;
-      List<Object> items = new ArrayList<>();
+  private Predicate<Object> filterMatch(Property p, Filter f) {
+    Operator<?> op = f.getOperator();
+    return obj -> op.test(ReflectionUtils.invokeMethod(obj, p.getGetterMethod()));
+  }
 
-      for (Object item : collection) {
-        Object collect = collect(item, property);
+  private Predicate<Object> filterMatch(Property p, Predicate<Object> tail) {
+    return obj -> {
+      Object value = ReflectionUtils.invokeMethod(obj, p.getGetterMethod());
+      return p.isCollection() && value instanceof Collection<?> c
+          ? c.stream().anyMatch(tail)
+          : tail.test(value);
+    };
+  }
 
-        if (collect instanceof Collection) {
-          items.addAll(((Collection) collect));
-        } else {
-          items.add(collect);
-        }
+  private Predicate<Object> filterMatchWithAccess(
+      Function<IdentifiableObject, Access> getAccess, Predicate<Object> tail) {
+    return obj -> {
+      if (obj instanceof IdentifiableObject io) {
+        io.setAccess(getAccess.apply(io));
       }
-
-      return items;
-    }
-
-    return ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+      return tail.test(obj);
+    };
   }
 }
