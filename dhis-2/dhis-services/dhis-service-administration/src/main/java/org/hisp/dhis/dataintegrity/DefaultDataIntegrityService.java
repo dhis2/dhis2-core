@@ -45,7 +45,6 @@ import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -510,23 +509,6 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     checks.add("orgunits_compulsory_group_count");
     checks.add("indicators_violating_exclusive_group_sets");
     return checks;
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public FlattenedDataIntegrityReport getReport(Set<String> checks, JobProgress progress) {
-    if (checks == null || checks.isEmpty()) {
-      // report only needs these
-      checks =
-          Arrays.stream(DataIntegrityCheckType.values())
-              .map(DataIntegrityCheckType::getName)
-              .collect(Collectors.toSet());
-      // Add additional SQL based checks here
-      checks.addAll(addSQLChecksToFlattedReport());
-    }
-    runDetailsChecks(checks, progress);
-    return new FlattenedDataIntegrityReport(getDetails(checks, -1L));
   }
 
   /** Get all ProgramIndicators with invalid expressions. */

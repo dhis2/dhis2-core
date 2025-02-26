@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertNoErrors;
@@ -1128,7 +1129,7 @@ class DataValuesValidatorTest {
   }
 
   private OrganisationUnit organisationUnit() {
-    OrganisationUnit organisationUnit = new OrganisationUnit();
+    OrganisationUnit organisationUnit = createOrganisationUnit('A');
     organisationUnit.setUid(ORGANISATION_UNIT_UID);
     return organisationUnit;
   }

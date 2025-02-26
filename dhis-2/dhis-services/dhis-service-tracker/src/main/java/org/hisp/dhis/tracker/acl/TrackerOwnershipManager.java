@@ -53,18 +53,6 @@ public interface TrackerOwnershipManager {
       throws ForbiddenException;
 
   /**
-   * @param trackedEntity The tracked entity object
-   * @param program The program object
-   * @param organisationUnit The org unit that has to become the owner
-   */
-  void assignOwnership(
-      TrackedEntity trackedEntity,
-      Program program,
-      OrganisationUnit organisationUnit,
-      boolean skipAccessValidation,
-      boolean overwriteIfExists);
-
-  /**
    * Check whether the user has access (as owner or has temporarily broken the glass) to the tracked
    * entity - program combination.
    *
@@ -87,7 +75,8 @@ public interface TrackerOwnershipManager {
    * @param reason The reason for requesting temporary ownership
    */
   void grantTemporaryOwnership(
-      TrackedEntity trackedEntity, Program program, UserDetails user, String reason);
+      TrackedEntity trackedEntity, Program program, UserDetails user, String reason)
+      throws ForbiddenException;
 
   /**
    * Ownership check can be skipped if the user is superuser or if the program type is without

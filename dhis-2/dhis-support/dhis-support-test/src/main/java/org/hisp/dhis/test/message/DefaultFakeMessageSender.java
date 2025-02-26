@@ -48,9 +48,7 @@ import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.user.User;
 import org.springframework.context.annotation.Profile;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
-import org.springframework.util.concurrent.ListenableFuture;
 
 /**
  * A {@link MessageSender} used in test setup that pretends to send messages and that gives access
@@ -135,12 +133,6 @@ public class DefaultFakeMessageSender implements MessageSender {
     summary.setBatchStatus(OutboundMessageBatchStatus.COMPLETED);
     summary.setChannel(batch.getDeliveryChannel());
     return summary;
-  }
-
-  @Override
-  public ListenableFuture<OutboundMessageResponseSummary> sendMessageBatchAsync(
-      OutboundMessageBatch batch) {
-    return new AsyncResult<>(sendMessageBatch(batch));
   }
 
   @Override

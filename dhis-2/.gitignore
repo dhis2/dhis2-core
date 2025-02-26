@@ -54,3 +54,6 @@ http-client.private.env.json
 
 # VS Code
 .vscode/
+
+# optinal integration test file, should not be committed
+/dhis-support/dhis-support-test/src/main/resources/db/init-db.sql

@@ -42,6 +42,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -70,6 +71,8 @@ public class QueryItem implements GroupableItem {
   private AggregationType aggregationType;
 
   private OptionSet optionSet;
+
+  private Option option;
 
   private Program program;
 
@@ -323,8 +326,8 @@ public class QueryItem implements GroupableItem {
   }
 
   /**
-   * Indicates whether a program stage and repeatable stage parameters which is not a default object
-   * exists for this query item.
+   * Indicates whether a program stage and repeatable stage parameters exists when there is no
+   * default object for this query item.
    */
   public boolean hasNonDefaultRepeatableProgramStageOffset() {
     return programStage != null
@@ -429,6 +432,7 @@ public class QueryItem implements GroupableItem {
     final QueryItem other = (QueryItem) object;
 
     return Objects.equals(item, other.getItem())
+        && Objects.equals(option, other.getOption())
         && Objects.equals(program, other.getProgram())
         && Objects.equals(programStage, other.getProgramStage())
         && Objects.equals(repeatableStageParams, other.getRepeatableStageParams());
@@ -455,11 +459,16 @@ public class QueryItem implements GroupableItem {
         + "]";
   }
 
+  /**
+   * Indicates whether the item has the repeatable program stage param set.
+   *
+   * @return true if the object was set at some point, false otherwise.
+   */
   public boolean hasRepeatableStageParams() {
     return repeatableStageParams != null;
   }
 
   public int getProgramStageOffset() {
-    return hasRepeatableStageParams() ? repeatableStageParams.getStartIndex() : 0;
+    return hasRepeatableStageParams() ? repeatableStageParams.getIndex() : 0;
   }
 }

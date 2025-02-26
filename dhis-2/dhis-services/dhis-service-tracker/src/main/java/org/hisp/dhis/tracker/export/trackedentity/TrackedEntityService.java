@@ -36,9 +36,9 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.FileResourceStream;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
 
 public interface TrackedEntityService {
 
@@ -57,16 +57,18 @@ public interface TrackedEntityService {
    * relationships are not included. Use {@link #getTrackedEntity(UID, UID, TrackedEntityParams)}
    * instead to also get the relationships, enrollments and program attributes.
    */
-  TrackedEntity getTrackedEntity(UID uid)
+  @Nonnull
+  TrackedEntity getTrackedEntity(@Nonnull UID uid)
       throws NotFoundException, ForbiddenException, BadRequestException;
 
   /**
    * Get the tracked entity matching given {@code UID} under the privileges of the currently
-   * authenticated user. If @param programIdentifier is defined, program attributes for such program
-   * are included, otherwise only TETAs are included. It will include enrollments, relationships,
-   * attributes and ownerships as defined in @param params
+   * authenticated user. If {@code program} is defined, program attributes for such program are
+   * included, otherwise only TETAs are included. It will include enrollments, relationships,
+   * attributes and ownerships as defined in {@code params}.
    */
-  TrackedEntity getTrackedEntity(UID uid, UID programIdentifier, TrackedEntityParams params)
+  @Nonnull
+  TrackedEntity getTrackedEntity(@Nonnull UID uid, UID program, @Nonnull TrackedEntityParams params)
       throws NotFoundException, ForbiddenException, BadRequestException;
 
   /** Get all tracked entities matching given params. */

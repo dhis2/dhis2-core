@@ -53,8 +53,8 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
-import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitLevelComparator;
 import org.hisp.dhis.setting.UserSettings;
@@ -72,12 +72,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultOrganisationUnitService implements OrganisationUnitService {
   private static final String LEVEL_PREFIX = "Level ";
   private final OrganisationUnitStore organisationUnitStore;
-  private final IdentifiableObjectManager idObjectManager;
   private final OrganisationUnitLevelStore organisationUnitLevelStore;
   private final ConfigurationService configurationService;
 
   private final Cache<Boolean> inUserOrgUnitHierarchyCache;
-  private final Cache<Boolean> inUserOrgUnitSearchHierarchyCache;
 
   public DefaultOrganisationUnitService(
       OrganisationUnitStore organisationUnitStore,
@@ -93,13 +91,10 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
     checkNotNull(cacheProvider);
 
     this.organisationUnitStore = organisationUnitStore;
-    this.idObjectManager = idObjectManager;
     this.organisationUnitLevelStore = organisationUnitLevelStore;
     this.configurationService = configurationService;
 
     this.inUserOrgUnitHierarchyCache = cacheProvider.createInUserOrgUnitHierarchyCache();
-    this.inUserOrgUnitSearchHierarchyCache =
-        cacheProvider.createInUserSearchOrgUnitHierarchyCache();
   }
 
   // -------------------------------------------------------------------------
@@ -354,37 +349,11 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
   @Override
   @Transactional(readOnly = true)
   public Long getOrganisationUnitHierarchyMemberCount(
-      OrganisationUnit parent, Object member, String collectionName) {
+      OrganisationUnit parent, Object member, String collectionName) throws BadRequestException {
+    if (!collectionName.matches("[a-zA-Z0-9_]{1,30}"))
+      throw new BadRequestException("Not a valid property name: " + collectionName);
     return organisationUnitStore.getOrganisationUnitHierarchyMemberCount(
         parent, member, collectionName);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public OrganisationUnitDataSetAssociationSet getOrganisationUnitDataSetAssociationSet(User user) {
-
-    Set<OrganisationUnit> organisationUnits = user != null ? user.getOrganisationUnits() : null;
-    List<DataSet> dataSets = idObjectManager.getDataWriteAll(DataSet.class);
-
-    Map<String, Set<String>> associationSet =
-        organisationUnitStore.getOrganisationUnitDataSetAssocationMap(organisationUnits, dataSets);
-
-    OrganisationUnitDataSetAssociationSet set = new OrganisationUnitDataSetAssociationSet();
-
-    for (Map.Entry<String, Set<String>> entry : associationSet.entrySet()) {
-      int index = set.getDataSetAssociationSets().indexOf(entry.getValue());
-
-      if (index == -1) // Association set does not exist, add new
-      {
-        index = set.getDataSetAssociationSets().size();
-        set.getDataSetAssociationSets().add(entry.getValue());
-      }
-
-      set.getOrganisationUnitAssociationSetMap().put(entry.getKey(), index);
-      set.getDistinctDataSets().addAll(entry.getValue());
-    }
-
-    return set;
   }
 
   @Override
@@ -419,15 +388,6 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
     }
 
     return organisationUnit.isDescendant(user.getDataViewOrganisationUnitsWithFallback());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean isInUserSearchHierarchyCached(User user, OrganisationUnit organisationUnit) {
-    String cacheKey = joinHyphen(user.getUsername(), organisationUnit.getUid());
-
-    return inUserOrgUnitSearchHierarchyCache.get(
-        cacheKey, ou -> isInUserSearchHierarchy(user, organisationUnit));
   }
 
   @Override

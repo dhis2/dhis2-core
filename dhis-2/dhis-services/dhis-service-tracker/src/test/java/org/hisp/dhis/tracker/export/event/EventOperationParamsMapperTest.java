@@ -36,6 +36,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
@@ -130,10 +131,9 @@ class EventOperationParamsMapperTest {
       EventOperationParams.builder();
 
   @BeforeEach
-  public void setUp() {
-    OrganisationUnit orgUnit = createOrgUnit("orgUnit");
-    orgUnit.setChildren(
-        Set.of(createOrgUnit("captureScopeChild"), createOrgUnit("searchScopeChild")));
+  void setUp() {
+    OrganisationUnit orgUnit = createOrganisationUnit('A');
+    orgUnit.setChildren(Set.of(createOrganisationUnit('B'), createOrganisationUnit('C')));
 
     User testUser = new User();
     testUser.setUid(CodeGenerator.generateUid());
@@ -142,8 +142,7 @@ class EventOperationParamsMapperTest {
     user = UserDetails.fromUser(testUser);
 
     // By default, set to ACCESSIBLE for tests that don't set an orgUnit. The orgUnitMode needs to
-    // be
-    // set because its validation is in the EventRequestParamsMapper.
+    // be set because its validation is in the EventRequestParamsMapper.
     eventBuilder = eventBuilder.orgUnitMode(ACCESSIBLE).eventParams(EventParams.FALSE);
 
     userMap.put("admin", createUserWithAuthority(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS));
@@ -365,7 +364,9 @@ class EventOperationParamsMapperTest {
             .dataElementFilters(
                 Map.of(
                     UID.of(DE_1_UID),
-                    List.of(new QueryFilter(QueryOperator.EQ, "2")),
+                    List.of(
+                        new QueryFilter(QueryOperator.EQ, "2"),
+                        new QueryFilter(QueryOperator.NNULL)),
                     UID.of(DE_2_UID),
                     List.of(new QueryFilter(QueryOperator.LIKE, "foo"))))
             .build();
@@ -377,7 +378,7 @@ class EventOperationParamsMapperTest {
     Map<DataElement, List<QueryFilter>> expected =
         Map.of(
             de1,
-            List.of(new QueryFilter(QueryOperator.EQ, "2")),
+            List.of(new QueryFilter(QueryOperator.EQ, "2"), new QueryFilter(QueryOperator.NNULL)),
             de2,
             List.of(new QueryFilter(QueryOperator.LIKE, "foo")));
     assertEquals(expected, dataElements);
@@ -421,15 +422,13 @@ class EventOperationParamsMapperTest {
     program.setUid(CodeGenerator.generateUid());
     program.setAccessLevel(accessLevel);
 
-    OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeOrgUnit");
-    OrganisationUnit searchScopeChildOrgUnit = createOrgUnit("searchScopeChildOrgUnit");
-    searchScopeOrgUnit.setChildren(Set.of(searchScopeChildOrgUnit));
-    searchScopeChildOrgUnit.setParent(searchScopeOrgUnit);
+    OrganisationUnit searchScopeOrgUnit = createOrganisationUnit('A');
+    OrganisationUnit searchScopeChildOrgUnit = createOrganisationUnit('B', searchScopeOrgUnit);
 
     User user = new User();
     user.setUid(CodeGenerator.generateUid());
     user.setUsername("testB");
-    user.setOrganisationUnits(Set.of(createOrgUnit("captureScopeOrgUnit")));
+    user.setOrganisationUnits(Set.of(createOrganisationUnit('C')));
     user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
 
     when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
@@ -453,15 +452,13 @@ class EventOperationParamsMapperTest {
     program.setUid(CodeGenerator.generateUid());
     program.setAccessLevel(OPEN);
 
-    OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeOrgUnit");
-    OrganisationUnit searchScopeChildOrgUnit = createOrgUnit("searchScopeChildOrgUnit");
-    searchScopeOrgUnit.setChildren(Set.of(searchScopeChildOrgUnit));
-    searchScopeChildOrgUnit.setParent(searchScopeOrgUnit);
+    OrganisationUnit searchScopeOrgUnit = createOrganisationUnit('A');
+    OrganisationUnit searchScopeChildOrgUnit = createOrganisationUnit('B', searchScopeOrgUnit);
 
     User user = new User();
     user.setUid(CodeGenerator.generateUid());
     user.setUsername("testB");
-    user.setOrganisationUnits(Set.of(createOrgUnit("captureScopeOrgUnit")));
+    user.setOrganisationUnits(Set.of(createOrganisationUnit('C')));
     user.setTeiSearchOrganisationUnits(Set.of(searchScopeOrgUnit));
     UserRole userRole = new UserRole();
     userRole.setAuthorities(Set.of(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name()));
@@ -481,7 +478,7 @@ class EventOperationParamsMapperTest {
   @EnumSource(value = OrganisationUnitSelectionMode.class)
   void shouldFailWhenRequestedOrgUnitOutsideOfSearchScope(
       OrganisationUnitSelectionMode orgUnitMode) {
-    OrganisationUnit orgUnit = createOrgUnit("name");
+    OrganisationUnit orgUnit = createOrganisationUnit('A');
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
     EventOperationParams operationParams =
         EventOperationParams.builder().orgUnit(orgUnit).orgUnitMode(orgUnitMode).build();
@@ -543,11 +540,5 @@ class EventOperationParamsMapperTest {
     user.setUserRoles(Set.of(userRole));
 
     return user;
-  }
-
-  private OrganisationUnit createOrgUnit(String name) {
-    OrganisationUnit orgUnit = new OrganisationUnit(name);
-    orgUnit.setUid(CodeGenerator.generateUid());
-    return orgUnit;
   }
 }

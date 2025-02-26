@@ -77,6 +77,8 @@ public class ProgramController
   @Data
   @EqualsAndHashCode(callSuper = true)
   public static class GetProgramObjectListParams extends GetObjectListParams {
+    @OpenApi.Description(
+        "Limit the results to programs accessible to the current user based on data sharing read access instead of metadata sharing read access.")
     boolean userFilter;
   }
 
@@ -85,7 +87,7 @@ public class ProgramController
   private final CopyService copyService;
 
   @Override
-  protected void modifyGetObjectList(GetProgramObjectListParams params, Query query) {
+  protected void modifyGetObjectList(GetProgramObjectListParams params, Query<Program> query) {
     if (params.isUserFilter()) {
       query.setSkipSharing(true);
       query.setDataSharing(true);

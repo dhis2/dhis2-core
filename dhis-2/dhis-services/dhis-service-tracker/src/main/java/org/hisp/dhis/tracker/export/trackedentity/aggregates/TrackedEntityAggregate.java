@@ -30,9 +30,9 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.tracker.export.trackedentity.aggregates.AsyncUtils.conditionalAsyncFetch;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolManager.getPool;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import java.util.Collection;
 import java.util.Collections;
@@ -52,15 +52,14 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityIdentifiers;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -74,7 +73,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class TrackedEntityAggregate implements Aggregate {
+public class TrackedEntityAggregate {
   @Nonnull private final TrackedEntityStore trackedEntityStore;
 
   @Qualifier("org.hisp.dhis.tracker.trackedentity.aggregates.EnrollmentAggregate")
@@ -82,10 +81,6 @@ public class TrackedEntityAggregate implements Aggregate {
   private final EnrollmentAggregate enrollmentAggregate;
 
   private final UserService userService;
-
-  @Qualifier("org.hisp.dhis.tracker.trackedentity.aggregates.AclStore")
-  @Nonnull
-  private final AclStore aclStore;
 
   @Nonnull private final TrackedEntityAttributeService trackedEntityAttributeService;
 
@@ -95,45 +90,34 @@ public class TrackedEntityAggregate implements Aggregate {
 
   private Cache<Map<Program, Set<TrackedEntityAttribute>>> programTeAttributesCache;
 
-  private Cache<List<String>> userGroupUIDCache;
-
   private Cache<Context> securityCache;
 
   @PostConstruct
   protected void init() {
     teAttributesCache = cacheProvider.createTeAttributesCache();
     programTeAttributesCache = cacheProvider.createProgramTeAttributesCache();
-    userGroupUIDCache = cacheProvider.createUserGroupUIDCache();
     securityCache = cacheProvider.createSecurityCache();
   }
 
   /**
    * Fetches a List of {@see TrackedEntity} based on the list of primary keys and search parameters
    *
-   * @param ids a List of {@see TrackedEntity} Primary Keys
+   * @param identifiers a List of {@see TrackedEntity} primary key and uid tuples
    * @param params an instance of {@see TrackedEntityParams}
    * @return a List of {@see TrackedEntity} objects
    */
   public List<TrackedEntity> find(
-      List<Long> ids,
+      List<TrackedEntityIdentifiers> identifiers,
       TrackedEntityParams params,
       TrackedEntityQueryParams queryParams,
       OrganisationUnitSelectionMode orgUnitMode) {
-    if (ids.isEmpty()) {
+    if (identifiers.isEmpty()) {
       return Collections.emptyList();
     }
+    List<Long> ids = identifiers.stream().map(TrackedEntityIdentifiers::id).toList();
+
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     final Optional<User> user = Optional.ofNullable(currentUser);
-
-    user.ifPresent(
-        u -> {
-          if (userGroupUIDCache.get(user.get().getUid()).isEmpty()
-              && !CollectionUtils.isEmpty(user.get().getGroups())) {
-            userGroupUIDCache.put(
-                user.get().getUid(),
-                user.get().getGroups().stream().map(BaseIdentifiableObject::getUid).toList());
-          }
-        });
 
     /*
      * Create a context with information which will be used to fetch the
@@ -142,39 +126,14 @@ public class TrackedEntityAggregate implements Aggregate {
     Context ctx =
         user.map(
                 u ->
-                    securityCache
-                        .get(
-                            u.getUid(),
-                            userUID ->
-                                getSecurityContext(
-                                    userUID,
-                                    userGroupUIDCache.get(userUID).orElse(Lists.newArrayList())))
-                        .toBuilder()
+                    securityCache.get(u.getUid(), userUID -> Context.builder().build()).toBuilder()
                         .userId(u.getId())
                         .userUid(u.getUid())
-                        .userGroups(
-                            userGroupUIDCache.get(u.getUid()).orElse(Collections.emptyList()))
                         .superUser(u.isSuper()))
-            .orElse(
-                new Context.ContextBuilder()
-                    .superUser(true)
-                    .trackedEntityTypes(Collections.emptyList())
-                    .programs(Collections.emptyList())
-                    .programStages(Collections.emptyList())
-                    .relationshipTypes(Collections.emptyList()))
+            .orElse(Context.builder().superUser(true))
             .params(params)
             .queryParams(queryParams)
             .build();
-
-    /*
-     * Async fetch Relationships for the given TrackedEntity id (only if
-     * isIncludeRelationships = true)
-     */
-    final CompletableFuture<Multimap<String, RelationshipItem>> relationshipsAsync =
-        conditionalAsyncFetch(
-            ctx.getParams().isIncludeRelationships(),
-            () -> trackedEntityStore.getRelationships(ids, ctx),
-            getPool());
 
     /*
      * Async fetch Enrollments for the given TrackedEntity id (only if
@@ -183,7 +142,7 @@ public class TrackedEntityAggregate implements Aggregate {
     final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync =
         conditionalAsyncFetch(
             ctx.getParams().isIncludeEnrollments(),
-            () -> enrollmentAggregate.findByTrackedEntityIds(ids, ctx),
+            () -> enrollmentAggregate.findByTrackedEntityIds(identifiers, ctx),
             getPool());
 
     /*
@@ -199,7 +158,7 @@ public class TrackedEntityAggregate implements Aggregate {
      * Async Fetch TrackedEntities by id
      */
     final CompletableFuture<Map<String, TrackedEntity>> trackedEntitiesAsync =
-        supplyAsync(() -> trackedEntityStore.getTrackedEntities(ids, ctx), getPool());
+        supplyAsync(() -> trackedEntityStore.getTrackedEntities(ids), getPool());
 
     /*
      * Async fetch TrackedEntity Attributes by TrackedEntity id
@@ -208,38 +167,28 @@ public class TrackedEntityAggregate implements Aggregate {
         supplyAsync(() -> trackedEntityStore.getAttributes(ids), getPool());
 
     /*
-     * Async fetch Owned Tei mapped to the provided program attributes by
+     * Async fetch Owned TE mapped to the provided program attributes by
      * TrackedEntity id
      */
     final CompletableFuture<Multimap<String, String>> ownedTeiAsync =
         conditionalAsyncFetch(
             user.isPresent(),
-            () -> trackedEntityStore.getOwnedTeis(ids, ctx, orgUnitMode == ALL),
+            () -> trackedEntityStore.getOwnedTrackedEntities(ids, ctx, orgUnitMode == ALL),
             getPool());
     /*
      * Execute all queries and merge the results
      */
-    return allOf(
-            trackedEntitiesAsync,
-            attributesAsync,
-            relationshipsAsync,
-            enrollmentsAsync,
-            ownedTeiAsync)
+    return allOf(trackedEntitiesAsync, attributesAsync, enrollmentsAsync, ownedTeiAsync)
         .thenApplyAsync(
             fn -> {
               Map<String, TrackedEntity> trackedEntities = trackedEntitiesAsync.join();
 
               Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
-              Multimap<String, RelationshipItem> relationships = relationshipsAsync.join();
               Multimap<String, Enrollment> enrollments = enrollmentsAsync.join();
               Multimap<String, TrackedEntityProgramOwner> programOwners = programOwnersAsync.join();
               Multimap<String, String> ownedTeis = ownedTeiAsync.join();
 
               Stream<String> teUidStream = trackedEntities.keySet().parallelStream();
-
-              if (user.isPresent() && queryParams.hasProgram()) {
-                teUidStream = teUidStream.filter(ownedTeis::containsKey);
-              }
 
               return teUidStream
                   .map(
@@ -260,7 +209,6 @@ public class TrackedEntityAggregate implements Aggregate {
                                         trackedEntityAttributeService
                                             .getTrackedEntityAttributesByProgram()),
                                 ctx));
-                        te.setRelationshipItems(new HashSet<>(relationships.get(uid)));
                         te.setEnrollments(
                             filterEnrollments(enrollments.get(uid), ownedTeis.get(uid), ctx));
                         te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
@@ -318,47 +266,5 @@ public class TrackedEntityAggregate implements Aggregate {
     return attributes.stream()
         .filter(av -> allowedAttributeUids.contains(av.getAttribute().getUid()))
         .collect(Collectors.toCollection(LinkedHashSet::new));
-  }
-
-  /**
-   * Fetch security related information and add them to the {@see Context}
-   *
-   * <p>- all Tracked Entity Types this user has READ access to
-   *
-   * <p>- all Programs Type this user has READ access to
-   *
-   * <p>- all Program Stages Type this user has READ access to
-   *
-   * <p>- all Relationship Types this user has READ access to
-   *
-   * @param userUID the user uid of a {@see User}
-   * @return an instance of {@see Context} populated with ACL-related info
-   */
-  private Context getSecurityContext(String userUID, List<String> userGroupUIDs) {
-    final CompletableFuture<List<Long>> getTeiTypes =
-        supplyAsync(
-            () -> aclStore.getAccessibleTrackedEntityTypes(userUID, userGroupUIDs), getPool());
-
-    final CompletableFuture<List<Long>> getPrograms =
-        supplyAsync(() -> aclStore.getAccessiblePrograms(userUID, userGroupUIDs), getPool());
-
-    final CompletableFuture<List<Long>> getProgramStages =
-        supplyAsync(() -> aclStore.getAccessibleProgramStages(userUID, userGroupUIDs), getPool());
-
-    final CompletableFuture<List<Long>> getRelationshipTypes =
-        supplyAsync(
-            () -> aclStore.getAccessibleRelationshipTypes(userUID, userGroupUIDs), getPool());
-
-    return allOf(getTeiTypes, getPrograms, getProgramStages, getRelationshipTypes)
-        .thenApplyAsync(
-            fn ->
-                Context.builder()
-                    .trackedEntityTypes(getTeiTypes.join())
-                    .programs(getPrograms.join())
-                    .programStages(getProgramStages.join())
-                    .relationshipTypes(getRelationshipTypes.join())
-                    .build(),
-            getPool())
-        .join();
   }
 }

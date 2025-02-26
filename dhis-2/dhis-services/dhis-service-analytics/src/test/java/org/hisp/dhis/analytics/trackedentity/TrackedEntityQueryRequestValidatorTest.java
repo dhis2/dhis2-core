@@ -40,7 +40,6 @@ import org.junit.jupiter.api.Test;
  * @author maikel arabori
  */
 class TrackedEntityQueryRequestValidatorTest {
-
   @Test
   void testValidateWhenTrackedEntityTypeIsInvalid() {
     String teiUid = CodeGenerator.generateUid() + "invalid";

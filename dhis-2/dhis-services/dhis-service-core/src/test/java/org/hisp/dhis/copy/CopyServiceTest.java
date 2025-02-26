@@ -78,6 +78,7 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.TestBase;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -130,10 +131,12 @@ class CopyServiceTest extends TestBase {
 
   @Test
   void testCopyProgramFromUidWithValidProgram() throws NotFoundException, ForbiddenException {
-
     OrganisationUnit orgUnit = createOrganisationUnit("New Org 1");
+    TrackedEntityType trackedEntityType = createTrackedEntityType('E');
+
     List<Enrollment> originalEnrollments =
-        List.of(createEnrollment(original, createTrackedEntity(orgUnit), orgUnit));
+        List.of(
+            createEnrollment(original, createTrackedEntity(orgUnit, trackedEntityType), orgUnit));
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
 
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
@@ -382,7 +385,7 @@ class CopyServiceTest extends TestBase {
         Set.of(createProgramNotificationTemplate("not1", 20, ENROLLMENT, WEB_HOOK)));
     p.setOnlyEnrollOnce(true);
     p.setOpenDaysAfterCoEndDate(20);
-    p.setOrganisationUnits(Set.of(createOrganisationUnit("Org 1")));
+    p.setOrganisationUnits(Set.of(createOrganisationUnit('A')));
     p.setProgramAttributes(createProgramAttributes(p));
     p.setProgramIndicators(createIndicators(p));
     p.setProgramRuleVariables(Set.of(createProgramRuleVariable('v', p)));

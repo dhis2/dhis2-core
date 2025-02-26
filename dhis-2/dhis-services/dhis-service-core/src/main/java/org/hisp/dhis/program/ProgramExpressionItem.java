@@ -30,7 +30,6 @@ package org.hisp.dhis.program;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.common.ValueType.NUMBER;
-import static org.hisp.dhis.parser.expression.ParserUtils.castSql;
 import static org.hisp.dhis.parser.expression.ParserUtils.replaceSqlNull;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
@@ -122,6 +121,6 @@ public abstract class ProgramExpressionItem implements ExpressionItem {
     if (dataType == NUMERIC || dataType == BOOLEAN) {
       dataType = visitor.getParams().getDataType() == BOOLEAN ? BOOLEAN : NUMERIC;
     }
-    return replaceSqlNull(castSql(column, dataType), dataType);
+    return replaceSqlNull(visitor.getSqlBuilder().cast(column, dataType), dataType);
   }
 }

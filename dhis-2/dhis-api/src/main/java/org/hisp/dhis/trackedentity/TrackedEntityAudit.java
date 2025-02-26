@@ -33,7 +33,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
-import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.common.DxfNamespaces;
 
 /**
@@ -55,7 +55,7 @@ public class TrackedEntityAudit implements Serializable {
 
   private String accessedBy;
 
-  private ChangeLogType auditType;
+  private AuditOperationType auditType;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -63,7 +63,7 @@ public class TrackedEntityAudit implements Serializable {
 
   public TrackedEntityAudit() {}
 
-  public TrackedEntityAudit(String trackedEntity, String accessedBy, ChangeLogType auditType) {
+  public TrackedEntityAudit(String trackedEntity, String accessedBy, AuditOperationType auditType) {
     this.trackedEntity = trackedEntity;
     this.accessedBy = accessedBy;
     this.created = new Date();
@@ -75,8 +75,8 @@ public class TrackedEntityAudit implements Serializable {
       String comment,
       Date created,
       String accessedBy,
-      ChangeLogType changeLogType) {
-    this(trackedEntity, accessedBy, changeLogType);
+      AuditOperationType auditOperationType) {
+    this(trackedEntity, accessedBy, auditOperationType);
     this.comment = comment;
     this.created = created;
   }
@@ -159,11 +159,11 @@ public class TrackedEntityAudit implements Serializable {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public ChangeLogType getAuditType() {
+  public AuditOperationType getAuditType() {
     return auditType;
   }
 
-  public void setAuditType(ChangeLogType auditType) {
+  public void setAuditType(AuditOperationType auditType) {
     this.auditType = auditType;
   }
 }

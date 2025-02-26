@@ -31,8 +31,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -162,4 +164,19 @@ public interface DataApprovalStore {
       Set<CategoryOptionCombo> attributeOptionCombos,
       List<DataApprovalLevel> userApprovalLevels,
       Map<Integer, DataApprovalLevel> levelMap);
+
+  /**
+   * Retrieve all {@link DataApproval}s with {@link CategoryOptionCombo} {@link UID}s
+   *
+   * @param uids {@link CategoryOptionCombo} {@link UID}s
+   * @return {@link DataApproval}s with {@link CategoryOptionCombo} {@link UID}s passed in
+   */
+  List<DataApproval> getByCategoryOptionCombo(@Nonnull Collection<UID> uids);
+
+  /**
+   * Delete all {@link DataApproval}s with references to {@link CategoryOptionCombo} {@link UID}s
+   *
+   * @param uids {@link CategoryOptionCombo} {@link UID}s
+   */
+  void deleteByCategoryOptionCombo(@Nonnull Collection<UID> uids);
 }

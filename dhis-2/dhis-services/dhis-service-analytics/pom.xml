@@ -50,6 +50,10 @@
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-support-sql</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-system</artifactId>
     </dependency>
     <dependency>
@@ -165,7 +169,10 @@
       <artifactId>lombok</artifactId>
       <scope>provided</scope>
     </dependency>
-
+    <dependency>
+      <groupId>com.github.jsqlparser</groupId>
+      <artifactId>jsqlparser</artifactId>
+    </dependency>
     <!-- Test -->
 
     <dependency>

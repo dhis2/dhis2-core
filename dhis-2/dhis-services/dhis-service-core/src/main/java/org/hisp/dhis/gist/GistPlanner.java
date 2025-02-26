@@ -33,6 +33,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.gist.GistLogic.effectiveTransform;
 import static org.hisp.dhis.gist.GistLogic.isAttributePath;
+import static org.hisp.dhis.gist.GistLogic.isAttributeValuesAttributePropertyPath;
 import static org.hisp.dhis.gist.GistLogic.isCollectionSizeFilter;
 import static org.hisp.dhis.gist.GistLogic.isIncludedField;
 import static org.hisp.dhis.gist.GistLogic.isNonNestedPath;
@@ -62,7 +63,6 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
-import org.hisp.dhis.user.User;
 
 /**
  * The {@link GistPlanner} is responsible to expand the list of {@link Field}s following the {@link
@@ -90,7 +90,6 @@ class GistPlanner {
     fields = withPresetFields(fields); // 1:n
     fields = withAttributeFields(fields); // 1:1
     fields = withDisplayAsTranslatedFields(fields); // 1:1
-    fields = withUserNameAsFromTransformedField(fields); // 1:1
     fields = withInnerAsSeparateFields(fields); // 1:n
     fields = withCollectionItemPropertyAsTransformation(fields); // 1:1
     fields = withEffectiveTransformation(fields); // 1:1
@@ -100,17 +99,31 @@ class GistPlanner {
 
   private List<Filter> planFilters() {
     List<Filter> filters = query.getFilters();
-    filters = withAttributeFilters(filters); // 1:1
+    filters = withAttributeIdAsPropertyFilters(filters); // 1:1
+    filters = withAttributeIdEqAsNotNullFilters(filters); // 1:1
     filters = withIdentifiableCollectionAutoIdFilters(filters); // 1:1
     filters = withCurrentUserDefaultForAccessFilters(filters); // 1:1
     return filters;
   }
 
-  private List<Filter> withAttributeFilters(List<Filter> filters) {
+  private List<Filter> withAttributeIdAsPropertyFilters(List<Filter> filters) {
     return map1to1(
         filters,
         f -> isAttributePath(f.getPropertyPath()) && context.resolve(f.getPropertyPath()) == null,
         Filter::asAttribute);
+  }
+
+  /**
+   * Checking for {@code attributeValues.attribute.id=<uid>} can be done by checking that {@code
+   * <uid>:!null} using the UID as property name.
+   */
+  private List<Filter> withAttributeIdEqAsNotNullFilters(List<Filter> filters) {
+    return map1to1(
+        filters,
+        f ->
+            f.getPropertyPath().equals("attributeValues.attribute.id")
+                && f.getOperator() == Comparison.EQ,
+        f -> new Filter(f.getValue()[0], Comparison.NOT_NULL).asAttribute());
   }
 
   /** Understands {@code collection} property as synonym for {@code collection.id} */
@@ -122,7 +135,7 @@ class GistPlanner {
   }
 
   private boolean isCollectionFilterWithoutIdField(Filter f) {
-    if (f.isAttribute()) {
+    if (f.isAttribute() || isAttributeValuesAttributePropertyPath(f.getPropertyPath())) {
       return false;
     }
     Property p = context.resolveMandatory(f.getPropertyPath());
@@ -272,19 +285,6 @@ class GistPlanner {
             f.withAlias(f.getName())
                 .withTranslate()
                 .withPropertyPath(pathOnSameParent(f.getPropertyPath(), "shortName")));
-  }
-
-  private List<Field> withUserNameAsFromTransformedField(List<Field> fields) {
-    return query.getElementType() != User.class
-        ? fields
-        : map1to1(
-            fields,
-            f -> f.getPropertyPath().equals("name"),
-            f ->
-                f.toBuilder()
-                    .transformation(Transform.FROM)
-                    .transformationArgument("firstName,surname")
-                    .build());
   }
 
   /** Transforms {@code field[a,b]} syntax to {@code field.a,field.b} */

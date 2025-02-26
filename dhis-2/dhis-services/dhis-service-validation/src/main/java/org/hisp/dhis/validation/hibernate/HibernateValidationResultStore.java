@@ -205,7 +205,8 @@ public class HibernateValidationResultStore extends HibernateGenericStore<Valida
                 + "vr.validationRule in :validationRules and vr.period in :periods ");
 
     if (orgUnit != null) {
-      query.setParameter("orgUnitPath", orgUnit.getPath() + (includeOrgUnitDescendants ? "%" : ""));
+      query.setParameter(
+          "orgUnitPath", orgUnit.getStoredPath() + (includeOrgUnitDescendants ? "%" : ""));
     }
 
     query.setParameter("validationRules", validationRules);

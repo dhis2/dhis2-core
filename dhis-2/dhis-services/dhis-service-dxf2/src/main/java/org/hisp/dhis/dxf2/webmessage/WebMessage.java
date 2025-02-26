@@ -36,7 +36,6 @@ import javax.annotation.Nonnull;
 import lombok.Getter;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dataintegrity.FlattenedDataIntegrityReport;
 import org.hisp.dhis.dxf2.common.ImportTypeSummary;
 import org.hisp.dhis.dxf2.geojson.GeoJsonImportReport;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -91,7 +90,6 @@ public class WebMessage extends WebResponse {
     ApiTokenCreationResponse.class,
     ErrorReportsWebMessageResponse.class,
     FileResourceWebMessageResponse.class,
-    FlattenedDataIntegrityReport.class,
     GeoJsonImportReport.class,
     ImportCountWebMessageResponse.class,
     ImportReportWebMessageResponse.class,

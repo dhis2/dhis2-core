@@ -78,7 +78,7 @@ class DataIntegrityCategoryOptionCombosNoNames extends AbstractDataIntegrityInte
     checkDataIntegritySummary(check, 1, 50, true);
 
     assertHasDataIntegrityIssues(
-        "categoryOptionCombos", check, 50, redCategoryOptionComboId, "", "", true);
+        "categoryOptionCombos", check, 50, redCategoryOptionComboId, "Red", "", true);
   }
 
   @Test

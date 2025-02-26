@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.table;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -45,16 +44,13 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Column;
-import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfo;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
-import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -63,26 +59,41 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 @ExtendWith(MockitoExtension.class)
 class JdbcTrackedEntityAnalyticsTableManagerTest {
   @Mock private JdbcTemplate jdbcTemplate;
+
   @Mock private AnalyticsTableSettings analyticsTableSettings;
+
   @Mock private PeriodDataProvider periodDataProvider;
-  @Mock private SqlBuilder sqlBuilder;
+
+  @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
   @Mock private PartitionManager partitionManager;
+
   @Mock private SystemSettingsProvider systemSettingsProvider;
+
   @Mock private IdentifiableObjectManager identifiableObjectManager;
+
   @Mock private TrackedEntityTypeService trackedEntityTypeService;
+
   @Mock private TrackedEntityAttributeService trackedEntityAttributeService;
+
   @Mock private CategoryService categoryService;
+
+  @Mock private AnalyticsTableSettings settings;
+
   @Mock private DataApprovalLevelService dataApprovalLevelService;
+
   @Mock private OrganisationUnitService organisationUnitService;
+
   @Mock private ResourceTableService resourceTableService;
+
   @Mock private AnalyticsTableHookService analyticsTableHookService;
-  @Mock private DatabaseInfoProvider databaseInfoProvider;
 
   @InjectMocks private JdbcTrackedEntityAnalyticsTableManager tableManager;
 
@@ -105,16 +116,6 @@ class JdbcTrackedEntityAnalyticsTableManagerTest {
 
     Program program = mock(Program.class);
 
-    when(sqlBuilder.qualifyTable(anyString()))
-        .thenAnswer(inv -> SqlUtils.quote(inv.getArgument(0)));
-
-    when(sqlBuilder.jsonExtract(anyString(), anyString())).thenReturn("jsonExtract");
-
-    when(sqlBuilder.coalesce(anyString(), anyString()))
-        .thenAnswer(inv -> "coalesce(" + inv.getArgument(0) + ", " + inv.getArgument(1) + "))");
-
-    when(sqlBuilder.trim(anyString())).thenAnswer(inv -> "trim(" + inv.getArgument(0) + ")");
-
     when(tet.getTrackedEntityAttributes()).thenReturn(List.of(nonConfidentialTea, confidentialTea));
 
     when(program.getTrackedEntityType()).thenReturn(tet);
@@ -124,17 +125,7 @@ class JdbcTrackedEntityAnalyticsTableManagerTest {
     when(trackedEntityAttributeService.getProgramTrackedEntityAttributes(List.of(program)))
         .thenReturn(List.of());
 
-    when(analyticsTableSettings.getTableLogged()).thenReturn(Logged.LOGGED);
-
     when(identifiableObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
-
-    when(analyticsTableSettings.getTableLogged()).thenReturn(Logged.LOGGED);
-
-    when(identifiableObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
-
-    DatabaseInfo databaseInfo = mock(DatabaseInfo.class);
-    when(databaseInfo.isSpatialSupport()).thenReturn(false);
-    when(databaseInfoProvider.getDatabaseInfo()).thenReturn(databaseInfo);
 
     List<AnalyticsTable> analyticsTables = tableManager.getAnalyticsTables(params);
 

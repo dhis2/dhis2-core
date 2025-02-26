@@ -36,7 +36,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.merge.MergeParams;
 import org.hisp.dhis.merge.MergeRequest;
@@ -109,7 +108,7 @@ public class CategoryOptionMergeService implements MergeService {
   }
 
   /**
-   * Functional interface representing a {@link DataElement} data merge operation.
+   * Functional interface representing a {@link CategoryOption} data merge operation.
    *
    * @author david mackessy
    */

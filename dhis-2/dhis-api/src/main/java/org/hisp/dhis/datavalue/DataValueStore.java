@@ -27,9 +27,12 @@
  */
 package org.hisp.dhis.datavalue;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.UID;
@@ -92,7 +95,28 @@ public interface DataValueStore {
    */
   void deleteDataValues(DataElement dataElement);
 
-  void deleteDataValue(DataValue dataValue);
+  /**
+   * Deletes all data values for the given data element.
+   *
+   * @param dataElement the dataElement.
+   */
+  void deleteDataValues(@Nonnull Collection<DataElement> dataElement);
+
+  /**
+   * Deletes all data values for the given category option combos.
+   *
+   * @param categoryOptionCombos the categoryOptionCombos.
+   */
+  void deleteDataValuesByCategoryOptionCombo(
+      @Nonnull Collection<CategoryOptionCombo> categoryOptionCombos);
+
+  /**
+   * Deletes all data values for the given attribute option combos.
+   *
+   * @param attributeOptionCombos the attributeOptionCombos.
+   */
+  void deleteDataValuesByAttributeOptionCombo(
+      @Nonnull Collection<CategoryOptionCombo> attributeOptionCombos);
 
   /**
    * Returns a DataValue.
@@ -165,8 +189,6 @@ public interface DataValueStore {
    */
   List<DeflatedDataValue> getDeflatedDataValues(DataExportParams params);
 
-  List<DataValue> getAllDataValuesByDataElement(List<DataElement> dataElements);
-
   /**
    * Gets the number of DataValues which have been updated between the given start and end date.
    * Either the start or end date can be null, but they cannot both be null.
@@ -193,4 +215,70 @@ public interface DataValueStore {
    * @return true, if any values exist, otherwise false
    */
   boolean dataValueExistsForDataElement(String uid);
+
+  /**
+   * SQL for handling merging {@link DataValue}s. There may be multiple potential {@link DataValue}
+   * duplicates. Duplicate {@link DataValue}s with the latest {@link DataValue#lastUpdated} values
+   * are kept, the rest are deleted. Only one of these entries can exist due to the composite key
+   * constraint. <br>
+   * The 3 execution paths are:
+   *
+   * <p>1. If the source {@link DataValue} is not a duplicate, it simply gets its {@link
+   * DataValue#categoryOptionCombo} updated to that of the target.
+   *
+   * <p>2. If the source {@link DataValue} is a duplicate and has an earlier {@link
+   * DataValue#lastUpdated} value, it is deleted.
+   *
+   * <p>3. If the source {@link DataValue} is a duplicate and has a later {@link
+   * DataValue#lastUpdated} value, the target {@link DataValue} is deleted. The source is kept and
+   * has its {@link DataValue#categoryOptionCombo} updated to that of the target.
+   *
+   * @param target target {@link CategoryOptionCombo}
+   * @param sources source {@link CategoryOptionCombo}s
+   */
+  void mergeDataValuesWithCategoryOptionCombos(long target, @Nonnull Set<Long> sources);
+
+  /**
+   * SQL for handling merging {@link DataValue}s. There may be multiple potential {@link DataValue}
+   * duplicates. Duplicate {@link DataValue}s with the latest {@link DataValue#lastUpdated} values
+   * are kept, the rest are deleted. Only one of these entries can exist due to the composite key
+   * constraint. <br>
+   * The 3 execution paths are:
+   *
+   * <p>1. If the source {@link DataValue} is not a duplicate, it simply gets its {@link
+   * DataValue#attributeOptionCombo} updated to that of the target.
+   *
+   * <p>2. If the source {@link DataValue} is a duplicate and has an earlier {@link
+   * DataValue#lastUpdated} value, it is deleted.
+   *
+   * <p>3. If the source {@link DataValue} is a duplicate and has a later {@link
+   * DataValue#lastUpdated} value, the target {@link DataValue} is deleted. The source is kept and
+   * has its {@link DataValue#attributeOptionCombo} updated to that of the target.
+   *
+   * @param target target {@link CategoryOptionCombo} id
+   * @param sources source {@link CategoryOptionCombo} ids
+   */
+  void mergeDataValuesWithAttributeOptionCombos(long target, @Nonnull Set<Long> sources);
+
+  /**
+   * SQL for handling merging {@link DataValue}s. There may be multiple potential {@link DataValue}
+   * duplicates. Duplicate {@link DataValue}s with the latest {@link DataValue#lastUpdated} values
+   * are kept, the rest are deleted. Only one of these entries can exist due to the composite key
+   * constraint. <br>
+   * The 3 execution paths are:
+   *
+   * <p>1. If the source {@link DataValue} is not a duplicate, it simply gets its {@link
+   * DataValue#dataElement} updated to that of the target.
+   *
+   * <p>2. If the source {@link DataValue} is a duplicate and has an earlier {@link
+   * DataValue#lastUpdated} value, it is deleted.
+   *
+   * <p>3. If the source {@link DataValue} is a duplicate and has a later {@link
+   * DataValue#lastUpdated} value, the target {@link DataValue} is deleted. The source is kept and
+   * has its {@link DataValue#dataElement} updated to that of the target.
+   *
+   * @param target target {@link DataElement} id
+   * @param sources source {@link DataElement} ids
+   */
+  void mergeDataValuesWithDataElements(long target, @Nonnull Set<Long> sources);
 }

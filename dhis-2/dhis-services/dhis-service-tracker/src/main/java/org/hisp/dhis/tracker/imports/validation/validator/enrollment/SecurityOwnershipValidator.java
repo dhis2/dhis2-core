@@ -32,7 +32,6 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1103;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -59,7 +58,6 @@ import org.springframework.stereotype.Component;
 @Component(
     "org.hisp.dhis.tracker.imports.validation.validator.enrollment.SecurityOwnershipValidator")
 @RequiredArgsConstructor
-@Slf4j
 class SecurityOwnershipValidator implements Validator<Enrollment> {
 
   @Nonnull private final AclService aclService;
@@ -170,7 +168,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
 
   private void checkOrgUnitInCaptureScope(
       Reporter reporter, TrackerDto dto, OrganisationUnit orgUnit, UserDetails user) {
-    if (!user.isInUserHierarchy(orgUnit.getPath())) {
+    if (!user.isInUserHierarchy(orgUnit.getStoredPath())) {
       reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
     }
   }

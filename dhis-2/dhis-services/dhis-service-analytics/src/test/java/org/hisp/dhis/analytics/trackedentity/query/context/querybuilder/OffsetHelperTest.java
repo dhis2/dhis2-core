@@ -35,21 +35,17 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-/** Tests for {@link OffsetHelper}. */
 class OffsetHelperTest {
 
   @ParameterizedTest(name = "testGetItemBasedOnOffset - {index}")
   @CsvSource({"2,d", "1,e", "0,a", "-1,b", "-2,c"})
   void testGetItemBasedOnOffset(String offsetParam, String expectedResponse) {
-    // Given
     Stream<String> stream = Stream.of("a", "b", "c", "d", "e");
     Comparator<String> comparator = Comparator.naturalOrder();
     int offset = Integer.parseInt(offsetParam);
 
-    // When
     Optional<String> result = OffsetHelper.getItemBasedOnOffset(stream, comparator, offset);
 
-    // Then
     Assertions.assertTrue(result.isPresent());
     Assertions.assertEquals(expectedResponse, result.get());
   }
@@ -57,10 +53,8 @@ class OffsetHelperTest {
   @ParameterizedTest
   @CsvSource({"1,1,asc", "2,2,asc", "0,1,desc", "-1,2,desc", "-2,3,desc"})
   void testGetOffset(String offsetParam, String expectedOffset, String expectedDirection) {
-    // When
     Offset offset = OffsetHelper.getOffset(Integer.parseInt(offsetParam));
 
-    // Then
     Assertions.assertEquals(expectedOffset, offset.offset());
     Assertions.assertEquals(expectedDirection, offset.direction());
   }

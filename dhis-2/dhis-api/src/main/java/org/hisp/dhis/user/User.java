@@ -28,6 +28,7 @@
 package org.hisp.dhis.user;
 
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -63,6 +64,7 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
@@ -71,7 +73,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
  */
 @JacksonXmlRootElement(localName = "user", namespace = DxfNamespaces.DXF_2_0)
 public class User extends BaseIdentifiableObject implements MetadataObject {
-  public static final int USERNAME_MAX_LENGTH = 255;
 
   /** Globally unique identifier for User. */
   private UUID uuid;
@@ -94,8 +95,9 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   /** Required. Will be stored as a hash. */
   private String password;
 
-  /** Required. Automatically set in constructor */
   private String secret;
+
+  private TwoFactorType twoFactorType;
 
   /** Date when password was changed. */
   private Date passwordLastUpdated;
@@ -439,10 +441,9 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
     this.password = password;
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonIgnore
   public boolean isTwoFactorEnabled() {
-    return this.secret != null && !this.secret.isEmpty();
+    return this.twoFactorType != null && this.twoFactorType.isEnabled();
   }
 
   @JsonIgnore
@@ -452,6 +453,15 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
   public void setSecret(String secret) {
     this.secret = secret;
+  }
+
+  @JsonIgnore
+  public TwoFactorType getTwoFactorType() {
+    return this.twoFactorType == null ? TwoFactorType.NOT_ENABLED : this.twoFactorType;
+  }
+
+  public void setTwoFactorType(TwoFactorType twoFactorType) {
+    this.twoFactorType = twoFactorType;
   }
 
   @JsonProperty
@@ -525,7 +535,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Property(value = PropertyType.TEXT, required = Property.Value.FALSE)
+  @Property(value = PropertyType.TEXT, required = FALSE)
   public String getUsername() {
     return username;
   }
@@ -702,10 +712,17 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
     }
   }
 
-  /** Returns the concatenated first name and surname. */
+  /**
+   * Note that setting read-only both ways seems needed when this is a DB field that is not null but
+   * generated.
+   */
   @Override
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @Property(required = FALSE, access = Property.Access.READ_ONLY)
   public String getName() {
-    return firstName + " " + surname;
+    // this is to maintain name for transient User objects initialized without setting name
+    if (name == null) return firstName + " " + surname;
+    return name;
   }
 
   /**

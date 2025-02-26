@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.http.HttpClientAdapter.Accept;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertGreaterOrEqual;
@@ -43,10 +44,19 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonString;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.webapi.openapi.OpenApiObject;
+import org.hisp.dhis.webapi.openapi.OpenApiObject.ParameterObject;
+import org.hisp.dhis.webapi.openapi.OpenApiObject.ResponseObject;
+import org.hisp.dhis.webapi.openapi.OpenApiObject.SchemaObject;
 import org.junit.jupiter.api.Test;
 import org.openapitools.codegen.DefaultGenerator;
 import org.openapitools.codegen.config.CodegenConfigurator;
@@ -142,13 +152,62 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
     JsonObject audits = GET("/openapi/openapi.json?scope=path./api/audits").content();
     JsonObject pageSize =
         audits
-            .getArray("paths./api/audits/trackedEntityAttributeValue.get.parameters")
+            .getArray("paths./api/audits/trackedEntity.get.parameters")
             .asList(JsonObject.class)
             .stream()
             .filter(p -> "pageSize".equals(p.getString("name").string()))
             .findFirst()
             .orElse(JsonMixed.of("{}"));
     assertEquals(50, pageSize.getNumber("schema.default").integer());
+  }
+
+  /** Check shared parameter objects handling works */
+  @Test
+  void testGetOpenApiDocument_ParameterObjects() {
+    OpenApiObject doc =
+        GET("/openapi/openapi.json?scope=entity:OrganisationUnit")
+            .content()
+            .as(OpenApiObject.class);
+    JsonList<ParameterObject> parameters =
+        doc.$paths().get("/api/organisationUnits/").get().parameters();
+    Set<String> allRefs =
+        parameters.stream()
+            .map(p -> p.getString("$ref"))
+            .filter(JsonValue::exists)
+            .map(JsonString::string)
+            .collect(toSet());
+    // check one of each group to make sure the inheritance handling works as expected
+    assertTrue(
+        allRefs.containsAll(
+            Set.of(
+                "#/components/parameters/GetObjectListParams.filter",
+                "#/components/parameters/GetOrganisationUnitObjectListParams.level",
+                "#/components/parameters/GetObjectParams.defaults")));
+    // check "fields" is inlined (no reference) as it depend on the entity type
+    assertTrue(parameters.stream().anyMatch(p -> "fields".equals(p.getString("name").string())));
+  }
+
+  /** Tests the "generics" handling of object list response */
+  @Test
+  void testGetOpenApiDocument_GetObjectListResponse() {
+    OpenApiObject doc =
+        GET("/openapi/openapi.json?scope=entity:OrganisationUnit")
+            .content()
+            .as(OpenApiObject.class);
+    ResponseObject response =
+        doc.$paths().get("/api/organisationUnits/").get().responses().get("200");
+    JsonMap<SchemaObject> properties =
+        response.content().get("application/json").schema().properties();
+
+    assertEquals(
+        Set.of("pager", "organisationUnits"),
+        properties.keys().collect(toSet()),
+        "there should only be a pager and an entity list property");
+
+    SchemaObject listSchema = properties.get("organisationUnits");
+    assertEquals("array", listSchema.$type());
+    assertEquals(
+        "#/components/schemas/OrganisationUnit", listSchema.items().getString("$ref").string());
   }
 
   @Test

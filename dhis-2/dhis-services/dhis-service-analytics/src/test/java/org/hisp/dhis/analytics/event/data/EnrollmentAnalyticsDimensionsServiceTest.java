@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeDataElements;
-import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeTEAs;
 import static org.hisp.dhis.analytics.common.DimensionServiceCommonTest.aggregateAllowedValueTypesPredicate;
 import static org.hisp.dhis.analytics.common.DimensionServiceCommonTest.queryDisallowedValueTypesPredicate;
 import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
@@ -37,38 +35,35 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.Collections;
 import java.util.List;
-import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.SystemUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class EnrollmentAnalyticsDimensionsServiceTest {
-  private EnrollmentAnalyticsDimensionsService enrollmentAnalyticsDimensionsService;
+  @Mock private ProgramService programService;
+
+  @InjectMocks
+  private DefaultEnrollmentAnalyticsDimensionsService enrollmentAnalyticsDimensionsService;
 
   @BeforeEach
   void setup() {
     injectSecurityContextNoSettings(new SystemUser());
 
-    ProgramService programService = mock(ProgramService.class);
-
     Program program = mock(Program.class);
 
     when(programService.getProgram(any())).thenReturn(program);
-    when(program.getDataElements()).thenReturn(allValueTypeDataElements());
-    when(program.getProgramIndicators()).thenReturn(Collections.emptySet());
-    when(program.getTrackedEntityAttributes()).thenReturn(allValueTypeTEAs());
-
-    enrollmentAnalyticsDimensionsService =
-        new DefaultEnrollmentAnalyticsDimensionsService(programService, mock(AclService.class));
   }
 
   @Test

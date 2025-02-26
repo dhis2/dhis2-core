@@ -87,6 +87,11 @@ public class TrackedEntityAttributeController
   @Data
   @EqualsAndHashCode(callSuper = true)
   public static final class GetTrackedEntityAttributeObjectListParams extends GetObjectListParams {
+    @OpenApi.Description(
+        """
+      Limits the results to searchable attributes of type `TEXT`, `LONG_TEXT`, `PHONE_NUMBER`, `EMAIL`, `USERNAME`, `URL`
+      as well as unique attributes. Can be combined with further `filter`s.
+      """)
     boolean indexableOnly;
   }
 

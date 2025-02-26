@@ -28,36 +28,34 @@
 package org.hisp.dhis.query.operators;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.query.Type;
-import org.hisp.dhis.query.Typed;
-import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.query.planner.PropertyPath;
 import org.hisp.dhis.schema.Property;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class EqualOperator<T extends Comparable<? super T>> extends Operator<T> {
+public class EqualOperator<T extends Comparable<T>> extends Operator<T> {
+
   public EqualOperator(T arg) {
-    super("eq", Typed.from(String.class, Boolean.class, Number.class, Date.class, Enum.class), arg);
+    super("eq", List.of(String.class, Boolean.class, Number.class, Date.class, Enum.class), arg);
   }
 
   public EqualOperator(String name, T arg) {
-    super(name, Typed.from(String.class, Boolean.class, Number.class, Date.class, Enum.class), arg);
+    super(name, List.of(String.class, Boolean.class, Number.class, Date.class, Enum.class), arg);
   }
 
   @Override
-  public Criterion getHibernateCriterion(QueryPath queryPath) {
-    Property property = queryPath.getProperty();
+  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, PropertyPath path) {
+    Property property = path.getProperty();
 
     if (property.isCollection()) {
       Integer value = QueryUtils.parseValue(Integer.class, args.get(0));
@@ -67,34 +65,9 @@ public class EqualOperator<T extends Comparable<? super T>> extends Operator<T> 
             "Left-side is collection, and right-side is not a valid integer, so can't compare by size.");
       }
 
-      return Restrictions.sizeEq(queryPath.getPath(), value);
+      return builder.equal(builder.size(root.get(path.getPath())), value);
     }
-
-    return Restrictions.eq(queryPath.getPath(), args.get(0));
-  }
-
-  @Override
-  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, QueryPath queryPath) {
-    Property property = queryPath.getProperty();
-
-    if (property.isCollection()) {
-      Integer value = QueryUtils.parseValue(Integer.class, args.get(0));
-
-      if (value == null) {
-        throw new QueryException(
-            "Left-side is collection, and right-side is not a valid integer, so can't compare by size.");
-      }
-
-      return builder.equal(builder.size(root.get(queryPath.getPath())), value);
-    }
-    if (queryPath.haveAlias()) {
-      for (Join<Y, ?> join : root.getJoins()) {
-        if (join.getAlias().equals(queryPath.getAlias()[0])) {
-          return builder.equal(join.get(queryPath.getProperty().getFieldName()), args.get(0));
-        }
-      }
-    }
-    return builder.equal(root.get(queryPath.getPath()), args.get(0));
+    return builder.equal(root.get(path.getPath()), args.get(0));
   }
 
   @Override

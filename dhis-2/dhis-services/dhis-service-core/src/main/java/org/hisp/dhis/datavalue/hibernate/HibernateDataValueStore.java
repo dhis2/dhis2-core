@@ -51,6 +51,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.Query;
 import org.hisp.dhis.category.CategoryCombo;
@@ -130,9 +132,31 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  public void deleteDataValue(DataValue dataValue) {
-    getQuery("delete from DataValue dv where dv = :dataValue")
-        .setParameter("dataValue", dataValue)
+  public void deleteDataValues(@Nonnull Collection<DataElement> dataElements) {
+    String hql = "delete from DataValue d where d.dataElement in :dataElements";
+
+    entityManager.createQuery(hql).setParameter("dataElements", dataElements).executeUpdate();
+  }
+
+  @Override
+  public void deleteDataValuesByCategoryOptionCombo(
+      @Nonnull Collection<CategoryOptionCombo> categoryOptionCombos) {
+    String hql = "delete from DataValue d where d.categoryOptionCombo in :categoryOptionCombos";
+
+    entityManager
+        .createQuery(hql)
+        .setParameter("categoryOptionCombos", categoryOptionCombos)
+        .executeUpdate();
+  }
+
+  @Override
+  public void deleteDataValuesByAttributeOptionCombo(
+      @Nonnull Collection<CategoryOptionCombo> attributeOptionCombos) {
+    String hql = "delete from DataValue d where d.attributeOptionCombo in :attributeOptionCombos";
+
+    entityManager
+        .createQuery(hql)
+        .setParameter("attributeOptionCombos", attributeOptionCombos)
         .executeUpdate();
   }
 
@@ -214,13 +238,6 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  public List<DataValue> getAllDataValuesByDataElement(List<DataElement> dataElements) {
-    return getQuery("from DataValue dv where dv.dataElement in :dataElements")
-        .setParameter("dataElements", dataElements)
-        .getResultList();
-  }
-
-  @Override
   public int getDataValueCountLastUpdatedBetween(
       Date startDate, Date endDate, boolean includeDeleted) {
     if (startDate == null && endDate == null) {
@@ -274,6 +291,29 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         .setMaxResults(1)
         .getResultList()
         .isEmpty();
+  }
+
+  @Override
+  public void mergeDataValuesWithCategoryOptionCombos(long target, @Nonnull Set<Long> sources) {
+    String sql =
+        getSqlForMergingDataValues(target, sources, DataValueMergeType.CATEGORY_OPTION_COMBO);
+    log.debug("SQL query to be used for merging category option combos: \n{}", sql);
+    jdbcTemplate.update(sql);
+  }
+
+  @Override
+  public void mergeDataValuesWithAttributeOptionCombos(long target, @Nonnull Set<Long> sources) {
+    String sql =
+        getSqlForMergingDataValues(target, sources, DataValueMergeType.ATTRIBUTE_OPTION_COMBO);
+    log.debug("SQL query to be used for merging attribute option combos: \n{}", sql);
+    jdbcTemplate.update(sql);
+  }
+
+  @Override
+  public void mergeDataValuesWithDataElements(long target, @Nonnull Set<Long> sources) {
+    String sql = getSqlForMergingDataValues(target, sources, DataValueMergeType.DATA_ELEMENT);
+    log.debug("SQL query to be used for merging data elements: \n{}", sql);
+    jdbcTemplate.update(sql);
   }
 
   // -------------------------------------------------------------------------
@@ -334,7 +374,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
       hql.append(
           params.getOrganisationUnits().stream()
-              .map(OrganisationUnit::getPath)
+              .map(OrganisationUnit::getStoredPath)
               .map(p -> "ou.path like '" + p + "%'")
               .collect(joining(" or ")));
 
@@ -565,7 +605,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
           where
               .append(sqlHelper.or())
               .append("ou.path like '")
-              .append(parent.getPath())
+              .append(parent.getStoredPath())
               .append("%'");
         }
 
@@ -795,5 +835,112 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
       log.error("HibernateDataValueStore BlockingQueue InterruptedException: " + ex.getMessage());
       Thread.currentThread().interrupt();
     }
+  }
+
+  private String getSqlForMergingDataValues(
+      long targetId, Set<Long> sourceIds, DataValueMergeType mergeType) {
+    String sql =
+        """
+        do
+        $$
+        declare
+          source_dv record;
+          target_duplicate record;
+          target_id bigint default %s;
+        begin
+
+          -- loop through each record with a matching source id
+          for source_dv in
+            select * from datavalue where source_column in (%s)
+            loop
+
+            -- check if target Data Value exists with same unique key
+            select dv.*
+              into target_duplicate
+              from datavalue dv
+              where dv.dataelementid = data_element
+              and dv.periodid = source_dv.periodid
+              and dv.sourceid = source_dv.sourceid
+              and dv.attributeoptioncomboid = attr_opt_combo
+              and dv.categoryoptioncomboid = cat_opt_combo;
+
+            -- target duplicate found and target has latest lastUpdated value
+            if (target_duplicate.source_column is not null
+                and target_duplicate.lastupdated >= source_dv.lastupdated)
+              then
+              -- delete source
+              delete from datavalue
+                where dataelementid = source_dv.dataelementid
+                and periodid = source_dv.periodid
+                and sourceid = source_dv.sourceid
+                and attributeoptioncomboid = source_dv.attributeoptioncomboid
+                and categoryoptioncomboid = source_dv.categoryoptioncomboid;
+
+            -- target duplicate found and source has latest lastUpdated value
+            elsif (target_duplicate.source_column is not null
+                and target_duplicate.lastupdated < source_dv.lastupdated)
+              then
+              -- delete target
+              delete from datavalue
+                where dataelementid = target_duplicate.dataelementid
+                and periodid = target_duplicate.periodid
+                and sourceid = target_duplicate.sourceid
+                and attributeoptioncomboid = target_duplicate.attributeoptioncomboid
+                and categoryoptioncomboid = target_duplicate.categoryoptioncomboid;
+
+              -- update source with target
+              update datavalue
+                set source_column = target_id
+                where dataelementid = source_dv.dataelementid
+                and periodid = source_dv.periodid
+                and sourceid = source_dv.sourceid
+                and attributeoptioncomboid = source_dv.attributeoptioncomboid
+                and categoryoptioncomboid = source_dv.categoryoptioncomboid;
+
+            else
+              -- no target duplicate found, update source with target id
+              update datavalue
+                set source_column = target_id
+                where dataelementid = source_dv.dataelementid
+                and periodid = source_dv.periodid
+                and sourceid = source_dv.sourceid
+                and attributeoptioncomboid = source_dv.attributeoptioncomboid
+                and categoryoptioncomboid = source_dv.categoryoptioncomboid;
+
+            end if;
+
+            end loop;
+        end;
+        $$
+        language plpgsql;
+        """
+            .formatted(
+                targetId, sourceIds.stream().map(String::valueOf).collect(Collectors.joining(",")));
+
+    if (mergeType.equals(DataValueMergeType.DATA_ELEMENT)) {
+      return sql.replace("source_column", "dataelementid")
+          .replace("data_element", "target_id")
+          .replace("cat_opt_combo", "source_dv.categoryoptioncomboid")
+          .replace("attr_opt_combo", "source_dv.attributeoptioncomboid");
+    } else if (mergeType.equals(DataValueMergeType.CATEGORY_OPTION_COMBO)) {
+      return sql.replace("source_column", "categoryoptioncomboid")
+          .replace("data_element", "source_dv.dataelementid")
+          .replace("cat_opt_combo", "target_id")
+          .replace("attr_opt_combo", "source_dv.attributeoptioncomboid");
+    } else if (mergeType.equals(DataValueMergeType.ATTRIBUTE_OPTION_COMBO)) {
+      return sql.replace("source_column", "attributeoptioncomboid")
+          .replace("data_element", "source_dv.dataelementid")
+          .replace("cat_opt_combo", "source_dv.categoryoptioncomboid")
+          .replace("attr_opt_combo", "target_id");
+    }
+    // if SQL params haven't been replaced there's no point trying to execute a bad SQL query
+    throw new IllegalArgumentException(
+        "Error while trying to construct SQL for data value merge for " + mergeType);
+  }
+
+  private enum DataValueMergeType {
+    DATA_ELEMENT,
+    CATEGORY_OPTION_COMBO,
+    ATTRIBUTE_OPTION_COMBO
   }
 }

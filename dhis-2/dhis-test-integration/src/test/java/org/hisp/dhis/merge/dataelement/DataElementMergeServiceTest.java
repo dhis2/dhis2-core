@@ -27,21 +27,23 @@
  */
 package org.hisp.dhis.merge.dataelement;
 
+import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUidsNonNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -70,7 +72,9 @@ import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationStore;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.MergeReport;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorStore;
 import org.hisp.dhis.indicator.IndicatorType;
@@ -112,9 +116,12 @@ import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.export.event.EventChangeLog;
+import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
-import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLog;
-import org.hisp.dhis.tracker.export.event.TrackedEntityDataValueChangeLogQueryParams;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -208,6 +215,11 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
     program = createProgram('q');
     identifiableObjectManager.save(program);
+
+    User user = userService.getUserByUsername("admin");
+    user.setOrganisationUnits(Set.of(ou1, ou2, ou3));
+    userService.updateUser(user);
+    injectSecurityContextUser(user);
   }
 
   @Test
@@ -1267,7 +1279,9 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
       "Event eventDataValues references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void eventMergeTest() throws ConflictException {
     // given
-    TrackedEntity trackedEntity = createTrackedEntity(ou1);
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    identifiableObjectManager.save(trackedEntityType);
+    TrackedEntity trackedEntity = createTrackedEntity(ou1, trackedEntityType);
     identifiableObjectManager.save(trackedEntity);
     Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
     identifiableObjectManager.save(enrollment);
@@ -1318,13 +1332,35 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
     // when
     MergeReport report = dataElementMergeService.processMerge(mergeParams);
+    entityManager.flush();
+    entityManager.clear();
 
     // then
     List<Event> eventSources =
-        eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(
-            List.of(deSource1.getUid(), deSource2.getUid()));
+        eventStore.getAll().stream()
+            .filter(
+                e -> {
+                  Set<String> collect =
+                      e.getEventDataValues().stream()
+                          .map(EventDataValue::getDataElement)
+                          .collect(Collectors.toSet());
+                  return !Collections.disjoint(
+                      collect, Set.of(deSource1.getUid(), deSource2.getUid()));
+                })
+            .toList();
+
     List<Event> targetEvents =
-        eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(List.of(deTarget.getUid()));
+        eventStore.getAll().stream()
+            .filter(
+                e -> {
+                  Set<String> collect =
+                      e.getEventDataValues().stream()
+                          .map(EventDataValue::getDataElement)
+                          .collect(Collectors.toSet());
+                  return !Collections.disjoint(collect, Set.of(deTarget.getUid()));
+                })
+            .toList();
+
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     Map<Boolean, List<EventDataValue>> allTargetEventDataValues =
@@ -1352,7 +1388,10 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
       "Event eventDataValues references with source DataElements are deleted when using DISCARD merge strategy")
   void eventMergeDiscardTest() throws ConflictException {
     // given
-    TrackedEntity trackedEntity = createTrackedEntity(ou1);
+
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    identifiableObjectManager.save(trackedEntityType);
+    TrackedEntity trackedEntity = createTrackedEntity(ou1, trackedEntityType);
     identifiableObjectManager.save(trackedEntity);
     Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
     identifiableObjectManager.save(enrollment);
@@ -1404,15 +1443,44 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
     // when
     MergeReport report = dataElementMergeService.processMerge(mergeParams);
+    entityManager.flush();
+    entityManager.clear();
 
     // then
     List<Event> eventSources =
-        eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(
-            List.of(deSource1.getUid(), deSource2.getUid()));
+        eventStore.getAll().stream()
+            .filter(
+                e -> {
+                  Set<String> collect =
+                      e.getEventDataValues().stream()
+                          .map(EventDataValue::getDataElement)
+                          .collect(Collectors.toSet());
+                  return !Collections.disjoint(
+                      collect, Set.of(deSource1.getUid(), deSource2.getUid()));
+                })
+            .toList();
     List<Event> targetEvents =
-        eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(List.of(deTarget.getUid()));
+        eventStore.getAll().stream()
+            .filter(
+                e -> {
+                  Set<String> collect =
+                      e.getEventDataValues().stream()
+                          .map(EventDataValue::getDataElement)
+                          .collect(Collectors.toSet());
+                  return !Collections.disjoint(collect, Set.of(deTarget.getUid()));
+                })
+            .toList();
     List<Event> randomEvents =
-        eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(List.of(deRandom.getUid()));
+        eventStore.getAll().stream()
+            .filter(
+                e -> {
+                  Set<String> collect =
+                      e.getEventDataValues().stream()
+                          .map(EventDataValue::getDataElement)
+                          .collect(Collectors.toSet());
+                  return !Collections.disjoint(collect, Set.of(deRandom.getUid()));
+                })
+            .toList();
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     Map<Boolean, List<EventDataValue>> allTargetEventDataValues =
@@ -1426,7 +1494,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(
         1,
         allTargetEventDataValues.get(false).size(),
-        "1 unrelated EventDataValues are still present");
+        "1 unrelated EventDataValue is still present");
 
     assertFalse(report.hasErrorMessages());
     assertEquals(0, eventSources.size(), "Expect 0 entries with source data element refs");
@@ -1442,10 +1510,13 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "Event eventDataValues references to source DataElements are replaced with target DataElement, source DataElements are deleted")
+      "Last updated Event eventDataValues are kept when merging using LAST_UPDATED, source DataElements are deleted")
   void eventMergeSourcesDeletedTest() throws ConflictException {
     // given
-    TrackedEntity trackedEntity = createTrackedEntity(ou1);
+
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    identifiableObjectManager.save(trackedEntityType);
+    TrackedEntity trackedEntity = createTrackedEntity(ou1, trackedEntityType);
     identifiableObjectManager.save(trackedEntity);
     Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
     identifiableObjectManager.save(enrollment);
@@ -1462,10 +1533,15 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     e4.setAttributeOptionCombo(coc1);
 
     EventDataValue edv1 = new EventDataValue(deSource1.getUid(), "value1");
+    edv1.setLastUpdated(DateUtils.parseDate("2024-08-13"));
     EventDataValue edv11 = new EventDataValue(deSource1.getUid(), "value11");
+    edv11.setLastUpdated(DateUtils.parseDate("2024-08-16"));
     EventDataValue edv2 = new EventDataValue(deSource2.getUid(), "value2");
+    edv2.setLastUpdated(DateUtils.parseDate("2024-12-16"));
     EventDataValue edv3 = new EventDataValue(deTarget.getUid(), "value3");
+    edv3.setLastUpdated(DateUtils.parseDate("2024-10-16"));
     EventDataValue edv4 = new EventDataValue(deRandom.getUid(), "value4");
+    edv4.setLastUpdated(DateUtils.parseDate("2024-11-16"));
     DataElement anotherDe1 = createDataElement('q');
     DataElement anotherDe2 = createDataElement('r');
     identifiableObjectManager.save(List.of(anotherDe1, anotherDe2));
@@ -1497,13 +1573,33 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
     // when
     MergeReport report = dataElementMergeService.processMerge(mergeParams);
+    entityManager.flush();
+    entityManager.clear();
 
     // then
     List<Event> eventSources =
-        eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(
-            List.of(deSource1.getUid(), deSource2.getUid()));
+        eventStore.getAll().stream()
+            .filter(
+                e -> {
+                  Set<String> collect =
+                      e.getEventDataValues().stream()
+                          .map(EventDataValue::getDataElement)
+                          .collect(Collectors.toSet());
+                  return !Collections.disjoint(
+                      collect, Set.of(deSource1.getUid(), deSource2.getUid()));
+                })
+            .toList();
     List<Event> targetEvents =
-        eventStore.getAllWithEventDataValuesRootKeysContainingAnyOf(List.of(deTarget.getUid()));
+        eventStore.getAll().stream()
+            .filter(
+                e -> {
+                  Set<String> collect =
+                      e.getEventDataValues().stream()
+                          .map(EventDataValue::getDataElement)
+                          .collect(Collectors.toSet());
+                  return !Collections.disjoint(collect, Set.of(deTarget.getUid()));
+                })
+            .toList();
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     Map<Boolean, List<EventDataValue>> allTargetEventDataValues =
@@ -1512,6 +1608,20 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
             .collect(
                 Collectors.partitioningBy(edv -> edv.getDataElement().equals(deTarget.getUid())));
 
+    assertTrue(
+        allTargetEventDataValues.get(true).stream()
+            .map(EventDataValue::getLastUpdated)
+            .collect(Collectors.toSet())
+            .containsAll(
+                Set.of(DateUtils.parseDate("2024-12-16"), DateUtils.parseDate("2024-10-16"))),
+        "latest all merged data values have expected last updated dates");
+    assertTrue(
+        Collections.disjoint(
+            allTargetEventDataValues.get(true).stream()
+                .map(EventDataValue::getLastUpdated)
+                .collect(Collectors.toSet()),
+            Set.of(DateUtils.parseDate("2024-08-13"), DateUtils.parseDate("2024-08-16"))),
+        "earlier data values are not present");
     assertEquals(
         3, allTargetEventDataValues.get(true).size(), "3 target EventDataValues are present");
     assertEquals(
@@ -2279,92 +2389,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   // ------------------------
   @Test
   @DisplayName(
-      "Non-duplicate DataValues with references to source DataElements are replaced with target DataElement using LAST_UPDATED strategy")
-  void dataValueMergeLastUpdatedTest() throws ConflictException {
-    // given
-    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
-    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
-    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
-    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    periodService.addPeriod(p1);
-    periodService.addPeriod(p2);
-    periodService.addPeriod(p3);
-
-    DataValue dv1 = createDataValue(deSource1, p1, ou1, "value1", coc1);
-    DataValue dv2 = createDataValue(deSource2, p2, ou1, "value2", coc1);
-    DataValue dv3 = createDataValue(deTarget, p3, ou1, "value3", coc1);
-
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
-
-    // params
-    MergeParams mergeParams = getMergeParams();
-
-    // when
-    MergeReport report = dataElementMergeService.processMerge(mergeParams);
-
-    // then
-    List<DataValue> sourceItems =
-        dataValueStore.getAllDataValuesByDataElement(List.of(deSource1, deSource2));
-    List<DataValue> targetItems = dataValueStore.getAllDataValuesByDataElement(List.of(deTarget));
-
-    List<DataElement> allDataElements = dataElementService.getAllDataElements();
-
-    assertMergeSuccessfulSourcesNotDeleted(report, sourceItems, targetItems, allDataElements);
-  }
-
-  @Test
-  @DisplayName(
-      "Duplicate DataValues with references to source DataElements are replaced with target DataElement using LAST_UPDATED strategy")
-  void duplicateDataValueMergeLastUpdatedTest() throws ConflictException {
-    // given
-    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
-    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    periodService.addPeriod(p1);
-
-    // data values have the same (period, orgUnit, coc, aoc) triggering duplicate merge path
-    DataValue dv1 = createDataValue(deSource1, p1, ou1, "value1", coc1);
-    dv1.setLastUpdated(DateUtils.parseDate("2024-6-8"));
-    DataValue dv2 = createDataValue(deSource2, p1, ou1, "value2", coc1);
-    dv2.setLastUpdated(DateUtils.parseDate("2021-6-18"));
-    DataValue dv3 = createDataValue(deTarget, p1, ou1, "value3", coc1);
-    dv3.setLastUpdated(DateUtils.parseDate("2022-4-15"));
-
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
-
-    // params
-    MergeParams mergeParams = getMergeParams();
-
-    // when
-    MergeReport report = dataElementMergeService.processMerge(mergeParams);
-
-    // then there should be no source data values present
-    List<DataValue> sourceItems =
-        dataValueStore.getAllDataValuesByDataElement(List.of(deSource1, deSource2));
-    // and only 1 target data value (as 3 duplicates merged using last updated value)
-    List<DataValue> targetItems = dataValueStore.getAllDataValuesByDataElement(List.of(deTarget));
-
-    List<DataElement> allDataElements = dataElementService.getAllDataElements();
-
-    assertFalse(report.hasErrorMessages());
-    assertEquals(0, sourceItems.size(), "Expect 0 entries with source data element refs");
-    assertEquals(1, targetItems.size(), "Expect 1 entry with target data element refs");
-    assertEquals(
-        DateUtils.parseDate("2024-6-8"),
-        targetItems.get(0).getLastUpdated(),
-        "It should be the latest lastUpdated value from duplicate data values");
-    assertEquals(4, allDataElements.size(), "Expect 4 data elements present");
-    assertTrue(allDataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
-  }
-
-  @Test
-  @DisplayName(
-      "DataValues with references to source DataElements are replaced with target DataElement using DISCARD strategy")
+      "DataValues with references to source DataElements are deleted when using DISCARD strategy")
   void dataValueMergeDiscardTest() throws ConflictException {
     // given
     Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
@@ -2394,8 +2419,16 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
     // then
     List<DataValue> sourceItems =
-        dataValueStore.getAllDataValuesByDataElement(List.of(deSource1, deSource2));
-    List<DataValue> targetItems = dataValueStore.getAllDataValuesByDataElement(List.of(deTarget));
+        dataValueStore.getAllDataValues().stream()
+            .filter(
+                dv ->
+                    Set.of(deSource1.getUid(), deSource2.getUid())
+                        .contains(dv.getDataElement().getUid()))
+            .toList();
+    List<DataValue> targetItems =
+        dataValueStore.getAllDataValues().stream()
+            .filter(dv -> dv.getDataElement().getUid().equals(deTarget.getUid()))
+            .toList();
 
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
@@ -2404,46 +2437,6 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(1, targetItems.size(), "Expect 1 entry with target data element ref only");
     assertEquals(4, allDataElements.size(), "Expect 4 data elements present");
     assertTrue(allDataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
-  }
-
-  @Test
-  @DisplayName(
-      "DataValues with references to source DataElements are replaced with target DataElement, source DataElements are deleted")
-  void dataValueMergeSourcesDeletedTest() throws ConflictException {
-    // given
-    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
-    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p2 = createPeriod(DateUtils.parseDate("2024-2-4"), DateUtils.parseDate("2024-2-4"));
-    p2.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    Period p3 = createPeriod(DateUtils.parseDate("2024-3-4"), DateUtils.parseDate("2024-3-4"));
-    p3.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    periodService.addPeriod(p1);
-    periodService.addPeriod(p2);
-    periodService.addPeriod(p3);
-
-    DataValue dv1 = createDataValue(deSource1, p1, ou1, "value1", coc1);
-    DataValue dv2 = createDataValue(deSource2, p2, ou1, "value2", coc1);
-    DataValue dv3 = createDataValue(deTarget, p3, ou1, "value3", coc1);
-
-    dataValueStore.addDataValue(dv1);
-    dataValueStore.addDataValue(dv2);
-    dataValueStore.addDataValue(dv3);
-
-    // params
-    MergeParams mergeParams = getMergeParams();
-    mergeParams.setDeleteSources(true);
-
-    // when
-    MergeReport report = dataElementMergeService.processMerge(mergeParams);
-
-    // then
-    List<DataValue> sourceItems =
-        dataValueStore.getAllDataValuesByDataElement(List.of(deSource1, deSource2));
-    List<DataValue> targetItems = dataValueStore.getAllDataValuesByDataElement(List.of(deTarget));
-
-    List<DataElement> allDataElements = dataElementService.getAllDataElements();
-
-    assertMergeSuccessfulSourcesDeleted(report, sourceItems, targetItems, allDataElements);
   }
 
   // ------------------------
@@ -2542,14 +2535,16 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   }
 
   // --------------------------------------
-  // -- TrackedEntityDataValueChangeLog --
+  // -- EventChangeLog --
   // --------------------------------------
   @Test
   @DisplayName(
-      "TrackedEntityDataValueChangeLog with references to source DataElements are not changed or deleted when sources not deleted")
-  void trackedEntityDataValueChangeLogMergeTest() throws ConflictException {
+      "EventChangeLogs with references to source DataElements are not changed or deleted when sources not deleted")
+  void eventChangeLogMergeTest() throws ConflictException, ForbiddenException, NotFoundException {
     // given
-    TrackedEntity trackedEntity = createTrackedEntity(ou1);
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    identifiableObjectManager.save(trackedEntityType);
+    TrackedEntity trackedEntity = createTrackedEntity(ou1, trackedEntityType);
     identifiableObjectManager.save(trackedEntity);
     Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
     identifiableObjectManager.save(enrollment);
@@ -2558,18 +2553,14 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     Event e = createEvent(stage, enrollment, ou1);
     e.setAttributeOptionCombo(coc1);
     identifiableObjectManager.save(e);
+    EventChangeLogOperationParams operationParams = EventChangeLogOperationParams.builder().build();
+    PageParams pageParams = new PageParams(1, 50, false);
 
-    TrackedEntityDataValueChangeLog tedvcl1 = createTrackedEntityDataValueAudit(e, deSource1, "1");
-    TrackedEntityDataValueChangeLog tedvcl2 = createTrackedEntityDataValueAudit(e, deSource1, "2");
-    TrackedEntityDataValueChangeLog tedvcl3 = createTrackedEntityDataValueAudit(e, deSource2, "1");
-    TrackedEntityDataValueChangeLog tedvcl4 = createTrackedEntityDataValueAudit(e, deSource2, "2");
-    TrackedEntityDataValueChangeLog tedvcl5 = createTrackedEntityDataValueAudit(e, deTarget, "1");
-
-    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl1);
-    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl2);
-    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl3);
-    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl4);
-    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl5);
+    addEventChangeLog(e, deSource1, "1");
+    addEventChangeLog(e, deSource1, "2");
+    addEventChangeLog(e, deSource2, "1");
+    addEventChangeLog(e, deSource2, "2");
+    addEventChangeLog(e, deTarget, "1");
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -2578,31 +2569,38 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
-    TrackedEntityDataValueChangeLogQueryParams sourceTeDvChangeLogQuery =
-        getTeQueryParams(e, List.of(deSource1, deSource2));
-    TrackedEntityDataValueChangeLogQueryParams targeteDvChangeLogQuery =
-        getTeQueryParams(e, List.of(deTarget));
+    List<EventChangeLog> sourceEventChangeLogs =
+        filterByDataElement(
+            eventChangeLogService
+                .getEventChangeLog(UID.of(e.getUid()), operationParams, pageParams)
+                .getItems(),
+            Set.of(deSource1.getUid(), deSource2.getUid()));
 
-    List<TrackedEntityDataValueChangeLog> sourceAudits =
-        eventChangeLogService.getTrackedEntityDataValueChangeLogs(sourceTeDvChangeLogQuery);
-    List<TrackedEntityDataValueChangeLog> targetAudits =
-        eventChangeLogService.getTrackedEntityDataValueChangeLogs(targeteDvChangeLogQuery);
+    List<EventChangeLog> targetEventChangeLogs =
+        filterByDataElement(
+            eventChangeLogService
+                .getEventChangeLog(UID.of(e.getUid()), operationParams, pageParams)
+                .getItems(),
+            Set.of(deTarget.getUid()));
 
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertFalse(report.hasErrorMessages());
-    assertEquals(4, sourceAudits.size(), "Expect 4 entries with source data element refs");
-    assertEquals(1, targetAudits.size(), "Expect 1 entry with target data element ref");
+    assertEquals(4, sourceEventChangeLogs.size(), "Expect 4 entries with source data element refs");
+    assertEquals(1, targetEventChangeLogs.size(), "Expect 1 entry with target data element ref");
     assertEquals(4, allDataElements.size(), "Expect 4 data elements present");
     assertTrue(allDataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
   }
 
   @Test
   @DisplayName(
-      "TrackedEntityDataValueChangeLog with references to source DataElements are deleted when sources are deleted")
-  void trackedEntityDataValueChangeLogMergeDeletedTest() throws ConflictException {
+      "TrackedEntityChangeLogs with references to source DataElements are deleted when sources are deleted")
+  void trackedEntityChangeLogMergeDeletedTest()
+      throws ConflictException, ForbiddenException, NotFoundException {
     // given
-    TrackedEntity trackedEntity = createTrackedEntity(ou1);
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    identifiableObjectManager.save(trackedEntityType);
+    TrackedEntity trackedEntity = createTrackedEntity(ou1, trackedEntityType);
     identifiableObjectManager.save(trackedEntity);
     Enrollment enrollment = createEnrollment(program, trackedEntity, ou1);
     identifiableObjectManager.save(enrollment);
@@ -2611,18 +2609,14 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     Event e = createEvent(stage, enrollment, ou1);
     e.setAttributeOptionCombo(coc1);
     identifiableObjectManager.save(e);
+    EventChangeLogOperationParams operationParams = EventChangeLogOperationParams.builder().build();
+    PageParams pageParams = new PageParams(1, 50, false);
 
-    TrackedEntityDataValueChangeLog tedvcl1 = createTrackedEntityDataValueAudit(e, deSource1, "1");
-    TrackedEntityDataValueChangeLog tedvcl2 = createTrackedEntityDataValueAudit(e, deSource1, "2");
-    TrackedEntityDataValueChangeLog tedvcl3 = createTrackedEntityDataValueAudit(e, deSource2, "1");
-    TrackedEntityDataValueChangeLog tedvcl4 = createTrackedEntityDataValueAudit(e, deSource2, "2");
-    TrackedEntityDataValueChangeLog tedvcl5 = createTrackedEntityDataValueAudit(e, deTarget, "1");
-
-    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl1);
-    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl2);
-    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl3);
-    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl4);
-    eventChangeLogService.addTrackedEntityDataValueChangeLog(tedvcl5);
+    addEventChangeLog(e, deSource1, "1");
+    addEventChangeLog(e, deSource1, "2");
+    addEventChangeLog(e, deSource2, "1");
+    addEventChangeLog(e, deSource2, "2");
+    addEventChangeLog(e, deTarget, "1");
 
     // params
     MergeParams mergeParams = getMergeParams();
@@ -2632,43 +2626,40 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     MergeReport report = dataElementMergeService.processMerge(mergeParams);
 
     // then
-    TrackedEntityDataValueChangeLogQueryParams sourceTeDvChangeLogQuery =
-        getTeQueryParams(e, List.of(deSource1, deSource2));
-    TrackedEntityDataValueChangeLogQueryParams targeteDvChangeLogQuery =
-        getTeQueryParams(e, List.of(deTarget));
+    List<EventChangeLog> sourceEventChangeLogs =
+        filterByDataElement(
+            eventChangeLogService
+                .getEventChangeLog(UID.of(e.getUid()), operationParams, pageParams)
+                .getItems(),
+            Set.of(deSource1.getUid(), deSource2.getUid()));
 
-    List<TrackedEntityDataValueChangeLog> sourceAudits =
-        eventChangeLogService.getTrackedEntityDataValueChangeLogs(sourceTeDvChangeLogQuery);
-    List<TrackedEntityDataValueChangeLog> targetAudits =
-        eventChangeLogService.getTrackedEntityDataValueChangeLogs(targeteDvChangeLogQuery);
+    List<EventChangeLog> targetEventChangeLogs =
+        filterByDataElement(
+            eventChangeLogService
+                .getEventChangeLog(UID.of(e.getUid()), operationParams, pageParams)
+                .getItems(),
+            Set.of(deTarget.getUid()));
 
     List<DataElement> allDataElements = dataElementService.getAllDataElements();
 
     assertFalse(report.hasErrorMessages());
-    assertEquals(0, sourceAudits.size(), "Expect 0 entries with source data element refs");
-    assertEquals(1, targetAudits.size(), "Expect 1 entry with target data element ref");
+    assertEquals(0, sourceEventChangeLogs.size(), "Expect 0 entries with source data element refs");
+    assertEquals(1, targetEventChangeLogs.size(), "Expect 1 entry with target data element ref");
     assertEquals(2, allDataElements.size(), "Expect 2 data elements present");
     assertTrue(allDataElements.contains(deTarget));
     assertFalse(allDataElements.containsAll(List.of(deSource1, deSource2)));
   }
 
-  private TrackedEntityDataValueChangeLog createTrackedEntityDataValueAudit(
-      Event e, DataElement de, String value) {
-    TrackedEntityDataValueChangeLog dva = new TrackedEntityDataValueChangeLog();
-    dva.setEvent(e);
-    dva.setDataElement(de);
-    dva.setValue(value);
-    dva.setAuditType(ChangeLogType.CREATE);
-    dva.setCreated(new Date());
-    dva.setProvidedElsewhere(false);
-    return dva;
+  private void addEventChangeLog(Event event, DataElement dataElement, String currentValue) {
+    eventChangeLogService.addEventChangeLog(
+        event, dataElement, "", currentValue, CREATE, getAdminUser().getUsername());
   }
 
   private DataValueAudit createDataValueAudit(DataElement de, String value, Period p) {
     DataValueAudit dva = new DataValueAudit();
     dva.setDataElement(de);
     dva.setValue(value);
-    dva.setAuditType(ChangeLogType.CREATE);
+    dva.setAuditType(AuditOperationType.CREATE);
     dva.setCreated(new Date());
     dva.setCategoryOptionCombo(coc1);
     dva.setAttributeOptionCombo(coc1);
@@ -2680,13 +2671,6 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   private DataValueAuditQueryParams getQueryParams(
       List<DataElement> dataElements, List<Period> periods) {
     return new DataValueAuditQueryParams().setDataElements(dataElements).setPeriods(periods);
-  }
-
-  private TrackedEntityDataValueChangeLogQueryParams getTeQueryParams(
-      Event e, List<DataElement> dataElements) {
-    return new TrackedEntityDataValueChangeLogQueryParams()
-        .setEvents(List.of(e))
-        .setDataElements(dataElements);
   }
 
   private void assertMergeSuccessfulSourcesNotDeleted(
@@ -2761,5 +2745,12 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
   private Predictor createPredictor(char id, DataElement de) {
     return createPredictor(id, de, deRandom, deRandom);
+  }
+
+  private List<EventChangeLog> filterByDataElement(
+      List<EventChangeLog> changeLogs, Set<String> dataElements) {
+    return changeLogs.stream()
+        .filter(cl -> dataElements.contains(cl.getDataElement().getUid()))
+        .toList();
   }
 }

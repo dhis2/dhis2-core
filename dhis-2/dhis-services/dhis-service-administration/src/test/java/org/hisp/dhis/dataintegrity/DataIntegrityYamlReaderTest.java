@@ -57,7 +57,7 @@ class DataIntegrityYamlReaderTest {
 
     List<DataIntegrityCheck> checks = new ArrayList<>();
     readYaml(checks, "data-integrity-checks.yaml", "data-integrity-checks", CLASS_PATH);
-    assertEquals(83, checks.size());
+    assertEquals(88, checks.size());
 
     // Names should be unique
     List<String> allNames = checks.stream().map(DataIntegrityCheck::getName).toList();
@@ -75,6 +75,11 @@ class DataIntegrityYamlReaderTest {
     // Assert that all "codes" are unique.
     List<String> codeList = checks.stream().map(DataIntegrityCheck::getCode).sorted().toList();
     assertEquals(codeList.size(), Set.copyOf(codeList).size());
+
+    // Assert that all the descriptions are unique.
+    List<String> nameList =
+        checks.stream().map(DataIntegrityCheck::getDescription).sorted().toList();
+    assertEquals(nameList.size(), Set.copyOf(nameList).size());
 
     // Assert that codes consist of upper case letter and numbers only
     String regEx = "^[A-Z0-9]+$";
@@ -163,6 +168,44 @@ class DataIntegrityYamlReaderTest {
             "data integrity check translations should contain " + translationKey);
       }
     }
+  }
+
+  @Test
+  void testTranslationsAreNotDuplicated() {
+    ResourceBundle resourceBundle = ResourceBundle.getBundle("i18n_global");
+
+    List<String> translationsSuffix = new ArrayList<>();
+    /* Require the name only for now, but we can add the other translations strings later when needed.
+    e.g. description, introduction, recommendation, section
+     */
+    translationsSuffix.add("name");
+
+    List<DataIntegrityCheck> checks = new ArrayList<>();
+    readYaml(checks, "data-integrity-checks.yaml", "data-integrity-checks", CLASS_PATH);
+    // Check for names
+    for (DataIntegrityCheck check : checks) {
+      for (String suffix : translationsSuffix) {
+        String translationKey = "data_integrity." + check.getName() + "." + suffix;
+        // Get the translation from the key
+        String translation = resourceBundle.getString(translationKey);
+        // Count the number of times the translation appears in the resource bundle
+        long count =
+            resourceBundle.keySet().stream()
+                .filter(key -> resourceBundle.getString(key).equals(translation))
+                .count();
+        // If the translation appears more than once, fail the test
+        assertEquals(1, count, "Duplicate translation found for " + translationKey);
+      }
+    }
+
+    // Assert that all the keys and strings are unique
+    List<String> keys =
+        resourceBundle.keySet().stream()
+            .filter(key -> key.startsWith("data_integrity") && key.endsWith("name"))
+            .toList();
+    assertEquals(keys.size(), Set.copyOf(keys).size());
+    assertEquals(
+        keys.size(), Set.copyOf(keys.stream().map(resourceBundle::getString).toList()).size());
   }
 
   private void readYaml(

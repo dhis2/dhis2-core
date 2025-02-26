@@ -25,9 +25,11 @@
 
     <property name="created" type="timestamp" not-null="true" />
 
-    <property name="surname" not-null="false" length="160" />
+    <property name="surname" not-null="true" length="160" />
 
-    <property name="firstName" not-null="false" length="160" />
+    <property name="firstName" not-null="true" length="160" />
+
+    <property name="name" length="321" insert="false" update="false" />
 
     <property name="email" length="160" />
 
@@ -122,6 +124,14 @@
     <property name="password" length="60" column="password" not-null="false" />
 
     <property name="secret" type="text" not-null="false" />
+
+    <property name="twoFactorType" column="twofactortype" length="50" not-null="false"  >
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.security.twofa.TwoFactorType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
 
     <property name="externalAuth" column="externalauth" />
 

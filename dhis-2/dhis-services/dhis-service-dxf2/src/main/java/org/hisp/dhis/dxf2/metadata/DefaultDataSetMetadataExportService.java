@@ -72,7 +72,6 @@ import org.hisp.dhis.schema.descriptors.IndicatorSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.OptionSetSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -135,8 +134,6 @@ public class DefaultDataSetMetadataExportService implements DataSetMetadataExpor
   private final DataSetService dataSetService;
 
   private final ExpressionService expressionService;
-
-  private final UserService userService;
 
   @Override
   public ObjectNode getDataSetMetadata() {

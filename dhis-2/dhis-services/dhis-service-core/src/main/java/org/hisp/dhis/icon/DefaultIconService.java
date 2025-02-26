@@ -40,6 +40,7 @@ import java.util.Date;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
@@ -114,11 +115,13 @@ public class DefaultIconService implements IconService {
     try {
       FileResource fr = FileResource.ofKey(ICON, key, MEDIA_TYPE_SVG);
       fr.setUid(fileResourceId);
+      Optional<FileResource> existing = fileResourceService.findByStorageKey(fr.getStorageKey());
+      if (existing.isPresent()) fr = existing.get();
       fr.setAssigned(true);
       try (InputStream image = resource.getInputStream()) {
         fileResourceService.syncSaveFileResource(fr, image);
       }
-      return fileResourceId;
+      return fr.getUid();
     } catch (IOException ex) {
       ignoredAfterFailure.add(origin);
       throw new ConflictException("Failed to create default icon resource: " + ex.getMessage());

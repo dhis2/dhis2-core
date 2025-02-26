@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
@@ -202,11 +203,6 @@ public class TrackerObjectsMapper {
 
     dbEvent.setOccurredDate(DateUtils.fromInstant(event.getOccurredAt()));
     dbEvent.setScheduledDate(DateUtils.fromInstant(event.getScheduledAt()));
-    if (program.isRegistration()
-        && dbEvent.getScheduledDate() == null
-        && dbEvent.getOccurredDate() != null) {
-      dbEvent.setScheduledDate(dbEvent.getOccurredDate());
-    }
 
     dbEvent.setGeometry(event.getGeometry());
 
@@ -307,13 +303,18 @@ public class TrackerObjectsMapper {
       @Nonnull TrackerPreheat preheat,
       @Nonnull org.hisp.dhis.tracker.imports.domain.Note note,
       @Nonnull UserDetails user) {
+
+    return map(note, preheat.getUserByUid(user.getUid()).orElse(null));
+  }
+
+  public static @Nonnull Note map(
+      @Nonnull org.hisp.dhis.tracker.imports.domain.Note note, @Nullable User user) {
     Date now = new Date();
 
     Note dbNote = new Note();
     dbNote.setUid(note.getNote().getValue());
     dbNote.setCreated(now);
-    dbNote.setLastUpdated(now);
-    dbNote.setLastUpdatedBy(preheat.getUserByUid(user.getUid()).orElse(null));
+    dbNote.setLastUpdatedBy(user);
     dbNote.setCreator(note.getStoredBy());
     dbNote.setNoteText(note.getValue());
 

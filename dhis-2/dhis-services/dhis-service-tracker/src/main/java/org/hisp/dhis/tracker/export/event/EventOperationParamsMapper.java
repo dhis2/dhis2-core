@@ -89,7 +89,8 @@ class EventOperationParamsMapper {
         validateProgramStage(
             applyIfNotNull(operationParams.getProgramStage(), UID::getValue), user);
     TrackedEntity trackedEntity =
-        paramsValidator.validateTrackedEntity(operationParams.getTrackedEntity(), user);
+        paramsValidator.validateTrackedEntity(
+            operationParams.getTrackedEntity(), user, operationParams.isIncludeDeleted());
     OrganisationUnit orgUnit =
         validateRequestedOrgUnit(applyIfNotNull(operationParams.getOrgUnit(), UID::getValue), user);
     validateOrgUnitMode(operationParams.getOrgUnitMode(), program, user);
@@ -175,7 +176,7 @@ class EventOperationParamsMapper {
           "Organisation unit is specified but does not exist: " + orgUnitUid);
     }
 
-    if (!user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getPath())) {
+    if (!user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getStoredPath())) {
       throw new ForbiddenException(
           "Organisation unit is not part of your search scope: " + orgUnit.getUid());
     }

@@ -41,6 +41,7 @@ import static org.mockito.Mockito.when;
 import java.util.LinkedHashSet;
 import java.util.List;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -119,6 +120,16 @@ abstract class EventAnalyticsTest {
       ProgramStage withProgramStage, ValueType withQueryItemValueType) {
     return createRequestParamsWithFilter(
         withProgramStage, withQueryItemValueType, QueryOperator.GT, "10");
+  }
+
+  protected EventQueryParams createRequestParamsMeasureCriteria(
+      ProgramStage withProgramStage, ValueType withQueryItemValueType) {
+    EventQueryParams.Builder params =
+        new EventQueryParams.Builder(createRequestParams(withProgramStage, withQueryItemValueType));
+
+    params.addMeasureCriteria(MeasureFilter.GT, 10.0);
+    params.addMeasureCriteria(MeasureFilter.LT, 20.0);
+    return params.build();
   }
 
   protected EventQueryParams createRequestParamsWithFilter(
@@ -225,8 +236,7 @@ abstract class EventAnalyticsTest {
           RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
           repeatableStageParams.setDimension(
               withProgramStage.getUid() + "[-1]." + dataElementA.getUid());
-          repeatableStageParams.setStartIndex(-1);
-          repeatableStageParams.setCount(1);
+          repeatableStageParams.setIndex(-1);
           queryItem.setRepeatableStageParams(repeatableStageParams);
         }
       }

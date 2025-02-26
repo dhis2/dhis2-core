@@ -38,4 +38,28 @@ public interface JsonDataValue extends JsonObject {
   default String getValue() {
     return getString("value").string();
   }
+
+  default String getCreatedAt() {
+    return getString("createdAt").string();
+  }
+
+  default String getUpdatedAt() {
+    return getString("updatedAt").string();
+  }
+
+  default String getStoredBy() {
+    return getString("storedBy").string();
+  }
+
+  default boolean getProvidedElsewhere() {
+    return getBoolean("providedElsewhere").bool();
+  }
+
+  default JsonUser getCreatedBy() {
+    return get("createdBy").as(JsonUser.class);
+  }
+
+  default JsonUser getUpdatedBy() {
+    return get("updatedBy").as(JsonUser.class);
+  }
 }

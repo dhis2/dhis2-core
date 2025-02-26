@@ -39,7 +39,6 @@ import org.hisp.dhis.legend.LegendSet;
 import org.junit.jupiter.api.Test;
 
 class RenderableDataValueTest {
-
   @Test
   void testRender() {
     RenderableDataValue renderableDataValue =

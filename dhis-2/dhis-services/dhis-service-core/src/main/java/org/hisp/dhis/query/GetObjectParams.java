@@ -60,6 +60,11 @@ public class GetObjectParams {
    */
   private static final String FIELD_SPLIT = ",(?![^\\[\\]]*\\]|[^\\(\\)]*\\)|([a-zA-Z0-9]+,?)+\\))";
 
+  @OpenApi.Description(
+      """
+    Limit the response to specific field(s).\s
+    See [Metadata-field-filter](https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata.html#webapi_metadata_field_filter).
+    """)
   @OpenApi.Shared.Inline
   @OpenApi.Property(OpenApi.PropertyNames[].class)
   @JsonProperty

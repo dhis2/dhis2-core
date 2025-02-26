@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -62,13 +61,13 @@ import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
@@ -83,9 +82,23 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class JdbcAnalyticsTableManagerTest {
+  @Mock private IdentifiableObjectManager idObjectManager;
+
+  @Mock private OrganisationUnitService organisationUnitService;
+
+  @Mock private CategoryService categoryService;
+
   @Mock private SystemSettingsProvider settingsProvider;
 
   @Mock private SystemSettings settings;
+
+  @Mock private DataApprovalLevelService dataApprovalLevelService;
+
+  @Mock private ResourceTableService resourceTableService;
+
+  @Mock private AnalyticsTableHookService analyticsTableHookService;
+
+  @Mock private PartitionManager partitionManager;
 
   @Mock private JdbcTemplate jdbcTemplate;
 
@@ -93,29 +106,14 @@ class JdbcAnalyticsTableManagerTest {
 
   @Mock private PeriodDataProvider periodDataProvider;
 
-  @Spy private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
-  private JdbcAnalyticsTableManager subject;
+  @InjectMocks private JdbcAnalyticsTableManager subject;
 
   @BeforeEach
   public void setUp() {
     when(settingsProvider.getCurrentSettings()).thenReturn(settings);
     when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
-    subject =
-        new JdbcAnalyticsTableManager(
-            mock(IdentifiableObjectManager.class),
-            mock(OrganisationUnitService.class),
-            mock(CategoryService.class),
-            settingsProvider,
-            mock(DataApprovalLevelService.class),
-            mock(ResourceTableService.class),
-            mock(AnalyticsTableHookService.class),
-            mock(PartitionManager.class),
-            mock(DatabaseInfoProvider.class),
-            jdbcTemplate,
-            analyticsTableSettings,
-            periodDataProvider,
-            sqlBuilder);
   }
 
   @Test
@@ -316,7 +314,7 @@ class JdbcAnalyticsTableManagerTest {
 
     when(jdbcTemplate.queryForList(any())).thenReturn(List.of(Map.of("table_name", "analytic")));
 
-    Table swappedPartition = table.getTablePartitions().get(0).swapFromStaging();
+    Table swappedPartition = table.getTablePartitions().get(0).fromStaging();
     subject.swapTable(params, table);
     assertEquals("analytics_2023_temp", table.getTablePartitions().get(0).getName());
     assertEquals("analytics_2023", swappedPartition.getName());

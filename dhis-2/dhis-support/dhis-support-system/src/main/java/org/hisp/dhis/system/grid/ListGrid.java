@@ -503,11 +503,9 @@ public class ListGrid implements Grid, Serializable {
 
     if (grid.size() != columnValues.size()) {
       throw new IllegalStateException(
-          "Number of column values ("
-              + columnValues.size()
-              + ") is not equal to number of rows ("
-              + grid.size()
-              + ")");
+          String.format(
+              "Number of column values (%d) is not equal to number of rows (%d)",
+              columnValues.size(), grid.size()));
     }
 
     for (int i = 0; i < grid.size(); i++) {
@@ -526,11 +524,9 @@ public class ListGrid implements Grid, Serializable {
 
     if (grid.size() != columnValues.size()) {
       throw new IllegalStateException(
-          "Number of column values ("
-              + columnValues.size()
-              + ") is not equal to number of rows ("
-              + grid.size()
-              + ")");
+          String.format(
+              "Number of column values (%d) is not equal to number of rows (%d)",
+              columnValues.size(), grid.size()));
     }
 
     for (int i = 0; i < grid.size(); i++) {
@@ -657,7 +653,7 @@ public class ListGrid implements Grid, Serializable {
   public Grid limitGrid(int startPos, int endPos) {
     if (startPos < 0 || endPos < startPos || endPos > getHeight()) {
       throw new IllegalStateException(
-          "Illegal start / end pos: " + startPos + ", " + endPos + ", " + getHeight());
+          "Illegal start or end pos: " + startPos + ", " + endPos + ", " + getHeight());
     }
 
     grid = grid.subList(startPos, endPos);
@@ -813,8 +809,9 @@ public class ListGrid implements Grid, Serializable {
         header.setName(String.valueOf(headerMetaName));
       }
 
+      // Column cells
+
       if (header.isMeta()) {
-        // Column cells
 
         substituteMetaData(colIndex, colIndex, metaDataMap);
       }
@@ -1101,7 +1098,8 @@ public class ListGrid implements Grid, Serializable {
       row.addAll(orderedValues);
     }
 
-    // reposition columns in the row context structure
+    // Reposition columns in the row context structure
+
     Map<Integer, Map<String, Object>> orderedRowContext = new HashMap<>();
 
     for (Map.Entry<Integer, Map<String, Object>> rowContextEntry : rowContext.entrySet()) {
@@ -1113,7 +1111,8 @@ public class ListGrid implements Grid, Serializable {
           .forEach(
               key -> {
                 if (numberRegex.matcher(key).matches()) {
-                  // reindexing of columns
+                  // Reindexing of columns
+
                   orderedRowContextItems.put(
                       columnIndexes.get(Integer.parseInt(key)).toString(), ctxItem.get(key));
                 }
@@ -1151,12 +1150,9 @@ public class ListGrid implements Grid, Serializable {
     for (List<Object> row : grid) {
       if (rowLength != null && rowLength != row.size()) {
         throw new IllegalStateException(
-            "Grid rows do not have the same number of cells, previous: "
-                + rowLength
-                + ", this: "
-                + row.size()
-                + ", at row: "
-                + rowPos);
+            String.format(
+                "Grid rows do not have the same number of cells, previous: %d, this: %d, at row: %d",
+                rowLength, row.size(), rowPos));
       }
 
       rowPos++;
@@ -1177,7 +1173,7 @@ public class ListGrid implements Grid, Serializable {
   }
 
   // -------------------------------------------------------------------------
-  // toString
+  // ToString
   // -------------------------------------------------------------------------
 
   @Override

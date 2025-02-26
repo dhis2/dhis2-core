@@ -77,7 +77,6 @@ import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -171,7 +170,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
@@ -185,7 +183,6 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         resourceTableService,
         tableHookService,
         partitionManager,
-        databaseInfoProvider,
         jdbcTemplate,
         analyticsTableSettings,
         periodDataProvider,
@@ -343,38 +340,33 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     StringBuilder sql =
         new StringBuilder(replace("insert into ${tableName} (", Map.of("tableName", tableName)));
 
-    List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
+    List<AnalyticsTableColumn> dimensions = partition.getMasterTable().getDimensionColumns();
 
-    for (AnalyticsTableColumn col : columns) {
-      sql.append(quote(col.getName()) + ",");
-    }
-
-    sql = TextUtils.removeLastComma(sql).append(") select ");
-
-    for (AnalyticsTableColumn col : dimensions) {
-      sql.append(col.getSelectExpression() + ",");
-    }
+    sql.append(toCommaSeparated(columns, col -> quote(col.getName())));
+    sql.append(") select ");
+    sql.append(toCommaSeparated(dimensions, AnalyticsTableColumn::getSelectExpression));
+    sql.append(",");
 
     sql.append(
         replaceQualify(
             """
-            ${approvalSelectExpression} \
-            as approvallevel, \
-            ${valueExpression} * ps.daysno as daysxvalue, \
-            ps.daysno as daysno, \
-            ${valueExpression} as value, \
-            ${textValueExpression} as textvalue \
-            from ${datavalue} dv \
-            inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
-            inner join analytics_rs_dataelementstructure des on dv.dataelementid=des.dataelementid \
-            inner join analytics_rs_dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid \
-            inner join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid \
-            inner join analytics_rs_organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid \
-            inner join analytics_rs_categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid \
-            inner join analytics_rs_categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid \
-            inner join analytics_rs_categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid \
-            inner join analytics_rs_categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid\s""",
+        ${approvalSelectExpression} \
+        as approvallevel, \
+        ${valueExpression} * ps.daysno as daysxvalue, \
+        ps.daysno as daysno, \
+        ${valueExpression} as value, \
+        ${textValueExpression} as textvalue \
+        from ${datavalue} dv \
+        inner join analytics_rs_periodstructure ps on dv.periodid=ps.periodid \
+        inner join analytics_rs_dataelementstructure des on dv.dataelementid=des.dataelementid \
+        inner join analytics_rs_dataelementgroupsetstructure degs on dv.dataelementid=degs.dataelementid \
+        inner join analytics_rs_orgunitstructure ous on dv.sourceid=ous.organisationunitid \
+        inner join analytics_rs_organisationunitgroupsetstructure ougs on dv.sourceid=ougs.organisationunitid \
+        inner join analytics_rs_categorystructure dcs on dv.categoryoptioncomboid=dcs.categoryoptioncomboid \
+        inner join analytics_rs_categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid \
+        inner join analytics_rs_categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid \
+        inner join analytics_rs_categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid\s""",
             Map.of(
                 "approvalSelectExpression", approvalSelectExpression,
                 "valueExpression", valueExpression,
@@ -662,7 +654,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
         new StringBuilder(
             replaceQualify(
                 """
-                select distinct(extract(year from pes.startdate)) \
+                select distinct(year) \
                 from ${datavalue} dv \
                 inner join analytics_rs_periodstructure pes on dv.periodid=pes.periodid \
                 where pes.startdate is not null \

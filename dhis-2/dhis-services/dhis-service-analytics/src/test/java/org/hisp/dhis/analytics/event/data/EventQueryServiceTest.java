@@ -53,9 +53,9 @@ import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.analytics.tracker.MetadataItemsHandler;
 import org.hisp.dhis.analytics.tracker.SchemeIdHandler;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.user.SystemUser;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -85,7 +85,7 @@ class EventQueryServiceTest {
 
   @Mock private EventQueryPlanner queryPlanner;
 
-  @Mock private DatabaseInfoProvider databaseInfoProvider;
+  @Mock private SqlBuilder sqlBuilder;
 
   @Mock private SchemeIdResponseMapper schemeIdResponseMapper;
 

@@ -31,6 +31,7 @@ import static java.util.stream.Collectors.joining;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Order;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
@@ -50,6 +51,12 @@ import org.springframework.context.i18n.LocaleContextHolder;
  */
 public class JpaQueryUtils {
   public static final String HIBERNATE_CACHEABLE_HINT = "org.hibernate.cacheable";
+
+  public static Function<Root<?>, Order> getOrders(CriteriaBuilder builder, String field) {
+    Function<Root<?>, Order> order = root -> builder.asc(root.get(field));
+
+    return order;
+  }
 
   /**
    * Generate a String comparison Predicate base on input parameters.

@@ -99,8 +99,6 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfo;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
@@ -129,8 +127,6 @@ class JdbcEventAnalyticsTableManagerTest {
   @Mock private SystemSettingsProvider settingsProvider;
 
   @Mock private SystemSettings settings;
-
-  @Mock private DatabaseInfoProvider databaseInfoProvider;
 
   @Mock private JdbcTemplate jdbcTemplate;
 
@@ -174,7 +170,6 @@ class JdbcEventAnalyticsTableManagerTest {
   public void setUp() {
     today = Date.from(LocalDate.of(2019, 7, 6).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
-    when(databaseInfoProvider.getDatabaseInfo()).thenReturn(DatabaseInfo.builder().build());
     when(settingsProvider.getCurrentSettings()).thenReturn(settings);
     when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
   }
@@ -316,10 +311,15 @@ class JdbcEventAnalyticsTableManagerTest {
     assertThat(
         lastUpdated.getSelectExpression(),
         is(
-            "case when ev.lastupdatedatclient is not null then ev.lastupdatedatclient else ev.lastupdated end"));
+            """
+            case when ev.lastupdatedatclient is not null \
+            then ev.lastupdatedatclient else ev.lastupdated end"""));
     assertThat(
         created.getSelectExpression(),
-        is("case when ev.createdatclient is not null then ev.createdatclient else ev.created end"));
+        is(
+            """
+            case when ev.createdatclient is not null \
+            then ev.createdatclient else ev.created end"""));
   }
 
   @Test
@@ -357,8 +357,6 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Test
   void verifyGetTableWithDataElements() {
-    when(databaseInfoProvider.getDatabaseInfo())
-        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
     Program program = createProgram('A');
 
     DataElement d1 = createDataElement('Z', ValueType.TEXT, AggregationType.SUM);
@@ -379,42 +377,34 @@ class JdbcEventAnalyticsTableManagerTest {
     String aliasD2 =
         """
         case when eventdatavalues #>> '{deabcdefghP, value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$' \
-        then cast(eventdatavalues #>> '{deabcdefghP, value}' as double precision) else null end as "deabcdefghP\"""";
+        then cast(eventdatavalues #>> '{deabcdefghP, value}' as double precision) end as "deabcdefghP\"""";
     String aliasD3 =
         """
-            case when eventdatavalues #>> '{deabcdefghY, value}' = 'true' then 1 \
-            when eventdatavalues #>> '{deabcdefghY, value}' = 'false' then 0 else null end as "deabcdefghY\"""";
+        case when eventdatavalues #>> '{deabcdefghY, value}' = 'true' then 1 \
+        when eventdatavalues #>> '{deabcdefghY, value}' = 'false' then 0 else null end as "deabcdefghY\"""";
     String aliasD4 =
         """
         case when eventdatavalues #>> '{deabcdefghW, value}' ~* '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$' \
-        then cast(eventdatavalues #>> '{deabcdefghW, value}' as timestamp) else null end as "deabcdefghW\"""";
+        then cast(eventdatavalues #>> '{deabcdefghW, value}' as timestamp) end as "deabcdefghW\"""";
     String aliasD5 =
-        "(select ou.uid from \"organisationunit\" ou where ou.uid = "
-            + "eventdatavalues #>> '{"
-            + d5.getUid()
-            + ", value}' "
-            + ") as \""
-            + d5.getUid()
-            + "\"";
+        "eventdatavalues #>> '{" + d5.getUid() + ", value}' as \"" + d5.getUid() + "\"";
     String aliasD6 =
         """
         case when eventdatavalues #>> '{deabcdefghH, value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$' \
-        then cast(eventdatavalues #>> '{deabcdefghH, value}' as bigint) else null end as "deabcdefghH\"""";
+        then cast(eventdatavalues #>> '{deabcdefghH, value}' as bigint) end as "deabcdefghH\"""";
     String aliasD7 =
         """
         ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (eventdatavalues #>> '{deabcdefghU, value}') || ', "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}') as "deabcdefghU\"""";
     String aliasD5_geo =
         "(select ou.geometry from \"organisationunit\" ou where ou.uid = eventdatavalues #>> '{"
             + d5.getUid()
-            + ", value}' "
-            + ") as \""
+            + ", value}') as \""
             + d5.getUid()
             + "\"";
     String aliasD5_name =
         "(select ou.name from \"organisationunit\" ou where ou.uid = eventdatavalues #>> '{"
             + d5.getUid()
-            + ", value}' "
-            + ") as \""
+            + ", value}') as \""
             + d5.getUid()
             + "\"";
     AnalyticsTableUpdateParams params =
@@ -487,8 +477,6 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Test
   void verifyGetTableWithTrackedEntityAttribute() {
-    when(databaseInfoProvider.getDatabaseInfo())
-        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
     Program program = createProgram('A');
 
     TrackedEntityAttribute tea1 = rnd.nextObject(TrackedEntityAttribute.class);
@@ -509,10 +497,19 @@ class JdbcEventAnalyticsTableManagerTest {
     String aliasD1 =
         """
         eventdatavalues #>> '{deabcdefghZ, value}' as "deabcdefghZ\"""";
-    String aliasTea1 =
-        "(select %s from \"organisationunit\" ou where ou.uid = (select value from "
-            + "\"trackedentityattributevalue\" where trackedentityid=en.trackedentityid and "
-            + "trackedentityattributeid=%d)) as \"%s\"";
+    String aliasTeaUid = "%s.value";
+
+    String ouGeometryQuery =
+        String.format(
+            """
+            (select ou.geometry from "organisationunit" ou where ou.uid = %1$s.value) as %1$s""",
+            quote(tea1.getUid()));
+
+    String ouNameQuery =
+        String.format(
+            """
+            (select ou.name from "organisationunit" ou where ou.uid = %1$s.value) as %1$s""",
+            quote(tea1.getUid()));
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
@@ -539,24 +536,12 @@ class JdbcEventAnalyticsTableManagerTest {
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(59 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .addColumn(
-            d1.getUid(),
-            TEXT,
-            toSelectExpression(aliasD1, d1.getUid()),
-            Skip.SKIP) // ValueType.TEXT
-        .addColumn(
-            tea1.getUid(), TEXT, String.format(aliasTea1, "ou.uid", tea1.getId(), tea1.getUid()))
-        // Second Geometry column created from the OU column above
-        .addColumn(
-            tea1.getUid() + "_geom",
-            GEOMETRY,
-            String.format(aliasTea1, "ou.geometry", tea1.getId(), tea1.getUid()),
-            IndexType.GIST)
-        .addColumn(
-            tea1.getUid() + "_name",
-            TEXT,
-            String.format(aliasTea1, "ou.name", tea1.getId(), tea1.getUid()),
-            Skip.SKIP)
+        .addColumn(d1.getUid(), TEXT, toSelectExpression(aliasD1, d1.getUid()), Skip.SKIP)
+        .addColumn(tea1.getUid(), TEXT, String.format(aliasTeaUid, quote(tea1.getUid())))
+        // Org unit geometry column
+        .addColumn(tea1.getUid() + "_geom", GEOMETRY, ouGeometryQuery, IndexType.GIST)
+        // Org unit name column
+        .addColumn(tea1.getUid() + "_name", TEXT, ouNameQuery, Skip.SKIP)
         .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
         .build()
         .verify();
@@ -565,8 +550,6 @@ class JdbcEventAnalyticsTableManagerTest {
   @Test
   void verifyDataElementTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(databaseInfoProvider.getDatabaseInfo())
-        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
     Program programA = createProgram('A');
 
     DataElement d5 = createDataElement('G', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
@@ -599,23 +582,26 @@ class JdbcEventAnalyticsTableManagerTest {
     subject.populateTable(params, partition);
     verify(jdbcTemplate).execute(sql.capture());
 
-    String ouQuery =
-        "(select ou.%s from \"organisationunit\" ou where ou.uid = "
-            + "eventdatavalues #>> '{"
-            + d5.getUid()
-            + ", value}' ) as \""
-            + d5.getUid()
-            + "\"";
+    String ouUidQuery =
+        String.format(
+            """
+            eventdatavalues #>> '{%s, value}' as %s""",
+            d5.getUid(), quote(d5.getUid()));
 
-    assertThat(sql.getValue(), containsString(String.format(ouQuery, "uid")));
-    assertThat(sql.getValue(), containsString(String.format(ouQuery, "name")));
+    String ouNameQuery =
+        String.format(
+            """
+            (select ou.name from "organisationunit" ou where ou.uid = \
+            eventdatavalues #>> '{%s, value}') as %s""",
+            d5.getUid(), quote(d5.getUid()));
+
+    assertThat(sql.getValue(), containsString(ouUidQuery));
+    assertThat(sql.getValue(), containsString(ouNameQuery));
   }
 
   @Test
   void verifyTeiTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(databaseInfoProvider.getDatabaseInfo())
-        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
     Program programA = createProgram('A');
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);
@@ -649,22 +635,28 @@ class JdbcEventAnalyticsTableManagerTest {
     subject.populateTable(params, partition);
     verify(jdbcTemplate).execute(sql.capture());
 
-    String ouQuery =
-        "(select ou.%s from \"organisationunit\" ou where ou.uid = "
-            + "(select value from \"trackedentityattributevalue\" where trackedentityid=en.trackedentityid and "
-            + "trackedentityattributeid=9999)) as \""
-            + tea.getUid()
-            + "\"";
+    String ouUidQuery = String.format("%s.value", quote(tea.getUid()));
 
-    assertThat(sql.getValue(), containsString(String.format(ouQuery, "uid")));
-    assertThat(sql.getValue(), containsString(String.format(ouQuery, "name")));
+    String ouGeometryQuery =
+        String.format(
+            """
+            (select ou.geometry from "organisationunit" ou where ou.uid = %1$s.value) as %1$s""",
+            quote(tea.getUid()));
+
+    String ouNameQuery =
+        String.format(
+            """
+            (select ou.name from "organisationunit" ou where ou.uid = %1$s.value) as %1$s""",
+            quote(tea.getUid()));
+
+    assertThat(sql.getValue(), containsString(ouUidQuery));
+    assertThat(sql.getValue(), containsString(ouGeometryQuery));
+    assertThat(sql.getValue(), containsString(ouNameQuery));
   }
 
   @Test
   void verifyOrgUnitOwnershipJoinsWhenPopulatingEventAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(databaseInfoProvider.getDatabaseInfo())
-        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
     Program programA = createProgram('A');
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);
@@ -881,8 +873,6 @@ class JdbcEventAnalyticsTableManagerTest {
   @Test
   void verifyTeaTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(databaseInfoProvider.getDatabaseInfo())
-        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
     Program programA = createProgram('A');
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);
@@ -937,14 +927,23 @@ class JdbcEventAnalyticsTableManagerTest {
 
     verify(jdbcTemplate).execute(sql.capture());
 
-    String ouQuery =
-        """
-            (select ou.%s from \"organisationunit\" ou where ou.uid = \
-            (select value from \"trackedentityattributevalue\" where trackedentityid=en.trackedentityid and \
-            trackedentityattributeid=9999)) as %s""";
+    String ouUidQuery = String.format("%s.value", quote(tea.getUid()));
 
-    assertThat(sql.getValue(), containsString(String.format(ouQuery, "uid", quote(tea.getUid()))));
-    assertThat(sql.getValue(), containsString(String.format(ouQuery, "name", quote(tea.getUid()))));
+    String ouGeometryQuery =
+        String.format(
+            """
+            (select ou.geometry from "organisationunit" ou where ou.uid = %1$s.value) as %1$s""",
+            quote(tea.getUid()));
+
+    String ouNameQuery =
+        String.format(
+            """
+            (select ou.name from "organisationunit" ou where ou.uid = %1$s.value) as %1$s""",
+            quote(tea.getUid()));
+
+    assertThat(sql.getValue(), containsString(ouUidQuery));
+    assertThat(sql.getValue(), containsString(ouGeometryQuery));
+    assertThat(sql.getValue(), containsString(ouNameQuery));
   }
 
   private String toSelectExpression(String template, String uid) {

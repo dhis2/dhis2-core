@@ -1,35 +1,4 @@
 {
-  "importMode": "COMMIT",
-  "idSchemes": {
-    "dataElementIdScheme": {
-      "idScheme": "UID"
-    },
-    "orgUnitIdScheme": {
-      "idScheme": "UID"
-    },
-    "programIdScheme": {
-      "idScheme": "UID"
-    },
-    "programStageIdScheme": {
-      "idScheme": "UID"
-    },
-    "idScheme": {
-      "idScheme": "UID"
-    },
-    "categoryOptionComboIdScheme": {
-      "idScheme": "UID"
-    },
-    "categoryOptionIdScheme": {
-      "idScheme": "UID"
-    }
-  },
-  "importStrategy": "CREATE",
-  "atomicMode": "ALL",
-  "flushMode": "AUTO",
-  "validationMode": "FULL",
-  "skipPatternValidation": false,
-  "skipSideEffects": false,
-  "skipRuleEngine": false,
   "trackedEntities": [],
   "enrollments": [],
   "events": [
@@ -38,13 +7,13 @@
       "status": "ACTIVE",
       "program": {
         "idScheme": "UID",
-        "identifier": "E8o1E9tAppy"
+        "identifier": "qiHs9hD2Opf"
       },
       "programStage": {
         "idScheme": "UID",
         "identifier": "OilWH8Cj6QU"
       },
-      "enrollment": "MNWZ6hnuhSw",
+      "enrollment": "CzXv1fa1kbX",
       "orgUnit": {
         "idScheme": "UID",
         "identifier": "QfUVllTs6cS"
@@ -64,6 +33,5 @@
       "notes": []
     }
   ],
-  "relationships": [],
-  "username": "system-process"
+  "relationships": []
 }

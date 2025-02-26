@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationParameters;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateUnsupportedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeGzip;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeZip;
 import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateUnsupportedParameter;
+import static org.hisp.dhis.webapi.controller.tracker.export.MappingErrors.ensureNoMappingErrors;
 import static org.hisp.dhis.webapi.controller.tracker.export.event.EventRequestParams.DEFAULT_FIELDS_PARAM;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
@@ -63,8 +63,8 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
@@ -80,7 +80,6 @@ import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -156,18 +155,20 @@ class EventsExportController {
       // from a browser
       )
   ResponseEntity<Page<ObjectNode>> getEvents(
-      EventRequestParams requestParams, TrackerIdSchemeParams idSchemeParams)
+      EventRequestParams requestParams,
+      TrackerIdSchemeParams idSchemeParams,
+      HttpServletRequest request)
       throws BadRequestException, ForbiddenException, WebMessageException {
     validatePaginationParameters(requestParams);
 
-    if (requestParams.isPaged()) {
+    if (requestParams.isPaging()) {
       PageParams pageParams =
           new PageParams(
-              requestParams.getPage(), requestParams.getPageSize(), requestParams.getTotalPages());
+              requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
 
       EventOperationParams eventOperationParams =
           eventParamsMapper.map(requestParams, idSchemeParams);
-      org.hisp.dhis.tracker.export.Page<Event> eventsPage =
+      org.hisp.dhis.tracker.Page<Event> eventsPage =
           eventService.getEvents(eventOperationParams, pageParams);
       MappingErrors errors = new MappingErrors(idSchemeParams);
       List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
@@ -180,7 +181,9 @@ class EventsExportController {
 
       return ResponseEntity.ok()
           .contentType(MediaType.APPLICATION_JSON)
-          .body(Page.withPager(EVENTS, eventsPage.withItems(objectNodes)));
+          .body(
+              Page.withFullPager(
+                  EVENTS, eventsPage.withItems(objectNodes), getRequestURL(request)));
     }
 
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
@@ -324,18 +327,6 @@ class EventsExportController {
     return events;
   }
 
-  private static void ensureNoMappingErrors(MappingErrors errors) throws WebMessageException {
-    if (errors.hasErrors()) {
-      throw new WebMessageException(
-          createWebMessage(
-              "Not all metadata has an identifier for the requested idScheme. Either change the"
-                  + " requested idScheme or add the missing identifiers to the metadata.",
-              errors.toString(),
-              org.hisp.dhis.feedback.Status.ERROR,
-              HttpStatus.UNPROCESSABLE_ENTITY));
-    }
-  }
-
   @GetMapping("/{event}/dataValues/{dataElement}/file")
   ResponseEntity<InputStreamResource> getEventDataValueFile(
       @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
@@ -363,6 +354,7 @@ class EventsExportController {
         request, eventService.getFileResourceImage(event, dataElement, dimension));
   }
 
+  @OpenApi.Response(status = Status.OK, value = Page.class)
   @GetMapping("/{event}/changeLogs")
   ResponseEntity<Page<ObjectNode>> getEventChangeLogsByUid(
       @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
@@ -377,8 +369,8 @@ class EventsExportController {
     PageParams pageParams =
         new PageParams(requestParams.getPage(), requestParams.getPageSize(), false);
 
-    org.hisp.dhis.tracker.export.Page<org.hisp.dhis.tracker.export.event.EventChangeLog>
-        changeLogs = eventChangeLogService.getEventChangeLog(event, operationParams, pageParams);
+    org.hisp.dhis.tracker.Page<org.hisp.dhis.tracker.export.event.EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(event, operationParams, pageParams);
 
     List<EventChangeLog> eventChangeLogs =
         changeLogs.getItems().stream().map(EVENT_CHANGE_LOG_MAPPER::map).toList();

@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -55,12 +56,11 @@ import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.system.util.SmsUtils;
+import org.hisp.dhis.user.AuthenticationService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingsService;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
-import org.springframework.util.concurrent.ListenableFuture;
 
 /**
  * @author Nguyen Kim Lai
@@ -87,6 +87,7 @@ public class SmsMessageSender implements MessageSender {
   private final UserSettingsService userSettingsService;
   private final OutboundSmsService outboundSmsService;
   private final SystemSettingsProvider settingsProvider;
+  private final AuthenticationService authenticationService;
 
   @Override
   public OutboundMessageResponse sendMessage(
@@ -122,7 +123,7 @@ public class SmsMessageSender implements MessageSender {
   public Future<OutboundMessageResponse> sendMessageAsync(
       String subject, String text, String footer, User sender, Set<User> users, boolean forceSend) {
     OutboundMessageResponse response = sendMessage(subject, text, footer, sender, users, forceSend);
-    return new AsyncResult<>(response);
+    return CompletableFuture.completedFuture(response);
   }
 
   @Override
@@ -184,13 +185,6 @@ public class SmsMessageSender implements MessageSender {
 
     return createMessageResponseSummary(
         NO_CONFIG, DeliveryChannel.SMS, OutboundMessageBatchStatus.ABORTED, batch.size());
-  }
-
-  @Override
-  public ListenableFuture<OutboundMessageResponseSummary> sendMessageBatchAsync(
-      OutboundMessageBatch batch) {
-    OutboundMessageResponseSummary summary = sendMessageBatch(batch);
-    return new AsyncResult<>(summary);
   }
 
   @Override
@@ -292,7 +286,12 @@ public class SmsMessageSender implements MessageSender {
       sms.setStatus(OutboundSmsStatus.FAILED);
     }
 
-    outboundSmsService.save(sms);
+    try {
+      authenticationService.obtainSystemAuthentication();
+      outboundSmsService.save(sms);
+    } finally {
+      authenticationService.clearAuthentication();
+    }
     status.setDescription(gatewayResponse.getResponseMessage());
     status.setResponseObject(gatewayResponse);
   }

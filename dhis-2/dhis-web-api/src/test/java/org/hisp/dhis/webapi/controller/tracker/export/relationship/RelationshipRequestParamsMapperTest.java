@@ -51,17 +51,6 @@ class RelationshipRequestParamsMapperTest {
   private final RelationshipRequestParamsMapper mapper = new RelationshipRequestParamsMapper();
 
   @Test
-  void shouldFailToMapIfTeiAndTrackedEntityAreSet() {
-    RelationshipRequestParams relationshipRequestParams = new RelationshipRequestParams();
-    relationshipRequestParams.setTrackedEntity(UID.of("Hq3Kc6HK4OZ"));
-    relationshipRequestParams.setTei(UID.of("Hq3Kc6HK4OZ"));
-
-    BadRequestException exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(relationshipRequestParams));
-    assertStartsWith("Only one parameter of 'tei'", exception.getMessage());
-  }
-
-  @Test
   void getIdentifierParamThrowsIfNoParamsIsSet() {
     RelationshipRequestParams relationshipRequestParams = new RelationshipRequestParams();
 
@@ -92,20 +81,6 @@ class RelationshipRequestParamsMapperTest {
   void getIdentifierClassThrowsIfTrackedEntityAndEnrollmentAreSet() {
     RelationshipRequestParams relationshipRequestParams = new RelationshipRequestParams();
     relationshipRequestParams.setTrackedEntity(UID.of("Hq3Kc6HK4OZ"));
-    relationshipRequestParams.setEnrollment(UID.of("Hq3Kc6HK4OZ"));
-
-    BadRequestException exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(relationshipRequestParams));
-
-    assertEquals(
-        "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.",
-        exception.getMessage());
-  }
-
-  @Test
-  void getIdentifierClassThrowsIfTeiAndEnrollmentAreSet() {
-    RelationshipRequestParams relationshipRequestParams = new RelationshipRequestParams();
-    relationshipRequestParams.setTei(UID.of("Hq3Kc6HK4OZ"));
     relationshipRequestParams.setEnrollment(UID.of("Hq3Kc6HK4OZ"));
 
     BadRequestException exception =

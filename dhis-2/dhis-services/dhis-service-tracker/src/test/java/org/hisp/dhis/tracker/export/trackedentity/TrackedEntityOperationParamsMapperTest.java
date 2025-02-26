@@ -112,7 +112,7 @@ class TrackedEntityOperationParamsMapperTest {
 
   @Mock private AclService aclService;
 
-  @Mock private TrackedEntityStore trackedEntityStore;
+  @Mock private HibernateTrackedEntityStore trackedEntityStore;
 
   @Mock private OperationsParamsValidator paramsValidator;
 
@@ -270,12 +270,8 @@ class TrackedEntityOperationParamsMapperTest {
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
             .program(program)
-            .filters(
-                Map.of(
-                    TEA_1_UID,
-                    List.of(new QueryFilter(QueryOperator.EQ, "2")),
-                    TEA_2_UID,
-                    List.of(new QueryFilter(QueryOperator.LIKE, "foo"))))
+            .filterBy(TEA_1_UID, List.of(new QueryFilter(QueryOperator.EQ, "2")))
+            .filterBy(TEA_2_UID, List.of(new QueryFilter(QueryOperator.LIKE, "foo")))
             .build();
 
     TrackedEntityQueryParams params = mapper.map(operationParams, user);
@@ -325,12 +321,11 @@ class TrackedEntityOperationParamsMapperTest {
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
             .program(program)
-            .filters(
-                Map.of(
-                    TEA_1_UID,
-                    List.of(
-                        new QueryFilter(QueryOperator.GT, "10"),
-                        new QueryFilter(QueryOperator.LT, "20"))))
+            .filterBy(
+                TEA_1_UID,
+                List.of(
+                    new QueryFilter(QueryOperator.GT, "10"),
+                    new QueryFilter(QueryOperator.LT, "20")))
             .build();
 
     TrackedEntityQueryParams params = mapper.map(operationParams, user);
@@ -361,7 +356,7 @@ class TrackedEntityOperationParamsMapperTest {
 
     TrackedEntityQueryParams params = mapper.map(operationParams, user);
 
-    assertEquals(program, params.getProgram());
+    assertEquals(program, params.getEnrolledInTrackerProgram());
   }
 
   @Test

@@ -59,6 +59,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.OrganisationUnitResolver;
 import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.calendar.Calendar;
@@ -84,6 +85,8 @@ public class MetadataItemsHandler {
   protected final AnalyticsSecurityManager securityManager;
 
   protected final UserService userService;
+
+  protected final OrganisationUnitResolver organisationUnitResolver;
 
   /**
    * Adds meta data values to the given grid based on the given data query parameters.
@@ -208,7 +211,10 @@ public class MetadataItemsHandler {
     for (QueryItem item : params.getItems()) {
       String itemUid = getItemUid(item);
 
-      if (item.hasOptionSet()) {
+      if (item.getValueType().isOrganisationUnit()) {
+        List<String> items = organisationUnitResolver.resolveOrgUnis(params, item);
+        dimensionItems.put(itemUid, items);
+      } else if (item.hasOptionSet()) {
         if (itemOptions.isPresent()) {
           Map<String, List<Option>> itemOptionsMap = itemOptions.get();
 
@@ -423,6 +429,8 @@ public class MetadataItemsHandler {
         }
       }
     }
+
+    metadataItemMap.putAll(organisationUnitResolver.getMetadataItemsForOrgUnitDataElements(params));
 
     return metadataItemMap;
   }

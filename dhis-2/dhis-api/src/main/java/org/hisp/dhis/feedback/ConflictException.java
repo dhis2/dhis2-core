@@ -30,6 +30,7 @@ package org.hisp.dhis.feedback;
 import static org.hisp.dhis.common.OpenApi.Response.Status.CONFLICT;
 
 import java.text.MessageFormat;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import lombok.Getter;
@@ -55,6 +56,7 @@ public final class ConflictException extends Exception implements Error {
   }
 
   private final ErrorCode code;
+  private final Object[] args;
 
   @Setter private String devMessage;
 
@@ -70,15 +72,19 @@ public final class ConflictException extends Exception implements Error {
     super(message);
     this.devMessage = devMessage;
     this.code = ErrorCode.E1004;
+    this.args = new Object[0];
   }
 
   public ConflictException(ErrorCode code, Object... args) {
     super(MessageFormat.format(code.getMessage(), args));
     this.code = code;
+    this.args = args;
   }
 
   public ConflictException(ErrorMessage message) {
     super(message.getMessage());
     this.code = message.getErrorCode();
+    List<String> args = message.getArgs();
+    this.args = args == null ? new Object[0] : args.toArray();
   }
 }

@@ -66,6 +66,11 @@ public class UserRoleController
   @Data
   @EqualsAndHashCode(callSuper = true)
   public static final class GetUserRoleObjectListParams extends GetObjectListParams {
+    @OpenApi.Description(
+        """
+      Limits results to those roles that the current user can issue/grant to other users.
+      Can be combined with further `filter`s.
+      """)
     boolean canIssue;
   }
 

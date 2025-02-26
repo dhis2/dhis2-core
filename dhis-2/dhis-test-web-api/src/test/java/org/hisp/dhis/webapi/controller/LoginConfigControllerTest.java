@@ -205,4 +205,22 @@ class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
     response = GET("/loginConfig").content();
     assertEquals("test_recaptcha_stie", response.getString("recaptchaSite").string());
   }
+
+  @Test
+  void testMinPasswordLength() {
+    JsonObject response = GET("/loginConfig").content();
+    assertEquals("8", response.getString("minPasswordLength").string());
+    POST("/systemSettings/minPasswordLength", "10").content(HttpStatus.OK);
+    response = GET("/loginConfig").content();
+    assertEquals("10", response.getString("minPasswordLength").string());
+  }
+
+  @Test
+  void testMaxPasswordLength() {
+    JsonObject response = GET("/loginConfig").content();
+    assertEquals("72", response.getString("maxPasswordLength").string());
+    POST("/systemSettings/maxPasswordLength", "100").content(HttpStatus.OK);
+    response = GET("/loginConfig").content();
+    assertEquals("100", response.getString("maxPasswordLength").string());
+  }
 }

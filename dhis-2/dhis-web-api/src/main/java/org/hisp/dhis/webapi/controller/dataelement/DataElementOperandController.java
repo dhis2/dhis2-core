@@ -85,10 +85,18 @@ public class DataElementOperandController {
 
   @Data
   @EqualsAndHashCode(callSuper = true)
+  @OpenApi.Property
   public static final class GetDataElementOperandObjectListParams extends GetObjectListParams {
+    @OpenApi.Description(
+        "When set all existing operands are the basis of the result list (takes precedence).")
     boolean persisted;
+
+    @OpenApi.Description(
+        "Whether to include totals when loading operands by `dataSet` or data element groups from `filter`s.")
     boolean totals;
 
+    @OpenApi.Description(
+        "When set the operands linked to the specified dataset are the basis for the result list.")
     @OpenApi.Property({UID.class, DataSet.class})
     String dataSet;
   }
@@ -127,7 +135,6 @@ public class DataElementOperandController {
   }
 
   @GetMapping
-  @SuppressWarnings("unchecked")
   public @ResponseBody RootNode getObjectList(GetDataElementOperandObjectListParams params)
       throws QueryParserException {
     List<DataElementOperand> allItems = getUnfilteredDataElementOperands(params);
@@ -140,7 +147,8 @@ public class DataElementOperandController {
     Pager pager = null;
     if (params.isPaging()) {
       params.setPaging(false);
-      Query queryForCount = queryService.getQueryFromUrl(DataElementOperand.class, params);
+      Query<DataElementOperand> queryForCount =
+          queryService.getQueryFromUrl(DataElementOperand.class, params);
       queryForCount.setObjects(allItems);
 
       List<?> totalOfItems = queryService.query(queryForCount);
@@ -150,11 +158,12 @@ public class DataElementOperandController {
       params.setPaging(true);
     }
 
-    Query query = queryService.getQueryFromUrl(DataElementOperand.class, params);
+    Query<DataElementOperand> query =
+        queryService.getQueryFromUrl(DataElementOperand.class, params);
     query.setDefaultOrder();
     query.setObjects(allItems);
 
-    List<DataElementOperand> pageItems = (List<DataElementOperand>) queryService.query(query);
+    List<DataElementOperand> pageItems = queryService.query(query);
 
     RootNode rootNode = NodeUtils.createMetadata();
 

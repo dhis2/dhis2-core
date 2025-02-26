@@ -37,8 +37,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
  * @author Chau Thu Tran
  */
 public interface ProgramStore extends IdentifiableObjectStore<Program> {
-  String ID = ProgramStore.class.getName();
-
   /**
    * Get {@link Program} by a type
    *

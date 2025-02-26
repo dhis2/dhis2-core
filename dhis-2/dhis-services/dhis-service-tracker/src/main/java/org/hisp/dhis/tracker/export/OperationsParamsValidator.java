@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.export;
 
-import static org.hisp.dhis.changelog.ChangeLogType.READ;
+import static org.hisp.dhis.audit.AuditOperationType.READ;
 import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 
 import java.util.HashSet;
@@ -46,7 +46,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
+import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -175,7 +175,7 @@ public class OperationsParamsValidator {
    * @throws BadRequestException if the tracked entity uid does not exist
    * @throws ForbiddenException if the user has no data read access to type of the tracked entity
    */
-  public TrackedEntity validateTrackedEntity(UID uid, UserDetails user)
+  public TrackedEntity validateTrackedEntity(UID uid, UserDetails user, boolean includeDeleted)
       throws BadRequestException, ForbiddenException {
     if (uid == null) {
       return null;
@@ -183,10 +183,10 @@ public class OperationsParamsValidator {
 
     // TODO(tracker) Are these validations enough? Should we check for ownership too?
     TrackedEntity trackedEntity = manager.get(TrackedEntity.class, uid.getValue());
-    if (trackedEntity == null) {
+    if (trackedEntity == null || (trackedEntity.isDeleted() && !includeDeleted)) {
       throw new BadRequestException("Tracked entity is specified but does not exist: " + uid);
     }
-    trackedEntityAuditService.addTrackedEntityAudit(trackedEntity, user.getUsername(), READ);
+    trackedEntityAuditService.addTrackedEntityAudit(READ, user.getUsername(), trackedEntity);
 
     if (trackedEntity.getTrackedEntityType() != null
         && !aclService.canDataRead(user, trackedEntity.getTrackedEntityType())) {
@@ -242,7 +242,8 @@ public class OperationsParamsValidator {
         throw new BadRequestException("Organisation unit does not exist: " + orgUnitUid);
       }
 
-      if (!user.isSuper() && !user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getPath())) {
+      if (!user.isSuper()
+          && !user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getStoredPath())) {
         throw new ForbiddenException(
             "Organisation unit is not part of the search scope: " + orgUnit.getUid());
       }

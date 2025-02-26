@@ -73,6 +73,11 @@ public class ValidationRuleController
   @Data
   @EqualsAndHashCode(callSuper = true)
   public static final class GetValidationRuleObjectListParams extends GetObjectListParams {
+    @OpenApi.Description(
+        """
+      Limits results to validation rules that are connected to the given dataset.
+      Can be combined with further `filter`s.
+      """)
     @OpenApi.Property({UID.class, DataSet.class})
     String dataSet;
   }

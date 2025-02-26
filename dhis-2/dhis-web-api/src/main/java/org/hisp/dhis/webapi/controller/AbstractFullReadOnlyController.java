@@ -50,7 +50,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import lombok.Value;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -68,19 +67,21 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
-import org.hisp.dhis.query.Criterion;
+import org.hisp.dhis.query.Filter;
+import org.hisp.dhis.query.Filters;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.GetObjectParams;
+import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -158,16 +159,15 @@ public abstract class AbstractFullReadOnlyController<
   // GET Full
   // --------------------------------------------------------------------------
 
-  @Value
   @OpenApi.Shared(value = false)
-  protected static class ObjectListResponse {
+  protected static class GetObjectListResponse {
     @OpenApi.Property Pager pager;
 
     @OpenApi.Property(name = "path$", value = OpenApi.EntityType[].class)
     List<Object> entries;
   }
 
-  @OpenApi.Response(ObjectListResponse.class)
+  @OpenApi.Response(GetObjectListResponse.class)
   @GetMapping
   public @ResponseBody ResponseEntity<StreamingJsonRoot<T>> getObjectList(
       P params, HttpServletResponse response, @CurrentUser UserDetails currentUser)
@@ -179,9 +179,9 @@ public abstract class AbstractFullReadOnlyController<
       P params,
       HttpServletResponse response,
       UserDetails currentUser,
-      List<Criterion> additionalFilters)
+      List<Filter> additionalFilters)
       throws ForbiddenException, BadRequestException, ConflictException {
-    List<Criterion> filters = getAdditionalFilters(params);
+    List<Filter> filters = getAdditionalFilters(params);
     filters.addAll(additionalFilters);
     return getObjectListInternal(params, response, currentUser, filters);
   }
@@ -190,7 +190,7 @@ public abstract class AbstractFullReadOnlyController<
       P params,
       HttpServletResponse response,
       UserDetails currentUser,
-      List<Criterion> additionalFilters)
+      List<Filter> additionalFilters)
       throws ForbiddenException, BadRequestException {
 
     if (!aclService.canRead(currentUser, getEntityClass())) {
@@ -200,7 +200,11 @@ public abstract class AbstractFullReadOnlyController<
 
     addProgrammaticModifiers(params);
 
-    boolean isAlwaysEmpty = additionalFilters.stream().anyMatch(Criterion::isAlwaysFalse);
+    // a top level restriction combined with AND that is always false always results in an empty
+    // list
+    boolean isAlwaysEmpty =
+        params.getRootJunction() == Junction.Type.AND
+            && additionalFilters.stream().anyMatch(Filter::isAlwaysFalse);
     List<T> entities = isAlwaysEmpty ? List.of() : getEntityList(params, additionalFilters);
     postProcessResponseEntities(entities, params);
 
@@ -237,18 +241,18 @@ public abstract class AbstractFullReadOnlyController<
   }
 
   @Nonnull
-  protected List<Criterion> getAdditionalFilters(P params) throws ConflictException {
-    List<Criterion> filters = new ArrayList<>();
-    if (params.getQuery() != null && !params.getQuery().isEmpty())
-      filters.add(Restrictions.query(getSchema(), params.getQuery()));
+  protected List<Filter> getAdditionalFilters(P params) throws ConflictException {
+    List<Filter> filters = new ArrayList<>();
+    if (params.getQuery() != null && !params.getQuery().isEmpty() && getEntityClass() != User.class)
+      filters.add(Filters.query(params.getQuery()));
     List<UID> matches = getPreQueryMatches(params);
     // Note: null = no special filters, empty = no matches for special filters
     if (matches != null) filters.add(createIdInFilter(matches));
     return filters;
   }
 
-  protected final Criterion createIdInFilter(@Nonnull List<UID> matches) {
-    return Restrictions.in("id", UID.toValueList(matches));
+  protected final Filter createIdInFilter(@Nonnull List<UID> matches) {
+    return Filters.in("id", UID.toValueList(matches));
   }
 
   @GetMapping(produces = {"text/csv", "application/text"})
@@ -409,13 +413,12 @@ public abstract class AbstractFullReadOnlyController<
 
     GetObjectListParams listParams = params.toListParams();
     addProgrammaticFilters(listParams::addFilter); // temporary workaround
-    Query query = queryService.getQueryFromUrl(getEntityClass(), listParams);
+    Query<T> query = queryService.getQueryFromUrl(getEntityClass(), listParams);
     query.setCurrentUserDetails(currentUser);
     query.setObjects(List.of(entity));
     query.setDefaults(params.getDefaults());
 
-    @SuppressWarnings("unchecked")
-    List<T> entities = (List<T>) queryService.query(query);
+    List<T> entities = queryService.query(query);
 
     List<String> fields = params.getFieldsObject();
     handleLinksAndAccess(entities, fields, true);
@@ -461,12 +464,12 @@ public abstract class AbstractFullReadOnlyController<
       throws NotFoundException {
     T entity = getEntity(uid);
 
-    Query query = queryService.getQueryFromUrl(getEntityClass(), params.toListParams());
+    Query<T> query = queryService.getQueryFromUrl(getEntityClass(), params.toListParams());
     query.setCurrentUserDetails(currentUser);
     query.setObjects(List.of(entity));
     query.setDefaults(params.getDefaults());
 
-    List<T> entities = (List<T>) queryService.query(query);
+    List<T> entities = queryService.query(query);
 
     List<String> fields = params.getFieldsObject();
     handleLinksAndAccess(entities, fields, true);
@@ -479,9 +482,9 @@ public abstract class AbstractFullReadOnlyController<
     return objectNodes.isEmpty() ? fieldFilterService.createObjectNode() : objectNodes.get(0);
   }
 
-  private List<T> getEntityList(P params, List<Criterion> additionalFilters)
+  private List<T> getEntityList(P params, List<Filter> additionalFilters)
       throws BadRequestException {
-    Query query =
+    Query<T> query =
         BadRequestException.on(
             QueryParserException.class,
             () -> queryService.getQueryFromUrl(getEntityClass(), params));
@@ -492,21 +495,20 @@ public abstract class AbstractFullReadOnlyController<
 
     modifyGetObjectList(params, query);
 
-    @SuppressWarnings("unchecked")
-    List<T> res = (List<T>) queryService.query(query);
+    List<T> res = queryService.query(query);
     getEntityListPostProcess(params, res);
     return res;
   }
 
-  protected void modifyGetObjectList(P params, Query query) {
+  protected void modifyGetObjectList(P params, Query<T> query) {
     // by default: nothing special to do
   }
 
-  protected void getEntityListPostProcess(P params, List<T> entities) {}
+  protected void getEntityListPostProcess(P params, List<T> entities) throws BadRequestException {}
 
-  private long countGetObjectList(P params, List<Criterion> additionalFilters)
+  private long countGetObjectList(P params, List<Filter> additionalFilters)
       throws BadRequestException {
-    Query query =
+    Query<T> query =
         BadRequestException.on(
             QueryParserException.class,
             () -> queryService.getQueryFromUrl(getEntityClass(), params));

@@ -169,7 +169,6 @@ public class DefaultMaintenanceService implements MaintenanceService {
       return false;
     }
 
-    eventChangeLogService.deleteTrackedEntityDataValueChangeLog(dataElement);
     eventChangeLogService.deleteEventChangeLog(dataElement);
     dataValueAuditService.deleteDataValueAudits(dataElement);
     dataValueService.deleteDataValues(dataElement);

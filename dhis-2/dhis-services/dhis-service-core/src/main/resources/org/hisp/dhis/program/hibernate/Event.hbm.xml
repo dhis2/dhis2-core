@@ -49,7 +49,7 @@
     <property name="occurredDate" column="occurreddate" type="timestamp" index="programstageinstance_executiondate" />
 
     <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
-      foreign-key="fk_programstageinstance_organisationunitid" index="programstageinstance_organisationunitid" />
+      foreign-key="fk_programstageinstance_organisationunitid" index="programstageinstance_organisationunitid" not-null="true"/>
 
     <property name="status" column="status" type="org.hisp.dhis.program.EventStatusUserType" not-null="true" />
 
@@ -64,7 +64,10 @@
 
     <property name="eventDataValues" type="jsbEventDataValues" />
 
-    <list name="notes" table="event_notes" cascade="all-delete-orphan">
+<!-- eagerly fetch notes to avoid lazy init exceptions in code outside a hibernate session we do not
+exclude notes like we do other collections if the fields parameter does not contain them like in
+fields=!notes. reconsider this if we do implement that optimization -->
+    <list name="notes" table="event_notes" cascade="all-delete-orphan" lazy="false" fetch="join">
       <key column="eventid" foreign-key="fk_programstageinstancecomments_programstageinstanceid" />
       <list-index column="sort_order" base="1" />
       <many-to-many class="org.hisp.dhis.note.Note" column="noteid"

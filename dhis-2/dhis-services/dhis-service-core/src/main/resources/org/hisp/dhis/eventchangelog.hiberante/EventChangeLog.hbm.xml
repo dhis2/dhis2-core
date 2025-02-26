@@ -18,7 +18,7 @@
     <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"
       foreign-key="fk_eventchangelog_dataelementid" />
 
-    <property name="eventProperty" length="100" />
+    <property name="eventField" length="100" />
 
     <property name="previousValue" length="50000" />
 

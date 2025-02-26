@@ -27,6 +27,20 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.common.DataDimensionItemType.DATA_ELEMENT;
+import static org.hisp.dhis.common.DataDimensionItemType.DATA_ELEMENT_OPERAND;
+import static org.hisp.dhis.common.DataDimensionItemType.EXPRESSION_DIMENSION_ITEM;
+import static org.hisp.dhis.common.DataDimensionItemType.INDICATOR;
+import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_ATTRIBUTE;
+import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_ATTRIBUTE_OPTION;
+import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_DATA_ELEMENT;
+import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_DATA_ELEMENT_OPTION;
+import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_INDICATOR;
+import static org.hisp.dhis.common.DataDimensionItemType.REPORTING_RATE;
+import static org.hisp.dhis.common.DataDimensionItemType.SUBEXPRESSION_DIMENSION_ITEM;
+import static org.hisp.dhis.common.DataDimensionItemType.VALIDATION_RULE;
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -42,43 +56,38 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramDataElementOptionDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeOptionDimensionItem;
 import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
+import org.hisp.dhis.util.MapBuilder;
 import org.hisp.dhis.validation.ValidationRule;
 
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement(localName = "dataDimensionItem", namespace = DxfNamespaces.DXF_2_0)
+@JacksonXmlRootElement(localName = "dataDimensionItem", namespace = DXF_2_0)
 public class DataDimensionItem {
-  public static final Set<Class<? extends DimensionalItemObject>> DATA_DIM_CLASSES =
-      Set.of(
-          Indicator.class,
-          DataElement.class,
-          DataElementOperand.class,
-          ReportingRate.class,
-          ProgramIndicator.class,
-          ProgramDataElementDimensionItem.class,
-          ProgramTrackedEntityAttributeDimensionItem.class,
-          ExpressionDimensionItem.class,
-          SubexpressionDimensionItem.class,
-          ValidationRule.class);
-
-  public static final Map<DataDimensionItemType, Class<? extends DimensionalItemObject>>
+  private static final Map<DataDimensionItemType, Class<? extends DimensionalItemObject>>
       DATA_DIM_TYPE_CLASS_MAP =
-          Map.of(
-              DataDimensionItemType.INDICATOR, Indicator.class,
-              DataDimensionItemType.DATA_ELEMENT, DataElement.class,
-              DataDimensionItemType.DATA_ELEMENT_OPERAND, DataElementOperand.class,
-              DataDimensionItemType.REPORTING_RATE, ReportingRate.class,
-              DataDimensionItemType.PROGRAM_INDICATOR, ProgramIndicator.class,
-              DataDimensionItemType.PROGRAM_DATA_ELEMENT, ProgramDataElementDimensionItem.class,
-              DataDimensionItemType.PROGRAM_ATTRIBUTE,
-                  ProgramTrackedEntityAttributeDimensionItem.class,
-              DataDimensionItemType.EXPRESSION_DIMENSION_ITEM, ExpressionDimensionItem.class,
-              DataDimensionItemType.SUBEXPRESSION_DIMENSION_ITEM, SubexpressionDimensionItem.class,
-              DataDimensionItemType.VALIDATION_RULE, ValidationRule.class);
+          new MapBuilder<DataDimensionItemType, Class<? extends DimensionalItemObject>>()
+              .put(INDICATOR, Indicator.class)
+              .put(DATA_ELEMENT, DataElement.class)
+              .put(DATA_ELEMENT_OPERAND, DataElementOperand.class)
+              .put(REPORTING_RATE, ReportingRate.class)
+              .put(PROGRAM_INDICATOR, ProgramIndicator.class)
+              .put(PROGRAM_DATA_ELEMENT, ProgramDataElementDimensionItem.class)
+              .put(PROGRAM_ATTRIBUTE, ProgramTrackedEntityAttributeDimensionItem.class)
+              .put(EXPRESSION_DIMENSION_ITEM, ExpressionDimensionItem.class)
+              .put(SUBEXPRESSION_DIMENSION_ITEM, SubexpressionDimensionItem.class)
+              .put(VALIDATION_RULE, ValidationRule.class)
+              .put(PROGRAM_DATA_ELEMENT_OPTION, ProgramDataElementOptionDimensionItem.class)
+              .put(PROGRAM_ATTRIBUTE_OPTION, ProgramTrackedEntityAttributeOptionDimensionItem.class)
+              .build();
+
+  public static final Set<Class<? extends DimensionalItemObject>> DATA_DIM_CLASSES =
+      Set.copyOf(DATA_DIM_TYPE_CLASS_MAP.values());
 
   private int id;
 
@@ -104,6 +113,10 @@ public class DataDimensionItem {
 
   private SubexpressionDimensionItem subexpressionDimensionItem;
 
+  private ProgramDataElementOptionDimensionItem programDataElementOption;
+
+  private ProgramTrackedEntityAttributeOptionDimensionItem programAttributeOption;
+
   // -------------------------------------------------------------------------
   // Constructor
   // -------------------------------------------------------------------------
@@ -112,7 +125,6 @@ public class DataDimensionItem {
 
   public static List<DataDimensionItem> createWithDependencies(
       DimensionalItemObject object, List<DataDimensionItem> items) {
-
     if (DataElement.class.isAssignableFrom(object.getClass())) {
       DataDimensionItem dimension = new DataDimensionItem();
       DataElement dataElement = (DataElement) object;
@@ -171,6 +183,12 @@ public class DataDimensionItem {
       dimension.setExpressionDimensionItem((ExpressionDimensionItem) object);
     } else if (SubexpressionDimensionItem.class.isAssignableFrom(object.getClass())) {
       dimension.setSubexpressionDimensionItem((SubexpressionDimensionItem) object);
+    } else if (ProgramDataElementOptionDimensionItem.class.isAssignableFrom(object.getClass())) {
+      dimension.setProgramDataElementOption((ProgramDataElementOptionDimensionItem) object);
+    } else if (ProgramTrackedEntityAttributeOptionDimensionItem.class.isAssignableFrom(
+        object.getClass())) {
+      dimension.setProgramAttributeOption(
+          (ProgramTrackedEntityAttributeOptionDimensionItem) object);
     } else {
       throw new IllegalArgumentException(
           "Not a valid data dimension: " + object.getClass().getSimpleName() + ", " + object);
@@ -201,34 +219,52 @@ public class DataDimensionItem {
     } else if (expressionDimensionItem != null) {
       return expressionDimensionItem;
     } else if (subexpressionDimensionItem != null) {
-      return expressionDimensionItem;
+      return subexpressionDimensionItem;
+    } else if (programDataElementOption != null) {
+      return programDataElementOption;
+    } else if (programAttributeOption != null) {
+      return programAttributeOption;
     }
 
     return null;
   }
 
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(namespace = DXF_2_0)
   public DataDimensionItemType getDataDimensionItemType() {
     if (indicator != null) {
-      return DataDimensionItemType.INDICATOR;
+      return INDICATOR;
     } else if (dataElement != null) {
-      return DataDimensionItemType.DATA_ELEMENT;
+      return DATA_ELEMENT;
     } else if (dataElementOperand != null) {
-      return DataDimensionItemType.DATA_ELEMENT_OPERAND;
+      return DATA_ELEMENT_OPERAND;
     } else if (reportingRate != null) {
-      return DataDimensionItemType.REPORTING_RATE;
+      return REPORTING_RATE;
     } else if (programIndicator != null) {
-      return DataDimensionItemType.PROGRAM_INDICATOR;
+      return PROGRAM_INDICATOR;
     } else if (programDataElement != null) {
-      return DataDimensionItemType.PROGRAM_DATA_ELEMENT;
+      return PROGRAM_DATA_ELEMENT;
     } else if (programAttribute != null) {
-      return DataDimensionItemType.PROGRAM_ATTRIBUTE;
+      return PROGRAM_ATTRIBUTE;
     } else if (expressionDimensionItem != null) {
-      return DataDimensionItemType.EXPRESSION_DIMENSION_ITEM;
+      return EXPRESSION_DIMENSION_ITEM;
+    } else if (programDataElementOption != null) {
+      return PROGRAM_DATA_ELEMENT_OPTION;
+    } else if (programAttributeOption != null) {
+      return PROGRAM_ATTRIBUTE_OPTION;
     }
 
     return null;
+  }
+
+  /**
+   * Returns the class type for the given data dimension item type.
+   *
+   * @param itemType the {@link DataDimensionItemType}.
+   * @return the class type.
+   */
+  public static Class<? extends DimensionalItemObject> getType(DataDimensionItemType itemType) {
+    return DATA_DIM_TYPE_CLASS_MAP.get(itemType);
   }
 
   // -------------------------------------------------------------------------
@@ -289,7 +325,7 @@ public class DataDimensionItem {
 
   @JsonProperty
   @JsonSerialize(as = BaseNameableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(namespace = DXF_2_0)
   public Indicator getIndicator() {
     return indicator;
   }
@@ -298,9 +334,6 @@ public class DataDimensionItem {
     this.indicator = indicator;
   }
 
-  @JsonProperty
-  @JsonSerialize(as = BaseNameableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public DataElement getDataElement() {
     return dataElement;
   }
@@ -311,7 +344,7 @@ public class DataDimensionItem {
 
   @JsonProperty
   @JsonSerialize(as = BaseNameableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(namespace = DXF_2_0)
   public DataElementOperand getDataElementOperand() {
     return dataElementOperand;
   }
@@ -322,7 +355,7 @@ public class DataDimensionItem {
 
   @JsonProperty
   @JsonSerialize(as = BaseNameableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(namespace = DXF_2_0)
   public ReportingRate getReportingRate() {
     return reportingRate;
   }
@@ -333,7 +366,7 @@ public class DataDimensionItem {
 
   @JsonProperty
   @JsonSerialize(as = BaseNameableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(namespace = DXF_2_0)
   public ProgramIndicator getProgramIndicator() {
     return programIndicator;
   }
@@ -344,7 +377,7 @@ public class DataDimensionItem {
 
   @JsonProperty
   @JsonSerialize(as = BaseNameableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(namespace = DXF_2_0)
   public ProgramDataElementDimensionItem getProgramDataElement() {
     return programDataElement;
   }
@@ -355,7 +388,7 @@ public class DataDimensionItem {
 
   @JsonProperty
   @JsonSerialize(as = BaseNameableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(namespace = DXF_2_0)
   public ProgramTrackedEntityAttributeDimensionItem getProgramAttribute() {
     return programAttribute;
   }
@@ -366,7 +399,7 @@ public class DataDimensionItem {
 
   @JsonProperty
   @JsonSerialize(as = BaseNameableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(namespace = DXF_2_0)
   public ExpressionDimensionItem getExpressionDimensionItem() {
     return expressionDimensionItem;
   }
@@ -377,9 +410,33 @@ public class DataDimensionItem {
 
   @JsonProperty
   @JsonSerialize(as = BaseNameableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(namespace = DXF_2_0)
   public SubexpressionDimensionItem getSubexpressionDimensionItem() {
     return subexpressionDimensionItem;
+  }
+
+  public void setProgramDataElementOption(
+      ProgramDataElementOptionDimensionItem programDataElementOption) {
+    this.programDataElementOption = programDataElementOption;
+  }
+
+  @JsonProperty
+  @JsonSerialize(as = BaseNameableObject.class)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public ProgramDataElementOptionDimensionItem getProgramDataElementOption() {
+    return programDataElementOption;
+  }
+
+  public void setProgramAttributeOption(
+      ProgramTrackedEntityAttributeOptionDimensionItem programAttributeOption) {
+    this.programAttributeOption = programAttributeOption;
+  }
+
+  @JsonProperty
+  @JsonSerialize(as = BaseNameableObject.class)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public ProgramTrackedEntityAttributeOptionDimensionItem getProgramAttributeOption() {
+    return programAttributeOption;
   }
 
   public void setSubexpressionDimensionItem(SubexpressionDimensionItem subexpressionDimensionItem) {

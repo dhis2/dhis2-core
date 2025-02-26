@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.parser.expression;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -43,12 +45,13 @@ import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryModifiers;
 import org.hisp.dhis.constant.Constant;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.expression.ExpressionInfo;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.i18n.I18n;
-import org.hisp.dhis.jdbc.PostgreSqlStatementBuilder;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+import org.hisp.dhis.parser.expression.statement.DefaultStatementBuilder;
+import org.hisp.dhis.parser.expression.statement.StatementBuilder;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -60,9 +63,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
  */
 @Getter
 @Setter
-@Builder(toBuilder = true)
 public class CommonExpressionVisitor extends AntlrExpressionVisitor {
-  private final StatementBuilder statementBuilder = new PostgreSqlStatementBuilder();
+
+  private StatementBuilder statementBuilder;
 
   private IdentifiableObjectManager idObjectManager;
 
@@ -74,6 +77,8 @@ public class CommonExpressionVisitor extends AntlrExpressionVisitor {
 
   private TrackedEntityAttributeService attributeService;
 
+  private SqlBuilder sqlBuilder;
+
   /**
    * A {@link Supplier} object that can return a {@link I18n} instance when needed. This is done
    * because retrieving a {@link I18n} instance can be expensive and is not needed for most parsing
@@ -82,7 +87,7 @@ public class CommonExpressionVisitor extends AntlrExpressionVisitor {
   private Supplier<I18n> i18nSupplier;
 
   /** Map of constant values to use in evaluating the expression. */
-  @Builder.Default private Map<String, Constant> constantMap = new HashMap<>();
+  private Map<String, Constant> constantMap = new HashMap<>();
 
   /** Map of ExprItem object instances to call for each expression item. */
   private Map<Integer, ExpressionItem> itemMap;
@@ -91,26 +96,67 @@ public class CommonExpressionVisitor extends AntlrExpressionVisitor {
   private ExpressionItemMethod itemMethod;
 
   /** Parameters to evaluate the expression to a value. */
-  @Builder.Default private ExpressionParams params = ExpressionParams.builder().build();
+  private ExpressionParams params;
 
   /** Parameters to generate SQL from a program expression. */
-  @Builder.Default
-  private ProgramExpressionParams progParams = ProgramExpressionParams.builder().build();
+  private ProgramExpressionParams progParams;
 
   /** State variables during an expression evaluation. */
-  @Builder.Default private ExpressionState state = new ExpressionState();
+  private ExpressionState state;
 
   /**
    * Information found from parsing the raw expression (contains nothing that is the result of data
    * or metadata found in the database).
    */
-  @Builder.Default private ExpressionInfo info = new ExpressionInfo();
+  private ExpressionInfo info;
 
   /**
    * Used to collect the string replacements to build a description. This may contain names of
    * metadata from the database.
    */
-  @Builder.Default private Map<String, String> itemDescriptions = new HashMap<>();
+  private Map<String, String> itemDescriptions;
+
+  // -------------------------------------------------------------------------
+  // Custom constructor
+  // -------------------------------------------------------------------------
+
+  @Builder(toBuilder = true)
+  public CommonExpressionVisitor(
+      IdentifiableObjectManager idObjectManager,
+      DimensionService dimensionService,
+      ProgramIndicatorService programIndicatorService,
+      ProgramStageService programStageService,
+      TrackedEntityAttributeService attributeService,
+      SqlBuilder sqlBuilder,
+      Supplier<I18n> i18nSupplier,
+      Map<String, Constant> constantMap,
+      Map<Integer, ExpressionItem> itemMap,
+      ExpressionItemMethod itemMethod,
+      ExpressionParams params,
+      ProgramExpressionParams progParams,
+      ExpressionState state,
+      ExpressionInfo info,
+      Map<String, String> itemDescriptions) {
+
+    checkNotNull(sqlBuilder);
+
+    this.statementBuilder = new DefaultStatementBuilder(sqlBuilder);
+    this.idObjectManager = idObjectManager;
+    this.dimensionService = dimensionService;
+    this.programIndicatorService = programIndicatorService;
+    this.programStageService = programStageService;
+    this.attributeService = attributeService;
+    this.sqlBuilder = sqlBuilder;
+    this.i18nSupplier = i18nSupplier;
+    this.constantMap = constantMap != null ? constantMap : new HashMap<>();
+    this.itemMap = itemMap;
+    this.itemMethod = itemMethod;
+    this.params = params != null ? params : ExpressionParams.builder().build();
+    this.progParams = progParams != null ? progParams : ProgramExpressionParams.builder().build();
+    this.state = state != null ? state : new ExpressionState();
+    this.info = info != null ? info : new ExpressionInfo();
+    this.itemDescriptions = itemDescriptions != null ? itemDescriptions : new HashMap<>();
+  }
 
   // -------------------------------------------------------------------------
   // Visitor logic

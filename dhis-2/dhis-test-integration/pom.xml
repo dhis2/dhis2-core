@@ -123,6 +123,7 @@
       <artifactId>dhis-support-jdbc</artifactId>
       <scope>compile</scope>
     </dependency>
+
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-system</artifactId>
@@ -138,6 +139,11 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-cache-invalidation</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-support-sql</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -292,6 +298,11 @@
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-xml</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

@@ -112,6 +112,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(bundle.getUser()).thenReturn(user);
     organisationUnit = createOrganisationUnit('A');
     organisationUnit.setUid(ORG_UNIT_ID);
+    organisationUnit.updatePath();
 
     trackedEntityType = createTrackedEntityType('A');
     trackedEntityType.setUid(TE_TYPE_ID);
@@ -486,7 +487,8 @@ class SecurityOwnershipValidatorTest extends TestBase {
   }
 
   private TrackedEntity teWithNoEnrollments() {
-    TrackedEntity trackedEntity = createTrackedEntity(organisationUnit);
+    TrackedEntity trackedEntity =
+        createTrackedEntity(organisationUnit, createTrackedEntityType('E'));
     trackedEntity.setUid(TE_ID.getValue());
     trackedEntity.setEnrollments(Sets.newHashSet());
     trackedEntity.setTrackedEntityType(trackedEntityType);

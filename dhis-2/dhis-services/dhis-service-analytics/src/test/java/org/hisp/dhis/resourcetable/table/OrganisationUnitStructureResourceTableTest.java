@@ -43,17 +43,17 @@ class OrganisationUnitStructureResourceTableTest {
     int maxOrgUnitLevels = 3;
     int currentLevel = 3;
 
-    OrganisationUnit root = createOrganisationUnit("ouR");
+    OrganisationUnit root = createOrganisationUnit('A');
     root.setPath("/p1");
 
-    OrganisationUnit ou1 = createOrganisationUnit("ou1", root);
+    OrganisationUnit ou1 = createOrganisationUnit('B', root);
     ou1.setPath("/p1/p2");
 
-    OrganisationUnit ou2 = createOrganisationUnit("ou2", ou1);
+    OrganisationUnit ou2 = createOrganisationUnit('C', ou1);
     ou2.setHierarchyLevel(currentLevel);
     ou2.setPath("/p1/p2/ou2");
 
-    OrganisationUnit ou3 = createOrganisationUnit("ou3", ou1);
+    OrganisationUnit ou3 = createOrganisationUnit('D', ou1);
     ou3.setHierarchyLevel(currentLevel);
     ou3.setPath("/p1/p2/ou3");
 
@@ -72,10 +72,10 @@ class OrganisationUnitStructureResourceTableTest {
     int maxOrgUnitLevels = 3;
     int currentLevel = 2;
 
-    OrganisationUnit root = createOrganisationUnit("ouR");
+    OrganisationUnit root = createOrganisationUnit('A');
     root.setPath("/p1");
 
-    OrganisationUnit ou1 = createOrganisationUnit("ou1", root);
+    OrganisationUnit ou1 = createOrganisationUnit('B', root);
     ou1.setPath("/p1/p2");
 
     List<OrganisationUnit> organisationUnits = new ArrayList<>();
@@ -92,10 +92,10 @@ class OrganisationUnitStructureResourceTableTest {
     int maxOrgUnitLevels = 2;
     int currentLevel = 3;
 
-    OrganisationUnit root = createOrganisationUnit("ouR");
+    OrganisationUnit root = createOrganisationUnit('A');
     root.setPath("/p1");
 
-    OrganisationUnit ou1 = createOrganisationUnit("ou1", root);
+    OrganisationUnit ou1 = createOrganisationUnit('B', root);
     ou1.setPath("/p1/p2");
     ou1.setUid("uid-123");
 
@@ -120,10 +120,10 @@ class OrganisationUnitStructureResourceTableTest {
     int maxOrgUnitLevels = 2;
     int currentLevel = 3;
 
-    OrganisationUnit root = createOrganisationUnit("ouR");
+    OrganisationUnit root = createOrganisationUnit('A');
     root.setPath("/p1");
 
-    OrganisationUnit ou1 = createOrganisationUnit("ou1");
+    OrganisationUnit ou1 = createOrganisationUnit('B');
     ou1.setPath("/p1/p2");
     ou1.setUid("uid-123");
 

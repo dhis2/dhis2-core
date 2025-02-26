@@ -38,10 +38,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.base.Strings;
-import com.google.common.collect.LinkedListMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-import com.google.gson.Gson;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -55,7 +51,6 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -86,18 +81,15 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.JpaQueryUtils;
-import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
-import org.hisp.dhis.tracker.export.relationship.RelationshipStore;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -106,7 +98,6 @@ import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
-import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -120,10 +111,6 @@ import org.springframework.stereotype.Repository;
 @Repository("org.hisp.dhis.tracker.export.event.EventStore")
 @RequiredArgsConstructor
 class JdbcEventStore {
-  private static final String RELATIONSHIP_IDS_QUERY =
-      " left join (select ri.eventid as ri_ev_id, json_agg(ri.relationshipid) as ev_rl from"
-          + " relationshipitem ri group by ri_ev_id) as fgh on fgh.ri_ev_id=event.ev_id ";
-
   private static final String EVENT_NOTE_QUERY =
       """
       select evn.eventid as evn_id,\
@@ -132,7 +119,6 @@ class JdbcEventStore {
        n.created as note_created,\
        n.creator as note_creator,\
        n.uid as note_uid,\
-       n.lastupdated as note_lastupdated,\
        userinfo.userinfoid as note_user_id,\
        userinfo.code as note_user_code,\
        userinfo.uid as note_user_uid,\
@@ -147,8 +133,6 @@ class JdbcEventStore {
   private static final String EVENT_STATUS_EQ = " ev.status = ";
 
   private static final String EVENT_LASTUPDATED_GT = " ev.lastupdated >= ";
-
-  private static final String DOT_NAME = ".name)";
 
   private static final String SPACE = " ";
 
@@ -250,16 +234,13 @@ class JdbcEventStore {
 
   private final IdentifiableObjectManager manager;
 
-  private final RelationshipStore relationshipStore;
-
   public List<Event> getEvents(EventQueryParams queryParams) {
     return fetchEvents(queryParams, null);
   }
 
   public Page<Event> getEvents(EventQueryParams queryParams, PageParams pageParams) {
     List<Event> events = fetchEvents(queryParams, pageParams);
-    LongSupplier eventCount = () -> getEventCount(queryParams);
-    return getPage(pageParams, events, eventCount);
+    return new Page<>(events, pageParams, () -> getEventCount(queryParams));
   }
 
   private List<Event> fetchEvents(EventQueryParams queryParams, PageParams pageParams) {
@@ -270,12 +251,11 @@ class JdbcEventStore {
     if (pageParams == null) {
       eventsByUid = new HashMap<>();
     } else {
-      eventsByUid = new HashMap<>(pageParams.getPageSize());
+      eventsByUid =
+          new HashMap<>(
+              pageParams.getPageSize() + 1); // get extra event to determine if there is a nextPage
     }
     List<Event> events = new ArrayList<>();
-    List<Long> relationshipIds = new ArrayList<>();
-
-    final Gson gson = new Gson();
 
     final MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
 
@@ -288,7 +268,8 @@ class JdbcEventStore {
         mapSqlParameterSource,
         resultSet -> {
           Set<String> notes = new HashSet<>();
-          Set<String> dataElementUids = new HashSet<>();
+          // data elements per event
+          Map<String, Set<String>> dataElementUids = new HashMap<>();
 
           while (resultSet.next()) {
             if (resultSet.getString(COLUMN_EVENT_UID) == null) {
@@ -305,6 +286,7 @@ class JdbcEventStore {
               event.setId(resultSet.getLong(COLUMN_EVENT_ID));
               event.setUid(eventUid);
               eventsByUid.put(eventUid, event);
+              dataElementUids.put(eventUid, new HashSet<>());
 
               TrackedEntity te = new TrackedEntity();
               te.setUid(resultSet.getString(COLUMN_TRACKEDENTITY_UID));
@@ -418,30 +400,22 @@ class JdbcEventStore {
                             resultSet.getString(COLUMN_EVENT_DATAVALUES)));
               }
 
-              if (queryParams.isIncludeRelationships() && resultSet.getObject("ev_rl") != null) {
-                PGobject pGobject = (PGobject) resultSet.getObject("ev_rl");
-
-                if (pGobject != null) {
-                  String value = pGobject.getValue();
-
-                  relationshipIds.addAll(Lists.newArrayList(gson.fromJson(value, Long[].class)));
-                }
-              }
-
               events.add(event);
             }
 
             if (TrackerIdScheme.UID != dataElementIdScheme.getIdScheme()) {
-              // We get one row per eventdatavalue for idSchemes other than UID due to the need to
-              // join on the dataelement table to get idScheme information. There can only be one
+              // We get one row per eventdatavalue for idSchemes other than UID due to the
+              // need to
+              // join on the dataelement table to get idScheme information. There can only
+              // be one
               // data value per data element. The same data element can be in the result set
               // multiple times if the event also has notes.
               String dataElementUid = resultSet.getString("de_uid");
-              if (!dataElementUids.contains(dataElementUid)) {
+              if (!dataElementUids.get(eventUid).contains(dataElementUid)) {
                 EventDataValue eventDataValue = parseEventDataValue(dataElementIdScheme, resultSet);
                 if (eventDataValue != null) {
                   event.getEventDataValues().add(eventDataValue);
-                  dataElementUids.add(dataElementUid);
+                  dataElementUids.get(eventUid).add(dataElementUid);
                 }
               }
             }
@@ -465,28 +439,9 @@ class JdbcEventStore {
                 note.setLastUpdatedBy(noteLastUpdatedBy);
               }
 
-              note.setLastUpdated(resultSet.getTimestamp("note_lastupdated"));
-
               event.getNotes().add(note);
               notes.add(resultSet.getString("note_id"));
             }
-          }
-
-          List<Relationship> relationships = relationshipStore.getById(relationshipIds);
-
-          Multimap<String, RelationshipItem> map = LinkedListMultimap.create();
-
-          for (Relationship relationship : relationships) {
-            if (relationship.getFrom().getEvent() != null) {
-              map.put(relationship.getFrom().getEvent().getUid(), relationship.getFrom());
-            }
-            if (relationship.getTo().getEvent() != null) {
-              map.put(relationship.getTo().getEvent().getUid(), relationship.getTo());
-            }
-          }
-
-          if (!map.isEmpty()) {
-            events.forEach(e -> e.getRelationshipItems().addAll(map.get(e.getUid())));
           }
 
           return events;
@@ -510,7 +465,7 @@ class JdbcEventStore {
     eventDataValue.setValue(dataValueJson.getString("value").string(""));
     eventDataValue.setProvidedElsewhere(
         dataValueJson.getBoolean("providedElsewhere").booleanValue(false));
-    eventDataValue.setStoredBy(dataValueJson.getString("storedBy").string(""));
+    eventDataValue.setStoredBy(dataValueJson.getString("storedBy").string(null));
 
     eventDataValue.setCreated(DateUtils.parseDate(dataValueJson.getString("created").string("")));
     if (dataValueJson.has("createdByUserInfo")) {
@@ -549,15 +504,6 @@ class JdbcEventStore {
       default:
         return resultSet.getString("de_uid");
     }
-  }
-
-  private Page<Event> getPage(PageParams pageParams, List<Event> events, LongSupplier eventCount) {
-    if (pageParams.isPageTotal()) {
-      return Page.withTotals(
-          events, pageParams.getPage(), pageParams.getPageSize(), eventCount.getAsLong());
-    }
-
-    return Page.withoutTotals(events, pageParams.getPage(), pageParams.getPageSize());
   }
 
   public Set<String> getOrderableFields() {
@@ -607,14 +553,12 @@ class JdbcEventStore {
       PageParams pageParams,
       MapSqlParameterSource mapSqlParameterSource,
       User user) {
-    StringBuilder sqlBuilder = new StringBuilder("select ");
+    StringBuilder sqlBuilder = new StringBuilder("select *");
     if (TrackerIdScheme.UID
         != queryParams.getIdSchemeParams().getDataElementIdScheme().getIdScheme()) {
       sqlBuilder.append(
-          "event.*, cm.*,eventdatavalue.value as ev_eventdatavalue, de.uid as de_uid, de.code as"
+          ", eventdatavalue.value as ev_eventdatavalue, de.uid as de_uid, de.code as"
               + " de_code, de.name as de_name, de.attributevalues as de_attributevalues");
-    } else {
-      sqlBuilder.append("*");
     }
     sqlBuilder.append(" from (");
 
@@ -651,10 +595,6 @@ left join
     on true
 left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 """);
-    }
-
-    if (queryParams.isIncludeRelationships()) {
-      sqlBuilder.append(RELATIONSHIP_IDS_QUERY);
     }
 
     sqlBuilder.append(getOrderQuery(queryParams));
@@ -879,16 +819,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             .append(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_NAME)
             .append(", coc_agg.attributevalues as ")
             .append(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_ATTRIBUTE_VALUES)
-            .append(", coc_agg.co_values AS co_values, coc_agg.co_count AS option_size, ");
-
-    for (Order order : params.getOrder()) {
-      if (order.getField() instanceof TrackedEntityAttribute tea)
-        selectBuilder
-            .append(quote(tea.getUid()))
-            .append(".value AS ")
-            .append(tea.getUid())
-            .append("_value, ");
-    }
+            .append(", coc_agg.co_values AS co_values, coc_agg.co_count AS option_size, ")
+            .append(getOrderFieldsForSelectClause(params.getOrder()));
 
     return selectBuilder
         .append(
@@ -912,6 +844,32 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
                 hlp,
                 dataElementAndFiltersSql(params, mapSqlParameterSource, hlp, selectBuilder)))
         .toString();
+  }
+
+  private String getOrderFieldsForSelectClause(List<Order> orders) {
+    StringBuilder selectBuilder = new StringBuilder();
+
+    for (Order order : orders) {
+      if (order.getField() instanceof TrackedEntityAttribute tea) {
+        selectBuilder
+            .append(quote(tea.getUid()))
+            .append(".value AS ")
+            .append(tea.getUid())
+            .append("_value, ");
+      } else if (order.getField() instanceof DataElement de) {
+        final String dataValueValueSql = "ev.eventdatavalues #>> '{" + de.getUid() + ", value}'";
+        selectBuilder
+            .append(
+                de.getValueType().isNumeric()
+                    ? castToNumber(dataValueValueSql)
+                    : lower(dataValueValueSql))
+            .append(" as ")
+            .append(de.getUid())
+            .append(", ");
+      }
+    }
+
+    return selectBuilder.toString();
   }
 
   private boolean checkForOwnership(EventQueryParams params) {
@@ -1083,27 +1041,17 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     if (params.getOccurredStartDate() != null) {
-      mapSqlParameterSource.addValue("startDate", params.getOccurredStartDate(), Types.TIMESTAMP);
+      mapSqlParameterSource.addValue(
+          "startOccurredDate", params.getOccurredStartDate(), Types.TIMESTAMP);
 
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" (ev.occurreddate >= ")
-          .append(":startDate")
-          .append(" or (ev.occurreddate is null and ev.scheduleddate >= ")
-          .append(":startDate")
-          .append(" )) ");
+      fromBuilder.append(hlp.whereAnd()).append(" ev.occurreddate >= :startOccurredDate ");
     }
 
     if (params.getOccurredEndDate() != null) {
-      mapSqlParameterSource.addValue("endDate", params.getOccurredEndDate(), Types.TIMESTAMP);
+      mapSqlParameterSource.addValue(
+          "endOccurredDate", params.getOccurredEndDate(), Types.TIMESTAMP);
 
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" (ev.occurreddate <= ")
-          .append(":endDate")
-          .append(" or (ev.occurreddate is null and ev.scheduleddate <=")
-          .append(":endDate")
-          .append(" )) ");
+      fromBuilder.append(hlp.whereAnd()).append(" ev.occurreddate <= :endOccurredDate ");
     }
 
     if (params.getProgramType() != null) {
@@ -1208,7 +1156,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
   private String createDescendantsSql(
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
-    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
     if (isProgramRestricted(params.getProgram())) {
       return createCaptureScopeQuery(
@@ -1221,7 +1169,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
   private String createChildrenSql(
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
-    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
     String customChildrenQuery =
         " and (ou.hierarchylevel = "
@@ -1244,7 +1192,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
   private String createSelectedSql(
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
-    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getPath());
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
     String orgUnitPathEqualsMatchQuery =
         " ou.path = :"
@@ -1330,10 +1278,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       StringBuilder selectBuilder) {
     int filterCount = 0;
 
-    StringBuilder optionValueJoinBuilder = new StringBuilder();
-    StringBuilder optionValueConditionBuilder = new StringBuilder();
     StringBuilder eventDataValuesWhereSql = new StringBuilder();
-    Set<String> joinedColumns = new HashSet<>();
 
     for (Entry<DataElement, List<QueryFilter>> item : params.getDataElements().entrySet()) {
       ++filterCount;
@@ -1341,6 +1286,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       DataElement de = item.getKey();
       List<QueryFilter> filters = item.getValue();
       final String deUid = de.getUid();
+      final int itemValueType = de.getValueType().isNumeric() ? Types.NUMERIC : Types.VARCHAR;
 
       final String dataValueValueSql = "ev.eventdatavalues #>> '{" + deUid + ", value}'";
 
@@ -1353,100 +1299,56 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           .append(" as ")
           .append(deUid);
 
-      String optValueTableAs = "opt_" + filterCount;
+      for (QueryFilter filter : filters) {
+        ++filterCount;
 
-      if (!joinedColumns.contains(deUid) && de.hasOptionSet() && !filters.isEmpty()) {
-        String optSetBind = "optset_" + filterCount;
+        final String queryCol =
+            de.getValueType().isNumeric()
+                ? castToNumber(dataValueValueSql)
+                : lower(dataValueValueSql);
 
-        mapSqlParameterSource.addValue(optSetBind, de.getOptionSet().getId());
+        String bindParameter = "parameter_" + filterCount;
 
-        optionValueJoinBuilder
-            .append("inner join optionvalue as ")
-            .append(optValueTableAs)
-            .append(" on lower(")
-            .append(optValueTableAs)
-            .append(".code) = ")
-            .append("lower(")
-            .append(dataValueValueSql)
-            .append(") and ")
-            .append(optValueTableAs)
-            .append(".optionsetid = ")
-            .append(":")
-            .append(optSetBind)
-            .append(" ");
+        eventDataValuesWhereSql.append(hlp.whereAnd());
 
-        joinedColumns.add(deUid);
-      }
+        if (filter.getOperator().isUnary()) {
+          eventDataValuesWhereSql.append(unaryOperatorCondition(filter.getOperator(), deUid));
+        } else if (QueryOperator.IN.getValue().equalsIgnoreCase(filter.getSqlOperator())) {
+          mapSqlParameterSource.addValue(
+              bindParameter,
+              QueryFilter.getFilterItems(StringUtils.lowerCase(filter.getFilter())),
+              itemValueType);
 
-      if (!filters.isEmpty()) {
-        for (QueryFilter filter : filters) {
-          ++filterCount;
+          eventDataValuesWhereSql.append(inCondition(filter, bindParameter, queryCol));
+        } else {
+          mapSqlParameterSource.addValue(
+              bindParameter, StringUtils.lowerCase(filter.getSqlBindFilter()), itemValueType);
 
-          final String queryCol =
-              de.getValueType().isNumeric()
-                  ? castToNumber(dataValueValueSql)
-                  : lower(dataValueValueSql);
-
-          String bindParameter = "parameter_" + filterCount;
-          int itemType = de.getValueType().isNumeric() ? Types.NUMERIC : Types.VARCHAR;
-
-          if (!de.hasOptionSet()) {
-            eventDataValuesWhereSql.append(hlp.whereAnd());
-
-            if (QueryOperator.IN.getValue().equalsIgnoreCase(filter.getSqlOperator())) {
-              mapSqlParameterSource.addValue(
-                  bindParameter,
-                  QueryFilter.getFilterItems(StringUtils.lowerCase(filter.getFilter())),
-                  itemType);
-
-              eventDataValuesWhereSql.append(inCondition(filter, bindParameter, queryCol));
-            } else {
-              mapSqlParameterSource.addValue(
-                  bindParameter, StringUtils.lowerCase(filter.getSqlBindFilter()), itemType);
-
-              eventDataValuesWhereSql
-                  .append(" ")
-                  .append(queryCol)
-                  .append(" ")
-                  .append(filter.getSqlOperator())
-                  .append(" ")
-                  .append(":")
-                  .append(bindParameter)
-                  .append(" ");
-            }
-          } else {
-            if (QueryOperator.IN.getValue().equalsIgnoreCase(filter.getSqlOperator())) {
-              mapSqlParameterSource.addValue(
-                  bindParameter,
-                  QueryFilter.getFilterItems(StringUtils.lowerCase(filter.getFilter())),
-                  itemType);
-
-              optionValueConditionBuilder.append(" and ");
-              optionValueConditionBuilder.append(inCondition(filter, bindParameter, queryCol));
-            } else {
-              mapSqlParameterSource.addValue(
-                  bindParameter, StringUtils.lowerCase(filter.getSqlBindFilter()), itemType);
-
-              optionValueConditionBuilder
-                  .append("and lower(")
-                  .append(optValueTableAs)
-                  .append(DOT_NAME)
-                  .append(" ")
-                  .append(filter.getSqlOperator())
-                  .append(" ")
-                  .append(":")
-                  .append(bindParameter)
-                  .append(" ");
-            }
-          }
+          eventDataValuesWhereSql
+              .append(" ")
+              .append(queryCol)
+              .append(" ")
+              .append(filter.getSqlOperator())
+              .append(" ")
+              .append(":")
+              .append(bindParameter)
+              .append(" ");
         }
       }
     }
 
-    return optionValueJoinBuilder
-        .append(optionValueConditionBuilder)
-        .append(eventDataValuesWhereSql)
-        .append(" ");
+    return eventDataValuesWhereSql.append(" ");
+  }
+
+  private String unaryOperatorCondition(QueryOperator queryOperator, String deUid) {
+    return new StringBuilder()
+        .append(" ev.eventdatavalues->")
+        .append("'")
+        .append(deUid)
+        .append("' ")
+        .append(queryOperator.getValue())
+        .append(" ")
+        .toString();
   }
 
   private String inCondition(QueryFilter filter, String boundParameter, String queryCol) {
@@ -1591,9 +1493,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String getLimitAndOffsetClause(final PageParams pageParams) {
-    int pageSize = pageParams.getPageSize();
-    int offset = (pageParams.getPage() - 1) * pageParams.getPageSize();
-    return " limit " + pageSize + " offset " + offset + " ";
+    // get extra event to determine if there is a nextPage
+    return " limit " + (pageParams.getPageSize() + 1) + " offset " + pageParams.getOffset() + " ";
   }
 
   private String getOrderQuery(EventQueryParams params) {
@@ -1625,7 +1526,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     if (!orderFields.isEmpty()) {
-      return "order by " + StringUtils.join(orderFields, ',') + " ";
+      return "order by " + StringUtils.join(orderFields, ',') + ", " + DEFAULT_ORDER + " ";
     } else {
       return "order by " + DEFAULT_ORDER + " ";
     }

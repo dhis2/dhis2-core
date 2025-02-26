@@ -33,7 +33,6 @@ import static org.hamcrest.Matchers.startsWith;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
-import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
 import static org.hisp.dhis.program.variable.vEventCount.DEFAULT_COUNT_CONDITION;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -46,6 +45,7 @@ import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.antlr.literal.DefaultLiteral;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
@@ -57,6 +57,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -81,6 +82,8 @@ class ProgramSqlGeneratorVariablesTest extends TestBase {
   @Mock private DimensionService dimensionService;
 
   @Mock private I18n i18n;
+
+  @Spy private PostgreSqlBuilder sqlBuilder;
 
   private CommonExpressionVisitor subject;
 
@@ -304,10 +307,11 @@ class ProgramSqlGeneratorVariablesTest extends TestBase {
             .programIndicatorService(programIndicatorService)
             .programStageService(programStageService)
             .i18nSupplier(() -> new I18n(null, null))
-            .itemMap(PROGRAM_INDICATOR_ITEMS)
+            .itemMap(new ExpressionMapBuilder().getExpressionItemMap())
             .itemMethod(ITEM_GET_SQL)
             .params(params)
             .progParams(progParams)
+            .sqlBuilder(sqlBuilder)
             .build();
 
     subject.setExpressionLiteral(exprLiteral);

@@ -31,7 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.collect.Lists;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -42,7 +41,6 @@ import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.DataSetStore;
-import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
@@ -95,19 +93,6 @@ public class HibernateDataSetStore extends HibernateIdentifiableObjectStore<Data
     dataSet.setPeriodType(periodType);
 
     super.update(dataSet);
-  }
-
-  @Override
-  public List<DataSet> getDataSetsByPeriodType(PeriodType periodType) {
-    PeriodType refreshedPeriodType = periodService.reloadPeriodType(periodType);
-
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    JpaQueryParameters<DataSet> parameters =
-        newJpaParameters()
-            .addPredicate(root -> builder.equal(root.get("periodType"), refreshedPeriodType));
-
-    return getList(builder, parameters);
   }
 
   @Override

@@ -36,6 +36,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NE;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.hisp.dhis.common.QueryOperator.NIEQ;
@@ -57,6 +58,7 @@ import static org.hisp.dhis.test.TestBase.getDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -75,6 +77,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryParams.Builder;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
@@ -103,11 +106,14 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.ResultSetWrappingSqlRowSet;
@@ -126,11 +132,27 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private OrganisationUnitService organisationUnitService;
 
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  @Mock private SystemSettingsService systemSettingsService;
 
-  private JdbcEventAnalyticsManager eventSubject;
+  @Mock private OrganisationUnitResolver organisationUnitResolver;
 
-  private JdbcEnrollmentAnalyticsManager enrollmentSubject;
+  @Spy
+  private ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
+      new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService, systemSettingsService);
+
+  @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
+  @Spy
+  private EventTimeFieldSqlRenderer eventTimeFieldSqlRenderer =
+      new EventTimeFieldSqlRenderer(sqlBuilder);
+
+  @Spy
+  private EnrollmentTimeFieldSqlRenderer enrollmentTimeFieldSqlRenderer =
+      new EnrollmentTimeFieldSqlRenderer(sqlBuilder);
+
+  @InjectMocks private JdbcEventAnalyticsManager eventSubject;
+
+  @InjectMocks private JdbcEnrollmentAnalyticsManager enrollmentSubject;
 
   private Program programA;
 
@@ -146,29 +168,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @BeforeEach
   public void setUp() {
-    DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
-        new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService);
-
-    eventSubject =
-        new JdbcEventAnalyticsManager(
-            jdbcTemplate,
-            programIndicatorService,
-            programIndicatorSubqueryBuilder,
-            new EventTimeFieldSqlRenderer(sqlBuilder),
-            executionPlanStore,
-            sqlBuilder);
-
-    enrollmentSubject =
-        new JdbcEnrollmentAnalyticsManager(
-            jdbcTemplate,
-            programIndicatorService,
-            programIndicatorSubqueryBuilder,
-            new EnrollmentTimeFieldSqlRenderer(sqlBuilder),
-            executionPlanStore,
-            sqlBuilder);
-
     programA = createProgram('A');
-
     dataElementA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
     dataElementA.setUid("fWIAEtYVEGk");
   }
@@ -241,8 +241,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
                 + colName
                 + ")::numeric, 6) || ']' as "
                 + colName));
-
-    return;
   }
 
   @Test
@@ -537,7 +535,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     assertThat(
         whereClause,
-        containsString("and ax.\"uidlevel0\" in ('ouabcdefghA','ouabcdefghB','ouabcdefghC')"));
+        containsString("and ax.\"uidlevel1\" in ('ouabcdefghA','ouabcdefghB','ouabcdefghC')"));
   }
 
   @Test
@@ -859,6 +857,24 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     String select = enrollmentSubject.getSelectClause(params);
     // Then
     assertEquals("select enrollment,Yearly ", select);
+  }
+
+  @Test
+  void testItemsInFilterAreQuotedForOrganisationUnit() {
+    // Given
+    QueryItem queryItem = mock(QueryItem.class);
+    QueryFilter queryFilter = new QueryFilter(IN, "A;B;C");
+    EventQueryParams params =
+        new EventQueryParams.Builder().withStartDate(new Date()).withEndDate(new Date()).build();
+    when(queryItem.getItemName()).thenReturn("anyItem");
+    when(queryItem.getValueType()).thenReturn(ValueType.ORGANISATION_UNIT);
+    when(organisationUnitResolver.resolveOrgUnits(any(), any())).thenReturn("A;B;C");
+
+    // When
+    String sql = eventSubject.toSql(queryItem, queryFilter, params).trim();
+
+    // Then
+    assertEquals("ax.\"anyItem\" in ('A','B','C')", sql);
   }
 
   @Test

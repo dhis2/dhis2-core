@@ -43,6 +43,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
@@ -97,8 +98,8 @@ public class SmsOutboundController
       GetObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
-      throws ForbiddenException, BadRequestException {
-    return getObjectList(params, response, currentUser);
+      throws ForbiddenException, BadRequestException, ConflictException {
+    return super.getObjectList(params, response, currentUser);
   }
 
   // -------------------------------------------------------------------------

@@ -123,7 +123,7 @@ public class DimensionController
    * DimensionalObject} and there is no specific {@link InternalHibernateGenericStore} to retrieve
    * them from.
    */
-  @OpenApi.Response(ObjectListResponse.class)
+  @OpenApi.Response(GetObjectListResponse.class)
   @Override
   @GetMapping
   public @ResponseBody ResponseEntity<StreamingJsonRoot<DimensionalObject>> getObjectList(
@@ -189,7 +189,8 @@ public class DimensionController
     int totalOfItems = 0;
     if (paging) {
       params.setPaging(false);
-      Query queryForCount = queryService.getQueryFromUrl(DimensionalItemObject.class, params);
+      Query<DimensionalItemObject> queryForCount =
+          queryService.getQueryFromUrl(DimensionalItemObject.class, params);
       queryForCount.setObjects(readableItems);
 
       List<?> totalItems = queryService.query(queryForCount);
@@ -197,13 +198,12 @@ public class DimensionController
       params.setPaging(true);
     }
 
-    Query query = queryService.getQueryFromUrl(DimensionalItemObject.class, params);
+    Query<DimensionalItemObject> query =
+        queryService.getQueryFromUrl(DimensionalItemObject.class, params);
     query.setObjects(readableItems);
     query.setDefaultOrder();
 
-    @SuppressWarnings("unchecked")
-    List<DimensionalItemObject> paginatedItems =
-        (List<DimensionalItemObject>) queryService.query(query);
+    List<DimensionalItemObject> paginatedItems = queryService.query(query);
     if (!paging) totalOfItems = paginatedItems.size();
 
     RootNode rootNode = NodeUtils.createMetadata();
@@ -310,13 +310,12 @@ public class DimensionController
   }
 
   private PagedEntities<DimensionalObject> getPagedEntities(GetObjectListParams params) {
-    Query filteredQuery = queryService.getQueryFromUrl(DimensionalObject.class, params);
+    Query<DimensionalObject> filteredQuery =
+        queryService.getQueryFromUrl(DimensionalObject.class, params);
     filteredQuery.setObjects(dimensionService.getAllDimensions());
 
     filteredQuery.setSkipPaging(true); // paging is done post
-    @SuppressWarnings("unchecked")
-    List<DimensionalObject> filteredNotPaged =
-        (List<DimensionalObject>) queryService.query(filteredQuery);
+    List<DimensionalObject> filteredNotPaged = queryService.query(filteredQuery);
     return PaginationUtils.addPagingIfEnabled(params, filteredNotPaged);
   }
 }

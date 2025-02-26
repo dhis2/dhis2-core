@@ -50,6 +50,7 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -132,6 +133,15 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
           new ErrorReport(User.class, ErrorCode.E4027, user.getWhatsApp(), "whatsApp")
               .setErrorProperty("whatsApp"));
     }
+
+    if (existingUser != null
+        && existingUser.getTwoFactorType() != null
+        && existingUser.getTwoFactorType().equals(TwoFactorType.EMAIL_ENABLED)
+        && existingUser.isEmailVerified()
+        && user.getEmail() != null
+        && !existingUser.getVerifiedEmail().equals(user.getEmail())) {
+      addReports.accept(new ErrorReport(User.class, ErrorCode.E3052).setErrorProperty("email"));
+    }
   }
 
   @Override
@@ -208,7 +218,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
     updateUserSettings(persistedUser);
 
     if (Boolean.TRUE.equals(invalidateSessions)) {
-      userService.invalidateUserSessions(persistedUser.getUid());
+      userService.invalidateUserSessions(persistedUser.getUsername());
     }
 
     bundle.removeExtras(persistedUser, PRE_UPDATE_USER_KEY);

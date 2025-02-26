@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.export;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -50,11 +51,10 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.tracker.deprecated.audit.TrackedEntityAuditService;
+import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -65,20 +65,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class OperationsParamsValidatorTest {
-
-  private static final String PARENT_ORG_UNIT_UID = "parent-org-unit";
-
-  private final OrganisationUnit captureScopeOrgUnit = createOrgUnit("captureScopeOrgUnit", "uid3");
-
-  private final OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeOrgUnit", "uid4");
-
   private final Program program = new Program("program");
 
   private final TrackedEntity trackedEntity = new TrackedEntity();
 
   private final TrackedEntityType trackedEntityType = new TrackedEntityType();
 
-  private final OrganisationUnit orgUnit = new OrganisationUnit();
+  private final OrganisationUnit orgUnit = createOrganisationUnit('A');
 
   private static final UID PROGRAM_UID = UID.generate();
 
@@ -103,12 +96,6 @@ class OperationsParamsValidatorTest {
   @InjectMocks private OperationsParamsValidator paramsValidator;
 
   private final UserDetails user = UserDetails.fromUser(new User());
-
-  @BeforeEach
-  public void setUp() {
-    OrganisationUnit organisationUnit = createOrgUnit("orgUnit", PARENT_ORG_UNIT_UID);
-    organisationUnit.setChildren(Set.of(captureScopeOrgUnit, searchScopeOrgUnit));
-  }
 
   @Test
   void shouldFailWhenOuModeCaptureAndUserHasNoOrgUnitsAssigned() {
@@ -230,10 +217,11 @@ class OperationsParamsValidatorTest {
 
   @Test
   void shouldReturnTrackedEntityWhenTrackedEntityUidExists()
-      throws ForbiddenException, BadRequestException {
+      throws BadRequestException, ForbiddenException {
     when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID.getValue())).thenReturn(trackedEntity);
 
-    assertEquals(trackedEntity, paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user));
+    assertEquals(
+        trackedEntity, paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user, false));
   }
 
   @Test
@@ -243,7 +231,7 @@ class OperationsParamsValidatorTest {
     Exception exception =
         assertThrows(
             BadRequestException.class,
-            () -> paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user));
+            () -> paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user, false));
 
     assertEquals(
         String.format("Tracked entity is specified but does not exist: %s", TRACKED_ENTITY_UID),
@@ -259,7 +247,8 @@ class OperationsParamsValidatorTest {
     when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID.getValue())).thenReturn(trackedEntity);
     when(aclService.canDataRead(user, trackedEntity.getTrackedEntityType())).thenReturn(true);
 
-    assertEquals(trackedEntity, paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user));
+    assertEquals(
+        trackedEntity, paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user, false));
   }
 
   @Test
@@ -273,13 +262,43 @@ class OperationsParamsValidatorTest {
     Exception exception =
         assertThrows(
             ForbiddenException.class,
-            () -> paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user));
+            () -> paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user, false));
 
     assertEquals(
         String.format(
             "User is not authorized to read data from type of selected tracked entity: %s",
             trackedEntity.getUid()),
         exception.getMessage());
+  }
+
+  @Test
+  void shouldThrowBadRequestExceptionWhenTrackedEntityIsSoftDeletedAndIncludeDeletedIsFalse() {
+    TrackedEntity softDeletedTrackedEntity = new TrackedEntity();
+    softDeletedTrackedEntity.setDeleted(true);
+    when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID.getValue()))
+        .thenReturn(softDeletedTrackedEntity);
+
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user, false));
+
+    assertEquals(
+        String.format("Tracked entity is specified but does not exist: %s", TRACKED_ENTITY_UID),
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldReturnTrackedEntityWhenTrackedEntityIsSoftDeletedAndIncludeDeletedIsTrue()
+      throws BadRequestException, ForbiddenException {
+    TrackedEntity softDeletedTrackedEntity = new TrackedEntity();
+    softDeletedTrackedEntity.setDeleted(true);
+    when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID.getValue()))
+        .thenReturn(softDeletedTrackedEntity);
+
+    assertEquals(
+        softDeletedTrackedEntity,
+        paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user, true));
   }
 
   @Test
@@ -384,11 +403,5 @@ class OperationsParamsValidatorTest {
         paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_UID), UserDetails.fromUser(userWithRoles));
 
     assertEquals(Set.of(orgUnit), orgUnits);
-  }
-
-  private OrganisationUnit createOrgUnit(String name, String uid) {
-    OrganisationUnit orgUnit = new OrganisationUnit(name);
-    orgUnit.setUid(uid);
-    return orgUnit;
   }
 }

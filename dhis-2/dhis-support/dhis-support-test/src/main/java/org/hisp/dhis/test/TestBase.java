@@ -78,6 +78,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -185,6 +186,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.setting.SessionUserSettings;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewType;
+import org.hisp.dhis.test.api.TestCategoryMetadata;
 import org.hisp.dhis.test.utils.Dxf2NamespaceResolver;
 import org.hisp.dhis.test.utils.RelationshipUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -272,6 +274,7 @@ public abstract class TestBase {
   private static Date date;
 
   protected static final double DELTA = 0.01;
+  private static int categoryCounter = 1;
 
   // -------------------------------------------------------------------------
   // Service references
@@ -303,6 +306,7 @@ public abstract class TestBase {
   // -------------------------------------------------------------------------
   // Convenience methods
   // -------------------------------------------------------------------------
+
   public User getCurrentUser() {
     return userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
   }
@@ -572,6 +576,23 @@ public abstract class TestBase {
   }
 
   /**
+   * @param identifier A unique string to identify the category option combo.
+   * @param categories the categories category options.
+   * @return CategoryOptionCombo
+   */
+  public static CategoryCombo createCategoryCombo(String identifier, Category... categories) {
+    CategoryCombo categoryCombo =
+        new CategoryCombo("CategoryCombo " + identifier, DataDimensionType.DISAGGREGATION);
+    categoryCombo.setAutoFields();
+
+    for (Category category : categories) {
+      categoryCombo.getCategories().add(category);
+    }
+
+    return categoryCombo;
+  }
+
+  /**
    * Creates a {@see CategoryCombo} with name, uid, and categories.
    *
    * @param name desired name
@@ -681,6 +702,22 @@ public abstract class TestBase {
       char categoryUniqueIdentifier, CategoryOption... categoryOptions) {
     Category category =
         new Category("Category" + categoryUniqueIdentifier, DataDimensionType.DISAGGREGATION);
+    category.setAutoFields();
+    category.setShortName(category.getName());
+    for (CategoryOption categoryOption : categoryOptions) {
+      category.addCategoryOption(categoryOption);
+    }
+
+    return category;
+  }
+
+  /**
+   * @param identifier A unique string to identify the category.
+   * @param categoryOptions the category options.
+   * @return Category
+   */
+  public static Category createCategory(String identifier, CategoryOption... categoryOptions) {
+    Category category = new Category("Category" + identifier, DataDimensionType.DISAGGREGATION);
     category.setAutoFields();
     category.setShortName(category.getName());
     for (CategoryOption categoryOption : categoryOptions) {
@@ -996,23 +1033,19 @@ public abstract class TestBase {
   public static OrganisationUnit createOrganisationUnit(char uniqueCharacter) {
     OrganisationUnit unit = new OrganisationUnit();
     unit.setAutoFields();
-
     unit.setUid(BASE_OU_UID + uniqueCharacter);
     unit.setName("OrganisationUnit" + uniqueCharacter);
     unit.setShortName("OrganisationUnitShort" + uniqueCharacter);
     unit.setCode("OrganisationUnitCode" + uniqueCharacter);
     unit.setOpeningDate(date);
     unit.setComment("Comment" + uniqueCharacter);
-    //    unit.getSharing().setPublicAccess("--------");
-
+    unit.updatePath();
     return unit;
   }
 
   public static OrganisationUnit createOrganisationUnit(char uniqueCharacter, Geometry geometry) {
     OrganisationUnit unit = createOrganisationUnit(uniqueCharacter);
-
     unit.setGeometry(geometry);
-
     return unit;
   }
 
@@ -1025,37 +1058,36 @@ public abstract class TestBase {
     OrganisationUnit unit = createOrganisationUnit(uniqueCharacter);
     unit.setParent(parent);
     parent.getChildren().add(unit);
-
+    unit.updatePath();
     return unit;
   }
 
   /**
+   * Deprecated, use {@code createOrganisationUnit(char,OrganisationUnit)}.
+   *
    * @param name The name, short name and code of the organisation unit.
    */
   public static OrganisationUnit createOrganisationUnit(String name) {
-    OrganisationUnit unit = new OrganisationUnit();
-    unit.setAutoFields();
-
+    OrganisationUnit unit = createOrganisationUnit('Y');
     unit.setUid(CodeGenerator.generateUid());
     unit.setName(name);
     unit.setShortName(name);
     unit.setCode(name);
-    unit.setOpeningDate(date);
     unit.setComment("Comment " + name);
-
     return unit;
   }
 
   /**
+   * Deprecated, use {@code createOrganisationUnit(char,OrganisationUnit)}.
+   *
    * @param name The name, short name and code of the organisation unit.
    * @param parent The parent.
    */
   public static OrganisationUnit createOrganisationUnit(String name, OrganisationUnit parent) {
     OrganisationUnit unit = createOrganisationUnit(name);
-
     unit.setParent(parent);
     parent.getChildren().add(unit);
-
+    unit.updatePath();
     return unit;
   }
 
@@ -1065,12 +1097,10 @@ public abstract class TestBase {
   public static OrganisationUnitGroup createOrganisationUnitGroup(char uniqueCharacter) {
     OrganisationUnitGroup group = new OrganisationUnitGroup();
     group.setAutoFields();
-
     group.setUid(BASE_UID + uniqueCharacter);
     group.setName("OrganisationUnitGroup" + uniqueCharacter);
     group.setShortName("OrganisationUnitGroupShort" + uniqueCharacter);
     group.setCode("OrganisationUnitGroupCode" + uniqueCharacter);
-
     return group;
   }
 
@@ -1080,13 +1110,11 @@ public abstract class TestBase {
   public static OrganisationUnitGroupSet createOrganisationUnitGroupSet(char uniqueCharacter) {
     OrganisationUnitGroupSet groupSet = new OrganisationUnitGroupSet();
     groupSet.setAutoFields();
-
     groupSet.setName("OrganisationUnitGroupSet" + uniqueCharacter);
     groupSet.setShortName("OrganisationUnitGroupSet" + uniqueCharacter);
     groupSet.setCode("OrganisationUnitGroupSetCode" + uniqueCharacter);
     groupSet.setDescription("Description" + uniqueCharacter);
     groupSet.setCompulsory(true);
-
     return groupSet;
   }
 
@@ -1987,7 +2015,9 @@ public abstract class TestBase {
     RelationshipItem riTo = new RelationshipItem();
 
     riFrom.setTrackedEntity(from);
+    riFrom.setRelationship(relationship);
     riTo.setTrackedEntity(to);
+    riTo.setRelationship(relationship);
 
     relationship.setRelationshipType(relationshipType);
     relationship.setFrom(riFrom);
@@ -2141,29 +2171,36 @@ public abstract class TestBase {
     return trackedEntityType;
   }
 
-  public static TrackedEntity createTrackedEntity(OrganisationUnit organisationUnit) {
+  public static TrackedEntity createTrackedEntity(
+      OrganisationUnit organisationUnit, TrackedEntityType trackedEntityType) {
     TrackedEntity trackedEntity = new TrackedEntity();
     trackedEntity.setAutoFields();
     trackedEntity.setOrganisationUnit(organisationUnit);
+    trackedEntity.setTrackedEntityType(trackedEntityType);
 
     return trackedEntity;
   }
 
   public static TrackedEntity createTrackedEntity(
-      char uniqueChar, OrganisationUnit organisationUnit) {
+      char uniqueChar, OrganisationUnit organisationUnit, TrackedEntityType trackedEntityType) {
     TrackedEntity trackedEntity = new TrackedEntity();
     trackedEntity.setAutoFields();
     trackedEntity.setOrganisationUnit(organisationUnit);
     trackedEntity.setUid(BASE_TE_UID + uniqueChar);
+    trackedEntity.setTrackedEntityType(trackedEntityType);
 
     return trackedEntity;
   }
 
   public static TrackedEntity createTrackedEntity(
-      char uniqueChar, OrganisationUnit organisationUnit, TrackedEntityAttribute attribute) {
+      char uniqueChar,
+      OrganisationUnit organisationUnit,
+      TrackedEntityAttribute attribute,
+      TrackedEntityType trackedEntityType) {
     TrackedEntity trackedEntity = new TrackedEntity();
     trackedEntity.setAutoFields();
     trackedEntity.setOrganisationUnit(organisationUnit);
+    trackedEntity.setTrackedEntityType(trackedEntityType);
 
     TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();
     attributeValue.setAttribute(attribute);
@@ -2689,7 +2726,7 @@ public abstract class TestBase {
     }
 
     user = userService.getUser(user.getUid());
-    UserDetails userDetails = userService.createUserDetails(user);
+    UserDetails userDetails = UserDetails.fromUser(user);
 
     injectSecurityContext(userDetails);
   }
@@ -3046,5 +3083,70 @@ public abstract class TestBase {
     entityManager.persist(user);
 
     return user;
+  }
+
+  /**
+   * This test setup allows easy creation of more realistic {@link CategoryOptionCombo}s. It creates
+   * multiple {@link CategoryOptionCombo}s that mirror how they are created in live code, (creating
+   * {@link Category}s, {@link CategoryOption}s, {@link CategoryCombo}s and then invoking the
+   * generation of {@link CategoryOptionCombo}s through the service). {@link CategoryOptionCombo}s
+   * are always system-generated and never created in isolation, like most other resources. When
+   * system-generated, they always have a {@link CategoryCombo} and {@link CategoryOption}s.
+   *
+   * @param identifier unique identifier to create different objects
+   * @return record of created category types
+   */
+  protected static TestCategoryMetadata setupCategoryMetadata(String identifier) {
+    // 4 category options
+    CategoryOption co1 =
+        createCategoryOption(identifier + " " + categoryCounter++, CodeGenerator.generateUid());
+    CategoryOption co2 =
+        createCategoryOption(identifier + " " + categoryCounter++, CodeGenerator.generateUid());
+    CategoryOption co3 =
+        createCategoryOption(identifier + " " + categoryCounter++, CodeGenerator.generateUid());
+    CategoryOption co4 =
+        createCategoryOption(identifier + " " + categoryCounter++, CodeGenerator.generateUid());
+
+    categoryService.addCategoryOption(co1);
+    categoryService.addCategoryOption(co2);
+    categoryService.addCategoryOption(co3);
+    categoryService.addCategoryOption(co4);
+
+    // 2 categories (each with 2 category options)
+    Category cat1 = createCategory(identifier + " " + categoryCounter++, co1, co2);
+    Category cat2 = createCategory(identifier + " " + categoryCounter++, co3, co4);
+    categoryService.addCategory(cat1);
+    categoryService.addCategory(cat2);
+
+    // 1 category combo with 2 categories
+    CategoryCombo cc1 = createCategoryCombo(identifier + " " + categoryCounter++, cat1, cat2);
+    categoryService.addCategoryCombo(cc1);
+
+    // should generate 4 category option combos ([co1,co3], [co1,co4], [co2,co3], [co2,co4])
+    categoryService.generateOptionCombos(cc1);
+
+    CategoryOptionCombo coc1 = getCocWithOptions(co1.getName(), co3.getName());
+    CategoryOptionCombo coc2 = getCocWithOptions(co1.getName(), co4.getName());
+    CategoryOptionCombo coc3 = getCocWithOptions(co2.getName(), co3.getName());
+    CategoryOptionCombo coc4 = getCocWithOptions(co2.getName(), co4.getName());
+
+    return new TestCategoryMetadata(cc1, cat1, cat2, co1, co2, co3, co4, coc1, coc2, coc3, coc4);
+  }
+
+  private static CategoryOptionCombo getCocWithOptions(String co1, String co2) {
+    List<CategoryOptionCombo> allCategoryOptionCombos =
+        categoryService.getAllCategoryOptionCombos();
+
+    return allCategoryOptionCombos.stream()
+        .filter(
+            coc -> {
+              Set<String> categoryOptions =
+                  coc.getCategoryOptions().stream()
+                      .map(BaseIdentifiableObject::getName)
+                      .collect(Collectors.toSet());
+              return categoryOptions.containsAll(List.of(co1, co2));
+            })
+        .toList()
+        .get(0);
   }
 }
