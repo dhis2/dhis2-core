@@ -25,58 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query;
+package org.hisp.dhis.webapi.controller.tracker.deduplication;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.query.operators.InOperator;
-import org.hisp.dhis.query.operators.Operator;
-import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.tracker.deduplication.PotentialDuplicate;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Getter
-@Accessors(chain = true)
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public final class Restriction implements Criterion {
-  /**
-   * Path to property you want to restrict only, one first-level properties are currently supported.
-   */
-  private final String path;
-
-  /** Operator for restriction. */
-  private final Operator<?> operator;
-
-  /**
-   * Indicates that the {@link #path} is a attribute UID. This also means the {@link Restriction} is
-   * an in-memory filter.
-   */
-  private final boolean attribute;
-
-  /** Query Path used in persistent part of a query. */
-  @Setter private QueryPath queryPath;
-
-  public Restriction(String path, Operator<?> operator) {
-    this(path, operator, false);
+/** Representation of {@link PotentialDuplicate}. */
+public interface JsonPotentialDuplicate extends JsonObject {
+  default String getUid() {
+    return getString("id").string();
   }
 
-  public Restriction asAttribute() {
-    return new Restriction(path, operator, true);
+  default UID getOriginal() {
+    return UID.of(getString("original").string());
   }
 
-  @Override
-  public String toString() {
-    return "[" + path + ", op: " + operator + "]";
+  default UID getDuplicate() {
+    return UID.of(getString("duplicate").string());
   }
 
-  @Override
-  public boolean isAlwaysFalse() {
-    if (operator instanceof InOperator<?> in)
-      return in.getCollectionArgs().isEmpty() || in.getCollectionArgs().get(0).isEmpty();
-    return false;
+  default String getLastUpdated() {
+    return getString("lastUpdated").string();
+  }
+
+  default String getCreated() {
+    return getString("created").string();
+  }
+
+  default String getStatus() {
+    return getString("status").string();
   }
 }

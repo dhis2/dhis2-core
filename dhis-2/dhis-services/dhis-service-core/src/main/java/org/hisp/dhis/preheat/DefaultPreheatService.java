@@ -63,9 +63,9 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodStore;
+import org.hisp.dhis.query.Filters;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.schema.MetadataMergeService;
 import org.hisp.dhis.schema.Property;
@@ -154,7 +154,7 @@ public class DefaultPreheatService implements PreheatService {
             Query query = Query.from(schemaService.getDynamicSchema(klass));
             query.setCurrentUserDetails(UserDetails.fromUser(preheat.getUser()));
             query.setSkipSharing(true);
-            query.add(Restrictions.in("id", ids));
+            query.add(Filters.in("id", ids));
             List<? extends IdentifiableObject> objects = queryService.query(query);
             preheat.put(PreheatIdentifier.UID, objects);
           }
@@ -171,7 +171,7 @@ public class DefaultPreheatService implements PreheatService {
           for (List<String> ids : identifiers) {
             Query query = Query.from(schemaService.getDynamicSchema(klass));
             query.setCurrentUserDetails(UserDetails.fromUser(preheat.getUser()));
-            query.add(Restrictions.in("code", ids));
+            query.add(Filters.in("code", ids));
             List<? extends IdentifiableObject> objects = queryService.query(query);
             preheat.put(PreheatIdentifier.CODE, objects);
           }
@@ -185,7 +185,7 @@ public class DefaultPreheatService implements PreheatService {
         for (List<String> ids : identifiers) {
           Query query = Query.from(schemaService.getDynamicSchema(User.class));
           query.setCurrentUserDetails(UserDetails.fromUser(preheat.getUser()));
-          query.add(Restrictions.in("id", ids));
+          query.add(Filters.in("id", ids));
           List<? extends IdentifiableObject> objects = queryService.query(query);
           preheat.put(PreheatIdentifier.UID, objects);
         }
@@ -198,7 +198,7 @@ public class DefaultPreheatService implements PreheatService {
         for (List<String> ids : identifiers) {
           Query query = Query.from(schemaService.getDynamicSchema(UserRole.class));
           query.setCurrentUserDetails(UserDetails.fromUser(preheat.getUser()));
-          query.add(Restrictions.in("id", ids));
+          query.add(Filters.in("id", ids));
           List<? extends IdentifiableObject> objects = queryService.query(query);
           preheat.put(PreheatIdentifier.UID, objects);
         }

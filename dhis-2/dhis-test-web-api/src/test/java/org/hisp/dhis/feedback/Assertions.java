@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,18 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query;
+package org.hisp.dhis.feedback;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Assertions for feedback like metadata validation reports.
+ *
+ * <p>Keep the copies in dhis-test-integration and dhis-test-web-api in sync! We can currently not
+ * share test code between these modules without introducing cycles or adding test code to the main
+ * module.
  */
-public interface Criterion {
-
-  /**
-   * @return true, when the condition cannot match any rows, e.g. an in-operator with an empty
-   *     collection to test against
-   */
-  default boolean isAlwaysFalse() {
-    return false;
+public class Assertions {
+  public static void assertNoErrors(ObjectBundleValidationReport report) {
+    assertNotNull(report);
+    List<String> errors = new ArrayList<>();
+    report.forEachErrorReport(
+        err -> {
+          errors.add(err.toString());
+        });
+    assertFalse(
+        report.hasErrorReports(), String.format("Expected no errors, instead got: %s\n", errors));
   }
 }

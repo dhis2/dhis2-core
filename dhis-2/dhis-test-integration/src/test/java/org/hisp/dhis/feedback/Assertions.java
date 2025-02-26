@@ -34,7 +34,13 @@ import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 
-/** Assertions for feedback like metadata validation reports. */
+/**
+ * Assertions for feedback like metadata validation reports.
+ *
+ * <p>Keep the copies in dhis-test-integration and dhis-test-web-api in sync! We can currently not
+ * share test code between these modules without introducing cycles or adding test code to the main
+ * module.
+ */
 public class Assertions {
   public static void assertNoErrors(ObjectBundleValidationReport report) {
     assertNotNull(report);
