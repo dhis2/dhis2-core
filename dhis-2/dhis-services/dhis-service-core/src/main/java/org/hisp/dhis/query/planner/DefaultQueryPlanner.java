@@ -31,7 +31,6 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.query.Filter;
-import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.schema.Schema;
@@ -51,17 +50,11 @@ public class DefaultQueryPlanner implements QueryPlanner {
   public <T extends IdentifiableObject> QueryPlan<T> planQuery(Query<T> query) {
     autoFill(query);
 
-    // if only one filter, always set to Junction.Type AND
-    if (query.getFilters().size() > 1 && Junction.Type.OR == query.getRootJunctionType()) {
-      return new QueryPlan<>(Query.emptyOf(query), Query.copyOf(query));
-    }
-
     QueryPlan<T> plan = split(query);
     Query<T> memoryQuery = plan.memoryQuery();
     Query<T> dbQuery = plan.dbQuery();
 
-    // if there are any non persisted criterions left, we leave the paging
-    // to the in-memory engine
+    // if there are any non persisted filters, leave the paging to the in-memory engine
     if (!memoryQuery.isEmpty()) {
       dbQuery.setSkipPaging(true);
     } else {
