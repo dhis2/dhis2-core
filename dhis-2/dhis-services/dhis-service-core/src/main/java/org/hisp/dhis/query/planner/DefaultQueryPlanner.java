@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.query.Filter;
+import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.schema.Schema;
@@ -92,6 +93,14 @@ public class DefaultQueryPlanner implements QueryPlanner {
       } else {
         memoryQuery.add(filter);
       }
+    }
+    if (query.getRootJunctionType() == Junction.Type.OR
+        && !memoryQuery.getFilters().isEmpty()
+        && !dbQuery.getFilters().isEmpty()) {
+      // OR with some filters DB some filters in-memory => all must be in-memory
+      dbQuery.getFilters().clear();
+      memoryQuery.getFilters().clear();
+      memoryQuery.getFilters().addAll(query.getFilters());
     }
 
     if (query.ordersPersisted()) {
