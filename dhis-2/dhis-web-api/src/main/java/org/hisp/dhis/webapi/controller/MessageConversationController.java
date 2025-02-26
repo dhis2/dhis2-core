@@ -200,7 +200,7 @@ public class MessageConversationController
             .setPaging(false)
             .setRootJunction(Junction.Type.OR)
             .setFilters(filters);
-    Query subQuery =
+    Query<org.hisp.dhis.message.MessageConversation> subQuery =
         queryService.getQueryFromUrl(getEntityClass(), subQueryParams).setObjects(allUserMessages);
     // Note: in theory these filters could be added to the main query
     // but the OR concerns both DB and in-memory properties
