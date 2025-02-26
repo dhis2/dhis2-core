@@ -409,17 +409,16 @@ public abstract class AbstractFullReadOnlyController<
 
     cachePrivate(response);
 
-    T entity = !currentUser.isSuper() ? getEntity(pvUid) : getEntityNoAcl(pvUid);
+    T entity = getEntity(pvUid);
 
     GetObjectListParams listParams = params.toListParams();
     addProgrammaticFilters(listParams::addFilter); // temporary workaround
-    Query query = queryService.getQueryFromUrl(getEntityClass(), listParams);
+    Query<T> query = queryService.getQueryFromUrl(getEntityClass(), listParams);
     query.setCurrentUserDetails(currentUser);
     query.setObjects(List.of(entity));
     query.setDefaults(params.getDefaults());
 
-    @SuppressWarnings("unchecked")
-    List<T> entities = (List<T>) queryService.query(query);
+    List<T> entities = queryService.query(query);
 
     List<String> fields = params.getFieldsObject();
     handleLinksAndAccess(entities, fields, true);
@@ -465,12 +464,12 @@ public abstract class AbstractFullReadOnlyController<
       throws NotFoundException {
     T entity = getEntity(uid);
 
-    Query query = queryService.getQueryFromUrl(getEntityClass(), params.toListParams());
+    Query<T> query = queryService.getQueryFromUrl(getEntityClass(), params.toListParams());
     query.setCurrentUserDetails(currentUser);
     query.setObjects(List.of(entity));
     query.setDefaults(params.getDefaults());
 
-    List<T> entities = (List<T>) queryService.query(query);
+    List<T> entities = queryService.query(query);
 
     List<String> fields = params.getFieldsObject();
     handleLinksAndAccess(entities, fields, true);
@@ -485,7 +484,7 @@ public abstract class AbstractFullReadOnlyController<
 
   private List<T> getEntityList(P params, List<Filter> additionalFilters)
       throws BadRequestException {
-    Query query =
+    Query<T> query =
         BadRequestException.on(
             QueryParserException.class,
             () -> queryService.getQueryFromUrl(getEntityClass(), params));
@@ -496,13 +495,12 @@ public abstract class AbstractFullReadOnlyController<
 
     modifyGetObjectList(params, query);
 
-    @SuppressWarnings("unchecked")
-    List<T> res = (List<T>) queryService.query(query);
+    List<T> res = queryService.query(query);
     getEntityListPostProcess(params, res);
     return res;
   }
 
-  protected void modifyGetObjectList(P params, Query query) {
+  protected void modifyGetObjectList(P params, Query<T> query) {
     // by default: nothing special to do
   }
 
@@ -510,7 +508,7 @@ public abstract class AbstractFullReadOnlyController<
 
   private long countGetObjectList(P params, List<Filter> additionalFilters)
       throws BadRequestException {
-    Query query =
+    Query<T> query =
         BadRequestException.on(
             QueryParserException.class,
             () -> queryService.getQueryFromUrl(getEntityClass(), params));
@@ -571,30 +569,5 @@ public abstract class AbstractFullReadOnlyController<
 
   protected final Schema getSchema(Class<?> klass) {
     return schemaService.getDynamicSchema(klass);
-  }
-
-  /**
-   * Get an entity without ACL checks.
-   *
-   * @param uid of the entity.
-   * @param entityType of the entity
-   * @return {@link java.util.Optional} contains the entity if found.
-   */
-  private final <E extends IdentifiableObject> java.util.Optional<E> getEntityNoAcl(
-      String uid, Class<E> entityType) {
-    return java.util.Optional.ofNullable(manager.getNoAcl(entityType, uid));
-  }
-
-  /**
-   * Get an entity without ACL checks.
-   *
-   * @param uid of the entity
-   * @return The entity if found.
-   * @throws NotFoundException
-   */
-  @Nonnull
-  private T getEntityNoAcl(String uid) throws NotFoundException {
-    return getEntityNoAcl(uid, getEntityClass())
-        .orElseThrow(() -> new NotFoundException(getEntityClass(), uid));
   }
 }
