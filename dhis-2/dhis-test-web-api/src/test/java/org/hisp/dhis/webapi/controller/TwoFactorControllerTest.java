@@ -38,8 +38,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.zxing.BarcodeFormat;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.ChecksumException;
+import com.google.zxing.DecodeHintType;
 import com.google.zxing.FormatException;
 import com.google.zxing.LuminanceSource;
 import com.google.zxing.NotFoundException;
@@ -51,7 +53,10 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Base64;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import javax.imageio.ImageIO;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -160,7 +165,13 @@ class TwoFactorControllerTest extends H2ControllerIntegrationTestBase {
     BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
     assertNotNull(bitmap, "QR image could not be converted to binary bitmap");
     // Use the ZXing's QRCodeReader to decode the QR code image
-    Result code = new QRCodeReader().decode(bitmap);
+    QRCodeReader reader = new QRCodeReader();
+    Map<DecodeHintType, Object> tmpHintsMap =
+        new EnumMap<DecodeHintType, Object>(DecodeHintType.class);
+    tmpHintsMap.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);
+    tmpHintsMap.put(DecodeHintType.POSSIBLE_FORMATS, EnumSet.allOf(BarcodeFormat.class));
+    tmpHintsMap.put(DecodeHintType.PURE_BARCODE, Boolean.FALSE);
+    Result code = reader.decode(bitmap, tmpHintsMap);
     return code.getText();
   }
 
