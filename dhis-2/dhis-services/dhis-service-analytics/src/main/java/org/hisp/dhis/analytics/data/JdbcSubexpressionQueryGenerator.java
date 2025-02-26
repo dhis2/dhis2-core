@@ -55,6 +55,8 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
 
 import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -194,7 +196,7 @@ public class JdbcSubexpressionQueryGenerator {
     String value = subex.getSubexSql();
 
     // Dimensions can be empty if the query is a Single Value query.
-    if (dimensions == null || dimensions.isEmpty()) {
+    if (StringUtils.isBlank(dimensions)) {
       return String.format("select %s,%s(%s) as %s ", data, aggregate, value, quote(VALUE));
     } else {
       return String.format(
