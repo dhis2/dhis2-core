@@ -244,7 +244,9 @@ public class Section extends BaseIdentifiableObject implements MetadataObject {
   }
 
   public boolean addIndicator(Indicator i) {
-    return this.indicators.add(i);
+    if (!this.indicators.contains(i)) {
+      return this.indicators.add(i);
+    } else return false;
   }
 
   public void removeIndicators(List<Indicator> sources) {
