@@ -72,15 +72,15 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
     TrackerObjects duplicateTrackedEntities =
         testSetup.setUpTrackerData("tracker/deduplication/potential_duplicates.json");
 
-    trackedEntityAOriginal = trackerObjects.findTrackedEntity(UID.of("QS6w44flWAf")).get().getUid();
+    trackedEntityAOriginal = testSetup.getTrackedEntity(trackerObjects, "QS6w44flWAf").getUid();
     trackedEntityADuplicate =
-        duplicateTrackedEntities.findTrackedEntity(UID.of("DS6w44flWAf")).get().getUid();
-    trackedEntityBOriginal = trackerObjects.findTrackedEntity(UID.of("dUE514NMOlo")).get().getUid();
+        testSetup.getTrackedEntity(duplicateTrackedEntities, "DS6w44flWAf").getUid();
+    trackedEntityBOriginal = testSetup.getTrackedEntity(trackerObjects, "dUE514NMOlo").getUid();
     trackedEntityBDuplicate =
-        duplicateTrackedEntities.findTrackedEntity(UID.of("DUE514NMOlo")).get().getUid();
-    trackedEntityCOriginal = trackerObjects.findTrackedEntity(UID.of("mHWCacsGYYn")).get().getUid();
+        testSetup.getTrackedEntity(duplicateTrackedEntities, "DUE514NMOlo").getUid();
+    trackedEntityCOriginal = testSetup.getTrackedEntity(trackerObjects, "mHWCacsGYYn").getUid();
     trackedEntityCDuplicate =
-        duplicateTrackedEntities.findTrackedEntity(UID.of("DHWCacsGYYn")).get().getUid();
+        testSetup.getTrackedEntity(duplicateTrackedEntities, "DHWCacsGYYn").getUid();
   }
 
   @Test
@@ -164,7 +164,7 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
     PotentialDuplicate potentialDuplicate2 =
         new PotentialDuplicate(trackedEntityBOriginal, trackedEntityBDuplicate);
     PotentialDuplicate potentialDuplicate3 =
-        new PotentialDuplicate(trackedEntityCOriginal, trackedEntityCDuplicate);
+        new PotentialDuplicate(trackedEntityAOriginal, trackedEntityCDuplicate);
     deduplicationService.addPotentialDuplicate(potentialDuplicate1);
     deduplicationService.addPotentialDuplicate(potentialDuplicate2);
     deduplicationService.addPotentialDuplicate(potentialDuplicate3);
