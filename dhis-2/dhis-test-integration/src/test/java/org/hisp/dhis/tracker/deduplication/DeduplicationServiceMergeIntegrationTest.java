@@ -160,7 +160,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
 
     assertEquals(
         DeduplicationStatus.MERGED,
-        deduplicationService.getPotentialDuplicateByUid(UID.of(potentialDuplicate)).getStatus());
+        deduplicationService.getPotentialDuplicate(UID.of(potentialDuplicate)).getStatus());
     assertTrue(
         requireNonNull(manager.get(TrackedEntity.class, original.getUid()))
                 .getLastUpdated()
@@ -196,7 +196,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
 
     assertEquals(
         DeduplicationStatus.MERGED,
-        deduplicationService.getPotentialDuplicateByUid(UID.of(potentialDuplicate)).getStatus());
+        deduplicationService.getPotentialDuplicate(UID.of(potentialDuplicate)).getStatus());
     assertTrue(
         requireNonNull(manager.get(TrackedEntity.class, original.getUid()))
                 .getLastUpdated()
@@ -222,7 +222,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
 
     assertEquals(
         DeduplicationStatus.MERGED,
-        deduplicationService.getPotentialDuplicateByUid(UID.of(potentialDuplicate)).getStatus());
+        deduplicationService.getPotentialDuplicate(UID.of(potentialDuplicate)).getStatus());
 
     List<TrackedEntityChangeLog> trackedEntityChangeLogs =
         trackedEntityChangeLogService
@@ -254,7 +254,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
 
     assertEquals(
         DeduplicationStatus.MERGED,
-        deduplicationService.getPotentialDuplicateByUid(UID.of(potentialDuplicate)).getStatus());
+        deduplicationService.getPotentialDuplicate(UID.of(potentialDuplicate)).getStatus());
     List<TrackedEntityChangeLog> trackedEntityChangeLogs =
         trackedEntityChangeLogService
             .getTrackedEntityChangeLog(
@@ -292,7 +292,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
 
     assertEquals(
         DeduplicationStatus.MERGED,
-        deduplicationService.getPotentialDuplicateByUid(UID.of(potentialDuplicate)).getStatus());
+        deduplicationService.getPotentialDuplicate(UID.of(potentialDuplicate)).getStatus());
 
     List<TrackedEntityChangeLog> trackedEntityChangeLogs =
         trackedEntityChangeLogService

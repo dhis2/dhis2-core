@@ -27,10 +27,11 @@
  */
 package org.hisp.dhis.query.planner;
 
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.query.Query;
 
 /**
  * @param dbQuery the part that runs in DB
  * @param memoryQuery the part that runs in memory
  */
-public record QueryPlan(Query dbQuery, Query memoryQuery) {}
+public record QueryPlan<T extends IdentifiableObject>(Query<T> dbQuery, Query<T> memoryQuery) {}

@@ -60,9 +60,9 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Autowired private InMemoryQueryEngine queryEngine;
 
-  private List<DataElement> dataElements = new ArrayList<>();
+  private final List<DataElement> dataElements = new ArrayList<>();
 
-  private List<DataElementGroup> dataElementGroups = new ArrayList<>();
+  private final List<DataElementGroup> dataElementGroups = new ArrayList<>();
 
   @BeforeEach
   void createDataElements() {
@@ -115,19 +115,19 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getAllQuery() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
+    Query<DataElement> query = Query.of(DataElement.class);
     query.setObjects(dataElements);
     assertEquals(6, queryEngine.query(query).size());
   }
 
   @Test
   void getMinMaxQuery() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
+    Query<DataElement> query = Query.of(DataElement.class);
     query.setObjects(dataElements);
     query.setFirstResult(2);
     query.setMaxResults(10);
     assertEquals(4, queryEngine.query(query).size());
-    query = Query.from(schemaService.getDynamicSchema(DataElement.class));
+    query = Query.of(DataElement.class);
     query.setObjects(dataElements);
     query.setFirstResult(2);
     query.setMaxResults(2);
@@ -136,7 +136,7 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getEqQuery() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
+    Query<DataElement> query = Query.of(DataElement.class);
     query.setObjects(dataElements);
     query.add(Filters.eq("id", "deabcdefghA"));
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
@@ -146,7 +146,7 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getEqQueryEnum() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
+    Query<DataElement> query = Query.of(DataElement.class);
     query.setObjects(dataElements);
     query.add(Filters.eq("valueType", ValueType.INTEGER));
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
@@ -157,7 +157,7 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getNeQuery() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
+    Query<DataElement> query = Query.of(DataElement.class);
     query.setObjects(dataElements);
     query.add(Filters.ne("id", "deabcdefghA"));
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
@@ -172,7 +172,7 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getLikeQueryAnywhere() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
+    Query<DataElement> query = Query.of(DataElement.class);
     query.setObjects(dataElements);
     query.add(Filters.like("name", "F", MatchMode.ANYWHERE));
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
@@ -182,7 +182,7 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getLikeQueryStart() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
+    Query<DataElement> query = Query.of(DataElement.class);
     query.setObjects(dataElements);
     query.add(Filters.like("name", "Data", MatchMode.START));
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
@@ -197,7 +197,7 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getLikeQueryEnd() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
+    Query<DataElement> query = Query.of(DataElement.class);
     query.setObjects(dataElements);
     query.add(Filters.like("name", "ElementE", MatchMode.END));
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
@@ -207,7 +207,7 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getGtQuery() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
+    Query<DataElement> query = Query.of(DataElement.class);
     query.setObjects(dataElements);
     query.add(Filters.gt("created", Year.parseYear("2003").getStart()));
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
@@ -219,7 +219,7 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getLtQuery() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
+    Query<DataElement> query = Query.of(DataElement.class);
     query.setObjects(dataElements);
     query.add(Filters.lt("created", Year.parseYear("2003").getStart()));
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
@@ -230,7 +230,7 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getGeQuery() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
+    Query<DataElement> query = Query.of(DataElement.class);
     query.setObjects(dataElements);
     query.add(Filters.ge("created", Year.parseYear("2003").getStart()));
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
@@ -243,7 +243,7 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getLeQuery() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
+    Query<DataElement> query = Query.of(DataElement.class);
     query.setObjects(dataElements);
     query.add(Filters.le("created", Year.parseYear("2003").getStart()));
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
@@ -255,7 +255,7 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getBetweenQuery() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
+    Query<DataElement> query = Query.of(DataElement.class);
     query.setObjects(dataElements);
     query.add(
         Filters.between(
@@ -269,7 +269,7 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void getInQuery() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
+    Query<DataElement> query = Query.of(DataElement.class);
     query.setObjects(dataElements);
     query.add(Filters.in("id", Lists.newArrayList("deabcdefghD", "deabcdefghF")));
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
@@ -280,7 +280,7 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void testDateRange() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
+    Query<DataElement> query = Query.of(DataElement.class);
     query.setObjects(dataElements);
     query.add(Filters.ge("created", Year.parseYear("2002").getStart()));
     query.add(Filters.le("created", Year.parseYear("2004").getStart()));
@@ -293,7 +293,7 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void testIsNotNull() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
+    Query<DataElement> query = Query.of(DataElement.class);
     query.setObjects(dataElements);
     query.add(Filters.isNotNull("categoryCombo"));
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
@@ -308,7 +308,7 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void testIsNull() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElement.class));
+    Query<DataElement> query = Query.of(DataElement.class);
     query.setObjects(dataElements);
     query.add(Filters.isNull("categoryCombo"));
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
@@ -318,7 +318,7 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
   @Test
   void sortNameDesc() {
     Schema schema = schemaService.getDynamicSchema(DataElement.class);
-    Query query = Query.from(schema);
+    Query<DataElement> query = Query.of(DataElement.class);
     query.setObjects(dataElements);
     query.addOrder(new Order(schema.getProperty("name"), Direction.DESCENDING));
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
@@ -334,7 +334,7 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
   @Test
   void sortNameAsc() {
     Schema schema = schemaService.getDynamicSchema(DataElement.class);
-    Query query = Query.from(schema);
+    Query<DataElement> query = Query.of(DataElement.class);
     query.setObjects(dataElements);
     query.addOrder(new Order(schema.getProperty("name"), Direction.ASCENDING));
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
@@ -350,7 +350,7 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
   @Test
   void sortCreatedDesc() {
     Schema schema = schemaService.getDynamicSchema(DataElement.class);
-    Query query = Query.from(schema);
+    Query<DataElement> query = Query.of(DataElement.class);
     query.setObjects(dataElements);
     query.addOrder(new Order(schema.getProperty("created"), Direction.DESCENDING));
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
@@ -366,7 +366,7 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
   @Test
   void sortCreatedAsc() {
     Schema schema = schemaService.getDynamicSchema(DataElement.class);
-    Query query = Query.from(schema);
+    Query<DataElement> query = Query.of(DataElement.class);
     query.setObjects(dataElements);
     query.addOrder(new Order(schema.getProperty("created"), Direction.ASCENDING));
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
@@ -381,7 +381,7 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void testInvalidDeepPath() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElementGroup.class));
+    Query<DataElementGroup> query = Query.of(DataElementGroup.class);
     query.setObjects(dataElementGroups);
     query.add(Filters.eq("dataElements.abc", "deabcdefghA"));
     assertThrows(QueryException.class, () -> queryEngine.query(query));
@@ -389,7 +389,7 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void testEqIdDeepPath() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElementGroup.class));
+    Query<DataElementGroup> query = Query.of(DataElementGroup.class);
     query.setObjects(dataElementGroups);
     query.add(Filters.eq("dataElements.id", "deabcdefghA"));
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
@@ -399,7 +399,7 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void testLikeNameDeepPath() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElementGroup.class));
+    Query<DataElementGroup> query = Query.of(DataElementGroup.class);
     query.setObjects(dataElementGroups);
     query.add(Filters.like("dataElements.name", "ElementD", MatchMode.END));
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
@@ -409,7 +409,7 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void testCollectionDeep() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElementGroup.class));
+    Query<DataElementGroup> query = Query.of(DataElementGroup.class);
     query.setObjects(dataElementGroups);
     query.add(Filters.like("dataElements.dataElementGroups.name", "A", MatchMode.END));
     assertEquals(1, queryEngine.query(query).size());
@@ -417,7 +417,7 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void testCollectionEqSize() {
-    Query query = Query.from(schemaService.getDynamicSchema(DataElementGroup.class));
+    Query<DataElementGroup> query = Query.of(DataElementGroup.class);
     query.setObjects(dataElementGroups);
     query.add(Filters.eq("dataElements", 3));
     List<? extends IdentifiableObject> objects = queryEngine.query(query);

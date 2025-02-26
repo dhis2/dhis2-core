@@ -40,7 +40,7 @@ public interface QueryEngine {
    * @param query Query instance to use
    * @return Matching objects
    */
-  <T extends IdentifiableObject> List<T> query(Query query);
+  <T extends IdentifiableObject> List<T> query(Query<T> query);
 
   /**
    * Returns how many objects matches the given query.
@@ -48,5 +48,5 @@ public interface QueryEngine {
    * @param query Query instance to use
    * @return N number of matching objects
    */
-  <T extends IdentifiableObject> long count(Query query);
+  <T extends IdentifiableObject> long count(Query<T> query);
 }

@@ -87,7 +87,7 @@ public class ProgramController
   private final CopyService copyService;
 
   @Override
-  protected void modifyGetObjectList(GetProgramObjectListParams params, Query query) {
+  protected void modifyGetObjectList(GetProgramObjectListParams params, Query<Program> query) {
     if (params.isUserFilter()) {
       query.setSkipSharing(true);
       query.setDataSharing(true);

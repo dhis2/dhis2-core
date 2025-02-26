@@ -374,15 +374,15 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
             // INNER JOIN on constraints
             .append(joinPrograms(params))
-            .append(joinAttributeValue(params))
             .append(getFromSubQueryJoinProgramOwnerConditions(params))
             .append(getFromSubQueryJoinOrgUnitConditions(params))
             .append(getFromSubQueryJoinEnrollmentConditions(params))
 
-            // LEFT JOIN attributes we need to sort on.
-            .append(getFromSubQueryJoinOrderByAttributes(params))
+            // LEFT JOIN attributes we need to sort on and/or filter by.
+            .append(getLeftJoinFromAttributes(params))
 
             // WHERE
+            .append(getWhereClauseFromFilterConditions(whereAnd, params))
             .append(getFromSubQueryTrackedEntityConditions(whereAnd, params))
             .append(getFromSubQueryEnrollmentConditions(whereAnd, params));
 
@@ -529,72 +529,33 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   /**
-   * Generates a single INNER JOIN for each attribute we are searching on. We can search by a range
-   * of operators. All searching is using lower() since attribute values are case-insensitive.
+   * Generates a single LEFT JOIN for each attribute used for filtering and sorting. The result of
+   * this LEFT JOIN is used in the subquery projection and for ordering in both the subquery and the
+   * main query.
+   *
+   * <p>Attribute filtering is handled in {@link #getWhereClauseFromFilterConditions(SqlHelper,
+   * TrackedEntityQueryParams)}.
+   *
+   * @return a SQL LEFT JOIN for the relevant attributes, or an empty string if none are provided.
    */
-  private String joinAttributeValue(TrackedEntityQueryParams params) {
+  private String getLeftJoinFromAttributes(TrackedEntityQueryParams params) {
     StringBuilder attributes = new StringBuilder();
 
-    for (Map.Entry<TrackedEntityAttribute, List<QueryFilter>> filters :
-        params.getFilters().entrySet()) {
-      String col = quote(filters.getKey().getUid());
-      String teaId = col + ".trackedentityattributeid";
-      String teav = "lower(" + col + ".value)";
-      String ted = col + ".trackedentityid";
-
+    for (TrackedEntityAttribute attribute : params.getLeftJoinAttributes()) {
+      String col = quote(attribute.getUid());
       attributes
-          .append(" INNER JOIN trackedentityattributevalue ")
+          .append(" LEFT JOIN trackedentityattributevalue AS ")
           .append(col)
           .append(" ON ")
-          .append(teaId)
-          .append(EQUALS)
-          .append(filters.getKey().getId())
-          .append(" AND ")
-          .append(ted)
-          .append(" = TE.trackedentityid ");
-
-      for (QueryFilter filter : filters.getValue()) {
-        String encodedFilter = escape(filter.getFilter());
-        attributes
-            .append("AND ")
-            .append(teav)
-            .append(SPACE)
-            .append(filter.getSqlOperator())
-            .append(SPACE)
-            .append(StringUtils.lowerCase(filter.getSqlFilter(encodedFilter)));
-      }
-    }
-
-    return attributes.toString();
-  }
-
-  /**
-   * Generates the LEFT JOINs used for attributes we are ordering by (If any). We use LEFT JOIN to
-   * avoid removing any rows if there is no value for a given attribute and te. The result of this
-   * LEFT JOIN is used in the sub-query projection, and ordering in the sub-query and main query.
-   *
-   * @return a SQL LEFT JOIN for attributes used for ordering, or empty string if no attributes is
-   *     used in order.
-   */
-  private String getFromSubQueryJoinOrderByAttributes(TrackedEntityQueryParams params) {
-    StringBuilder joinOrderAttributes = new StringBuilder();
-
-    for (TrackedEntityAttribute orderAttribute : params.getLeftJoinAttributes()) {
-
-      joinOrderAttributes
-          .append(" LEFT JOIN trackedentityattributevalue AS ")
-          .append(quote(orderAttribute.getUid()))
-          .append(" ON ")
-          .append(quote(orderAttribute.getUid()))
-          .append(".trackedentityid = TE.trackedentityid ")
-          .append("AND ")
-          .append(quote(orderAttribute.getUid()))
+          .append(col)
+          .append(".trackedentityid = TE.trackedentityid AND ")
+          .append(col)
           .append(".trackedentityattributeid = ")
-          .append(orderAttribute.getId())
+          .append(attribute.getId())
           .append(SPACE);
     }
 
-    return joinOrderAttributes.toString();
+    return attributes.toString();
   }
 
   /**
@@ -830,6 +791,39 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     program.append(") ");
 
     return program.toString();
+  }
+
+  /**
+   * Generates the WHERE-clause related to the user provided filters. It will find the tracked
+   * entity attributes that match the given user filter criteria. This condition only applies when a
+   * filter is specified.
+   */
+  private String getWhereClauseFromFilterConditions(
+      SqlHelper whereAnd, TrackedEntityQueryParams params) {
+    StringBuilder filterClause = new StringBuilder();
+
+    for (Map.Entry<TrackedEntityAttribute, List<QueryFilter>> filters :
+        params.getFilters().entrySet()) {
+      String col = quote(filters.getKey().getUid());
+      String teav = "lower(" + col + ".value)";
+
+      for (QueryFilter filter : filters.getValue()) {
+        filterClause.append(whereAnd.whereAnd()).append(teav).append(SPACE);
+
+        filterClause.append(
+            switch (filter.getOperator()) {
+              case NULL, NNULL -> filter.getSqlOperator() + SPACE;
+              default ->
+                  new StringBuilder()
+                      .append(filter.getSqlOperator())
+                      .append(SPACE)
+                      .append(
+                          StringUtils.lowerCase(filter.getSqlFilter(escape(filter.getFilter()))));
+            });
+      }
+    }
+
+    return filterClause.toString();
   }
 
   /**

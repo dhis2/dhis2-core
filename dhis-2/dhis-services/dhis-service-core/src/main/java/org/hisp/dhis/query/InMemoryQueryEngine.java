@@ -31,21 +31,20 @@ import static org.hisp.dhis.query.Filters.eq;
 import static org.hisp.dhis.query.Filters.ilike;
 import static org.hisp.dhis.query.Filters.in;
 
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import lombok.AllArgsConstructor;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PagerUtils;
-import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.query.operators.Operator;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -57,12 +56,12 @@ import org.springframework.stereotype.Component;
 @Component("org.hisp.dhis.query.InMemoryQueryEngine")
 @AllArgsConstructor
 public class InMemoryQueryEngine implements QueryEngine {
-  private final SchemaService schemaService;
 
+  private final SchemaService schemaService;
   private final AclService aclService;
 
   @Override
-  public <T extends IdentifiableObject> List<T> query(Query query) {
+  public <T extends IdentifiableObject> List<T> query(Query<T> query) {
     validateQuery(query);
     List<T> list = runQuery(query);
     list = runSorter(query, list);
@@ -73,19 +72,19 @@ public class InMemoryQueryEngine implements QueryEngine {
   }
 
   @Override
-  public <T extends IdentifiableObject> long count(Query query) {
+  public <T extends IdentifiableObject> long count(Query<T> query) {
     validateQuery(query);
     List<T> list = runQuery(query);
     return list.size();
   }
 
-  private void validateQuery(Query query) {
+  private void validateQuery(Query<?> query) {
     if (query.getCurrentUserDetails() == null) {
       query.setCurrentUserDetails(CurrentUserUtil.getCurrentUserDetails());
     }
 
-    if (query.getSchema() == null) {
-      throw new QueryException("Invalid Query object, does not contain Schema");
+    if (query.getObjectType() == null) {
+      throw new QueryException("Invalid Query object, does not contain an object type");
     }
 
     if (query.getObjects() == null) {
@@ -93,15 +92,12 @@ public class InMemoryQueryEngine implements QueryEngine {
     }
   }
 
-  @SuppressWarnings("unchecked")
-  private <T extends IdentifiableObject> List<T> runQuery(Query query) {
-    return query.getObjects().stream()
-        .filter(object -> matches(query, (T) object))
-        .map(object -> (T) object)
-        .collect(Collectors.toList());
+  private <T extends IdentifiableObject> List<T> runQuery(Query<T> query) {
+    List<Matcher> matchers = query.getFilters().stream().map(f -> matcherOf(query, f)).toList();
+    return query.getObjects().stream().filter(object -> matches(query, object, matchers)).toList();
   }
 
-  private <T extends IdentifiableObject> List<T> runSorter(Query query, List<T> objects) {
+  private <T extends IdentifiableObject> List<T> runSorter(Query<T> query, List<T> objects) {
     List<T> sorted = new ArrayList<>(objects);
 
     sorted.sort(
@@ -117,131 +113,127 @@ public class InMemoryQueryEngine implements QueryEngine {
     return sorted;
   }
 
-  private <T> boolean matches(Query query, T object) {
+  private <T extends IdentifiableObject> boolean matches(
+      Query<T> query, T object, List<Matcher> matchers) {
     if (query.getRootJunctionType() == Junction.Type.OR) {
       // OR
-      for (Filter filter : query.getFilters()) {
-        if (matches(query, object, filter)) return true;
-      }
+      for (Matcher matcher : matchers) if (matches(query, object, matcher)) return true;
       return false;
     }
     // AND
-    for (Filter filter : query.getFilters()) {
-      if (!matches(query, object, filter)) return false;
-    }
+    for (Matcher matcher : matchers) if (!matches(query, object, matcher)) return false;
     return true;
   }
 
-  private <T> boolean matches(Query query, T object, Filter filter) {
+  /**
+   * The main purpose of matchers is to "cache" the knowledge of how to extract a value for a filter
+   * test from an object of the listed object type.
+   *
+   * @param filter the filter that is applied
+   * @param match a function to test if an object matches the filter
+   */
+  private record Matcher(Filter filter, Predicate<Object> match) {}
+
+  private <T extends IdentifiableObject> boolean matches(
+      Query<T> query, T object, Matcher matcher) {
+    Filter filter = matcher.filter;
     if (filter.isVirtual()) {
-      if (filter.isMentions()) return testMentions(query, object, filter);
-      if (filter.isIdentifiable()) return testIdentifiable(query, object, filter);
-      if (filter.isQuery()) return testQuery(query, object, filter);
+      if (filter.isMentions()) return matchesMentions(query, object, matcher);
+      if (filter.isIdentifiable()) return matchesIdentifiable(query, object, matcher);
+      if (filter.isQuery()) return matchesQuery(query, object, matcher);
       throw new UnsupportedOperationException("Special filter is not implemented yet :/ " + filter);
     }
-    Object value = getValue(query, object, filter);
-    if (!(value instanceof Collection<?> collection)) return filter.getOperator().test(value);
-    return collection.stream().anyMatch(item -> filter.getOperator().test(item));
+    return matcher.match.test(object);
   }
 
-  private <T> boolean testMentions(Query query, T object, Filter filter) {
-    Operator<?> op = filter.getOperator();
-    return matches(query, object, in("mentions.username", op.getArgs()))
-        || matches(query, object, in("comments.mentions.username", op.getArgs()));
+  private <T extends IdentifiableObject> boolean matchesMentions(
+      Query<T> query, T object, Matcher matcher) {
+    Operator<?> op = matcher.filter.getOperator();
+    return matches(query, object, matcherOf(query, in("mentions.username", op.getArgs())))
+        || matches(query, object, matcherOf(query, in("comments.mentions.username", op.getArgs())));
   }
 
-  private <T> boolean testIdentifiable(Query query, T object, Filter filter) {
-    Operator<?> op = filter.getOperator();
-    return matches(query, object, new Filter("id", op))
-        || matches(query, object, new Filter("code", op))
-        || matches(query, object, new Filter("name", op))
-        || query.getSchema().hasPersistedProperty("shortName")
-            && matches(query, object, new Filter("shortName", op));
+  private <T extends IdentifiableObject> boolean matchesIdentifiable(
+      Query<T> query, T object, Matcher matcher) {
+    Operator<?> op = matcher.filter.getOperator();
+    return matches(query, object, matcherOf(query, new Filter("id", op)))
+        || matches(query, object, matcherOf(query, new Filter("code", op)))
+        || matches(query, object, matcherOf(query, new Filter("name", op)))
+        || query.isShortNamePersisted()
+            && matches(query, object, matcherOf(query, new Filter("shortName", op)));
   }
 
-  private <T> boolean testQuery(Query query, T object, Filter filter) {
-    String value = (String) filter.getOperator().getArgs().get(0);
-    return matches(query, object, eq("id", value))
-        || matches(query, object, eq("code", value))
-        || matches(query, object, ilike("name", value, MatchMode.ANYWHERE));
+  private <T extends IdentifiableObject> boolean matchesQuery(
+      Query<T> query, T object, Matcher matcher) {
+    String value = (String) matcher.filter.getOperator().getArgs().get(0);
+    return matches(query, object, matcherOf(query, eq("id", value)))
+        || matches(query, object, matcherOf(query, eq("code", value)))
+        || matches(query, object, matcherOf(query, ilike("name", value, MatchMode.ANYWHERE)));
   }
 
-  private Object getValue(Query query, Object object, Filter filter) {
-    String path = filter.getPath();
+  private Matcher matcherOf(Query<?> query, Filter filter) {
+    return new Matcher(filter, filterMatch(query, filter));
+  }
+
+  private Predicate<Object> filterMatch(Query<?> q, Filter f) {
+    if (f.isAttribute()) return filterMatchAttribute(f);
+
+    String path = f.getPath();
+    Schema schema = schemaService.getDynamicSchema(q.getObjectType());
+
+    // flat path
+    if (!path.contains(".")) return filterMatch(schema.getProperty(path), f);
+
+    // nested path
     String[] paths = path.split("\\.");
-    Schema currentSchema = query.getSchema();
-
-    if (path.contains("access") && query.getSchema().isIdentifiableObject()) {
-      ((BaseIdentifiableObject) object)
-          .setAccess(
-              aclService.getAccess((IdentifiableObject) object, query.getCurrentUserDetails()));
-    }
-
+    Property[] properties = new Property[paths.length];
     for (int i = 0; i < paths.length; i++) {
-      Property property = currentSchema.getProperty(paths[i]);
-
-      if (property == null) {
-        if (i == paths.length - 1 && filter.isAttribute()) {
-          return ((BaseIdentifiableObject) object).getAttributeValues().get(paths[i]);
-        }
-        throw new QueryException("No property found for path " + path);
-      }
-
-      if (property.isCollection()) {
-        currentSchema = schemaService.getDynamicSchema(property.getItemKlass());
-      } else {
-        currentSchema = schemaService.getDynamicSchema(property.getKlass());
-      }
-
-      object = collect(object, property);
-
-      if (path.contains("access") && property.isIdentifiableObject()) {
-        if (property.isCollection()) {
-          for (Object item : ((Collection<?>) object)) {
-            ((BaseIdentifiableObject) item)
-                .setAccess(
-                    aclService.getAccess((IdentifiableObject) item, query.getCurrentUserDetails()));
-          }
-        } else {
-          ((BaseIdentifiableObject) object)
-              .setAccess(
-                  aclService.getAccess((IdentifiableObject) object, query.getCurrentUserDetails()));
-        }
-      }
-
-      if (i == (paths.length - 1)) {
-        if (property.isCollection()) {
-          return Lists.newArrayList(object);
-        }
-
-        return object;
-      }
+      Property p = schema.getProperty(paths[i]);
+      if (p == null) throw new QueryException("No property found for path " + path);
+      properties[i] = p;
+      schema =
+          p.isCollection()
+              ? schemaService.getDynamicSchema(p.getItemKlass())
+              : schemaService.getDynamicSchema(p.getKlass());
     }
-
-    throw new QueryException("No values found for path " + path);
+    Predicate<Object> res = filterMatch(properties[properties.length - 1], f);
+    for (int i = properties.length - 2; i >= 0; i--) {
+      Property p = properties[i];
+      res = filterMatch(p, res);
+      if (p.getKlass() == Access.class)
+        res =
+            filterMatchWithAccess(obj -> aclService.getAccess(obj, q.getCurrentUserDetails()), res);
+    }
+    return res;
   }
 
-  @SuppressWarnings({"rawtypes"})
-  private Object collect(Object object, Property property) {
-    object = HibernateProxyUtils.unproxy(object);
+  private Predicate<Object> filterMatchAttribute(Filter f) {
+    return obj ->
+        obj instanceof IdentifiableObject io
+            && f.getOperator().test(io.getAttributeValues().get(f.getPath()));
+  }
 
-    if (object instanceof Collection) {
-      Collection<?> collection = (Collection<?>) object;
-      List<Object> items = new ArrayList<>();
+  private Predicate<Object> filterMatch(Property p, Filter f) {
+    Operator<?> op = f.getOperator();
+    return obj -> op.test(ReflectionUtils.invokeMethod(obj, p.getGetterMethod()));
+  }
 
-      for (Object item : collection) {
-        Object collect = collect(item, property);
+  private Predicate<Object> filterMatch(Property p, Predicate<Object> tail) {
+    return obj -> {
+      Object value = ReflectionUtils.invokeMethod(obj, p.getGetterMethod());
+      return p.isCollection() && value instanceof Collection<?> c
+          ? c.stream().anyMatch(tail)
+          : tail.test(value);
+    };
+  }
 
-        if (collect instanceof Collection) {
-          items.addAll(((Collection) collect));
-        } else {
-          items.add(collect);
-        }
+  private Predicate<Object> filterMatchWithAccess(
+      Function<IdentifiableObject, Access> getAccess, Predicate<Object> tail) {
+    return obj -> {
+      if (obj instanceof IdentifiableObject io) {
+        io.setAccess(getAccess.apply(io));
       }
-
-      return items;
-    }
-
-    return ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+      return tail.test(obj);
+    };
   }
 }
