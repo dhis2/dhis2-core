@@ -414,7 +414,7 @@ class TrackedEntitiesExportController {
     return ResponseEntity.ok()
         .contentType(MediaType.APPLICATION_JSON)
         .body(
-            Page.withPager(
+            Page.withFullPager(
                 "changeLogs", changeLogs.withItems(objectNodes), getRequestURL(request)));
   }
 }
