@@ -176,7 +176,7 @@ public class SubexpressionPeriodOffsetUtils {
       periods = params.getFilterPeriods().stream().map(Period.class::cast).toList();
     }
     if (periods.isEmpty()) {
-      throw new IllegalQueryException(ErrorCode.E7150, "No periods found in the parameters.");
+      throw new IllegalQueryException(ErrorCode.E7150);
     }
     return periods;
   }
