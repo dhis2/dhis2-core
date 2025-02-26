@@ -51,8 +51,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * DHIS2 implementation of Spring Authorization Server's RegisteredClientRepository
- * that uses HibernateOAuth2ClientStore for persistence.
+ * DHIS2 implementation of Spring Authorization Server's RegisteredClientRepository that uses
+ * HibernateOAuth2ClientStore for persistence.
  */
 @Service
 public class DHIS2OAuth2RegisteredClientRepository implements RegisteredClientRepository {
@@ -65,9 +65,13 @@ public class DHIS2OAuth2RegisteredClientRepository implements RegisteredClientRe
 
     // Configure Jackson mapper with the required modules
     ClassLoader classLoader = DHIS2OAuth2RegisteredClientRepository.class.getClassLoader();
-    List<com.fasterxml.jackson.databind.Module> securityModules = SecurityJackson2Modules.getModules(classLoader);
+    List<com.fasterxml.jackson.databind.Module> securityModules =
+        SecurityJackson2Modules.getModules(classLoader);
     this.objectMapper.registerModules(securityModules);
     this.objectMapper.registerModule(new OAuth2AuthorizationServerJackson2Module());
+    //    this.objectMapper.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false);
+    //    this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
   }
 
   @Override
@@ -75,6 +79,12 @@ public class DHIS2OAuth2RegisteredClientRepository implements RegisteredClientRe
     Assert.notNull(registeredClient, "registeredClient cannot be null");
     OAuth2Client client = toEntity(registeredClient);
     this.clientStore.save(client);
+  }
+
+  public RegisteredClient findByUID(String uid) {
+    Assert.hasText(uid, "uid cannot be empty");
+    OAuth2Client client = this.clientStore.getByUid(uid);
+    return client != null ? toObject(client) : null;
   }
 
   @Override
@@ -98,36 +108,44 @@ public class DHIS2OAuth2RegisteredClientRepository implements RegisteredClientRe
    * @return The Spring RegisteredClient
    */
   private RegisteredClient toObject(OAuth2Client client) {
-    Set<String> clientAuthenticationMethods = StringUtils.commaDelimitedListToSet(
-        client.getClientAuthenticationMethods());
-    Set<String> authorizationGrantTypes = StringUtils.commaDelimitedListToSet(
-        client.getAuthorizationGrantTypes());
-    Set<String> redirectUris = StringUtils.commaDelimitedListToSet(
-        client.getRedirectUris());
-    Set<String> postLogoutRedirectUris = StringUtils.commaDelimitedListToSet(
-        client.getPostLogoutRedirectUris());
-    Set<String> clientScopes = StringUtils.commaDelimitedListToSet(
-        client.getScopes());
+    Set<String> clientAuthenticationMethods =
+        StringUtils.commaDelimitedListToSet(client.getClientAuthenticationMethods());
+    Set<String> authorizationGrantTypes =
+        StringUtils.commaDelimitedListToSet(client.getAuthorizationGrantTypes());
+    Set<String> redirectUris = StringUtils.commaDelimitedListToSet(client.getRedirectUris());
+    Set<String> postLogoutRedirectUris =
+        StringUtils.commaDelimitedListToSet(client.getPostLogoutRedirectUris());
+    Set<String> clientScopes = StringUtils.commaDelimitedListToSet(client.getScopes());
 
-    RegisteredClient.Builder builder = RegisteredClient.withId(client.getUid())
-        .clientId(client.getClientId())
-        .clientIdIssuedAt(client.getClientIdIssuedAt() != null ? client.getClientIdIssuedAt().toInstant() : null)
-        .clientSecret(client.getClientSecret())
-        .clientSecretExpiresAt(client.getClientSecretExpiresAt() != null ? client.getClientSecretExpiresAt().toInstant() : null)
-        .clientName(client.getName())
-        .clientAuthenticationMethods(authenticationMethods ->
-            clientAuthenticationMethods.forEach(authenticationMethod ->
-                authenticationMethods.add(resolveClientAuthenticationMethod(authenticationMethod))))
-        .authorizationGrantTypes((grantTypes) ->
-            authorizationGrantTypes.forEach(grantType ->
-                grantTypes.add(resolveAuthorizationGrantType(grantType))))
-        .redirectUris((uris) -> uris.addAll(redirectUris))
-        .postLogoutRedirectUris((uris) -> uris.addAll(postLogoutRedirectUris))
-        .scopes((scopes) -> scopes.addAll(clientScopes));
+    RegisteredClient.Builder builder =
+        RegisteredClient.withId(client.getUid())
+            .clientId(client.getClientId())
+            .clientIdIssuedAt(
+                client.getClientIdIssuedAt() != null
+                    ? client.getClientIdIssuedAt().toInstant()
+                    : null)
+            .clientSecret(client.getClientSecret())
+            .clientSecretExpiresAt(
+                client.getClientSecretExpiresAt() != null
+                    ? client.getClientSecretExpiresAt().toInstant()
+                    : null)
+            .clientName(client.getName())
+            .clientAuthenticationMethods(
+                authenticationMethods ->
+                    clientAuthenticationMethods.forEach(
+                        authenticationMethod ->
+                            authenticationMethods.add(
+                                resolveClientAuthenticationMethod(authenticationMethod))))
+            .authorizationGrantTypes(
+                (grantTypes) ->
+                    authorizationGrantTypes.forEach(
+                        grantType -> grantTypes.add(resolveAuthorizationGrantType(grantType))))
+            .redirectUris((uris) -> uris.addAll(redirectUris))
+            .postLogoutRedirectUris((uris) -> uris.addAll(postLogoutRedirectUris))
+            .scopes((scopes) -> scopes.addAll(clientScopes));
 
     Map<String, Object> clientSettingsMap = parseMap(client.getClientSettings());
     builder.clientSettings(ClientSettings.withSettings(clientSettingsMap).build());
-
     Map<String, Object> tokenSettingsMap = parseMap(client.getTokenSettings());
     builder.tokenSettings(TokenSettings.withSettings(tokenSettingsMap).build());
 
@@ -141,62 +159,97 @@ public class DHIS2OAuth2RegisteredClientRepository implements RegisteredClientRe
    * @return The DHIS2 OAuth2Client entity
    */
   private OAuth2Client toEntity(RegisteredClient registeredClient) {
-    List<String> clientAuthenticationMethods = new ArrayList<>(registeredClient.getClientAuthenticationMethods().size());
-    registeredClient.getClientAuthenticationMethods().forEach(clientAuthenticationMethod ->
-        clientAuthenticationMethods.add(clientAuthenticationMethod.getValue()));
+    List<String> clientAuthenticationMethods =
+        new ArrayList<>(registeredClient.getClientAuthenticationMethods().size());
+    registeredClient
+        .getClientAuthenticationMethods()
+        .forEach(
+            clientAuthenticationMethod ->
+                clientAuthenticationMethods.add(clientAuthenticationMethod.getValue()));
 
-    List<String> authorizationGrantTypes = new ArrayList<>(registeredClient.getAuthorizationGrantTypes().size());
-    registeredClient.getAuthorizationGrantTypes().forEach(authorizationGrantType ->
-        authorizationGrantTypes.add(authorizationGrantType.getValue()));
+    List<String> authorizationGrantTypes =
+        new ArrayList<>(registeredClient.getAuthorizationGrantTypes().size());
+    registeredClient
+        .getAuthorizationGrantTypes()
+        .forEach(
+            authorizationGrantType ->
+                authorizationGrantTypes.add(authorizationGrantType.getValue()));
 
     OAuth2Client entity = new OAuth2Client();
-    
+
     // Handle case when we're creating a new client vs updating existing
     if (this.clientStore.getByClientId(registeredClient.getClientId()) != null) {
       OAuth2Client existingClient = this.clientStore.getByClientId(registeredClient.getClientId());
       entity.setUid(existingClient.getUid());
       entity.setCreated(existingClient.getCreated());
+
     } else if (registeredClient.getId() != null) {
       entity.setUid(registeredClient.getId());
     } else {
       entity.setUid(CodeGenerator.generateUid());
     }
-    
+
     entity.setName(registeredClient.getClientName());
     entity.setClientId(registeredClient.getClientId());
-    entity.setClientIdIssuedAt(registeredClient.getClientIdIssuedAt() != null ? 
-        Date.from(registeredClient.getClientIdIssuedAt()) : null);
+    entity.setClientIdIssuedAt(
+        registeredClient.getClientIdIssuedAt() != null
+            ? Date.from(registeredClient.getClientIdIssuedAt())
+            : null);
     entity.setClientSecret(registeredClient.getClientSecret());
-    entity.setClientSecretExpiresAt(registeredClient.getClientSecretExpiresAt() != null ? 
-        Date.from(registeredClient.getClientSecretExpiresAt()) : null);
-    entity.setClientAuthenticationMethods(StringUtils.collectionToCommaDelimitedString(clientAuthenticationMethods));
-    entity.setAuthorizationGrantTypes(StringUtils.collectionToCommaDelimitedString(authorizationGrantTypes));
-    entity.setRedirectUris(StringUtils.collectionToCommaDelimitedString(registeredClient.getRedirectUris()));
-    entity.setPostLogoutRedirectUris(StringUtils.collectionToCommaDelimitedString(registeredClient.getPostLogoutRedirectUris()));
+    entity.setClientSecretExpiresAt(
+        registeredClient.getClientSecretExpiresAt() != null
+            ? Date.from(registeredClient.getClientSecretExpiresAt())
+            : null);
+    entity.setClientAuthenticationMethods(
+        StringUtils.collectionToCommaDelimitedString(clientAuthenticationMethods));
+    entity.setAuthorizationGrantTypes(
+        StringUtils.collectionToCommaDelimitedString(authorizationGrantTypes));
+    entity.setRedirectUris(
+        StringUtils.collectionToCommaDelimitedString(registeredClient.getRedirectUris()));
+    entity.setPostLogoutRedirectUris(
+        StringUtils.collectionToCommaDelimitedString(registeredClient.getPostLogoutRedirectUris()));
     entity.setScopes(StringUtils.collectionToCommaDelimitedString(registeredClient.getScopes()));
-    entity.setClientSettings(writeMap(registeredClient.getClientSettings().getSettings()));
-    entity.setTokenSettings(writeMap(registeredClient.getTokenSettings().getSettings()));
+
+    Map<String, Object> settings = registeredClient.getClientSettings().getSettings();
+    entity.setClientSettings(writeMap(settings));
+    String tokenSettings = writeMap(registeredClient.getTokenSettings().getSettings());
+    entity.setTokenSettings(tokenSettings);
 
     return entity;
   }
 
-  /**
-   * Parses a JSON string into a Map.
-   *
-   * @param data The JSON string
-   * @return The parsed Map
-   */
+  private static final ObjectMapper MAPPER = new ObjectMapper();
+
   private Map<String, Object> parseMap(String data) {
     if (data == null || data.isBlank()) {
       return Map.of();
     }
-    
     try {
-      return this.objectMapper.readValue(data, new TypeReference<>() {});
+      //      this.MAPPER.registerModule(new OAuth2AuthorizationServerJackson2Module());
+      return MAPPER.readValue(data, new TypeReference<Map<String, Object>>() {});
     } catch (Exception ex) {
       throw new IllegalArgumentException("Failed to parse JSON data: " + ex.getMessage(), ex);
     }
   }
+
+  //  private Map<String, Object> parseMap(String data) {
+  //    if (data == null || data.isBlank()) {
+  //      return Map.of();
+  //    }
+  //
+  //    try {
+  //      // First parse to JsonNode
+  //      JsonNode jsonNode = objectMapper.readTree(data);
+  //      if (jsonNode == null || !jsonNode.isObject()) {
+  //        return Map.of();
+  //      }
+  //
+  //      // Then convert to Map
+  //      return objectMapper.readValue(data, Map.class);
+  //    } catch (Exception ex) {
+  //      throw new IllegalArgumentException("Failed to parse JSON data: " + ex.getMessage(), ex);
+  //    }
+  //  }
 
   /**
    * Converts a Map to a JSON string.
@@ -218,10 +271,13 @@ public class DHIS2OAuth2RegisteredClientRepository implements RegisteredClientRe
    * @param authorizationGrantType The string value
    * @return The corresponding AuthorizationGrantType
    */
-  private static AuthorizationGrantType resolveAuthorizationGrantType(@Nonnull String authorizationGrantType) {
+  private static AuthorizationGrantType resolveAuthorizationGrantType(
+      @Nonnull String authorizationGrantType) {
     if (AuthorizationGrantType.AUTHORIZATION_CODE.getValue().equals(authorizationGrantType)) {
       return AuthorizationGrantType.AUTHORIZATION_CODE;
-    } else if (AuthorizationGrantType.CLIENT_CREDENTIALS.getValue().equals(authorizationGrantType)) {
+    } else if (AuthorizationGrantType.CLIENT_CREDENTIALS
+        .getValue()
+        .equals(authorizationGrantType)) {
       return AuthorizationGrantType.CLIENT_CREDENTIALS;
     } else if (AuthorizationGrantType.REFRESH_TOKEN.getValue().equals(authorizationGrantType)) {
       return AuthorizationGrantType.REFRESH_TOKEN;
@@ -237,14 +293,25 @@ public class DHIS2OAuth2RegisteredClientRepository implements RegisteredClientRe
    * @param clientAuthenticationMethod The string value
    * @return The corresponding ClientAuthenticationMethod
    */
-  private static ClientAuthenticationMethod resolveClientAuthenticationMethod(@Nonnull String clientAuthenticationMethod) {
-    if (ClientAuthenticationMethod.CLIENT_SECRET_BASIC.getValue().equals(clientAuthenticationMethod)) {
+  private static ClientAuthenticationMethod resolveClientAuthenticationMethod(
+      @Nonnull String clientAuthenticationMethod) {
+    if (ClientAuthenticationMethod.CLIENT_SECRET_BASIC
+        .getValue()
+        .equals(clientAuthenticationMethod)) {
       return ClientAuthenticationMethod.CLIENT_SECRET_BASIC;
-    } else if (ClientAuthenticationMethod.CLIENT_SECRET_POST.getValue().equals(clientAuthenticationMethod)) {
+    } else if (ClientAuthenticationMethod.CLIENT_SECRET_POST
+        .getValue()
+        .equals(clientAuthenticationMethod)) {
       return ClientAuthenticationMethod.CLIENT_SECRET_POST;
     } else if (ClientAuthenticationMethod.NONE.getValue().equals(clientAuthenticationMethod)) {
       return ClientAuthenticationMethod.NONE;
     }
-    return new ClientAuthenticationMethod(clientAuthenticationMethod); // Custom client authentication method
+    return new ClientAuthenticationMethod(
+        clientAuthenticationMethod); // Custom client authentication method
   }
-} 
+
+  public List<OAuth2Client> getAll() {
+    List<OAuth2Client> all = clientStore.getAll();
+    return all;
+  }
+}
