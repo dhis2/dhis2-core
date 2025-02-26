@@ -65,6 +65,7 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.trackedentity.HibernateTrackedEntityChangeLogStore;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog;
@@ -100,14 +101,26 @@ class HibernatePotentialDuplicateStore
   }
 
   public List<PotentialDuplicate> getPotentialDuplicates(PotentialDuplicateCriteria criteria) {
+    TypedQuery<PotentialDuplicate> query = getQuery(criteria);
+    return query.getResultList();
+  }
+
+  public Page<PotentialDuplicate> getPotentialDuplicates(
+      PotentialDuplicateCriteria criteria, PageParams pageParams) {
+    TypedQuery<PotentialDuplicate> query = getQuery(criteria);
+
+    query.setFirstResult(pageParams.getOffset());
+    query.setMaxResults(
+        pageParams.getPageSize() + 1); // get extra item to determine if there is a nextPage
+
+    return new Page<>(query.getResultList(), pageParams);
+  }
+
+  private TypedQuery<PotentialDuplicate> getQuery(PotentialDuplicateCriteria criteria) {
     CriteriaBuilder cb = getCriteriaBuilder();
-
     CriteriaQuery<PotentialDuplicate> cq = cb.createQuery(PotentialDuplicate.class);
-
     Root<PotentialDuplicate> root = cq.from(PotentialDuplicate.class);
-
     cq.where(getQueryPredicates(criteria, cb, root));
-
     cq.orderBy(
         criteria.getOrder().stream()
             .map(
@@ -116,16 +129,7 @@ class HibernatePotentialDuplicateStore
                         ? cb.asc(root.get(order.getField()))
                         : cb.desc(root.get(order.getField())))
             .toList());
-
-    TypedQuery<PotentialDuplicate> relationshipTypedQuery = entityManager.createQuery(cq);
-
-    if (criteria.isPaging()) {
-      PageParams pageParams = criteria.getPageParams();
-      relationshipTypedQuery.setFirstResult(pageParams.getOffset());
-      relationshipTypedQuery.setMaxResults(pageParams.getPageSize());
-    }
-
-    return relationshipTypedQuery.getResultList();
+    return entityManager.createQuery(cq);
   }
 
   private Predicate[] getQueryPredicates(
