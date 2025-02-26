@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -72,6 +73,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   private final DhisConfigurationProvider config;
   private final UserService userService;
   private final ProgramService programService;
+  private final IdentifiableObjectManager manager;
 
   public DefaultTrackerOwnershipManager(
       UserService userService,
@@ -81,7 +83,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       ProgramTempOwnerService programTempOwnerService,
       ProgramOwnershipHistoryService programOwnershipHistoryService,
       ProgramService programService,
-      DhisConfigurationProvider config) {
+      DhisConfigurationProvider config,
+      IdentifiableObjectManager manager) {
 
     this.userService = userService;
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
@@ -90,6 +93,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     this.programTempOwnerService = programTempOwnerService;
     this.programService = programService;
     this.config = config;
+    this.manager = manager;
     this.ownerCache = cacheProvider.createProgramOwnerCache();
     this.tempOwnerCache = cacheProvider.createProgramTempOwnerCache();
   }
@@ -154,15 +158,17 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       throws ForbiddenException {
     validateGrantTemporaryOwnershipInputs(trackedEntity, program, user);
 
+    TrackedEntity hibernateTrackedEntity = manager.get(TrackedEntity.class, trackedEntity.getUid());
     if (config.isEnabled(CHANGELOG_TRACKER)) {
       programTempOwnershipAuditService.addProgramTempOwnershipAudit(
-          new ProgramTempOwnershipAudit(program, trackedEntity, reason, user.getUsername()));
+          new ProgramTempOwnershipAudit(
+              program, hibernateTrackedEntity, reason, user.getUsername()));
     }
 
     ProgramTempOwner programTempOwner =
         new ProgramTempOwner(
             program,
-            trackedEntity,
+            hibernateTrackedEntity,
             reason,
             userService.getUser(user.getUid()),
             TEMPORARY_OWNERSHIP_VALIDITY_IN_HOURS);

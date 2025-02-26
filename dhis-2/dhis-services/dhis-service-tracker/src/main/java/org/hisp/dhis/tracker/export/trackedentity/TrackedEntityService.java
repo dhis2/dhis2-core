@@ -58,8 +58,28 @@ public interface TrackedEntityService {
    * instead to also get the relationships, enrollments and program attributes.
    */
   @Nonnull
+  TrackedEntity getNewTrackedEntity(@Nonnull UID uid) throws NotFoundException, ForbiddenException;
+
+  /**
+   * Get the tracked entity matching given {@code UID} under the privileges of the currently
+   * authenticated user. No program attributes are included, only TETAs. Enrollments and
+   * relationships are not included. Use {@link #getTrackedEntity(UID, UID, TrackedEntityParams)}
+   * instead to also get the relationships, enrollments and program attributes.
+   */
+  @Nonnull
   TrackedEntity getTrackedEntity(@Nonnull UID uid)
       throws NotFoundException, ForbiddenException, BadRequestException;
+
+  /**
+   * Get the tracked entity matching given {@code UID} under the privileges of the currently
+   * authenticated user. If {@code program} is defined, program attributes for such program are
+   * included, otherwise only TETAs are included. It will include enrollments, relationships,
+   * attributes and ownerships as defined in {@code params}.
+   */
+  @Nonnull
+  TrackedEntity getNewTrackedEntity(
+      @Nonnull UID uid, UID program, @Nonnull TrackedEntityParams params)
+      throws NotFoundException, ForbiddenException;
 
   /**
    * Get the tracked entity matching given {@code UID} under the privileges of the currently
