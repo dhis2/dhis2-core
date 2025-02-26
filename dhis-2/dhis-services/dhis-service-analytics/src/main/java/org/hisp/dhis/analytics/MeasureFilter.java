@@ -47,19 +47,12 @@ public enum MeasureFilter {
    * @return true if the constraint/filter is valid when x is compared with y.
    */
   public boolean measureIsValid(Double x, Double y) {
-    switch (this) {
-      case EQ:
-        return Double.compare(x, y) == 0;
-      case GT:
-        return Double.compare(x, y) > 0;
-      case GE:
-        return Double.compare(x, y) >= 0;
-      case LT:
-        return Double.compare(x, y) < 0;
-      case LE:
-        return Double.compare(x, y) <= 0;
-      default:
-        return false;
-    }
+    return switch (this) {
+      case EQ -> Double.compare(x, y) == 0;
+      case GT -> Double.compare(x, y) > 0;
+      case GE -> Double.compare(x, y) >= 0;
+      case LT -> Double.compare(x, y) < 0;
+      case LE -> Double.compare(x, y) <= 0;
+    };
   }
 }

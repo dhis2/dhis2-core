@@ -28,18 +28,16 @@
 package org.hisp.dhis.analytics.table.setting;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import java.util.Set;
 import org.hisp.dhis.analytics.table.model.Skip;
-import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.setting.SystemSettingsService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -49,30 +47,7 @@ class AnalyticsTableSettingsTest {
 
   @Mock private SystemSettingsService systemSettings;
 
-  private AnalyticsTableSettings settings;
-
-  @BeforeEach
-  public void before() {
-    settings = new AnalyticsTableSettings(config, systemSettings);
-  }
-
-  @Test
-  void testGetAndValidateDatabase() {
-    assertEquals(Database.POSTGRESQL, settings.getAndValidateDatabase("POSTGRESQL"));
-  }
-
-  @Test
-  void testGetAndValidateInvalidDatabase() {
-    assertThrows(IllegalArgumentException.class, () -> settings.getAndValidateDatabase("ORACLE"));
-  }
-
-  @Test
-  void testGetAnalyticsDatabase() {
-    when(config.getProperty(ConfigurationKey.ANALYTICS_DATABASE))
-        .thenReturn(ConfigurationKey.ANALYTICS_DATABASE.getDefaultValue());
-
-    assertEquals(Database.POSTGRESQL, settings.getAnalyticsDatabase());
-  }
+  @InjectMocks private AnalyticsTableSettings settings;
 
   @Test
   void testGetSkipIndexDimensionsDefault() {

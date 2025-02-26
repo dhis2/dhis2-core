@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.trackedentityattributevalue;
 
+import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 import static org.hisp.dhis.system.util.ValidationUtils.valueIsValid;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
@@ -35,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
@@ -44,7 +44,6 @@ import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityAttributeValueChangeLog;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,16 +65,14 @@ public class DefaultTrackedEntityAttributeValueService
   @Override
   @Transactional
   public void deleteTrackedEntityAttributeValue(TrackedEntityAttributeValue attributeValue) {
-    TrackedEntityAttributeValueChangeLog trackedEntityAttributeValueChangeLog =
-        new TrackedEntityAttributeValueChangeLog(
-            attributeValue,
-            attributeValue.getAuditValue(),
-            getCurrentUsername(),
-            ChangeLogType.DELETE);
-
     if (config.isEnabled(CHANGELOG_TRACKER)) {
-      trackedEntityChangeLogService.addTrackedEntityAttributeValueChangeLog(
-          trackedEntityAttributeValueChangeLog);
+      trackedEntityChangeLogService.addTrackedEntityChangeLog(
+          attributeValue.getTrackedEntity(),
+          attributeValue.getAttribute(),
+          attributeValue.getPlainValue(),
+          null,
+          DELETE,
+          getCurrentUsername());
     }
 
     deleteFileValue(attributeValue);
@@ -136,50 +133,6 @@ public class DefaultTrackedEntityAttributeValueService
 
     if (attributeValue.getValue() != null) {
       attributeValueStore.saveVoid(attributeValue);
-
-      if (Boolean.TRUE.equals(attributeValue.getAttribute().isGenerated())
-          && attributeValue.getAttribute().getTextPattern() != null) {
-        reservedValueService.useReservedValue(
-            attributeValue.getAttribute().getTextPattern(), attributeValue.getValue());
-      }
-    }
-  }
-
-  @Override
-  @Transactional
-  public void updateTrackedEntityAttributeValue(TrackedEntityAttributeValue attributeValue) {
-    if (attributeValue != null && StringUtils.isEmpty(attributeValue.getValue())) {
-      deleteFileValue(attributeValue);
-      attributeValueStore.delete(attributeValue);
-    } else {
-      if (attributeValue == null
-          || attributeValue.getAttribute() == null
-          || attributeValue.getAttribute().getValueType() == null) {
-        throw new IllegalQueryException("Attribute or type is null or empty");
-      }
-
-      attributeValue.setAutoFields();
-
-      String result =
-          valueIsValid(attributeValue.getValue(), attributeValue.getAttribute().getValueType());
-
-      if (result != null) {
-        throw new IllegalQueryException("Value is not valid:  " + result);
-      }
-
-      TrackedEntityAttributeValueChangeLog trackedEntityAttributeValueChangeLog =
-          new TrackedEntityAttributeValueChangeLog(
-              attributeValue,
-              attributeValue.getAuditValue(),
-              getCurrentUsername(),
-              ChangeLogType.UPDATE);
-
-      if (config.isEnabled(CHANGELOG_TRACKER)) {
-        trackedEntityChangeLogService.addTrackedEntityAttributeValueChangeLog(
-            trackedEntityAttributeValueChangeLog);
-      }
-
-      attributeValueStore.update(attributeValue);
 
       if (Boolean.TRUE.equals(attributeValue.getAttribute().isGenerated())
           && attributeValue.getAttribute().getTextPattern() != null) {

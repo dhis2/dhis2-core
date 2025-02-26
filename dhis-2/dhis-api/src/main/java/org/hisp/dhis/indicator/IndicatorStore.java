@@ -47,4 +47,15 @@ public interface IndicatorStore extends IdentifiableObjectStore<Indicator> {
   List<Indicator> getIndicatorsWithNumeratorContaining(String search);
 
   List<Indicator> getIndicatorsWithDenominatorContaining(String search);
+
+  /**
+   * Updates any indicator that has the 'find' param in either its numerator or denominator. The
+   * update involves updating numerator and denominator, replacing all occurrences of 'find' with
+   * 'replace'.
+   *
+   * @param find text to search for
+   * @param replace text used to replace
+   * @return number of rows updated
+   */
+  int updateNumeratorDenominatorContaining(String find, String replace);
 }

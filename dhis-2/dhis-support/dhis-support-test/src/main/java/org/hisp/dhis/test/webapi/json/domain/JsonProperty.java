@@ -90,6 +90,10 @@ public interface JsonProperty extends JsonObject {
     return getBoolean("simple").booleanValue();
   }
 
+  default boolean isSortable() {
+    return getBoolean("sortable").booleanValue();
+  }
+
   default boolean isRequired() {
     return getBoolean("required").booleanValue();
   }

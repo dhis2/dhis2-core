@@ -39,10 +39,10 @@ public interface EventCoordinateService {
   /**
    * Verifies the validity of fallback coordinate field.
    *
-   * @param isRegistration true when underlying program is registration
-   * @param coordinateField the name of coordinate field (uid or name)
-   * @return returns true if valid.
-   * @throws IllegalQueryException
+   * @param isRegistration true when program is registration.
+   * @param coordinateField the name of coordinate field (identifier or name).
+   * @return true if valid.
+   * @throws IllegalQueryException if validation failed.
    */
   boolean isFallbackCoordinateFieldValid(boolean isRegistration, String coordinateField)
       throws IllegalQueryException;
@@ -50,36 +50,36 @@ public interface EventCoordinateService {
   /**
    * Provides list of coordinate fields.
    *
-   * @param program underlying program
-   * @param fallbackCoordinateField fallback
-   * @param defaultCoordinateFallback fallback cascade should be applied when true
-   * @return list of coordinate fields
-   * @throws IllegalQueryException
+   * @param program the program identifier.
+   * @param fallbackCoordinateField the fallback coordinate field.
+   * @param defaultCoordinateFallback fallback cascade should be applied when true.
+   * @return a list of coordinate fields.
+   * @throws IllegalQueryException if validation failed.
    */
   List<String> getFallbackCoordinateFields(
       String program, String fallbackCoordinateField, boolean defaultCoordinateFallback);
 
   /**
-   * Provides verified geometry.
+   * Validates the given coordinate field.
    *
-   * @param valueType value type
-   * @param field geometry
+   * @param valueType the {@link ValueType}.
+   * @param field the coordinate field.
    * @param errorCode code for standard error message
    * @return the coordinate field.
-   * @throws IllegalQueryException
+   * @throws IllegalQueryException if validation failed.
    */
-  String getCoordinateField(ValueType valueType, String field, ErrorCode errorCode)
+  String validateCoordinateField(ValueType valueType, String field, ErrorCode errorCode)
       throws IllegalQueryException;
 
   /**
-   * Provides verified geometry.
+   * Validates the given coordinate field.
    *
-   * @param program underlying program
-   * @param coordinateField geometry
-   * @param errorCode code for standard error message
+   * @param program the program identifier.
+   * @param field the coordinate field.
+   * @param errorCode the {@link ErrorCode}.
    * @return the coordinate field.
-   * @throws IllegalQueryException
+   * @throws IllegalQueryException if validation failed.
    */
-  public String getCoordinateField(String program, String coordinateField, ErrorCode errorCode)
+  public String validateCoordinateField(String program, String field, ErrorCode errorCode)
       throws IllegalQueryException;
 }

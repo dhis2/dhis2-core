@@ -45,6 +45,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +63,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Slf4j
 @RequestMapping("/api/documents")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class DocumentController extends AbstractCrudController<Document> {
+public class DocumentController extends AbstractCrudController<Document, GetObjectListParams> {
 
   @Autowired private DocumentService documentService;
 

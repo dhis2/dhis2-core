@@ -40,23 +40,20 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.JobSchedulerService;
+import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.scheduling.parameters.SmsInboundProcessingJobParameters;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -88,7 +85,7 @@ import org.springframework.web.bind.annotation.RestController;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:data"})
-public class SmsInboundController extends AbstractCrudController<IncomingSms> {
+public class SmsInboundController extends AbstractCrudController<IncomingSms, GetObjectListParams> {
   private final IncomingSmsService incomingSMSService;
 
   private final RenderService renderService;
@@ -97,20 +94,17 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms> {
 
   private final UserService userService;
 
-  private final JobConfigurationService jobConfigurationService;
-  private final JobSchedulerService jobSchedulerService;
+  private final JobExecutionService jobExecutionService;
 
   @Override
   @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
   @GetMapping
   public @ResponseBody ResponseEntity<StreamingJsonRoot<IncomingSms>> getObjectList(
-      @RequestParam Map<String, String> rpParameters,
-      OrderParams orderParams,
+      GetObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
-      throws ForbiddenException, BadRequestException {
-    return getObjectList(
-        rpParameters, orderParams, response, currentUser, !rpParameters.containsKey("query"), null);
+      throws ForbiddenException, BadRequestException, ConflictException {
+    return super.getObjectList(params, response, currentUser);
   }
 
   @PostMapping(produces = APPLICATION_JSON_VALUE)
@@ -122,7 +116,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms> {
       @RequestParam String message,
       @RequestParam(defaultValue = "Unknown", required = false) String gateway,
       @Nonnull @CurrentUser User currentUser)
-      throws WebMessageException, ConflictException, NotFoundException {
+      throws WebMessageException, ConflictException {
     if (originator == null || originator.length() <= 0) {
       return conflict("Originator must be specified");
     }
@@ -145,7 +139,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms> {
   @ResponseBody
   public WebMessage receiveSMSMessage(
       HttpServletRequest request, @Nonnull @CurrentUser User currentUser)
-      throws WebMessageException, IOException, ConflictException, NotFoundException {
+      throws WebMessageException, IOException, ConflictException {
 
     IncomingSms sms = renderService.fromJson(request.getInputStream(), IncomingSms.class);
 
@@ -153,7 +147,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms> {
   }
 
   private WebMessage handleIncomingSms(@CurrentUser User currentUser, IncomingSms sms)
-      throws WebMessageException, ConflictException, NotFoundException {
+      throws WebMessageException, ConflictException {
     User user = getUserByPhoneNumber(sms.getOriginator(), sms.getText(), currentUser);
     sms.setCreatedBy(user);
 
@@ -161,7 +155,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms> {
     JobConfiguration jobConfig = new JobConfiguration(SMS_INBOUND_PROCESSING);
     jobConfig.setJobParameters(new SmsInboundProcessingJobParameters(smsUid));
     jobConfig.setExecutedBy(user.getUid());
-    jobSchedulerService.createThenExecute(jobConfig);
+    jobExecutionService.executeOnceNow(jobConfig);
 
     return ok("Received SMS: " + smsUid);
   }

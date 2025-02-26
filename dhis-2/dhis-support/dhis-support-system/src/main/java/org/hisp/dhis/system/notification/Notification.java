@@ -28,16 +28,16 @@
 package org.hisp.dhis.system.notification;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Date;
 import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobType;
 
 /**
@@ -48,103 +48,79 @@ import org.hisp.dhis.scheduling.JobType;
 @ToString(onlyExplicitlyIncluded = true)
 @JacksonXmlRootElement(localName = "notification", namespace = DxfNamespaces.DXF_2_0)
 public class Notification implements Comparable<Notification> {
-  @EqualsAndHashCode.Include private String uid;
 
   @ToString.Include private NotificationLevel level;
-
   @ToString.Include private JobType category;
-
-  @ToString.Include private Date time;
-
+  @ToString.Include @Getter private long timestamp;
   @ToString.Include private String message;
-
   private boolean completed;
-
   private NotificationDataType dataType;
-
-  private JsonNode data;
-
-  // -------------------------------------------------------------------------
-  // Constructors
-  // -------------------------------------------------------------------------
+  private JsonValue data;
 
   public Notification() {
-    this.uid = CodeGenerator.generateUid();
+    this.timestamp = System.currentTimeMillis();
   }
 
   public Notification(
       NotificationLevel level,
       JobType category,
-      Date time,
+      long timestamp,
       String message,
       boolean completed,
       NotificationDataType dataType,
-      JsonNode data) {
-    this.uid = CodeGenerator.generateUid();
+      JsonValue data) {
     this.level = level;
     this.category = category;
-    this.time = time;
+    this.timestamp = timestamp;
     this.message = message;
     this.completed = completed;
     this.dataType = dataType;
     this.data = data;
   }
 
-  // -------------------------------------------------------------------------
-  // Get and set
-  // -------------------------------------------------------------------------
-
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public NotificationLevel getLevel() {
     return level;
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   public String getId() {
-    return uid;
+    return CodeGenerator.generateUid(timestamp);
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   public String getUid() {
-    return uid;
+    return getId();
   }
 
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public JobType getCategory() {
     return category;
   }
 
+  @Nonnull
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Date getTime() {
-    return time;
+    return new Date(timestamp);
   }
 
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getMessage() {
     return message;
   }
 
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isCompleted() {
     return completed;
   }
 
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public NotificationDataType getDataType() {
     return dataType;
   }
 
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public JsonNode getData() {
+  public JsonValue getData() {
     return data;
   }
 
@@ -163,7 +139,7 @@ public class Notification implements Comparable<Notification> {
       return category.compareTo(other.category);
     }
     // flip this/other => newest first
-    int result = other.time.compareTo(time);
+    int result = Long.compare(other.timestamp, timestamp);
 
     if (result != 0) return result;
 

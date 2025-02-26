@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
@@ -79,7 +80,7 @@ public class TrackerObjectsMapper {
 
     if (dbTrackedEntity == null) {
       dbTrackedEntity = new TrackedEntity();
-      dbTrackedEntity.setUid(trackedEntity.getTrackedEntity());
+      dbTrackedEntity.setUid(trackedEntity.getTrackedEntity().getValue());
       dbTrackedEntity.setCreated(now);
       dbTrackedEntity.setCreatedByUserInfo(UserInfoSnapshot.from(user));
       dbTrackedEntity.setStoredBy(trackedEntity.getStoredBy());
@@ -114,7 +115,7 @@ public class TrackerObjectsMapper {
 
     if (dbEnrollment == null) {
       dbEnrollment = new Enrollment();
-      dbEnrollment.setUid(enrollment.getEnrollment());
+      dbEnrollment.setUid(enrollment.getEnrollment().getValue());
       dbEnrollment.setCreated(now);
       dbEnrollment.setStoredBy(enrollment.getStoredBy());
       dbEnrollment.setCreatedByUserInfo(UserInfoSnapshot.from(user));
@@ -202,11 +203,6 @@ public class TrackerObjectsMapper {
 
     dbEvent.setOccurredDate(DateUtils.fromInstant(event.getOccurredAt()));
     dbEvent.setScheduledDate(DateUtils.fromInstant(event.getScheduledAt()));
-    if (program.isRegistration()
-        && dbEvent.getScheduledDate() == null
-        && dbEvent.getOccurredDate() != null) {
-      dbEvent.setScheduledDate(dbEvent.getOccurredDate());
-    }
 
     dbEvent.setGeometry(event.getGeometry());
 
@@ -257,7 +253,7 @@ public class TrackerObjectsMapper {
       @Nonnull UserDetails user) {
     Date now = new Date();
     Relationship dbRelationship = new org.hisp.dhis.relationship.Relationship();
-    dbRelationship.setUid(relationship.getRelationship());
+    dbRelationship.setUid(relationship.getRelationship().getValue());
     dbRelationship.setCreated(now);
     dbRelationship.setLastUpdated(now);
     dbRelationship.setLastUpdatedBy(preheat.getUserByUid(user.getUid()).orElse(null));
@@ -277,7 +273,7 @@ public class TrackerObjectsMapper {
       case PROGRAM_INSTANCE ->
           fromItem.setEnrollment(preheat.getEnrollment(relationship.getFrom().getEnrollment()));
       case PROGRAM_STAGE_INSTANCE ->
-          fromItem.setEvent(preheat.getEvent(UID.of(relationship.getFrom().getEvent())));
+          fromItem.setEvent(preheat.getEvent(relationship.getFrom().getEvent()));
     }
     dbRelationship.setFrom(fromItem);
 
@@ -291,7 +287,7 @@ public class TrackerObjectsMapper {
       case PROGRAM_INSTANCE ->
           toItem.setEnrollment(preheat.getEnrollment(relationship.getTo().getEnrollment()));
       case PROGRAM_STAGE_INSTANCE ->
-          toItem.setEvent(preheat.getEvent(UID.of(relationship.getTo().getEvent())));
+          toItem.setEvent(preheat.getEvent(relationship.getTo().getEvent()));
     }
     dbRelationship.setTo(toItem);
 
@@ -307,13 +303,18 @@ public class TrackerObjectsMapper {
       @Nonnull TrackerPreheat preheat,
       @Nonnull org.hisp.dhis.tracker.imports.domain.Note note,
       @Nonnull UserDetails user) {
+
+    return map(note, preheat.getUserByUid(user.getUid()).orElse(null));
+  }
+
+  public static @Nonnull Note map(
+      @Nonnull org.hisp.dhis.tracker.imports.domain.Note note, @Nullable User user) {
     Date now = new Date();
 
     Note dbNote = new Note();
-    dbNote.setUid(note.getNote());
+    dbNote.setUid(note.getNote().getValue());
     dbNote.setCreated(now);
-    dbNote.setLastUpdated(now);
-    dbNote.setLastUpdatedBy(preheat.getUserByUid(user.getUid()).orElse(null));
+    dbNote.setLastUpdatedBy(user);
     dbNote.setCreator(note.getStoredBy());
     dbNote.setNoteText(note.getValue());
 
@@ -322,7 +323,7 @@ public class TrackerObjectsMapper {
 
   private static Enrollment getEnrollment(TrackerPreheat preheat, UID enrollment, Program program) {
     return switch (program.getProgramType()) {
-      case WITH_REGISTRATION -> preheat.getEnrollment(enrollment.getValue());
+      case WITH_REGISTRATION -> preheat.getEnrollment(enrollment);
       case WITHOUT_REGISTRATION -> preheat.getEnrollmentsWithoutRegistration(program.getUid());
     };
   }

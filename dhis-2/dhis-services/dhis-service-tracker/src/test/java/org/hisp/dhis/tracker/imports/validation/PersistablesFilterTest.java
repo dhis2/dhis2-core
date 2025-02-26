@@ -404,7 +404,7 @@ class PersistablesFilterTest {
   private static class Setup {
     private final TrackerBundle bundle;
 
-    private final EnumMap<TrackerType, Set<String>> invalidEntities;
+    private final EnumMap<TrackerType, Set<UID>> invalidEntities;
 
     /**
      * Setup builds the arguments for calling {@link PersistablesFilter#filter(TrackerBundle,
@@ -454,7 +454,7 @@ class PersistablesFilterTest {
        */
       Builder trackedEntity(String uid) {
         Entity<TrackedEntity> entity =
-            new Entity<>(TrackedEntity.builder().trackedEntity(uid).build());
+            new Entity<>(TrackedEntity.builder().trackedEntity(UID.of(uid)).build());
         this.trackedEntities.add(entity);
         current = entity;
         currentTrackedEntity = entity;
@@ -473,20 +473,17 @@ class PersistablesFilterTest {
        * @return builder
        */
       Builder enrollment(String uid) {
-        Entity<Enrollment> entity = enrollment(uid, currentTrackedEntity);
+        Entity<Enrollment> entity = enrollment(UID.of(uid), currentTrackedEntity);
         this.enrollments.add(entity);
         current = entity;
         currentEnrollment = entity;
         return this;
       }
 
-      private static Entity<Enrollment> enrollment(String uid, Entity<TrackedEntity> parent) {
+      private static Entity<Enrollment> enrollment(UID uid, Entity<TrackedEntity> parent) {
         // set child/parent links
         Enrollment enrollment =
-            Enrollment.builder()
-                .enrollment(uid)
-                .trackedEntity(parent.entity.getStringUid())
-                .build();
+            Enrollment.builder().enrollment(uid).trackedEntity(parent.entity.getUid()).build();
         return new Entity<>(enrollment);
       }
 
@@ -533,7 +530,7 @@ class PersistablesFilterTest {
        */
       Builder relationship(String uid, RelationshipItem from, RelationshipItem to) {
         Relationship relationship =
-            Relationship.builder().relationship(uid).from(from).to(to).build();
+            Relationship.builder().relationship(UID.of(uid)).from(from).to(to).build();
         Entity<Relationship> entity = new Entity<>(relationship);
         this.relationships.add(entity);
         current = entity;
@@ -549,8 +546,7 @@ class PersistablesFilterTest {
         bundle.setEvents(toEntitiesInPayload(events));
         bundle.setRelationships(toEntitiesInPayload(relationships));
 
-        EnumMap<TrackerType, Set<String>> invalidEntities =
-            PersistablesFilterTest.invalidEntities();
+        EnumMap<TrackerType, Set<UID>> invalidEntities = PersistablesFilterTest.invalidEntities();
         invalidEntities.get(TRACKED_ENTITY).addAll(invalid(trackedEntities));
         invalidEntities.get(ENROLLMENT).addAll(invalid(enrollments));
         invalidEntities.get(EVENT).addAll(invalid(events));
@@ -568,10 +564,10 @@ class PersistablesFilterTest {
         return entities.stream().filter(e -> e.isInPayload).map(e -> e.entity).toList();
       }
 
-      private <T extends TrackerDto> Set<String> invalid(List<Entity<T>> entities) {
+      private <T extends TrackerDto> Set<UID> invalid(List<Entity<T>> entities) {
         return entities.stream()
             .filter(e -> !e.valid)
-            .map(e -> e.entity.getStringUid())
+            .map(e -> e.entity.getUid())
             .collect(Collectors.toSet());
       }
 
@@ -624,18 +620,18 @@ class PersistablesFilterTest {
   }
 
   private static RelationshipItem trackedEntity(String uid) {
-    return RelationshipItem.builder().trackedEntity(uid).build();
+    return RelationshipItem.builder().trackedEntity(UID.of(uid)).build();
   }
 
   private static RelationshipItem enrollment(String uid) {
-    return RelationshipItem.builder().enrollment(uid).build();
+    return RelationshipItem.builder().enrollment(UID.of(uid)).build();
   }
 
   private static RelationshipItem event(String uid) {
-    return RelationshipItem.builder().event(uid).build();
+    return RelationshipItem.builder().event(UID.of(uid)).build();
   }
 
-  private static EnumMap<TrackerType, Set<String>> invalidEntities() {
+  private static EnumMap<TrackerType, Set<UID>> invalidEntities() {
     return new EnumMap<>(
         Map.of(
             TRACKED_ENTITY, new HashSet<>(),
@@ -646,12 +642,12 @@ class PersistablesFilterTest {
 
   private static <T extends TrackerDto> void assertContainsOnly(
       PersistablesFilter.Result persistable, Class<T> type, String... uid) {
-    Assertions.assertContainsOnly(List.of(uid), persistableUids(persistable, type));
+    Assertions.assertContainsOnly(UID.of(uid), persistableUids(persistable, type));
   }
 
-  private static <T extends TrackerDto> List<String> persistableUids(
+  private static <T extends TrackerDto> List<UID> persistableUids(
       PersistablesFilter.Result persistable, Class<T> type) {
-    return persistable.get(type).stream().map(TrackerDto::getStringUid).toList();
+    return persistable.get(type).stream().map(TrackerDto::getUid).toList();
   }
 
   private static void assertHasError(
@@ -673,11 +669,6 @@ class PersistablesFilterTest {
       @Override
       public UID getUid() {
         return UID.of(uid);
-      }
-
-      @Override
-      public String getStringUid() {
-        return uid;
       }
     };
   }

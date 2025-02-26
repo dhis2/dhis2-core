@@ -64,6 +64,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUser;
@@ -73,7 +75,6 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -92,7 +93,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @RequestMapping("/api/maps")
 @OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
-public class MapController extends AbstractCrudController<Map> {
+public class MapController extends AbstractCrudController<Map, GetObjectListParams> {
   private static final int MAP_MIN_WIDTH = 140;
 
   private static final int MAP_MIN_HEIGHT = 25;
@@ -208,8 +209,7 @@ public class MapController extends AbstractCrudController<Map> {
   // --------------------------------------------------------------------------
 
   @Override
-  public void postProcessResponseEntity(
-      Map map, WebOptions options, java.util.Map<String, String> parameters) {
+  public void postProcessResponseEntity(Map map, GetObjectParams params) {
     I18nFormat format = i18nManager.getI18nFormat();
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());

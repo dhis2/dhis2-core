@@ -39,15 +39,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.sms.outbound.OutboundSms;
@@ -74,7 +74,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/sms/outbound")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:data"})
-public class SmsOutboundController extends AbstractCrudController<OutboundSms> {
+public class SmsOutboundController
+    extends AbstractCrudController<OutboundSms, GetObjectListParams> {
   private final MessageSender smsMessageSender;
 
   private final RenderService renderService;
@@ -94,13 +95,11 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms> {
   @RequiresAuthority(anyOf = F_MOBILE_SENDSMS)
   @GetMapping
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OutboundSms>> getObjectList(
-      @RequestParam Map<String, String> rpParameters,
-      OrderParams orderParams,
+      GetObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
-      throws ForbiddenException, BadRequestException {
-    return getObjectList(
-        rpParameters, orderParams, response, currentUser, !rpParameters.containsKey("query"), null);
+      throws ForbiddenException, BadRequestException, ConflictException {
+    return super.getObjectList(params, response, currentUser);
   }
 
   // -------------------------------------------------------------------------

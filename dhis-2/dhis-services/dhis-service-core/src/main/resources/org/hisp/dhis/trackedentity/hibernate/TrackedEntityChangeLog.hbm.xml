@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog"
+    table="trackedentitychangelog">
+
+    <id name="id" column="trackedentitychangelogid">
+      <generator class="sequence">
+        <param name="sequence_name">trackedentitychangelog_sequence</param>
+      </generator>
+    </id>
+
+    <many-to-one name="trackedEntity" class="org.hisp.dhis.trackedentity.TrackedEntity"
+      column="trackedentityid"
+      foreign-key="fk_trackedentitychangelog_trackedentityinstanceid" not-null="true"/>
+
+    <many-to-one name="trackedEntityAttribute" class="org.hisp.dhis.trackedentity.TrackedEntityAttribute"
+      column="trackedentityattributeid"
+      foreign-key="fk_trackedentitychangelog_trackedentityattributeid" not-null="true"/>
+
+    <property name="previousValue" column="previousvalue" access="property" length="50000"/>
+
+    <property name="currentValue" column="currentvalue" access="property" length="50000"/>
+
+    <property name="changeLogType" column="changelogtype" length="100" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.changelog.ChangeLogType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="created" type="timestamp" not-null="true"/>
+
+    <property name="createdByUsername" column="createdby" type="string"/>
+
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="createdby" insert="false"
+      update="false" property-ref="username"/>
+
+    <many-to-one name="programAttribute" class="org.hisp.dhis.program.ProgramTrackedEntityAttribute"
+      column="trackedentityattributeid" insert="false" update="false" access="field" property-ref="attribute" />
+  </class>
+</hibernate-mapping>

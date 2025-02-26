@@ -37,7 +37,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -53,17 +52,19 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 @RequestMapping("/api/visualizations")
 @OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
-public class VisualizationController extends AbstractCrudController<Visualization> {
+public class VisualizationController
+    extends AbstractCrudController<Visualization, GetObjectListParams> {
   private final LegendSetService legendSetService;
 
   private final DimensionService dimensionService;
@@ -141,7 +142,7 @@ public class VisualizationController extends AbstractCrudController<Visualizatio
 
   @Override
   public void postProcessResponseEntities(
-      List<Visualization> entityList, WebOptions options, Map<String, String> parameters) {
+      List<Visualization> entityList, GetObjectListParams params) {
     if (CollectionUtils.isEmpty(entityList)) return;
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
@@ -169,8 +170,7 @@ public class VisualizationController extends AbstractCrudController<Visualizatio
   }
 
   @Override
-  public void postProcessResponseEntity(
-      Visualization visualization, WebOptions options, Map<String, String> parameters) {
+  public void postProcessResponseEntity(Visualization visualization, GetObjectParams params) {
     if (visualization != null) {
       visualization.populateAnalyticalProperties();
 

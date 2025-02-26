@@ -37,10 +37,10 @@ import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.cache.CacheStrategy;
-import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
@@ -288,7 +288,7 @@ public class ContextUtils {
 
     String value = String.format("%s-%s", DateUtils.toLongDate(lastModified), user.getUid());
 
-    return CodecUtils.md5Hex(value);
+    return HashUtils.hashMD5(value.getBytes());
   }
 
   /**

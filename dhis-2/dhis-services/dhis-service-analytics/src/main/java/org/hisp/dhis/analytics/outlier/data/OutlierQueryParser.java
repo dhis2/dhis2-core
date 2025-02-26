@@ -39,7 +39,7 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.data.DimensionalObjectProducer;
+import org.hisp.dhis.analytics.data.DimensionalObjectProvider;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
@@ -60,7 +60,7 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class OutlierQueryParser {
   private final IdentifiableObjectManager idObjectManager;
-  private final DimensionalObjectProducer dimensionalObjectProducer;
+  private final DimensionalObjectProvider dimensionalObjectProducer;
   private final UserService userService;
 
   /**

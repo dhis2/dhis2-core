@@ -39,7 +39,7 @@ import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
-import org.hisp.dhis.tracker.imports.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
@@ -102,6 +102,7 @@ public class DefaultPreheatCacheService implements PreheatCacheService {
     return cache.containsKey(cacheKey);
   }
 
+  @Override
   public List<IdentifiableObject> getAll(String cacheKey) {
     List<IdentifiableObject> res = new ArrayList<>();
     if (hasKey(cacheKey)) {

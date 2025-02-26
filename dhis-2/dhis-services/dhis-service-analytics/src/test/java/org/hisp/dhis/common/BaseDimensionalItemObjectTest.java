@@ -35,25 +35,19 @@ import org.junit.jupiter.api.Test;
 class BaseDimensionalItemObjectTest {
   @Test
   void testWhenBaseDimensionalItemObjectAggregationTypeIsNoneTotalAggregationTypeIsNone() {
-    // given
     BaseDimensionalItemObject baseDimensionalItemObject = new BaseDimensionalItemObject();
 
-    // when
     baseDimensionalItemObject.setAggregationType(AggregationType.NONE);
 
-    // then
     assertSame(TotalAggregationType.NONE, baseDimensionalItemObject.getTotalAggregationType());
   }
 
   @Test
   void testWhenBaseDimensionalItemObjectAggregationTypeIsNotNoneTotalAggregationTypeIsSum() {
-    // given
     BaseDimensionalItemObject baseDimensionalItemObject = new BaseDimensionalItemObject();
 
-    // when
     baseDimensionalItemObject.setAggregationType(AggregationType.AVERAGE_SUM_ORG_UNIT);
 
-    // then
     assertSame(TotalAggregationType.SUM, baseDimensionalItemObject.getTotalAggregationType());
   }
 }

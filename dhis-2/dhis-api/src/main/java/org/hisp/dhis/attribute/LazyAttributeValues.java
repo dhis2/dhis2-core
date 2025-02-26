@@ -53,6 +53,7 @@ import lombok.AllArgsConstructor;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.intellij.lang.annotations.Language;
 
@@ -148,7 +149,7 @@ final class LazyAttributeValues implements AttributeValues {
         .collect(
             Collectors.toMap(
                 Map.Entry::getKey,
-                e -> e.getValue().asObject().getString("value").string(),
+                e -> parseValue(e.getValue().asObject().get("value")),
                 (a, b) -> a,
                 TreeMap::new));
   }
@@ -160,9 +161,19 @@ final class LazyAttributeValues implements AttributeValues {
         .collect(
             Collectors.toMap(
                 obj -> obj.getObject("attribute").getString("id").string(),
-                obj -> obj.getString("value").string(),
+                obj -> parseValue(obj.get("value")),
                 (a, b) -> a,
                 TreeMap::new));
+  }
+
+  @Nonnull
+  private static String parseValue(JsonValue value) {
+    if (value.isUndefined()) return "";
+    return switch (value.type()) {
+      case NULL -> "";
+      case STRING -> value.as(JsonString.class).string();
+      default -> value.toJson();
+    };
   }
 
   private void init(TreeMap<String, String> from) {

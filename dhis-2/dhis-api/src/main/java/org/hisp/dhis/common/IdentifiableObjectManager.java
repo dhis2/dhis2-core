@@ -183,9 +183,6 @@ public interface IdentifiableObjectManager {
   <T extends IdentifiableObject> T search(@Nonnull Class<T> type, @Nonnull String query);
 
   @Nonnull
-  <T extends IdentifiableObject> List<T> filter(@Nonnull Class<T> type, @Nonnull String query);
-
-  @Nonnull
   <T extends IdentifiableObject> List<T> getAll(@Nonnull Class<T> type);
 
   @Nonnull

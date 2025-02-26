@@ -18,6 +18,7 @@
     <many-to-one name="categoryOptionCombo" class="org.hisp.dhis.category.CategoryOptionCombo"
       column="categoryoptioncomboid" foreign-key="fk_dataelementoperand_dataelementcategoryoptioncombo" />
 
+  <!-- no mapping for property attributeOptionCombo, seems to have been implemented this way intentionally -->
   </class>
 
 </hibernate-mapping>

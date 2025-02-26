@@ -28,7 +28,7 @@
 package org.hisp.dhis.tracker.imports.preheat;
 
 import javax.annotation.Nonnull;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 
 /**

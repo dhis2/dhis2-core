@@ -57,7 +57,7 @@ public class Event {
 
   @JsonProperty
   @OpenApi.Property({UID.class, org.hisp.dhis.program.Event.class})
-  private String event;
+  private UID event;
 
   @JsonProperty @Builder.Default private EventStatus status = EventStatus.ACTIVE;
 
@@ -71,11 +71,11 @@ public class Event {
 
   @JsonProperty
   @OpenApi.Property({UID.class, Enrollment.class})
-  private String enrollment;
+  private UID enrollment;
 
   @JsonProperty
   @OpenApi.Property({UID.class, TrackedEntity.class})
-  private String trackedEntity;
+  private UID trackedEntity;
 
   @JsonProperty private String orgUnit;
 
@@ -90,10 +90,6 @@ public class Event {
   private String storedBy;
 
   @JsonProperty private boolean followUp;
-
-  @Deprecated(since = "2.41", forRemoval = true)
-  @JsonProperty("followup")
-  private boolean legacyFollowUp;
 
   @JsonProperty private boolean deleted;
 

@@ -62,5 +62,6 @@ public interface EventMapper extends PreheatMapper<Event> {
   @Mapping(target = "deleted")
   @Mapping(target = "createdByUserInfo")
   @Mapping(target = "lastUpdatedByUserInfo")
+  @Mapping(target = "geometry")
   Event map(Event event);
 }

@@ -51,14 +51,15 @@ import java.util.LinkedList;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.JobSchedulerService;
+import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.imports.DefaultTrackerImportService;
+import org.hisp.dhis.tracker.imports.note.NoteService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.Status;
@@ -94,11 +95,11 @@ class TrackerImportControllerTest {
 
   @Mock private Notifier notifier;
 
-  @Mock private JobSchedulerService jobSchedulerService;
-
-  @Mock private JobConfigurationService jobConfigurationService;
+  @Mock private JobExecutionService jobExecutionService;
 
   @Mock private UserService userService;
+
+  @Mock private NoteService noteService;
 
   private RenderService renderService;
 
@@ -118,9 +119,9 @@ class TrackerImportControllerTest {
             trackerImportService,
             csvEventService,
             notifier,
-            jobSchedulerService,
-            jobConfigurationService,
-            new ObjectMapper());
+            jobExecutionService,
+            new ObjectMapper(),
+            noteService);
 
     mockMvc =
         MockMvcBuilders.standaloneSetup(controller)
@@ -328,9 +329,8 @@ class TrackerImportControllerTest {
             new HashMap<>());
 
     // When
-    when(notifier.getJobSummaryByJobId(TRACKER_IMPORT_JOB, uid)).thenReturn(importReport);
-
-    when(trackerImportService.buildImportReport(any(), any())).thenReturn(importReport);
+    JsonValue report = JsonValue.of(new ObjectMapper().writeValueAsString(importReport));
+    when(notifier.getJobSummaryByJobId(TRACKER_IMPORT_JOB, uid)).thenReturn(report);
 
     // Then
     String contentAsString =
@@ -341,14 +341,12 @@ class TrackerImportControllerTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message").doesNotExist())
             .andExpect(content().contentType("application/json"))
             .andReturn()
             .getResponse()
             .getContentAsString();
 
     verify(notifier).getJobSummaryByJobId(TRACKER_IMPORT_JOB, uid);
-    verify(trackerImportService).buildImportReport(any(), any());
 
     try {
       renderService.fromJson(contentAsString, ImportReport.class);

@@ -74,7 +74,6 @@ class RepeatedEventsValidator implements Validator<List<Event>> {
       }
     }
 
-    // TODO: check if this was a bug
     validNotRepeatableEvents.stream()
         .filter(e -> bundle.getStrategy(e).isCreate())
         .filter(

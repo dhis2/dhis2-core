@@ -34,6 +34,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Encapsulates embedded dashboard filter options.
+ *
+ * @author Lars Helge Overland
+ */
 @Getter
 @Setter
 @NoArgsConstructor

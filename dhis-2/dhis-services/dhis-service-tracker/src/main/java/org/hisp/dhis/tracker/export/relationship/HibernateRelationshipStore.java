@@ -38,31 +38,34 @@ import jakarta.persistence.criteria.Subquery;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.function.LongSupplier;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
-@Repository("org.hisp.dhis.tracker.export.relationship.RelationshipStore")
-class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relationship>
-    implements RelationshipStore {
+// This class is annotated with @Component instead of @Repository because @Repository creates a
+// proxy that can't be used to inject the class.
+@Component("org.hisp.dhis.tracker.export.relationship.RelationshipStore")
+class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relationship> {
 
   private static final org.hisp.dhis.tracker.export.Order DEFAULT_ORDER =
       new org.hisp.dhis.tracker.export.Order("id", SortDirection.DESC);
@@ -87,57 +90,69 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     super(entityManager, jdbcTemplate, publisher, Relationship.class, aclService, true);
   }
 
-  @Override
-  public List<Relationship> getByTrackedEntity(
-      TrackedEntity trackedEntity, RelationshipQueryParams queryParams) {
-
-    return relationshipsList(trackedEntity, queryParams, null);
+  public Optional<TrackedEntity> findTrackedEntity(UID trackedEntity, boolean includeDeleted) {
+    @Language("hql")
+    String hql =
+        """
+                from TrackedEntity te
+                where te.uid = :trackedEntity
+                """;
+    if (!includeDeleted) {
+      hql += "and te.deleted = false";
+    }
+    List<TrackedEntity> trackedEntities =
+        getQuery(hql, TrackedEntity.class)
+            .setParameter("trackedEntity", trackedEntity.getValue())
+            .getResultList();
+    return trackedEntities.stream().findFirst();
   }
 
-  @Override
-  public List<Relationship> getByEnrollment(
-      Enrollment enrollment, RelationshipQueryParams queryParams) {
-    return relationshipsList(enrollment, queryParams, null);
+  public Optional<Enrollment> findEnrollment(UID enrollment, boolean includeDeleted) {
+    @Language("hql")
+    String hql =
+        """
+                from Enrollment e
+                where e.uid = :enrollment
+                """;
+    if (!includeDeleted) {
+      hql += "and e.deleted = false";
+    }
+    List<Enrollment> enrollments =
+        getQuery(hql, Enrollment.class)
+            .setParameter("enrollment", enrollment.getValue())
+            .getResultList();
+    return enrollments.stream().findFirst();
   }
 
-  @Override
-  public List<Relationship> getByEvent(Event event, RelationshipQueryParams queryParams) {
-    return relationshipsList(event, queryParams, null);
+  public Optional<Event> findEvent(UID event, boolean includeDeleted) {
+    @Language("hql")
+    String hql =
+        """
+                from Event e
+                where e.uid = :event
+                """;
+    if (!includeDeleted) {
+      hql += "and e.deleted = false";
+    }
+    List<Event> events =
+        getQuery(hql, Event.class).setParameter("event", event.getValue()).getResultList();
+    return events.stream().findFirst();
   }
 
-  @Override
-  public Page<Relationship> getByTrackedEntity(
-      TrackedEntity trackedEntity,
-      final RelationshipQueryParams queryParams,
-      @Nonnull PageParams pageParams) {
+  public List<Relationship> getRelationships(@Nonnull RelationshipQueryParams queryParams) {
 
-    return getPage(
-        pageParams,
-        relationshipsList(trackedEntity, queryParams, pageParams),
-        () -> countRelationships(trackedEntity, queryParams));
+    return relationshipsList(queryParams, null);
   }
 
-  @Override
-  public Page<Relationship> getByEnrollment(
-      Enrollment enrollment, RelationshipQueryParams queryParams, @Nonnull PageParams pageParams) {
-    return getPage(
-        pageParams,
-        relationshipsList(enrollment, queryParams, pageParams),
-        () -> countRelationships(enrollment, queryParams));
+  public Page<Relationship> getRelationships(
+      @Nonnull final RelationshipQueryParams queryParams, @Nonnull PageParams pageParams) {
+    List<Relationship> relationships = relationshipsList(queryParams, pageParams);
+    return new Page<>(relationships, pageParams, () -> countRelationships(queryParams));
   }
 
-  @Override
-  public Page<Relationship> getByEvent(
-      Event event, RelationshipQueryParams queryParams, @Nonnull PageParams pageParams) {
-    return getPage(
-        pageParams,
-        relationshipsList(event, queryParams, pageParams),
-        () -> countRelationships(event, queryParams));
-  }
-
-  @Override
-  public List<Relationship> getUidsByRelationshipKeys(List<String> relationshipKeyList) {
-    if (CollectionUtils.isEmpty(relationshipKeyList)) {
+  public List<Relationship> getRelationshipsByRelationshipKeys(
+      List<RelationshipKey> relationshipKeys) {
+    if (CollectionUtils.isEmpty(relationshipKeys)) {
       return Collections.emptyList();
     }
 
@@ -148,40 +163,73 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
             where r.deleted = false and (r.key in (:keys)
             or (r.invertedKey in (:keys) and r.relationshipType.bidirectional = true))
             """;
-    return getQuery(hql, Relationship.class).setParameter("keys", relationshipKeyList).list();
+    List<String> relationshipKeysAsString =
+        relationshipKeys.stream().map(RelationshipKey::asString).toList();
+    return getQuery(hql, Relationship.class).setParameter("keys", relationshipKeysAsString).list();
   }
 
-  /**
-   * Query to extract relationships with the order by clause and pagination if required
-   *
-   * @param entity to filter the relationships by
-   * @param queryParams
-   * @return
-   * @param <T> relationships list
-   */
-  private <T extends SoftDeletableObject> List<Relationship> relationshipsList(
-      T entity, RelationshipQueryParams queryParams, PageParams pageParams) {
-    CriteriaQuery<Relationship> criteriaQuery = criteriaQuery(entity, queryParams);
+  public List<RelationshipItem> getRelationshipItemsByTrackedEntity(
+      UID trackedEntity, boolean includeDeleted) {
+    @Language("hql")
+    String hql =
+        """
+                from RelationshipItem ri
+                where ri.trackedEntity.uid = :trackedEntity
+                """;
+    if (!includeDeleted) {
+      hql += "and ri.relationship.deleted = false";
+    }
+    return getQuery(hql, RelationshipItem.class)
+        .setParameter("trackedEntity", trackedEntity.getValue())
+        .list();
+  }
+
+  public List<RelationshipItem> getRelationshipItemsByEnrollment(
+      UID enrollment, boolean includeDeleted) {
+    @Language("hql")
+    String hql =
+        """
+                from RelationshipItem ri
+                where ri.enrollment.uid = :enrollment
+                """;
+    if (!includeDeleted) {
+      hql += "and ri.relationship.deleted = false";
+    }
+    return getQuery(hql, RelationshipItem.class)
+        .setParameter("enrollment", enrollment.getValue())
+        .list();
+  }
+
+  public List<RelationshipItem> getRelationshipItemsByEvent(UID event, boolean includeDeleted) {
+    @Language("hql")
+    String hql =
+        """
+                from RelationshipItem ri
+                where ri.event.uid = :event
+                """;
+    if (!includeDeleted) {
+      hql += "and ri.relationship.deleted = false";
+    }
+    return getQuery(hql, RelationshipItem.class).setParameter("event", event.getValue()).list();
+  }
+
+  private List<Relationship> relationshipsList(
+      RelationshipQueryParams queryParams, PageParams pageParams) {
+    CriteriaQuery<Relationship> criteriaQuery = criteriaQuery(queryParams);
 
     TypedQuery<Relationship> query = entityManager.createQuery(criteriaQuery);
 
     if (pageParams != null) {
-      query.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
-      query.setMaxResults(pageParams.getPageSize());
+      query.setFirstResult(pageParams.getOffset());
+      query.setMaxResults(
+          pageParams.getPageSize()
+              + 1); // get extra relationship to determine if there is a nextPage
     }
 
     return query.getResultList();
   }
 
-  /**
-   * Query to count relationships avoiding not required constraints such as the order by clause
-   *
-   * @param queryParams
-   * @return
-   * @param <T> relationships count
-   */
-  private <T extends SoftDeletableObject> long countRelationships(
-      T entity, RelationshipQueryParams queryParams) {
+  private long countRelationships(RelationshipQueryParams queryParams) {
 
     CriteriaBuilder builder = getCriteriaBuilder();
     CriteriaQuery<Long> criteriaQuery = builder.createQuery(Long.class);
@@ -190,15 +238,29 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
 
     criteriaQuery.select(builder.count(root));
 
-    criteriaQuery.where(
-        whereConditionPredicates(
-            entity, builder, criteriaQuery, root, queryParams.isIncludeDeleted()));
+    if (queryParams.getEntity() != null) {
+      criteriaQuery.where(
+          whereConditionPredicates(
+              queryParams.getEntity(),
+              builder,
+              criteriaQuery,
+              root,
+              queryParams.isIncludeDeleted()));
+    } else {
+      List<Predicate> predicates = new ArrayList<>();
 
+      predicates.add(root.get("uid").in((UID.toValueList(queryParams.getRelationships()))));
+
+      if (!queryParams.isIncludeDeleted()) {
+        predicates.add(builder.equal(root.get("deleted"), false));
+      }
+
+      criteriaQuery.where(predicates.toArray(Predicate[]::new));
+    }
     return entityManager.createQuery(criteriaQuery).getSingleResult().longValue();
   }
 
-  private <T extends SoftDeletableObject> CriteriaQuery<Relationship> criteriaQuery(
-      T entity, RelationshipQueryParams queryParams) {
+  private CriteriaQuery<Relationship> criteriaQuery(RelationshipQueryParams queryParams) {
     CriteriaBuilder builder = getCriteriaBuilder();
     CriteriaQuery<Relationship> criteriaQuery = builder.createQuery(Relationship.class);
 
@@ -206,9 +268,25 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
 
     criteriaQuery.select(root);
 
-    criteriaQuery.where(
-        whereConditionPredicates(
-            entity, builder, criteriaQuery, root, queryParams.isIncludeDeleted()));
+    if (queryParams.getEntity() != null) {
+      criteriaQuery.where(
+          whereConditionPredicates(
+              queryParams.getEntity(),
+              builder,
+              criteriaQuery,
+              root,
+              queryParams.isIncludeDeleted()));
+    } else {
+      List<Predicate> predicates = new ArrayList<>();
+
+      predicates.add(root.get("uid").in((UID.toValueList(queryParams.getRelationships()))));
+
+      if (!queryParams.isIncludeDeleted()) {
+        predicates.add(builder.equal(root.get("deleted"), false));
+      }
+
+      criteriaQuery.where(predicates.toArray(Predicate[]::new));
+    }
 
     criteriaQuery.orderBy(orderBy(queryParams, builder, root));
 
@@ -264,10 +342,13 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
 
   private List<Order> orderBy(
       RelationshipQueryParams queryParams, CriteriaBuilder builder, Root<Relationship> root) {
+    List<Order> defaultOrder = orderBy(List.of(DEFAULT_ORDER), builder, root);
     if (!queryParams.getOrder().isEmpty()) {
-      return orderBy(queryParams.getOrder(), builder, root);
+      return Stream.concat(
+              orderBy(queryParams.getOrder(), builder, root).stream(), defaultOrder.stream())
+          .toList();
     } else {
-      return orderBy(List.of(DEFAULT_ORDER), builder, root);
+      return defaultOrder;
     }
   }
 
@@ -285,32 +366,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
         .toList();
   }
 
-  private Page<Relationship> getPage(
-      PageParams pageParams, List<Relationship> relationships, LongSupplier relationshipsCount) {
-    if (pageParams.isPageTotal()) {
-      return Page.withTotals(
-          relationships,
-          pageParams.getPage(),
-          pageParams.getPageSize(),
-          relationshipsCount.getAsLong());
-    }
-
-    return Page.withoutTotals(relationships, pageParams.getPage(), pageParams.getPageSize());
-  }
-
-  @Override
   public Set<String> getOrderableFields() {
     return ORDERABLE_FIELDS;
-  }
-
-  @Override
-  protected void preProcessPredicates(
-      CriteriaBuilder builder, List<Function<Root<Relationship>, Predicate>> predicates) {
-    predicates.add(root -> builder.equal(root.get("deleted"), false));
-  }
-
-  @Override
-  protected Relationship postProcessObject(Relationship relationship) {
-    return (relationship == null || relationship.isDeleted()) ? null : relationship;
   }
 }

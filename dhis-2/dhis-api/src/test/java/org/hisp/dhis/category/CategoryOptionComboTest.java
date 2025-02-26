@@ -33,6 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
+import java.util.Set;
+import java.util.stream.Stream;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
@@ -41,7 +43,11 @@ import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Unit tests for {@link CategoryOptionCombo}.
@@ -145,7 +151,7 @@ class CategoryOptionComboTest {
 
   @Test
   void testIsDefault() {
-    categoryComboA.setName(CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME);
+    optionComboA.setName(CategoryOptionCombo.DEFAULT_NAME);
     assertTrue(optionComboA.isDefault());
   }
 
@@ -251,5 +257,84 @@ class CategoryOptionComboTest {
     assertNull(optionComboA.getEarliestEndDate());
     assertEquals(jan4, optionComboB.getEarliestEndDate());
     assertEquals(jan4, optionComboC.getEarliestEndDate());
+  }
+
+  @ParameterizedTest
+  @MethodSource("categoryOptionComboEqualsParams")
+  @DisplayName("CategoryOptionCombo equals check has expected result")
+  void categoryOptionComboEqualsTest(
+      CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions, boolean expectedResult) {
+    CategoryOptionCombo cocParams = new CategoryOptionCombo();
+    cocParams.setCategoryCombo(categoryCombo);
+    cocParams.setCategoryOptions(categoryOptions);
+
+    assertEquals(
+        expectedResult,
+        getCategoryOptionCombo().equals(cocParams),
+        "CategoryOptionCombo equals check has expected result");
+  }
+
+  private static Stream<Arguments> categoryOptionComboEqualsParams() {
+    boolean isEqual = true;
+    boolean isNotEqual = false;
+
+    CategoryCombo sameCatCombo = new CategoryCombo();
+    sameCatCombo.setName("name");
+    sameCatCombo.setUid("uid");
+    sameCatCombo.setCode("code");
+
+    CategoryCombo diffCatCombo = new CategoryCombo();
+    diffCatCombo.setName("name diff");
+    diffCatCombo.setUid("uid");
+    diffCatCombo.setCode("code");
+
+    CategoryOption sameCatOption = new CategoryOption();
+    sameCatOption.setName("name");
+    sameCatOption.setUid("uid");
+    sameCatOption.setCode("code");
+    sameCatOption.setShortName("shortName");
+    sameCatOption.setDescription("description");
+    sameCatOption.setQueryMods(null);
+
+    CategoryOption diffCatOption = new CategoryOption();
+    diffCatOption.setName("name");
+    diffCatOption.setUid("uid diff");
+    diffCatOption.setCode("code");
+    diffCatOption.setShortName("shortName");
+    diffCatOption.setDescription("description");
+    diffCatOption.setQueryMods(null);
+
+    return Stream.of(
+        Arguments.of(sameCatCombo, Set.of(sameCatOption), isEqual),
+        Arguments.of(diffCatCombo, Set.of(sameCatOption), isNotEqual),
+        Arguments.of(sameCatCombo, Set.of(diffCatOption), isNotEqual),
+        Arguments.of(diffCatCombo, Set.of(diffCatOption), isNotEqual));
+  }
+
+  private CategoryOptionCombo getCategoryOptionCombo() {
+    CategoryOptionCombo coc = new CategoryOptionCombo();
+    coc.setName("name");
+    coc.setUid("uid");
+    coc.setCode("code");
+    coc.setShortName("shortName");
+    coc.setDescription("description");
+
+    CategoryOption co = new CategoryOption();
+    co.setName("name");
+    co.setUid("uid");
+    co.setCode("code");
+    co.setShortName("shortName");
+    co.setDescription("description");
+    co.setQueryMods(null);
+
+    CategoryCombo cc = new CategoryCombo();
+    cc.setName("name");
+    cc.setUid("uid");
+    cc.setCode("code");
+
+    coc.setCategoryCombo(cc);
+    coc.addCategoryOption(co);
+
+    return coc;
   }
 }

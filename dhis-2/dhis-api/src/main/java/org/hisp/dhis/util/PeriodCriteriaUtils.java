@@ -40,12 +40,12 @@ import org.hisp.dhis.period.RelativePeriodEnum;
 @NoArgsConstructor(access = PRIVATE)
 public class PeriodCriteriaUtils {
   /**
-   * Defines a default period for the given criteria, if none is present.
+   * Add a default period for the given criteria, if none is present.
    *
    * @param criteria {@link EventsAnalyticsQueryCriteria} query criteria.
    * @param defaultPeriod the default period to set, based on {@link RelativePeriodEnum}.
    */
-  public static void defineDefaultPeriodForCriteria(
+  public static void addDefaultPeriodIfAbsent(
       EventsAnalyticsQueryCriteria criteria, RelativePeriodEnum defaultPeriod) {
     if (!hasPeriod(criteria)) {
       criteria.getDimension().add(PERIOD_DIM_ID + ":" + defaultPeriod.name());
@@ -53,12 +53,12 @@ public class PeriodCriteriaUtils {
   }
 
   /**
-   * Defines a default period for the given criteria, if none is present.
+   * Adds a default period for the given criteria, if none is present.
    *
    * @param criteria {@link EnrollmentAnalyticsQueryCriteria} query criteria.
    * @param defaultPeriod the default period to set, based on {@link RelativePeriodEnum}.
    */
-  public static void defineDefaultPeriodForCriteria(
+  public static void addDefaultPeriodIfAbsent(
       EnrollmentAnalyticsQueryCriteria criteria, RelativePeriodEnum defaultPeriod) {
     if (!hasPeriod(criteria)) {
       criteria.getDimension().add(PERIOD_DIM_ID + ":" + defaultPeriod.name());

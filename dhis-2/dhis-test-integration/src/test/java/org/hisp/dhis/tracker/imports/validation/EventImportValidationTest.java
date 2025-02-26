@@ -49,6 +49,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.TrackerTest;
@@ -160,11 +161,19 @@ class EventImportValidationTest extends TrackerTest {
 
   @Test
   void testCantWriteAccessCatCombo() throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/validations/events-cat-write-access.json");
+    TrackerObjects trackerObjects =
+        fromJson("tracker/validations/enrollments-cat-write-access.json");
     TrackerImportParams params = new TrackerImportParams();
-    injectSecurityContextUser(userService.getUser(USER_6));
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
+    assertNoErrors(importReport);
+
+    trackerObjects = fromJson("tracker/validations/events-cat-write-access.json");
+    params = new TrackerImportParams();
+    injectSecurityContextUser(userService.getUser(USER_6));
+
+    importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertHasOnlyErrors(
         importReport,
@@ -327,7 +336,6 @@ class EventImportValidationTest extends TrackerTest {
               Note note = getByNote(event.getNotes(), t);
               assertTrue(CodeGenerator.isValidUid(note.getUid()));
               assertTrue(note.getCreated().getTime() > now.getTime());
-              assertTrue(note.getLastUpdated().getTime() > now.getTime());
               assertNull(note.getCreator());
               assertEquals(importUser.getUid(), note.getLastUpdatedBy().getUid());
             });
@@ -351,7 +359,6 @@ class EventImportValidationTest extends TrackerTest {
               Note note = getByNote(event.getNotes(), t);
               assertTrue(CodeGenerator.isValidUid(note.getUid()));
               assertTrue(note.getCreated().getTime() > now.getTime());
-              assertTrue(note.getLastUpdated().getTime() > now.getTime());
               assertNull(note.getCreator());
               assertEquals(importUser.getUid(), note.getLastUpdatedBy().getUid());
             });
@@ -430,7 +437,7 @@ class EventImportValidationTest extends TrackerTest {
   private Event getEventFromReport(ImportReport importReport) {
     final Map<TrackerType, TrackerTypeReport> typeReportMap =
         importReport.getPersistenceReport().getTypeReportMap();
-    String newEvent = typeReportMap.get(TrackerType.EVENT).getEntityReport().get(0).getUid();
+    UID newEvent = typeReportMap.get(TrackerType.EVENT).getEntityReport().get(0).getUid();
     return manager.get(Event.class, newEvent);
   }
 }

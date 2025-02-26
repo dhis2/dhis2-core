@@ -62,7 +62,7 @@ import org.hisp.dhis.node.serializers.Jackson2JsonNodeSerializer;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.SimpleNode;
-import org.hisp.dhis.query.DefaultJpaQueryParser;
+import org.hisp.dhis.query.DefaultQueryParser;
 import org.hisp.dhis.query.DefaultQueryService;
 import org.hisp.dhis.query.InMemoryQueryEngine;
 import org.hisp.dhis.query.JpaCriteriaQueryEngine;
@@ -72,14 +72,11 @@ import org.hisp.dhis.query.planner.DefaultQueryPlanner;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
-import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.service.DefaultContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -112,8 +109,6 @@ class DataElementOperandControllerTest {
 
   @Mock private CategoryService dataElementCategoryService;
 
-  @Mock private SystemSettingsService settingsService;
-
   @Mock private UserService userService;
 
   private QueryService queryService;
@@ -126,14 +121,13 @@ class DataElementOperandControllerTest {
   public void setUp() {
     injectSecurityContextNoSettings(new SystemUser());
 
-    ContextService contextService = new DefaultContextService();
-
     QueryService _queryService =
         new DefaultQueryService(
-            new DefaultJpaQueryParser(schemaService),
-            new DefaultQueryPlanner(schemaService, settingsService),
+            new DefaultQueryParser(schemaService),
+            new DefaultQueryPlanner(schemaService),
+            schemaService,
             mock(JpaCriteriaQueryEngine.class),
-            new InMemoryQueryEngine<>(schemaService, mock(AclService.class)));
+            new InMemoryQueryEngine(schemaService, mock(AclService.class)));
     // Use "spy" on queryService, because we want a partial mock: we only
     // want to
     // mock the method "count"
@@ -142,13 +136,7 @@ class DataElementOperandControllerTest {
     // Controller under test
     final DataElementOperandController controller =
         new DataElementOperandController(
-            manager,
-            queryService,
-            fieldFilterService,
-            linkService,
-            contextService,
-            schemaService,
-            dataElementCategoryService);
+            manager, queryService, fieldFilterService, linkService, dataElementCategoryService);
 
     // Set custom Node Message converter //
     Jackson2JsonNodeSerializer serializer = new Jackson2JsonNodeSerializer(staticJsonMapper());

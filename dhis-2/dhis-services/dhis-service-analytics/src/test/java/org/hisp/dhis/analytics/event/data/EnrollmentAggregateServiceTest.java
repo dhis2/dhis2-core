@@ -69,9 +69,9 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.user.SystemUser;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.opengis.geometry.primitive.Point;
@@ -83,8 +83,6 @@ import org.opengis.geometry.primitive.Point;
  */
 @ExtendWith(MockitoExtension.class)
 class EnrollmentAggregateServiceTest {
-
-  private EnrollmentAggregateService dummyAnalyticsService;
 
   @Mock private AnalyticsSecurityManager securityManager;
 
@@ -98,21 +96,11 @@ class EnrollmentAggregateServiceTest {
 
   @Mock private SchemeIdHandler schemeIdHandler;
 
+  @InjectMocks private EnrollmentAggregateService service;
+
   @BeforeAll
   static void setup() {
     injectSecurityContextNoSettings(new SystemUser());
-  }
-
-  @BeforeEach
-  public void setUp() {
-    dummyAnalyticsService =
-        new EnrollmentAggregateService(
-            enrollmentAnalyticsManager,
-            queryPlanner,
-            securityManager,
-            queryValidator,
-            metadataHandler,
-            schemeIdHandler);
   }
 
   @Test
@@ -146,7 +134,7 @@ class EnrollmentAggregateServiceTest {
 
     // When
     when(securityManager.withUserConstraints(any(EventQueryParams.class))).thenReturn(params);
-    Grid grid = dummyAnalyticsService.getEnrollments(params);
+    Grid grid = service.getEnrollments(params);
 
     // Then
     List<GridHeader> headers = grid.getHeaders();
@@ -215,7 +203,7 @@ class EnrollmentAggregateServiceTest {
 
     // When
     when(securityManager.withUserConstraints(any(EventQueryParams.class))).thenReturn(params);
-    Grid grid = dummyAnalyticsService.getEnrollments(params);
+    Grid grid = service.getEnrollments(params);
 
     // Then
     List<GridHeader> headers = grid.getHeaders();

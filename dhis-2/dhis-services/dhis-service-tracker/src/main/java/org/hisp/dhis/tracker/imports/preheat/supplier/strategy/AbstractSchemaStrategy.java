@@ -38,14 +38,14 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fieldfilter.Defaults;
+import org.hisp.dhis.query.Filter;
+import org.hisp.dhis.query.Filters;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.query.Restriction;
-import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.tracker.imports.TrackerIdScheme;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.imports.preheat.mappers.CopyMapper;
@@ -150,7 +150,12 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
         // cache
         objects =
             map(
-                (List<IdentifiableObject>) queryService.query(buildQuery(schema, idScheme, ids)),
+                (List<IdentifiableObject>)
+                    queryService.query(
+                        buildQuery(
+                            (Class<? extends IdentifiableObject>) schema.getKlass(),
+                            idScheme,
+                            ids)),
                 mapper);
 
         // put objects in query based on given scheme. If the key
@@ -169,7 +174,10 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
     } else {
       objects =
           map(
-              (List<IdentifiableObject>) queryService.query(buildQuery(schema, idScheme, ids)),
+              (List<IdentifiableObject>)
+                  queryService.query(
+                      buildQuery(
+                          (Class<? extends IdentifiableObject>) schema.getKlass(), idScheme, ids)),
               mapper);
     }
 
@@ -190,8 +198,9 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
     }
   }
 
-  private Query buildQuery(Schema schema, TrackerIdScheme idScheme, List<String> ids) {
-    Query query = Query.from(schema);
+  private <T extends IdentifiableObject> Query<T> buildQuery(
+      Class<T> objectType, TrackerIdScheme idScheme, List<String> ids) {
+    Query<T> query = Query.of(objectType);
     query.setCurrentUserDetails(getCurrentUserDetails());
     query.add(generateRestrictionFromIdentifiers(idScheme, ids));
     query.setDefaults(Defaults.INCLUDE);
@@ -199,14 +208,13 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
     return query;
   }
 
-  private Restriction generateRestrictionFromIdentifiers(
-      TrackerIdScheme idScheme, List<String> ids) {
+  private Filter generateRestrictionFromIdentifiers(TrackerIdScheme idScheme, List<String> ids) {
     if (TrackerIdScheme.CODE.equals(idScheme)) {
-      return Restrictions.in("code", ids);
+      return Filters.in("code", ids);
     } else if (TrackerIdScheme.NAME.equals(idScheme)) {
-      return Restrictions.in("name", ids);
+      return Filters.in("name", ids);
     } else {
-      return Restrictions.in("id", ids);
+      return Filters.in("id", ids);
     }
   }
 

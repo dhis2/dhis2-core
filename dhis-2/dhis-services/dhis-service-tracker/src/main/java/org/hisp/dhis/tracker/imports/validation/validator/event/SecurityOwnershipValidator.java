@@ -33,9 +33,9 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1083;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -62,11 +62,7 @@ import org.springframework.stereotype.Component;
  */
 @Component("org.hisp.dhis.tracker.imports.validation.validator.event.SecurityOwnershipValidator")
 @RequiredArgsConstructor
-@Slf4j
 class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.imports.domain.Event> {
-
-  private static final String ORG_UNIT_NO_USER_ASSIGNED =
-      "Event {} has no organisation unit assigned, so we skip user validation";
 
   @Nonnull private final AclService aclService;
   @Nonnull private final TrackerOwnershipManager ownershipAccessManager;
@@ -92,17 +88,18 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       organisationUnit = bundle.getPreheat().getOrganisationUnit(event.getOrgUnit());
     }
 
-    // If event is newly created, or going to be deleted, capture scope
-    // has to be checked
     if (program.isWithoutRegistration() || strategy.isCreate() || strategy.isDelete()) {
-      if (organisationUnit == null) {
-        log.warn(ORG_UNIT_NO_USER_ASSIGNED, event.getUid());
-      } else {
-        checkOrgUnitInCaptureScope(reporter, event, organisationUnit, bundle.getUser());
-      }
+      checkEventOrgUnitWriteAccess(
+          reporter,
+          event,
+          organisationUnit,
+          strategy.isCreate()
+              ? event.isCreatableInSearchScope()
+              : preheatEvent.isCreatableInSearchScope(),
+          bundle.getUser());
     }
 
-    String teUid = getTeUidFromEvent(bundle, event, program);
+    UID teUid = getTeUidFromEvent(bundle, event, program);
 
     CategoryOptionCombo categoryOptionCombo =
         bundle.getPreheat().getCategoryOptionCombo(event.getAttributeOptionCombo());
@@ -115,7 +112,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
           bundle,
           event,
           preheatEvent,
-          trackedEntity == null ? null : trackedEntity.getUid(),
+          trackedEntity == null ? null : UID.of(trackedEntity),
           ownerOrgUnit,
           bundle.getUser());
     } else {
@@ -139,7 +136,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       org.hisp.dhis.tracker.imports.domain.Event event,
       CategoryOptionCombo categoryOptionCombo,
       ProgramStage programStage,
-      String teUid,
+      UID teUid,
       OrganisationUnit organisationUnit,
       OrganisationUnit ownerOrgUnit,
       Program program,
@@ -168,7 +165,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.Event event,
       Event preheatEvent,
-      String teUid,
+      UID teUid,
       OrganisationUnit ownerOrgUnit,
       UserDetails user) {
     TrackerImportStrategy strategy = bundle.getStrategy(event);
@@ -192,36 +189,31 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     }
   }
 
-  private String getTeUidFromEvent(
+  private UID getTeUidFromEvent(
       TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event, Program program) {
     if (program.isWithoutRegistration()) {
       return null;
     }
 
-    // TODO: Check if this fix was a bug
     if (bundle.getStrategy(event).isUpdateOrDelete()) {
-      return bundle
-          .getPreheat()
-          .getEvent(event.getUid())
-          .getEnrollment()
-          .getTrackedEntity()
-          .getUid();
+      return UID.of(
+          bundle.getPreheat().getEvent(event.getUid()).getEnrollment().getTrackedEntity());
     }
 
-    Enrollment enrollment = bundle.getPreheat().getEnrollment(event.getEnrollment().getValue());
+    Enrollment enrollment = bundle.getPreheat().getEnrollment(event.getEnrollment());
 
     if (enrollment == null) {
       return bundle
-          .findEnrollmentByUid(event.getEnrollment().getValue())
+          .findEnrollmentByUid(event.getEnrollment())
           .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getTrackedEntity)
           .orElse(null);
     }
 
-    return enrollment.getTrackedEntity().getUid();
+    return UID.of(enrollment.getTrackedEntity());
   }
 
   private OrganisationUnit getOwnerOrganisationUnit(
-      TrackerPreheat preheat, String teUid, Program program) {
+      TrackerPreheat preheat, UID teUid, Program program) {
     Map<String, TrackedEntityProgramOwnerOrgUnit> programOwner =
         preheat.getProgramOwner().get(teUid);
     if (programOwner == null || programOwner.get(program.getUid()) == null) {
@@ -236,17 +228,10 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     return true;
   }
 
-  private void checkOrgUnitInCaptureScope(
-      Reporter reporter, TrackerDto dto, OrganisationUnit orgUnit, UserDetails user) {
-    if (!user.isInUserHierarchy(orgUnit.getPath())) {
-      reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
-    }
-  }
-
   private void checkTeTypeAndTeProgramAccess(
       Reporter reporter,
       TrackerDto dto,
-      String trackedEntity,
+      UID trackedEntity,
       OrganisationUnit ownerOrganisationUnit,
       Program program,
       UserDetails user) {
@@ -255,7 +240,11 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
     }
 
     if (ownerOrganisationUnit != null
-        && !ownershipAccessManager.hasAccess(user, trackedEntity, ownerOrganisationUnit, program)) {
+        && !ownershipAccessManager.hasAccess(
+            user,
+            trackedEntity == null ? null : trackedEntity.getValue(),
+            ownerOrganisationUnit,
+            program)) {
       reporter.addError(dto, ValidationCode.E1102, user, trackedEntity, program);
     }
   }
@@ -268,7 +257,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       OrganisationUnit eventOrgUnit,
       OrganisationUnit ownerOrgUnit,
       CategoryOptionCombo categoryOptionCombo,
-      String trackedEntity,
+      UID trackedEntity,
       boolean isCreatableInSearchScope) {
 
     if (bundle.getStrategy(event) != TrackerImportStrategy.UPDATE) {
@@ -304,11 +293,10 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       OrganisationUnit eventOrgUnit,
       boolean isCreatableInSearchScope,
       UserDetails user) {
-    if (eventOrgUnit == null) {
-      log.warn(ORG_UNIT_NO_USER_ASSIGNED, event.getUid());
-    } else if (isCreatableInSearchScope
-        ? !user.isInUserEffectiveSearchOrgUnitHierarchy(eventOrgUnit.getPath())
-        : !user.isInUserHierarchy(eventOrgUnit.getPath())) {
+    String path = eventOrgUnit.getStoredPath();
+    if (isCreatableInSearchScope
+        ? !user.isInUserEffectiveSearchOrgUnitHierarchy(path)
+        : !user.isInUserHierarchy(path)) {
       reporter.addError(event, ValidationCode.E1000, user, eventOrgUnit);
     }
   }

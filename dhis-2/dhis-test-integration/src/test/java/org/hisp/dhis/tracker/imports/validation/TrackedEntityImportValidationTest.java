@@ -41,6 +41,7 @@ import static org.hisp.dhis.tracker.imports.validation.Users.USER_9;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -318,7 +319,7 @@ class TrackedEntityImportValidationTest extends TrackerTest {
     trackerOwnershipManager.transferOwnership(trackedEntity, program, orgUnit);
     manager.flush();
     manager.clear();
-    importReport = updateTransferredTrackedEntity(USER_10, "KKKKj6vYdes");
+    importReport = updateTransferredTrackedEntity(USER_10, UID.of("KKKKj6vYdes"));
     assertHasErrors(importReport, 1, ValidationCode.E1003);
   }
 
@@ -339,7 +340,7 @@ class TrackedEntityImportValidationTest extends TrackerTest {
     trackerOwnershipManager.transferOwnership(trackedEntity, program, orgUnit);
     manager.flush();
     manager.clear();
-    ImportReport importReport = updateTransferredTrackedEntity(USER_9, "Kj6vYde4LHh");
+    ImportReport importReport = updateTransferredTrackedEntity(USER_9, UID.of("Kj6vYde4LHh"));
     assertNoErrors(importReport);
   }
 
@@ -379,7 +380,7 @@ class TrackedEntityImportValidationTest extends TrackerTest {
     return trackerImportService.importTracker(params, trackerObjects);
   }
 
-  protected ImportReport updateTransferredTrackedEntity(String userId, String trackedEntity)
+  protected ImportReport updateTransferredTrackedEntity(String userId, UID trackedEntity)
       throws IOException {
     TrackerObjects trackerObjects = fromJson("tracker/validations/te-transferred-data-update.json");
     trackerObjects.getTrackedEntities().get(0).setTrackedEntity(trackedEntity);

@@ -36,7 +36,7 @@ import lombok.AllArgsConstructor;
 import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.tracker.imports.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerIdScheme;
 
 /**
  * MetadataIdentifier represents an immutable idScheme aware identifier of metadata. <br>

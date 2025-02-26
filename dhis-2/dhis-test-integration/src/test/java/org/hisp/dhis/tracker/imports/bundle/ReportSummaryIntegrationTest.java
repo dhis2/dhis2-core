@@ -263,4 +263,33 @@ class ReportSummaryIntegrationTest extends TrackerTest {
     assertEquals(0, trackerImportEventReport.getStats().getIgnored());
     assertEquals(0, trackerImportEventReport.getStats().getDeleted());
   }
+
+  @Test
+  void testStatsCountForOneUpdateEventAndOneNewEventAndOneInvalidEvent() throws IOException {
+    TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
+    TrackerImportParams params =
+        TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
+    trackerImportService.importTracker(params, trackerObjects);
+
+    trackerObjects = fromJson("tracker/single_enrollment.json");
+    trackerImportService.importTracker(params, trackerObjects);
+
+    trackerObjects = fromJson("tracker/single_event.json");
+    trackerImportService.importTracker(params, trackerObjects);
+
+    trackerObjects = fromJson("tracker/one_update_and_one_new_and_one_invalid_event.json");
+    params.setAtomicMode(AtomicMode.OBJECT);
+    params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
+
+    ImportReport trackerImportEventReport =
+        trackerImportService.importTracker(params, trackerObjects);
+
+    assertNotNull(trackerImportEventReport);
+    assertEquals(Status.OK, trackerImportEventReport.getStatus());
+    assertEquals(1, trackerImportEventReport.getValidationReport().getErrors().size());
+    assertEquals(1, trackerImportEventReport.getStats().getCreated());
+    assertEquals(1, trackerImportEventReport.getStats().getUpdated());
+    assertEquals(1, trackerImportEventReport.getStats().getIgnored());
+    assertEquals(0, trackerImportEventReport.getStats().getDeleted());
+  }
 }

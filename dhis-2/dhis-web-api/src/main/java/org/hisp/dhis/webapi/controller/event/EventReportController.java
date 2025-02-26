@@ -36,9 +36,8 @@ import static org.hisp.dhis.feedback.ErrorCode.E7231;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
@@ -48,10 +47,11 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -66,7 +66,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Deprecated
 @Controller
 @RequestMapping("/api/eventReports")
-public class EventReportController extends AbstractCrudController<EventReport> {
+public class EventReportController
+    extends AbstractCrudController<EventReport, GetObjectListParams> {
   @Autowired private DimensionService dimensionService;
 
   @Autowired private I18nManager i18nManager;
@@ -103,13 +104,17 @@ public class EventReportController extends AbstractCrudController<EventReport> {
    * @deprecated This is a temporary workaround to keep EventReport backward compatible with the new
    *     EventVisualization entity. Only legacy and report related types can be returned by this
    *     endpoint.
-   * @param filters
    */
   @Deprecated
   @Override
-  protected void forceFiltering(final WebOptions webOptions, final List<String> filters) {
-    filters.add("type:in:[PIVOT_TABLE,LINE_LIST]");
-    filters.add("legacy:eq:true");
+  protected void addProgrammaticModifiers(GetObjectListParams params) {
+    addProgrammaticFilters(params::addFilter);
+  }
+
+  @Override
+  protected void addProgrammaticFilters(Consumer<String> add) {
+    add.accept("type:in:[PIVOT_TABLE,LINE_LIST]");
+    add.accept("legacy:eq:true");
   }
 
   @Override
@@ -124,8 +129,7 @@ public class EventReportController extends AbstractCrudController<EventReport> {
   }
 
   @Override
-  protected void postProcessResponseEntity(
-      EventReport report, WebOptions options, Map<String, String> parameters) {
+  protected void postProcessResponseEntity(EventReport report, GetObjectParams params) {
     report.populateAnalyticalProperties();
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());

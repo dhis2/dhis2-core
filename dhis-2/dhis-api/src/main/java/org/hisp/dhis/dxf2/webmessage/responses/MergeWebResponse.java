@@ -46,8 +46,8 @@ public class MergeWebResponse implements WebMessageResponse {
     MergeType mergeType = mergeReport.getMergeType();
     this.mergeReport.setMessage(
         mergeReport.hasErrorMessages()
-            ? "%s merge has errors".formatted(mergeType)
-            : "%s merge complete".formatted(mergeType));
+            ? "%s merge has errors".formatted(mergeType.getName())
+            : "%s merge complete".formatted(mergeType.getName()));
   }
 
   @Nonnull

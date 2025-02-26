@@ -47,6 +47,7 @@ import org.hisp.dhis.predictor.PredictionService;
 import org.hisp.dhis.predictor.PredictionSummary;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorService;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -66,7 +67,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Slf4j
 @RequestMapping("/api/predictors")
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
-public class PredictorController extends AbstractCrudController<Predictor> {
+public class PredictorController extends AbstractCrudController<Predictor, GetObjectListParams> {
   @Autowired private PredictorService predictorService;
 
   @Autowired private PredictionService predictionService;

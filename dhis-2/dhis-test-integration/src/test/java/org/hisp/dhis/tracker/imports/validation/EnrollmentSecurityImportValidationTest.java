@@ -39,8 +39,8 @@ import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -163,14 +163,11 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
     manager.update(programStageA);
     manager.update(programStageB);
     manager.update(programA);
-    maleA = createTrackedEntity('A', organisationUnitA);
-    maleB = createTrackedEntity(organisationUnitB);
-    femaleA = createTrackedEntity(organisationUnitA);
-    femaleB = createTrackedEntity(organisationUnitB);
-    maleA.setTrackedEntityType(trackedEntityType);
-    maleB.setTrackedEntityType(trackedEntityType);
-    femaleA.setTrackedEntityType(trackedEntityType);
-    femaleB.setTrackedEntityType(trackedEntityType);
+    maleA = createTrackedEntity('A', organisationUnitA, trackedEntityType);
+    maleB = createTrackedEntity(organisationUnitB, trackedEntityType);
+    femaleA = createTrackedEntity(organisationUnitA, trackedEntityType);
+    femaleB = createTrackedEntity(organisationUnitB, trackedEntityType);
+
     manager.save(maleA);
     manager.save(maleB);
     manager.save(femaleA);
@@ -352,8 +349,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
 
   private TrackedEntity createTrackedEntity(
       TrackedEntityType trackedEntityType, OrganisationUnit orgUnit) {
-    TrackedEntity trackedEntity = createTrackedEntity('T', orgUnit);
-    trackedEntity.setTrackedEntityType(trackedEntityType);
+    TrackedEntity trackedEntity = createTrackedEntity('T', orgUnit, trackedEntityType);
     manager.save(trackedEntity);
 
     return trackedEntity;
@@ -365,11 +361,11 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
         org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .program(MetadataIdentifier.ofUid(program.getUid()))
             .orgUnit(MetadataIdentifier.ofUid(orgUnit.getUid()))
-            .trackedEntity(trackedEntity.getUid())
+            .trackedEntity(UID.of(trackedEntity))
             .status(EnrollmentStatus.ACTIVE)
             .enrolledAt(Instant.now())
             .occurredAt(Instant.now())
-            .enrollment(CodeGenerator.generateUid())
+            .enrollment(UID.generate())
             .build());
   }
 }

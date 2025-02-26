@@ -41,7 +41,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -87,7 +87,7 @@ class AttributeValidator
       TrackedEntityType trackedEntityType) {
 
     Set<MetadataIdentifier> trackedEntityAttributes =
-        getTrackedEntityAttributes(bundle, trackedEntity.getTrackedEntity());
+        getTrackedEntityAttributes(bundle, trackedEntity.getUid());
 
     TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
     trackedEntityType.getTrackedEntityTypeAttributes().stream()

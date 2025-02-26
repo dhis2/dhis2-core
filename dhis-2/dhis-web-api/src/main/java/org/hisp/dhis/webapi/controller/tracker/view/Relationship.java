@@ -49,7 +49,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 public class Relationship {
   @OpenApi.Property({UID.class, org.hisp.dhis.relationship.Relationship.class})
   @JsonProperty
-  private String relationship;
+  private UID relationship;
 
   @JsonProperty private String relationshipName;
 

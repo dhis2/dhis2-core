@@ -41,6 +41,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.webapi.controller.message.ProgramMessageController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -66,20 +67,14 @@ class ProgramMessageControllerTest extends H2ControllerIntegrationTestBase {
     manager.save(prA);
     ProgramStage psA = createProgramStage('A', prA);
     manager.save(psA);
-    TrackedEntity trackedEntityA = createTrackedEntity('A', ouA);
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    TrackedEntity trackedEntityA = createTrackedEntity('A', ouA, trackedEntityType);
     manager.save(trackedEntityA);
     enrollmentA = createEnrollment(prA, trackedEntityA, ouA);
     manager.save(enrollmentA);
     eventA = createEvent(psA, enrollmentA, ouA);
     manager.save(eventA);
-  }
-
-  @Test
-  void shouldGetProgramMessageWhenPassingDeprecatedProgramInstanceParam() {
-    assertTrue(
-        GET("/messages?programInstance={id}", enrollmentA.getUid())
-            .content(HttpStatus.OK)
-            .isArray());
   }
 
   @Test
@@ -89,37 +84,8 @@ class ProgramMessageControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void shouldFailToGetProgramMessageWhenPassingEnrollmentAndProgramInstanceParams() {
-    assertEquals(
-        "Only one parameter of 'programInstance' and 'enrollment' must be specified. Prefer 'enrollment' as 'programInstance' will be removed.",
-        GET(
-                "/messages?enrollment={id}&programInstance={id}",
-                enrollmentA.getUid(),
-                enrollmentA.getUid())
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
-  }
-
-  @Test
-  void shouldGetProgramMessageWhenPassingDeprecatedProgramStageInstanceParam() {
-    assertTrue(
-        GET("/messages?programStageInstance={id}", eventA.getUid())
-            .content(HttpStatus.OK)
-            .isArray());
-  }
-
-  @Test
   void shouldGetProgramMessageWhenPassingEventParam() {
     assertTrue(GET("/messages?event={id}", eventA.getUid()).content(HttpStatus.OK).isArray());
-  }
-
-  @Test
-  void shouldFailToGetProgramMessageWhenPassingEventAndProgramStageInstanceParams() {
-    assertEquals(
-        "Only one parameter of 'programStageInstance' and 'event' must be specified. Prefer 'event' as 'programStageInstance' will be removed.",
-        GET("/messages?event={id}&programStageInstance={id}", eventA.getUid(), eventA.getUid())
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
   }
 
   @Test
@@ -127,14 +93,6 @@ class ProgramMessageControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(
         "Enrollment or Event must be specified.",
         GET("/messages").error(HttpStatus.CONFLICT).getMessage());
-  }
-
-  @Test
-  void shouldScheduleProgramMessageWhenPassingDeprecatedProgramInstanceParam() {
-    assertTrue(
-        GET("/messages/scheduled/sent?programInstance={id}", enrollmentA.getUid())
-            .content(HttpStatus.OK)
-            .isArray());
   }
 
   @Test
@@ -146,43 +104,11 @@ class ProgramMessageControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void shouldFailToScheduleProgramMessageWhenPassingEnrollmentAndProgramInstanceParams() {
-    assertEquals(
-        "Only one parameter of 'programInstance' and 'enrollment' must be specified. Prefer 'enrollment' as 'programInstance' will be removed.",
-        GET(
-                "/messages/scheduled/sent?enrollment={id}&programInstance={id}",
-                enrollmentA.getUid(),
-                enrollmentA.getUid())
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
-  }
-
-  @Test
-  void shouldScheduleProgramMessageWhenPassingDeprecatedProgramStageInstanceParam() {
-    assertTrue(
-        GET("/messages/scheduled/sent?programStageInstance={id}", eventA.getUid())
-            .content(HttpStatus.OK)
-            .isArray());
-  }
-
-  @Test
   void shouldScheduleProgramMessageWhenPassingEventParam() {
     assertTrue(
         GET("/messages/scheduled/sent?event={id}", eventA.getUid())
             .content(HttpStatus.OK)
             .isArray());
-  }
-
-  @Test
-  void shouldFailToScheduleProgramMessageWhenPassingEventAndProgramStageInstanceParams() {
-    assertEquals(
-        "Only one parameter of 'programStageInstance' and 'event' must be specified. Prefer 'event' as 'programStageInstance' will be removed.",
-        GET(
-                "/messages/scheduled/sent?event={id}&programStageInstance={id}",
-                eventA.getUid(),
-                eventA.getUid())
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
   }
 
   @Test

@@ -27,15 +27,13 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
-import static java.util.Collections.emptyList;
 import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.createObjectReport;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -64,41 +62,34 @@ public class MandatoryAttributesCheck implements ObjectValidationCheck {
     List<T> objects =
         selectObjectsBasedOnImportStrategy(persistedObjects, nonPersistedObjects, importStrategy);
 
-    if (objects.isEmpty() || !schema.hasPersistedProperty("attributeValues")) {
-      return;
-    }
+    if (objects.isEmpty() || !schema.hasAttributeValues()) return;
+
+    Preheat preheat = bundle.getPreheat();
+    Set<String> mandatoryAttributes = preheat.getMandatoryAttributes().get(klass);
+    if (mandatoryAttributes == null || mandatoryAttributes.isEmpty()) return;
 
     for (T object : objects) {
-      List<ErrorReport> errorReports = checkMandatoryAttributes(klass, object, bundle.getPreheat());
-
-      if (!errorReports.isEmpty()) {
-        addReports.accept(createObjectReport(errorReports, object, bundle));
-        ctx.markForRemoval(object);
+      if (object != null && !preheat.isDefault(object)) {
+        AttributeValues attributeValues = object.getAttributeValues();
+        mandatoryAttributes.stream()
+            .filter(attrId -> !isDefined(attrId, attributeValues))
+            .forEach(
+                attrId -> {
+                  addReports.accept(
+                      createObjectReport(
+                          new ErrorReport(Attribute.class, ErrorCode.E4011, attrId)
+                              .setMainId(attrId)
+                              .setErrorProperty("value"),
+                          object,
+                          bundle));
+                  ctx.markForRemoval(object);
+                });
       }
     }
   }
 
-  private List<ErrorReport> checkMandatoryAttributes(
-      Class<? extends IdentifiableObject> klass, IdentifiableObject object, Preheat preheat) {
-    if (object == null
-        || preheat.isDefault(object)
-        || !preheat.getMandatoryAttributes().containsKey(klass)) {
-      return emptyList();
-    }
-
-    Set<String> mandatoryAttributes = preheat.getMandatoryAttributes().get(klass);
-    if (mandatoryAttributes.isEmpty()) {
-      return emptyList();
-    }
-    Set<String> missingMandatoryAttributes = new HashSet<>(mandatoryAttributes);
-    missingMandatoryAttributes.removeAll(object.getAttributeValues().keys());
-
-    return missingMandatoryAttributes.stream()
-        .map(
-            att ->
-                new ErrorReport(Attribute.class, ErrorCode.E4011, att)
-                    .setMainId(att)
-                    .setErrorProperty("value"))
-        .collect(Collectors.toList());
+  private static boolean isDefined(String attrId, AttributeValues values) {
+    String value = values.get(attrId);
+    return value != null && !value.isEmpty();
   }
 }

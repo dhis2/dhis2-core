@@ -48,7 +48,7 @@ class AnalyticsPeriodCriteriaUtilsTest {
 
     // when
     AnalyticsPeriodCriteriaUtils.defineDefaultPeriodForCriteria(
-        criteria, periodDataProvider, PeriodDataProvider.DataSource.SYSTEM_DEFINED);
+        criteria, periodDataProvider, PeriodDataProvider.PeriodSource.SYSTEM_DEFINED);
 
     // then
     assertEquals(
@@ -69,7 +69,7 @@ class AnalyticsPeriodCriteriaUtilsTest {
 
     // when
     AnalyticsPeriodCriteriaUtils.defineDefaultPeriodForCriteria(
-        criteria, periodDataProvider, PeriodDataProvider.DataSource.SYSTEM_DEFINED);
+        criteria, periodDataProvider, PeriodDataProvider.PeriodSource.SYSTEM_DEFINED);
 
     // then
     assertNull(criteria.getStartDate());

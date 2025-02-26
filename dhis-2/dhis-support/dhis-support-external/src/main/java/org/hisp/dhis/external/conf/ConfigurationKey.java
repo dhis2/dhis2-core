@@ -61,12 +61,6 @@ public enum ConfigurationKey {
   SYSTEM_SQL_VIEW_WRITE_ENABLED("system.sql_view_write_enabled", Constants.OFF, false),
 
   /**
-   * Disable server-side program rule execution, can be 'on', 'off'. <br>
-   * (default: on)
-   */
-  SYSTEM_PROGRAM_RULE_SERVER_EXECUTION("system.program_rule.server_execution", Constants.ON, false),
-
-  /**
    * Set the maximum size for the cache instance to be built. If set to 0, no caching will take
    * place. Cannot be a negative value. (default: 0).
    */
@@ -90,18 +84,17 @@ public enum ConfigurationKey {
   /** Analytics database platform. */
   ANALYTICS_DATABASE("analytics.database", "POSTGRESQL", false),
 
-  /** Analytics database JDBC catalog name. */
+  /** Analytics database JDBC catalog name. Applies to Apache Doris. */
   ANALYTICS_DATABASE_CATALOG("analytics.database.catalog", "pg_dhis", false),
 
-  /** Analytics database JDBC driver filename. */
+  /** Analytics database JDBC driver filename. Applies to Apache Doris. */
   ANALYTICS_DATABASE_DRIVER_FILENAME("analytics.database.driver_filename", "postgresql.jar", false),
 
   /** JDBC driver class. */
   CONNECTION_DRIVER_CLASS("connection.driver_class", "org.postgresql.Driver", false),
 
   /** Analytics JDBC driver class. */
-  ANALYTICS_CONNECTION_DRIVER_CLASS(
-      "analytics.connection.driver_class", "org.postgresql.Driver", false),
+  ANALYTICS_CONNECTION_DRIVER_CLASS("analytics.connection.driver_class", "", false),
 
   /** Database connection URL. */
   CONNECTION_URL("connection.url", "", false),
@@ -118,6 +111,15 @@ public enum ConfigurationKey {
   /** Database password (sensitive). */
   CONNECTION_PASSWORD("connection.password", "", true),
 
+  /** Database host (hostname or IP). Applies to ClickHouse. */
+  CONNECTION_HOST("connection.host", "", false),
+
+  /** Database port number. Applies to ClickHouse. */
+  CONNECTION_PORT("connection.port", "5432", false),
+
+  /** Database port number. Applies to ClickHouse. */
+  CONNECTION_DATABASE("connection.database", "", false),
+
   /** Analytics Database password (sensitive). */
   ANALYTICS_CONNECTION_PASSWORD("analytics.connection.password", "", true),
 
@@ -126,13 +128,6 @@ public enum ConfigurationKey {
 
   /** Sets 'hibernate.cache.use_query_cache'. (default: true) */
   USE_QUERY_CACHE("hibernate.cache.use_query_cache", "true", false),
-
-  /**
-   * Sets 'hibernate.hbm2ddl.auto' (default: validate). This can be overridden by the same property
-   * loaded by any class implementing {@link DhisConfigurationProvider} like {@link
-   * DefaultDhisConfigurationProvider} from dhis.conf at runtime
-   */
-  CONNECTION_SCHEMA("connection.schema", "validate", false),
 
   /** Max size of connection pool (default: 80). */
   CONNECTION_POOL_MAX_SIZE("connection.pool.max_size", "80", false),
@@ -396,7 +391,9 @@ public enum ConfigurationKey {
    */
   FLYWAY_REPAIR_BEFORE_MIGRATION("flyway.repair_before_migration", Constants.OFF, false),
 
-  /** @TODO */
+  /** Whether to skip Flyway migration on startup. (default: false). */
+  FLYWAY_SKIP_MIGRATION("flyway.skip_migration", Constants.OFF, false),
+
   PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT("tracker.temporary.ownership.timeout", "3", false),
 
   /** Use unlogged tables during analytics export. (default: ON) */
@@ -670,6 +667,8 @@ public enum ConfigurationKey {
   /** @TODO */
   LINKED_ACCOUNTS_RELOGIN_URL("linked_accounts.relogin_url", "", false),
 
+  LINKED_ACCOUNTS_LOGOUT_URL("linked_accounts.logout_url", "", false),
+  
   /** User impersonation, also known as user switching. */
   SWITCH_USER_FEATURE_ENABLED("switch_user_feature.enabled", Constants.OFF, false),
 
@@ -683,10 +682,33 @@ public enum ConfigurationKey {
   /** CSRF feature. Enable or disable the feature. (sensitive) */
   CSRF_ENABLED("http.security.csrf.enabled", Constants.OFF, true);
 
+  /** The maximum number of category options in a single category */
+  METADATA_CATEGORIES_MAX_OPTIONS("metadata.categories.max_options", "31", false),
+  /** The maximum number of categories per category combo */
+  METADATA_CATEGORIES_MAX_PER_COMBO("metadata.categories.max_per_combo", "5", false),
+  /**
+   * The maximum number of possible category combination. This is computed by multiplying the number
+   * of options in each category in a category combo with each other.
+   */
+  METADATA_CATEGORIES_MAX_COMBINATIONS("metadata.categories.max_combinations", "500", false),
+
+  /** Enable email-based 2FA authentication. (default: false) */
+  EMAIL_2FA_ENABLED("login.security.email_2fa.enabled", Constants.OFF, false),
+
+  /** Enable TOTP-based 2FA authentication. (default: true) */
+  TOTP_2FA_ENABLED("login.security.totp_2fa.enabled", Constants.ON, false),
+
+  SESSION_COOKIE_SAME_SITE("session.cookie.samesite", "Lax", false);
+
   private final String key;
 
   private final String defaultValue;
 
+  /**
+   * Confidential means that the system setting will be encrypted and not visible through the API.
+   * The system setting will be used internally in the backend, but cannot be used by web apps and
+   * clients.
+   */
   private final boolean confidential;
 
   private final String[] aliases;

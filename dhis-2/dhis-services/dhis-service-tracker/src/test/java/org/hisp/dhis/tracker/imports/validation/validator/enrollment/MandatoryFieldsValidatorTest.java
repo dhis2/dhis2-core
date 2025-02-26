@@ -31,7 +31,8 @@ import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.ValidationMode;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -81,10 +82,10 @@ class MandatoryFieldsValidatorTest {
   void verifyEnrollmentValidationSuccess() {
     Enrollment enrollment =
         Enrollment.builder()
-            .enrollment(CodeGenerator.generateUid())
+            .enrollment(UID.generate())
             .orgUnit(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
-            .trackedEntity(CodeGenerator.generateUid())
+            .trackedEntity(UID.generate())
             .build();
 
     validator.validate(reporter, bundle, enrollment);
@@ -96,7 +97,7 @@ class MandatoryFieldsValidatorTest {
   void verifyEnrollmentValidationFailsOnMissingTrackedEntity() {
     Enrollment enrollment =
         Enrollment.builder()
-            .enrollment(CodeGenerator.generateUid())
+            .enrollment(UID.generate())
             .orgUnit(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .trackedEntity(null)
@@ -111,10 +112,10 @@ class MandatoryFieldsValidatorTest {
   void verifyEnrollmentValidationFailsOnMissingProgram() {
     Enrollment enrollment =
         Enrollment.builder()
-            .enrollment(CodeGenerator.generateUid())
+            .enrollment(UID.generate())
             .orgUnit(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
             .program(MetadataIdentifier.EMPTY_UID)
-            .trackedEntity(CodeGenerator.generateUid())
+            .trackedEntity(UID.generate())
             .build();
 
     validator.validate(reporter, bundle, enrollment);
@@ -126,10 +127,10 @@ class MandatoryFieldsValidatorTest {
   void verifyEnrollmentValidationFailsOnMissingOrgUnit() {
     Enrollment enrollment =
         Enrollment.builder()
-            .enrollment(CodeGenerator.generateUid())
+            .enrollment(UID.generate())
             .orgUnit(MetadataIdentifier.EMPTY_UID)
             .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
-            .trackedEntity(CodeGenerator.generateUid())
+            .trackedEntity(UID.generate())
             .build();
 
     validator.validate(reporter, bundle, enrollment);

@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.eventhook.EventHook;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -43,4 +44,4 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/eventHooks")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
-public class EventHookController extends AbstractCrudController<EventHook> {}
+public class EventHookController extends AbstractCrudController<EventHook, GetObjectListParams> {}

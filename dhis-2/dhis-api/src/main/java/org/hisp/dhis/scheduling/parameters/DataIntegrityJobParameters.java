@@ -51,11 +51,11 @@ public class DataIntegrityJobParameters implements JobParameters {
     DETAILS
   }
 
-  @JsonProperty(required = false)
+  @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   private DataIntegrityReportType type;
 
-  @JsonProperty(required = false)
+  @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   private Set<String> checks;
 }

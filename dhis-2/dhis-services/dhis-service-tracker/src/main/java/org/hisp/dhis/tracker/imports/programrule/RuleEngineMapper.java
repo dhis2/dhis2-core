@@ -68,7 +68,7 @@ class RuleEngineMapper {
     Program program = preheat.getProgram(enrollment.getProgram());
 
     return new RuleEnrollment(
-        enrollment.getStringUid(),
+        enrollment.getUid().getValue(),
         program.getName(),
         getDate(ObjectUtils.firstNonNull(enrollment.getOccurredAt(), enrollment.getEnrolledAt())),
         getDate(enrollment.getEnrolledAt()),

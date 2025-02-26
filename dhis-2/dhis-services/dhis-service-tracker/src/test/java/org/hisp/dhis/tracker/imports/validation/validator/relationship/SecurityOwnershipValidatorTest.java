@@ -38,9 +38,10 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.test.TestBase;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -88,10 +89,10 @@ class SecurityOwnershipValidatorTest extends TestBase {
     reporter = new Reporter(idSchemes);
     relationship =
         Relationship.builder()
-            .relationship("relationshipUid")
+            .relationship(UID.generate())
             .relationshipType(relationshipTypeUid)
-            .from(RelationshipItem.builder().build())
-            .to(RelationshipItem.builder().build())
+            .from(RelationshipItem.builder().trackedEntity(UID.generate()).build())
+            .to(RelationshipItem.builder().trackedEntity(UID.generate()).build())
             .build();
 
     convertedRelationship = TrackerObjectsMapper.map(preheat, relationship, new SystemUser());

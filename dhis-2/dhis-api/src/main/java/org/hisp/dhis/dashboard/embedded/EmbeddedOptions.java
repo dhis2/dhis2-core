@@ -52,7 +52,4 @@ public class EmbeddedOptions implements Serializable {
 
   /** Filter options. Applies to Superset. */
   @JsonProperty private FilterOptions filters;
-
-  /** Show the filters panel. Applies to Superset. */
-  @JsonProperty private boolean showFilters;
 }

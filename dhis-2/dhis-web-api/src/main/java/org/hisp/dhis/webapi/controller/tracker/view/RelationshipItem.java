@@ -64,7 +64,7 @@ public class RelationshipItem {
   public static class TrackedEntity {
     @JsonProperty
     @OpenApi.Property({UID.class, org.hisp.dhis.trackedentity.TrackedEntity.class})
-    private String trackedEntity;
+    private UID trackedEntity;
 
     @JsonProperty private String trackedEntityType;
 
@@ -112,7 +112,7 @@ public class RelationshipItem {
   public static class Enrollment {
     @OpenApi.Property({UID.class, org.hisp.dhis.program.Enrollment.class})
     @JsonProperty
-    private String enrollment;
+    private UID enrollment;
 
     @JsonProperty private Instant createdAt;
 
@@ -166,7 +166,7 @@ public class RelationshipItem {
   public static class Event {
     @OpenApi.Property({UID.class, org.hisp.dhis.program.Event.class})
     @JsonProperty
-    private String event;
+    private UID event;
 
     @JsonProperty @Builder.Default private EventStatus status = EventStatus.ACTIVE;
 
@@ -195,10 +195,6 @@ public class RelationshipItem {
     private String storedBy;
 
     @JsonProperty private boolean followUp;
-
-    @Deprecated(since = "2.41", forRemoval = true)
-    @JsonProperty("followup")
-    private boolean legacyFollowUp;
 
     @JsonProperty private boolean deleted;
 

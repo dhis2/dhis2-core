@@ -53,6 +53,7 @@ import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -74,7 +75,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @OpenApi.Document(
     entity = Icon.class,
     classifiers = {"team:platform", "purpose:support"})
-public class ApiTokenController extends AbstractCrudController<ApiToken> {
+public class ApiTokenController extends AbstractCrudController<ApiToken, GetObjectListParams> {
   public static final String METHOD_TYPE_IS_NOT_SUPPORTED_MSG = "Method type is not supported";
 
   private static final List<String> VALID_METHODS =

@@ -27,18 +27,30 @@
  */
 package org.hisp.dhis.analytics.config;
 
+import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTableService;
+import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.DefaultAnalyticsTableService;
+import org.hisp.dhis.analytics.table.JdbcTrackedEntityEventsAnalyticsTableManager;
+import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.db.AnalyticsSqlBuilderProvider;
+import org.hisp.dhis.db.SqlBuilderProvider;
+import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
-import org.hisp.dhis.db.sql.SqlBuilderProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Luciano Fiandesio
@@ -48,6 +60,44 @@ public class ServiceConfig {
   @Bean
   public SqlBuilder sqlBuilder(SqlBuilderProvider provider) {
     return provider.getSqlBuilder();
+  }
+
+  @Bean
+  public AnalyticsSqlBuilder analyticsSqlBuilder(AnalyticsSqlBuilderProvider provider) {
+    return provider.getAnalyticsSqlBuilder();
+  }
+
+  @Bean("org.hisp.dhis.analytics.TrackedEntityEventsAnalyticsTableManager")
+  public AnalyticsTableManager jdbcTrackedEntityEventsAnalyticsTableManager(
+      IdentifiableObjectManager idObjectManager,
+      OrganisationUnitService organisationUnitService,
+      CategoryService categoryService,
+      SystemSettingsProvider settingsProvider,
+      DataApprovalLevelService dataApprovalLevelService,
+      ResourceTableService resourceTableService,
+      AnalyticsTableHookService tableHookService,
+      PartitionManager partitionManager,
+      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
+      TrackedEntityTypeService trackedEntityTypeService,
+      AnalyticsTableSettings analyticsTableSettings,
+      PeriodDataProvider periodDataProvider,
+      SqlBuilder sqlBuilder,
+      AnalyticsSqlBuilder analyticsSqlBuilder) {
+    return new JdbcTrackedEntityEventsAnalyticsTableManager(
+        idObjectManager,
+        organisationUnitService,
+        categoryService,
+        settingsProvider,
+        dataApprovalLevelService,
+        resourceTableService,
+        tableHookService,
+        partitionManager,
+        jdbcTemplate,
+        trackedEntityTypeService,
+        analyticsTableSettings,
+        periodDataProvider,
+        sqlBuilder,
+        analyticsSqlBuilder);
   }
 
   @Bean("org.hisp.dhis.analytics.TrackedEntityAnalyticsTableService")

@@ -67,20 +67,10 @@ public interface EventDataQueryService {
    * Returns the coordinate column field to use for the given coordinate field. Coordinate field
    * must match EVENT, a data element identifier or an attribute identifier.
    *
-   * @param program the program instance.
-   * @param coordinateField the coordinate field.
-   * @param fallbackCoordinateField the fallback coordinate field applied if coordinate field in
-   *     result set is null.
-   * @param defaultCoordinateFallback flag for cascade fallback, first not null geometry (coalesce)
-   *     will be applied.
-   * @return the coordinate column list.
+   * @param request the {@link EventDataQueryRequest}.
    * @throws IllegalQueryException if one of the given coordinates is not valid.
    */
-  List<String> getCoordinateFields(
-      String program,
-      String coordinateField,
-      String fallbackCoordinateField,
-      boolean defaultCoordinateFallback);
+  List<String> getCoordinateFields(EventDataQueryRequest request);
 
   /**
    * Returns a {@link QueryItem}.

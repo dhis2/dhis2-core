@@ -28,6 +28,8 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
@@ -37,7 +39,7 @@ import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.common.ColumnHeader.LATITUDE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.LONGITUDE;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
-import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
+import static org.hisp.dhis.analytics.table.AbstractEventJdbcTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -47,7 +49,6 @@ import static org.hisp.dhis.feedback.ErrorCode.E7133;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Date;
@@ -63,6 +64,7 @@ import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -82,10 +84,15 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.system.util.ListBuilder;
 import org.postgresql.util.PSQLException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -115,13 +122,21 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
       EventTimeFieldSqlRenderer timeFieldSqlRenderer,
       ExecutionPlanStore executionPlanStore,
-      SqlBuilder sqlBuilder) {
+      SystemSettingsService settingsService,
+      DhisConfigurationProvider config,
+      SqlBuilder sqlBuilder,
+      AnalyticsSqlBuilder analyticsSqlBuilder,
+      OrganisationUnitResolver organisationUnitResolver) {
     super(
         jdbcTemplate,
         programIndicatorService,
         programIndicatorSubqueryBuilder,
         executionPlanStore,
-        sqlBuilder);
+        sqlBuilder,
+        settingsService,
+        config,
+        organisationUnitResolver,
+        analyticsSqlBuilder);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
@@ -263,12 +278,15 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
   @Override
   public Rectangle getRectangle(EventQueryParams params) {
+    String coalesceClause =
+        getCoalesce(
+            params.getCoordinateFields(), FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue());
+
     String sql =
         "select count(event) as "
             + COL_COUNT
             + ", ST_Extent("
-            + getCoalesce(
-                params.getCoordinateFields(), FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue())
+            + coalesceClause
             + ") as "
             + COL_EXTENT
             + " ";
@@ -306,6 +324,11 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     }
   }
 
+  @Override
+  protected AnalyticsType getAnalyticsType() {
+    return AnalyticsType.EVENT;
+  }
+
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
@@ -317,44 +340,76 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
    */
   @Override
   protected String getSelectClause(EventQueryParams params) {
-    ImmutableList.Builder<String> cols =
-        new ImmutableList.Builder<String>()
-            .add(
-                EventAnalyticsColumnName.EVENT_COLUMN_NAME,
-                EventAnalyticsColumnName.PS_COLUMN_NAME,
-                EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
-                EventAnalyticsColumnName.STORED_BY_COLUMN_NAME,
-                EventAnalyticsColumnName.CREATED_BY_DISPLAYNAME_COLUMN_NAME,
-                EventAnalyticsColumnName.LAST_UPDATED_BY_DISPLAYNAME_COLUMN_NAME,
-                EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
-                EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME);
+    List<String> standardColumns = getStandardColumns(params);
+
+    List<String> selectCols =
+        ListUtils.distinctUnion(standardColumns, getSelectColumns(params, false));
+
+    return "select " + StringUtils.join(selectCols, ",") + " ";
+  }
+
+  /**
+   * Returns a list of names of standard columns.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @return a list of names of standard columns.
+   */
+  private List<String> getStandardColumns(EventQueryParams params) {
+    ListBuilder<String> columns = new ListBuilder<>();
+
+    columns.add(
+        EventAnalyticsColumnName.EVENT_COLUMN_NAME,
+        EventAnalyticsColumnName.PS_COLUMN_NAME,
+        EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
+        EventAnalyticsColumnName.STORED_BY_COLUMN_NAME,
+        EventAnalyticsColumnName.CREATED_BY_DISPLAYNAME_COLUMN_NAME,
+        EventAnalyticsColumnName.LAST_UPDATED_BY_DISPLAYNAME_COLUMN_NAME,
+        EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
+        EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME);
 
     if (params.getProgram().isRegistration()) {
-      cols.add(
+      columns.add(
           EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
           EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME,
           EventAnalyticsColumnName.TRACKED_ENTITY_COLUMN_NAME,
           EventAnalyticsColumnName.ENROLLMENT_COLUMN_NAME);
     }
 
-    String coordinatesFieldsSnippet =
-        getCoalesce(
-            params.getCoordinateFields(), FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue());
+    if (sqlBuilder.supportsGeospatialData()) {
+      columns.add(
+          getCoordinateSelectExpression(params),
+          EventAnalyticsColumnName.LONGITUDE_COLUMN_NAME,
+          EventAnalyticsColumnName.LATITUDE_COLUMN_NAME);
+    }
 
-    cols.add(
-        "ST_AsGeoJSON(" + coordinatesFieldsSnippet + ", 6) as geometry",
-        EventAnalyticsColumnName.LONGITUDE_COLUMN_NAME,
-        EventAnalyticsColumnName.LATITUDE_COLUMN_NAME,
+    columns.add(
         EventAnalyticsColumnName.OU_NAME_COLUMN_NAME,
         AbstractJdbcTableManager.OU_NAME_HIERARCHY_COLUMN_NAME,
         EventAnalyticsColumnName.OU_CODE_COLUMN_NAME,
         EventAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME,
         EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME);
 
-    List<String> selectCols =
-        ListUtils.distinctUnion(cols.build(), getSelectColumns(params, false));
+    return columns.build();
+  }
 
-    return "select " + StringUtils.join(selectCols, ",") + " ";
+  /**
+   * Returns a coordinate coalesce select expression.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @return a coordinate coalesce select expression.
+   */
+  private String getCoordinateSelectExpression(EventQueryParams params) {
+    String field =
+        getCoalesce(
+            params.getCoordinateFields(), FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue());
+
+    return String.format("ST_AsGeoJSON(%s, 6) as geometry", field);
+  }
+
+  @Override
+  protected String getColumnWithCte(QueryItem item, CteContext cteContext) {
+    // TODO: Implement
+    return "";
   }
 
   /**
@@ -515,6 +570,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     sql += getQueryItemsAndFiltersWhereClause(params, hlp);
 
+    sql += getOptionFilter(params, hlp);
+
     // ---------------------------------------------------------------------
     // Filter expression
     // ---------------------------------------------------------------------
@@ -624,6 +681,32 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     return sql;
   }
 
+  /**
+   * Adds a filtering condition into the "where" statement if an {@Option} is defined.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @param sqlHelper the {@link SqlHelper}.
+   * @return the SQL condition for the {@link Option}, if any.
+   */
+  private String getOptionFilter(EventQueryParams params, SqlHelper sqlHelper) {
+    if (params.hasOption() && params.hasValue()) {
+      DimensionalItemObject dimensionalItemObject = params.getValue();
+      Option option = params.getOption();
+
+      return new StringBuilder()
+          .append(SPACE)
+          .append(sqlHelper.whereAnd())
+          .append(SPACE)
+          .append(quote(dimensionalItemObject.getUid()))
+          .append(" in ('")
+          .append(option.getCode())
+          .append("') ")
+          .toString();
+    }
+
+    return EMPTY;
+  }
+
   /** Generates a sub query which provides a filter by organisation descendant level. */
   private String getOrgUnitDescendantsClause(
       OrgUnitField orgUnitField, List<DimensionalItemObject> dimensionOrFilterItems) {
@@ -632,7 +715,10 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
             .map(object -> (OrganisationUnit) object)
             .collect(
                 Collectors.groupingBy(
-                    unit -> orgUnitField.getOrgUnitLevelCol(unit.getLevel(), getAnalyticsType())));
+                    unit ->
+                        orgUnitField
+                            .withSqlBuilder(sqlBuilder)
+                            .getOrgUnitLevelCol(unit.getLevel(), getAnalyticsType())));
 
     return collect.keySet().stream()
         .map(org -> toInCondition(org, collect.get(org)))
@@ -792,11 +878,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         params.getProgramIndicator(),
         params.getEarliestStartDate(),
         params.getLatestEndDate());
-  }
-
-  @Override
-  protected AnalyticsType getAnalyticsType() {
-    return AnalyticsType.EVENT;
   }
 
   /**

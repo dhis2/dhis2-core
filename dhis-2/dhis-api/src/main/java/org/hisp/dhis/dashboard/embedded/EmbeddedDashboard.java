@@ -34,7 +34,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/** Encapsulates metadata for an embedded and externally provided dashboard. */
+/**
+ * Encapsulates metadata for an embedded and externally provided dashboard.
+ *
+ * @author Lars Helge Overland
+ */
 @Getter
 @Setter
 @NoArgsConstructor

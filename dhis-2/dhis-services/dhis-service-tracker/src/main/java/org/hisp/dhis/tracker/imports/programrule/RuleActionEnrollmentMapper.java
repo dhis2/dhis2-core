@@ -58,13 +58,13 @@ class RuleActionEnrollmentMapper {
   public Map<Enrollment, List<RuleActionExecutor<Enrollment>>> mapRuleEffects(
       Map<UID, List<ValidationEffect>> enrollmentValidationEffects, TrackerBundle bundle) {
     return enrollmentValidationEffects.keySet().stream()
-        .filter(e -> bundle.findEnrollmentByUid(e.getValue()).isPresent())
+        .filter(e -> bundle.findEnrollmentByUid(e).isPresent())
         .collect(
             Collectors.toMap(
-                e -> bundle.findEnrollmentByUid(e.getValue()).get(),
+                e -> bundle.findEnrollmentByUid(e).get(),
                 e ->
                     mapRuleEffects(
-                        bundle.findEnrollmentByUid(e.getValue()).get(),
+                        bundle.findEnrollmentByUid(e).get(),
                         enrollmentValidationEffects.get(e),
                         bundle)));
   }

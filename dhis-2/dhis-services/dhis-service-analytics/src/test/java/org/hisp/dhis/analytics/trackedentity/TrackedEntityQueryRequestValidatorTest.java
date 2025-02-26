@@ -40,42 +40,35 @@ import org.junit.jupiter.api.Test;
  * @author maikel arabori
  */
 class TrackedEntityQueryRequestValidatorTest {
-
   @Test
   void testValidateWhenTrackedEntityTypeIsInvalid() {
     String teiUid = CodeGenerator.generateUid() + "invalid";
-    // Given
     TrackedEntityRequestParams trackedEntityRequestParams = new TrackedEntityRequestParams(teiUid);
 
     TrackedEntityQueryRequestValidator trackedEntityQueryRequestValidator =
         new TrackedEntityQueryRequestValidator();
 
-    // When
     IllegalQueryException exception =
         assertThrows(
             IllegalQueryException.class,
             () -> trackedEntityQueryRequestValidator.validate(trackedEntityRequestParams));
 
-    // Then
     assertEquals(
         "Invalid UID `" + teiUid + "` for property `trackedEntityType`", exception.getMessage());
   }
 
   @Test
   void testValidateWhenNoTrackedEntityType() {
-    // Given
     TrackedEntityRequestParams trackedEntityRequestParams = new TrackedEntityRequestParams(null);
 
     TrackedEntityQueryRequestValidator trackedEntityQueryRequestValidator =
         new TrackedEntityQueryRequestValidator();
 
-    // When
     IllegalQueryException exception =
         assertThrows(
             IllegalQueryException.class,
             () -> trackedEntityQueryRequestValidator.validate(trackedEntityRequestParams));
 
-    // Then
     assertEquals("Invalid UID `null` for property `trackedEntityType`", exception.getMessage());
   }
 }

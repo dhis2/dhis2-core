@@ -95,7 +95,7 @@ public class DeflatedDataValue {
     this.dataElementId = dataValue.getDataElement().getId();
     this.periodId = dataValue.getPeriod().getId();
     this.sourceId = dataValue.getSource().getId();
-    this.sourcePath = dataValue.getSource().getPath();
+    this.sourcePath = dataValue.getSource().getStoredPath();
     this.categoryOptionComboId = dataValue.getCategoryOptionCombo().getId();
     this.attributeOptionComboId = dataValue.getAttributeOptionCombo().getId();
     this.value = dataValue.getValue();

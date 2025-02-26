@@ -31,6 +31,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -105,10 +106,10 @@ class EnrollmentOperationParamsMapperTest {
     User testUser = new User();
     testUser.setUsername("admin");
 
-    orgUnit1 = new OrganisationUnit("orgUnit1");
+    orgUnit1 = createOrganisationUnit('A');
     orgUnit1.setUid(ORG_UNIT_1_UID.getValue());
     when(organisationUnitService.getOrganisationUnit(orgUnit1.getUid())).thenReturn(orgUnit1);
-    orgUnit2 = new OrganisationUnit("orgUnit2");
+    orgUnit2 = createOrganisationUnit('B');
     orgUnit2.setUid(ORG_UNIT_2_UID.getValue());
     orgUnit2.setParent(orgUnit1);
     orgUnit1.setChildren(Set.of(orgUnit2));
@@ -143,7 +144,8 @@ class EnrollmentOperationParamsMapperTest {
     when(paramsValidator.validateTrackerProgram(PROGRAM_UID, user)).thenReturn(program);
     when(paramsValidator.validateTrackedEntityType(TRACKED_ENTITY_TYPE_UID, user))
         .thenReturn(trackedEntityType);
-    when(paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user)).thenReturn(trackedEntity);
+    when(paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user, false))
+        .thenReturn(trackedEntity);
     when(paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID), user))
         .thenReturn(Set.of(orgUnit1, orgUnit2));
   }

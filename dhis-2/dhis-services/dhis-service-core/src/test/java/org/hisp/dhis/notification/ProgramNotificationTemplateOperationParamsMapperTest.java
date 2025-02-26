@@ -96,7 +96,7 @@ class ProgramNotificationTemplateOperationParamsMapperTest {
     assertNull(result.getProgramStage());
     assertEquals(1, result.getPage());
     assertEquals(10, result.getPageSize());
-    assertTrue(result.isPaged());
+    assertTrue(result.isPaging());
 
     verify(manager).get(Program.class, PROGRAM.getValue());
     verifyNoMoreInteractions(manager);

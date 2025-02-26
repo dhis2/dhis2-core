@@ -28,6 +28,7 @@
 package org.hisp.dhis.test.webapi.json.domain;
 
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElementDomain;
 
 /**
@@ -39,6 +40,10 @@ import org.hisp.dhis.dataelement.DataElementDomain;
 public interface JsonDataElement extends JsonIdentifiableObject {
   default DataElementDomain getDomainType() {
     return getString("domainType").parsed(DataElementDomain::valueOf);
+  }
+
+  default ValueType getValueType() {
+    return getString("valueType").parsed(ValueType::valueOf);
   }
 
   default AggregationType getAggregationType() {

@@ -41,7 +41,6 @@ import lombok.Builder;
 import lombok.Getter;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.SortDirection;
@@ -53,6 +52,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.Order;
 
 @Getter
@@ -71,7 +71,8 @@ public class EventOperationParams {
 
   private UID orgUnit;
 
-  private OrganisationUnitSelectionMode orgUnitMode;
+  @Builder.Default
+  private OrganisationUnitSelectionMode orgUnitMode = OrganisationUnitSelectionMode.ACCESSIBLE;
 
   private AssignedUserSelectionMode assignedUserMode;
 
@@ -110,8 +111,6 @@ public class EventOperationParams {
 
   private CategoryOptionCombo categoryOptionCombo;
 
-  @Builder.Default private IdSchemes idSchemes = new IdSchemes();
-
   private boolean includeRelationships;
 
   /**
@@ -125,10 +124,6 @@ public class EventOperationParams {
    * ordered by while storing the order in a single List of {@link Order}.
    */
   private List<Order> order;
-
-  private boolean includeAttributes;
-
-  private boolean includeAllDataElements;
 
   @Builder.Default private Set<UID> events = new HashSet<>();
 
@@ -147,7 +142,10 @@ public class EventOperationParams {
 
   private Set<UID> enrollments;
 
-  private EventParams eventParams;
+  @Builder.Default private EventParams eventParams = EventParams.FALSE;
+
+  @Builder.Default
+  private TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
 
   public static class EventOperationParamsBuilder {
 

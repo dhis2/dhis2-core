@@ -128,17 +128,6 @@ class DataSetStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetDataSetByPeriodType() {
-    List<PeriodType> types = PeriodType.getAvailablePeriodTypes();
-    PeriodType periodType1 = types.get(0);
-    PeriodType periodType2 = types.get(1);
-    DataSet dataSetA = addDataSet('A', periodType1);
-    DataSet dataSetB = addDataSet('B', periodType2);
-    assertContainsOnly(List.of(dataSetA), dataSetStore.getDataSetsByPeriodType(periodType1));
-    assertContainsOnly(List.of(dataSetB), dataSetStore.getDataSetsByPeriodType(periodType2));
-  }
-
-  @Test
   void testGetByDataEntryForm() {
     DataSet dataSetA = addDataSet('A');
     DataSet dataSetB = addDataSet('B');

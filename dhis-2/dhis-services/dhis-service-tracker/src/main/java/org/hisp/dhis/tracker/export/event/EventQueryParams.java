@@ -40,9 +40,9 @@ import lombok.Getter;
 import org.apache.commons.collections4.SetUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserQueryParam;
-import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
@@ -54,6 +54,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.Order;
 
 /**
@@ -103,8 +104,6 @@ class EventQueryParams {
 
   private CategoryOptionCombo categoryOptionCombo;
 
-  private IdSchemes idSchemes = new IdSchemes();
-
   private boolean includeRelationships;
 
   /**
@@ -151,6 +150,8 @@ class EventQueryParams {
   private Set<UID> enrollments;
 
   @Getter private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
+
+  @Getter private TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
 
   public EventQueryParams() {}
 
@@ -376,15 +377,6 @@ class EventQueryParams {
     return this;
   }
 
-  public IdSchemes getIdSchemes() {
-    return idSchemes;
-  }
-
-  public EventQueryParams setIdSchemes(IdSchemes idSchemes) {
-    this.idSchemes = idSchemes;
-    return this;
-  }
-
   public boolean isIncludeAttributes() {
     return includeAttributes;
   }
@@ -423,7 +415,6 @@ class EventQueryParams {
   /** Order by the given data element {@code de} in given sort {@code direction}. */
   public EventQueryParams orderBy(DataElement de, SortDirection direction) {
     this.order.add(new Order(de, direction));
-    this.dataElements.putIfAbsent(de, new ArrayList<>());
     return this;
   }
 
@@ -483,7 +474,7 @@ class EventQueryParams {
   }
 
   public EventQueryParams filterBy(DataElement de) {
-    this.dataElements.putIfAbsent(de, new ArrayList<>());
+    this.dataElements.putIfAbsent(de, List.of(new QueryFilter(QueryOperator.NNULL)));
     return this;
   }
 
@@ -560,7 +551,12 @@ class EventQueryParams {
 
   public boolean isPathOrganisationUnitMode() {
     return orgUnitMode != null
-        && (orgUnitMode.equals(OrganisationUnitSelectionMode.DESCENDANTS)
-            || orgUnitMode.equals(OrganisationUnitSelectionMode.CHILDREN));
+        && (OrganisationUnitSelectionMode.DESCENDANTS.equals(orgUnitMode)
+            || OrganisationUnitSelectionMode.CHILDREN.equals(orgUnitMode));
+  }
+
+  public EventQueryParams setIdSchemeParams(TrackerIdSchemeParams idSchemeParams) {
+    this.idSchemeParams = idSchemeParams;
+    return this;
   }
 }

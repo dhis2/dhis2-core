@@ -96,6 +96,8 @@ public class LoginConfigController {
         .recaptchaSite(settings.getRecaptchaSite())
         .loginPageLayout(settings.getLoginPageLayout().name())
         .loginPageTemplate(settings.getLoginPageTemplate())
+        .minPasswordLength(String.valueOf(settings.getMinPasswordLength()))
+        .maxPasswordLength(String.valueOf(settings.getMaxPasswordLength()))
         .oidcProviders(getRegisteredOidcProviders())
         .build();
   }

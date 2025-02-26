@@ -102,7 +102,7 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest {
         DataQueryParams.newBuilder()
             .withOrganisationUnit(ou)
             // DATA ELEMENTS
-            .withDataElements(newArrayList(reportingRateA, reportingRateB, reportingRateC))
+            .withDataElements(List.of(reportingRateA, reportingRateB, reportingRateC))
             .withIgnoreLimit(true)
             // FILTERS (OU)
             .withFilters(List.of(new BaseDimensionalObject("pe", DimensionType.PERIOD, periods)))

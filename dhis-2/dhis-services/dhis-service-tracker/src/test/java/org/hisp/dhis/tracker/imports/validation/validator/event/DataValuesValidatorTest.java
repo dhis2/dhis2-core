@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertNoErrors;
@@ -48,8 +49,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
@@ -138,6 +139,7 @@ class DataValuesValidatorTest {
 
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(dataValue()))
@@ -230,6 +232,7 @@ class DataValuesValidatorTest {
 
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(dataValue()))
@@ -345,6 +348,7 @@ class DataValuesValidatorTest {
     dataValue.setDataElement(MetadataIdentifier.ofCode("DE_424050"));
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.COMPLETED)
             .dataValues(Set.of(dataValue))
@@ -415,6 +419,7 @@ class DataValuesValidatorTest {
     dataValue.setDataElement(MetadataIdentifier.ofCode("DE_424050"));
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(dataValue))
@@ -468,6 +473,7 @@ class DataValuesValidatorTest {
     validDataValue.setValue(null);
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.COMPLETED)
             .dataValues(Set.of(validDataValue))
@@ -598,6 +604,7 @@ class DataValuesValidatorTest {
     validDataValue.setValue(null);
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(validDataValue))
@@ -723,6 +730,7 @@ class DataValuesValidatorTest {
     validDataValue.setValue(null);
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.COMPLETED)
             .dataValues(Set.of(validDataValue))
@@ -862,6 +870,7 @@ class DataValuesValidatorTest {
 
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(validDataValue, nullDataValue))
@@ -929,6 +938,7 @@ class DataValuesValidatorTest {
 
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(validDataValue, nullDataValue))
@@ -1016,6 +1026,7 @@ class DataValuesValidatorTest {
 
     Event event =
         Event.builder()
+            .event(UID.generate())
             .programStage(idSchemes.toMetadataIdentifier(programStage))
             .status(EventStatus.ACTIVE)
             .dataValues(Set.of(validDataValue))
@@ -1118,7 +1129,7 @@ class DataValuesValidatorTest {
   }
 
   private OrganisationUnit organisationUnit() {
-    OrganisationUnit organisationUnit = new OrganisationUnit();
+    OrganisationUnit organisationUnit = createOrganisationUnit('A');
     organisationUnit.setUid(ORGANISATION_UNIT_UID);
     return organisationUnit;
   }

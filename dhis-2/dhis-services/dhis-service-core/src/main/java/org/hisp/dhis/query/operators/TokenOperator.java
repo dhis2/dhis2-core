@@ -30,50 +30,45 @@ package org.hisp.dhis.query.operators;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
+import java.util.List;
+import java.util.Locale;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
-import org.hisp.dhis.query.Typed;
-import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.query.planner.PropertyPath;
+import org.hisp.dhis.setting.UserSettings;
 
 /**
  * @author Henning Håkonsen
  */
-public class TokenOperator<T extends Comparable<? super T>> extends Operator<T> {
+public class TokenOperator<T extends Comparable<T>> extends Operator<T> {
   private final boolean caseSensitive;
 
   private final org.hibernate.criterion.MatchMode matchMode;
 
   public TokenOperator(T arg, boolean caseSensitive, MatchMode matchMode) {
-    super("token", Typed.from(String.class), arg);
+    super("token", List.of(String.class), arg);
     this.caseSensitive = caseSensitive;
     this.matchMode = getMatchMode(matchMode);
   }
 
   @Override
-  public Criterion getHibernateCriterion(QueryPath queryPath) {
+  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, PropertyPath path) {
     String value = caseSensitive ? getValue(String.class) : getValue(String.class).toLowerCase();
-
-    return Restrictions.sqlRestriction(
-        "c_." + queryPath.getPath() + " ~* '" + TokenUtils.createRegex(value) + "'");
-  }
-
-  @Override
-  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, QueryPath queryPath) {
-    String value = caseSensitive ? getValue(String.class) : getValue(String.class).toLowerCase();
-
+    if (skipUidToken(value, path)) {
+      return null;
+    }
     Predicate defaultSearch =
         builder.equal(
             builder.function(
                 JsonbFunctions.REGEXP_SEARCH,
                 Boolean.class,
-                root.get(queryPath.getPath()),
+                root.get(path.getPath()),
                 builder.literal(TokenUtils.createRegex(value).toString())),
             true);
 
-    if (queryPath.getLocale() == null
-        || !queryPath.getProperty().isTranslatable()
-        || queryPath.getProperty().getTranslationKey() == null) {
+    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
+    if (locale == null
+        || !path.getProperty().isTranslatable()
+        || path.getProperty().getTranslationKey() == null) {
       return defaultSearch;
     }
 
@@ -83,8 +78,8 @@ public class TokenOperator<T extends Comparable<? super T>> extends Operator<T> 
                 JsonbFunctions.SEARCH_TRANSLATION_TOKEN,
                 Boolean.class,
                 root.get("translations"),
-                builder.literal("{" + queryPath.getProperty().getTranslationKey() + "}"),
-                builder.literal(queryPath.getLocale().getLanguage()),
+                builder.literal("{" + path.getProperty().getTranslationKey() + "}"),
+                builder.literal(locale.getLanguage()),
                 builder.literal(TokenUtils.createRegex(value).toString())),
             true),
         defaultSearch);
@@ -93,5 +88,9 @@ public class TokenOperator<T extends Comparable<? super T>> extends Operator<T> 
   @Override
   public boolean test(Object value) {
     return TokenUtils.test(value, getValue(String.class), caseSensitive, matchMode);
+  }
+
+  private boolean skipUidToken(String value, PropertyPath query) {
+    return "uid".equals(query.getProperty().getFieldName()) && value.length() < 4;
   }
 }

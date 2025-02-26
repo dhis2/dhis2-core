@@ -39,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
@@ -49,6 +51,7 @@ import org.hisp.dhis.db.model.IndexType;
 /**
  * @author Luciano Fiandesio
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AnalyticsTableAsserter {
   /** The analytics table to verify. */
   private AnalyticsTable table;
@@ -66,8 +69,6 @@ public class AnalyticsTableAsserter {
   private String name;
 
   private String mainName;
-
-  private AnalyticsTableAsserter() {}
 
   public void verify() {
     // verify column size

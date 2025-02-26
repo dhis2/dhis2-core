@@ -28,7 +28,6 @@
 package org.hisp.dhis.category;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -48,6 +47,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -64,25 +67,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.category.CategoryService")
 @RequiredArgsConstructor
 public class DefaultCategoryService implements CategoryService {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
 
   private final CategoryStore categoryStore;
-
   private final CategoryOptionStore categoryOptionStore;
-
   private final CategoryComboStore categoryComboStore;
-
   private final CategoryOptionComboStore categoryOptionComboStore;
-
   private final CategoryOptionGroupStore categoryOptionGroupStore;
-
   private final CategoryOptionGroupSetStore categoryOptionGroupSetStore;
-
   private final IdentifiableObjectManager idObjectManager;
-
   private final AclService aclService;
+  private final DhisConfigurationProvider configuration;
 
   @Qualifier("jdbcCategoryOptionOrgUnitAssociationsStore")
   private final JdbcOrgUnitAssociationsStore jdbcOrgUnitAssociationsStore;
@@ -90,6 +84,18 @@ public class DefaultCategoryService implements CategoryService {
   // -------------------------------------------------------------------------
   // Category
   // -------------------------------------------------------------------------
+
+  @Override
+  @Transactional(readOnly = true)
+  public void validate(Category category) throws ConflictException {
+    int maxOptions = configuration.getIntProperty(ConfigurationKey.METADATA_CATEGORIES_MAX_OPTIONS);
+    int actualOptions = category.getCategoryOptions().size();
+    if (actualOptions == 0)
+      // assume a transient object that does not have options set
+      actualOptions = categoryOptionStore.getCategoryOptionsCount(UID.of(category.getUid()));
+    if (actualOptions > maxOptions)
+      throw new ConflictException(ErrorCode.E1127, category.getUid(), maxOptions, actualOptions);
+  }
 
   @Override
   @Transactional
@@ -123,12 +129,6 @@ public class DefaultCategoryService implements CategoryService {
   @Transactional
   public void deleteCategory(Category dataElementCategory) {
     categoryStore.delete(dataElementCategory);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<Category> getAllDataElementCategories() {
-    return categoryStore.getAll();
   }
 
   @Override
@@ -315,6 +315,30 @@ public class DefaultCategoryService implements CategoryService {
   // -------------------------------------------------------------------------
 
   @Override
+  @Transactional(readOnly = true)
+  public void validate(CategoryCombo combo) throws ConflictException {
+    int maxCategories =
+        configuration.getIntProperty(ConfigurationKey.METADATA_CATEGORIES_MAX_PER_COMBO);
+    int actualCategories = combo.getCategories().size();
+    if (actualCategories > maxCategories)
+      throw new ConflictException(ErrorCode.E1126, combo.getUid(), maxCategories, actualCategories);
+    for (Category c : combo.getCategories()) validate(c);
+    int maxCombinations =
+        configuration.getIntProperty(ConfigurationKey.METADATA_CATEGORIES_MAX_COMBINATIONS);
+    int actualCombinations = 1;
+    for (Category c : combo.getCategories()) {
+      int options = c.getCategoryOptions().size();
+      if (options == 0)
+        // assume c is a transient object that has no options set
+        options = categoryOptionStore.getCategoryOptionsCount(UID.of(c.getUid()));
+      actualCombinations *= options;
+    }
+    if (actualCombinations > maxCombinations)
+      throw new ConflictException(
+          ErrorCode.E1128, combo.getUid(), maxCombinations, actualCombinations);
+  }
+
+  @Override
   @Transactional
   public long addCategoryCombo(CategoryCombo dataElementCategoryCombo) {
     categoryComboStore.save(dataElementCategoryCombo);
@@ -390,41 +414,15 @@ public class DefaultCategoryService implements CategoryService {
     return categoryComboStore.getCategoryCombosByDimensionType(DataDimensionType.ATTRIBUTE);
   }
 
-  @Override
-  @Transactional(readOnly = true)
-  public String validateCategoryCombo(CategoryCombo categoryCombo) {
-    if (categoryCombo == null) {
-      return "category_combo_is_null";
-    }
-
-    if (categoryCombo.getCategories() == null || categoryCombo.getCategories().isEmpty()) {
-      return "category_combo_must_have_at_least_one_category";
-    }
-
-    if (Sets.newHashSet(categoryCombo.getCategories()).size()
-        < categoryCombo.getCategories().size()) {
-      return "category_combo_cannot_have_duplicate_categories";
-    }
-
-    Set<CategoryOption> categoryOptions = new HashSet<>();
-
-    for (Category category : categoryCombo.getCategories()) {
-      if (category == null || category.getCategoryOptions().isEmpty()) {
-        return "categories_must_have_at_least_one_category_option";
-      }
-
-      if (!Sets.intersection(categoryOptions, Sets.newHashSet(category.getCategoryOptions()))
-          .isEmpty()) {
-        return "categories_cannot_share_category_options";
-      }
-    }
-
-    return null;
-  }
-
   // -------------------------------------------------------------------------
   // CategoryOptionCombo
   // -------------------------------------------------------------------------
+
+  @Override
+  @Transactional(readOnly = true)
+  public void validate(CategoryOptionCombo combo) throws ConflictException {
+    validate(combo.getCategoryCombo());
+  }
 
   @Override
   @Transactional
@@ -580,7 +578,7 @@ public class DefaultCategoryService implements CategoryService {
   @Override
   @Transactional(readOnly = true)
   public CategoryOptionCombo getDefaultCategoryOptionCombo() {
-    return categoryOptionComboStore.getByName(CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME);
+    return categoryOptionComboStore.getByName(CategoryOptionCombo.DEFAULT_NAME);
   }
 
   @Override
@@ -664,9 +662,14 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   public List<CategoryOptionCombo> getCategoryOptionCombosByCategoryOption(
-      Collection<UID> categoryOptionsUids) {
+      @Nonnull Collection<UID> categoryOptionsUids) {
     return categoryOptionComboStore.getCategoryOptionCombosByCategoryOption(
         UID.toValueList(categoryOptionsUids));
+  }
+
+  @Override
+  public List<CategoryOptionCombo> getCategoryOptionCombosByUid(@Nonnull Collection<UID> uids) {
+    return categoryOptionComboStore.getByUid(UID.toValueList(uids));
   }
 
   // -------------------------------------------------------------------------

@@ -21,7 +21,7 @@ DHIS2_PORT=9090
 SKIP_COMPILE=0
 
 # Set DHIS2 home directory to DHIS2_HOME_DIR env variable if set
-if [[ -v "$DHIS2_HOME" ]]; then
+if [[ -n "$DHIS2_HOME" ]]; then
   DHIS2_HOME_DIR=$DHIS2_HOME
 fi
 

@@ -37,7 +37,8 @@ import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidatio
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasWarning;
 import static org.mockito.Mockito.when;
 
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
@@ -54,11 +55,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class ExistenceValidatorTest {
-  private static final String NOT_PRESENT_RELATIONSHIP_UID = "NotPresentRelationshipId";
+  private static final UID NOT_PRESENT_RELATIONSHIP_UID = UID.generate();
 
-  private static final String RELATIONSHIP_UID = "RelationshipId";
+  private static final UID RELATIONSHIP_UID = UID.generate();
 
-  private static final String SOFT_DELETED_RELATIONSHIP_UID = "SoftDeletedRelationshipId";
+  private static final UID SOFT_DELETED_RELATIONSHIP_UID = UID.generate();
 
   @Mock private TrackerBundle bundle;
 
@@ -145,7 +146,7 @@ class ExistenceValidatorTest {
   private org.hisp.dhis.relationship.Relationship softDeletedRelationship() {
     org.hisp.dhis.relationship.Relationship relationship =
         new org.hisp.dhis.relationship.Relationship();
-    relationship.setUid(SOFT_DELETED_RELATIONSHIP_UID);
+    relationship.setUid(SOFT_DELETED_RELATIONSHIP_UID.getValue());
     relationship.setDeleted(true);
     return relationship;
   }
@@ -153,7 +154,7 @@ class ExistenceValidatorTest {
   private org.hisp.dhis.relationship.Relationship getRelationship() {
     org.hisp.dhis.relationship.Relationship relationship =
         new org.hisp.dhis.relationship.Relationship();
-    relationship.setUid(RELATIONSHIP_UID);
+    relationship.setUid(RELATIONSHIP_UID.getValue());
     return relationship;
   }
 }

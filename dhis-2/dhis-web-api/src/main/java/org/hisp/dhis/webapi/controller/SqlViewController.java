@@ -46,6 +46,7 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobType;
@@ -73,7 +74,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping("/api/sqlViews")
 @RequiredArgsConstructor
 @OpenApi.Document(classifiers = {"team:platform", "purpose:support"})
-public class SqlViewController extends AbstractCrudController<SqlView> {
+public class SqlViewController extends AbstractCrudController<SqlView, GetObjectListParams> {
   private final SqlViewService sqlViewService;
 
   private final JobConfigurationService jobConfigurationService;

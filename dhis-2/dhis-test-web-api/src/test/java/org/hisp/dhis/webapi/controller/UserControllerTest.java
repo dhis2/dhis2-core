@@ -456,7 +456,8 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
         PUT(
             "/users/" + user.getUid(),
             " {"
-                + "'name': 'test',"
+                + "'firstName': 'test',"
+                + "'surname': 'tester',"
                 + "'username':'someone',"
                 + "'userRoles': ["
                 + "{"
@@ -662,6 +663,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testReplicateUser_PasswordNotValid() {
+    POST("/systemSettings/maxPasswordLength", "72").content(HttpStatus.OK);
     assertWebMessage(
         "Conflict",
         409,
@@ -714,7 +716,8 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     PUT(
             "/users/" + newUser.getUid(),
             " {"
-                + "'name': 'test',"
+                + "'firstName': 'test',"
+                + "'surname': 'tester',"
                 + "'username':'test',"
                 + "'userRoles': ["
                 + "{"
@@ -779,7 +782,8 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     PUT(
             "/users/" + newUser.getUid(),
             " {"
-                + "'name': 'test',"
+                + "'firstName': 'test',"
+                + "'surname': 'tester',"
                 + "'username':'test',"
                 + "'userRoles': ["
                 + "{"
@@ -815,7 +819,8 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     PUT(
             "/users/" + newUser.getUid(),
             " {"
-                + "'name': 'test',"
+                + "'firstName': 'test',"
+                + "'surname': 'tester',"
                 + "'username':'test',"
                 + "'userRoles': ["
                 + "{"

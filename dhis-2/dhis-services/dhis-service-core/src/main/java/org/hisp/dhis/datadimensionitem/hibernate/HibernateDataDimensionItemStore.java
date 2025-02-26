@@ -28,7 +28,10 @@
 package org.hisp.dhis.datadimensionitem.hibernate;
 
 import jakarta.persistence.EntityManager;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
@@ -68,5 +71,20 @@ public class HibernateDataDimensionItemStore extends HibernateGenericStore<DataD
              """)
         .setParameter("dataElements", dataElements)
         .getResultList();
+  }
+
+  @Override
+  public int updateDeoCategoryOptionCombo(@Nonnull Collection<Long> cocIds, long newCocId) {
+    if (cocIds.isEmpty()) return 0;
+
+    String sql =
+        """
+        update datadimensionitem
+        set dataelementoperand_categoryoptioncomboid = %s
+        where dataelementoperand_categoryoptioncomboid in (%s)
+        """
+            .formatted(
+                newCocId, cocIds.stream().map(String::valueOf).collect(Collectors.joining(",")));
+    return jdbcTemplate.update(sql);
   }
 }

@@ -38,6 +38,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
@@ -62,6 +63,7 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.joda.time.DateTime;
@@ -86,7 +88,7 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
 
   private String orgUnitUid = CodeGenerator.generateUid();
 
-  private String enrollmentUid = CodeGenerator.generateUid();
+  private UID enrollmentUid = UID.generate();
 
   private String trackedEntityUid = CodeGenerator.generateUid();
 
@@ -200,7 +202,9 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
     programStageService.updateProgramStage(programStageA);
     programA.setProgramStages(Sets.newHashSet(programStageA));
     programService.updateProgram(programA);
-    trackedEntityA = createTrackedEntity(organisationUnitA);
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    trackedEntityA = createTrackedEntity(organisationUnitA, trackedEntityType);
     trackedEntityA.setUid(trackedEntityUid);
     manager.save(trackedEntityA);
     trackedEntityAttributeValueA =
@@ -213,7 +217,7 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
     enrollmentA = createEnrollment(programA, trackedEntityA, organisationUnitA);
     enrollmentA.setEnrollmentDate(enrollmentDate);
     enrollmentA.setOccurredDate(occurredDate);
-    enrollmentA.setUid(enrollmentUid);
+    enrollmentA.setUid(enrollmentUid.getValue());
     manager.save(enrollmentA);
     trackedEntityA.getEnrollments().add(enrollmentA);
     manager.update(trackedEntityA);

@@ -29,15 +29,16 @@ package org.hisp.dhis.tracker.export.trackedentity;
 
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.FileResourceStream;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
 
 public interface TrackedEntityService {
 
@@ -56,23 +57,27 @@ public interface TrackedEntityService {
    * relationships are not included. Use {@link #getTrackedEntity(UID, UID, TrackedEntityParams)}
    * instead to also get the relationships, enrollments and program attributes.
    */
-  TrackedEntity getTrackedEntity(UID uid)
+  @Nonnull
+  TrackedEntity getTrackedEntity(@Nonnull UID uid)
       throws NotFoundException, ForbiddenException, BadRequestException;
 
   /**
    * Get the tracked entity matching given {@code UID} under the privileges of the currently
-   * authenticated user. If @param programIdentifier is defined, program attributes for such program
-   * are included, otherwise only TETAs are included. It will include enrollments, relationships,
-   * attributes and ownerships as defined in @param params
+   * authenticated user. If {@code program} is defined, program attributes for such program are
+   * included, otherwise only TETAs are included. It will include enrollments, relationships,
+   * attributes and ownerships as defined in {@code params}.
    */
-  TrackedEntity getTrackedEntity(UID uid, UID programIdentifier, TrackedEntityParams params)
+  @Nonnull
+  TrackedEntity getTrackedEntity(@Nonnull UID uid, UID program, @Nonnull TrackedEntityParams params)
       throws NotFoundException, ForbiddenException, BadRequestException;
 
   /** Get all tracked entities matching given params. */
+  @Nonnull
   List<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams operationParams)
       throws BadRequestException, ForbiddenException, NotFoundException;
 
   /** Get a page of tracked entities matching given params. */
+  @Nonnull
   Page<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams params, PageParams pageParams)
       throws BadRequestException, ForbiddenException, NotFoundException;
 

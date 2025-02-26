@@ -110,11 +110,7 @@ public class PartitionUtils {
   public static Partitions getPartitions(List<DimensionalItemObject> periods) {
     Set<Integer> years = new HashSet<>();
 
-    periods.forEach(
-        p -> {
-          Period period = (Period) p;
-          years.addAll(getYears(period));
-        });
+    periods.forEach(p -> years.addAll(getYears((Period) p)));
 
     return new Partitions(years);
   }

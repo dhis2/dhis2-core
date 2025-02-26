@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.ErrorCodeException;
 import org.hisp.dhis.common.UID;
@@ -65,6 +66,37 @@ public final class Assertions {
    * @param actual the actual collection.
    */
   public static <E> void assertContainsOnly(Collection<E> expected, Collection<E> actual) {
+    assertContainsOnly(expected, actual, "assertContainsOnly found mismatch");
+  }
+
+  /**
+   * Asserts that the given collection contains exactly the given items in any order. Collections
+   * will be mapped by {@code map} before passing it to {@link #assertContainsOnly(Collection,
+   * Collection)}.
+   *
+   * @param expected the expected items.
+   * @param actual the actual collection.
+   * @param map map the items of expected and actual collections to the type that will be used for
+   *     comparison
+   */
+  public static <T, R> void assertContainsOnly(
+      Collection<T> expected, Collection<T> actual, Function<T, R> map) {
+    assertContainsOnly(
+        expected.stream().map(map).toList(),
+        actual.stream().map(map).toList(),
+        "assertContainsOnly found mismatch");
+  }
+
+  /**
+   * Asserts that the given collection contains exactly the given items in any order.
+   *
+   * @param <E> the type.
+   * @param expected the expected items.
+   * @param actual the actual collection.
+   * @param heading the assertAll heading
+   */
+  public static <E> void assertContainsOnly(
+      Collection<E> expected, Collection<E> actual, String heading) {
     assertNotNull(
         actual,
         () -> String.format("Expected collection to contain %s, got null instead", expected));
@@ -72,7 +104,7 @@ public final class Assertions {
     List<E> missing = CollectionUtils.difference(expected, actual);
     List<E> extra = CollectionUtils.difference(actual, expected);
     assertAll(
-        "assertContainsOnly found mismatch",
+        heading,
         () ->
             assertTrue(
                 missing.isEmpty(), () -> String.format("Expected %s to be in %s", missing, actual)),
@@ -128,6 +160,17 @@ public final class Assertions {
   }
 
   /**
+   * Asserts that the given collection is not null and empty.
+   *
+   * @param actual the collection.
+   * @param message fails with this message
+   */
+  public static void assertIsEmpty(Collection<?> actual, String message) {
+    assertNotNull(actual, message);
+    assertTrue(actual.isEmpty(), message);
+  }
+
+  /**
    * Asserts that the given collection is not null and not empty.
    *
    * @param actual the collection.
@@ -138,21 +181,67 @@ public final class Assertions {
   }
 
   /**
+   * Asserts that the given collection is not null and not empty.
+   *
+   * @param actual the collection.
+   * @param message fails with this message
+   */
+  public static void assertNotEmpty(Collection<?> actual, String message) {
+    assertNotNull(actual, message);
+    assertFalse(actual.isEmpty(), message);
+  }
+
+  /**
+   * Asserts that the given collection is not null and not empty.
+   *
+   * @param actual the collection.
+   * @param messageSupplier fails with this supplied message
+   */
+  public static void assertNotEmpty(Collection<?> actual, Supplier<String> messageSupplier) {
+    assertNotNull(actual, messageSupplier);
+    assertFalse(actual.isEmpty(), messageSupplier);
+  }
+
+  /**
    * Asserts that the given collection contains the expected number of elements.
    *
    * @param actual the collection.
    */
   public static void assertHasSize(int expected, Collection<?> actual) {
-    assert expected > 0 : "use assertIsEmpty";
-
-    assertNotEmpty(actual);
-    assertEquals(
+    assertHasSize(
         expected,
-        actual.size(),
+        actual,
         () ->
             String.format(
                 "expected collection to contain %d elements, it has %d instead: '%s'",
                 expected, actual.size(), actual));
+  }
+
+  /**
+   * Asserts that the given collection contains the expected number of elements.
+   *
+   * @param actual the collection.
+   * @param messageSupplier fails with this supplied message
+   */
+  public static void assertHasSize(
+      int expected, Collection<?> actual, Supplier<String> messageSupplier) {
+    assert expected > 0 : "use assertIsEmpty";
+
+    assertNotEmpty(actual);
+    assertEquals(expected, actual.size(), messageSupplier);
+  }
+
+  /**
+   * Asserts that the given collection contains the expected number of elements.
+   *
+   * @param actual the collection.
+   * @param message fails with this message
+   */
+  public static void assertHasSize(int expected, Collection<?> actual, String message) {
+    assert expected > 0 : "use assertIsEmpty";
+
+    assertNotEmpty(actual);
+    assertEquals(expected, actual.size(), message);
   }
 
   /**
@@ -173,7 +262,8 @@ public final class Assertions {
   }
 
   /**
-   * Asserts that the given string neither null, a length of zero nor whitespace only.
+   * Asserts that the given string is not null, has a non-zero length, and contains non-whitespace
+   * characters.
    *
    * @param actual the string.
    */
@@ -183,7 +273,7 @@ public final class Assertions {
   }
 
   /**
-   * Asserts that the given string neither null or a length of zero.
+   * Asserts that the given string is not null and has a non-zero length.
    *
    * @param actual the string.
    */
@@ -193,14 +283,55 @@ public final class Assertions {
   }
 
   /**
+   * Asserts that the given string is not null and has a non-zero length.
+   *
+   * @param actual the string.
+   * @param message fails with this message
+   */
+  public static void assertNotEmpty(String actual, String message) {
+    assertNotNull(actual, message);
+    assertTrue(!actual.isEmpty(), message);
+  }
+
+  /**
+   * Asserts that the given string is not null and has a non-zero length.
+   *
+   * @param actual the string.
+   * @param messageSupplier fails with this supplied message
+   */
+  public static void assertNotEmpty(String actual, Supplier<String> messageSupplier) {
+    assertNotNull(actual, messageSupplier);
+    assertTrue(!actual.isEmpty(), messageSupplier);
+  }
+
+  /**
+   * Asserts that the given character sequence is NOT contained within the actual string.
+   *
+   * @param expected expected character sequence not to be contained within the actual string
+   * @param actual actual string which should not contain the expected character sequence
+   */
+  public static void assertNotContains(CharSequence expected, String actual) {
+    assertNotEmpty(
+        actual,
+        () ->
+            String.format(
+                "expected actual NOT to contain '%s', use assertIsEmpty if that is what you expect",
+                expected));
+    assertFalse(
+        actual.contains(expected),
+        () ->
+            String.format(
+                "expected actual NOT to contain '%s', got '%s' instead", expected, actual));
+  }
+
+  /**
    * Asserts that the given character sequence is contained within the actual string.
    *
    * @param expected expected character sequence to be contained within the actual string
    * @param actual actual string which should contain the expected character sequence
    */
   public static void assertContains(CharSequence expected, String actual) {
-    assertNotNull(
-        actual, () -> String.format("expected actual to contain '%s', got null instead", expected));
+    assertNotEmpty(actual, () -> String.format("expected actual to contain '%s'", expected));
     assertTrue(
         actual.contains(expected),
         () -> String.format("expected actual to contain '%s', got '%s' instead", expected, actual));

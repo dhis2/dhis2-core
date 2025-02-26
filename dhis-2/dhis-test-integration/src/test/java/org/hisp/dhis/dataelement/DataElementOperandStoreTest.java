@@ -32,7 +32,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -78,9 +80,46 @@ class DataElementOperandStoreTest extends PostgresIntegrationTestBase {
             .containsAll(List.of(deW.getUid(), deX.getUid())));
   }
 
+  @Test
+  @DisplayName("retrieving DataElementOperands by CategoryOptionCombo returns expected entries")
+  void dataElementOperandByCatOptComboTest() {
+    // given
+    CategoryCombo cc = createCategoryCombo("1", "CatComUid01");
+    manager.save(cc);
+
+    CategoryOptionCombo coc1 = createCategoryOptionCombo(cc);
+    CategoryOptionCombo coc2 = createCategoryOptionCombo(cc);
+    CategoryOptionCombo coc3 = createCategoryOptionCombo(cc);
+    CategoryOptionCombo coc4 = createCategoryOptionCombo(cc);
+    manager.save(List.of(coc1, coc2, coc3, coc4));
+
+    createDataElementOperandAndSave(coc1);
+    createDataElementOperandAndSave(coc2);
+    createDataElementOperandAndSave(coc3);
+    createDataElementOperandAndSave(coc4);
+
+    // when
+    List<DataElementOperand> dataElementOperands =
+        dataElementOperandStore.getByCategoryOptionCombo(UID.of(coc1.getUid(), coc2.getUid()));
+
+    // then
+    assertEquals(2, dataElementOperands.size());
+    assertTrue(
+        dataElementOperands.stream()
+            .map(deo -> deo.getCategoryOptionCombo().getUid())
+            .toList()
+            .containsAll(List.of(coc1.getUid(), coc2.getUid())));
+  }
+
   private void createDataElementOperandAndSave(DataElement de) {
     DataElementOperand deo = new DataElementOperand();
     deo.setDataElement(de);
+    manager.save(deo);
+  }
+
+  private void createDataElementOperandAndSave(CategoryOptionCombo coc) {
+    DataElementOperand deo = new DataElementOperand();
+    deo.setCategoryOptionCombo(coc);
     manager.save(deo);
   }
 

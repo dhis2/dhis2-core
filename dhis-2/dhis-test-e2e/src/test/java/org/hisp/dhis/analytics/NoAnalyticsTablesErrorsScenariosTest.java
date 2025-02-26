@@ -147,7 +147,7 @@ public class NoAnalyticsTablesErrorsScenariosTest {
 
     // Then
     assertNoAnalyticsTableResponse(
-        response, "ERROR: relation \"analytics_te_neenwmsyuep\" does not exist\n  Position: 1955");
+        response, "ERROR: relation \"analytics_te_neenwmsyuep\" does not exist\n  Position: 1865");
   }
 
   @Test

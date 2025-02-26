@@ -62,7 +62,6 @@ class DataElementConditionTest {
     SqlParameterManager sqlParameterManager = new SqlParameterManager();
     QueryContext queryContext = QueryContext.of(null, sqlParameterManager);
 
-    // SETUP
     DimensionParam dimensionParam = mock(DimensionParam.class);
     QueryItem queryItem = mock(QueryItem.class);
     DimensionParamItem dimensionParamItem = mock(DimensionParamItem.class);
@@ -78,13 +77,11 @@ class DataElementConditionTest {
     when(dimensionParamItem.getOperator()).thenReturn(AnalyticsQueryOperator.of(QueryOperator.EQ));
     when(dimensionParamItem.getValues()).thenReturn(List.of("value"));
 
-    // CALL
     DataElementCondition dataElementCondition =
         DataElementCondition.of(queryContext, dimensionIdentifier);
 
     String rendered = dataElementCondition.render();
 
-    // ASSERT
     assertEquals("(\"eventdatavalues\" -> 'uid' ->> 'value')::TEXT = :1", rendered);
     assertEquals("value", queryContext.getParametersPlaceHolder().get("1"));
   }
@@ -94,7 +91,6 @@ class DataElementConditionTest {
     SqlParameterManager sqlParameterManager = new SqlParameterManager();
     QueryContext queryContext = QueryContext.of(null, sqlParameterManager);
 
-    // SETUP
     DimensionParam dimensionParam = mock(DimensionParam.class);
     QueryItem queryItem = mock(QueryItem.class);
     DimensionParamItem dimensionParamItem = mock(DimensionParamItem.class);
@@ -105,7 +101,6 @@ class DataElementConditionTest {
     when(dimensionParam.getUid()).thenReturn("uid");
     when(queryItem.hasLegendSet()).thenReturn(true);
 
-    // in the assertion we will check that the type is force to DECIMAL
     when(dimensionParam.getValueType()).thenReturn(ValueType.TEXT);
 
     when(dimensionParam.getItems()).thenReturn(List.of(dimensionParamItem));
@@ -121,13 +116,11 @@ class DataElementConditionTest {
     when(legend.getStartValue()).thenReturn(1.0);
     when(legend.getEndValue()).thenReturn(2.0);
 
-    // CALL
     DataElementCondition dataElementCondition =
         DataElementCondition.of(queryContext, dimensionIdentifier);
 
     String rendered = dataElementCondition.render();
 
-    // ASSERT
     assertEquals(
         "(\"eventdatavalues\" -> 'uid' ->> 'value')::DECIMAL >= :1 "
             + "and (\"eventdatavalues\" -> 'uid' ->> 'value')::DECIMAL < :2",

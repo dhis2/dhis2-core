@@ -27,10 +27,13 @@
  */
 package org.hisp.dhis.merge;
 
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
@@ -48,46 +51,57 @@ import org.springframework.stereotype.Component;
  *
  * @author david mackessy
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class DefaultMergeValidator implements MergeValidator {
 
   private final IdentifiableObjectManager manager;
-  private static final String INDICATOR_TYPE = "IndicatorType";
-  private static final String INDICATOR = "Indicator";
-  private static final String DATA_ELEMENT = "DataElement";
-  private static final String CATEGORY_OPTION = "CategoryOption";
-  private static final String MERGE_ERROR = "Unexpected value retrieving merge error code: ";
 
   @Override
-  public <T extends IdentifiableObject> void verifySources(
-      Set<UID> paramSources, Set<UID> verifiedSources, MergeReport mergeReport, Class<T> clazz) {
+  public MergeRequest validateUIDs(
+      @Nonnull MergeParams params, @Nonnull MergeReport mergeReport, @Nonnull MergeType mergeType) {
+    log.info("Validating {} merge request", mergeType);
+    mergeReport.setMergeType(mergeType);
+
+    Set<UID> verifiedSources = verifySources(params.getSources(), mergeReport, mergeType);
+
+    checkIsTargetInSources(verifiedSources, params.getTarget(), mergeReport, mergeType);
+
+    return verifyTarget(mergeReport, verifiedSources, params, mergeType);
+  }
+
+  @Override
+  public Set<UID> verifySources(
+      Set<UID> paramSources, MergeReport mergeReport, MergeType mergeType) {
+    Set<UID> verifiedSources = new HashSet<>();
     Optional.ofNullable(paramSources)
         .filter(CollectionUtils::isNotEmpty)
         .ifPresentOrElse(
-            ids -> getSourcesAndVerify(ids, mergeReport, verifiedSources, clazz),
+            ids -> getSourcesAndVerify(ids, mergeReport, verifiedSources, mergeType),
             () ->
                 mergeReport.addErrorMessage(
-                    new ErrorMessage(missingSourceErrorCode(clazz.getSimpleName()))));
+                    new ErrorMessage(ErrorCode.E1530, mergeType.getName())));
+    return verifiedSources;
   }
 
   @Override
-  public <T extends IdentifiableObject> void checkIsTargetInSources(
-      Set<UID> sources, UID target, MergeReport mergeReport, Class<T> clazz) {
+  public void checkIsTargetInSources(
+      Set<UID> sources, UID target, MergeReport mergeReport, MergeType mergeType) {
     if (sources.contains(target))
       mergeReport.addErrorMessage(
-          new ErrorMessage(targetNotSourceErrorCode(clazz.getSimpleName())));
+          new ErrorMessage(ErrorCode.E1532, mergeType.getName(), mergeType.getName()));
   }
 
   @Override
-  public <T extends IdentifiableObject> MergeRequest verifyTarget(
-      MergeReport mergeReport, Set<UID> sources, MergeParams params, Class<T> clazz) {
-    return getAndVerify(params.getTarget(), mergeReport, MergeObjectType.TARGET.name(), clazz)
+  public MergeRequest verifyTarget(
+      MergeReport mergeReport, Set<UID> sources, MergeParams params, MergeType mergeType) {
+    return getAndVerify(params.getTarget(), mergeReport, MergeObjectType.TARGET, mergeType)
         .map(
-            t ->
+            uid ->
                 MergeRequest.builder()
                     .sources(sources)
-                    .target(t)
+                    .target(uid)
                     .deleteSources(params.isDeleteSources())
                     .dataMergeStrategy(params.getDataMergeStrategy())
                     .build())
@@ -104,19 +118,18 @@ public class DefaultMergeValidator implements MergeValidator {
    * @param uid to verify
    * @param mergeReport to update
    * @param mergeObjectType indicating whether this is a source or target
-   * @param clazz {@link IdentifiableObject} type
+   * @param mergeType {@link MergeType}
    * @return optional UID
    */
-  private <T extends IdentifiableObject> Optional<UID> getAndVerify(
-      UID uid, MergeReport mergeReport, String mergeObjectType, Class<T> clazz) {
+  private Optional<UID> getAndVerify(
+      UID uid, MergeReport mergeReport, MergeObjectType mergeObjectType, MergeType mergeType) {
 
     if (uid != null) {
-      return Optional.ofNullable(manager.get(clazz, uid.getValue()))
+      return Optional.ofNullable(manager.get(mergeType.getClazz(), uid.getValue()))
           .map(i -> UID.of(i.getUid()))
-          .or(reportError(uid, mergeReport, mergeObjectType, clazz));
+          .or(reportError(uid, mergeReport, mergeObjectType, mergeType));
     } else {
-      mergeReport.addErrorMessage(
-          new ErrorMessage(noTargetErrorCode(clazz.getSimpleName()), mergeObjectType, uid));
+      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1531, mergeType.getName()));
       return Optional.empty();
     }
   }
@@ -129,68 +142,22 @@ public class DefaultMergeValidator implements MergeValidator {
    * @param uids to verify
    * @param report to update with any error
    * @param verifiedSources to update with verified uids
-   * @param clazz {@link IdentifiableObject} type
+   * @param mergeType {@link MergeType}
    */
-  private <T extends IdentifiableObject> void getSourcesAndVerify(
-      Set<UID> uids, MergeReport report, Set<UID> verifiedSources, Class<T> clazz) {
+  private void getSourcesAndVerify(
+      Set<UID> uids, MergeReport report, Set<UID> verifiedSources, MergeType mergeType) {
     uids.forEach(
         uid ->
-            getAndVerify(uid, report, MergeObjectType.SOURCE.name(), clazz)
+            getAndVerify(uid, report, MergeObjectType.SOURCE, mergeType)
                 .ifPresent(verifiedSources::add));
   }
 
-  private <T extends IdentifiableObject> Supplier<Optional<UID>> reportError(
-      UID uid, MergeReport mergeReport, String mergeObjectType, Class<T> clazz) {
+  private Supplier<Optional<UID>> reportError(
+      UID uid, MergeReport mergeReport, MergeObjectType mergeObjectType, MergeType mergeType) {
     return () -> {
       mergeReport.addErrorMessage(
-          new ErrorMessage(doesNotExistErrorCode(clazz.getSimpleName()), mergeObjectType, uid));
+          new ErrorMessage(ErrorCode.E1533, mergeObjectType.toString(), mergeType.getName(), uid));
       return Optional.empty();
-    };
-  }
-
-  /**
-   * Methods to get the appropriate error code based on the Object type
-   *
-   * @param clazz class name
-   * @return error code
-   */
-  private ErrorCode missingSourceErrorCode(String clazz) {
-    return switch (clazz) {
-      case INDICATOR_TYPE -> ErrorCode.E1530;
-      case INDICATOR -> ErrorCode.E1540;
-      case DATA_ELEMENT -> ErrorCode.E1550;
-      case CATEGORY_OPTION -> ErrorCode.E1650;
-      default -> throw new IllegalStateException(MERGE_ERROR + clazz);
-    };
-  }
-
-  private ErrorCode noTargetErrorCode(String clazz) {
-    return switch (clazz) {
-      case INDICATOR_TYPE -> ErrorCode.E1531;
-      case INDICATOR -> ErrorCode.E1541;
-      case DATA_ELEMENT -> ErrorCode.E1551;
-      case CATEGORY_OPTION -> ErrorCode.E1651;
-      default -> throw new IllegalStateException(MERGE_ERROR + clazz);
-    };
-  }
-
-  private ErrorCode targetNotSourceErrorCode(String clazz) {
-    return switch (clazz) {
-      case INDICATOR_TYPE -> ErrorCode.E1532;
-      case INDICATOR -> ErrorCode.E1542;
-      case DATA_ELEMENT -> ErrorCode.E1552;
-      case CATEGORY_OPTION -> ErrorCode.E1652;
-      default -> throw new IllegalStateException(MERGE_ERROR + clazz);
-    };
-  }
-
-  private ErrorCode doesNotExistErrorCode(String clazz) {
-    return switch (clazz) {
-      case INDICATOR_TYPE -> ErrorCode.E1533;
-      case INDICATOR -> ErrorCode.E1543;
-      case DATA_ELEMENT -> ErrorCode.E1553;
-      case CATEGORY_OPTION -> ErrorCode.E1653;
-      default -> throw new IllegalStateException(MERGE_ERROR + clazz);
     };
   }
 

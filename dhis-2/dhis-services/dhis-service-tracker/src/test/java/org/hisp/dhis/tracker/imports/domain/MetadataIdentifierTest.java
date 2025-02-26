@@ -37,7 +37,7 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.tracker.imports.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.junit.jupiter.api.Test;
 
 class MetadataIdentifierTest {

@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.event;
 
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.stereotype.Controller;
@@ -39,4 +40,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/api/trackedEntityTypes")
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
-public class TrackedEntityTypeController extends AbstractCrudController<TrackedEntityType> {}
+public class TrackedEntityTypeController
+    extends AbstractCrudController<TrackedEntityType, GetObjectListParams> {}

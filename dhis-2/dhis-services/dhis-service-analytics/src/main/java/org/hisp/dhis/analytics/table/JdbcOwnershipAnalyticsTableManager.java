@@ -64,7 +64,6 @@ import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.quick.JdbcConfiguration;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -92,6 +91,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
           AnalyticsTableColumn.builder()
               .name("teuid")
               .dataType(CHARACTER_11)
+              .nullable(NOT_NULL)
               .selectExpression("te.uid")
               .build(),
           AnalyticsTableColumn.builder()
@@ -120,10 +120,9 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      DatabaseInfoProvider databaseInfoProvider,
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       JdbcConfiguration jdbcConfiguration,
-      AnalyticsTableSettings analyticsExportSettings,
+      AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
     super(
@@ -135,9 +134,8 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
         resourceTableService,
         tableHookService,
         partitionManager,
-        databaseInfoProvider,
         jdbcTemplate,
-        analyticsExportSettings,
+        analyticsTableSettings,
         periodDataProvider,
         sqlBuilder);
     this.jdbcConfiguration = jdbcConfiguration;
@@ -242,30 +240,28 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
    * @return a SQL select query.
    */
   private String getInputSql(Program program) {
-    StringBuilder sb = new StringBuilder("select ");
+    List<AnalyticsTableColumn> columns = getColumns();
 
-    for (AnalyticsTableColumn col : getColumns()) {
-      sb.append(col.getSelectExpression()).append(",");
-    }
+    StringBuilder sql = new StringBuilder("select ");
+    sql.append(toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression));
 
-    sb.deleteCharAt(sb.length() - 1); // Remove the final ','.
-
-    sb.append(
+    sql.append(
         replaceQualify(
             """
             \sfrom (\
             select h.trackedentityid, '${historyTableId}' as startdate, h.enddate as enddate, h.organisationunitid \
             from ${programownershiphistory} h \
-            where h.programid=${programId} \
+            where h.programid = ${programId} \
             and h.organisationunitid is not null \
-            union \
+            union distinct \
             select o.trackedentityid, '${trackedEntityOwnTableId}' as startdate, null as enddate, o.organisationunitid \
             from ${trackedentityprogramowner} o \
-            where o.programid=${programId} \
-            and exists (\
-            select 1 from ${programownershiphistory} p \
-            where o.trackedentityid = p.trackedentityid \
-            and p.programid=${programId} and p.organisationunitid is not null)) a \
+            where o.programid = ${programId} \
+            and o.trackedentityid in (\
+            select distinct p.trackedentityid \
+            from ${programownershiphistory} p \
+            where p.programid = ${programId} \
+            and p.organisationunitid is not null)) a \
             inner join ${trackedentity} te on a.trackedentityid = te.trackedentityid \
             inner join ${organisationunit} ou on a.organisationunitid = ou.organisationunitid \
             left join analytics_rs_orgunitstructure ous on a.organisationunitid = ous.organisationunitid \
@@ -275,7 +271,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
                 "historyTableId", HISTORY_TABLE_ID,
                 "trackedEntityOwnTableId", TRACKED_ENTITY_OWN_TABLE_ID,
                 "programId", String.valueOf(program.getId()))));
-    return sb.toString();
+    return sql.toString();
   }
 
   private Map<String, Object> getRowMap(List<String> columnNames, ResultSet resultSet)

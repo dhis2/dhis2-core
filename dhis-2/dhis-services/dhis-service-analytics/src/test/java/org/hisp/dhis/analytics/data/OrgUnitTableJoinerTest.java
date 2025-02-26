@@ -55,29 +55,29 @@ import org.junit.jupiter.api.Test;
  * @author Jim Grace
  */
 class OrgUnitTableJoinerTest extends TestBase {
-  private static final OrgUnitField DEFAULT = new OrgUnitField(null);
+  private final OrgUnitField DEFAULT = new OrgUnitField(null);
 
-  private static final OrgUnitField ATTRIBUTE = new OrgUnitField("AttributeId");
+  private final OrgUnitField ATTRIBUTE = new OrgUnitField("AttributeId");
 
-  private static final OrgUnitField OWNER_AT_START = new OrgUnitField("OWNER_AT_START");
+  private final OrgUnitField OWNER_AT_START = new OrgUnitField("OWNER_AT_START");
 
-  private static final OrgUnitField OWNER_AT_END = new OrgUnitField("OWNER_AT_END");
+  private final OrgUnitField OWNER_AT_END = new OrgUnitField("OWNER_AT_END");
 
-  private static final Program programA = createProgram('A');
+  private final Program programA = createProgram('A');
 
-  private static final Period periodDaily = PeriodType.getPeriodFromIsoString("20230101");
+  private final Period periodDaily = PeriodType.getPeriodFromIsoString("20230101");
 
-  private static final Period periodMonthly = PeriodType.getPeriodFromIsoString("202201");
+  private final Period periodMonthly = PeriodType.getPeriodFromIsoString("202201");
 
-  private static final Period periodQuarterly = PeriodType.getPeriodFromIsoString("2022Q1");
+  private final Period periodQuarterly = PeriodType.getPeriodFromIsoString("2022Q1");
 
-  private static final Date dateA = new GregorianCalendar(2022, JANUARY, 1).getTime();
+  private final Date dateA = new GregorianCalendar(2022, JANUARY, 1).getTime();
 
-  private static final Date dateB = new GregorianCalendar(2023, JANUARY, 1).getTime();
+  private final Date dateB = new GregorianCalendar(2023, JANUARY, 1).getTime();
 
-  private static final DimensionalItemObject ouA = createOrganisationUnit('A');
+  private final DimensionalItemObject ouA = createOrganisationUnit('A');
 
-  private static final DimensionalObject ouGroupSetA =
+  private final DimensionalObject ouGroupSetA =
       new BaseDimensionalObject(
           "OrgUnitGrSe", DimensionType.ORGANISATION_UNIT_GROUP_SET, emptyList());
 

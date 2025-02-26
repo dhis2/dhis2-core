@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
@@ -74,25 +73,15 @@ public class EnrollmentPersister
         entityManager,
         preheat,
         enrollment.getAttributes(),
-        preheat.getTrackedEntity(enrollmentToPersist.getTrackedEntity().getUid()),
+        enrollmentToPersist.getTrackedEntity(),
         user);
   }
 
   @Override
-  protected void updateDataValues(
-      EntityManager entityManager,
-      TrackerPreheat preheat,
-      org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
-      Enrollment enrollmentToPersist,
-      UserDetails user) {
-    // DO NOTHING - TE HAVE NO DATA VALUES
-  }
-
-  @Override
   protected void updatePreheat(TrackerPreheat preheat, Enrollment enrollment) {
-    preheat.putEnrollments(Collections.singletonList(enrollment));
+    preheat.putEnrollment(enrollment);
     preheat.addProgramOwner(
-        enrollment.getTrackedEntity().getUid(),
+        UID.of(enrollment.getTrackedEntity()),
         enrollment.getProgram().getUid(),
         enrollment.getOrganisationUnit());
   }
@@ -103,8 +92,7 @@ public class EnrollmentPersister
 
     return TrackerNotificationDataBundle.builder()
         .klass(Enrollment.class)
-        .enrollmentNotifications(
-            bundle.getEnrollmentNotifications().get(UID.of(enrollment.getUid())))
+        .enrollmentNotifications(bundle.getEnrollmentNotifications().get(UID.of(enrollment)))
         .object(enrollment.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUser().getUsername())
@@ -117,7 +105,7 @@ public class EnrollmentPersister
   @Override
   protected List<NotificationTrigger> determineNotificationTriggers(
       TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Enrollment entity) {
-    Enrollment persistedEnrollment = preheat.getEnrollment(entity.getStringUid());
+    Enrollment persistedEnrollment = preheat.getEnrollment(entity.getUid());
     List<NotificationTrigger> triggers = new ArrayList<>();
 
     if (persistedEnrollment == null) {
@@ -156,11 +144,11 @@ public class EnrollmentPersister
       org.hisp.dhis.tracker.imports.domain.Enrollment trackerDto,
       Enrollment entity) {
     if (isNew(bundle, trackerDto)
-        && (bundle.getPreheat().getProgramOwner().get(entity.getTrackedEntity().getUid()) == null
+        && (bundle.getPreheat().getProgramOwner().get(UID.of(entity.getTrackedEntity())) == null
             || bundle
                     .getPreheat()
                     .getProgramOwner()
-                    .get(entity.getTrackedEntity().getUid())
+                    .get(UID.of(entity.getTrackedEntity()))
                     .get(entity.getProgram().getUid())
                 == null)) {
       trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
@@ -169,7 +157,25 @@ public class EnrollmentPersister
   }
 
   @Override
+  protected void updateDataValues(
+      EntityManager entityManager,
+      TrackerPreheat preheat,
+      org.hisp.dhis.tracker.imports.domain.Enrollment trackerDto,
+      Enrollment payloadEntity,
+      Enrollment currentEntity,
+      UserDetails user) {
+    // DO NOTHING - TE HAVE NO DATA VALUES
+  }
+
+  @Override
   protected String getUpdatedTrackedEntity(Enrollment entity) {
     return entity.getTrackedEntity().getUid();
+  }
+
+  @Override
+  protected Enrollment cloneEntityProperties(
+      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Enrollment trackerDto) {
+    return null;
+    // NO NEED TO CLONE RELATIONSHIP PROPERTIES
   }
 }

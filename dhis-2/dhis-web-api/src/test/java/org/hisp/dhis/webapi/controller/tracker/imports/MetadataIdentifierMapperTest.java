@@ -32,8 +32,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -45,9 +45,8 @@ class MetadataIdentifierMapperTest {
 
   @Test
   void dataElementIdentifierFromUID() {
-
     TrackerIdSchemeParams params =
-        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.UID).build();
 
     MetadataIdentifier id = MAPPER.fromDataElement("RiNIt1yJoge", params);
 
@@ -56,7 +55,6 @@ class MetadataIdentifierMapperTest {
 
   @Test
   void dataElementIdentifierFromAttribute() {
-
     TrackerIdSchemeParams params =
         TrackerIdSchemeParams.builder()
             .idScheme(TrackerIdSchemeParam.CODE)
@@ -70,9 +68,8 @@ class MetadataIdentifierMapperTest {
 
   @Test
   void dataElementIdentifierFromUIDIfNull() {
-
     TrackerIdSchemeParams params =
-        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.UID).build();
 
     MetadataIdentifier id = MAPPER.fromDataElement(null, params);
 
@@ -81,9 +78,8 @@ class MetadataIdentifierMapperTest {
 
   @Test
   void programIdentifierFromUID() {
-
     TrackerIdSchemeParams params =
-        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.UID).build();
 
     MetadataIdentifier id = MAPPER.fromProgram("RiNIt1yJoge", params);
 
@@ -92,7 +88,6 @@ class MetadataIdentifierMapperTest {
 
   @Test
   void programIdentifierFromAttribute() {
-
     TrackerIdSchemeParams params =
         TrackerIdSchemeParams.builder()
             .idScheme(TrackerIdSchemeParam.CODE)
@@ -106,9 +101,8 @@ class MetadataIdentifierMapperTest {
 
   @Test
   void programIdentifierFromUIDIfNull() {
-
     TrackerIdSchemeParams params =
-        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.UID).build();
 
     MetadataIdentifier id = MAPPER.fromProgram(null, params);
 
@@ -117,9 +111,8 @@ class MetadataIdentifierMapperTest {
 
   @Test
   void programStageIdentifierFromUID() {
-
     TrackerIdSchemeParams params =
-        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.UID).build();
 
     MetadataIdentifier id = MAPPER.fromProgramStage("RiNIt1yJoge", params);
 
@@ -128,7 +121,6 @@ class MetadataIdentifierMapperTest {
 
   @Test
   void programStageIdentifierFromAttribute() {
-
     TrackerIdSchemeParams params =
         TrackerIdSchemeParams.builder()
             .idScheme(TrackerIdSchemeParam.CODE)
@@ -142,9 +134,8 @@ class MetadataIdentifierMapperTest {
 
   @Test
   void programStageIdentifierFromUIDIfNull() {
-
     TrackerIdSchemeParams params =
-        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.UID).build();
 
     MetadataIdentifier id = MAPPER.fromProgramStage(null, params);
 
@@ -153,9 +144,8 @@ class MetadataIdentifierMapperTest {
 
   @Test
   void orgUnitIdentifierFromUID() {
-
     TrackerIdSchemeParams params =
-        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.UID).build();
 
     MetadataIdentifier id = MAPPER.fromOrgUnit("RiNIt1yJoge", params);
 
@@ -164,7 +154,6 @@ class MetadataIdentifierMapperTest {
 
   @Test
   void orgUnitIdentifierFromAttribute() {
-
     TrackerIdSchemeParams params =
         TrackerIdSchemeParams.builder()
             .idScheme(TrackerIdSchemeParam.CODE)
@@ -178,9 +167,8 @@ class MetadataIdentifierMapperTest {
 
   @Test
   void orgUnitIdentifierFromUIDIfNull() {
-
     TrackerIdSchemeParams params =
-        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.UID).build();
 
     MetadataIdentifier id = MAPPER.fromOrgUnit(null, params);
 
@@ -189,9 +177,8 @@ class MetadataIdentifierMapperTest {
 
   @Test
   void attributeOptionComboIdentifierFromUID() {
-
     TrackerIdSchemeParams params =
-        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.UID).build();
 
     MetadataIdentifier id = MAPPER.fromAttributeOptionCombo("RiNIt1yJoge", params);
 
@@ -200,7 +187,6 @@ class MetadataIdentifierMapperTest {
 
   @Test
   void attributeOptionComboIdentifierFromAttribute() {
-
     TrackerIdSchemeParams params =
         TrackerIdSchemeParams.builder()
             .idScheme(TrackerIdSchemeParam.CODE)
@@ -214,9 +200,8 @@ class MetadataIdentifierMapperTest {
 
   @Test
   void attributeOptionComboIdentifierFromUIDIfNull() {
-
     TrackerIdSchemeParams params =
-        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.UID).build();
 
     MetadataIdentifier id = MAPPER.fromAttributeOptionCombo(null, params);
 
@@ -225,9 +210,8 @@ class MetadataIdentifierMapperTest {
 
   @Test
   void attributeCategoryOptionsIdentifierFromUIDWithWhitespaces() {
-
     TrackerIdSchemeParams params =
-        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.UID).build();
 
     Set<MetadataIdentifier> ids =
         MAPPER.fromAttributeCategoryOptions(" RiNIt1yJoge,AiNIt1yJoge  , ", params);
@@ -239,7 +223,6 @@ class MetadataIdentifierMapperTest {
 
   @Test
   void attributeCategoryOptionsIdentifierFromAttribute() {
-
     TrackerIdSchemeParams params =
         TrackerIdSchemeParams.builder()
             .idScheme(TrackerIdSchemeParam.CODE)
@@ -257,9 +240,8 @@ class MetadataIdentifierMapperTest {
 
   @Test
   void attributeCategoryOptionsIdentifierFromUIDIfNull() {
-
     TrackerIdSchemeParams params =
-        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.UID).build();
 
     Set<MetadataIdentifier> ids = MAPPER.fromAttributeCategoryOptions(null, params);
 
@@ -268,9 +250,8 @@ class MetadataIdentifierMapperTest {
 
   @Test
   void attributeCategoryOptionsIdentifierFromUIDIfEmpty() {
-
     TrackerIdSchemeParams params =
-        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.CODE).build();
+        TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.UID).build();
 
     Set<MetadataIdentifier> ids = MAPPER.fromAttributeCategoryOptions("  ", params);
 
@@ -279,7 +260,6 @@ class MetadataIdentifierMapperTest {
 
   @Test
   void stringToIdentifierFromUID() {
-
     TrackerIdSchemeParams params =
         TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.UID).build();
 
@@ -290,7 +270,6 @@ class MetadataIdentifierMapperTest {
 
   @Test
   void stringToIdentifierFromAttribute() {
-
     TrackerIdSchemeParams params =
         TrackerIdSchemeParams.builder()
             .idScheme(TrackerIdSchemeParam.ofAttribute("RiNIt1yJoge"))
@@ -303,7 +282,6 @@ class MetadataIdentifierMapperTest {
 
   @Test
   void stringToIdentifierFromUIDIfNull() {
-
     TrackerIdSchemeParams params =
         TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.UID).build();
 

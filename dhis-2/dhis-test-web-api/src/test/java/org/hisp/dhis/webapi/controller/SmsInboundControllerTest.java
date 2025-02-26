@@ -28,8 +28,10 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
@@ -51,6 +53,12 @@ class SmsInboundControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetInboundSMSMessage() {
+    JsonObject list = GET("/sms/inbound").content();
+    assertEquals(0, list.getArray("inboundsmss").size());
+  }
+
+  @Test
+  void testGetInboundSMSMessage_Forbidden() {
     User guestUser = createUserWithAuth("guestuser", "NONE");
     injectSecurityContextUser(guestUser);
 

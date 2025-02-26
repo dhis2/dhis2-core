@@ -38,11 +38,12 @@ import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerTest;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerIdentifierCollector;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
@@ -105,7 +106,7 @@ class TrackerPreheatServiceTest extends TrackerTest {
             .trackedEntities(
                 Lists.newArrayList(
                     TrackedEntity.builder()
-                        .trackedEntity("TE012345678")
+                        .trackedEntity(UID.of("TE012345678"))
                         .orgUnit(MetadataIdentifier.ofCode("OU123456789"))
                         .build()))
             .build();
@@ -148,7 +149,7 @@ class TrackerPreheatServiceTest extends TrackerTest {
     assertFalse(preheat.getAll(OrganisationUnit.class).isEmpty());
     assertFalse(preheat.getAll(ProgramStage.class).isEmpty());
     assertFalse(preheat.getAll(CategoryOptionCombo.class).isEmpty());
-    assertNotNull(preheat.get(CategoryOptionCombo.class, "XXXvX50cXC0"));
+    assertNotNull(preheat.get(CategoryOptionCombo.class, "HllvX50cXC0"));
     assertNotNull(preheat.get(CategoryOption.class, "XXXrKDKCefk"));
   }
 }

@@ -31,7 +31,9 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hibernate.query.Query;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
@@ -53,16 +55,6 @@ public class HibernateSMSCommandStore extends HibernateIdentifiableObjectStore<S
       ApplicationEventPublisher publisher,
       AclService aclService) {
     super(entityManager, jdbcTemplate, publisher, SMSCommand.class, aclService, true);
-  }
-
-  @Override
-  public List<SMSCommand> getJ2MESMSCommands() {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.equal(root.get("parserType"), ParserType.J2ME_PARSER)));
   }
 
   @Override
@@ -108,6 +100,20 @@ public class HibernateSMSCommandStore extends HibernateIdentifiableObjectStore<S
             """,
             SMSCode.class)
         .setParameter("dataElements", dataElements)
+        .list();
+  }
+
+  @Override
+  public List<SMSCode> getCodesByCategoryOptionCombo(@Nonnull Collection<UID> uids) {
+    if (uids.isEmpty()) return List.of();
+    return getQuery(
+            """
+            select distinct sms from SMSCode sms
+            join sms.optionId coc
+            where coc.uid in :uids
+            """,
+            SMSCode.class)
+        .setParameter("uids", UID.toValueList(uids))
         .list();
   }
 }

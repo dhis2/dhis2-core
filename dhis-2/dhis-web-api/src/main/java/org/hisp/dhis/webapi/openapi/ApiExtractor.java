@@ -50,6 +50,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -216,7 +217,7 @@ final class ApiExtractor {
     extractEndpointAuthorities(endpoint);
 
     mapping.path().stream()
-        .map(path -> path.endsWith("/") ? path.substring(0, path.length() - 1) : path)
+        .map(ApiExtractor::sanitizeUrlPath)
         .forEach(path -> endpoint.getPaths().add(path));
     endpoint.getMethods().addAll(mapping.method);
 
@@ -227,6 +228,25 @@ final class ApiExtractor {
     endpoint.getResponses().putAll(extractResponses(endpoint, mapping, consumes));
 
     return endpoint;
+  }
+
+  /**
+   * Make sure path always start with /, do not end with / and have their path variables cleaned
+   * where a potential pattern is stripped.
+   */
+  private static String sanitizeUrlPath(String path) {
+    String norm = path;
+    if (path.endsWith("/")) norm = path.substring(0, path.length() - 1);
+    if (norm.startsWith("/")) norm = norm.substring(1);
+    String[] segments = norm.split("/");
+    for (int i = 0; i < segments.length; i++) {
+      String seg = segments[i];
+      // is this {name:regex} ?
+      if (seg.startsWith("{") && seg.endsWith("}") && seg.contains(":")) {
+        segments[i] = seg.substring(0, seg.indexOf(':')) + "}"; // drop the :regex part
+      }
+    }
+    return "/" + String.join("/", segments);
   }
 
   private static void extractEndpointAuthorities(Api.Endpoint endpoint) {
@@ -448,8 +468,23 @@ final class ApiExtractor {
         requestBody.getDescription().setIfAbsent(extractDescription(p, p.getType()));
         Api.Schema type = extractSchema(endpoint, p.getParameterizedType());
         consumes.forEach(mediaType -> requestBody.getConsumes().putIfAbsent(mediaType, type));
-      } else if (isParams(p)) {
-        extractParams(endpoint, p.getType());
+      } else if (isOfSuitableParamsObjectType(p)) {
+        if (isOfConstructableParamsObjectType(p.getParameterizedType())) {
+          extractParams(endpoint, p.getType());
+        } else if (p.getParameterizedType() instanceof TypeVariable<?> v
+            && v.getName().equals("P")) {
+          // Note: this makes simplified assumptions and works using an approximation of the type
+          // variable substitution
+          // it only works under the assumption that the parameter is called P and is always the 2nd
+          // class level type variable
+          Type superclass = endpoint.getIn().getSource().getGenericSuperclass();
+          if (superclass instanceof ParameterizedType pts) {
+            Type actualType = pts.getActualTypeArguments()[1];
+            if (isOfConstructableParamsObjectType(actualType)) {
+              extractParams(endpoint, (Class<?>) actualType);
+            }
+          }
+        }
       }
     }
   }
@@ -518,18 +553,29 @@ final class ApiExtractor {
   private void extractParams(Api.Endpoint endpoint, Class<?> paramsObject) {
     Collection<Property> properties = getProperties(paramsObject);
     OpenApi.Shared shared = paramsObject.getAnnotation(OpenApi.Shared.class);
+    boolean useDeclaringClass = shared != null && shared.name().isEmpty();
     String sharedName = getSharedName(paramsObject, shared, null);
     if (sharedName != null) {
       Map<Class<?>, List<Api.Parameter>> sharedParameters = api.getComponents().getParameters();
-      boolean addShared = !sharedParameters.containsKey(paramsObject);
+      Set<Class<?>> addSharedTypes =
+          properties.stream().map(Property::getDeclaringClass).collect(toSet());
+      // if the type is contained at this point the type has been analysed before and should be
+      // ignored
+      addSharedTypes.removeAll(sharedParameters.keySet());
       properties.forEach(
           property -> {
             Api.Parameter parameter = extractParameter(endpoint, property);
             if (!parameter.getSource().isAnnotationPresent(OpenApi.Shared.Inline.class)) {
-              parameter.getSharedName().setValue(sharedName);
-              if (addShared) {
+              Class<?> shardType = paramsObject;
+              String name = sharedName;
+              if (useDeclaringClass) {
+                shardType = property.getDeclaringClass();
+                name = getSharedName(shardType, shared, null);
+              }
+              parameter.getSharedName().setValue(name);
+              if (addSharedTypes.contains(shardType)) {
                 sharedParameters
-                    .computeIfAbsent(paramsObject, key -> new ArrayList<>())
+                    .computeIfAbsent(shardType, key -> new ArrayList<>())
                     .add(parameter);
               }
             }
@@ -845,18 +891,19 @@ final class ApiExtractor {
   /**
    * @return is this a parameter objects with properties which are parameters?
    */
-  private static boolean isParams(Parameter source) {
+  private static boolean isOfSuitableParamsObjectType(Parameter source) {
     Class<?> type = source.getType();
-    if (type.isAnnotationPresent(OpenApi.Params.class)) {
-      return true;
-    }
-    if (type.isInterface()
-        || type.isEnum()
-        || IdentifiableObject.class.isAssignableFrom(type)
-        || source.getAnnotations().length > 0
-        || source.isAnnotationPresent(OpenApi.Ignore.class)
-        || !(source.getParameterizedType() instanceof Class)) return false;
-    return stream(type.getDeclaredConstructors()).anyMatch(c -> c.getParameterCount() == 0);
+    if (type.isAnnotationPresent(OpenApi.Params.class)) return true;
+    return !type.isInterface()
+        && !type.isEnum()
+        && !IdentifiableObject.class.isAssignableFrom(type)
+        && source.getAnnotations().length == 0
+        && !source.isAnnotationPresent(OpenApi.Ignore.class);
+  }
+
+  private static boolean isOfConstructableParamsObjectType(Type source) {
+    return (source instanceof Class<?> type)
+        && stream(type.getDeclaredConstructors()).anyMatch(c -> c.getParameterCount() == 0);
   }
 
   private static EndpointMapping getMapping(Method source) {

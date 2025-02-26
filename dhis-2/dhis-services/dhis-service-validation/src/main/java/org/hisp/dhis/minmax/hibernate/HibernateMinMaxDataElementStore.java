@@ -37,8 +37,10 @@ import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
@@ -49,7 +51,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.QueryParser;
 import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -65,8 +66,6 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
     implements MinMaxDataElementStore {
   private final QueryParser queryParser;
 
-  private final QueryPlanner queryPlanner;
-
   private final SchemaService schemaService;
 
   public HibernateMinMaxDataElementStore(
@@ -74,16 +73,13 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       QueryParser queryParser,
-      QueryPlanner queryPlanner,
       SchemaService schemaService) {
     super(entityManager, jdbcTemplate, publisher, MinMaxDataElement.class, false);
 
     checkNotNull(queryParser);
-    checkNotNull(queryPlanner);
     checkNotNull(schemaService);
 
     this.queryParser = queryParser;
-    this.queryPlanner = queryPlanner;
     this.schemaService = schemaService;
   }
 
@@ -177,7 +173,7 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
 
     getQuery(hql)
         .setParameterList("dataElements", dataElements)
-        .setParameter("path", parent.getPath() + "%")
+        .setParameter("path", parent.getStoredPath() + "%")
         .executeUpdate();
   }
 
@@ -190,6 +186,19 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
             """,
             MinMaxDataElement.class)
         .setParameter("dataElements", dataElements)
+        .list();
+  }
+
+  @Override
+  public List<MinMaxDataElement> getByCategoryOptionCombo(@Nonnull Collection<UID> uids) {
+    if (uids.isEmpty()) return List.of();
+    return getQuery(
+            """
+            select distinct mmde from  MinMaxDataElement mmde
+            join mmde.optionCombo coc
+            where coc.uid in :uids
+            """)
+        .setParameter("uids", UID.toValueList(uids))
         .list();
   }
 
@@ -206,7 +215,7 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
           throw new QueryParserException("Invalid filter: " + filter);
         }
 
-        Path<?> queryPath = queryPlanner.getQueryPath(root, schema, split[0]);
+        Path<?> queryPath = getQueryPath(root, schema, split[0]);
 
         Property property = queryParser.getProperty(schema, split[0]);
 
@@ -220,5 +229,42 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
     }
 
     return conjunction;
+  }
+
+  private Path<?> getQueryPath(Root<?> root, Schema schema, String path) {
+    Schema curSchema = schema;
+    Property curProperty;
+    String[] pathComponents = path.split("\\.");
+
+    Path<?> currentPath = root;
+
+    if (pathComponents.length == 0) {
+      return null;
+    }
+
+    for (int idx = 0; idx < pathComponents.length; idx++) {
+      String name = pathComponents[idx];
+      curProperty = curSchema.getProperty(name);
+
+      if (curProperty == null) {
+        throw new RuntimeException("Invalid path property: " + name);
+      }
+
+      if ((!curProperty.isSimple() && idx == pathComponents.length - 1)) {
+        return root.join(curProperty.getFieldName());
+      }
+
+      if (curProperty.isCollection()) {
+        currentPath = root.join(curProperty.getFieldName());
+        curSchema = schemaService.getDynamicSchema(curProperty.getItemKlass());
+      } else if (!curProperty.isSimple()) {
+        curSchema = schemaService.getDynamicSchema(curProperty.getKlass());
+        currentPath = root.join(curProperty.getFieldName());
+      } else {
+        return currentPath.get(curProperty.getFieldName());
+      }
+    }
+
+    return currentPath;
   }
 }

@@ -39,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
@@ -46,9 +47,11 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -312,5 +315,108 @@ class VisualizationControllerTest extends H2ControllerIntegrationTestBase {
     assertNotNull(visualization);
     assertTrue(
         visualization.getObject("relativePeriods").getBoolean("last12Months").booleanValue());
+  }
+
+  @Test
+  void testPostAndGetOptionItemInProgramAttribute() {
+    // Given
+    TrackedEntityAttribute attribute = createTrackedEntityAttribute('A');
+    manager.save(attribute);
+
+    Option option = createOption('O');
+    manager.save(option);
+
+    String programUid = mockProgram.getUid();
+    String attributeUid = attribute.getUid();
+    String optionUid = option.getUid();
+    String dimUid = programUid + "." + attributeUid + "." + optionUid;
+    String jsonBody =
+        """
+{
+    "type": "PIE",
+    "columns": [
+        {
+            "dimension": "dx",
+            "items": [
+                {
+                    "id": "${dimUid}",
+                    "name": "Program Attribute - Option",
+                    "dimensionItemType": "PROGRAM_ATTRIBUTE_OPTION"
+                }
+            ]
+        }
+    ],
+    "name": "OptionItem - Test"
+}
+"""
+            .replace("${dimUid}", dimUid);
+
+    // When
+    String uid = assertStatus(CREATED, POST("/visualizations/", jsonBody));
+
+    // Then
+    String getParams = "?fields=columns[:all,items[:all]]";
+    JsonObject response = GET("/visualizations/" + uid + getParams).content();
+
+    JsonNode columnNode = response.get("columns").node().element(0);
+    JsonNode itemsNode = columnNode.get("items").elementOrNull(0);
+
+    assertEquals("dx", columnNode.get("id").value());
+    assertEquals("DATA_X", columnNode.get("dimensionType").value());
+    assertTrue((boolean) columnNode.get("dataDimension").value());
+    assertEquals("PROGRAM_ATTRIBUTE_OPTION", itemsNode.get("dimensionItemType").value());
+    assertEquals("NONE", itemsNode.get("aggregationType").value());
+    assertEquals(dimUid, itemsNode.get("dimensionItem").value());
+  }
+
+  @Test
+  void testPostAndGetOptionItemInDataElement() {
+    // Given
+    DataElement dataElement = createDataElement('A');
+    manager.save(dataElement);
+
+    Option option = createOption('O');
+    manager.save(option);
+
+    String programUid = mockProgram.getUid();
+    String dataElementUid = dataElement.getUid();
+    String optionUid = option.getUid();
+    String dimUid = programUid + "." + dataElementUid + "." + optionUid;
+    String jsonBody =
+        """
+{
+    "type": "PIE",
+    "columns": [
+        {
+            "dimension": "dx",
+            "items": [
+                {
+                    "id": "${dimUid}",
+                    "name": "Program Data Element - Option",
+                    "dimensionItemType": "PROGRAM_DATA_ELEMENT_OPTION"
+                }
+            ]
+        }
+    ],
+    "name": "OptionItem - Test"
+}
+"""
+            .replace("${dimUid}", dimUid);
+
+    // When
+    String uid = assertStatus(CREATED, POST("/visualizations/", jsonBody));
+
+    // Then
+    String getParams = "?fields=columns[:all,items[:all]]";
+    JsonObject response = GET("/visualizations/" + uid + getParams).content();
+
+    JsonNode columnNode = response.get("columns").node().element(0);
+    JsonNode itemsNode = columnNode.get("items").elementOrNull(0);
+
+    assertEquals("dx", columnNode.get("id").value());
+    assertEquals("DATA_X", columnNode.get("dimensionType").value());
+    assertTrue((boolean) columnNode.get("dataDimension").value());
+    assertEquals("PROGRAM_DATA_ELEMENT_OPTION", itemsNode.get("dimensionItemType").value());
+    assertEquals("SUM", itemsNode.get("aggregationType").value());
   }
 }

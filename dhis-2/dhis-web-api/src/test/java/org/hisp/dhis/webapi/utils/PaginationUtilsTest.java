@@ -38,9 +38,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.webapi.utils.PaginationUtils.PagedEntities;
-import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.junit.jupiter.api.Test;
 
@@ -98,11 +98,9 @@ class PaginationUtilsTest {
 
   @Test
   void addPagingIfEnabled_PagingDisabled() {
-    WebMetadata metadata = new WebMetadata();
-    WebOptions options = new WebOptions(Map.of("paging", "false"));
+    GetObjectListParams params = new GetObjectListParams().setPaging(false);
     List<String> entities = List.of("one", "two", "three");
-    PagedEntities<String> pagedEntities =
-        PaginationUtils.addPagingIfEnabled(metadata, options, entities);
+    PagedEntities<String> pagedEntities = PaginationUtils.addPagingIfEnabled(params, entities);
 
     assertNull(pagedEntities.pager());
     assertEquals(3, pagedEntities.entities().size());
@@ -110,11 +108,9 @@ class PaginationUtilsTest {
 
   @Test
   void addPagingIfEnabled_PagingEnabled() {
-    WebMetadata metadata = new WebMetadata();
-    WebOptions options = new WebOptions(Map.of());
+    GetObjectListParams params = new GetObjectListParams();
     List<String> entities = List.of("one", "two", "three");
-    PagedEntities<String> pagedEntities =
-        PaginationUtils.addPagingIfEnabled(metadata, options, entities);
+    PagedEntities<String> pagedEntities = PaginationUtils.addPagingIfEnabled(params, entities);
     Pager pager = pagedEntities.pager();
     assertNotNull(pagedEntities.pager());
     assertEquals(1, pager.getPage());
@@ -126,11 +122,9 @@ class PaginationUtilsTest {
 
   @Test
   void addPagingIfEnabled_PagingEnabledSecondPage() {
-    WebMetadata metadata = new WebMetadata();
-    WebOptions options = new WebOptions(Map.of("page", "2", "pageSize", "3"));
+    GetObjectListParams params = new GetObjectListParams().setPage(2).setPageSize(3);
     List<String> entities = List.of("one", "two", "three", "four", "five");
-    PagedEntities<String> pagedEntities =
-        PaginationUtils.addPagingIfEnabled(metadata, options, entities);
+    PagedEntities<String> pagedEntities = PaginationUtils.addPagingIfEnabled(params, entities);
     Pager pager = pagedEntities.pager();
     assertNotNull(pagedEntities.pager());
     assertEquals(2, pager.getPage());

@@ -46,7 +46,14 @@ public class TrackedEntityQuery {
     DELETED,
     GEOMETRY,
     TYPE_UID,
+    TYPE_CODE,
+    TYPE_NAME,
+    TYPE_ATTRIBUTE_VALUES,
+    TYPE_ALLOW_AUDITLOG,
     ORGUNIT_UID,
+    ORGUNIT_CODE,
+    ORGUNIT_NAME,
+    ORGUNIT_ATTRIBUTE_VALUES,
     TRACKEDENTITYID,
 
     POTENTIALDUPLICATE
@@ -65,7 +72,20 @@ public class TrackedEntityQuery {
           .put(COLUMNS.DELETED, new TableColumn("te", "deleted"))
           .put(COLUMNS.GEOMETRY, new Function("ST_AsBinary", "te", "geometry", "geometry"))
           .put(COLUMNS.TYPE_UID, new TableColumn("tet", "uid", "type_uid"))
+          .put(COLUMNS.TYPE_CODE, new TableColumn("tet", "code", "type_code"))
+          .put(COLUMNS.TYPE_NAME, new TableColumn("tet", "name", "type_name"))
+          .put(
+              COLUMNS.TYPE_ATTRIBUTE_VALUES,
+              new TableColumn("tet", "attributevalues", "tet_attributevalues"))
+          .put(
+              COLUMNS.TYPE_ALLOW_AUDITLOG,
+              new TableColumn("tet", "allowauditlog", "type_allowauditlog"))
           .put(COLUMNS.ORGUNIT_UID, new TableColumn("o", "uid", "ou_uid"))
+          .put(COLUMNS.ORGUNIT_CODE, new TableColumn("o", "code", "ou_code"))
+          .put(COLUMNS.ORGUNIT_NAME, new TableColumn("o", "name", "ou_name"))
+          .put(
+              COLUMNS.ORGUNIT_ATTRIBUTE_VALUES,
+              new TableColumn("o", "attributevalues", "ou_attributevalues"))
           .put(COLUMNS.TRACKEDENTITYID, new TableColumn("te", "trackedentityid", "trackedentityid"))
           .put(
               COLUMNS.POTENTIALDUPLICATE,

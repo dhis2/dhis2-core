@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.notification;
 
 import static org.hisp.dhis.security.Authorities.ALL;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 
 import java.util.List;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -38,6 +37,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateOperationParams;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.schema.descriptors.ProgramNotificationTemplateSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -56,7 +56,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
 public class ProgramNotificationTemplateController
-    extends AbstractCrudController<ProgramNotificationTemplate> {
+    extends AbstractCrudController<ProgramNotificationTemplate, GetObjectListParams> {
   private final ProgramNotificationTemplateService programNotificationTemplateService;
 
   private final ProgramNotificationTemplateRequestParamsMapper requestParamsMapper;
@@ -79,18 +79,16 @@ public class ProgramNotificationTemplateController
   public @ResponseBody Page<ProgramNotificationTemplate> getProgramNotificationTemplates(
       ProgramNotificationTemplateRequestParams requestParams)
       throws ConflictException, BadRequestException {
-    validatePaginationParameters(requestParams);
-
     ProgramNotificationTemplateOperationParams params = requestParamsMapper.map(requestParams);
 
     List<ProgramNotificationTemplate> instances =
         programNotificationTemplateService.getProgramNotificationTemplates(params);
 
-    if (params.isPaged()) {
+    if (params.isPaging()) {
       long total = programNotificationTemplateService.countProgramNotificationTemplates(params);
       return Page.withPager(
           ProgramNotificationTemplateSchemaDescriptor.PLURAL,
-          org.hisp.dhis.tracker.export.Page.withTotals(
+          org.hisp.dhis.tracker.Page.withTotals(
               instances, params.getPage(), params.getPageSize(), total));
     }
 

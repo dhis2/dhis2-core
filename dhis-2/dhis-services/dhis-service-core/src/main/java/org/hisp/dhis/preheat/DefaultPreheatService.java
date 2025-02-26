@@ -63,9 +63,9 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodStore;
+import org.hisp.dhis.query.Filters;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.schema.MetadataMergeService;
 import org.hisp.dhis.schema.Property;
@@ -151,10 +151,10 @@ public class DefaultPreheatService implements PreheatService {
 
         if (!identifiers.isEmpty()) {
           for (List<String> ids : identifiers) {
-            Query query = Query.from(schemaService.getDynamicSchema(klass));
+            Query<?> query = Query.of(klass);
             query.setCurrentUserDetails(UserDetails.fromUser(preheat.getUser()));
             query.setSkipSharing(true);
-            query.add(Restrictions.in("id", ids));
+            query.add(Filters.in("id", ids));
             List<? extends IdentifiableObject> objects = queryService.query(query);
             preheat.put(PreheatIdentifier.UID, objects);
           }
@@ -169,9 +169,9 @@ public class DefaultPreheatService implements PreheatService {
 
         if (!identifiers.isEmpty()) {
           for (List<String> ids : identifiers) {
-            Query query = Query.from(schemaService.getDynamicSchema(klass));
+            Query<?> query = Query.of(klass);
             query.setCurrentUserDetails(UserDetails.fromUser(preheat.getUser()));
-            query.add(Restrictions.in("code", ids));
+            query.add(Filters.in("code", ids));
             List<? extends IdentifiableObject> objects = queryService.query(query);
             preheat.put(PreheatIdentifier.CODE, objects);
           }
@@ -183,10 +183,10 @@ public class DefaultPreheatService implements PreheatService {
             Lists.partition(Lists.newArrayList(uidMap.get(User.class)), 20000);
 
         for (List<String> ids : identifiers) {
-          Query query = Query.from(schemaService.getDynamicSchema(User.class));
+          Query<User> query = Query.of(User.class);
           query.setCurrentUserDetails(UserDetails.fromUser(preheat.getUser()));
-          query.add(Restrictions.in("id", ids));
-          List<? extends IdentifiableObject> objects = queryService.query(query);
+          query.add(Filters.in("id", ids));
+          List<User> objects = queryService.query(query);
           preheat.put(PreheatIdentifier.UID, objects);
         }
       }
@@ -196,10 +196,10 @@ public class DefaultPreheatService implements PreheatService {
             Lists.partition(Lists.newArrayList(uidMap.get(UserRole.class)), 20000);
 
         for (List<String> ids : identifiers) {
-          Query query = Query.from(schemaService.getDynamicSchema(UserRole.class));
+          Query<UserRole> query = Query.of(UserRole.class);
           query.setCurrentUserDetails(UserDetails.fromUser(preheat.getUser()));
-          query.add(Restrictions.in("id", ids));
-          List<? extends IdentifiableObject> objects = queryService.query(query);
+          query.add(Filters.in("id", ids));
+          List<UserRole> objects = queryService.query(query);
           preheat.put(PreheatIdentifier.UID, objects);
         }
       }
@@ -766,7 +766,13 @@ public class DefaultPreheatService implements PreheatService {
           }
 
           objects.forEach(
-              o -> list.addAll(ReflectionUtils.invokeMethod(o, property.getGetterMethod())));
+              o -> {
+                Collection<Object> propertyValue =
+                    ReflectionUtils.invokeMethod(o, property.getGetterMethod());
+                if (!org.apache.commons.collections4.CollectionUtils.isEmpty(propertyValue)) {
+                  list.addAll(propertyValue);
+                }
+              });
           targets.put(property.getItemKlass(), list);
         } else {
           List<Object> list = new ArrayList<>();
@@ -776,7 +782,12 @@ public class DefaultPreheatService implements PreheatService {
           }
 
           objects.forEach(
-              o -> list.add(ReflectionUtils.invokeMethod(o, property.getGetterMethod())));
+              o -> {
+                Object item = ReflectionUtils.invokeMethod(o, property.getGetterMethod());
+                if (item != null) {
+                  list.add(item);
+                }
+              });
           targets.put(property.getKlass(), list);
         }
       }

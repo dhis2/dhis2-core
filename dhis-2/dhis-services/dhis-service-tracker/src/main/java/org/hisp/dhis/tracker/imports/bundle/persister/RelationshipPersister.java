@@ -77,16 +77,6 @@ public class RelationshipPersister
   }
 
   @Override
-  protected void updateDataValues(
-      EntityManager entityManager,
-      TrackerPreheat preheat,
-      Relationship trackerDto,
-      org.hisp.dhis.relationship.Relationship hibernateEntity,
-      UserDetails user) {
-    // NOTHING TO DO
-  }
-
-  @Override
   protected void updatePreheat(
       TrackerPreheat preheat, org.hisp.dhis.relationship.Relationship convertedDto) {
     // NOTHING TO DO
@@ -115,8 +105,26 @@ public class RelationshipPersister
   }
 
   @Override
+  protected void updateDataValues(
+      EntityManager entityManager,
+      TrackerPreheat preheat,
+      Relationship trackerDto,
+      org.hisp.dhis.relationship.Relationship payloadEntity,
+      org.hisp.dhis.relationship.Relationship currentEntity,
+      UserDetails user) {
+    // DO NOTHING - TE HAVE NO DATA VALUES
+  }
+
+  @Override
   protected String getUpdatedTrackedEntity(org.hisp.dhis.relationship.Relationship entity) {
     return null;
+  }
+
+  @Override
+  protected org.hisp.dhis.relationship.Relationship cloneEntityProperties(
+      TrackerPreheat preheat, Relationship trackerDto) {
+    return null;
+    // NO NEED TO CLONE RELATIONSHIP PROPERTIES
   }
 
   @Override

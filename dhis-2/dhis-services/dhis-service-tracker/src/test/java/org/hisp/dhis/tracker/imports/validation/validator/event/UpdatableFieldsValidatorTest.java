@@ -40,7 +40,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -67,7 +67,7 @@ class UpdatableFieldsValidatorTest {
 
   private static final String PROGRAM_STAGE_ID = "ProgramStageId";
 
-  private static final String TRACKED_ENTITY_ID = "TrackedEntityId";
+  private static final UID TRACKED_ENTITY_ID = UID.generate();
 
   private static final UID ENROLLMENT_ID = UID.generate();
 
@@ -95,7 +95,7 @@ class UpdatableFieldsValidatorTest {
         .thenReturn(TrackerImportStrategy.UPDATE);
 
     when(preheat.getTrackedEntity(TRACKED_ENTITY_ID)).thenReturn(trackedEntity());
-    when(preheat.getEnrollment(ENROLLMENT_ID.getValue())).thenReturn(getEnrollment());
+    when(preheat.getEnrollment(ENROLLMENT_ID)).thenReturn(getEnrollment());
     when(preheat.getEvent(EVENT_UID)).thenReturn(event());
 
     when(bundle.getPreheat()).thenReturn(preheat);
@@ -145,7 +145,7 @@ class UpdatableFieldsValidatorTest {
     trackedEntityType.setUid(TRACKED_ENTITY_TYPE_ID);
 
     TrackedEntity trackedEntity = new TrackedEntity();
-    trackedEntity.setUid(TRACKED_ENTITY_ID);
+    trackedEntity.setUid(TRACKED_ENTITY_ID.getValue());
     trackedEntity.setTrackedEntityType(trackedEntityType);
     return trackedEntity;
   }

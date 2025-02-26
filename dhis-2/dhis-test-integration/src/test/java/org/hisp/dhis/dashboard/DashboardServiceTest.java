@@ -170,7 +170,7 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
         new EmbeddedDashboard(
             EmbeddedProvider.SUPERSET,
             UUID_A,
-            new EmbeddedOptions(true, true, new FilterOptions(true, true), true)));
+            new EmbeddedOptions(true, true, new FilterOptions(true, true))));
   }
 
   @Test
@@ -193,7 +193,6 @@ class DashboardServiceTest extends PostgresIntegrationTestBase {
     assertNotNull(rdC.getEmbedded().getOptions());
     assertTrue(rdC.getEmbedded().getOptions().isHideChartControls());
     assertTrue(rdC.getEmbedded().getOptions().isHideChartControls());
-    assertTrue(rdC.getEmbedded().getOptions().isShowFilters());
   }
 
   @Test

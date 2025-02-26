@@ -57,12 +57,13 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SystemSettingsService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -82,20 +83,15 @@ class JdbcAnalyticsManagerTest {
 
   @Mock private NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector;
 
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  @Mock private QueryPlanner queryPlanner;
+
+  @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   @Captor private ArgumentCaptor<String> sql;
 
-  private JdbcAnalyticsManager subject;
-
   @Mock private ExecutionPlanStore executionPlanStore;
 
-  @BeforeEach
-  public void setUp() {
-    QueryPlanner queryPlanner = new DefaultQueryPlanner(partitionManager);
-
-    subject = new JdbcAnalyticsManager(queryPlanner, jdbcTemplate, executionPlanStore, sqlBuilder);
-  }
+  @InjectMocks private JdbcAnalyticsManager subject;
 
   @Test
   void verifyQueryGeneratedWhenDataElementHasLastAggregationType() {

@@ -67,7 +67,7 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
     Query<Dashboard> query = getTypedQuery("from Dashboard d where :item in elements(d.items)");
     query.setParameter("item", dashboardItem);
 
-    return query.getSingleResult();
+    return getSingleResult(query);
   }
 
   @Override

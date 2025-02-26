@@ -80,7 +80,7 @@ public class AssignAttributeExecutor implements RuleActionExecutor<Enrollment> {
               ruleUid,
               ValidationCode.E1310,
               attributeUid.getValue(),
-              enrollment.getTrackedEntity()));
+              enrollment.getTrackedEntity().getValue()));
     }
     return Optional.of(error(ruleUid, ValidationCode.E1309, attributeUid.getValue(), value));
   }

@@ -143,7 +143,7 @@ public class TrackerExportTest extends TrackerApiTest {
         .getTrackedEntities(
             new QueryParamsBuilder()
                 .add("trackedEntityType", "Q9GufDoplCL")
-                .add("orgUnit", "O6uvpzGd5pu")
+                .add("orgUnits", "O6uvpzGd5pu")
                 .add("filter", "kZeSYCgaHTk:eq:Test/,Test"))
         .validate()
         .statusCode(200)
@@ -156,7 +156,7 @@ public class TrackerExportTest extends TrackerApiTest {
         .getTrackedEntities(
             new QueryParamsBuilder()
                 .add("trackedEntityType", "Q9GufDoplCL")
-                .add("orgUnit", "O6uvpzGd5pu")
+                .add("orgUnits", "O6uvpzGd5pu")
                 .add("filter", "dIVt4l5vIOa:eq:Test/:Test"))
         .validate()
         .statusCode(200)
@@ -267,8 +267,8 @@ public class TrackerExportTest extends TrackerApiTest {
             new QueryParamsBuilder()
                 .add("fields", "enrollments")
                 .add("program", "f1AyMswryyQ")
-                .add("orgUnit", "O6uvpzGd5pu")
-                .add("trackedEntity", response.extractImportedTrackedEntities().get(0)))
+                .add("orgUnits", "O6uvpzGd5pu")
+                .add("trackedEntities", response.extractImportedTrackedEntities().get(0)))
         .validate()
         .statusCode(200)
         .body(
@@ -282,8 +282,8 @@ public class TrackerExportTest extends TrackerApiTest {
             new QueryParamsBuilder()
                 .add("fields", "enrollments")
                 .add("program", "f1AyMswryyQ")
-                .add("orgUnit", "O6uvpzGd5pu")
-                .add("trackedEntity", response.extractImportedTrackedEntities().get(0))
+                .add("orgUnits", "O6uvpzGd5pu")
+                .add("trackedEntities", response.extractImportedTrackedEntities().get(0))
                 .add("includeDeleted", "true"))
         .validate()
         .statusCode(200)
@@ -307,8 +307,8 @@ public class TrackerExportTest extends TrackerApiTest {
             new QueryParamsBuilder()
                 .add("fields", "events")
                 .add("program", "f1AyMswryyQ")
-                .add("orgUnit", "O6uvpzGd5pu")
-                .add("enrollment", response.extractImportedEnrollments().get(0)))
+                .add("orgUnits", "O6uvpzGd5pu")
+                .add("enrollments", response.extractImportedEnrollments().get(0)))
         .validate()
         .statusCode(200)
         .body("enrollments[0].events.flatten()", empty());
@@ -318,8 +318,8 @@ public class TrackerExportTest extends TrackerApiTest {
             new QueryParamsBuilder()
                 .add("fields", "events")
                 .add("program", "f1AyMswryyQ")
-                .add("orgUnit", "O6uvpzGd5pu")
-                .add("enrollment", response.extractImportedEnrollments().get(0))
+                .add("orgUnits", "O6uvpzGd5pu")
+                .add("enrollments", response.extractImportedEnrollments().get(0))
                 .add("includeDeleted", "true"))
         .validate()
         .statusCode(200)
@@ -346,8 +346,8 @@ public class TrackerExportTest extends TrackerApiTest {
         trackerImportExportActions.getTrackedEntities(
             new QueryParamsBuilder()
                 .add("fields", "*")
-                .add("trackedEntity", "Kj6vYde4LHh")
-                .add("orgUnit", "O6uvpzGd5pu"));
+                .add("trackedEntities", "Kj6vYde4LHh")
+                .add("orgUnits", "O6uvpzGd5pu"));
 
     JSONAssert.assertEquals(
         trackedEntity.getBody().toString(),
@@ -385,7 +385,7 @@ public class TrackerExportTest extends TrackerApiTest {
   @Test
   public void shouldReturnSingleTrackedEntityGivenFilter() {
     trackerImportExportActions
-        .get("trackedEntities?orgUnit=O6uvpzGd5pu&program=f1AyMswryyQ&filter=kZeSYCgaHTk:in:Bravo")
+        .get("trackedEntities?orgUnits=O6uvpzGd5pu&program=f1AyMswryyQ&filter=kZeSYCgaHTk:in:Bravo")
         .validate()
         .statusCode(200)
         .body("trackedEntities.findAll { it.trackedEntity == 'Kj6vYde4LHh' }.size()", is(1))
@@ -409,7 +409,7 @@ public class TrackerExportTest extends TrackerApiTest {
       String operator, String searchCriteria, Matcher<?> everyItemMatcher) {
     QueryParamsBuilder queryParamsBuilder =
         new QueryParamsBuilder()
-            .add("orgUnit", "O6uvpzGd5pu")
+            .add("orgUnits", "O6uvpzGd5pu")
             .add("program", Constants.TRACKER_PROGRAM_ID)
             .add("filter", String.format("kZeSYCgaHTk:%s:%s", operator, searchCriteria));
 
@@ -427,7 +427,7 @@ public class TrackerExportTest extends TrackerApiTest {
   public void shouldReturnSingleTrackedEntityGivenFilterWhileSkippingPaging() {
     trackerImportExportActions
         .get(
-            "trackedEntities?skipPaging=true&orgUnit=O6uvpzGd5pu&program=f1AyMswryyQ&filter=kZeSYCgaHTk:in:Bravo")
+            "trackedEntities?paging=false&orgUnits=O6uvpzGd5pu&program=f1AyMswryyQ&filter=kZeSYCgaHTk:in:Bravo")
         .validate()
         .statusCode(200)
         .body("trackedEntities.findAll { it.trackedEntity == 'Kj6vYde4LHh' }.size()", is(1))
@@ -452,7 +452,7 @@ public class TrackerExportTest extends TrackerApiTest {
   @Test
   public void shouldReturnRelationshipsWhenEventHasRelationshipsAndFieldsIncludeRelationships() {
     trackerImportExportActions
-        .get("events?event=" + event + "&fields=relationships")
+        .get("events?events=" + event + "&fields=relationships")
         .validate()
         .statusCode(200)
         .body("events", hasSize(greaterThanOrEqualTo(1)))
@@ -465,7 +465,7 @@ public class TrackerExportTest extends TrackerApiTest {
   @Test
   public void shouldNotReturnRelationshipsWhenEventHasRelationshipsAndFieldsExcludeRelationships() {
     trackerImportExportActions
-        .get("events?event=" + event)
+        .get("events?events=" + event)
         .validate()
         .statusCode(200)
         .body("events[0].relationships", emptyOrNullString());
@@ -475,7 +475,7 @@ public class TrackerExportTest extends TrackerApiTest {
   public void shouldReturnEventWithEnrollmentOccurredOnADateWhenBeforeAndAfterIsTheSameDate() {
     trackerImportExportActions
         .get(
-            "events?enrollmentOccurredAfter=2019-08-19&enrollmentOccurredBefore=2019-08-19&event=ZwwuwNp6gVd")
+            "events?enrollmentOccurredAfter=2019-08-19&enrollmentOccurredBefore=2019-08-19&events=ZwwuwNp6gVd")
         .validate()
         .statusCode(200)
         .rootPath("events[0]")
@@ -486,7 +486,7 @@ public class TrackerExportTest extends TrackerApiTest {
   public void shouldReturnDescOrderedEventByTrackedEntityAttribute() {
     ApiResponse response =
         trackerImportExportActions.get(
-            "events?order=dIVt4l5vIOa:desc&event=olfXZzSGacW;ZwwuwNp6gVd");
+            "events?order=dIVt4l5vIOa:desc&events=olfXZzSGacW,ZwwuwNp6gVd");
     response.validate().statusCode(200).body("events", hasSize(equalTo(2)));
     List<String> events = response.extractList("events.event.flatten()");
     assertEquals(
@@ -497,7 +497,7 @@ public class TrackerExportTest extends TrackerApiTest {
   public void shouldReturnAscOrderedEventByTrackedEntityAttribute() {
     ApiResponse response =
         trackerImportExportActions.get(
-            "events?order=dIVt4l5vIOa:asc&event=olfXZzSGacW;ZwwuwNp6gVd");
+            "events?order=dIVt4l5vIOa:asc&events=olfXZzSGacW,ZwwuwNp6gVd");
     response.validate().statusCode(200).body("events", hasSize(equalTo(2)));
     List<String> events = response.extractList("events.event.flatten()");
     assertEquals(
@@ -557,7 +557,7 @@ public class TrackerExportTest extends TrackerApiTest {
   void whenGetEventsShouldDefaultToJsonContentTypeWithHtmlAcceptHeader() {
     ApiResponse response =
         trackerImportExportActions.getWithHeaders(
-            "events?event=" + event,
+            "events?events=" + event,
             null,
             new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
 
@@ -572,7 +572,7 @@ public class TrackerExportTest extends TrackerApiTest {
   void whenGetEventsCsvShouldGetCsvContentTypeWithHtmlAcceptHeader() {
     ApiResponse response =
         trackerImportExportActions.getWithHeaders(
-            "events.csv?event=" + event,
+            "events.csv?events=" + event,
             null,
             new Headers(new Header(HttpHeaders.ACCEPT, "text/html")));
 
@@ -638,8 +638,8 @@ public class TrackerExportTest extends TrackerApiTest {
   private static QueryParamsBuilder paramsForTrackedEntitiesIncludingPotentialDuplicate() {
     return new QueryParamsBuilder()
         .addAll(
-            "trackedEntity=" + TE + ";" + TE_POTENTIAL_DUPLICATE,
+            "trackedEntities=" + TE + "," + TE_POTENTIAL_DUPLICATE,
             "trackedEntityType=" + "Q9GufDoplCL",
-            "orgUnit=" + "O6uvpzGd5pu");
+            "orgUnits=" + "O6uvpzGd5pu");
   }
 }

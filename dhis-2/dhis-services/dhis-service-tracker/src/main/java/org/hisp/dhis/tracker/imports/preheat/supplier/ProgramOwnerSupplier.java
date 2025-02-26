@@ -54,8 +54,8 @@ public class ProgramOwnerSupplier extends AbstractPreheatSupplier {
 
   @Override
   public void preheatAdd(TrackerObjects trackerObjects, TrackerPreheat preheat) {
-    final Map<String, TrackedEntity> preheatedTrackedEntities = preheat.getTrackedEntities();
-    final Map<String, Enrollment> preheatedEnrollments = preheat.getEnrollments();
+    final Map<UID, TrackedEntity> preheatedTrackedEntities = preheat.getTrackedEntities();
+    final Map<UID, Enrollment> preheatedEnrollments = preheat.getEnrollments();
     final Map<UID, Event> preheatedEvents = preheat.getEvents();
     Set<Long> teIds = new HashSet<>();
     for (org.hisp.dhis.tracker.imports.domain.Enrollment en : trackerObjects.getEnrollments()) {
@@ -73,9 +73,7 @@ public class ProgramOwnerSupplier extends AbstractPreheatSupplier {
     for (org.hisp.dhis.tracker.imports.domain.Event ev : trackerObjects.getEvents()) {
       Event event = preheatedEvents.get(ev.getEvent());
       Enrollment enrollment =
-          event == null
-              ? preheatedEnrollments.get(ev.getEnrollment().getValue())
-              : event.getEnrollment();
+          event == null ? preheatedEnrollments.get(ev.getEnrollment()) : event.getEnrollment();
       if (enrollment != null && enrollment.getTrackedEntity() != null) {
         teIds.add(enrollment.getTrackedEntity().getId());
       }

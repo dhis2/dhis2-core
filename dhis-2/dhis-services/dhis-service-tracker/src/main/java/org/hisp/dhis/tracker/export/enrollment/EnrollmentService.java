@@ -35,24 +35,24 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 
 public interface EnrollmentService {
+  @Nonnull
   Enrollment getEnrollment(UID uid) throws ForbiddenException, NotFoundException;
 
-  Enrollment getEnrollment(UID uid, EnrollmentParams params, boolean includeDeleted)
+  @Nonnull
+  Enrollment getEnrollment(UID uid, EnrollmentParams params)
       throws NotFoundException, ForbiddenException;
 
-  RelationshipItem getEnrollmentInRelationshipItem(
-      UID uid, EnrollmentParams params, boolean includeDeleted) throws NotFoundException;
-
   /** Get all enrollments matching given params. */
+  @Nonnull
   List<Enrollment> getEnrollments(EnrollmentOperationParams params)
       throws BadRequestException, ForbiddenException;
 
   /** Get a page of enrollments matching given params. */
+  @Nonnull
   Page<Enrollment> getEnrollments(EnrollmentOperationParams params, PageParams pageParams)
       throws BadRequestException, ForbiddenException;
 
@@ -60,6 +60,7 @@ public interface EnrollmentService {
    * Get event matching given {@code UID} under the privileges the user in the context. This method
    * does not get the events relationships.
    */
+  @Nonnull
   List<Enrollment> getEnrollments(@Nonnull Set<UID> uids) throws ForbiddenException;
 
   /**

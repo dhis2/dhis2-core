@@ -42,6 +42,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -74,7 +75,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/jobConfigurations")
 @RequiredArgsConstructor
 @OpenApi.Document(classifiers = {"team:platform", "purpose:support"})
-public class JobConfigurationController extends AbstractCrudController<JobConfiguration> {
+public class JobConfigurationController
+    extends AbstractCrudController<JobConfiguration, GetObjectListParams> {
 
   private final JobConfigurationService jobConfigurationService;
   private final JobSchedulerService jobSchedulerService;
@@ -125,7 +127,7 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
   public ObjectReport executeNow(@PathVariable("uid") String uid)
       throws NotFoundException, ConflictException {
 
-    jobSchedulerService.runInTransaction(uid);
+    jobSchedulerService.executeNow(uid);
 
     // OBS! This response is kept for better backwards compatibility
     return new ObjectReport(JobConfiguration.class, 0);
@@ -234,11 +236,10 @@ public class JobConfigurationController extends AbstractCrudController<JobConfig
     JobConfiguration obj = jobConfigurationService.getJobConfigurationByUid(uid.getValue());
     if (obj == null) throw new NotFoundException(JobConfiguration.class, uid.getValue());
     boolean isAuthorized =
-        currentUser != null
-            && (currentUser.isSuper()
-                || (!read && currentUser.isAuthorized("F_PERFORM_MAINTENANCE"))
-                || (read && currentUser.isAuthorized(F_JOB_LOG_READ.toString()))
-                || currentUser.getUid().equals(obj.getExecutedBy()));
+        currentUser.isSuper()
+            || !read && currentUser.isAuthorized("F_PERFORM_MAINTENANCE")
+            || read && currentUser.isAuthorized(F_JOB_LOG_READ.toString())
+            || currentUser.getUid().equals(obj.getExecutedBy());
     if (!isAuthorized) throw new ForbiddenException(JobConfiguration.class, obj.getUid());
   }
 }

@@ -435,8 +435,7 @@ class CommonRequestParamsMapperTest {
             programService,
             dimensionIdentifierConverter);
 
-    // List has only one Program, but the CommonQueryRequest, below, has
-    // two.
+    // List has only one Program, but the CommonQueryRequest, has two
     List<Program> programs = List.of(program1);
 
     CommonRequestParams commonRequestParams =

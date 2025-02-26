@@ -100,4 +100,18 @@ public class HibernateIndicatorStore extends HibernateIdentifiableObjectStore<In
         .setParameter("search", "%" + search + "%")
         .getResultList();
   }
+
+  @Override
+  public int updateNumeratorDenominatorContaining(String find, String replace) {
+    String sql =
+        """
+        update indicator
+        set numerator = replace(numerator, '%s', '%s'),
+            denominator = replace(denominator, '%s', '%s')
+        where numerator like '%s'
+          or denominator like '%s';
+        """
+            .formatted(find, replace, find, replace, "%" + find + "%", "%" + find + "%");
+    return jdbcTemplate.update(sql);
+  }
 }

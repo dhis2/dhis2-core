@@ -17,6 +17,7 @@
     <module>dhis-support-db-migration</module>
     <module>dhis-support-test</module>
     <module>dhis-support-external</module>
+    <module>dhis-support-sql</module>
     <module>dhis-support-hibernate</module>
     <module>dhis-support-audit</module>
     <module>dhis-support-system</module>

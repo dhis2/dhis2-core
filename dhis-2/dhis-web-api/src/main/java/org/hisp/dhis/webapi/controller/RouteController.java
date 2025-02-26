@@ -39,6 +39,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.route.Route;
 import org.hisp.dhis.route.RouteService;
 import org.hisp.dhis.schema.descriptors.RouteSchemaDescriptor;
@@ -53,6 +54,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 /**
  * @author Morten Olav Hansen
@@ -62,7 +64,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/routes")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @OpenApi.Document(classifiers = {"team:extensibility", "purpose:metadata"})
-public class RouteController extends AbstractCrudController<Route> {
+public class RouteController extends AbstractCrudController<Route, GetObjectListParams> {
   private final RouteService routeService;
 
   @RequestMapping(
@@ -74,7 +76,7 @@ public class RouteController extends AbstractCrudController<Route> {
         RequestMethod.DELETE,
         RequestMethod.PATCH
       })
-  public ResponseEntity<String> run(
+  public ResponseEntity<StreamingResponseBody> run(
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
@@ -91,7 +93,7 @@ public class RouteController extends AbstractCrudController<Route> {
         RequestMethod.DELETE,
         RequestMethod.PATCH
       })
-  public ResponseEntity<String> runWithSubpath(
+  public ResponseEntity<StreamingResponseBody> runWithSubpath(
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
@@ -126,6 +128,23 @@ public class RouteController extends AbstractCrudController<Route> {
     }
 
     return Optional.empty();
+  }
+
+  @Override
+  protected void preCreateEntity(Route route) throws ConflictException {
+    validateRoute(route);
+  }
+
+  @Override
+  protected void preUpdateEntity(Route route, Route newRoute) throws ConflictException {
+    validateRoute(newRoute);
+  }
+
+  protected void validateRoute(Route route) throws ConflictException {
+    if (route.getResponseTimeoutSeconds() < 1 || route.getResponseTimeoutSeconds() > 60) {
+      throw new ConflictException(
+          "Route response timeout must be greater than 0 seconds and less than or equal to 60 seconds");
+    }
   }
 
   /**

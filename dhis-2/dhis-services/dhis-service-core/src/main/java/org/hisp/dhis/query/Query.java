@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.query;
 
-import com.google.common.base.MoreObjects;
+import static java.util.Arrays.asList;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -35,10 +36,10 @@ import java.util.Objects;
 import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfilter.Defaults;
-import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.user.UserDetails;
 
 /**
@@ -47,16 +48,30 @@ import org.hisp.dhis.user.UserDetails;
 @Getter
 @Setter
 @Accessors(chain = true)
-public class Query extends Criteria {
-  private UserDetails currentUserDetails;
+@ToString
+public class Query<T extends IdentifiableObject> {
+
+  private final List<Filter> filters = new ArrayList<>();
+
+  @Getter private final Class<T> objectType;
+
+  @ToString.Exclude private UserDetails currentUserDetails;
 
   private String locale;
 
   private final List<Order> orders = new ArrayList<>();
 
+  /** Order by id and name if not other orders are defined and those properties exist */
+  private boolean defaultOrders;
+
+  /** true, if the schema of the {@link #objectType} has a persisted short name property */
+  private boolean shortNamePersisted;
+
   private boolean skipPaging;
 
   private boolean skipSharing;
+
+  private boolean dataSharing;
 
   private Integer firstResult = 0;
 
@@ -64,51 +79,61 @@ public class Query extends Criteria {
 
   private final Junction.Type rootJunctionType;
 
-  private boolean plannedQuery;
-
   private Defaults defaults = Defaults.EXCLUDE;
 
   private boolean cacheable = true;
 
-  private List<? extends IdentifiableObject> objects;
+  @ToString.Exclude private List<T> objects;
 
-  public static Query from(Schema schema) {
-    return new Query(schema);
+  public static <T extends IdentifiableObject> Query<T> of(Class<T> objectType) {
+    return new Query<>(objectType);
   }
 
-  public static Query from(Schema schema, Junction.Type rootJunction) {
-    return new Query(schema, rootJunction);
+  public static <T extends IdentifiableObject> Query<T> of(
+      Class<T> objectType, Junction.Type rootJunction) {
+    return new Query<>(objectType, rootJunction);
   }
 
-  public static Query from(Query query) {
-    Query clone = Query.from(query.getSchema(), query.getRootJunctionType());
-    clone.setSkipSharing(query.isSkipSharing());
-    clone.setCurrentUserDetails(query.getCurrentUserDetails());
-    clone.setLocale(query.getLocale());
-    clone.addOrders(query.getOrders());
-    clone.setFirstResult(query.getFirstResult());
-    clone.setMaxResults(query.getMaxResults());
-    clone.add(query.getCriterions());
-    clone.setObjects(query.getObjects());
-
-    return clone;
+  public static <T extends IdentifiableObject> Query<T> emptyOf(Query<T> query) {
+    Query<T> copy = Query.of(query.getObjectType(), query.getRootJunctionType());
+    // context attributes
+    copy.setShortNamePersisted(query.isShortNamePersisted());
+    copy.setDefaultOrders(query.isDefaultOrders());
+    copy.setSkipSharing(query.isSkipSharing());
+    copy.setCurrentUserDetails(query.getCurrentUserDetails());
+    copy.setLocale(query.getLocale());
+    return copy;
   }
 
-  private Query(Schema schema) {
-    this(schema, Junction.Type.AND);
+  public static <T extends IdentifiableObject> Query<T> copyOf(Query<T> query) {
+    Query<T> copy = Query.of(query.getObjectType(), query.getRootJunctionType());
+    // context attributes
+    copy.setShortNamePersisted(query.isShortNamePersisted());
+    copy.setDefaultOrders(query.isDefaultOrders());
+    copy.setSkipSharing(query.isSkipSharing());
+    copy.setCurrentUserDetails(query.getCurrentUserDetails());
+    copy.setLocale(query.getLocale());
+    // specific attributes
+    copy.addOrders(query.getOrders());
+    copy.setFirstResult(query.getFirstResult());
+    copy.setMaxResults(query.getMaxResults());
+    copy.add(query.getFilters());
+    copy.setObjects(query.getObjects());
+
+    return copy;
   }
 
-  private Query(Schema schema, Junction.Type rootJunctionType) {
-    super(schema);
+  private Query(Class<T> objectType) {
+    this(objectType, Junction.Type.AND);
+  }
+
+  private Query(Class<T> objectType, Junction.Type rootJunctionType) {
+    this.objectType = objectType;
     this.rootJunctionType = rootJunctionType;
   }
 
-  public Schema getSchema() {
-    return schema;
-  }
-
   public boolean isEmpty() {
-    return criterions.isEmpty() && orders.isEmpty();
+    return filters.isEmpty() && orders.isEmpty();
   }
 
   public boolean ordersPersisted() {
@@ -127,79 +152,35 @@ public class Query extends Criteria {
     return skipPaging ? Integer.MAX_VALUE : maxResults;
   }
 
-  public Query addOrder(Order... orders) {
+  public Query<T> addOrder(Order... orders) {
     Stream.of(orders).filter(Objects::nonNull).forEach(this.orders::add);
     return this;
   }
 
-  public Query addOrders(Collection<Order> orders) {
+  public Query<T> addOrders(Collection<Order> orders) {
     this.orders.addAll(orders);
     return this;
   }
 
-  @Override
-  public Query add(Criterion criterion) {
-    super.add(criterion);
+  public Query<T> add(Filter filter) {
+    this.filters.add(filter);
     return this;
   }
 
-  @Override
-  public Query add(Criterion... criterions) {
-    super.add(criterions);
+  public Query<T> add(Filter... filters) {
+    this.filters.addAll(asList(filters));
     return this;
   }
 
-  @Override
-  public Query add(Collection<Criterion> criterions) {
-    super.add(criterions);
+  public Query<T> add(Collection<Filter> filters) {
+    this.filters.addAll(filters);
     return this;
   }
 
-  public Disjunction addDisjunction() {
-    Disjunction disjunction = new Disjunction(schema);
-    add(disjunction);
-
-    return disjunction;
-  }
-
-  public Disjunction disjunction() {
-    return new Disjunction(schema);
-  }
-
-  public Conjunction addConjunction() {
-    Conjunction conjunction = new Conjunction(schema);
-    add(conjunction);
-
-    return conjunction;
-  }
-
-  public Conjunction conjunction() {
-    return new Conjunction(schema);
-  }
-
-  public Query setDefaultOrder() {
-    if (!orders.isEmpty()) {
-      return this;
+  public Query<T> setDefaultOrder() {
+    if (orders.isEmpty()) {
+      defaultOrders = true;
     }
-
-    if (schema.hasPersistedProperty("name")) {
-      addOrder(Order.iasc(schema.getPersistedProperty("name")));
-    }
-
-    if (schema.hasPersistedProperty("id")) {
-      addOrder(Order.asc(schema.getPersistedProperty("id")));
-    }
-
     return this;
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("firstResult", firstResult)
-        .add("maxResults", maxResults)
-        .add("orders", orders)
-        .add("criterions", criterions)
-        .toString();
   }
 }

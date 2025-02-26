@@ -39,6 +39,8 @@ public enum PasswordValidationError {
   PASSWORD_MUST_HAVE_DIGIT("password_digit_validation", "Password must have at least one digit"),
   PASSWORD_MUST_HAVE_UPPER(
       "password_uppercase_validation", "Password must have at least one upper case"),
+  PASSWORD_MUST_HAVE_LOWER(
+      "password_lowercase_validation", "Password must have at least one lower case"),
   PASSWORD_MUST_HAVE_SPECIAL(
       "password_specialcharacter_validation", "Password must have at least one special character"),
   PASSWORD_CONTAINS_RESERVED_WORD(

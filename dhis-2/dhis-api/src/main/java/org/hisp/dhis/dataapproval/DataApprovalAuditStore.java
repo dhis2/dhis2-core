@@ -28,6 +28,7 @@
 package org.hisp.dhis.dataapproval;
 
 import java.util.List;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
@@ -45,6 +46,13 @@ public interface DataApprovalAuditStore extends GenericStore<DataApprovalAudit> 
    * @param organisationUnit the organisation unit.
    */
   void deleteDataApprovalAudits(OrganisationUnit organisationUnit);
+
+  /**
+   * Deletes DataApprovalAudits for the given category option combo.
+   *
+   * @param coc the category option combo
+   */
+  void deleteDataApprovalAudits(CategoryOptionCombo coc);
 
   /**
    * Returns DataApprovalAudit objects for query parameters.

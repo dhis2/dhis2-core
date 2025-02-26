@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.notification;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
@@ -41,4 +42,4 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
 public class DataSetNotificationTemplateController
-    extends AbstractCrudController<DataSetNotificationTemplate> {}
+    extends AbstractCrudController<DataSetNotificationTemplate, GetObjectListParams> {}

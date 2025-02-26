@@ -77,6 +77,12 @@ class DhisConfigurationProviderTest {
   }
 
   @Test
+  void getIntProperty() {
+    assertEquals(80, configProvider.getIntProperty(ConfigurationKey.CONNECTION_POOL_MAX_SIZE));
+    assertEquals(10, configProvider.getIntProperty(ConfigurationKey.CONNECTION_POOL_MIN_SIZE));
+  }
+
+  @Test
   @DisplayName("remote servers retrieved from config should have expected values")
   void getRemoteServersAllowedTest() {
     // given there are 2 remote servers in the test config allowed list

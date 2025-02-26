@@ -42,6 +42,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -50,6 +51,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
+import org.hisp.dhis.common.cache.Region;
+import org.hisp.dhis.common.event.CacheInvalidationEvent;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -76,6 +79,7 @@ import org.hisp.dhis.webapi.webdomain.sharing.SharingUserAccess;
 import org.hisp.dhis.webapi.webdomain.sharing.SharingUserGroupAccess;
 import org.hisp.dhis.webapi.webdomain.sharing.comparator.SharingUserGroupAccessNameComparator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -110,6 +114,8 @@ public class SharingController {
   @Autowired private SchemaService schemaService;
 
   @Autowired private EntityManager entityManager;
+
+  @Autowired private ApplicationEventPublisher eventPublisher;
 
   // -------------------------------------------------------------------------
   // Resources
@@ -344,6 +350,8 @@ public class SharingController {
           (Visualization) object,
           sharing.getObject().getUserAccesses(),
           sharing.getObject().getUserGroupAccesses());
+    } else if (object instanceof CategoryOption) {
+      eventPublisher.publishEvent(new CacheInvalidationEvent(this, Region.canDataWriteCocCache));
     }
 
     return ok("Access control set");

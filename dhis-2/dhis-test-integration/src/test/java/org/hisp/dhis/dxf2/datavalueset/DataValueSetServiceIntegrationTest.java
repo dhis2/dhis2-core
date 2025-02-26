@@ -54,12 +54,12 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.awaitility.Awaitility;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -90,6 +90,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -951,7 +952,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportDataValuesCsv() {
     ImportSummary summary =
         dataValueSetService.importDataValueSetCsv(
-            readFile("dxf2/datavalueset/dataValueSetB.csv"), null, null);
+            readFile("dxf2/datavalueset/dataValueSetB.csv"), null, JobProgress.noop());
 
     assertSuccessWithImportedUpdatedDeleted(12, 0, 0, summary);
   }
@@ -964,7 +965,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
         dataValueSetService.importDataValueSetCsv(
             readFile("dxf2/datavalueset/dataValueSetWithDataSetHeader.csv"),
             new ImportOptions().setDataSet("pBOMPrpg1QX"),
-            null);
+            JobProgress.noop());
 
     assertSuccessWithImportedUpdatedDeleted(3, 0, 0, summary);
     assertDataValuesCount(3);
@@ -978,7 +979,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
         dataValueSetService.importDataValueSetCsv(
             readFile("dxf2/datavalueset/dataValueSetBNoHeader.csv"),
             new ImportOptions().setFirstRowIsHeader(false),
-            null);
+            JobProgress.noop());
 
     assertSuccessWithImportedUpdatedDeleted(12, 0, 0, summary);
     assertDataValuesCount(12);
@@ -988,7 +989,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportDataValuesBooleanCsv() {
     ImportConflicts summary =
         dataValueSetService.importDataValueSetCsv(
-            readFile("dxf2/datavalueset/dataValueSetBooleanTest.csv"), null, null);
+            readFile("dxf2/datavalueset/dataValueSetBooleanTest.csv"), null, JobProgress.noop());
 
     String description = summary.getConflictsDescription();
     assertEquals(4, summary.getTotalConflictOccurrenceCount(), description);
@@ -1314,7 +1315,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
                               () ->
                                   String.format(
                                       "expected change to dataValue %s to be audited once", dv));
-                          assertEquals(ChangeLogType.UPDATE, audits.get(0).getAuditType());
+                          assertEquals(AuditOperationType.UPDATE, audits.get(0).getAuditType());
                         })
             .collect(Collectors.toList()));
   }

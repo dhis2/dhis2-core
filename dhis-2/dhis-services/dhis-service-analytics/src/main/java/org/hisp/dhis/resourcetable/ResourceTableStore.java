@@ -37,11 +37,4 @@ public interface ResourceTableStore {
    * @param resourceTable the {@link ResourceTable}.
    */
   void generateResourceTable(ResourceTable resourceTable);
-
-  /**
-   * Replicates analytics resource tables.
-   *
-   * @param resourceTable the {@link ResourceTable}.
-   */
-  void replicateAnalyticsResourceTable(ResourceTable resourceTable);
 }

@@ -40,18 +40,6 @@ Get program messages for given enrollment
 
 Get program messages for given event
 
-### `*.parameter.programInstace`
-
-**DEPRECATED as of 2.41:** Use parameter enrollment instead
-
-Get program messages for given enrollment
-
-### `*.parameter.programStageInstace`
-
-**DEPRECATED as of 2.41:** Use parameter event instead
-
-Get program messages for given event
-
 ### `*.parameter.afterDate`
 
 Get program messages after given date

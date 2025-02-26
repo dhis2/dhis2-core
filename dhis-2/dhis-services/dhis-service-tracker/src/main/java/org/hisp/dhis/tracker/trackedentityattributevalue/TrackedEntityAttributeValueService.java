@@ -45,13 +45,6 @@ public interface TrackedEntityAttributeValueService {
   void addTrackedEntityAttributeValue(TrackedEntityAttributeValue attributeValue);
 
   /**
-   * Updates an {@link TrackedEntityAttribute}.
-   *
-   * @param attributeValue the TrackedEntityAttribute to update.
-   */
-  void updateTrackedEntityAttributeValue(TrackedEntityAttributeValue attributeValue);
-
-  /**
    * Deletes a {@link TrackedEntityAttribute}.
    *
    * @param attributeValue the TrackedEntityAttribute to delete.

@@ -31,7 +31,6 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public final class EnrollmentAnalyticsColumnName {
-
   public static final String ENROLLMENT_COLUMN_NAME = "enrollment";
   public static final String TRACKED_ENTITY_COLUMN_NAME = "trackedentity";
   public static final String ENROLLMENT_DATE_COLUMN_NAME = "enrollmentdate";

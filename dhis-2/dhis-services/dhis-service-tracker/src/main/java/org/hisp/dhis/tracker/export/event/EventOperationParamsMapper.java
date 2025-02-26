@@ -89,7 +89,8 @@ class EventOperationParamsMapper {
         validateProgramStage(
             applyIfNotNull(operationParams.getProgramStage(), UID::getValue), user);
     TrackedEntity trackedEntity =
-        paramsValidator.validateTrackedEntity(operationParams.getTrackedEntity(), user);
+        paramsValidator.validateTrackedEntity(
+            operationParams.getTrackedEntity(), user, operationParams.isIncludeDeleted());
     OrganisationUnit orgUnit =
         validateRequestedOrgUnit(applyIfNotNull(operationParams.getOrgUnit(), UID::getValue), user);
     validateOrgUnitMode(operationParams.getOrgUnitMode(), program, user);
@@ -136,13 +137,13 @@ class EventOperationParamsMapper {
         .setEnrollmentOccurredAfter(operationParams.getEnrollmentOccurredAfter())
         .setEventStatus(operationParams.getEventStatus())
         .setCategoryOptionCombo(attributeOptionCombo)
-        .setIdSchemes(operationParams.getIdSchemes())
         .setIncludeAttributes(false)
         .setIncludeAllDataElements(false)
         .setEvents(operationParams.getEvents())
         .setEnrollments(operationParams.getEnrollments())
         .setIncludeDeleted(operationParams.isIncludeDeleted())
-        .setIncludeRelationships(operationParams.getEventParams().isIncludeRelationships());
+        .setIncludeRelationships(operationParams.getEventParams().isIncludeRelationships())
+        .setIdSchemeParams(operationParams.getIdSchemeParams());
   }
 
   private ProgramStage validateProgramStage(String programStageUid, UserDetails user)
@@ -175,7 +176,7 @@ class EventOperationParamsMapper {
           "Organisation unit is specified but does not exist: " + orgUnitUid);
     }
 
-    if (!user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getPath())) {
+    if (!user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getStoredPath())) {
       throw new ForbiddenException(
           "Organisation unit is not part of your search scope: " + orgUnit.getUid());
     }
@@ -262,7 +263,8 @@ class EventOperationParamsMapper {
           throw new BadRequestException(
               "Cannot order by '"
                   + uid.getValue()
-                  + "' as its neither a data element nor a tracked entity attribute. Events can be ordered by event fields, data elements and tracked entity attributes.");
+                  + "' as its neither a data element nor a tracked entity attribute. Events can be"
+                  + " ordered by event fields, data elements and tracked entity attributes.");
         }
 
         params.orderBy(tea, order.getDirection());
@@ -270,7 +272,8 @@ class EventOperationParamsMapper {
         throw new IllegalArgumentException(
             "Cannot order by '"
                 + order.getField()
-                + "'. Events can be ordered by event fields, data elements and tracked entity attributes.");
+                + "'. Events can be ordered by event fields, data elements and tracked entity"
+                + " attributes.");
       }
     }
   }

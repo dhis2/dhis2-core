@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.table;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -43,7 +42,6 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.joda.time.DateTime;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -55,18 +53,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class AnalyticsTableServiceTest {
-
   @Mock private SystemSettingsProvider settingsProvider;
+
   @Mock private SystemSettings settings;
 
   @Mock private SqlBuilder sqlBuilder;
 
   @InjectMocks private DefaultAnalyticsTableService tableService;
-
-  @BeforeEach
-  void setUp() {
-    lenient().when(settingsProvider.getCurrentSettings()).thenReturn(settings);
-  }
 
   @Test
   void testGetTablePartitions() {
@@ -81,7 +74,10 @@ class AnalyticsTableServiceTest {
                 .selectExpression("value")
                 .build());
 
-    AnalyticsTable tA = new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, Logged.UNLOGGED);
+    List<String> sortKey = List.of("dx");
+
+    AnalyticsTable tA =
+        new AnalyticsTable(AnalyticsTableType.DATA_VALUE, columns, sortKey, Logged.UNLOGGED);
     tA.addTablePartition(
         List.of(),
         2010,
@@ -93,7 +89,7 @@ class AnalyticsTableServiceTest {
         new DateTime(2011, 1, 1, 0, 0).toDate(),
         new DateTime(2011, 12, 31, 0, 0).toDate());
     AnalyticsTable tB =
-        new AnalyticsTable(AnalyticsTableType.ORG_UNIT_TARGET, columns, Logged.UNLOGGED);
+        new AnalyticsTable(AnalyticsTableType.ORG_UNIT_TARGET, columns, sortKey, Logged.UNLOGGED);
     List<AnalyticsTablePartition> partitions = tableService.getTablePartitions(List.of(tA, tB));
 
     assertEquals(3, partitions.size());
@@ -101,6 +97,7 @@ class AnalyticsTableServiceTest {
 
   @Test
   void testGetParallelJobsA() {
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
     when(settings.getParallelJobsInAnalyticsTableExport()).thenReturn(1);
 
     assertEquals(1, tableService.getParallelJobs());
@@ -108,6 +105,7 @@ class AnalyticsTableServiceTest {
 
   @Test
   void testGetParallelJobsB() {
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
     when(settings.getParallelJobsInAnalyticsTableExport()).thenReturn(-1);
     when(settings.getDatabaseServerCpus()).thenReturn(8);
 

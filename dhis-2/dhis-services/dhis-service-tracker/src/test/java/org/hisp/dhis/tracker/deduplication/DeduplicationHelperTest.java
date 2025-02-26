@@ -521,17 +521,11 @@ class DeduplicationHelperTest extends TestBase {
   }
 
   private TrackedEntity getTrackedEntityA() {
-    TrackedEntity te = createTrackedEntity(organisationUnitA);
-    te.setTrackedEntityType(trackedEntityTypeA);
-
-    return te;
+    return createTrackedEntity(organisationUnitA, trackedEntityTypeA);
   }
 
   private TrackedEntity getTrackedEntityB() {
-    TrackedEntity te = createTrackedEntity(organisationUnitB);
-    te.setTrackedEntityType(trackedEntityTypeB);
-
-    return te;
+    return createTrackedEntity(organisationUnitB, trackedEntityTypeB);
   }
 
   private User getNoMergeAuthsUser() {

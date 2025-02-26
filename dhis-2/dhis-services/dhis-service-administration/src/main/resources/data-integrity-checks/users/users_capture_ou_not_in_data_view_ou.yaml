@@ -31,60 +31,21 @@ section: Users
 section_order: 1
 summary_sql: >-
   WITH user_data_orgunits AS (
-      SELECT userinfoid, array_agg(path) AS data_orgunits_paths
-      FROM organisationunit
-      JOIN usermembership ON organisationunit.organisationunitid = usermembership.organisationunitid
-      WHERE path IS NOT NULL
-      GROUP BY userinfoid
+  SELECT u.userinfoid, array_agg(ou.path) AS data_orgunits_paths
+  FROM usermembership u
+  JOIN organisationunit ou ON ou.organisationunitid = u.organisationunitid
+  WHERE ou.path IS NOT NULL
+  GROUP BY userinfoid
   ),
   user_view_orgunits AS (
-      SELECT userinfoid, array_agg(path) AS view_orgunit_paths
-      FROM organisationunit
-      JOIN userdatavieworgunits ON organisationunit.organisationunitid = userdatavieworgunits.organisationunitid
-      WHERE path IS NOT NULL
-      GROUP BY userinfoid
+  SELECT u.userinfoid, array_agg(ou.path) AS view_orgunit_paths
+  FROM userdatavieworgunits u
+  JOIN organisationunit ou ON ou.organisationunitid = u.organisationunitid
+  WHERE path IS NOT NULL
+  GROUP BY userinfoid
   ),
-  usercount as (
-      SELECT COUNT(*) as usercount FROM userinfo
-  )
-  SELECT COUNT(ui.uid) as value, 
-  100.0 * COUNT(ui.uid) / NULLIF(usercount.usercount, 0) as percent
-  FROM userinfo ui
-  INNER JOIN (
-  SELECT u.userinfoid, ARRAY_AGG(dop) FILTER (WHERE dop IS NOT NULL) AS invalid_data_orgunits
-  FROM user_data_orgunits u
-  INNER JOIN user_view_orgunits v ON u.userinfoid = v.userinfoid
-  LEFT JOIN LATERAL (
-      SELECT path AS dop
-      FROM unnest(u.data_orgunits_paths) AS path
-      WHERE NOT EXISTS (
-          SELECT 1
-          FROM unnest(COALESCE(v.view_orgunit_paths, '{}')) AS view_path
-          WHERE path LIKE view_path || '%'
-      )
-  ) invalid_paths ON true
-  GROUP BY u.userinfoid
-  HAVING array_length(ARRAY_AGG(dop) FILTER (WHERE dop IS NOT NULL), 1) > 0
-  ) x on x.userinfoid = ui.userinfoid
-  INNER JOIN organisationunit ou on ou.path = any(x.invalid_data_orgunits)
-  JOIN usercount on true
-  GROUP BY usercount.usercount;
-details_sql: >-
-  WITH user_data_orgunits AS (
-      SELECT userinfoid, array_agg(path) AS data_orgunits_paths
-      FROM organisationunit 
-      JOIN usermembership ON organisationunit.organisationunitid = usermembership.organisationunitid
-      WHERE organisationunit.path IS NOT NULL
-      GROUP BY userinfoid
-  ),
-  user_view_orgunits AS (
-      SELECT userinfoid, array_agg(path) AS view_orgunit_paths
-      FROM organisationunit
-      JOIN userdatavieworgunits ON organisationunit.organisationunitid = userdatavieworgunits.organisationunitid
-      WHERE path IS NOT NULL
-      GROUP BY userinfoid
-  )
-  SELECT ui.uid, 
+  rs as (
+  SELECT ui.uid,
   ui.username as name,
   NULL as comment,
   array_agg(ou.name) as refs
@@ -94,13 +55,54 @@ details_sql: >-
   FROM user_data_orgunits u
   INNER JOIN user_view_orgunits v ON u.userinfoid = v.userinfoid
   LEFT JOIN LATERAL (
-      SELECT path AS dop
-      FROM unnest(u.data_orgunits_paths) AS path
-      WHERE NOT EXISTS (
-          SELECT 1
-          FROM unnest(COALESCE(v.view_orgunit_paths, '{}')) AS view_path
-          WHERE path LIKE view_path || '%'
-      )
+  SELECT path AS dop
+  FROM unnest(u.data_orgunits_paths) AS path
+  WHERE NOT EXISTS (
+  SELECT 1
+  FROM unnest(COALESCE(v.view_orgunit_paths, '{}')) AS view_path
+  WHERE path LIKE view_path || '%'
+  )
+  ) invalid_paths ON true
+  GROUP BY u.userinfoid
+  HAVING array_length(ARRAY_AGG(dop) FILTER (WHERE dop IS NOT NULL), 1) > 0
+  ) x on x.userinfoid = ui.userinfoid
+  INNER JOIN organisationunit ou on ou.path = any(x.invalid_data_orgunits)
+  GROUP BY ui.uid, ui.username)
+  SELECT COUNT(*) as count, 
+     100.0 * COUNT(*) / NULLIF((SELECT COUNT(*) FROM userinfo), 0) as percent
+        FROM rs;
+details_sql: >-
+  WITH user_data_orgunits AS (
+  SELECT u.userinfoid, array_agg(ou.path) AS data_orgunits_paths
+  FROM usermembership u
+  JOIN organisationunit ou ON ou.organisationunitid = u.organisationunitid
+  WHERE ou.path IS NOT NULL
+  GROUP BY userinfoid
+  ),
+  user_view_orgunits AS (
+  SELECT u.userinfoid, array_agg(ou.path) AS view_orgunit_paths
+  FROM userdatavieworgunits u
+  JOIN organisationunit ou ON ou.organisationunitid = u.organisationunitid
+  WHERE path IS NOT NULL
+  GROUP BY userinfoid
+  )
+  SELECT ui.uid,
+  ui.username as name,
+  NULL as comment,
+  array_agg(ou.name) as refs
+  FROM userinfo ui
+  INNER JOIN (
+  SELECT u.userinfoid, ARRAY_AGG(dop) FILTER (WHERE dop IS NOT NULL) AS invalid_data_orgunits
+  FROM user_data_orgunits u
+  INNER JOIN user_view_orgunits v ON u.userinfoid = v.userinfoid
+  LEFT JOIN LATERAL (
+  SELECT path AS dop
+  FROM unnest(u.data_orgunits_paths) AS path
+  WHERE NOT EXISTS (
+  SELECT 1
+  FROM unnest(COALESCE(v.view_orgunit_paths, '{}')) AS view_path
+  WHERE path LIKE view_path || '%'
+  )
   ) invalid_paths ON true
   GROUP BY u.userinfoid
   HAVING array_length(ARRAY_AGG(dop) FILTER (WHERE dop IS NOT NULL), 1) > 0
@@ -110,12 +112,14 @@ details_sql: >-
 details_id_type: users
 severity: SEVERE
 introduction: >
-  Users who can enter data should be able to view their own data. This situation occurs when a user has 
-  a data capture organisation unit which is not within the data view organisation unit hierarchy.
+  Users who can enter data should be able to view their own data. This check identifies users who have
+  a data capture organisation unit which is not within  one of their data view organisation unit hierarchy.
   This can lead to a situation where a user can enter data, but cannot view the data that they have entered.
 recommendation: >
   Users should at least have access to view the data that they have entered. Using the results
   of the details SQL view, identify the affected users and the organisation units where they
   have access to enter data. The user should have at least all of their data capture organisation units
   specified in their data view organisation units. Alternatively, you can set the data view organisation units
-  to be at a higher level in the hierarchy.
+  to be at a higher level in the hierarchy. Setting the data view organisation unit to a level above the data
+    capture organisation unit will allow the user to view all data entered at the data view organisation unit
+    and below.

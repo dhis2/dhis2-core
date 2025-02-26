@@ -27,18 +27,22 @@
  */
 package org.hisp.dhis.system.notification;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Deque;
 import java.util.Map;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.setting.SystemSettings;
 
 /**
  * @author Lars Helge Overland
  * @author Jan Bernitt (pulled up default methods)
  */
 public interface Notifier {
+
   default Notifier notify(JobConfiguration id, String message) {
     return notify(id, NotificationLevel.INFO, message, false);
   }
@@ -62,44 +66,115 @@ public interface Notifier {
       String message,
       boolean completed,
       NotificationDataType dataType,
-      JsonNode data);
+      JsonValue data);
 
-  default Notifier update(JobConfiguration id, String message) {
-    return update(id, NotificationLevel.INFO, message, false);
-  }
-
-  default Notifier update(JobConfiguration id, String message, boolean completed) {
-    return update(id, NotificationLevel.INFO, message, completed);
-  }
-
-  default Notifier update(JobConfiguration id, @Nonnull NotificationLevel level, String message) {
-    return update(id, level, message, false);
-  }
-
-  default Notifier update(
-      JobConfiguration id, @Nonnull NotificationLevel level, String message, boolean completed) {
-    if (id != null && !level.isOff()) {
-      notify(id, level, message, completed);
-    }
-    return this;
-  }
-
-  Map<JobType, Map<String, Deque<Notification>>> getNotifications();
+  /**
+   * @param gist when true, only the first and last message are included for each job. When {@code
+   *     null} the {@link SystemSettings#isNotifierGistOverview()} is used.
+   * @return a map with notifications for all job types and jobs
+   */
+  Map<JobType, Map<String, Deque<Notification>>> getNotifications(@CheckForNull Boolean gist);
 
   Deque<Notification> getNotificationsByJobId(JobType jobType, String jobId);
 
-  Map<String, Deque<Notification>> getNotificationsByJobType(JobType jobType);
+  /**
+   * @param jobType include jobs of this type in the result
+   * @param gist when true, only the first and last message are included for each job. When {@code
+   *     null} the {@link SystemSettings#isNotifierGistOverview()} is used.
+   * @return a map with notifications for all jobs of the provided type
+   */
+  Map<String, Deque<Notification>> getNotificationsByJobType(
+      JobType jobType, @CheckForNull Boolean gist);
 
-  Notifier clear(JobConfiguration id);
-
-  default <T> Notifier addJobSummary(JobConfiguration id, T jobSummary, Class<T> jobSummaryType) {
-    return addJobSummary(id, NotificationLevel.INFO, jobSummary, jobSummaryType);
+  default <T> Notifier addJobSummary(JobConfiguration id, T summary, Class<T> type) {
+    return addJobSummary(id, NotificationLevel.INFO, summary, type);
   }
 
   <T> Notifier addJobSummary(
-      JobConfiguration id, NotificationLevel level, T jobSummary, Class<T> jobSummaryType);
+      JobConfiguration id, NotificationLevel level, T summary, Class<T> type);
 
-  Map<String, Object> getJobSummariesForJobType(JobType jobType);
+  Map<String, JsonValue> getJobSummariesForJobType(JobType jobType);
 
-  Object getJobSummaryByJobId(JobType jobType, String jobId);
+  JsonValue getJobSummaryByJobId(JobType jobType, String jobId);
+
+  /**
+   * @since 2.42
+   * @return true, when currently no messages are being processed and no automatic cleanup is
+   *     running in the background.
+   */
+  boolean isIdle();
+
+  /*
+  Cleanup API
+   */
+
+  /**
+   * Removes all data for the specified job (both notifications and summary)
+   *
+   * @param type of the job to clear
+   * @param job ID of the job to clear
+   * @since 2.42
+   */
+  void clear(@Nonnull JobType type, @Nonnull UID job);
+
+  /**
+   * Removes all data for all jobs of the specified type.
+   *
+   * @param type of the jobs to clear
+   * @since 2.42
+   */
+  void clear(@Nonnull JobType type);
+
+  /**
+   * Removes all data (of all jobs and job types).
+   *
+   * @since 2.42
+   */
+  void clear();
+
+  /**
+   * Removes all data for jobs of the given type unless they are younger than the given max age in
+   * days
+   *
+   * @param maxAge keep the data for jobs from the most recent days
+   * @param type of jobs to check
+   * @since 2.42
+   */
+  void capMaxAge(int maxAge, @Nonnull JobType type);
+
+  /**
+   * Removes all data unless the job is younger than the given max age in days
+   *
+   * @param maxAge keep the data for jobs from the most recent days
+   * @since 2.42
+   */
+  void capMaxAge(int maxAge);
+
+  /**
+   * Removes all data for jobs of the given type except for the most recent n ones.
+   *
+   * @param maxCount number to keep (most recent first)
+   * @param type of jobs to check
+   * @since 2.42
+   */
+  void capMaxCount(int maxCount, @Nonnull JobType type);
+
+  /**
+   * Removes all data for jobs except for the most recent n ones for each type.
+   *
+   * @param maxCount number to keep (most recent first)
+   * @since 2.42
+   */
+  void capMaxCount(int maxCount);
+
+  /**
+   * For backwards compatibility (not having to update all callers)
+   *
+   * @param config the job to clear all data for
+   * @return itself for chaining
+   */
+  default Notifier clear(@CheckForNull JobConfiguration config) {
+    if (config != null) clear(config.getJobType(), UID.of(config.getUid()));
+    return this;
+  }
 }

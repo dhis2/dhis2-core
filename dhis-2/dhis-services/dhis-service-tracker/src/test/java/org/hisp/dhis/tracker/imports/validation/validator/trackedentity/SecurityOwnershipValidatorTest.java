@@ -40,6 +40,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
@@ -50,8 +51,8 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -73,7 +74,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
   private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
 
-  private static final String TE_ID = "TE_ID";
+  private static final UID TE_ID = UID.generate();
 
   private static final String TE_TYPE_ID = "TE_TYPE_ID";
 
@@ -105,6 +106,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
   public void setUp() {
     organisationUnit = createOrganisationUnit('A');
     organisationUnit.setUid(ORG_UNIT_ID);
+    organisationUnit.updatePath();
 
     User userA = makeUser("A");
     userA.addOrganisationUnit(organisationUnit);
@@ -298,8 +300,9 @@ class SecurityOwnershipValidatorTest extends TestBase {
   }
 
   private TrackedEntity teWithNoEnrollments() {
-    TrackedEntity trackedEntity = createTrackedEntity(organisationUnit);
-    trackedEntity.setUid(TE_ID);
+    TrackedEntity trackedEntity =
+        createTrackedEntity(organisationUnit, createTrackedEntityType('Z'));
+    trackedEntity.setUid(TE_ID.getValue());
     trackedEntity.setEnrollments(Sets.newHashSet());
     trackedEntity.setTrackedEntityType(trackedEntityType);
 
@@ -310,17 +313,17 @@ class SecurityOwnershipValidatorTest extends TestBase {
     Enrollment enrollment = new Enrollment();
     enrollment.setDeleted(true);
 
-    TrackedEntity trackedEntity = createTrackedEntity(organisationUnit);
-    trackedEntity.setUid(TE_ID);
+    TrackedEntity trackedEntity =
+        createTrackedEntity(organisationUnit, createTrackedEntityType('B'));
+    trackedEntity.setUid(TE_ID.getValue());
     trackedEntity.setEnrollments(Sets.newHashSet(enrollment));
-    trackedEntity.setTrackedEntityType(trackedEntityType);
-
     return trackedEntity;
   }
 
   private TrackedEntity teWithEnrollments() {
-    TrackedEntity trackedEntity = createTrackedEntity(organisationUnit);
-    trackedEntity.setUid(TE_ID);
+    TrackedEntity trackedEntity =
+        createTrackedEntity(organisationUnit, createTrackedEntityType('R'));
+    trackedEntity.setUid(TE_ID.getValue());
     trackedEntity.setEnrollments(Sets.newHashSet(new Enrollment()));
     trackedEntity.setTrackedEntityType(trackedEntityType);
 

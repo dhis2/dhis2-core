@@ -29,8 +29,6 @@ package org.hisp.dhis.resourcetable;
 
 import static java.time.temporal.ChronoUnit.YEARS;
 import static java.util.Comparator.reverseOrder;
-import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
-import static org.hisp.dhis.period.PeriodDataProvider.DataSource.SYSTEM_DEFINED;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
 import com.google.common.collect.Lists;
@@ -65,15 +63,18 @@ import org.hisp.dhis.resourcetable.table.DataApprovalRemapLevelResourceTable;
 import org.hisp.dhis.resourcetable.table.DataElementGroupSetResourceTable;
 import org.hisp.dhis.resourcetable.table.DataElementResourceTable;
 import org.hisp.dhis.resourcetable.table.DataSetOrganisationUnitCategoryResourceTable;
+import org.hisp.dhis.resourcetable.table.DataSetResourceTable;
 import org.hisp.dhis.resourcetable.table.DatePeriodResourceTable;
 import org.hisp.dhis.resourcetable.table.IndicatorGroupSetResourceTable;
 import org.hisp.dhis.resourcetable.table.OrganisationUnitGroupSetResourceTable;
 import org.hisp.dhis.resourcetable.table.OrganisationUnitStructureResourceTable;
 import org.hisp.dhis.resourcetable.table.PeriodResourceTable;
+import org.hisp.dhis.resourcetable.table.RelationshipCountResourceTable;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewService;
+import org.hisp.dhis.tablereplication.TableReplicationStore;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -85,6 +86,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultResourceTableService implements ResourceTableService {
   private final ResourceTableStore resourceTableStore;
+
+  private final TableReplicationStore tableReplicationStore;
 
   private final IdentifiableObjectManager idObjectManager;
 
@@ -114,7 +117,7 @@ public class DefaultResourceTableService implements ResourceTableService {
   @Transactional
   public void replicateAnalyticsResourceTables() {
     for (ResourceTable table : getResourceTables()) {
-      resourceTableStore.replicateAnalyticsResourceTable(table);
+      tableReplicationStore.replicateAnalyticsDatabaseTable(table.getMainTable());
     }
   }
 
@@ -131,7 +134,7 @@ public class DefaultResourceTableService implements ResourceTableService {
    *
    * @return a list of {@link ResourceTable}.
    */
-  private final List<ResourceTable> getResourceTables() {
+  private List<ResourceTable> getResourceTables() {
     Logged logged = analyticsTableSettings.getTableLogged();
     return List.of(
         new OrganisationUnitStructureResourceTable(
@@ -148,6 +151,7 @@ public class DefaultResourceTableService implements ResourceTableService {
             logged, idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class)),
         new IndicatorGroupSetResourceTable(
             logged, idObjectManager.getAllNoAcl(IndicatorGroupSet.class)),
+        new DataSetResourceTable(logged),
         new OrganisationUnitGroupSetResourceTable(
             logged,
             idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class),
@@ -159,7 +163,8 @@ public class DefaultResourceTableService implements ResourceTableService {
         new DataElementResourceTable(logged, idObjectManager.getAllNoAcl(DataElement.class)),
         new DatePeriodResourceTable(logged, getAndValidateAvailableDataYears()),
         new PeriodResourceTable(logged, periodService.getAllPeriods()),
-        new CategoryOptionComboResourceTable(logged));
+        new CategoryOptionComboResourceTable(logged),
+        new RelationshipCountResourceTable(logged));
   }
 
   /**
@@ -183,8 +188,7 @@ public class DefaultResourceTableService implements ResourceTableService {
    */
   List<Integer> getAndValidateAvailableDataYears() {
     List<Integer> availableYears =
-        periodDataProvider.getAvailableYears(
-            analyticsTableSettings.getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE);
+        periodDataProvider.getAvailableYears(analyticsTableSettings.getPeriodSource());
     validateYearsOffset(availableYears);
     return availableYears;
   }

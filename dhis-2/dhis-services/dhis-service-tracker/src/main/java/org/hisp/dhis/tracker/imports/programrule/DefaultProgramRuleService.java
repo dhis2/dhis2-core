@@ -124,16 +124,16 @@ class DefaultProgramRuleService implements ProgramRuleService {
       TrackerBundle bundle, TrackerPreheat preheat) {
     Set<Enrollment> enrollments =
         bundle.getEvents().stream()
-            .filter(event -> bundle.findEnrollmentByUid(event.getEnrollment().getValue()).isEmpty())
+            .filter(event -> bundle.findEnrollmentByUid(event.getEnrollment()).isEmpty())
             .filter(event -> preheat.getProgram(event.getProgram()).isRegistration())
-            .map(event -> preheat.getEnrollment(event.getEnrollment().getValue()))
+            .map(event -> preheat.getEnrollment(event.getEnrollment()))
             .collect(Collectors.toSet());
 
     return enrollments.stream()
         .map(
             e -> {
               List<RuleAttributeValue> attributes =
-                  getAttributes(e.getUid(), e.getTrackedEntity().getUid(), bundle, preheat);
+                  getAttributes(UID.of(e), UID.of(e.getTrackedEntity()), bundle, preheat);
               RuleEnrollment enrollment = RuleEngineMapper.mapSavedEnrollment(e, attributes);
               return programRuleEngine.evaluateEnrollmentAndEvents(
                   enrollment,
@@ -167,7 +167,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
   // Get all the attributes linked to enrollment from the payload and the DB,
   // using the one from payload if they are present in both places
   private List<RuleAttributeValue> getAttributes(
-      String enrollmentUid, String teUid, TrackerBundle bundle, TrackerPreheat preheat) {
+      UID enrollmentUid, UID teUid, TrackerBundle bundle, TrackerPreheat preheat) {
     List<RuleAttributeValue> payloadProgramAttributes =
         bundle
             .findEnrollmentByUid(enrollmentUid)
