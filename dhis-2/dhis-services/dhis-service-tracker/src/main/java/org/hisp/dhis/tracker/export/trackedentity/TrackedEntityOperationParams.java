@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -168,6 +169,7 @@ public class TrackedEntityOperationParams {
    */
   private List<Order> order;
 
+  /** Tracked entity attribute filters per attribute UID. */
   private final Map<UID, List<QueryFilter>> filters;
 
   public static class TrackedEntityOperationParamsBuilder {
@@ -260,13 +262,13 @@ public class TrackedEntityOperationParams {
     }
 
     public TrackedEntityOperationParamsBuilder filterBy(
-        UID attribute, List<QueryFilter> queryFilters) {
+        @Nonnull UID attribute, @Nonnull List<QueryFilter> queryFilters) {
       this.filters.putIfAbsent(attribute, new ArrayList<>());
       this.filters.get(attribute).addAll(queryFilters);
       return this;
     }
 
-    public TrackedEntityOperationParamsBuilder filterBy(UID attribute) {
+    public TrackedEntityOperationParamsBuilder filterBy(@Nonnull UID attribute) {
       this.filters.putIfAbsent(attribute, List.of(new QueryFilter(QueryOperator.NNULL)));
       return this;
     }
