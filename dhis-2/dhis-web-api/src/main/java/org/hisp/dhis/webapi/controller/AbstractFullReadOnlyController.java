@@ -413,13 +413,12 @@ public abstract class AbstractFullReadOnlyController<
 
     GetObjectListParams listParams = params.toListParams();
     addProgrammaticFilters(listParams::addFilter); // temporary workaround
-    Query query = queryService.getQueryFromUrl(getEntityClass(), listParams);
+    Query<T> query = queryService.getQueryFromUrl(getEntityClass(), listParams);
     query.setCurrentUserDetails(currentUser);
     query.setObjects(List.of(entity));
     query.setDefaults(params.getDefaults());
 
-    @SuppressWarnings("unchecked")
-    List<T> entities = (List<T>) queryService.query(query);
+    List<T> entities = queryService.query(query);
 
     List<String> fields = params.getFieldsObject();
     handleLinksAndAccess(entities, fields, true);
@@ -465,12 +464,12 @@ public abstract class AbstractFullReadOnlyController<
       throws NotFoundException {
     T entity = getEntity(uid);
 
-    Query query = queryService.getQueryFromUrl(getEntityClass(), params.toListParams());
+    Query<T> query = queryService.getQueryFromUrl(getEntityClass(), params.toListParams());
     query.setCurrentUserDetails(currentUser);
     query.setObjects(List.of(entity));
     query.setDefaults(params.getDefaults());
 
-    List<T> entities = (List<T>) queryService.query(query);
+    List<T> entities = queryService.query(query);
 
     List<String> fields = params.getFieldsObject();
     handleLinksAndAccess(entities, fields, true);
@@ -485,7 +484,7 @@ public abstract class AbstractFullReadOnlyController<
 
   private List<T> getEntityList(P params, List<Filter> additionalFilters)
       throws BadRequestException {
-    Query query =
+    Query<T> query =
         BadRequestException.on(
             QueryParserException.class,
             () -> queryService.getQueryFromUrl(getEntityClass(), params));
@@ -496,13 +495,12 @@ public abstract class AbstractFullReadOnlyController<
 
     modifyGetObjectList(params, query);
 
-    @SuppressWarnings("unchecked")
-    List<T> res = (List<T>) queryService.query(query);
+    List<T> res = queryService.query(query);
     getEntityListPostProcess(params, res);
     return res;
   }
 
-  protected void modifyGetObjectList(P params, Query query) {
+  protected void modifyGetObjectList(P params, Query<T> query) {
     // by default: nothing special to do
   }
 
@@ -510,7 +508,7 @@ public abstract class AbstractFullReadOnlyController<
 
   private long countGetObjectList(P params, List<Filter> additionalFilters)
       throws BadRequestException {
-    Query query =
+    Query<T> query =
         BadRequestException.on(
             QueryParserException.class,
             () -> queryService.getQueryFromUrl(getEntityClass(), params));

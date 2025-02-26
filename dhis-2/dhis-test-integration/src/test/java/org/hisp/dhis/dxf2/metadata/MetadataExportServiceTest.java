@@ -134,10 +134,10 @@ class MetadataExportServiceTest extends PostgresIntegrationTestBase {
     deg1.addDataElement(de3);
     deg1.setCreatedBy(user);
     manager.save(deg1);
-    Query deQuery = Query.from(schemaService.getDynamicSchema(DataElement.class), Junction.Type.OR);
+    Query<DataElement> deQuery = Query.of(DataElement.class, Junction.Type.OR);
     deQuery.add(Filters.eq("id", de1.getUid()));
     deQuery.add(Filters.eq("id", de2.getUid()));
-    Query degQuery = Query.from(schemaService.getDynamicSchema(DataElementGroup.class));
+    Query<DataElementGroup> degQuery = Query.of(DataElementGroup.class);
     degQuery.add(Filters.eq("id", "INVALID UID"));
     MetadataExportParams params = new MetadataExportParams();
     params.addQuery(deQuery);

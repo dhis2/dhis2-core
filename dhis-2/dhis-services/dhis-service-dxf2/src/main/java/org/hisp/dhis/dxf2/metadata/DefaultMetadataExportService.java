@@ -171,7 +171,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
     log.info("(" + username + ") Export:Start");
 
     for (Class<? extends IdentifiableObject> klass : params.getClasses()) {
-      Query query;
+      Query<?> query;
 
       if (params.getQuery(klass) != null) {
         query = params.getQuery(klass);
@@ -502,7 +502,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
       if (filters != null || orders != null) {
         GetObjectListParams queryParams =
             new GetObjectListParams().setPaging(false).setFilters(filters).setOrders(orders);
-        Query query = queryService.getQueryFromUrl(objectType, queryParams);
+        Query<?> query = queryService.getQueryFromUrl(objectType, queryParams);
         query.setDefaultOrder();
         params.addQuery(query);
       }

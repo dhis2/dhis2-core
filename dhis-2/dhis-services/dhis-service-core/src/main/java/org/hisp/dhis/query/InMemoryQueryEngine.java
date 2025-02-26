@@ -31,13 +31,11 @@ import static org.hisp.dhis.query.Filters.eq;
 import static org.hisp.dhis.query.Filters.ilike;
 import static org.hisp.dhis.query.Filters.in;
 
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 import lombok.AllArgsConstructor;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
@@ -57,12 +55,12 @@ import org.springframework.stereotype.Component;
 @Component("org.hisp.dhis.query.InMemoryQueryEngine")
 @AllArgsConstructor
 public class InMemoryQueryEngine implements QueryEngine {
-  private final SchemaService schemaService;
 
+  private final SchemaService schemaService;
   private final AclService aclService;
 
   @Override
-  public <T extends IdentifiableObject> List<T> query(Query query) {
+  public <T extends IdentifiableObject> List<T> query(Query<T> query) {
     validateQuery(query);
     List<T> list = runQuery(query);
     list = runSorter(query, list);
@@ -73,19 +71,19 @@ public class InMemoryQueryEngine implements QueryEngine {
   }
 
   @Override
-  public <T extends IdentifiableObject> long count(Query query) {
+  public <T extends IdentifiableObject> long count(Query<T> query) {
     validateQuery(query);
     List<T> list = runQuery(query);
     return list.size();
   }
 
-  private void validateQuery(Query query) {
+  private void validateQuery(Query<?> query) {
     if (query.getCurrentUserDetails() == null) {
       query.setCurrentUserDetails(CurrentUserUtil.getCurrentUserDetails());
     }
 
-    if (query.getSchema() == null) {
-      throw new QueryException("Invalid Query object, does not contain Schema");
+    if (query.getObjectType() == null) {
+      throw new QueryException("Invalid Query object, does not contain an object type");
     }
 
     if (query.getObjects() == null) {
@@ -93,15 +91,12 @@ public class InMemoryQueryEngine implements QueryEngine {
     }
   }
 
-  @SuppressWarnings("unchecked")
-  private <T extends IdentifiableObject> List<T> runQuery(Query query) {
-    return query.getObjects().stream()
-        .filter(object -> matches(query, (T) object))
-        .map(object -> (T) object)
-        .collect(Collectors.toList());
+  private <T extends IdentifiableObject> List<T> runQuery(Query<T> query) {
+    List<Matcher> matchers = query.getFilters().stream().map(f -> matcherOf(query, f)).toList();
+    return query.getObjects().stream().filter(object -> matches(query, object, matchers)).toList();
   }
 
-  private <T extends IdentifiableObject> List<T> runSorter(Query query, List<T> objects) {
+  private <T extends IdentifiableObject> List<T> runSorter(Query<T> query, List<T> objects) {
     List<T> sorted = new ArrayList<>(objects);
 
     sorted.sort(
@@ -117,62 +112,77 @@ public class InMemoryQueryEngine implements QueryEngine {
     return sorted;
   }
 
-  private <T> boolean matches(Query query, T object) {
+  private <T extends IdentifiableObject> boolean matches(
+      Query<T> query, T object, List<Matcher> matchers) {
     if (query.getRootJunctionType() == Junction.Type.OR) {
       // OR
-      for (Filter filter : query.getFilters()) {
-        if (matches(query, object, filter)) return true;
-      }
+      for (Matcher matcher : matchers) if (matches(query, object, matcher)) return true;
       return false;
     }
     // AND
-    for (Filter filter : query.getFilters()) {
-      if (!matches(query, object, filter)) return false;
-    }
+    for (Matcher matcher : matchers) if (!matches(query, object, matcher)) return false;
     return true;
   }
 
-  private <T> boolean matches(Query query, T object, Filter filter) {
+  /**
+   * The main purpose of matchers is to "cache" the knowledge of how to extract a value for a filter
+   * test from an object of the listed object type.
+   *
+   * @param filter the filter that is applied
+   * @param value a function to extract the filter property value from an object
+   */
+  private record Matcher(Filter filter, Function<IdentifiableObject, Object> value) {}
+
+  private <T extends IdentifiableObject> boolean matches(
+      Query<T> query, T object, Matcher matcher) {
+    Filter filter = matcher.filter;
     if (filter.isVirtual()) {
-      if (filter.isMentions()) return testMentions(query, object, filter);
-      if (filter.isIdentifiable()) return testIdentifiable(query, object, filter);
-      if (filter.isQuery()) return testQuery(query, object, filter);
+      if (filter.isMentions()) return matchesMentions(query, object, matcher);
+      if (filter.isIdentifiable()) return matchesIdentifiable(query, object, matcher);
+      if (filter.isQuery()) return matchesQuery(query, object, matcher);
       throw new UnsupportedOperationException("Special filter is not implemented yet :/ " + filter);
     }
-    Object value = getValue(query, object, filter);
-    if (!(value instanceof Collection<?> collection)) return filter.getOperator().test(value);
-    return collection.stream().anyMatch(item -> filter.getOperator().test(item));
+    Object value = matcher.value.apply(object);
+    if (!(value instanceof Collection<?> c)) return filter.getOperator().test(value);
+    return c.stream().anyMatch(item -> filter.getOperator().test(item));
   }
 
-  private <T> boolean testMentions(Query query, T object, Filter filter) {
-    Operator<?> op = filter.getOperator();
-    return matches(query, object, in("mentions.username", op.getArgs()))
-        || matches(query, object, in("comments.mentions.username", op.getArgs()));
+  private <T extends IdentifiableObject> boolean matchesMentions(
+      Query<T> query, T object, Matcher matcher) {
+    Operator<?> op = matcher.filter.getOperator();
+    return matches(query, object, matcherOf(query, in("mentions.username", op.getArgs())))
+        || matches(query, object, matcherOf(query, in("comments.mentions.username", op.getArgs())));
   }
 
-  private <T> boolean testIdentifiable(Query query, T object, Filter filter) {
-    Operator<?> op = filter.getOperator();
-    return matches(query, object, new Filter("id", op))
-        || matches(query, object, new Filter("code", op))
-        || matches(query, object, new Filter("name", op))
-        || query.getSchema().hasPersistedProperty("shortName")
-            && matches(query, object, new Filter("shortName", op));
+  private <T extends IdentifiableObject> boolean matchesIdentifiable(
+      Query<T> query, T object, Matcher matcher) {
+    Operator<?> op = matcher.filter.getOperator();
+    return matches(query, object, matcherOf(query, new Filter("id", op)))
+        || matches(query, object, matcherOf(query, new Filter("code", op)))
+        || matches(query, object, matcherOf(query, new Filter("name", op)))
+        || query.isShortNamePersisted()
+            && matches(query, object, matcherOf(query, new Filter("shortName", op)));
   }
 
-  private <T> boolean testQuery(Query query, T object, Filter filter) {
-    String value = (String) filter.getOperator().getArgs().get(0);
-    return matches(query, object, eq("id", value))
-        || matches(query, object, eq("code", value))
-        || matches(query, object, ilike("name", value, MatchMode.ANYWHERE));
+  private <T extends IdentifiableObject> boolean matchesQuery(
+      Query<T> query, T object, Matcher matcher) {
+    String value = (String) matcher.filter.getOperator().getArgs().get(0);
+    return matches(query, object, matcherOf(query, eq("id", value)))
+        || matches(query, object, matcherOf(query, eq("code", value)))
+        || matches(query, object, matcherOf(query, ilike("name", value, MatchMode.ANYWHERE)));
   }
 
-  private Object getValue(Query query, Object object, Filter filter) {
+  private Matcher matcherOf(Query<?> query, Filter filter) {
+    return new Matcher(filter, obj -> getValue(query, obj, filter));
+  }
+
+  private Object getValue(Query<?> query, Object object, Filter filter) {
     String path = filter.getPath();
     String[] paths = path.split("\\.");
-    Schema currentSchema = query.getSchema();
+    Schema currentSchema = schemaService.getDynamicSchema(query.getObjectType());
 
-    if (path.contains("access") && query.getSchema().isIdentifiableObject()) {
-      ((BaseIdentifiableObject) object)
+    if (path.contains("access")) {
+      ((IdentifiableObject) object)
           .setAccess(
               aclService.getAccess((IdentifiableObject) object, query.getCurrentUserDetails()));
     }
@@ -182,7 +192,7 @@ public class InMemoryQueryEngine implements QueryEngine {
 
       if (property == null) {
         if (i == paths.length - 1 && filter.isAttribute()) {
-          return ((BaseIdentifiableObject) object).getAttributeValues().get(paths[i]);
+          return ((IdentifiableObject) object).getAttributeValues().get(paths[i]);
         }
         throw new QueryException("No property found for path " + path);
       }
@@ -198,12 +208,12 @@ public class InMemoryQueryEngine implements QueryEngine {
       if (path.contains("access") && property.isIdentifiableObject()) {
         if (property.isCollection()) {
           for (Object item : ((Collection<?>) object)) {
-            ((BaseIdentifiableObject) item)
+            ((IdentifiableObject) item)
                 .setAccess(
                     aclService.getAccess((IdentifiableObject) item, query.getCurrentUserDetails()));
           }
         } else {
-          ((BaseIdentifiableObject) object)
+          ((IdentifiableObject) object)
               .setAccess(
                   aclService.getAccess((IdentifiableObject) object, query.getCurrentUserDetails()));
         }
@@ -211,7 +221,7 @@ public class InMemoryQueryEngine implements QueryEngine {
 
       if (i == (paths.length - 1)) {
         if (property.isCollection()) {
-          return Lists.newArrayList(object);
+          return List.of(object);
         }
 
         return object;
