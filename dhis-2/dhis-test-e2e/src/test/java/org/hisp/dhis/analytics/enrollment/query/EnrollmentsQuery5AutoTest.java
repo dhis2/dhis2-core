@@ -259,4 +259,194 @@ public class EnrollmentsQuery5AutoTest extends AnalyticsApiTest {
         1,
         List.of("Ngelehun CHC", "2018-02-20 18:47:35.335", "0", "ACTIVE", "2023-10-15 02:00:00.0"));
   }
+
+  @Test
+  public void programIndicatorMalariaCaseComplex() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("includeMetadataDetails=true")
+            .add("asc=NL89wvU7Rqa")
+            .add("headers=ouname,lastupdated,NL89wvU7Rqa")
+            .add("lastUpdated=LAST_10_YEARS")
+            .add("displayProperty=NAME")
+            .add("totalPages=false")
+            .add("rowContext=true")
+            .add("pageSize=100")
+            .add("outputType=ENROLLMENT")
+            .add("page=1")
+            .add("dimension=NL89wvU7Rqa:NE:NV:GE:76:LE:80,ou:USER_ORGUNIT")
+            .add("relativePeriodDate=2025-01-20");
+
+    // When
+    ApiResponse response = actions.query().get("qDkgAbB5Jlk", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(3)))
+        .body("rows", hasSize(equalTo(2)))
+        .body("height", equalTo(2))
+        .body("width", equalTo(3))
+        .body("headerWidth", equalTo(3));
+
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"NL89wvU7Rqa\":{\"uid\":\"NL89wvU7Rqa\",\"name\":\"Malaria Case PI Complex\",\"description\":\"http://localhost:8080/dhis/api/42/analytics/enrollments/query/qDkgAbB5Jlk?dimension=Ym2kI6k1I5e:NE:NV:GE:76:LE:80,ou:USER_ORGUNIT&headers=ouname,lastupdated,Ym2kI6k1I5e&totalPages=false&rowContext=true&lastUpdated=LAST_10_YEARS&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=ENROLLMENT&asc=Ym2kI6k1I5e\",\"legendSet\":\"TiOkbpGEud4\",\"dimensionItemType\":\"PROGRAM_INDICATOR\",\"valueType\":\"NUMBER\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"LAST_10_YEARS\":{\"name\":\"Last 10 years\"},\"qDkgAbB5Jlk\":{\"uid\":\"qDkgAbB5Jlk\",\"name\":\"Malaria case diagnosis, treatment and investigation\",\"description\":\"All cases in an elimination setting should be registered in this program. Includes relevant case identifiers/details including the ID, Name, Index, Age, Gender, Location,etc..\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"eHvTba5ijAh\":{\"uid\":\"eHvTba5ijAh\",\"name\":\"Case outcome\",\"description\":\"This stage details the final outcome of the case\"},\"wYTF0YCHMWr\":{\"uid\":\"wYTF0YCHMWr\",\"name\":\"Case investigation & classification\",\"description\":\"This includes the investigation of the index case (including the confirmation of symptoms, previous malaria history, LLIN usage details, IRS details), and the summary of the results for the case investigation including the final case classification (both the species type and the case classification). \"},\"hYyB7FUS5eR\":{\"uid\":\"hYyB7FUS5eR\",\"name\":\"Diagnosis & treatment\",\"description\":\"This stage is used to identify initial diagnosis and treatment. This includes the method of case detection, information about the case include travel history, method of diagnosis, malaria species type and treatment details. \"},\"C0aLZo75dgJ\":{\"uid\":\"C0aLZo75dgJ\",\"name\":\"Household investigation\",\"description\":\"Nearby household investigations occur when an index case is identified within a specific geographical area.\"}},\"dimensions\":{\"NL89wvU7Rqa\":[],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
+    validateHeader(
+        response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response,
+        1,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeader(
+        response,
+        2,
+        "NL89wvU7Rqa",
+        "Malaria Case PI Complex",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        true);
+
+    // Assert rows.
+    validateRow(response, 0, List.of("Ngelehun CHC", "2019-08-21 13:29:58.317", "77.0"));
+    validateRow(response, 1, List.of("Ngelehun CHC", "2019-08-21 13:30:13.73", "78.0"));
+  }
+
+  @Test
+  public void programIndicatorTBProgramComplex() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("includeMetadataDetails=true")
+            .add("asc=hgTNuHSqBmL")
+            .add("headers=ouname,hgTNuHSqBmL,lastupdated")
+            .add("lastUpdated=LAST_10_YEARS")
+            .add("displayProperty=NAME")
+            .add("totalPages=false")
+            .add("rowContext=true")
+            .add("pageSize=100")
+            .add("outputType=ENROLLMENT")
+            .add("page=1")
+            .add("dimension=ou:USER_ORGUNIT,hgTNuHSqBmL:GT:404:NE:NV")
+            .add("relativePeriodDate=2025-01-20");
+
+    // When
+    ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(3)))
+        .body("rows", hasSize(equalTo(3)))
+        .body("height", equalTo(3))
+        .body("width", equalTo(3))
+        .body("headerWidth", equalTo(3));
+
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"LAST_10_YEARS\":{\"name\":\"Last 10 years\"},\"EPEcjy3FWmI\":{\"uid\":\"EPEcjy3FWmI\",\"name\":\"Lab monitoring\",\"description\":\"Laboratory monitoring\"},\"hgTNuHSqBmL\":{\"uid\":\"hgTNuHSqBmL\",\"name\":\"TB PI Complex\",\"description\":\"http://localhost:8080/dhis/api/42/analytics/enrollments/query/ur1Edk5Oe2n?dimension=ou:USER_ORGUNIT,tzjB2D6SvQZ:GT:404:NE:NV&headers=ouname,tzjB2D6SvQZ,lastupdated&totalPages=false&rowContext=true&lastUpdated=LAST_10_YEARS&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=ENROLLMENT&asc=tzjB2D6SvQZ\",\"legendSet\":\"fqs276KXCXi\",\"dimensionItemType\":\"PROGRAM_INDICATOR\",\"valueType\":\"NUMBER\",\"aggregationType\":\"SUM\",\"totalAggregationType\":\"SUM\"},\"ur1Edk5Oe2n\":{\"uid\":\"ur1Edk5Oe2n\",\"name\":\"TB program\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"jdRD35YwbRH\":{\"uid\":\"jdRD35YwbRH\",\"name\":\"Sputum smear microscopy test\",\"description\":\"Sputum smear microscopy test\"},\"ZkbAXlQUYJG\":{\"uid\":\"ZkbAXlQUYJG\",\"name\":\"TB visit\",\"description\":\"Routine TB visit\"}},\"dimensions\":{\"hgTNuHSqBmL\":[],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
+    validateHeader(
+        response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response, 1, "hgTNuHSqBmL", "TB PI Complex", "NUMBER", "java.lang.Double", false, true);
+    validateHeader(
+        response,
+        2,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+
+    // Assert rows.
+    validateRow(response, 0, List.of("Motorbong MCHP", "405.34", "2017-03-28 12:27:49.148"));
+    validateRow(response, 1, List.of("Ngelehun CHC", "426.34", "2017-03-28 12:35:24.047"));
+    validateRow(response, 2, List.of("Ngelehun CHC", "462.24", "2017-03-28 12:34:17.868"));
+  }
+
+  @Test
+  public void programIndicatorChildProgramComplex() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("headers=ouname,lastupdated,qZOBw051LSf,programstatus")
+            .add("displayProperty=NAME")
+            .add("rowContext=true")
+            .add("pageSize=100")
+            .add("outputType=ENROLLMENT")
+            .add("relativePeriodDate=2025-01-20")
+            .add("includeMetadataDetails=true")
+            .add("lastUpdated=LAST_10_YEARS")
+            .add("totalPages=false")
+            .add("page=1")
+            .add("dimension=ou:USER_ORGUNIT,qZOBw051LSf")
+            .add("programStatus=COMPLETED")
+            .add("desc=lastupdated");
+
+    // When
+    ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(4)))
+        .body("rows", hasSize(equalTo(5)))
+        .body("height", equalTo(5))
+        .body("width", equalTo(4))
+        .body("headerWidth", equalTo(4));
+
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"LAST_10_YEARS\":{\"name\":\"Last 10 years\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"qZOBw051LSf\":{\"uid\":\"qZOBw051LSf\",\"name\":\"Child PI Complex\",\"legendSet\":\"Yf6UHoPkdS6\",\"dimensionItemType\":\"PROGRAM_INDICATOR\",\"valueType\":\"NUMBER\",\"aggregationType\":\"SUM\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"qZOBw051LSf\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
+    validateHeader(
+        response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response,
+        1,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeader(
+        response, 2, "qZOBw051LSf", "Child PI Complex", "NUMBER", "java.lang.Double", false, true);
+    validateHeader(
+        response, 3, "programstatus", "Program status", "TEXT", "java.lang.String", false, true);
+
+    // Assert rows.
+    validateRow(
+        response, 0, List.of("Ngelehun CHC", "2018-01-20 10:44:33.776", "0.98", "COMPLETED"));
+    validateRow(
+        response, 1, List.of("Ngelehun CHC", "2018-01-20 10:42:54.423", "0.98", "COMPLETED"));
+    validateRow(
+        response, 2, List.of("Ngelehun CHC", "2018-01-20 10:41:01.537", "0.98", "COMPLETED"));
+    validateRow(
+        response, 3, List.of("Ngelehun CHC", "2017-11-16 12:54:26.958", "0.98", "COMPLETED"));
+    validateRow(
+        response, 4, List.of("Ngelehun CHC", "2017-11-16 12:26:42.851", "0.98", "COMPLETED"));
+  }
 }

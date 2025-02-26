@@ -491,6 +491,8 @@ public class RelationshipsTests extends TrackerApiTest {
                     .addAll(
                         "filter=fromConstraint.relationshipEntity:eq:TRACKED_ENTITY_INSTANCE",
                         "filter=toConstraint.relationshipEntity:eq:TRACKED_ENTITY_INSTANCE",
+                        "filter=toConstraint.trackedEntityType.id:eq:Q9GufDoplCL",
+                        "filter=fromConstraint.trackedEntityType.id:eq:Q9GufDoplCL",
                         "filter=bidirectional:eq:" + bidirectional,
                         "filter=name:like:TA"))
             .extractString("relationshipTypes.id[0]");
@@ -514,7 +516,9 @@ public class RelationshipsTests extends TrackerApiTest {
             .addArray("relationships", relationship1, relationship2)
             .build();
 
-    TrackerApiResponse response = trackerImportExportActions.postAndGetJobReport(payload);
+    TrackerApiResponse response =
+        trackerImportExportActions.postAndGetJobReport(
+            payload, new QueryParamsBuilder().add("async=false"));
 
     response.validateSuccessfulImport().validate().body("stats.created", equalTo(expectedCount));
 

@@ -35,10 +35,17 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.relationship.RelationshipKey;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.TrackerType;
 
 public interface RelationshipService {
+
+  /** Get all relationship items matching given params. */
+  Set<RelationshipItem> getRelationshipItems(
+      TrackerType trackerType, UID uid, boolean includeDeleted);
 
   /** Get all relationships matching given params. */
   List<Relationship> getRelationships(RelationshipOperationParams params)
@@ -48,6 +55,10 @@ public interface RelationshipService {
   Page<Relationship> getRelationships(RelationshipOperationParams params, PageParams pageParams)
       throws ForbiddenException, NotFoundException, BadRequestException;
 
+  /**
+   * Get a relationship matching given {@code UID} under the privileges of the currently
+   * authenticated user.
+   */
   Relationship getRelationship(UID uid) throws ForbiddenException, NotFoundException;
 
   /**
@@ -56,6 +67,13 @@ public interface RelationshipService {
    */
   List<Relationship> getRelationships(@Nonnull Set<UID> uids)
       throws ForbiddenException, NotFoundException;
+
+  /**
+   * Get relationships matching given relationshipKeys. A {@link RelationshipKey} represents a
+   * string concatenating the relationshipType uid, the uid of the `from` entity and the uid of the
+   * `to` entity.
+   */
+  List<Relationship> getRelationshipsByRelationshipKeys(List<RelationshipKey> relationshipKeys);
 
   /**
    * Fields the {@link #getRelationships(RelationshipOperationParams)} can order relationships by.

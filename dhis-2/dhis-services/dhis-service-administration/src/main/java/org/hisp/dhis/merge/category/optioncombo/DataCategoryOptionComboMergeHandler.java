@@ -44,6 +44,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalAudit;
@@ -91,25 +92,20 @@ public class DataCategoryOptionComboMergeHandler {
       dataValueStore.deleteDataValuesByAttributeOptionCombo(sources);
     } else {
       log.info("Merging source data values as dataMergeStrategy is LAST_UPDATED");
-      dataValueStore.mergeDataValuesWithCategoryOptionCombos(target, sources);
-      dataValueStore.mergeDataValuesWithAttributeOptionCombos(target, sources);
+      dataValueStore.mergeDataValuesWithCategoryOptionCombos(
+          target.getId(), IdentifiableObjectUtils.getIdentifiersSet(sources));
+      dataValueStore.mergeDataValuesWithAttributeOptionCombos(
+          target.getId(), IdentifiableObjectUtils.getIdentifiersSet(sources));
     }
   }
 
   /**
-   * All {@link DataValueAudit}s will either be deleted or left as is, based on whether the source
-   * {@link CategoryOptionCombo}s are being deleted or not.
+   * All {@link DataValueAudit}s will deleted, as source {@link CategoryOptionCombo}s are always
+   * deleted.
    */
-  public void handleDataValueAudits(
-      @Nonnull List<CategoryOptionCombo> sources, @Nonnull MergeRequest mergeRequest) {
-    if (mergeRequest.isDeleteSources()) {
-      log.info(
-          "Deleting source data value audits as source CategoryOptionCombos are being deleted");
-      sources.forEach(dataValueAuditStore::deleteDataValueAudits);
-    } else {
-      log.info(
-          "Leaving source data value audit records as is, source CategoryOptionCombos are not being deleted");
-    }
+  public void handleDataValueAudits(@Nonnull List<CategoryOptionCombo> sources) {
+    log.info("Deleting source data value audits as source CategoryOptionCombos are being deleted");
+    sources.forEach(dataValueAuditStore::deleteDataValueAudits);
   }
 
   public void handleDataApprovals(
@@ -145,19 +141,13 @@ public class DataCategoryOptionComboMergeHandler {
   }
 
   /**
-   * Deletes {@link DataApprovalAudit}s if the source {@link CategoryOptionCombo}s are being
-   * deleted. Otherwise, no other action taken.
+   * Deletes {@link DataApprovalAudit}s as the source {@link CategoryOptionCombo}s are always
+   * deleted.
    */
-  public void handleDataApprovalAudits(
-      @Nonnull List<CategoryOptionCombo> sources, @Nonnull MergeRequest mergeRequest) {
-    if (mergeRequest.isDeleteSources()) {
-      log.info(
-          "Deleting source data approval audits as source CategoryOptionCombos are being deleted");
-      sources.forEach(dataApprovalAuditStore::deleteDataApprovalAudits);
-    } else {
-      log.info(
-          "Leaving source data approval audit records as is, source CategoryOptionCombos are not being deleted");
-    }
+  public void handleDataApprovalAudits(@Nonnull List<CategoryOptionCombo> sources) {
+    log.info(
+        "Deleting source data approval audits as source CategoryOptionCombos are being deleted");
+    sources.forEach(dataApprovalAuditStore::deleteDataApprovalAudits);
   }
 
   /**

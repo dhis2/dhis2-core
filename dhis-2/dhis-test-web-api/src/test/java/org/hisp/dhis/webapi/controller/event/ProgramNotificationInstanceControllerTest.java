@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.event;
 
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -47,6 +46,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.junit.jupiter.api.BeforeEach;
@@ -86,7 +86,9 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
     manager.save(prA);
     ProgramStage psA = createProgramStage('A', prA);
     manager.save(psA);
-    TrackedEntity trackedEntityA = createTrackedEntity('A', orgUnit);
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    TrackedEntity trackedEntityA = createTrackedEntity('A', orgUnit, trackedEntityType);
     manager.save(trackedEntityA);
     enrollment = createEnrollment(prA, trackedEntityA, orgUnit);
     manager.save(enrollment);
@@ -113,40 +115,6 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
   }
 
   @Test
-  void shouldGetProgramNotificationWhenPassingDeprecatedProgramInstanceParam() {
-    JsonList<JsonIdentifiableObject> list =
-        GET("/programNotificationInstances?programInstance={uid}", enrollment.getUid())
-            .content(HttpStatus.OK)
-            .getList("programNotificationInstances", JsonIdentifiableObject.class);
-
-    assertContainsOnly(
-        List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
-        list.toList(JsonIdentifiableObject::getName));
-  }
-
-  @Test
-  void shouldFailToGetProgramNotificationWhenPassingEnrollmentAndProgramInstanceParams() {
-    assertStartsWith(
-        "Only one parameter of 'programInstance' and 'enrollment'",
-        GET(
-                "/programNotificationInstances?enrollment={uid}&programInstance={uid}",
-                enrollment.getUid(),
-                enrollment.getUid())
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
-  }
-
-  @Test
-  void shouldGetProgramNotificationWhenPassingDeprecatedProgramStageInstanceParam() {
-    JsonList<JsonIdentifiableObject> list =
-        GET("/programNotificationInstances?programStageInstance={uid}", event.getUid())
-            .content(HttpStatus.OK)
-            .getList("programNotificationInstances", JsonIdentifiableObject.class);
-
-    assertEquals(eventNotification.getName(), list.get(0).getName());
-  }
-
-  @Test
   void shouldGetProgramNotificationWhenPassingEventParams() {
     JsonList<JsonIdentifiableObject> list =
         GET("/programNotificationInstances?event={uid}", event.getUid())
@@ -154,18 +122,6 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
             .getList("programNotificationInstances", JsonIdentifiableObject.class);
 
     assertEquals(eventNotification.getName(), list.get(0).getName());
-  }
-
-  @Test
-  void shouldFailToGetProgramNotificationWhenPassingEventAndProgramStageInstanceParams() {
-    assertStartsWith(
-        "Only one parameter of 'programStageInstance' and 'event'",
-        GET(
-                "/programNotificationInstances?event={uid}&programStageInstance={uid}",
-                event.getUid(),
-                event.getUid())
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
   }
 
   @Test
@@ -185,12 +141,6 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
     assertEquals(50, page.getPager().getPageSize());
     assertEquals(2, page.getPager().getTotal());
     assertEquals(1, page.getPager().getPageCount());
-
-    // assert deprecated fields
-    assertEquals(1, page.getPage());
-    assertEquals(50, page.getPageSize());
-    assertEquals(2, page.getTotal());
-    assertEquals(1, page.getPageCount());
   }
 
   @Test
@@ -211,12 +161,6 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
     assertEquals(1, page.getPager().getPageSize());
     assertEquals(2, page.getPager().getTotal());
     assertEquals(2, page.getPager().getPageCount());
-
-    // assert deprecated fields
-    assertEquals(2, page.getPage());
-    assertEquals(1, page.getPageSize());
-    assertEquals(2, page.getTotal());
-    assertEquals(2, page.getPageCount());
   }
 
   @Test
@@ -236,33 +180,6 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
     assertEquals(50, page.getPager().getPageSize());
     assertEquals(2, page.getPager().getTotal());
     assertEquals(1, page.getPager().getPageCount());
-
-    // assert deprecated fields
-    assertEquals(1, page.getPage());
-    assertEquals(50, page.getPageSize());
-    assertEquals(2, page.getTotal());
-    assertEquals(1, page.getPageCount());
-  }
-
-  @Test
-  void shouldGetNonPaginatedItemsWithSkipPaging() {
-    JsonPage page =
-        GET("/programNotificationInstances?enrollment={uid}&skipPaging=true", enrollment.getUid())
-            .content(HttpStatus.OK)
-            .asA(JsonPage.class);
-
-    JsonList<JsonIdentifiableObject> list =
-        page.getList("programNotificationInstances", JsonIdentifiableObject.class);
-    assertContainsOnly(
-        List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
-        list.toList(JsonIdentifiableObject::getName));
-    assertHasNoMember(page, "pager");
-
-    // assert deprecated fields
-    assertHasNoMember(page, "page");
-    assertHasNoMember(page, "pageSize");
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
   }
 
   @Test
@@ -278,37 +195,5 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
         List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
         list.toList(JsonIdentifiableObject::getName));
     assertHasNoMember(page, "pager");
-
-    // assert deprecated fields
-    assertHasNoMember(page, "page");
-    assertHasNoMember(page, "pageSize");
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
-  }
-
-  @Test
-  void shouldFailWhenSkipPagingAndPagingAreFalse() {
-    String message =
-        GET(
-                "/programNotificationInstances?enrollment={uid}&paging=false&skipPaging=false",
-                enrollment.getUid())
-            .content(HttpStatus.BAD_REQUEST)
-            .getString("message")
-            .string();
-
-    assertStartsWith("Paging can either be enabled or disabled", message);
-  }
-
-  @Test
-  void shouldFailWhenSkipPagingAndPagingAreTrue() {
-    String message =
-        GET(
-                "/programNotificationInstances?enrollment={uid}&paging=true&skipPaging=true",
-                enrollment.getUid())
-            .content(HttpStatus.BAD_REQUEST)
-            .getString("message")
-            .string();
-
-    assertStartsWith("Paging can either be enabled or disabled", message);
   }
 }

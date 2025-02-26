@@ -67,7 +67,8 @@ class EnrollmentOperationParamsMapper {
     TrackedEntityType trackedEntityType =
         paramsValidator.validateTrackedEntityType(operationParams.getTrackedEntityType(), user);
     TrackedEntity trackedEntity =
-        paramsValidator.validateTrackedEntity(operationParams.getTrackedEntity(), user);
+        paramsValidator.validateTrackedEntity(
+            operationParams.getTrackedEntity(), user, operationParams.isIncludeDeleted());
 
     Set<OrganisationUnit> orgUnits =
         paramsValidator.validateOrgUnits(operationParams.getOrgUnits(), user);

@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -69,6 +70,8 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -79,6 +82,7 @@ import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.JsonDataValue;
 import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
+import org.hisp.dhis.webapi.controller.tracker.JsonTrackedEntity;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -153,7 +157,7 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
 
   @ParameterizedTest
   @MethodSource(value = "shouldExportMetadataUsingGivenIdSchemeProvider")
-  void shouldExportMetadataUsingGivenIdScheme(TrackerIdSchemeParam idSchemeParam) {
+  void shouldExportEventMetadataUsingGivenIdScheme(TrackerIdSchemeParam idSchemeParam) {
     Event event = get(Event.class, "QRYjLTiJTrA");
     assertNotEmpty(event.getEventDataValues(), "test expects an event with data values");
 
@@ -332,7 +336,7 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
 
   @ParameterizedTest
   @ValueSource(strings = {"/{id}?", "?events={id}&paging=true&", "?events={id}&paging=false&"})
-  void shouldReportMetadataWhichDoesNotHaveAnIdentifierForGivenIdScheme(String urlPortion) {
+  void shouldReportEventMetadataWhichDoesNotHaveAnIdentifierForGivenIdScheme(String urlPortion) {
     Event event = get(Event.class, "QRYjLTiJTrA");
 
     JsonWebMessage msg =
@@ -352,6 +356,89 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
         () ->
             assertContains(
                 "Program[ATTRIBUTE:" + UNUSED_METADATA_ATTRIBUTE + "]", msg.getDevMessage()));
+  }
+
+  @ParameterizedTest
+  @MethodSource(value = "shouldExportMetadataUsingGivenIdSchemeProvider")
+  void shouldExportTrackedEntityMetadataUsingGivenIdScheme(TrackerIdSchemeParam idSchemeParam) {
+    TrackedEntity trackedEntity = get(TrackedEntity.class, "dUE514NMOlo");
+    assertNotEmpty(
+        trackedEntity.getTrackedEntityAttributeValues(),
+        "test expects a tracked entity with attribute values");
+
+    List<String> idSchemeRequestParams = List.of("orgUnit");
+    String idSchemes =
+        idSchemeRequestParams.stream()
+            .map(p -> p + "IdScheme=" + idSchemeParam)
+            .collect(Collectors.joining("&"));
+
+    JsonTrackedEntity actual =
+        GET(
+                "/tracker/trackedEntities/{id}?fields=trackedEntity,trackedEntityType,orgUnit,attributes&{idSchemes}&idScheme={idScheme}",
+                trackedEntity.getUid(),
+                idSchemes,
+                idSchemeParam.toString())
+            .content(HttpStatus.OK)
+            .as(JsonTrackedEntity.class);
+
+    assertAll(
+        "tracked entity metadata assertions for idScheme=" + idSchemeParam,
+        () ->
+            assertIdScheme(
+                idSchemeParam.getIdentifier(trackedEntity.getOrganisationUnit()),
+                actual,
+                idSchemeParam,
+                "orgUnit"),
+        () ->
+            assertIdScheme(
+                idSchemeParam.getIdentifier(trackedEntity.getTrackedEntityType()),
+                actual,
+                idSchemeParam,
+                "trackedEntityType"),
+        () -> assertAttributes(actual, trackedEntity, idSchemeParam));
+  }
+
+  @ParameterizedTest
+  @MethodSource(value = "shouldExportMetadataUsingGivenIdSchemeProvider")
+  void shouldExportTrackedEntitiesMetadataUsingGivenIdScheme(TrackerIdSchemeParam idSchemeParam) {
+    TrackedEntity trackedEntity = get(TrackedEntity.class, "dUE514NMOlo");
+    assertNotEmpty(
+        trackedEntity.getTrackedEntityAttributeValues(),
+        "test expects a tracked entity with attribute values");
+
+    List<String> idSchemeRequestParams = List.of("orgUnit");
+    String idSchemes =
+        idSchemeRequestParams.stream()
+            .map(p -> p + "IdScheme=" + idSchemeParam)
+            .collect(Collectors.joining("&"));
+
+    JsonList<JsonTrackedEntity> jsonTrackedEntities =
+        GET(
+                "/tracker/trackedEntities?trackedEntities={id}&fields=trackedEntity,trackedEntityType,orgUnit,attributes&{idSchemes}&idScheme={idScheme}",
+                trackedEntity.getUid(),
+                idSchemes,
+                idSchemeParam.toString())
+            .content(HttpStatus.OK)
+            .getList("trackedEntities", JsonTrackedEntity.class);
+
+    JsonTrackedEntity actual =
+        jsonTrackedEntities.first(te -> trackedEntity.getUid().equals(te.getTrackedEntity()));
+
+    assertAll(
+        "tracked entity metadata assertions for idScheme=" + idSchemeParam,
+        () ->
+            assertIdScheme(
+                idSchemeParam.getIdentifier(trackedEntity.getOrganisationUnit()),
+                actual,
+                idSchemeParam,
+                "orgUnit"),
+        () ->
+            assertIdScheme(
+                idSchemeParam.getIdentifier(trackedEntity.getTrackedEntityType()),
+                actual,
+                idSchemeParam,
+                "trackedEntityType"),
+        () -> assertAttributes(actual, trackedEntity, idSchemeParam));
   }
 
   public static Stream<TrackerIdSchemeParam> shouldExportMetadataUsingGivenIdSchemeProvider() {
@@ -411,6 +498,48 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
         expectedDataElement,
         actualDataElement,
         "mismatch in data elements of event " + expected.getUid());
+  }
+
+  private void assertAttributes(
+      JsonTrackedEntity actual, TrackedEntity expected, TrackerIdSchemeParam idSchemeParam) {
+    String field = "attributes";
+
+    Set<String> tetAttributes =
+        expected.getTrackedEntityType().getTrackedEntityTypeAttributes().stream()
+            .map(teta -> teta.getTrackedEntityAttribute().getUid())
+            .collect(Collectors.toSet());
+    // this assumes the request was made without the request parameter program
+    List<String> expectedAttributes =
+        expected.getTrackedEntityAttributeValues().stream()
+            .filter(teav -> tetAttributes.contains(teav.getAttribute().getUid()))
+            .map(
+                tav ->
+                    idSchemeParam.getIdentifier(
+                        get(TrackedEntityAttribute.class, tav.getAttribute().getUid())))
+            .toList();
+    assertNotEmpty(
+        expectedAttributes,
+        String.format(
+            "metadata corresponding to field \"%s\" has no value in test data for"
+                + " idScheme '%s'",
+            field, idSchemeParam));
+    assertFalse(
+        expectedAttributes.contains(null),
+        String.format(
+            "metadata corresponding to field \"%s\" contains null value in test data for idScheme '%s'",
+            field, idSchemeParam));
+    assertTrue(
+        actual.has(field),
+        () ->
+            String.format(
+                "field \"%s\" is not in response %s for idScheme '%s'",
+                field, actual, idSchemeParam));
+    List<String> actualAttributes =
+        actual.getList(field, JsonObject.class).toList(el -> el.getString("attribute").string(""));
+    assertContainsOnly(
+        expectedAttributes,
+        actualAttributes,
+        "mismatch in attributes of tracked entity " + expected.getUid());
   }
 
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {

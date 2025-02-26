@@ -458,8 +458,12 @@ public class DataSet extends BaseDimensionalItemObject
         || user != null && user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
       return false;
     }
+
+    // Adds effectively 1 day to the end date since the date's time portion is set to 00:00.
+    // This means the comparison starts on the day after the end date at midnight.
+    Date dataEntryOpenedDate = addDays(period.getEndDate(), 1);
     Date date = now != null ? now : new Date();
-    return !Period.isDateWithTimeInTimeFrame(null, addDays(period.getEndDate(), expiryDays), date);
+    return !Period.isDateWithTimeInTimeFrame(null, addDays(dataEntryOpenedDate, expiryDays), date);
   }
 
   /**

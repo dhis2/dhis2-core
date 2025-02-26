@@ -37,7 +37,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
-import static org.hisp.dhis.dataitem.query.QueryableDataItem.getEntities;
+import static org.hisp.dhis.dataitem.query.QueryableDataItem.getDefaultEntities;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE_SIZE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGING;
@@ -191,7 +191,7 @@ class DataItemServiceFacadeTest {
         dataItemServiceFacade.extractTargetEntities(noTargetEntitiesFilters);
 
     // Then
-    assertThat(actualTargetEntities, containsInAnyOrder(getEntities().toArray()));
+    assertThat(actualTargetEntities, containsInAnyOrder(getDefaultEntities().toArray()));
   }
 
   private WebOptions mockWebOptions(final int pageSize, final int pageNumber) {

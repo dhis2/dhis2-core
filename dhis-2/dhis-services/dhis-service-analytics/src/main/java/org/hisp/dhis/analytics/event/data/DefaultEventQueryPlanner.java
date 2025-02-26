@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 
 import com.google.common.collect.ImmutableList;
@@ -51,7 +52,6 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -205,7 +205,7 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
     if (params.isAggregateData()) {
       for (QueryItem item : params.getItemsAndItemFilters()) {
         AnalyticsAggregationType aggregationType =
-            ObjectUtils.firstNonNull(
+            firstNonNull(
                 params.getAggregationType(), fromAggregationType(item.getAggregationType()));
 
         EventQueryParams.Builder query =
@@ -213,6 +213,7 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
                 .removeItems()
                 .removeItemProgramIndicators()
                 .withValue(item.getItem())
+                .withOption(item.getOption())
                 .withAggregationType(aggregationType);
 
         if (item.hasProgram()) {

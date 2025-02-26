@@ -28,13 +28,11 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.security.Authorities.ALL;
-import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
-import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertPagerLink;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
@@ -253,7 +251,7 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
     assertAll(
         () -> assertEquals(1, pager.getPage()),
         () -> assertEquals(1, pager.getPageSize()),
-        () -> assertHasNoMember(pager, "prevPage"),
+        () -> assertHasNoMember(pager, "prevPage", "total", "pageCount"),
         () ->
             assertPagerLink(
                 pager.getNextPage(),
@@ -279,6 +277,7 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
     assertAll(
         () -> assertEquals(2, pager.getPage()),
         () -> assertEquals(1, pager.getPageSize()),
+        () -> assertHasNoMember(pager, "total", "pageCount"),
         () ->
             assertPagerLink(
                 pager.getPrevPage(),
@@ -316,7 +315,7 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
                 4,
                 1,
                 String.format("http://localhost/api/tracker/events/%s/changeLogs", event.getUid())),
-        () -> assertHasNoMember(pager, "nextPage"));
+        () -> assertHasNoMember(pager, "nextPage", "total", "pageCount"));
   }
 
   @Test
@@ -335,8 +334,7 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
     assertAll(
         () -> assertEquals(1, pagerObject.getPage()),
         () -> assertEquals(5, pagerObject.getPageSize()),
-        () -> assertHasNoMember(pagerObject, "prevPage"),
-        () -> assertHasNoMember(pagerObject, "nextPage"));
+        () -> assertHasNoMember(pagerObject, "prevPage", "nextPage", "total", "pageCount"));
   }
 
   private TrackedEntity trackedEntity() {
@@ -351,8 +349,7 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
 
   private TrackedEntity trackedEntity(
       OrganisationUnit orgUnit, TrackedEntityType trackedEntityType) {
-    TrackedEntity te = createTrackedEntity(orgUnit);
-    te.setTrackedEntityType(trackedEntityType);
+    TrackedEntity te = createTrackedEntity(orgUnit, trackedEntityType);
     te.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     te.getSharing().setOwner(owner);
     return te;
@@ -477,14 +474,6 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
         () -> assertEquals(previousValue, actual.getChange().getDataValue().getPreviousValue()),
         () -> assertEquals(currentValue, actual.getChange().getDataValue().getCurrentValue()),
         () -> JsonAssertions.assertHasNoMember(actual.getChange(), "eventField"));
-  }
-
-  private static void assertPagerLink(String actual, int page, int pageSize, String start) {
-    assertNotNull(actual);
-    assertAll(
-        () -> assertStartsWith(start, actual),
-        () -> assertContains("page=" + page, actual),
-        () -> assertContains("pageSize=" + pageSize, actual));
   }
 
   private static void assertFieldCreateExists(

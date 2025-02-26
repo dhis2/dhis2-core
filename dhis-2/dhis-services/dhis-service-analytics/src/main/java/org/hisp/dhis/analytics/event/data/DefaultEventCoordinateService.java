@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.hisp.dhis.analytics.table.AbstractEventJdbcTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 
 import java.util.ArrayList;
@@ -132,8 +133,10 @@ public class DefaultEventCoordinateService implements EventCoordinateService {
     if (ValueType.COORDINATE != valueType && ValueType.ORGANISATION_UNIT != valueType) {
       throwIllegalQueryEx(errorCode, field);
     }
-
-    return field;
+    // Append the "_geom" suffix to the field
+    // so that the correct geometry column
+    // is selected
+    return field + OU_GEOMETRY_COL_SUFFIX;
   }
 
   @Override

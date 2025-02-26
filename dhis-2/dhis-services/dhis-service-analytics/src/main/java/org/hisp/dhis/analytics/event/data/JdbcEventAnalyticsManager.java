@@ -28,6 +28,8 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
@@ -62,6 +64,7 @@ import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -81,10 +84,14 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.ListBuilder;
 import org.postgresql.util.PSQLException;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -115,13 +122,21 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
       EventTimeFieldSqlRenderer timeFieldSqlRenderer,
       ExecutionPlanStore executionPlanStore,
-      SqlBuilder sqlBuilder) {
+      SystemSettingsService settingsService,
+      DhisConfigurationProvider config,
+      SqlBuilder sqlBuilder,
+      AnalyticsSqlBuilder analyticsSqlBuilder,
+      OrganisationUnitResolver organisationUnitResolver) {
     super(
         jdbcTemplate,
         programIndicatorService,
         programIndicatorSubqueryBuilder,
         executionPlanStore,
-        sqlBuilder);
+        sqlBuilder,
+        settingsService,
+        config,
+        organisationUnitResolver,
+        analyticsSqlBuilder);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
@@ -391,6 +406,12 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     return String.format("ST_AsGeoJSON(%s, 6) as geometry", field);
   }
 
+  @Override
+  protected String getColumnWithCte(QueryItem item, CteContext cteContext) {
+    // TODO: Implement
+    return "";
+  }
+
   /**
    * Returns a from SQL clause for the given analytics table partition. If the query has a
    * non-default time field specified, a join with the {@code date period structure} resource table
@@ -549,6 +570,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     sql += getQueryItemsAndFiltersWhereClause(params, hlp);
 
+    sql += getOptionFilter(params, hlp);
+
     // ---------------------------------------------------------------------
     // Filter expression
     // ---------------------------------------------------------------------
@@ -656,6 +679,32 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     }
 
     return sql;
+  }
+
+  /**
+   * Adds a filtering condition into the "where" statement if an {@Option} is defined.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @param sqlHelper the {@link SqlHelper}.
+   * @return the SQL condition for the {@link Option}, if any.
+   */
+  private String getOptionFilter(EventQueryParams params, SqlHelper sqlHelper) {
+    if (params.hasOption() && params.hasValue()) {
+      DimensionalItemObject dimensionalItemObject = params.getValue();
+      Option option = params.getOption();
+
+      return new StringBuilder()
+          .append(SPACE)
+          .append(sqlHelper.whereAnd())
+          .append(SPACE)
+          .append(quote(dimensionalItemObject.getUid()))
+          .append(" in ('")
+          .append(option.getCode())
+          .append("') ")
+          .toString();
+    }
+
+    return EMPTY;
   }
 
   /** Generates a sub query which provides a filter by organisation descendant level. */

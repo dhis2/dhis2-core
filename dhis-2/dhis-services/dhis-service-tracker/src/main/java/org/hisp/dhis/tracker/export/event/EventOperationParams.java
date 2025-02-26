@@ -125,10 +125,6 @@ public class EventOperationParams {
    */
   private List<Order> order;
 
-  private boolean includeAttributes;
-
-  private boolean includeAllDataElements;
-
   @Builder.Default private Set<UID> events = new HashSet<>();
 
   /** Data element filters per data element UID. */
@@ -146,7 +142,7 @@ public class EventOperationParams {
 
   private Set<UID> enrollments;
 
-  private EventParams eventParams;
+  @Builder.Default private EventParams eventParams = EventParams.FALSE;
 
   @Builder.Default
   private TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();

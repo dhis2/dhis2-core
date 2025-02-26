@@ -71,7 +71,9 @@ public class EnrollmentOperationParams {
   @Builder.Default private final Set<UID> orgUnits = new HashSet<>();
 
   /** Selection mode for the specified organisation units. */
-  private final OrganisationUnitSelectionMode orgUnitMode;
+  @Builder.Default
+  private final OrganisationUnitSelectionMode orgUnitMode =
+      OrganisationUnitSelectionMode.ACCESSIBLE;
 
   /** Enrollments must be enrolled into this program. */
   private final UID program;

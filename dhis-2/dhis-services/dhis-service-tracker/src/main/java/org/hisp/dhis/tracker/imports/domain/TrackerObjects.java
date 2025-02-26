@@ -31,12 +31,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hisp.dhis.common.UID;
 
 @Getter
 @ToString
@@ -51,4 +55,24 @@ public class TrackerObjects implements Serializable {
   @JsonProperty @Builder.Default private final List<Enrollment> enrollments = new ArrayList<>();
   @JsonProperty @Builder.Default private final List<Event> events = new ArrayList<>();
   @JsonProperty @Builder.Default private final List<Relationship> relationships = new ArrayList<>();
+
+  public Optional<TrackedEntity> findTrackedEntity(@Nonnull UID uid) {
+    return find(this.trackedEntities, uid);
+  }
+
+  public Optional<Enrollment> findEnrollment(@Nonnull UID uid) {
+    return find(this.enrollments, uid);
+  }
+
+  public Optional<Event> findEvent(@Nonnull UID uid) {
+    return find(this.events, uid);
+  }
+
+  public Optional<Relationship> findRelationship(@Nonnull UID uid) {
+    return find(this.relationships, uid);
+  }
+
+  private static <T extends TrackerDto> Optional<T> find(List<T> entities, UID uid) {
+    return entities.stream().filter(e -> Objects.equals(e.getUid(), uid)).findFirst();
+  }
 }

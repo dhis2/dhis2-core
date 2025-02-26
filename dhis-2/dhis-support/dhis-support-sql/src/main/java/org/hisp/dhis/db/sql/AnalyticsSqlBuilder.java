@@ -27,15 +27,31 @@
  */
 package org.hisp.dhis.db.sql;
 
+import java.time.format.DateTimeFormatter;
+
 /**
  * Interface for resolving specific SQL queries for analytics, that requires custom logic that can't
  * be resolved by the default <code>SqlBuilder</code> implementations.
  */
 public interface AnalyticsSqlBuilder {
+
+  DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+
   /**
    * Returns the correct SQL based on the underlying database for fetching the event data values.
    *
    * @return a SQL snippet.
    */
   String getEventDataValues();
+
+  /**
+   * Renders a timestamp string to a format that is compatible with the underlying database. The
+   * returned timestamp format is expected to be in the format "yyyy-MM-dd HH:mm:ss.SSS". In case
+   * the last three digits are zeros, the rendered timestamp is truncated to "yyyy-MM-dd
+   * HH:mm:ss.S".
+   *
+   * @param timestampAsString the timestamp as a string.
+   * @return the timestamp as a string in the correct format.
+   */
+  String renderTimestamp(String timestampAsString);
 }

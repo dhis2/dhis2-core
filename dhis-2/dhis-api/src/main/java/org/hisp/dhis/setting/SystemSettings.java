@@ -49,6 +49,7 @@ import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.LoginPageLayout;
+import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.translation.Translatable;
 
 /**
@@ -675,14 +676,6 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   /**
-   * @deprecated use {@link #getTrackedEntityMaxLimit()} instead
-   */
-  @Deprecated(forRemoval = true, since = "2.41")
-  default int getTrackedEntityInstanceMaxLimit() {
-    return asInt("KeyTrackedEntityInstanceMaxLimit", 50000);
-  }
-
-  /**
    * @return Max tracked entity records that can be retrieved from database.
    */
   default int getTrackedEntityMaxLimit() {
@@ -721,14 +714,6 @@ public non-sealed interface SystemSettings extends Settings {
     return asString("globalShellAppName", "global-app-shell");
   }
 
-  default boolean getEmail2FAEnabled() {
-    return asBoolean("email2FAEnabled", false);
-  }
-
-  default boolean getTOTP2FAEnabled() {
-    return asBoolean("totp2FAEnabled", true);
-  }
-
   /**
    * @return true if email verification is enforced for all users.
    */
@@ -744,5 +729,61 @@ public non-sealed interface SystemSettings extends Settings {
   default boolean isHideUnapprovedDataInAnalytics() {
     // -1 means approval is disabled
     return getIgnoreAnalyticsApprovalYearThreshold() >= 0;
+  }
+
+  /**
+   * @since 2.42
+   * @return the minimum level required to include a notification in the list for notifications
+   *     forwarded from scheduling.
+   */
+  default NotificationLevel getNotifierLogLevel() {
+    return asEnum("notifierLogLevel", NotificationLevel.DEBUG);
+  }
+
+  /**
+   * @since 2.42
+   * @return the maximum number of messages kept for each job. When the limit is exceeded the oldest
+   *     message is dropped (FIFO).
+   */
+  default int getNotifierMaxMessagesPerJob() {
+    return asInt("notifierMaxMessagesPerJob", 500);
+  }
+
+  /**
+   * @since 2.42
+   * @return notifications and summaries older than this number of days are discarded automatically
+   */
+  default int getNotifierMaxAgeDays() {
+    return asInt("notifierMaxAgeDays", 7);
+  }
+
+  /**
+   * @since 2.42
+   * @return notifications and summaries from this number of jobs per job type are kept (youngest
+   *     remain). The oldest jobs exceeding this number per type are discarded.
+   */
+  default int getNotifierMaxJobsPerType() {
+    return asInt("notifierMaxJobsPerType", 500);
+  }
+
+  /**
+   * @since 2.42
+   * @return when true, only the first and last message are included in the message stack when
+   *     listing multiple jobs in the single or all job types overview.
+   */
+  default boolean isNotifierGistOverview() {
+    return asBoolean("notifierGistOverview", true);
+  }
+
+  /**
+   * @since 2.42
+   * @return the duration the notifier has to be idle to run an automatic cleanup cycle
+   */
+  default long getNotifierCleanAfterIdleTime() {
+    return asInt("notifierCleanAfterIdleTime", 60_0000); // 1 minute
+  }
+
+  default boolean getUseExperimentalAnalyticsQueryEngine() {
+    return asBoolean("experimentalAnalyticsSqlEngineEnabled", false);
   }
 }

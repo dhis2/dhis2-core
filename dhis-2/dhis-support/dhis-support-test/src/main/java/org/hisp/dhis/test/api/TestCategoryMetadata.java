@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.test.api;
 
+import java.util.Set;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -34,20 +35,26 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 
 public record TestCategoryMetadata(
     CategoryCombo cc1,
-    CategoryCombo cc2,
     Category c1,
     Category c2,
-    Category c3,
-    Category c4,
     CategoryOption co1,
     CategoryOption co2,
     CategoryOption co3,
     CategoryOption co4,
-    CategoryOption co5,
-    CategoryOption co6,
-    CategoryOption co7,
-    CategoryOption co8,
     CategoryOptionCombo coc1,
     CategoryOptionCombo coc2,
     CategoryOptionCombo coc3,
-    CategoryOptionCombo coc4) {}
+    CategoryOptionCombo coc4) {
+
+  public Set<String> getCocNames() {
+    return Set.of(coc1.getName(), coc2.getName(), coc3.getName(), coc4.getName());
+  }
+
+  public Set<String> getCoNames() {
+    return Set.of(co1.getName(), co2.getName(), co3.getName(), co4.getName());
+  }
+
+  public Set<CategoryOption> getCategoryOptions() {
+    return Set.of(co1, co2, co3, co4);
+  }
+}

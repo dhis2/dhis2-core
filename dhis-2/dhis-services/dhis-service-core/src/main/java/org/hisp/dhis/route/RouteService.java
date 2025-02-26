@@ -29,44 +29,48 @@ package org.hisp.dhis.route;
 
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.netty.handler.timeout.ReadTimeoutException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
+import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.hc.client5.http.config.ConnectionConfig;
-import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
-import org.apache.hc.core5.http.io.SocketConfig;
-import org.apache.hc.core5.util.Timeout;
-import org.hisp.dhis.common.auth.ApiTokenAuth;
-import org.hisp.dhis.common.auth.Auth;
-import org.hisp.dhis.common.auth.HttpBasicAuth;
+import org.hibernate.Hibernate;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.user.UserDetails;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpEntity;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.security.core.Authentication;
+import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import org.springframework.web.util.UriComponentsBuilder;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClientRequest;
 
 /**
  * @author Morten Olav Hansen
@@ -79,12 +83,14 @@ public class RouteService {
 
   private final RouteStore routeStore;
 
-  private final ObjectMapper objectMapper;
-
   @Qualifier(AES_128_STRING_ENCRYPTOR)
   private final PBEStringCleanablePasswordEncryptor encryptor;
 
-  private static final RestTemplate restTemplate = new RestTemplate();
+  private final ClientHttpConnector clientHttpConnector;
+
+  private DataBufferFactory dataBufferFactory;
+
+  private WebClient webClient;
 
   private static final Set<String> ALLOWED_REQUEST_HEADERS =
       Set.of(
@@ -117,30 +123,10 @@ public class RouteService {
           "last-modified",
           "etag");
 
-  static {
-    // Connect timeout
-    ConnectionConfig connectionConfig =
-        ConnectionConfig.custom().setConnectTimeout(Timeout.ofMilliseconds(5_000)).build();
-
-    // Socket timeout
-    SocketConfig socketConfig =
-        SocketConfig.custom().setSoTimeout(Timeout.ofMilliseconds(10_000)).build();
-
-    // Connection request timeout
-    RequestConfig requestConfig =
-        RequestConfig.custom().setConnectionRequestTimeout(Timeout.ofMilliseconds(1_000)).build();
-
-    PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
-    connectionManager.setDefaultSocketConfig(socketConfig);
-    connectionManager.setDefaultConnectionConfig(connectionConfig);
-
-    org.apache.hc.client5.http.classic.HttpClient httpClient =
-        org.apache.hc.client5.http.impl.classic.HttpClientBuilder.create()
-            .setConnectionManager(connectionManager)
-            .setDefaultRequestConfig(requestConfig)
-            .build();
-
-    restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory(httpClient));
+  @PostConstruct
+  public void postConstruct() {
+    webClient = WebClient.builder().clientConnector(clientHttpConnector).build();
+    dataBufferFactory = new DefaultDataBufferFactory();
   }
 
   /**
@@ -162,14 +148,12 @@ public class RouteService {
       return null;
     }
 
-    try {
-      route = objectMapper.readValue(objectMapper.writeValueAsString(route), Route.class);
-    } catch (JsonProcessingException ex) {
-      log.error("Unable to create copy of route: '{}'", route.getUid());
-      return null;
-    }
+    // prevents Hibernate from persisting updates made to the route object
+    route = Hibernate.unproxy(route, Route.class);
 
-    decryptAuthentication(route.getAuth());
+    if (route.getAuth() != null) {
+      route.setAuth(route.getAuth().decrypt(encryptor::decrypt));
+    }
 
     return route;
   }
@@ -185,40 +169,69 @@ public class RouteService {
    * @throws IOException
    * @throws BadRequestException
    */
-  public ResponseEntity<String> execute(
+  public ResponseEntity<StreamingResponseBody> execute(
       Route route, UserDetails userDetails, Optional<String> subPath, HttpServletRequest request)
       throws IOException, BadRequestException {
+
     HttpHeaders headers = filterRequestHeaders(request);
-
     route.getHeaders().forEach(headers::add);
-
     addForwardedUserHeader(userDetails, headers);
 
+    Map<String, List<String>> queryParameters = new HashMap<>();
+    request
+        .getParameterMap()
+        .forEach(
+            (key, value) ->
+                queryParameters
+                    .computeIfAbsent(key, k -> new LinkedList<>())
+                    .addAll(Arrays.asList(value)));
+
     if (route.getAuth() != null) {
-      route.getAuth().apply(headers);
+      route.getAuth().apply(headers, queryParameters);
     }
 
-    HttpHeaders queryParameters = new HttpHeaders();
-    request.getParameterMap().forEach((key, value) -> queryParameters.addAll(key, List.of(value)));
-
     UriComponentsBuilder uriComponentsBuilder =
-        UriComponentsBuilder.fromHttpUrl(route.getBaseUrl()).queryParams(queryParameters);
+        UriComponentsBuilder.fromHttpUrl(route.getBaseUrl());
+
+    for (Map.Entry<String, List<String>> queryParameter : queryParameters.entrySet()) {
+      uriComponentsBuilder =
+          uriComponentsBuilder.queryParam(queryParameter.getKey(), queryParameter.getValue());
+    }
 
     if (subPath.isPresent()) {
       if (!route.allowsSubpaths()) {
         throw new BadRequestException(
-            String.format("Route '%s' does not allow subpaths", route.getId()));
+            String.format("Route '%s' does not allow sub-paths", route.getId()));
       }
       uriComponentsBuilder.path(subPath.get());
     }
 
-    String body = StreamUtils.copyToString(request.getInputStream(), StandardCharsets.UTF_8);
-
-    HttpEntity<String> entity = new HttpEntity<>(body, headers);
-
     HttpMethod httpMethod =
         Objects.requireNonNullElse(HttpMethod.valueOf(request.getMethod()), HttpMethod.GET);
     String targetUri = uriComponentsBuilder.toUriString();
+
+    Flux<DataBuffer> requestBodyFlux =
+        DataBufferUtils.read(
+                new InputStreamResource(request.getInputStream()), dataBufferFactory, 8192)
+            .doOnNext(DataBufferUtils.releaseConsumer());
+    WebClient.RequestHeadersSpec<?> requestHeadersSpec =
+        webClient
+            .method(httpMethod)
+            .uri(targetUri)
+            .httpRequest(
+                clientHttpRequest -> {
+                  Object nativeRequest = clientHttpRequest.getNativeRequest();
+                  if (nativeRequest instanceof HttpClientRequest httpClientRequest) {
+                    httpClientRequest.responseTimeout(
+                        Duration.ofSeconds(route.getResponseTimeoutSeconds()));
+                  }
+                })
+            .body(requestBodyFlux, DataBuffer.class);
+
+    for (Map.Entry<String, List<String>> header : headers.entrySet()) {
+      requestHeadersSpec =
+          requestHeadersSpec.header(header.getKey(), header.getValue().toArray(new String[0]));
+    }
 
     log.info(
         "Sending '{}' '{}' with route '{}' ('{}')",
@@ -227,22 +240,45 @@ public class RouteService {
         route.getName(),
         route.getUid());
 
-    ResponseEntity<String> response =
-        restTemplate.exchange(targetUri, httpMethod, entity, String.class);
+    WebClient.ResponseSpec responseSpec =
+        requestHeadersSpec
+            .retrieve()
+            .onStatus(httpStatusCode -> true, clientResponse -> Mono.empty());
 
-    HttpHeaders responseHeaders = filterResponseHeaders(response.getHeaders());
-
-    String responseBody = response.getBody();
+    ResponseEntity<Flux<DataBuffer>> responseEntityFlux =
+        responseSpec
+            .toEntityFlux(DataBuffer.class)
+            .onErrorReturn(
+                throwable -> throwable.getCause() instanceof ReadTimeoutException,
+                new ResponseEntity<>(HttpStatus.GATEWAY_TIMEOUT))
+            .block();
 
     log.info(
         "Request '{}' '{}' responded with status '{}' for route '{}' ('{}')",
         httpMethod,
         targetUri,
-        response.getStatusCode(),
+        responseEntityFlux.getStatusCode(),
         route.getName(),
         route.getUid());
 
-    return new ResponseEntity<>(responseBody, responseHeaders, response.getStatusCode());
+    StreamingResponseBody streamingResponseBody =
+        out -> {
+          if (responseEntityFlux.getBody() != null) {
+            try {
+              Flux<DataBuffer> dataBufferFlux =
+                  DataBufferUtils.write(responseEntityFlux.getBody(), out)
+                      .doOnNext(DataBufferUtils.releaseConsumer());
+              dataBufferFlux.blockLast(Duration.ofMinutes(5));
+            } catch (Exception e) {
+              out.close();
+              throw e;
+            }
+          }
+        };
+    return new ResponseEntity<>(
+        streamingResponseBody,
+        filterResponseHeaders(responseEntityFlux.getHeaders()),
+        responseEntityFlux.getStatusCode());
   }
 
   /**
@@ -305,24 +341,5 @@ public class RouteService {
           headers.addAll(name, values);
         });
     return headers;
-  }
-
-  /**
-   * Decrypts the secrets on the given authentication.
-   *
-   * @param auth the {@link Authentication}.
-   */
-  private void decryptAuthentication(Auth auth) {
-    if (auth == null) {
-      return;
-    }
-
-    if (auth.getType().equals(ApiTokenAuth.TYPE)) {
-      ApiTokenAuth apiTokenAuth = (ApiTokenAuth) auth;
-      apiTokenAuth.setToken(encryptor.decrypt(apiTokenAuth.getToken()));
-    } else if (auth.getType().equals(HttpBasicAuth.TYPE)) {
-      HttpBasicAuth httpBasicAuth = (HttpBasicAuth) auth;
-      httpBasicAuth.setPassword(encryptor.decrypt(httpBasicAuth.getPassword()));
-    }
   }
 }

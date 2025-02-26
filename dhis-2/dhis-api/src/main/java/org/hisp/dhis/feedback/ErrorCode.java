@@ -102,6 +102,10 @@ public enum ErrorCode {
   E1533("{0} {1} does not exist: `{2}`"),
   E1534("dataMergeStrategy field must be specified. With value `DISCARD` or `LAST_UPDATED`"),
 
+  /* CategoryOptionCombo merge */
+  E1540(
+      "CategoryOptionCombos must be duplicates (same cat combo, same cat options, different UID) in order to merge"),
+
   /* DataElement merge */
   E1550("All source ValueTypes must match target ValueType: `{0}`. Other ValueTypes found: `{1}`"),
   E1551(
@@ -217,13 +221,14 @@ public enum ErrorCode {
   E3043(
       "User does not have a verified email, please verify your email before you try to enable 2FA"),
   E3044("TOTP 2FA is not enabled"),
-  E3045("Email based 2FA is not enabled in the system settings"),
-  E3046("TOTP 2FA is not enabled in the system settings"),
+  E3045("Email based 2FA is not enabled"),
+  E3046("TOTP 2FA is not enabled"),
   E3047("User is not in TOTP 2FA enrollment mode"),
   E3048("User does not have email 2FA enabled"),
   E3049("Sending 2FA code with email failed"),
   E3050("2FA code can not be null or empty"),
   E3051("2FA code was sent to the user's email"),
+  E3052("Email 2FA is enabled on user, can not change email. Disable 2FA first"),
 
   /* Metadata Validation */
   E4000("Missing required property `{0}`"),
@@ -468,7 +473,8 @@ public enum ErrorCode {
   E7145("Query failed because of a syntax error"),
   E7146("A {0} date was not specified in periods, dimensions, filters"),
   E7147("Query failed because of a missing column: `{0}`"),
-
+  E7148("Could not create CTE SQL query, unexpected error: `{0}`"),
+  E7149("Invalid measure filter operator: `{0}`"),
   /* Analytics outliers */
 
   E7180(
@@ -519,6 +525,7 @@ public enum ErrorCode {
   E7236("Program stage '{0}' is not associated to program '{0}'"),
   E7237("Sorting must have a valid dimension and a direction"),
   E7238("Sorting dimension ‘{0}’ is not a column"),
+  E7239("Invalid operator for 'null' value: `{0}`"),
 
   /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),

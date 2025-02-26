@@ -46,6 +46,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.collection.CollectionUtils.concat;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK;
 import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
@@ -371,10 +372,8 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
    * @return a SQL numeric value column.
    */
   protected String getAggregateValueColumn(DataQueryParams params) {
-    String sql = null;
-
+    String sql;
     AnalyticsAggregationType aggType = params.getAggregationType();
-
     String valueColumn = params.getValueColumn();
 
     if (aggType.isAggregationType(SUM)
