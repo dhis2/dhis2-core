@@ -164,7 +164,7 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest {
     injectSecurityContext(nonSuperUser);
     TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
     queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
-    queryParams.setProgram(programB);
+    queryParams.setEnrolledInTrackerProgram(programB);
     TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
     final List<TrackedEntityInstance> trackedEntityInstances =
         trackedEntityInstanceService.getTrackedEntityInstances(queryParams, params, false, true);
@@ -178,7 +178,7 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest {
     injectSecurityContext(nonSuperUser);
     TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
     queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
-    queryParams.setProgram(programA);
+    queryParams.setEnrolledInTrackerProgram(programA);
     TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
     final List<TrackedEntityInstance> trackedEntityInstances =
         trackedEntityInstanceService.getTrackedEntityInstances(queryParams, params, false, true);

@@ -210,6 +210,13 @@ public class HibernateTrackedEntityInstanceStore
 
   @Override
   public List<Long> getTrackedEntityInstanceIds(TrackedEntityInstanceQueryParams params) {
+    // A TE which is not enrolled can only be accessed by a user that is able to enroll it into a
+    // tracker program. Return an empty result if there are no tracker programs or the user does
+    // not have access to one.
+    if (!params.hasEnrolledInTrackerProgram() && params.getAccessibleTrackerPrograms().isEmpty()) {
+      return List.of();
+    }
+
     String sql = getQuery(params, false);
     log.debug("Tracked entity instance query SQL: " + sql);
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
@@ -235,6 +242,13 @@ public class HibernateTrackedEntityInstanceStore
   @Override
   public List<Map<String, String>> getTrackedEntityInstancesGrid(
       TrackedEntityInstanceQueryParams params) {
+    // A TE which is not enrolled can only be accessed by a user that is able to enroll it into a
+    // tracker program. Return an empty result if there are no tracker programs or the user does
+    // not have access to one.
+    if (!params.hasEnrolledInTrackerProgram() && params.getAccessibleTrackerPrograms().isEmpty()) {
+      return List.of();
+    }
+
     String sql = getQuery(params, true);
     log.debug("Tracked entity instance query SQL: " + sql);
 
@@ -307,6 +321,12 @@ public class HibernateTrackedEntityInstanceStore
 
   @Override
   public int getTrackedEntityInstanceCountForGrid(TrackedEntityInstanceQueryParams params) {
+    // A TE which is not enrolled can only be accessed by a user that is able to enroll it into a
+    // tracker program. Return an empty result if there are no tracker programs or the user does
+    // not have access to one.
+    if (!params.hasEnrolledInTrackerProgram() && params.getAccessibleTrackerPrograms().isEmpty()) {
+      return 0;
+    }
     // ---------------------------------------------------------------------
     // Select clause
     // ---------------------------------------------------------------------
@@ -381,7 +401,6 @@ public class HibernateTrackedEntityInstanceStore
       throw new IllegalArgumentException(
           "A query parameter is used in the request but there aren't filterable attributes");
     }
-
     StringBuilder stringBuilder = new StringBuilder(getQuerySelect(params));
 
     if (!isGridQuery) {
@@ -554,10 +573,10 @@ public class HibernateTrackedEntityInstanceStore
     trackedEntity.append(" INNER JOIN program P ");
     trackedEntity.append(" ON P.trackedentitytypeid = TEI.trackedentitytypeid ");
 
-    if (!params.hasProgram()) {
+    if (!params.hasEnrolledInTrackerProgram()) {
       trackedEntity
           .append("AND P.programid IN (")
-          .append(getCommaDelimitedString(getIdentifiers(params.getPrograms())))
+          .append(getCommaDelimitedString(getIdentifiers(params.getAccessibleTrackerPrograms())))
           .append(")");
     }
 
@@ -602,7 +621,7 @@ public class HibernateTrackedEntityInstanceStore
           .append(whereAnd.whereAnd())
           .append("TEI.trackedentitytypeid = ")
           .append(params.getTrackedEntityType().getId());
-    } else if (!params.hasProgram()) {
+    } else if (!params.hasEnrolledInTrackerProgram()) {
       trackedEntity
           .append(whereAnd.whereAnd())
           .append("TEI.trackedentitytypeid in (")
@@ -812,10 +831,10 @@ public class HibernateTrackedEntityInstanceStore
   private String getFromSubQueryJoinProgramOwnerConditions(
       TrackedEntityInstanceQueryParams params) {
 
-    if (params.hasProgram()) {
+    if (params.hasEnrolledInTrackerProgram()) {
       return " INNER JOIN trackedentityprogramowner PO "
           + " ON PO.programid = "
-          + params.getProgram().getId()
+          + params.getEnrolledInTrackerProgram().getId()
           + " AND PO.trackedentityinstanceid = TEI.trackedentityinstanceid "
           + " AND P.programid = PO.programid";
     }
@@ -873,7 +892,7 @@ public class HibernateTrackedEntityInstanceStore
 
   private String getOwnerOrgUnit(TrackedEntityInstanceQueryParams params) {
 
-    if (params.hasProgram()) {
+    if (params.hasEnrolledInTrackerProgram()) {
       return "PO.organisationunitid ";
     }
 
@@ -893,14 +912,15 @@ public class HibernateTrackedEntityInstanceStore
     if (params.getOrders().stream().anyMatch(p -> ENROLLED_AT.isPropertyEqualTo(p.getField()))) {
 
       String join =
-          "INNER JOIN programinstance %1$s ON %1$s.trackedentityinstanceid = TEI.trackedentityinstanceid";
+          "INNER JOIN programinstance %1$s ON %1$s.trackedentityinstanceid ="
+              + " TEI.trackedentityinstanceid";
 
-      return !params.hasProgram()
+      return !params.hasEnrolledInTrackerProgram()
           ? String.format(join, PROGRAM_INSTANCE_ALIAS)
           : String.format(
               join + " AND %1$s.programid = %2$s",
               PROGRAM_INSTANCE_ALIAS,
-              params.getProgram().getId());
+              params.getEnrolledInTrackerProgram().getId());
     }
 
     return "";
@@ -919,7 +939,7 @@ public class HibernateTrackedEntityInstanceStore
       SqlHelper whereAnd, TrackedEntityInstanceQueryParams params) {
     StringBuilder program = new StringBuilder();
 
-    if (!params.hasProgram()) {
+    if (!params.hasEnrolledInTrackerProgram()) {
       return "";
     }
 
@@ -936,7 +956,7 @@ public class HibernateTrackedEntityInstanceStore
     program
         .append("WHERE PI.trackedentityinstanceid = TEI.trackedentityinstanceid ")
         .append("AND PI.programid = ")
-        .append(params.getProgram().getId())
+        .append(params.getEnrolledInTrackerProgram().getId())
         .append(SPACE);
 
     if (params.hasProgramStatus()) {
@@ -1409,7 +1429,8 @@ public class HibernateTrackedEntityInstanceStore
   public void updateTrackedEntityInstancesSyncTimestamp(
       List<String> trackedEntityInstanceUIDs, Date lastSynchronized) {
     final String hql =
-        "update TrackedEntityInstance set lastSynchronized = :lastSynchronized WHERE uid in :trackedEntityInstances";
+        "update TrackedEntityInstance set lastSynchronized = :lastSynchronized WHERE uid in"
+            + " :trackedEntityInstances";
 
     getQuery(hql)
         .setParameter("lastSynchronized", lastSynchronized)
@@ -1459,7 +1480,8 @@ public class HibernateTrackedEntityInstanceStore
     List<EventContext.TrackedEntityOuInfo> instances = new ArrayList<>();
 
     String hql =
-        "select tei.id, tei.uid, tei.organisationUnit.id from TrackedEntityInstance tei where tei.uid in (:uids)";
+        "select tei.id, tei.uid, tei.organisationUnit.id from TrackedEntityInstance tei where"
+            + " tei.uid in (:uids)";
 
     for (List<String> partition : uidPartitions) {
       List<Object[]> resultList =

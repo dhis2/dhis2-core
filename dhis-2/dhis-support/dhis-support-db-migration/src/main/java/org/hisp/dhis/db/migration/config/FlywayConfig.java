@@ -34,7 +34,6 @@ import javax.sql.DataSource;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.Location;
 import org.flywaydb.core.api.configuration.ClassicConfiguration;
-import org.hisp.dhis.db.migration.helper.NoOpFlyway;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -66,11 +65,5 @@ public class FlywayConfig {
 
     return new DhisFlyway(
         classicConfiguration, configurationProvider.isEnabled(FLYWAY_REPAIR_BEFORE_MIGRATION));
-  }
-
-  @Bean("flyway")
-  @Profile("test-h2")
-  public NoOpFlyway noFlyway() {
-    return new NoOpFlyway();
   }
 }

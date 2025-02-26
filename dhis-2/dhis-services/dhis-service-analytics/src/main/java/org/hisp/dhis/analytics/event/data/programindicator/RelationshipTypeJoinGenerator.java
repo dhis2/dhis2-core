@@ -83,12 +83,12 @@ public class RelationshipTypeJoinGenerator {
     switch (relationshipEntity) {
       case TRACKED_ENTITY_INSTANCE:
         return sql
-            + "trackedentityinstance tei on tei.trackedentityinstanceid = ri2.trackedentityinstanceid";
+            + "trackedentityinstance tei2 on tei2.trackedentityinstanceid = ri2.trackedentityinstanceid";
       case PROGRAM_STAGE_INSTANCE:
         return sql
-            + "programstageinstance psi on psi.programstageinstanceid = ri2.programstageinstanceid";
+            + "programstageinstance psi2 on psi2.programstageinstanceid = ri2.programstageinstanceid";
       case PROGRAM_INSTANCE:
-        return sql + "programinstance pi on pi.programinstanceid = ri2.programinstanceid";
+        return sql + "programinstance pi2 on pi2.programinstanceid = ri2.programinstanceid";
       default:
         throw new IllegalQueryException(
             new ErrorMessage(ErrorCode.E7227, relationshipEntity.name()));
@@ -143,11 +143,11 @@ public class RelationshipTypeJoinGenerator {
 
     switch (relationshipEntity) {
       case TRACKED_ENTITY_INSTANCE:
-        return sql + "tei.uid = ax.tei ";
+        return sql + "tei2.uid = ax.tei ";
       case PROGRAM_STAGE_INSTANCE:
-        return sql + "psi.uid = ax.psi ";
+        return sql + "psi2.uid = ax.psi ";
       case PROGRAM_INSTANCE:
-        return sql + "pi.uid = ax.pi ";
+        return sql + "pi2.uid = ax.pi ";
       default:
         throw new IllegalQueryException(
             new ErrorMessage(ErrorCode.E7227, relationshipEntity.name()));

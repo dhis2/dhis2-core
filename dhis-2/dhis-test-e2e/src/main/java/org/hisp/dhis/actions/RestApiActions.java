@@ -323,6 +323,11 @@ public class RestApiActions {
     return response;
   }
 
+  public ApiResponse postMultiPartFile(File file) {
+    return new ApiResponse(
+        given().multiPart("file", file).contentType("multipart/form-data").when().post());
+  }
+
   private void saveCreatedObjects(ApiResponse response) {
     if (!response.getContentType().contains("json")) {
       return;

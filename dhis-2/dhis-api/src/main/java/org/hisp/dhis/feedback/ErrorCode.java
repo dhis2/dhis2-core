@@ -391,6 +391,7 @@ public enum ErrorCode {
       "Query failed because a referenced table does not exist. Please ensure analytics job was run"),
   E7145("Query failed because of a syntax error"),
   E7147("Query failed because of a missing column: `{0}`"),
+  E7149("Invalid measure filter operator: `{0}`"),
 
   /* Event analytics */
   E7200("At least one organisation unit must be specified"),

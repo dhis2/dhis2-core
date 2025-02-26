@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,9 +39,13 @@ import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.appmanager.ResourceResult.Redirect;
+import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.config.MinIOConfiguration;
+import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -52,22 +56,29 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.test.context.ContextConfiguration;
 
 /**
- * Test class configured for use cases when DHIS2 is configured to use local file system storage
- * (default)
+ * Test class configured for use cases when DHIS2 is configured to use MinIO storage. The default
+ * storage is the local filesystem.
  */
-class AppManagerTest extends SingleSetupIntegrationTestBase {
+@ContextConfiguration(classes = {MinIOConfiguration.class})
+class AppManagerMinIOTest extends IntegrationTestBase {
 
   @Autowired AppManager appManager;
   @Autowired private UserService _userService;
 
-  @Test
-  @DisplayName("Can install and then update an App using file system storage")
-  void canUpdateAppUsingFileSystemStorageTest() throws IOException {
-    // install an app for the 1st time (version 1)
+  @BeforeEach
+  public void setup() {
     userService = _userService;
-    createAndInjectAdminUser();
+    User superUser = createUserWithAuth("userSuper", "ALL");
+    injectSecurityContext(superUser);
+  }
+
+  @Test
+  @DisplayName("Can install and then update an App using MinIO storage")
+  void canUpdateAppUsingMinIOStorageTest() throws IOException {
+    // install an app for the 1st time (version 1)
     AppStatus appStatus =
         appManager.installApp(
             new ClassPathResource("app/test-app-minio-v1.zip").getFile(), "test-app-minio-v1.zip");
@@ -85,6 +96,13 @@ class AppManagerTest extends SingleSetupIntegrationTestBase {
 
     assertTrue(updatedApp.ok());
     assertEquals("ok", appStatus.getMessage());
+
+    // get app version & index.html
+    App app = appManager.getApp("test minio");
+    ResourceFound resource = (ResourceFound) appManager.getAppResource(app, "index.html");
+
+    assertEquals("2.0.0", app.getVersion());
+    assertEquals(63, appManager.getUriContentLength(resource.getResource()));
   }
 
   @Test
@@ -99,6 +117,29 @@ class AppManagerTest extends SingleSetupIntegrationTestBase {
 
     // then
     assertEquals(38, uriContentLength);
+  }
+
+  @ParameterizedTest
+  @MethodSource("validPathParams")
+  @DisplayName("Calls with valid app resource paths should resolve correctly")
+  void appPathResolveTest(String path, String expectedPath) throws IOException {
+    // given an app is installed in object storage
+    AppStatus appStatus =
+        appManager.installApp(
+            new ClassPathResource("app/test-app-minio-v1.zip").getFile(), "test-app-minio-v1.zip");
+
+    assertTrue(appStatus.ok());
+    assertEquals("ok", appStatus.getMessage());
+
+    // when an app resource is retrieved with a valid path
+    App app = appManager.getApp("test minio");
+    ResourceFound resource = (ResourceFound) appManager.getAppResource(app, path);
+
+    // then the resource path returned is the full resource path which ends with `/index.html`
+    assertEquals(
+        expectedPath,
+        resource.getResource().getURI().getPath(),
+        "resource path should match expected format");
   }
 
   @ParameterizedTest
@@ -119,8 +160,7 @@ class AppManagerTest extends SingleSetupIntegrationTestBase {
     Redirect resource = (Redirect) appManager.getAppResource(app, path);
 
     // then the path returned should end in a trailing slash
-    assertTrue(
-        resource.getPath().endsWith(expectedPath), "redirect path should have trailing slash");
+    assertEquals(expectedPath, resource.getPath(), "redirect path should have trailing slash");
   }
 
   @ParameterizedTest
@@ -143,8 +183,21 @@ class AppManagerTest extends SingleSetupIntegrationTestBase {
     assertEquals(path, resource.getPath());
   }
 
+  private static Stream<Arguments> validPathParams() {
+    return Stream.of(
+        Arguments.of("index.html", "/dhis2/apps/test-app-minio-v1/index.html"),
+        Arguments.of("/index.html", "/dhis2/apps/test-app-minio-v1/index.html"),
+        Arguments.of("subDir/", "/dhis2/apps/test-app-minio-v1/subDir/index.html"),
+        Arguments.of("subDir/index.html", "/dhis2/apps/test-app-minio-v1/subDir/index.html"),
+        Arguments.of(
+            "subDir/test-page.html", "/dhis2/apps/test-app-minio-v1/subDir/test-page.html"),
+        Arguments.of(
+            "subDir/subSubDir/", "/dhis2/apps/test-app-minio-v1/subDir/subSubDir/index.html"));
+  }
+
   private static Stream<Arguments> redirectPathParams() {
     return Stream.of(
+        Arguments.of("", "/"),
         Arguments.of("subDir", "subDir/"),
         Arguments.of("emptyDir", "emptyDir/"),
         Arguments.of("subDir/subSubDir", "subDir/subSubDir/"));
