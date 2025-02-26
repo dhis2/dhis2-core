@@ -135,19 +135,20 @@ public class DefaultDeduplicationService implements DeduplicationService {
     TrackedEntity original = params.getOriginal();
     TrackedEntity duplicate = params.getDuplicate();
 
+    String prefix = "PotentialDuplicate cannot be merged automatically: ";
     if (!original.getTrackedEntityType().equals(duplicate.getTrackedEntityType())) {
       throw new PotentialDuplicateConflictException(
-          "PotentialDuplicate cannot be merged automatically: Entities have different Tracked Entity Types.");
+          prefix + "Entities have different Tracked Entity Types.");
     }
 
     if (original.isDeleted() || duplicate.isDeleted()) {
       throw new PotentialDuplicateConflictException(
-          "PotentialDuplicate cannot be merged automatically: One or both entities have already been marked as deleted.");
+          prefix + "One or both entities have already been marked as deleted.");
     }
 
     if (haveSameEnrollment(original.getEnrollments(), duplicate.getEnrollments())) {
       throw new PotentialDuplicateConflictException(
-          "PotentialDuplicate cannot be merged automatically: Both entities enrolled in the same program.");
+          prefix + "Both entities enrolled in the same program.");
     }
 
     Set<TrackedEntityAttributeValue> trackedEntityAttributeValueA =
@@ -157,7 +158,7 @@ public class DefaultDeduplicationService implements DeduplicationService {
 
     if (sameAttributesAreEquals(trackedEntityAttributeValueA, trackedEntityAttributeValueB)) {
       throw new PotentialDuplicateConflictException(
-          "PotentialDuplicate cannot be merged automatically: Entities have conflicting values for the same attributes.");
+          prefix + "Entities have conflicting values for the same attributes.");
     }
   }
 
