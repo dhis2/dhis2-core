@@ -41,7 +41,7 @@ import org.hisp.dhis.common.MetadataObject;
 @JacksonXmlRootElement(localName = "oauth2AuthorizationConsent", namespace = DxfNamespaces.DXF_2_0)
 public class OAuth2AuthorizationConsent extends BaseIdentifiableObject implements MetadataObject {
 
-  OAuth2AuthorizationConsent() {}
+  public OAuth2AuthorizationConsent() {}
 
   @JsonProperty private String registeredClientId;
   @JsonProperty private String principalName;
