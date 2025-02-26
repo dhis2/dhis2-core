@@ -38,6 +38,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
@@ -51,15 +52,17 @@ public class DefaultQueryParser implements QueryParser {
   private final SchemaService schemaService;
 
   @Override
-  public Query parse(Class<?> klass, @Nonnull List<String> filters) throws QueryParserException {
-    return parse(klass, filters, Junction.Type.AND);
+  public <T extends IdentifiableObject> Query<T> parse(
+      Class<T> objectType, @Nonnull List<String> filters) throws QueryParserException {
+    return parse(objectType, filters, Junction.Type.AND);
   }
 
   @Override
-  public Query parse(Class<?> klass, @Nonnull List<String> filters, Junction.Type rootJunction)
+  public <T extends IdentifiableObject> Query<T> parse(
+      Class<T> objectType, @Nonnull List<String> filters, Junction.Type rootJunction)
       throws QueryParserException {
-    Schema schema = schemaService.getDynamicSchema(klass);
-    Query query = Query.from(schema, rootJunction);
+    Schema schema = schemaService.getDynamicSchema(objectType);
+    Query<T> query = Query.of(objectType, rootJunction);
 
     List<String> mentions = new ArrayList<>();
     for (String filter : filters) {

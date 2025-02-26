@@ -107,6 +107,10 @@ class HibernatePotentialDuplicateStore
 
   public Page<PotentialDuplicate> getPotentialDuplicates(
       PotentialDuplicateCriteria criteria, PageParams pageParams) {
+    if (pageParams.isPageTotal()) {
+      throw new UnsupportedOperationException("pageTotal is not supported");
+    }
+
     TypedQuery<PotentialDuplicate> query = getQuery(criteria);
 
     query.setFirstResult(pageParams.getOffset());
