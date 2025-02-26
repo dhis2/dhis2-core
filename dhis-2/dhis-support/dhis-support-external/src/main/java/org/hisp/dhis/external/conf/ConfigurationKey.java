@@ -343,7 +343,9 @@ public enum ConfigurationKey {
   /** The Google service account client id. */
   GOOGLE_SERVICE_ACCOUNT_CLIENT_ID("google.service.account.client.id", "", false),
 
-  /** Maximum number of retries (if any of the steps fail) for the metadata sync task. (default: 3) */
+  /**
+   * Maximum number of retries (if any of the steps fail) for the metadata sync task. (default: 3)
+   */
   META_DATA_SYNC_RETRY("metadata.sync.retry", "3", false),
 
   /** Sets up {@see RetryTemplate} retry frequency. (default: 30000) */
@@ -424,10 +426,16 @@ public enum ConfigurationKey {
   /** Artemis port to use for connection (only relevant for NATIVE mode). (default: 25672) */
   ARTEMIS_PORT("artemis.port", "25672"),
 
-  /** Artemis username to use for connection (only relevant for NATIVE mode). (default: guest) (sensitive) */
+  /**
+   * Artemis username to use for connection (only relevant for NATIVE mode). (default: guest)
+   * (sensitive)
+   */
   ARTEMIS_USERNAME("artemis.username", "guest", true),
 
-  /** Artemis password to use for connection (only relevant for NATIVE mode). (default: guest) (sensitive) */
+  /**
+   * Artemis password to use for connection (only relevant for NATIVE mode). (default: guest)
+   * (sensitive)
+   */
   ARTEMIS_PASSWORD("artemis.password", "guest", true),
 
   /**
@@ -565,8 +573,8 @@ public enum ConfigurationKey {
   OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM("oidc.provider.google.mapping_claim", "email", true),
 
   /**
-   * Google IdP specific parameters. Redirect URL: DHIS 2 instance URL, do not end with a slash. (sensitive)
-   * <br>
+   * Google IdP specific parameters. Redirect URL: DHIS 2 instance URL, do not end with a slash.
+   * (sensitive) <br>
    * e.g. https://dhis2.org/demo.
    */
   OIDC_PROVIDER_GOOGLE_REDIRECT_URI("oidc.provider.google.redirect_url", "", true),
@@ -617,7 +625,9 @@ public enum ConfigurationKey {
   /** Database datasource pool type. Supported pool types are: c3p0 (default), hikari, unpooled */
   DB_POOL_TYPE("db.pool.type", "c3p0", false),
 
-  /** @TODO */
+  /**
+   * @TODO
+   */
   ACTIVE_READ_REPLICAS("active.read.replicas", "0", false),
 
   /**
@@ -664,11 +674,13 @@ public enum ConfigurationKey {
   /** Linked accounts via OpenID mapping. Enable or disable the feature. */
   LINKED_ACCOUNTS_ENABLED("linked_accounts.enabled", Constants.OFF, false),
 
-  /** @TODO */
+  /**
+   * @TODO
+   */
   LINKED_ACCOUNTS_RELOGIN_URL("linked_accounts.relogin_url", "", false),
 
   LINKED_ACCOUNTS_LOGOUT_URL("linked_accounts.logout_url", "", false),
-  
+
   /** User impersonation, also known as user switching. */
   SWITCH_USER_FEATURE_ENABLED("switch_user_feature.enabled", Constants.OFF, false),
 
