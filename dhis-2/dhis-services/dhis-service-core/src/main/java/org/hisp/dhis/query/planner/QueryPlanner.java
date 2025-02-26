@@ -34,5 +34,6 @@ import org.hisp.dhis.query.Query;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface QueryPlanner {
+
   <T extends IdentifiableObject> QueryPlan<T> planQuery(Query<T> query);
 }

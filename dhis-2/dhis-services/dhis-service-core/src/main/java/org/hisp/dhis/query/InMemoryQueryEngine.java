@@ -218,6 +218,14 @@ public class InMemoryQueryEngine implements QueryEngine {
                   aclService.getAccess((IdentifiableObject) object, query.getCurrentUserDetails()));
         }
       }
+
+      if (i == (paths.length - 1)) {
+        if (property.isCollection()) {
+          return List.of(object);
+        }
+
+        return object;
+      }
     }
 
     throw new QueryException("No values found for path " + path);
