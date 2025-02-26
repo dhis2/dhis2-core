@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -243,7 +244,13 @@ public class Section extends BaseIdentifiableObject implements MetadataObject {
     this.indicators.remove(i);
   }
 
-  public boolean addIndicator(Indicator i) {
+  /**
+   * Add an Indicator if it is not already present. This helps prevent duplicates in the list.
+   *
+   * @param i Indicator
+   * @return whether the Indicator was added or not
+   */
+  public boolean addIndicator(@Nonnull Indicator i) {
     if (!this.indicators.contains(i)) {
       return this.indicators.add(i);
     } else return false;
