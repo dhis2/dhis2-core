@@ -51,6 +51,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.tracker.FieldsRequestParam;
 import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
@@ -64,17 +65,39 @@ import org.hisp.dhis.webapi.webdomain.StartDateTime;
 @OpenApi.Property
 @Data
 @NoArgsConstructor
-public class EventRequestParams implements PageRequestParams {
+public class EventRequestParams implements PageRequestParams, FieldsRequestParam {
   static final String DEFAULT_FIELDS_PARAM = "*,!relationships";
 
+  @OpenApi.Description(
+      """
+Get the given page.
+""")
   @OpenApi.Property(defaultValue = "1")
   private Integer page;
 
+  @OpenApi.Description(
+      """
+Get given number of items per page.
+""")
   @OpenApi.Property(defaultValue = "50")
   private Integer pageSize;
 
+  @OpenApi.Description(
+      """
+Get the total number of items and pages in the pager.
+
+**Only enable this if absolutely necessary as this is resource intensive.** Use the pagers
+`prev/nextPage` to determine if there is a previous or a next page instead.
+""")
   private boolean totalPages = false;
 
+  @OpenApi.Description(
+      """
+Get all items by specifying `paging=false`. Requests are paginated by default.
+
+**Be aware that the performance is directly related to the amount of data requested. Larger pages
+will take more time to return.**
+""")
   private boolean paging = true;
 
   private List<OrderCriteria> order = new ArrayList<>();

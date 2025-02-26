@@ -37,13 +37,14 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.tracker.deduplication.DeduplicationStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.tracker.FieldsRequestParam;
 import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
 
 @OpenApi.Shared(name = "PotentialDuplicateRequestParams")
 @OpenApi.Property
 @Data
 @NoArgsConstructor
-public class PotentialDuplicateRequestParams implements PageRequestParams {
+public class PotentialDuplicateRequestParams implements PageRequestParams, FieldsRequestParam {
   private static final String DEFAULT_FIELDS_PARAM =
       "id,created,lastUpdated,original,duplicate,status";
 
@@ -61,14 +62,27 @@ Get given number of items per page.
   @OpenApi.Property(defaultValue = "50")
   private Integer pageSize;
 
+  /** Parameter {@code totalPages} is not supported. */
+  @OpenApi.Ignore
+  @Override
+  public boolean isTotalPages() {
+    return false;
+  }
+
   @OpenApi.Description(
       """
-Get all entries by specifying `paging=false`. Requests are paginated by default.
+Get all items by specifying `paging=false`. Requests are paginated by default.
 
 **Be aware that the performance is directly related to the amount of data requested. Larger pages
 will take more time to return.**
 """)
   private boolean paging = true;
+
+  @OpenApi.Description(
+      """
+Get potential duplicates that are in given status.
+""")
+  private DeduplicationStatus status = DeduplicationStatus.OPEN;
 
   @OpenApi.Description(
       """
@@ -87,19 +101,6 @@ Valid `sortDirection`s are `asc` and `desc`. `sortDirection` is case-insensitive
 Get potential duplicates for given tracked entities.
 """)
   private List<UID> trackedEntities = new ArrayList<>();
-
-  @OpenApi.Description(
-      """
-Get potential duplicates that are in given status.
-""")
-  private DeduplicationStatus status = DeduplicationStatus.OPEN;
-
-  /** Parameter {@code totalPages} is not supported. */
-  @OpenApi.Ignore
-  @Override
-  public boolean isTotalPages() {
-    return false;
-  }
 
   @OpenApi.Description(
       """
