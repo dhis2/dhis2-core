@@ -140,7 +140,7 @@ public class RouteService {
    * @param id the route UID or code.
    * @return {@link Route}.
    */
-  public Route getRouteWithDecryptedAuth(@Nonnull String id) {
+  public Route getRoute(@Nonnull String id) {
     Route route = routeStore.getByUidNoAcl(id);
 
     if (route == null) {

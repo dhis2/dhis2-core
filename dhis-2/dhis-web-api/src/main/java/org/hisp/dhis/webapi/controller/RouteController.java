@@ -104,7 +104,7 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
       HttpServletRequest request)
       throws NotFoundException, ForbiddenException, BadGatewayException {
 
-    Route route = routeService.getRouteWithDecryptedAuth(id);
+    Route route = routeService.getRoute(id);
 
     if (route == null) {
       throw new NotFoundException(String.format("Route not found: '%s'", id));
