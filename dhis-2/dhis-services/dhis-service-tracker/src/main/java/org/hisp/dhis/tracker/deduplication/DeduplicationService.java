@@ -49,7 +49,7 @@ public interface DeduplicationService {
   /** Get a page of duplicates matching given criteria. */
   @Nonnull
   Page<PotentialDuplicate> getPotentialDuplicates(
-      @Nonnull PotentialDuplicateCriteria criteria, PageParams pageParams);
+      @Nonnull PotentialDuplicateCriteria criteria, @Nonnull PageParams pageParams);
 
   void addPotentialDuplicate(@Nonnull PotentialDuplicate potentialDuplicate)
       throws PotentialDuplicateConflictException;

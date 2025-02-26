@@ -25,10 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.webapi.controller.tracker;
 
 import static org.hisp.dhis.feedback.Assertions.assertNoErrors;
-import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -92,7 +91,7 @@ public class TestSetup {
 
   public TrackerObjects setUpTrackerData(String path) throws IOException {
     TrackerObjects trackerObjects = fromJson(path);
-    assertNoErrors(
+    org.hisp.dhis.webapi.controller.tracker.Assertions.assertNoErrors(
         trackerImportService.importTracker(TrackerImportParams.builder().build(), trackerObjects));
     return trackerObjects;
   }

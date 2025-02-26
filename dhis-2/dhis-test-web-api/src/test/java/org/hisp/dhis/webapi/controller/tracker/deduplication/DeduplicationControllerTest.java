@@ -34,47 +34,28 @@ import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertPagerLink;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Supplier;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.http.HttpStatus;
-import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.render.RenderFormat;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.deduplication.DeduplicationStatus;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicate;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.report.ImportReport;
-import org.hisp.dhis.tracker.imports.report.Status;
-import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage.JsonPager;
 import org.hisp.dhis.webapi.controller.tracker.JsonTrackedEntity;
+import org.hisp.dhis.webapi.controller.tracker.TestSetup;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -82,13 +63,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase {
-  @Autowired private RenderService renderService;
-
-  @Autowired private ObjectBundleService objectBundleService;
-
-  @Autowired private ObjectBundleValidationService objectBundleValidationService;
-
-  @Autowired private TrackerImportService trackerImportService;
+  @Autowired private TestSetup testSetup;
 
   private TrackerObjects trackerObjects;
 
@@ -99,48 +74,23 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
   private JsonPotentialDuplicate potentialDuplicateB;
   private JsonPotentialDuplicate potentialDuplicateC;
 
-  protected ObjectBundle setUpMetadata(String path) throws IOException {
-    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
-        renderService.fromMetadata(new ClassPathResource(path).getInputStream(), RenderFormat.JSON);
-    ObjectBundleParams params = new ObjectBundleParams();
-    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
-    params.setImportStrategy(ImportStrategy.CREATE);
-    params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
-    assertNoErrors(objectBundleValidationService.validate(bundle));
-    objectBundleService.commit(bundle);
-    return bundle;
-  }
-
-  protected TrackerObjects fromJson(String path) throws IOException {
-    return renderService.fromJson(
-        new ClassPathResource(path).getInputStream(), TrackerObjects.class);
-  }
-
   @BeforeEach
   void setUp() throws IOException {
-    setUpMetadata("tracker/simple_metadata.json");
+    testSetup.setUpMetadata("tracker/simple_metadata.json");
 
     User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    trackerObjects = fromJson("tracker/event_and_enrollment.json");
-    assertNoErrors(
-        trackerImportService.importTracker(TrackerImportParams.builder().build(), trackerObjects));
-
+    trackerObjects = testSetup.setUpTrackerData("tracker/event_and_enrollment.json");
     TrackerObjects duplicateTrackedEntities =
-        fromJson("tracker/deduplication/potential_duplicates.json");
-    assertNoErrors(
-        trackerImportService.importTracker(
-            TrackerImportParams.builder().build(), duplicateTrackedEntities));
+        testSetup.setUpTrackerData("tracker/deduplication/potential_duplicates.json");
 
     manager.flush();
     manager.clear();
 
     // potential duplicate A
-    trackedEntityAOriginal = trackerObjects.findTrackedEntity(UID.of("QS6w44flWAf")).get();
-    trackedEntityADuplicate =
-        duplicateTrackedEntities.findTrackedEntity(UID.of("DS6w44flWAf")).get();
+    trackedEntityAOriginal = testSetup.getTrackedEntity(trackerObjects, "QS6w44flWAf");
+    trackedEntityADuplicate = testSetup.getTrackedEntity(duplicateTrackedEntities, "DS6w44flWAf");
     potentialDuplicateA =
         POST(
                 "/potentialDuplicates",
@@ -155,9 +105,8 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
             .as(JsonPotentialDuplicate.class);
     // potential duplicate B
     org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntityBOriginal =
-        trackerObjects.findTrackedEntity(UID.of("dUE514NMOlo")).get();
-    trackedEntityBDuplicate =
-        duplicateTrackedEntities.findTrackedEntity(UID.of("DUE514NMOlo")).get();
+        testSetup.getTrackedEntity(trackerObjects, "dUE514NMOlo");
+    trackedEntityBDuplicate = testSetup.getTrackedEntity(duplicateTrackedEntities, "DUE514NMOlo");
     potentialDuplicateB =
         POST(
                 "/potentialDuplicates",
@@ -172,9 +121,9 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
             .as(JsonPotentialDuplicate.class);
     // potential duplicate C
     org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntityCOriginal =
-        trackerObjects.findTrackedEntity(UID.of("mHWCacsGYYn")).get();
+        testSetup.getTrackedEntity(trackerObjects, "mHWCacsGYYn");
     org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntityCDuplicate =
-        duplicateTrackedEntities.findTrackedEntity(UID.of("DHWCacsGYYn")).get();
+        testSetup.getTrackedEntity(duplicateTrackedEntities, "DHWCacsGYYn");
     potentialDuplicateC =
         POST(
                 "/potentialDuplicates",
@@ -254,7 +203,7 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
 """
                 .formatted(
                     trackedEntityAOriginal.getUid(),
-                    trackerObjects.findTrackedEntity(UID.of("dUE514NMOlo")).get().getUid()))
+                    testSetup.getTrackedEntity(trackerObjects, "dUE514NMOlo").getUid()))
         .content(HttpStatus.FORBIDDEN);
   }
 
@@ -412,38 +361,5 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
             potentialDuplicateC.getUid()),
         list.toList(JsonPotentialDuplicate::getUid));
     assertHasNoMember(page, "pager");
-  }
-
-  public static void assertNoErrors(ImportReport report) {
-    assertNotNull(report);
-    assertEquals(
-        Status.OK,
-        report.getStatus(),
-        errorMessage(
-            "Expected import with status OK, instead got:%n", report.getValidationReport()));
-  }
-
-  private static Supplier<String> errorMessage(String errorTitle, ValidationReport report) {
-    return () -> {
-      StringBuilder msg = new StringBuilder(errorTitle);
-      report
-          .getErrors()
-          .forEach(
-              e -> {
-                msg.append(e.getErrorCode());
-                msg.append(": ");
-                msg.append(e.getMessage());
-                msg.append('\n');
-              });
-      return msg.toString();
-    };
-  }
-
-  public static void assertNoErrors(ObjectBundleValidationReport report) {
-    assertNotNull(report);
-    List<String> errors = new ArrayList<>();
-    report.forEachErrorReport(err -> errors.add(err.toString()));
-    assertFalse(
-        report.hasErrorReports(), String.format("Expected no errors, instead got: %s%n", errors));
   }
 }

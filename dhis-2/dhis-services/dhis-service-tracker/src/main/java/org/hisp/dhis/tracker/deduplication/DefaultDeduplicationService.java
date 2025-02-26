@@ -89,7 +89,7 @@ public class DefaultDeduplicationService implements DeduplicationService {
   @Nonnull
   @Override
   public Page<PotentialDuplicate> getPotentialDuplicates(
-      @Nonnull PotentialDuplicateCriteria criteria, PageParams pageParams) {
+      @Nonnull PotentialDuplicateCriteria criteria, @Nonnull PageParams pageParams) {
     return potentialDuplicateStore.getPotentialDuplicates(criteria, pageParams);
   }
 
