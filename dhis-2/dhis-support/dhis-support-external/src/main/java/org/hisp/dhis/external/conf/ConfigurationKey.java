@@ -680,7 +680,7 @@ public enum ConfigurationKey {
   MAX_FILE_UPLOAD_SIZE_BYTES("max.file_upload_size", Integer.toString(10_000_000), false),
 
   /** CSRF feature. Enable or disable the feature. (sensitive) */
-  CSRF_ENABLED("http.security.csrf.enabled", Constants.OFF, true);
+  CSRF_ENABLED("http.security.csrf.enabled", Constants.OFF, true),
 
   /** The maximum number of category options in a single category */
   METADATA_CATEGORIES_MAX_OPTIONS("metadata.categories.max_options", "31", false),
