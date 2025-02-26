@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Path;
 import java.util.Optional;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
@@ -119,5 +120,21 @@ class DashboardControllerTest extends DhisControllerIntegrationTest {
             .findFirst();
     assertTrue(dashboardItem.isPresent());
     assertEquals("gyYXi0rXAIc", dashboardItem.get().getVisualization().getUid());
+  }
+
+  @Test
+  void testGetPrivateDashboardWithSuperUser() {
+    switchToNewUser("userTest", "ALL");
+    POST("/metadata", Path.of("dashboard/create_dashboard.json")).content(HttpStatus.OK);
+    switchToSuperuser();
+    GET("/dashboards/f1OijtLnf8a").content(HttpStatus.OK);
+  }
+
+  @Test
+  void testDeletePrivateDashboardWithSuperUser() {
+    switchToNewUser("userTest", "ALL");
+    POST("/metadata", Path.of("dashboard/create_dashboard.json")).content(HttpStatus.OK);
+    switchToSuperuser();
+    DELETE("/dashboards/f1OijtLnf8a").content(HttpStatus.OK);
   }
 }
