@@ -85,9 +85,6 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
     TrackerObjects duplicateTrackedEntities =
         testSetup.setUpTrackerData("tracker/deduplication/potential_duplicates.json");
 
-    manager.flush();
-    manager.clear();
-
     // potential duplicate A
     trackedEntityAOriginal = testSetup.getTrackedEntity(trackerObjects, "QS6w44flWAf");
     trackedEntityADuplicate = testSetup.getTrackedEntity(duplicateTrackedEntities, "DS6w44flWAf");
