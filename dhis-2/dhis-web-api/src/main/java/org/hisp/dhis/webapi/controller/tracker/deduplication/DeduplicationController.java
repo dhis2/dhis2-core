@@ -44,7 +44,6 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.deduplication.DeduplicationMergeParams;
@@ -87,15 +86,10 @@ public class DeduplicationController {
 
   private final TrackedEntityService trackedEntityService;
 
-  private static final String DEFAULT_FIELDS_PARAM =
-      "id,created,lastUpdated,original,duplicate,status";
-
   @OpenApi.Response(PotentialDuplicate[].class)
   @GetMapping
   ResponseEntity<Page<ObjectNode>> getPotentialDuplicates(
-      PotentialDuplicateRequestParams requestParams,
-      @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields,
-      HttpServletRequest request)
+      PotentialDuplicateRequestParams requestParams, HttpServletRequest request)
       throws BadRequestException {
     validatePaginationParameters(requestParams);
 
@@ -108,7 +102,8 @@ public class DeduplicationController {
           new PageParams(requestParams.getPage(), requestParams.getPageSize(), false);
       org.hisp.dhis.tracker.Page<PotentialDuplicate> page =
           deduplicationService.getPotentialDuplicates(criteria, pageParams);
-      List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(page.getItems(), fields);
+      List<ObjectNode> objectNodes =
+          fieldFilterService.toObjectNodes(page.getItems(), requestParams.getFields());
 
       return ResponseEntity.ok()
           .header(HEADER_CACHE_CONTROL, HEADER_VALUE_NO_STORE)
@@ -120,7 +115,8 @@ public class DeduplicationController {
 
     List<PotentialDuplicate> potentialDuplicates =
         deduplicationService.getPotentialDuplicates(criteria);
-    List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(potentialDuplicates, fields);
+    List<ObjectNode> objectNodes =
+        fieldFilterService.toObjectNodes(potentialDuplicates, requestParams.getFields());
 
     return ResponseEntity.ok()
         .header(HEADER_CACHE_CONTROL, HEADER_VALUE_NO_STORE)

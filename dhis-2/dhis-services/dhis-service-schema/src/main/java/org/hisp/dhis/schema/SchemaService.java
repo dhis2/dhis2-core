@@ -107,5 +107,5 @@ public interface SchemaService {
 
   Class<?> getConcreteClass(Class<?> klass);
 
-  PropertyPath getQueryPath(Schema schema, String path);
+  PropertyPath getPropertyPath(Class<?> klass, String path);
 }
