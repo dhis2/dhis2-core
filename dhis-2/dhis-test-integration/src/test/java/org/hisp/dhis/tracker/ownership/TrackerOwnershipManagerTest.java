@@ -196,6 +196,9 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   @Test
   void shouldNotHaveAccessToEnrollmentWithUserAWhenTransferredToAnotherOrgUnit()
       throws ForbiddenException {
+    userA.setTeiSearchOrganisationUnits(Set.of(organisationUnitB));
+    userService.updateUser(userA);
+
     trackerOwnershipAccessManager.transferOwnership(trackedEntityA1, programA, organisationUnitB);
 
     injectSecurityContextUser(userA);
@@ -319,7 +322,9 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   void shouldNotHaveAccessWhenProgramProtectedAndUserNotInCaptureScopeNorHasTemporaryAccess() {
     userB.setTeiSearchOrganisationUnits(Set.of(organisationUnitA));
     userService.updateUser(userB);
-    assertFalse(trackerOwnershipAccessManager.hasAccess(userDetailsB, trackedEntityA1, programA));
+    assertFalse(
+        trackerOwnershipAccessManager.hasAccess(
+            UserDetails.fromUser(userB), trackedEntityA1, programA));
     assertFalse(
         trackerOwnershipAccessManager.hasAccess(
             UserDetails.fromUser(userB),
