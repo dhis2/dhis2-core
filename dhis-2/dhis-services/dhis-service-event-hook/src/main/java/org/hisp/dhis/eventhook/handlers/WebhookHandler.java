@@ -40,7 +40,6 @@ import org.hisp.dhis.eventhook.EventHook;
 import org.hisp.dhis.eventhook.Handler;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
 import org.hisp.dhis.system.util.HttpUtils;
-import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -58,22 +57,16 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
  */
 @Slf4j
 public class WebhookHandler implements Handler {
-  private final PBEStringCleanablePasswordEncryptor encryptor;
-
   private final ApplicationContext applicationContext;
 
   private final WebhookTarget webhookTarget;
 
   private final RestTemplate restTemplate;
 
-  public WebhookHandler(
-      ApplicationContext applicationContext,
-      WebhookTarget target,
-      PBEStringCleanablePasswordEncryptor encryptor) {
+  public WebhookHandler(ApplicationContext applicationContext, WebhookTarget target) {
     this.webhookTarget = target;
     this.applicationContext = applicationContext;
     this.restTemplate = new RestTemplate();
-    this.encryptor = encryptor;
     configure(this.restTemplate);
   }
 
@@ -88,10 +81,7 @@ public class WebhookHandler implements Handler {
     MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
     if (webhookTarget.getAuth() != null) {
       try {
-        webhookTarget
-            .getAuth()
-            .decrypt(encryptor::decrypt)
-            .apply(applicationContext, httpHeaders, queryParams);
+        webhookTarget.getAuth().apply(applicationContext, httpHeaders, queryParams);
       } catch (Exception e) {
         throw new RuntimeException(e);
       }

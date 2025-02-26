@@ -31,6 +31,7 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 
 import java.util.function.UnaryOperator;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.auth.AuthScheme;
 import org.hisp.dhis.eventhook.targets.JmsTarget;
 import org.hisp.dhis.eventhook.targets.KafkaTarget;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
@@ -58,13 +59,27 @@ public class EventHookSecretManager {
 
   private void handleSecrets(EventHook eventHook, boolean encrypt) {
     for (Target target : eventHook.getTargets()) {
-      if (!target.getType().equals(WebhookTarget.TYPE)) {
+      if (target.getType().equals(WebhookTarget.TYPE)) {
+        handleWebhook((WebhookTarget) target, encrypt);
+      } else {
         UnaryOperator<String> callback = encrypt ? encryptor::encrypt : encryptor::decrypt;
         if (target.getType().equals(JmsTarget.TYPE)) {
           handleJms((JmsTarget) target, callback);
         } else if (target.getType().equals(KafkaTarget.TYPE)) {
           handleKafka((KafkaTarget) target, callback);
         }
+      }
+    }
+  }
+
+  private void handleWebhook(WebhookTarget target, boolean encrypt) {
+    AuthScheme auth = target.getAuth();
+
+    if (auth != null) {
+      if (encrypt) {
+        target.setAuth(auth.encrypt(encryptor::encrypt));
+      } else {
+        target.setAuth(auth.decrypt(encryptor::decrypt));
       }
     }
   }
