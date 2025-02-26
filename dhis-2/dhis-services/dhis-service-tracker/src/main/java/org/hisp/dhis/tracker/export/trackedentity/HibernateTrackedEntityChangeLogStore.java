@@ -93,6 +93,9 @@ public class HibernateTrackedEntityChangeLogStore {
       @Nonnull Set<UID> attributes,
       @Nonnull TrackedEntityChangeLogOperationParams operationParams,
       @Nonnull PageParams pageParams) {
+    if (pageParams.isPageTotal()) {
+      throw new UnsupportedOperationException("pageTotal is not supported");
+    }
 
     String hql =
         """

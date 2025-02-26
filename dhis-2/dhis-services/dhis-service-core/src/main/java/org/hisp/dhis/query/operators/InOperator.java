@@ -32,54 +32,33 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.Date;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
+import java.util.List;
 import org.hisp.dhis.query.Type;
-import org.hisp.dhis.query.Typed;
-import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.query.planner.PropertyPath;
 import org.hisp.dhis.schema.Property;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class InOperator<T extends Comparable<? super T>> extends Operator<T> {
+public class InOperator<T extends Comparable<T>> extends Operator<T> {
   public InOperator(Collection<T> arg) {
-    super("in", Typed.from(Collection.class), arg);
+    super("in", List.of(Collection.class), arg);
   }
 
   public InOperator(String name, Collection<T> arg) {
-    super(name, Typed.from(Collection.class), arg);
+    super(name, List.of(Collection.class), arg);
   }
 
   @Override
-  public Criterion getHibernateCriterion(QueryPath queryPath) {
-    Property property = queryPath.getProperty();
+  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, PropertyPath path) {
+    Property property = path.getProperty();
 
     if (property.isCollection()) {
-      return Restrictions.in(
-          queryPath.getPath(),
-          getValue(Collection.class, queryPath.getProperty().getItemKlass(), args.get(0)));
+      return root.get(path.getPath())
+          .in(getValue(Collection.class, path.getProperty().getItemKlass(), getArgs()));
     }
 
-    return Restrictions.in(
-        queryPath.getPath(),
-        getValue(Collection.class, queryPath.getProperty().getKlass(), args.get(0)));
-  }
-
-  @Override
-  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, QueryPath queryPath) {
-    Property property = queryPath.getProperty();
-
-    if (property.isCollection()) {
-      return root.get(queryPath.getPath())
-          .in(
-              getValue(
-                  Collection.class,
-                  queryPath.getProperty().getItemKlass(),
-                  getCollectionArgs().get(0)));
-    }
-
-    return root.get(queryPath.getPath()).in(getCollectionArgs().get(0));
+    return root.get(path.getPath()).in(getArgs());
   }
 
   @Override
@@ -90,8 +69,7 @@ public class InOperator<T extends Comparable<? super T>> extends Operator<T> {
       return false;
     }
 
-    if (Collection.class.isInstance(value)) {
-      Collection<?> valueItems = (Collection<?>) value;
+    if (value instanceof Collection<?> valueItems) {
 
       for (Object item : items) {
         if (compareCollection(item, valueItems)) {

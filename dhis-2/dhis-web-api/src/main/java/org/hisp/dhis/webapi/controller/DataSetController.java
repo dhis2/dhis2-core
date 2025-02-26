@@ -437,9 +437,9 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
    */
   private MetadataExportParams filterMetadataOptions() {
     MetadataExportParams params = new MetadataExportParams();
-    params.addQuery(Query.from(schemaService.getSchema(DataElement.class)));
-    params.addQuery(Query.from(schemaService.getSchema(DataSet.class)));
-    params.addQuery(Query.from(schemaService.getSchema(CategoryOptionCombo.class)));
+    params.addQuery(Query.of(DataElement.class));
+    params.addQuery(Query.of(DataSet.class));
+    params.addQuery(Query.of(CategoryOptionCombo.class));
 
     return params;
   }
