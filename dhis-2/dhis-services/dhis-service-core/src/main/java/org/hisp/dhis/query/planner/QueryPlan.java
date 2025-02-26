@@ -27,30 +27,10 @@
  */
 package org.hisp.dhis.query.planner;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
 import org.hisp.dhis.query.Query;
-import org.hisp.dhis.schema.Schema;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @param dbQuery the part that runs in DB
+ * @param memoryQuery the part that runs in memory
  */
-@Getter
-@Builder
-@AllArgsConstructor
-public class QueryPlan {
-  private final Query persistedQuery;
-
-  private final Query nonPersistedQuery;
-
-  public Schema getSchema() {
-    if (persistedQuery != null) {
-      return persistedQuery.getSchema();
-    }
-    if (nonPersistedQuery != null) {
-      return nonPersistedQuery.getSchema();
-    }
-    return null;
-  }
-}
+public record QueryPlan(Query dbQuery, Query memoryQuery) {}

@@ -98,7 +98,7 @@
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>10.0.1</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>10.0.2</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.3</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
@@ -121,7 +121,7 @@
     <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
     <hypersistence-utils.version>3.9.2</hypersistence-utils.version>
     <!-- Data sources,db pools and db drivers -->
-    <c3p0.version>0.11.0-pre1</c3p0.version>
+    <c3p0.version>0.11.0-pre2</c3p0.version>
     <HikariCP.version>6.2.1</HikariCP.version>
     <postgresql-driver.version>42.7.5</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>

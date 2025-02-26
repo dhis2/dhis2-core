@@ -67,14 +67,14 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
-import org.hisp.dhis.query.Criterion;
+import org.hisp.dhis.query.Filter;
+import org.hisp.dhis.query.Filters;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
@@ -179,9 +179,9 @@ public abstract class AbstractFullReadOnlyController<
       P params,
       HttpServletResponse response,
       UserDetails currentUser,
-      List<Criterion> additionalFilters)
+      List<Filter> additionalFilters)
       throws ForbiddenException, BadRequestException, ConflictException {
-    List<Criterion> filters = getAdditionalFilters(params);
+    List<Filter> filters = getAdditionalFilters(params);
     filters.addAll(additionalFilters);
     return getObjectListInternal(params, response, currentUser, filters);
   }
@@ -190,7 +190,7 @@ public abstract class AbstractFullReadOnlyController<
       P params,
       HttpServletResponse response,
       UserDetails currentUser,
-      List<Criterion> additionalFilters)
+      List<Filter> additionalFilters)
       throws ForbiddenException, BadRequestException {
 
     if (!aclService.canRead(currentUser, getEntityClass())) {
@@ -204,7 +204,7 @@ public abstract class AbstractFullReadOnlyController<
     // list
     boolean isAlwaysEmpty =
         params.getRootJunction() == Junction.Type.AND
-            && additionalFilters.stream().anyMatch(Criterion::isAlwaysFalse);
+            && additionalFilters.stream().anyMatch(Filter::isAlwaysFalse);
     List<T> entities = isAlwaysEmpty ? List.of() : getEntityList(params, additionalFilters);
     postProcessResponseEntities(entities, params);
 
@@ -241,18 +241,18 @@ public abstract class AbstractFullReadOnlyController<
   }
 
   @Nonnull
-  protected List<Criterion> getAdditionalFilters(P params) throws ConflictException {
-    List<Criterion> filters = new ArrayList<>();
+  protected List<Filter> getAdditionalFilters(P params) throws ConflictException {
+    List<Filter> filters = new ArrayList<>();
     if (params.getQuery() != null && !params.getQuery().isEmpty() && getEntityClass() != User.class)
-      filters.add(Restrictions.query(getSchema(), params.getQuery()));
+      filters.add(Filters.query(params.getQuery()));
     List<UID> matches = getPreQueryMatches(params);
     // Note: null = no special filters, empty = no matches for special filters
     if (matches != null) filters.add(createIdInFilter(matches));
     return filters;
   }
 
-  protected final Criterion createIdInFilter(@Nonnull List<UID> matches) {
-    return Restrictions.in("id", UID.toValueList(matches));
+  protected final Filter createIdInFilter(@Nonnull List<UID> matches) {
+    return Filters.in("id", UID.toValueList(matches));
   }
 
   @GetMapping(produces = {"text/csv", "application/text"})
@@ -409,7 +409,7 @@ public abstract class AbstractFullReadOnlyController<
 
     cachePrivate(response);
 
-    T entity = !currentUser.isSuper() ? getEntity(pvUid) : getEntityNoAcl(pvUid);
+    T entity = getEntity(pvUid);
 
     GetObjectListParams listParams = params.toListParams();
     addProgrammaticFilters(listParams::addFilter); // temporary workaround
@@ -483,7 +483,7 @@ public abstract class AbstractFullReadOnlyController<
     return objectNodes.isEmpty() ? fieldFilterService.createObjectNode() : objectNodes.get(0);
   }
 
-  private List<T> getEntityList(P params, List<Criterion> additionalFilters)
+  private List<T> getEntityList(P params, List<Filter> additionalFilters)
       throws BadRequestException {
     Query query =
         BadRequestException.on(
@@ -508,7 +508,7 @@ public abstract class AbstractFullReadOnlyController<
 
   protected void getEntityListPostProcess(P params, List<T> entities) throws BadRequestException {}
 
-  private long countGetObjectList(P params, List<Criterion> additionalFilters)
+  private long countGetObjectList(P params, List<Filter> additionalFilters)
       throws BadRequestException {
     Query query =
         BadRequestException.on(
@@ -571,30 +571,5 @@ public abstract class AbstractFullReadOnlyController<
 
   protected final Schema getSchema(Class<?> klass) {
     return schemaService.getDynamicSchema(klass);
-  }
-
-  /**
-   * Get an entity without ACL checks.
-   *
-   * @param uid of the entity.
-   * @param entityType of the entity
-   * @return {@link java.util.Optional} contains the entity if found.
-   */
-  private final <E extends IdentifiableObject> java.util.Optional<E> getEntityNoAcl(
-      String uid, Class<E> entityType) {
-    return java.util.Optional.ofNullable(manager.getNoAcl(entityType, uid));
-  }
-
-  /**
-   * Get an entity without ACL checks.
-   *
-   * @param uid of the entity
-   * @return The entity if found.
-   * @throws NotFoundException
-   */
-  @Nonnull
-  private T getEntityNoAcl(String uid) throws NotFoundException {
-    return getEntityNoAcl(uid, getEntityClass())
-        .orElseThrow(() -> new NotFoundException(getEntityClass(), uid));
   }
 }
