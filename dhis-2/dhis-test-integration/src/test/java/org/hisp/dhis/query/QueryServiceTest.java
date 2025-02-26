@@ -624,7 +624,6 @@ class QueryServiceTest extends PostgresIntegrationTestBase {
     identifiableObjectManager.save(organisationUnitC);
     identifiableObjectManager.save(organisationUnitB);
     identifiableObjectManager.save(organisationUnitA);
-    Schema schema = schemaService.getDynamicSchema(OrganisationUnit.class);
     Query<OrganisationUnit> query = Query.of(OrganisationUnit.class);
     query.setDefaultOrder();
     List<OrganisationUnit> objects = queryService.query(query);
