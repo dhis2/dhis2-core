@@ -130,17 +130,20 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       TrackedEntityProgramOwner teProgramOwner =
           trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(trackedEntity, program);
 
+      // TODO(tracker) jdbc-hibernate: check the impact on performance
+      TrackedEntity hibernateTrackedEntity =
+          manager.get(TrackedEntity.class, trackedEntity.getUid());
       if (teProgramOwner != null && !teProgramOwner.getOrganisationUnit().equals(orgUnit)) {
         ProgramOwnershipHistory programOwnershipHistory =
             new ProgramOwnershipHistory(
                 program,
-                trackedEntity,
+                hibernateTrackedEntity,
                 teProgramOwner.getOrganisationUnit(),
                 teProgramOwner.getLastUpdated(),
                 teProgramOwner.getCreatedBy());
         programOwnershipHistoryService.addProgramOwnershipHistory(programOwnershipHistory);
         trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
-            trackedEntity, program, orgUnit);
+            hibernateTrackedEntity, program, orgUnit);
       }
 
       ownerCache.invalidate(getOwnershipCacheKey(trackedEntity::getId, program));
