@@ -66,82 +66,6 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
   private static final String LOCATION_INDICATOR = "indicators";
 
-  private final ImmutableMap<ProgramRuleActionType, Function<ProgramRuleAction, RuleAction>>
-      ACTION_MAPPER =
-          new ImmutableMap.Builder<ProgramRuleActionType, Function<ProgramRuleAction, RuleAction>>()
-              .put(
-                  ProgramRuleActionType.ASSIGN,
-                  pra ->
-                      RuleActionAssign.create(
-                          pra.getContent(),
-                          pra.getData(),
-                          getAssignedParameter(pra),
-                          getAttributeType(pra)))
-              .put(
-                  ProgramRuleActionType.CREATEEVENT,
-                  pra ->
-                      RuleActionCreateEvent.create(
-                          pra.getContent(), pra.getData(), pra.getLocation()))
-              .put(
-                  ProgramRuleActionType.DISPLAYKEYVALUEPAIR,
-                  this::getLocationBasedDisplayRuleAction)
-              .put(ProgramRuleActionType.DISPLAYTEXT, this::getLocationBasedDisplayRuleAction)
-              .put(
-                  ProgramRuleActionType.HIDEFIELD,
-                  pra ->
-                      RuleActionHideField.create(
-                          pra.getContent(), getAssignedParameter(pra), getAttributeType(pra)))
-              .put(
-                  ProgramRuleActionType.HIDEPROGRAMSTAGE,
-                  pra -> RuleActionHideProgramStage.create(pra.getProgramStage().getUid()))
-              .put(
-                  ProgramRuleActionType.HIDESECTION,
-                  pra -> RuleActionHideSection.create(pra.getProgramStageSection().getUid()))
-              .put(
-                  ProgramRuleActionType.SHOWERROR,
-                  pra ->
-                      RuleActionShowError.create(
-                          pra.getContent(),
-                          pra.getData(),
-                          getAssignedParameter(pra),
-                          getAttributeType(pra)))
-              .put(
-                  ProgramRuleActionType.SHOWWARNING,
-                  pra ->
-                      RuleActionShowWarning.create(
-                          pra.getContent(),
-                          pra.getData(),
-                          getAssignedParameter(pra),
-                          getAttributeType(pra)))
-              .put(
-                  ProgramRuleActionType.SETMANDATORYFIELD,
-                  pra ->
-                      RuleActionSetMandatoryField.create(
-                          getAssignedParameter(pra), getAttributeType(pra)))
-              .put(
-                  ProgramRuleActionType.WARNINGONCOMPLETE,
-                  pra ->
-                      RuleActionWarningOnCompletion.create(
-                          pra.getContent(),
-                          pra.getData(),
-                          getAssignedParameter(pra),
-                          getAttributeType(pra)))
-              .put(
-                  ProgramRuleActionType.ERRORONCOMPLETE,
-                  pra ->
-                      RuleActionErrorOnCompletion.create(
-                          pra.getContent(),
-                          pra.getData(),
-                          getAssignedParameter(pra),
-                          getAttributeType(pra)))
-              .put(
-                  ProgramRuleActionType.SENDMESSAGE,
-                  pra -> RuleActionSendMessage.create(pra.getTemplateUid(), pra.getData()))
-              .put(
-                  ProgramRuleActionType.SCHEDULEMESSAGE,
-                  pra -> RuleActionScheduleMessage.create(pra.getTemplateUid(), pra.getData()))
-              .build();
-
   private final ImmutableMap<
           ProgramRuleVariableSourceType, Function<ProgramRuleVariable, RuleVariable>>
       VARIABLE_MAPPER =
@@ -513,12 +437,76 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
   }
 
   private RuleAction toRuleAction(ProgramRuleAction programRuleAction) {
-    return ACTION_MAPPER
-        .getOrDefault(
-            programRuleAction.getProgramRuleActionType(),
-            pra ->
-                RuleActionAssign.create(pra.getContent(), pra.getData(), getAssignedParameter(pra)))
-        .apply(programRuleAction);
+    if (programRuleAction == null) {
+      throw new IllegalArgumentException("ProgramRuleAction cannot be null.");
+    }
+
+    ProgramRuleActionType actionType = programRuleAction.getProgramRuleActionType();
+    if (actionType == null) {
+      throw new IllegalArgumentException("ProgramRuleActionType cannot be null.");
+    }
+
+    switch (actionType) {
+      case ASSIGN:
+        return RuleActionAssign.create(
+            programRuleAction.getContent(),
+            programRuleAction.getData(),
+            getAssignedParameter(programRuleAction),
+            getAttributeType(programRuleAction));
+      case CREATEEVENT:
+        return RuleActionCreateEvent.create(
+            programRuleAction.getContent(),
+            programRuleAction.getData(),
+            programRuleAction.getLocation());
+      case DISPLAYKEYVALUEPAIR:
+      case DISPLAYTEXT:
+        return getLocationBasedDisplayRuleAction(programRuleAction);
+      case HIDEFIELD:
+        return RuleActionHideField.create(
+            programRuleAction.getContent(),
+            getAssignedParameter(programRuleAction),
+            getAttributeType(programRuleAction));
+      case HIDEPROGRAMSTAGE:
+        return RuleActionHideProgramStage.create(programRuleAction.getProgramStage().getUid());
+      case HIDESECTION:
+        return RuleActionHideSection.create(programRuleAction.getProgramStageSection().getUid());
+      case SHOWERROR:
+        return RuleActionShowError.create(
+            programRuleAction.getContent(),
+            programRuleAction.getData(),
+            getAssignedParameter(programRuleAction),
+            getAttributeType(programRuleAction));
+      case SHOWWARNING:
+        return RuleActionShowWarning.create(
+            programRuleAction.getContent(),
+            programRuleAction.getData(),
+            getAssignedParameter(programRuleAction),
+            getAttributeType(programRuleAction));
+      case SETMANDATORYFIELD:
+        return RuleActionSetMandatoryField.create(
+            getAssignedParameter(programRuleAction), getAttributeType(programRuleAction));
+      case WARNINGONCOMPLETE:
+        return RuleActionWarningOnCompletion.create(
+            programRuleAction.getContent(),
+            programRuleAction.getData(),
+            getAssignedParameter(programRuleAction),
+            getAttributeType(programRuleAction));
+      case ERRORONCOMPLETE:
+        return RuleActionErrorOnCompletion.create(
+            programRuleAction.getContent(),
+            programRuleAction.getData(),
+            getAssignedParameter(programRuleAction),
+            getAttributeType(programRuleAction));
+      case SENDMESSAGE:
+        return RuleActionSendMessage.create(
+            programRuleAction.getTemplateUid(), programRuleAction.getData());
+      case SCHEDULEMESSAGE:
+        return RuleActionScheduleMessage.create(
+            programRuleAction.getTemplateUid(), programRuleAction.getData());
+      default:
+        // Return null for unsupported types
+        return null;
+    }
   }
 
   private RuleVariable toRuleVariable(ProgramRuleVariable programRuleVariable) {

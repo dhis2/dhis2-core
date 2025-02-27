@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.events.event.EventContext;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -92,7 +93,8 @@ public interface TrackerOwnershipManager {
    * @param reason The reason for requesting temporary ownership
    */
   void grantTemporaryOwnership(
-      TrackedEntityInstance entityInstance, Program program, User user, String reason);
+      TrackedEntityInstance entityInstance, Program program, User user, String reason)
+      throws IllegalQueryException;
 
   /**
    * Ownership check can be skipped if the user is super user or if the program type is without

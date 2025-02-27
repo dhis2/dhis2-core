@@ -95,7 +95,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   private Program program;
 
   final Function<EventQueryParams, List<String>> eventsFunction =
-      (params) ->
+      params ->
           eventService.getEvents(params).getEvents().stream()
               .map(Event::getEvent)
               .collect(Collectors.toList());
@@ -768,8 +768,8 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
 
-    params.setProgram(program);
-    params.addOrganisationUnit(orgUnit);
+    params.setEnrolledInTrackerProgram(program);
+    params.setOrganisationUnits(Set.of(orgUnit));
     params.setOrganisationUnitMode(SELECTED);
     params.setTrackedEntityInstanceUids(Set.of("QS6w44flWAf", "dUE514NMOlo"));
     params.setUser(importUser);

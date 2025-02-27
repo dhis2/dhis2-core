@@ -109,11 +109,17 @@ public class TrackedEntityInstanceQueryParams {
    */
   private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
-  /** Program for which instances in the response must be enrolled in. */
-  private Program program;
+  /**
+   * Tracker program the tracked entity must be enrolled in. This should not be set when {@link
+   * #accessibleTrackerPrograms} is set.
+   */
+  private Program enrolledInTrackerProgram;
 
-  /** Programs to fetch. */
-  private List<Program> programs = List.of();
+  /**
+   * Tracker programs the user has data read access to. This should not be set when {@link
+   * #enrolledInTrackerProgram} is set.
+   */
+  private List<Program> accessibleTrackerPrograms = List.of();
 
   /** Status of the tracked entity instance in the given program. */
   private ProgramStatus programStatus;
@@ -446,9 +452,8 @@ public class TrackedEntityInstanceQueryParams {
     return organisationUnits != null && !organisationUnits.isEmpty();
   }
 
-  /** Indicates whether this parameters specifies a program. */
-  public boolean hasProgram() {
-    return program != null;
+  public boolean hasEnrolledInTrackerProgram() {
+    return enrolledInTrackerProgram != null;
   }
 
   /** Indicates whether this parameters specifies a program status. */
@@ -603,7 +608,7 @@ public class TrackedEntityInstanceQueryParams {
         .add("attributes", attributes)
         .add("filters", filters)
         .add("organisationUnits", organisationUnits)
-        .add("program", program)
+        .add("enrolledInTrackerProgram", enrolledInTrackerProgram)
         .add("programStatus", programStatus)
         .add("followUp", followUp)
         .add("lastUpdatedStartDate", lastUpdatedStartDate)
@@ -677,21 +682,23 @@ public class TrackedEntityInstanceQueryParams {
     return this;
   }
 
-  public Program getProgram() {
-    return program;
+  public Program getEnrolledInTrackerProgram() {
+    return enrolledInTrackerProgram;
   }
 
-  public TrackedEntityInstanceQueryParams setProgram(Program program) {
-    this.program = program;
+  public TrackedEntityInstanceQueryParams setEnrolledInTrackerProgram(
+      Program enrolledInTrackerProgram) {
+    this.enrolledInTrackerProgram = enrolledInTrackerProgram;
     return this;
   }
 
-  public List<Program> getPrograms() {
-    return programs;
+  public List<Program> getAccessibleTrackerPrograms() {
+    return accessibleTrackerPrograms;
   }
 
-  public TrackedEntityInstanceQueryParams setPrograms(List<Program> programs) {
-    this.programs = programs;
+  public TrackedEntityInstanceQueryParams setAccessibleTrackerPrograms(
+      List<Program> accessibleTrackerPrograms) {
+    this.accessibleTrackerPrograms = accessibleTrackerPrograms;
     return this;
   }
 

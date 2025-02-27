@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi;
 import java.util.Collections;
 import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.config.ConfigProviderConfiguration;
+import org.hisp.dhis.config.H2TestConfig;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -57,7 +57,7 @@ import org.springframework.web.context.WebApplicationContext;
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(
-    classes = {ConfigProviderConfiguration.class, MvcTestConfig.class, WebTestConfiguration.class})
+    classes = {H2TestConfig.class, MvcTestConfig.class, WebTestConfiguration.class})
 @ActiveProfiles("test-h2")
 @IntegrationH2Test
 @Transactional

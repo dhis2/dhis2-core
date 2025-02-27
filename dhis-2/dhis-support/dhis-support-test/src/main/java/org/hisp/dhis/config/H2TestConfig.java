@@ -25,21 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system;
+package org.hisp.dhis.config;
 
-import org.hisp.dhis.config.ConfigProviderConfiguration;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.leader.election.LeaderManager;
-import org.hisp.dhis.leader.election.NoOpLeaderManager;
+import org.hisp.dhis.hibernate.DefaultHibernateConfigurationProvider;
+import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
 
+@Profile({"test-h2"})
 @Configuration
-@Import(ConfigProviderConfiguration.class)
-public class SystemTestConfig {
+public class H2TestConfig {
   @Bean
-  public LeaderManager leaderManager(DhisConfigurationProvider dhisConfigurationProvider) {
-    return new NoOpLeaderManager(dhisConfigurationProvider);
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    return new H2DhisConfigurationProvider();
+  }
+
+  public static class NoOpFlyway {}
+
+  @Bean("flyway")
+  public NoOpFlyway noFlyway() {
+    return new NoOpFlyway();
+  }
+
+  @Bean
+  public HibernateConfigurationProvider hibernateConfigurationProvider(
+      DhisConfigurationProvider dhisConfigurationProvider) {
+    DefaultHibernateConfigurationProvider hibernateConfigurationProvider =
+        new DefaultHibernateConfigurationProvider(org.hibernate.tool.schema.Action.UPDATE);
+    hibernateConfigurationProvider.setConfigProvider(dhisConfigurationProvider);
+    return hibernateConfigurationProvider;
   }
 }

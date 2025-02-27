@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,16 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system;
+package org.hisp.dhis.apps;
 
-import org.hisp.dhis.IntegrationH2Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = SystemTestConfig.class)
-@ActiveProfiles(profiles = {"test-h2"})
-@IntegrationH2Test
-public abstract class SystemTest {}
+import java.io.File;
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+class AppResourceTest extends ApiTest {
+
+  private final RestApiActions appActions = new RestApiActions("/apps");
+
+  @Test
+  @DisplayName("Redirect location should have correct format")
+  void redirectLocationCorrectFormatTest() {
+    // given an app is installed
+    File file = new File("src/test/resources/apps/test-app-v1.zip");
+    appActions.postMultiPartFile(file).validateStatus(204);
+
+    // when
+    // called with missing trailing slash
+    ApiResponse response =
+        new ApiResponse(given().redirects().follow(false).get("/apps/test-minio"));
+
+    // then redirect should be returned with trailing slash
+    response.validate().header("location", equalTo("http://web:8080/api/apps/test-minio/"));
+    response.validate().statusCode(302);
+  }
+}

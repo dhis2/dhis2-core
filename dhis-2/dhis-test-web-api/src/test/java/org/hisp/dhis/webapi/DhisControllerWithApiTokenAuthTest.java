@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi;
 import static org.hisp.dhis.web.WebClientUtils.failOnException;
 
 import org.hisp.dhis.IntegrationH2Test;
-import org.hisp.dhis.config.ConfigProviderConfiguration;
+import org.hisp.dhis.config.H2TestConfig;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -61,7 +61,7 @@ import org.springframework.web.context.WebApplicationContext;
  */
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = {ConfigProviderConfiguration.class, WebMvcConfig.class})
+@ContextConfiguration(classes = {H2TestConfig.class, WebMvcConfig.class})
 @ActiveProfiles("test-h2")
 @IntegrationH2Test
 @Transactional
