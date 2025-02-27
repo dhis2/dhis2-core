@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.category;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.google.common.collect.Sets;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.springframework.stereotype.Service;
@@ -43,94 +43,83 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @Service("org.hisp.dhis.category.CategoryManager")
+@RequiredArgsConstructor
 public class DefaultCategoryManager implements CategoryManager {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
 
   private final CategoryService categoryService;
 
-  public DefaultCategoryManager(CategoryService categoryService) {
-    checkNotNull(categoryService);
-
-    this.categoryService = categoryService;
-  }
-
-  // -------------------------------------------------------------------------
-  // CategoryOptionCombo
-  // -------------------------------------------------------------------------
-
+  /**
+   * Aligns the persisted state (DB) of COCs with the generated state (in-memory) of COCs for a CC.
+   * The generated state is treated as the most up-to-date state of the COCs. This method does the
+   * following: <br>
+   *
+   * <ol>
+   *   <li>Delete a persisted COC if it is not present in the generated COCs
+   *   <li>Updates a persisted COC name if it is present and has a different name to its generated
+   *       COC match
+   *   <li>Add a generated COC if it is not present in the persisted COCs
+   * </ol>
+   *
+   * @param categoryCombo the CategoryCombo.
+   */
   @Override
   @Transactional
   public void addAndPruneOptionCombos(CategoryCombo categoryCombo) {
     if (categoryCombo == null || !categoryCombo.isValid()) {
       log.warn(
-          "Category combo is null or invalid, could not update option combos: " + categoryCombo);
+          "Category combo is null or invalid, could not update option combos: {}", categoryCombo);
       return;
     }
 
-    List<CategoryOptionCombo> generatedOptionCombos = categoryCombo.generateOptionCombosList();
-    Set<CategoryOptionCombo> persistedOptionCombos =
-        Sets.newHashSet(categoryCombo.getOptionCombos());
+    List<CategoryOptionCombo> generatedCocs = categoryCombo.generateOptionCombosList();
+    Set<CategoryOptionCombo> persistedCocs = Sets.newHashSet(categoryCombo.getOptionCombos());
 
-    boolean modified = false;
+    // Persisted COC checks (update name or delete)
+    for (CategoryOptionCombo persistedCoc : persistedCocs) {
+      generatedCocs.stream()
+          .filter(generatedCoc -> equalOrSameUid.test(persistedCoc, generatedCoc))
+          .findFirst()
+          .ifPresentOrElse(
+              generatedCoc -> updateNameIfNotEqual.accept(persistedCoc, generatedCoc),
+              () -> deleteCoc.accept(persistedCoc, categoryCombo));
+    }
 
-    Iterator<CategoryOptionCombo> iterator = persistedOptionCombos.iterator();
-
-    while (iterator.hasNext()) {
-      CategoryOptionCombo persistedOptionCombo = iterator.next();
-
-      boolean isDelete = true;
-
-      for (CategoryOptionCombo optionCombo : generatedOptionCombos) {
-        if (optionCombo.equals(persistedOptionCombo)
-            || persistedOptionCombo.getUid().equals(optionCombo.getUid())) {
-          isDelete = false;
-          if (!optionCombo.getName().equals(persistedOptionCombo.getName())) {
-            persistedOptionCombo.setName(optionCombo.getName());
-            modified = true;
-          }
-        }
-      }
-
-      if (isDelete) {
-        try {
-          categoryService.deleteCategoryOptionComboNoRollback(persistedOptionCombo);
-        } catch (DeleteNotAllowedException ex) {
-          log.warn("Could not delete category option combo: " + persistedOptionCombo);
-          continue;
-        }
-
-        iterator.remove();
-        categoryCombo.getOptionCombos().remove(persistedOptionCombo);
+    // Generated COC check (add if missing)
+    for (CategoryOptionCombo generatedCoc : generatedCocs) {
+      if (!persistedCocs.contains(generatedCoc)) {
+        categoryCombo.getOptionCombos().add(generatedCoc);
+        categoryService.addCategoryOptionCombo(generatedCoc);
 
         log.info(
-            "Deleted obsolete category option combo: "
-                + persistedOptionCombo
-                + " for category combo: "
-                + categoryCombo.getName());
-        modified = true;
+            "Added missing category option combo: {} for category combo: {}",
+            generatedCoc,
+            categoryCombo.getName());
       }
     }
-
-    for (CategoryOptionCombo optionCombo : generatedOptionCombos) {
-      if (!persistedOptionCombos.contains(optionCombo)) {
-        categoryCombo.getOptionCombos().add(optionCombo);
-        categoryService.addCategoryOptionCombo(optionCombo);
-
-        log.info(
-            "Added missing category option combo: "
-                + optionCombo
-                + " for category combo: "
-                + categoryCombo.getName());
-        modified = true;
-      }
-    }
-
-    if (modified) {
-      categoryService.updateCategoryCombo(categoryCombo);
-    }
+    categoryService.updateCategoryCombo(categoryCombo);
   }
+
+  private final BiConsumer<CategoryOptionCombo, CategoryCombo> deleteCoc =
+      (coc, cc) -> {
+        try {
+          categoryService.deleteCategoryOptionComboNoRollback(coc);
+        } catch (DeleteNotAllowedException ex) {
+          log.warn("Could not delete category option combo: {} due to {}", cc, ex.getMessage());
+        }
+        cc.getOptionCombos().remove(coc);
+        log.info(
+            "Removed obsolete category option combo: {} for category combo: {}", coc, cc.getName());
+      };
+
+  private final BiPredicate<CategoryOptionCombo, CategoryOptionCombo> equalOrSameUid =
+      (coc1, coc2) -> coc1.equals(coc2) || coc1.getUid().equals(coc2.getUid());
+
+  private final BiConsumer<CategoryOptionCombo, CategoryOptionCombo> updateNameIfNotEqual =
+      (coc1, coc2) -> {
+        if (!coc1.getName().equals(coc2.getName())) {
+          coc1.setName(coc2.getName());
+        }
+      };
 
   @Override
   @Transactional
