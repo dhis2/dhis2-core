@@ -984,7 +984,6 @@ public class DefaultCategoryService implements CategoryService {
           report -> {
             ImportSummary importSummary = new ImportSummary();
             importSummary.setDescription(msg);
-            importSummary.incrementDeleted();
             report.addImportSummary(importSummary);
           });
     }
