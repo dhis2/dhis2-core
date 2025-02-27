@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.http.HttpClientAdapter.Accept;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
@@ -505,6 +506,21 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
                 response.header("content-disposition").contains("filename=trackedEntities.csv")),
         () ->
             assertTrue(response.content().toString().contains("trackedEntity,trackedEntityType")));
+  }
+
+  @Test
+  void shouldGetTrackedEntitiesDisregardingSearchScope() {
+    User userWithDifferentSearchScope = get(User.class, "tTgjgobT1x2");
+    this.switchContextToUser(userWithDifferentSearchScope);
+    Program program = get(Program.class, "BFcipDERJnf");
+
+    HttpResponse response =
+        GET(
+            "/tracker/trackedEntities?program={programId}&orgUnitMode={orgUnitMode}",
+            program.getUid(),
+            CAPTURE);
+
+    assertEquals(HttpStatus.OK, response.status());
   }
 
   @Test
