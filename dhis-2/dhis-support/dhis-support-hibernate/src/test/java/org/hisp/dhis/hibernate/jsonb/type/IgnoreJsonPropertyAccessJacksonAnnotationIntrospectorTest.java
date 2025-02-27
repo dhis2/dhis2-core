@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,30 +27,38 @@
  */
 package org.hisp.dhis.hibernate.jsonb.type;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.JavaType;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.List;
+import org.junit.jupiter.api.Test;
 
-/**
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- */
-public class JsonListBinaryType extends JsonBinaryType {
-  static final ObjectMapper MAPPER = new ObjectMapper();
+class IgnoreJsonPropertyAccessJacksonAnnotationIntrospectorTest {
 
-  static {
-    MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-    MAPPER.setAnnotationIntrospector(
+  public static class ClassUnderTest {
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    public String writeOnlyProperty;
+
+    @JsonProperty public String readAndWriteProperty;
+  }
+
+  @Test
+  void testFindPropertyAccess() throws JsonProcessingException {
+    ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.setAnnotationIntrospector(
         new IgnoreJsonPropertyWriteOnlyAccessJacksonAnnotationIntrospector());
-  }
 
-  @Override
-  protected ObjectMapper getResultingMapper() {
-    return MAPPER;
-  }
+    ClassUnderTest classUnderTest = new ClassUnderTest();
+    classUnderTest.writeOnlyProperty = "Foo";
+    classUnderTest.readAndWriteProperty = "Bar";
 
-  @Override
-  protected JavaType getResultingJavaType(Class<?> returnedClass) {
-    return MAPPER.getTypeFactory().constructCollectionType(List.class, returnedClass);
+    String json = objectMapper.writeValueAsString(classUnderTest);
+
+    assertEquals("{\"writeOnlyProperty\":\"Foo\",\"readAndWriteProperty\":\"Bar\"}", json);
+    ClassUnderTest newClassUnderTest = objectMapper.readValue(json, ClassUnderTest.class);
+    assertEquals("Foo", newClassUnderTest.writeOnlyProperty);
+    assertEquals("Bar", newClassUnderTest.readAndWriteProperty);
   }
 }
