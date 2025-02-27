@@ -38,5 +38,8 @@ public interface ProgramNotificationInstanceStore
   List<ProgramNotificationInstance> getProgramNotificationInstances(
       ProgramNotificationInstanceParam programNotificationInstanceParam);
 
+  List<ProgramNotificationInstance> getProgramNotificationInstancesPage(
+      ProgramNotificationInstanceParam programNotificationInstanceParam);
+
   Long countProgramNotificationInstances(ProgramNotificationInstanceParam params);
 }

@@ -122,7 +122,7 @@ class RelationshipsExportController {
       return ResponseEntity.ok()
           .contentType(MediaType.APPLICATION_JSON)
           .body(
-              Page.withFullPager(
+              Page.withPager(
                   RELATIONSHIPS, relationshipsPage.withItems(objectNodes), getRequestURL(request)));
     }
 

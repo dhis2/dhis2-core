@@ -57,10 +57,17 @@ public class Page<T> {
     return new Page<>(List.of(), 0, 0, 0L, null, null);
   }
 
+  /** Create a page without a total count of items. */
   public Page(@Nonnull List<T> items, @Nonnull PageParams pageParams) {
     this(items, pageParams, null);
   }
 
+  /**
+   * Create a page that optionally supplies a total count of items and indicates if there is a
+   * previous or next page. It is assumed that there is a previous page when the current page is
+   * greater than 1. It is assumed there is a next page if there are more items than the page size.
+   * This means that the store has to fetch one more item than the requested page size.
+   */
   public Page(
       @Nonnull List<T> items, @Nonnull PageParams pageParams, @CheckForNull LongSupplier total) {
     this.page = pageParams.getPage();
@@ -98,18 +105,5 @@ public class Page<T> {
         this.total,
         this.prevPage,
         this.nextPage);
-  }
-
-  public static <T> Page<T> withTotals(List<T> items, int page, int pageSize, long total) {
-    return new Page<>(items, page, pageSize, total, null, null);
-  }
-
-  public static <T> Page<T> withoutTotals(List<T> items, int page, int pageSize) {
-    return new Page<>(items, page, pageSize, null, null, null);
-  }
-
-  public static <T> Page<T> withPrevAndNext(
-      List<T> items, int page, int pageSize, Integer prevPage, Integer nextPage) {
-    return new Page<>(items, page, pageSize, null, prevPage, nextPage);
   }
 }
