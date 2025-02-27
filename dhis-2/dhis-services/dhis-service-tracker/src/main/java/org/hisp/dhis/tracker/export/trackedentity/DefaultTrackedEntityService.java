@@ -405,6 +405,13 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
     List<TrackedEntity> trackedEntities =
         getTrackedEntities(ids.getItems(), operationParams, queryParams, user);
+
+    // TODO(tracker): Push this filter into the store because it is breaking pagination
+    trackedEntities =
+        trackedEntities.stream()
+            .filter(te -> trackerAccessManager.canRead(user, te).isEmpty())
+            .toList();
+
     return ids.withItems(trackedEntities);
   }
 
