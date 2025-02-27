@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import org.hisp.dhis.security.oauth2.client.OAuth2ClientStore;
+import org.hisp.dhis.security.oauth2.consent.DHIS2OAuth2AuthorizationConsentService;
 import org.hisp.dhis.security.oauth2.consent.OAuth2AuthorizationConsentStore;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;

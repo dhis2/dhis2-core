@@ -106,4 +106,11 @@ public interface OAuth2AuthorizationStore extends IdentifiableObjectStore<OAuth2
    */
   @CheckForNull
   OAuth2Authorization getByToken(@Nonnull String token);
+
+  /**
+   * Deletes an OAuth2Authorization by its UID.
+   *
+   * @param uid the UID of the OAuth2Authorization to delete
+   */
+  void deleteByUID(@Nonnull String uid);
 }

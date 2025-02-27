@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oauth2;
+package org.hisp.dhis.security.oauth2.authorization;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,8 +35,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.security.oauth2.authorization.OAuth2Authorization;
-import org.hisp.dhis.security.oauth2.authorization.OAuth2AuthorizationStore;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -94,14 +92,14 @@ public class DHIS2OAuth2AuthorizationService implements OAuth2AuthorizationServi
   public void remove(
       org.springframework.security.oauth2.server.authorization.OAuth2Authorization authorization) {
     Assert.notNull(authorization, "authorization cannot be null");
-    this.authorizationStore.delete(authorization.getId());
+    this.authorizationStore.deleteByUID(authorization.getId());
   }
 
   @Override
   public org.springframework.security.oauth2.server.authorization.OAuth2Authorization findById(
       String id) {
     Assert.hasText(id, "id cannot be empty");
-    OAuth2Authorization entity = this.authorizationStore.get(id);
+    OAuth2Authorization entity = this.authorizationStore.getByUid(id);
     return entity != null ? toObject(entity) : null;
   }
 
@@ -265,8 +263,8 @@ public class DHIS2OAuth2AuthorizationService implements OAuth2AuthorizationServi
     OAuth2Authorization entity = new OAuth2Authorization();
 
     // Handle case when we're creating a new authorization
-    if (this.authorizationStore.get(authorization.getId()) != null) {
-      OAuth2Authorization existingEntity = this.authorizationStore.get(authorization.getId());
+    if (this.authorizationStore.getByUid(authorization.getId()) != null) {
+      OAuth2Authorization existingEntity = this.authorizationStore.getByUid(authorization.getId());
       entity.setUid(existingEntity.getUid());
       entity.setCreated(existingEntity.getCreated());
     } else {

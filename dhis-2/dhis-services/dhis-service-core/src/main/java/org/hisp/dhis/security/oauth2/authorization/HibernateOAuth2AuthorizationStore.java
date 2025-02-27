@@ -31,6 +31,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -137,5 +138,13 @@ public class HibernateOAuth2AuthorizationStore
                         builder.equal(root.get("oidcIdTokenValue"), token),
                         builder.equal(root.get("userCodeValue"), token),
                         builder.equal(root.get("deviceCodeValue"), token))));
+  }
+
+  @Override
+  public void deleteByUID(@Nonnull String uid) {
+    Query<OAuth2Authorization> query =
+        getQuery("delete from OAuth2Authorization a where a.uid = :uid");
+    query.setParameter("uid", uid);
+    query.executeUpdate();
   }
 }

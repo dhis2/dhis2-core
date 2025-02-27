@@ -35,6 +35,7 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.hisp.dhis.security.oauth2.authorization.DHIS2OAuth2AuthorizationService;
 import org.hisp.dhis.security.oauth2.authorization.OAuth2AuthorizationStore;
 import org.hisp.dhis.security.oauth2.client.OAuth2ClientStore;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -125,7 +126,8 @@ public class DHIS2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
     // When
     authorizationService.save(authorization);
     OAuth2Authorization foundAuthorization =
-        authorizationService.findByToken("code-value", OAuth2TokenType.CODE);
+        authorizationService.findByToken(
+            "code-value", new OAuth2TokenType(OAuth2ParameterNames.CODE));
 
     // Then
     assertNotNull(foundAuthorization);
@@ -242,7 +244,7 @@ public class DHIS2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
         OAuth2Authorization.withRegisteredClient(registeredClient)
             .principalName("user1")
             .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-            .token(accessToken, metadata)
+            .token(accessToken, (m) -> m.putAll(metadata))
             .build();
 
     // When

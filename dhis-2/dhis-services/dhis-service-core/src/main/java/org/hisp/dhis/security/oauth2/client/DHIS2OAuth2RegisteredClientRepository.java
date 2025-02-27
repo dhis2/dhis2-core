@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oauth2;
+package org.hisp.dhis.security.oauth2.client;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,8 +36,6 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.security.oauth2.client.OAuth2Client;
-import org.hisp.dhis.security.oauth2.client.OAuth2ClientStore;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
@@ -69,9 +67,6 @@ public class DHIS2OAuth2RegisteredClientRepository implements RegisteredClientRe
         SecurityJackson2Modules.getModules(classLoader);
     this.objectMapper.registerModules(securityModules);
     this.objectMapper.registerModule(new OAuth2AuthorizationServerJackson2Module());
-    //    this.objectMapper.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false);
-    //    this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
   }
 
   @Override
@@ -225,31 +220,11 @@ public class DHIS2OAuth2RegisteredClientRepository implements RegisteredClientRe
       return Map.of();
     }
     try {
-      //      this.MAPPER.registerModule(new OAuth2AuthorizationServerJackson2Module());
       return MAPPER.readValue(data, new TypeReference<Map<String, Object>>() {});
     } catch (Exception ex) {
       throw new IllegalArgumentException("Failed to parse JSON data: " + ex.getMessage(), ex);
     }
   }
-
-  //  private Map<String, Object> parseMap(String data) {
-  //    if (data == null || data.isBlank()) {
-  //      return Map.of();
-  //    }
-  //
-  //    try {
-  //      // First parse to JsonNode
-  //      JsonNode jsonNode = objectMapper.readTree(data);
-  //      if (jsonNode == null || !jsonNode.isObject()) {
-  //        return Map.of();
-  //      }
-  //
-  //      // Then convert to Map
-  //      return objectMapper.readValue(data, Map.class);
-  //    } catch (Exception ex) {
-  //      throw new IllegalArgumentException("Failed to parse JSON data: " + ex.getMessage(), ex);
-  //    }
-  //  }
 
   /**
    * Converts a Map to a JSON string.
