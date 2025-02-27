@@ -39,6 +39,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -54,31 +55,75 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
  *
  * @author Stian Sandvold
  */
+@OpenApi.Shared
+@OpenApi.Property
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class TrackerIdSchemeParams implements Serializable {
   /** IdScheme used for all metadata unless overridden by a metadata specific parameter. */
-  @JsonProperty @Builder.Default private TrackerIdSchemeParam idScheme = TrackerIdSchemeParam.UID;
+  @OpenApi.Description(
+      """
+IdScheme used for all metadata unless overridden by a metadata specific parameter.
+""")
+  @OpenApi.Property
+  @JsonProperty
+  @Builder.Default
+  private TrackerIdSchemeParam idScheme = TrackerIdSchemeParam.UID;
 
   /** Specific idScheme to match data elements on. */
-  @JsonIgnore private TrackerIdSchemeParam dataElementIdScheme;
+  @OpenApi.Description(
+      """
+Specific idScheme to match data elements on. Defaults to **idScheme**.
+""")
+  @OpenApi.Property
+  @JsonIgnore
+  private TrackerIdSchemeParam dataElementIdScheme;
 
   /** Specific idScheme to match organisation units on. */
-  @JsonIgnore private TrackerIdSchemeParam orgUnitIdScheme;
+  @OpenApi.Description(
+      """
+Specific idScheme to match organisation units on. Defaults to **idScheme**.
+""")
+  @OpenApi.Property
+  @JsonIgnore
+  private TrackerIdSchemeParam orgUnitIdScheme;
 
   /** Specific idScheme to match programs on. */
-  @JsonIgnore private TrackerIdSchemeParam programIdScheme;
+  @OpenApi.Description(
+      """
+Specific idScheme to match programs on. Defaults to **idScheme**.
+""")
+  @OpenApi.Property
+  @JsonIgnore
+  private TrackerIdSchemeParam programIdScheme;
 
   /** Specific idScheme to match program stages on. */
-  @JsonIgnore private TrackerIdSchemeParam programStageIdScheme;
+  @OpenApi.Description(
+      """
+Specific idScheme to match program stages on. Defaults to **idScheme**.
+""")
+  @OpenApi.Property
+  @JsonIgnore
+  private TrackerIdSchemeParam programStageIdScheme;
 
   /** Specific idScheme to match category option combos on. */
-  @JsonIgnore private TrackerIdSchemeParam categoryOptionComboIdScheme;
+  @OpenApi.Description(
+      """
+Specific idScheme to match category option combos on. Defaults to **idScheme**.
+""")
+  @OpenApi.Property
+  @JsonIgnore
+  private TrackerIdSchemeParam categoryOptionComboIdScheme;
 
   /** Specific idScheme to match category options on. */
-  @JsonIgnore private TrackerIdSchemeParam categoryOptionIdScheme;
+  @OpenApi.Description(
+      """
+Specific idScheme to match category options on. Defaults to **idScheme**.
+""")
+  @JsonIgnore
+  private TrackerIdSchemeParam categoryOptionIdScheme;
 
   @JsonProperty("dataElementIdScheme")
   public void setDataElementIdScheme(TrackerIdSchemeParam idSchemeParam) {
