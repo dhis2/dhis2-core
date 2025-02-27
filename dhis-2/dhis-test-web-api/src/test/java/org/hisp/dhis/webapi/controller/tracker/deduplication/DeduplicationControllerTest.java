@@ -317,6 +317,34 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
   }
 
   @Test
+  void shouldGetPageWithFields() {
+    JsonPage page =
+        GET(
+                "/potentialDuplicates?trackedEntities={uid}&fields=status",
+                trackedEntityADuplicate.getUid())
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
+
+    assertEquals(
+        """
+{"status":"OPEN"}""",
+        page.getList("potentialDuplicates", JsonPotentialDuplicate.class).get(0).toMinimizedJson());
+  }
+
+  @Test
+  void shouldIgnoreTotalPages() {
+    JsonPage page =
+        GET(
+                "/potentialDuplicates?trackedEntities={uid}&totalPages=true",
+                trackedEntityADuplicate.getUid())
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
+
+    JsonPager pager = page.getPager();
+    assertHasNoMember(pager, "total", "pageCount");
+  }
+
+  @Test
   void shouldGetLastPage() {
     JsonPage page =
         GET(

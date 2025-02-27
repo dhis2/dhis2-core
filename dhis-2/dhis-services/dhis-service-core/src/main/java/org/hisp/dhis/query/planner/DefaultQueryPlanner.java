@@ -29,9 +29,12 @@ package org.hisp.dhis.query.planner;
 
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.query.Filter;
 import org.hisp.dhis.query.Junction;
+import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
+import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
 
@@ -45,18 +48,14 @@ public class DefaultQueryPlanner implements QueryPlanner {
   private final SchemaService schemaService;
 
   @Override
-  public QueryPlan planQuery(Query query) {
-    // if only one filter, always set to Junction.Type AND
-    if (query.getFilters().size() > 1 && Junction.Type.OR == query.getRootJunctionType()) {
-      return new QueryPlan(Query.from(query.getSchema()), Query.copy(query));
-    }
+  public <T extends IdentifiableObject> QueryPlan<T> planQuery(Query<T> query) {
+    autoFill(query);
 
-    QueryPlan plan = split(query);
-    Query memoryQuery = plan.memoryQuery();
-    Query dbQuery = plan.dbQuery();
+    QueryPlan<T> plan = split(query);
+    Query<T> memoryQuery = plan.memoryQuery();
+    Query<T> dbQuery = plan.dbQuery();
 
-    // if there are any non persisted criterions left, we leave the paging
-    // to the in-memory engine
+    // if there are any non persisted filters, leave the paging to the in-memory engine
     if (!memoryQuery.isEmpty()) {
       dbQuery.setSkipPaging(true);
     } else {
@@ -67,16 +66,27 @@ public class DefaultQueryPlanner implements QueryPlanner {
     return plan;
   }
 
-  private QueryPlan split(Query query) {
-    Query memoryQuery = Query.copy(query);
+  /** Modifies the query based on schema data */
+  private void autoFill(Query<?> query) {
+    Schema schema = schemaService.getDynamicSchema(query.getObjectType());
+    if (query.isDefaultOrders()) {
+      if (schema.hasPersistedProperty("name"))
+        query.addOrder(Order.iasc(schema.getPersistedProperty("name")));
+      if (schema.hasPersistedProperty("id"))
+        query.addOrder(Order.asc(schema.getPersistedProperty("id")));
+    }
+    query.setShortNamePersisted(schema.hasPersistedProperty("shortName"));
+  }
+
+  private <T extends IdentifiableObject> QueryPlan<T> split(Query<T> query) {
+    Query<T> memoryQuery = Query.copyOf(query);
     memoryQuery.getFilters().clear();
-    Query dbQuery = Query.from(query.getSchema(), query.getRootJunctionType());
-    dbQuery.setCurrentUserDetails(query.getCurrentUserDetails());
-    dbQuery.setSkipSharing(query.isSkipSharing());
+    Query<T> dbQuery = Query.emptyOf(query);
 
     for (Filter filter : query.getFilters()) {
       if (!filter.isVirtual())
-        filter.setPropertyPath(schemaService.getQueryPath(query.getSchema(), filter.getPath()));
+        filter.setPropertyPath(
+            schemaService.getPropertyPath(query.getObjectType(), filter.getPath()));
 
       if (isDbFilter(filter)) {
         dbQuery.add(filter);
@@ -84,13 +94,21 @@ public class DefaultQueryPlanner implements QueryPlanner {
         memoryQuery.add(filter);
       }
     }
+    if (query.getRootJunctionType() == Junction.Type.OR
+        && !memoryQuery.getFilters().isEmpty()
+        && !dbQuery.getFilters().isEmpty()) {
+      // OR with some filters DB some filters in-memory => all must be in-memory
+      dbQuery.getFilters().clear();
+      memoryQuery.getFilters().clear();
+      memoryQuery.getFilters().addAll(query.getFilters());
+    }
 
     if (query.ordersPersisted()) {
       dbQuery.addOrders(query.getOrders());
       memoryQuery.clearOrders();
     }
 
-    return new QueryPlan(dbQuery, memoryQuery);
+    return new QueryPlan<>(dbQuery, memoryQuery);
   }
 
   private static boolean isDbFilter(Filter filter) {

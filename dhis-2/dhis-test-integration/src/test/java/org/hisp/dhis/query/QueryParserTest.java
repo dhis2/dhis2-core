@@ -79,7 +79,8 @@ class QueryParserTest extends PostgresIntegrationTestBase {
 
   @Test
   void eqOperator() throws QueryParserException {
-    Query query = queryParser.parse(DataElement.class, Arrays.asList("id:eq:1", "id:eq:2"));
+    Query<DataElement> query =
+        queryParser.parse(DataElement.class, Arrays.asList("id:eq:1", "id:eq:2"));
     assertEquals(2, query.getFilters().size());
     Filter filter = (Filter) query.getFilters().get(0);
     assertEquals("id", filter.getPath());
@@ -93,7 +94,7 @@ class QueryParserTest extends PostgresIntegrationTestBase {
 
   @Test
   void ieqOperator() throws QueryParserException {
-    Query query =
+    Query<DataElement> query =
         queryParser.parse(DataElement.class, Arrays.asList("name:ieq:Test1", "name:ieq:test2"));
     assertEquals(2, query.getFilters().size());
     Filter filter = (Filter) query.getFilters().get(0);
@@ -108,7 +109,7 @@ class QueryParserTest extends PostgresIntegrationTestBase {
 
   @Test
   void eqOperatorDeepPath1() throws QueryParserException {
-    Query query =
+    Query<DataElement> query =
         queryParser.parse(
             DataElement.class,
             Arrays.asList("dataElementGroups.id:eq:1", "dataElementGroups.id:eq:2"));
@@ -135,7 +136,8 @@ class QueryParserTest extends PostgresIntegrationTestBase {
 
   @Test
   void nullOperator() throws QueryParserException {
-    Query query = queryParser.parse(DataElement.class, Arrays.asList("id:null", "name:null"));
+    Query<DataElement> query =
+        queryParser.parse(DataElement.class, Arrays.asList("id:null", "name:null"));
     assertEquals(2, query.getFilters().size());
     Filter filter = (Filter) query.getFilters().get(0);
     assertEquals("id", filter.getPath());

@@ -95,6 +95,9 @@ public class HibernateEventChangeLogStore {
       @Nonnull UID event,
       @Nonnull EventChangeLogOperationParams operationParams,
       @Nonnull PageParams pageParams) {
+    if (pageParams.isPageTotal()) {
+      throw new UnsupportedOperationException("pageTotal is not supported");
+    }
 
     Pair<String, QueryFilter> filter = operationParams.getFilter();
 

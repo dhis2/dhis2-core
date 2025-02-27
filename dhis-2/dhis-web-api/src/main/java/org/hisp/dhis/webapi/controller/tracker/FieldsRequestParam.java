@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.webapi.controller.tracker;
 
 import java.util.List;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 
 /**
- * @author Zubair Asghar
+ * FieldsRequestParam represents the HTTP request parameter {@code fields}. This allows users to
+ * specify the exact fields they want in the JSON response.
  */
-public interface ProgramNotificationInstanceService {
-  void save(ProgramNotificationInstance programNotificationInstance);
-
-  void update(ProgramNotificationInstance programNotificationInstance);
-
-  void delete(ProgramNotificationInstance programNotificationInstance);
-
-  ProgramNotificationInstance get(long programNotificationInstance);
-
-  List<ProgramNotificationInstance> getProgramNotificationInstances(
-      ProgramNotificationInstanceParam programNotificationInstanceParam);
-
-  /**
-   * Get a page of program notification instances. Use {@link
-   * #getProgramNotificationInstances(ProgramNotificationInstanceParam)} if you want all program
-   * notification instances. This method will fetch one extra item than the page size so the caller
-   * can determine if there is a next page.
-   */
-  // TODO(tracker) ProgramNotificationInstances lives in module dhis-api which is why we
-  // cannot reuse code from the dhis-service-tracker module like org.hisp.dhis.tracker.Page. This is
-  // why we cannot return a Page here. We need to make a decision and either move this into
-  // dhis-service-tracker or use metadata patterns/code.
-  List<ProgramNotificationInstance> getProgramNotificationInstancesPage(
-      ProgramNotificationInstanceParam programNotificationInstanceParam);
-
-  Long countProgramNotificationInstances(ProgramNotificationInstanceParam params);
+public interface FieldsRequestParam {
+  List<FieldPath> getFields();
 }

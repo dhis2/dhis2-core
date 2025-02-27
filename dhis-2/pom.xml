@@ -94,11 +94,11 @@
     <dhis-json-tree.version>1.6</dhis-json-tree.version>
 
     <!-- Security -->
-    <spring-security.version>6.3.1</spring-security.version>
+    <spring-security.version>6.4.2</spring-security.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>10.0.1</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>10.0.2</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.3</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
@@ -121,7 +121,7 @@
     <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
     <hypersistence-utils.version>3.9.2</hypersistence-utils.version>
     <!-- Data sources,db pools and db drivers -->
-    <c3p0.version>0.11.0-pre1</c3p0.version>
+    <c3p0.version>0.11.0-pre2</c3p0.version>
     <HikariCP.version>6.2.1</HikariCP.version>
     <postgresql-driver.version>42.7.5</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
@@ -240,7 +240,7 @@
     <versions-maven-plugin.version>2.18.0</versions-maven-plugin.version>
     <dependency-check-maven.version>12.1.0</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.9.1.0</spotbugs-maven-plugin.version>
-    <spotless.version>2.44.2</spotless.version>
+    <spotless.version>2.44.3</spotless.version>
     <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.2.0</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.36</dhis-antlr-expression-parser.version>
