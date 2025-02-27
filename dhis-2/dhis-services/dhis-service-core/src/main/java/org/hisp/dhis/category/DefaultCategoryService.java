@@ -961,16 +961,15 @@ public class DefaultCategoryService implements CategoryService {
   private void deleteObsoleteCoc(
       CategoryOptionCombo coc, CategoryCombo cc, Optional<ImportSummaries> summaries) {
     try {
+      String cocName = coc.getName();
       deleteCategoryOptionComboNoRollback(coc);
 
       summaries.ifPresent(
           report -> {
             ImportSummary importSummary = new ImportSummary();
             importSummary.setDescription(
-                "Deleted obsolete category option combo: ("
-                    + coc.getName()
-                    + ") for category combo: "
-                    + cc.getName());
+                "Deleted obsolete category option combo: %s for category combo: %s"
+                    .formatted(cocName, cc.getName()));
             importSummary.incrementDeleted();
             report.addImportSummary(importSummary);
           });

@@ -561,7 +561,8 @@ public interface CategoryService {
    * Generates the complete set of category option combos for the given category combo. Removes
    * obsolete category option combos.
    *
-   * @param categoryCombo the CategoryCombo.
+   * @param categoryCombo the CategoryCombo
+   * @param requiresSummary whether a summary is to be returned as part of the process
    */
   Optional<ImportSummaries> addAndPruneOptionCombos(
       CategoryCombo categoryCombo, boolean requiresSummary);

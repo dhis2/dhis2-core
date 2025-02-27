@@ -37,10 +37,12 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -304,6 +306,32 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
     entityManager.clear();
 
     categoryService.addAndPruneAllOptionCombos();
+
+    List<CategoryOptionCombo> cocs = categoryService.getAllCategoryOptionCombos();
+    assertEquals(3, cocs.size());
+    assertTrue(cocs.stream().anyMatch(coc -> coc.getName().contains("UpdateOption")));
+  }
+
+  @Test
+  void addAndPruneCategoryComboWithSummary() {
+    categoryA = createCategory('A', categoryOptionA, categoryOptionB);
+    categoryB = createCategory('B', categoryOptionC);
+    categoryService.addCategory(categoryA);
+    categoryService.addCategory(categoryB);
+
+    ccA = createCategoryCombo('A', categoryA, categoryB);
+    categoryService.addCategoryCombo(ccA);
+    Optional<ImportSummaries> importSummaries = categoryService.addAndPruneOptionCombos(ccA, true);
+
+    assertEquals(3, categoryService.getAllCategoryOptionCombos().size());
+
+    CategoryOption categoryOption = categoryService.getCategoryOption(categoryOptionB.getUid());
+    categoryOption.setName("UpdateOption");
+    categoryService.updateCategoryOption(categoryOption);
+    entityManager.flush();
+    entityManager.clear();
+
+    Optional<ImportSummaries> importSummaries1 = categoryService.addAndPruneOptionCombos(ccA, true);
 
     List<CategoryOptionCombo> cocs = categoryService.getAllCategoryOptionCombos();
     assertEquals(3, cocs.size());
