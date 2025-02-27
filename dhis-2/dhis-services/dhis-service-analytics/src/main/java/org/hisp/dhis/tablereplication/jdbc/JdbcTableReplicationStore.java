@@ -29,13 +29,20 @@ package org.hisp.dhis.tablereplication.jdbc;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.analytics.AnalyticsDataSourceFactory;
+import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Table;
+import org.hisp.dhis.db.setting.SqlBuilderSettings;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.tablereplication.TableReplicationStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
+import javax.sql.DataSource;
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -45,54 +52,66 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class JdbcTableReplicationStore implements TableReplicationStore {
 
-  @Qualifier("analyticsJdbcTemplate")
-  private final JdbcTemplate jdbcTemplate;
+    private JdbcTemplate jdbcTemplate;
+    private final AnalyticsDataSourceFactory dataSourceFactory;
 
-  private final SqlBuilder sqlBuilder;
+    private final SqlBuilder sqlBuilder;
 
-  @Override
-  public void replicateAnalyticsDatabaseTable(Table table) {
-    final Clock clock = new Clock().startClock();
-    final String tableName = table.getName();
+    @Override
+    public void replicateAnalyticsDatabaseTables(List<Table> tables) {
+        try (AnalyticsDataSourceFactory.TemporaryDataSourceWrapper wrapper =
+                     dataSourceFactory.createTemporaryAnalyticsDataSource()) {
 
-    dropTable(table);
-    createTable(table);
-    replicateTable(table);
+            // Get the DataSource correctly through the wrapper
+            DataSource dataSource = wrapper.dataSource();
+            this.jdbcTemplate = new JdbcTemplate(dataSource);
+            for (Table table : tables) {
+                final Clock clock = new Clock().startClock();
+                final String tableName = table.getName();
 
-    log.info("Analytics database table replicated: '{}' '{}'", tableName, clock.time());
-  }
+                dropTable(table);
+                createTable(table);
+                replicateTable(table);
 
-  /**
-   * Drops the given analytics database table.
-   *
-   * @param table the {@link Table}.
-   */
-  private void dropTable(Table table) {
-    String sql = sqlBuilder.dropTableIfExists(table);
-    log.info("Drop table SQL: '{}'", sql);
-    jdbcTemplate.execute(sql);
-  }
+                log.info("Analytics database table replicated: '{}' '{}'", tableName, clock.time());
+            }
 
-  /**
-   * Creates the given analytics database table.
-   *
-   * @param table the {@link Table}.
-   */
-  private void createTable(Table table) {
-    String sql = sqlBuilder.createTable(table);
-    log.info("Create table SQL: '{}'", sql);
-    jdbcTemplate.execute(sql);
-  }
+        } catch (Exception e) {
+            log.error("Failed to initialize analytics database", e);
+        }
+    }
 
-  /**
-   * Replicates the given table in the analytics database.
-   *
-   * @param table the {@link Table}.
-   */
-  private void replicateTable(Table table) {
-    String fromTable = sqlBuilder.qualifyTable(table.getName());
-    String sql = sqlBuilder.insertIntoSelectFrom(table, fromTable);
-    log.info("Replicate table SQL: '{}'", sql);
-    jdbcTemplate.execute(sql);
-  }
+    /**
+     * Drops the given analytics database table.
+     *
+     * @param table the {@link Table}.
+     */
+    private void dropTable(Table table) {
+        String sql = sqlBuilder.dropTableIfExists(table);
+        log.info("Drop table SQL: '{}'", sql);
+        jdbcTemplate.execute(sql);
+    }
+
+    /**
+     * Creates the given analytics database table.
+     *
+     * @param table the {@link Table}.
+     */
+    private void createTable(Table table) {
+        String sql = sqlBuilder.createTable(table);
+        log.info("Create table SQL: '{}'", sql);
+        jdbcTemplate.execute(sql);
+    }
+
+    /**
+     * Replicates the given table in the analytics database.
+     *
+     * @param table the {@link Table}.
+     */
+    private void replicateTable(Table table) {
+        String fromTable = sqlBuilder.qualifyTable(table.getName());
+        String sql = sqlBuilder.insertIntoSelectFrom(table, fromTable);
+        log.info("Replicate table SQL: '{}'", sql);
+        jdbcTemplate.execute(sql);
+    }
 }

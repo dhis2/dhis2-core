@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tablereplication;
+package org.hisp.dhis.analytics;
 
-import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.db.model.Column;
-import org.hisp.dhis.db.model.DataType;
-import org.hisp.dhis.db.model.Table;
-import org.hisp.dhis.db.model.constraint.Nullable;
-import org.springframework.stereotype.Service;
+import javax.sql.DataSource;
 
-@Service
-@RequiredArgsConstructor
-public class DefaultTableReplicationService implements TableReplicationService {
-  private static final Table TABLE_TRACKED_ENTIY_ATTRIBUTE_VALUE =
-      new Table(
-          "trackedentityattributevalue",
-          List.of(
-              new Column("trackedentityid", DataType.BIGINT, Nullable.NOT_NULL),
-              new Column("trackedentityattributeid", DataType.BIGINT, Nullable.NOT_NULL),
-              new Column("value", DataType.TEXT, Nullable.NULL)),
-          List.of("trackedentityid", "trackedentityattributeid"));
+/** Factory interface for creating temporary analytics DataSources. */
+public interface AnalyticsDataSourceFactory {
+  /**
+   * Creates a temporary DataSource for analytics database initialization.
+   *
+   * @return A wrapper containing the DataSource that should be closed after use
+   */
+  TemporaryDataSourceWrapper createTemporaryAnalyticsDataSource();
 
-  private final TableReplicationStore store;
+  /** Wrapper class that holds a DataSource and provides proper cleanup */
+  record TemporaryDataSourceWrapper(DataSource dataSource) implements AutoCloseable {
 
-  @Override
-  public void replicateTrackedEntityAttributeValue() {
-    store.replicateAnalyticsDatabaseTables(List.of(TABLE_TRACKED_ENTIY_ATTRIBUTE_VALUE));
+    @Override
+    public void close() throws Exception {
+      if (dataSource instanceof AutoCloseable) {
+        ((AutoCloseable) dataSource).close();
+      }
+    }
   }
 }

@@ -71,6 +71,7 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
@@ -198,7 +199,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
         jdbcTemplate,
         analyticsTableSettings,
         periodDataProvider,
-        sqlBuilder);
+        new PostgreSqlBuilder());
     this.trackedEntityTypeService = trackedEntityTypeService;
     this.analyticsSqlBuilder = analyticsSqlBuilder;
   }
@@ -306,8 +307,9 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
                 "tetId", String.valueOf(tet.getId()))));
 
     if (params.getFromDate() != null) {
-      sql.append(
-          " and (" + eventDateExpression + ") >= '" + toMediumDate(params.getFromDate()) + "'");
+      sql.append(" and (" + eventDateExpression + ") >= '")
+              .append(toMediumDate(params.getFromDate()))
+              .append("'");
     }
 
     List<Integer> availableDataYears =

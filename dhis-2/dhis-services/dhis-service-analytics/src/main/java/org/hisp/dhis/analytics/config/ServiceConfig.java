@@ -41,6 +41,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.AnalyticsSqlBuilderProvider;
 import org.hisp.dhis.db.SqlBuilderProvider;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
@@ -60,6 +61,11 @@ public class ServiceConfig {
   @Bean
   public SqlBuilder sqlBuilder(SqlBuilderProvider provider) {
     return provider.getSqlBuilder();
+  }
+
+  @Bean("postgresSqlBuilder")
+  public SqlBuilder postgresSqlBuilder() {
+    return new PostgreSqlBuilder();
   }
 
   @Bean
@@ -96,7 +102,7 @@ public class ServiceConfig {
         trackedEntityTypeService,
         analyticsTableSettings,
         periodDataProvider,
-        sqlBuilder,
+        postgresSqlBuilder(),
         analyticsSqlBuilder);
   }
 
@@ -115,7 +121,7 @@ public class ServiceConfig {
         dataElementService,
         resourceTableService,
         settingsProvider,
-        sqlBuilder);
+        postgresSqlBuilder());
   }
 
   @Bean("org.hisp.dhis.analytics.TrackedEntityEventsAnalyticsTableService")
@@ -133,7 +139,7 @@ public class ServiceConfig {
         dataElementService,
         resourceTableService,
         settingsProvider,
-        sqlBuilder);
+        postgresSqlBuilder());
   }
 
   @Bean("org.hisp.dhis.analytics.TrackedEntityEnrollmentsAnalyticsTableService")
@@ -151,7 +157,7 @@ public class ServiceConfig {
         dataElementService,
         resourceTableService,
         settingsProvider,
-        sqlBuilder);
+        postgresSqlBuilder());
   }
 
   @Bean("org.hisp.dhis.analytics.AnalyticsTableService")
@@ -259,7 +265,7 @@ public class ServiceConfig {
         dataElementService,
         resourceTableService,
         settingsProvider,
-        sqlBuilder);
+        postgresSqlBuilder());
   }
 
   @Bean("org.hisp.dhis.analytics.ValidationResultTableService")
@@ -295,6 +301,6 @@ public class ServiceConfig {
         dataElementService,
         resourceTableService,
         settingsProvider,
-        sqlBuilder);
+        postgresSqlBuilder());
   }
 }

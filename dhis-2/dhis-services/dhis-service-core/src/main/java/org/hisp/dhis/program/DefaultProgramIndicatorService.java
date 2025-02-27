@@ -56,6 +56,7 @@ import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.expression.ExpressionParams;
 import org.hisp.dhis.expression.ExpressionService;
@@ -114,7 +115,6 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
     checkNotNull(dimensionService);
     checkNotNull(i18nManager);
     checkNotNull(cacheProvider);
-    checkNotNull(sqlBuilder);
 
     this.programIndicatorStore = programIndicatorStore;
     this.programIndicatorGroupStore = programIndicatorGroupStore;
@@ -124,7 +124,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
     this.dimensionService = dimensionService;
     this.i18nManager = i18nManager;
     this.analyticsSqlCache = cacheProvider.createAnalyticsSqlCache();
-    this.sqlBuilder = sqlBuilder;
+    this.sqlBuilder = new PostgreSqlBuilder();
 
     this.programIndicatorItems = new ExpressionMapBuilder().getExpressionItemMap();
   }

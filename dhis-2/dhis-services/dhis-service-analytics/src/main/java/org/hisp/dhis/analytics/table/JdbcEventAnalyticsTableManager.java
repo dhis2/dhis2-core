@@ -76,6 +76,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.model.Logged;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
@@ -128,8 +129,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         jdbcTemplate,
         analyticsTableSettings,
         periodDataProvider,
-        sqlBuilder);
-    fixedColumns = EventAnalyticsColumn.getColumns(sqlBuilder);
+        new PostgreSqlBuilder());
+    fixedColumns = EventAnalyticsColumn.getColumns(new PostgreSqlBuilder());
   }
 
   @Override
