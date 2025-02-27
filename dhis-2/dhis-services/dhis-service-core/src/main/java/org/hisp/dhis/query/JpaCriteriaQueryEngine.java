@@ -89,9 +89,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     CriteriaQuery<T> criteriaQuery = builder.createQuery(objectType);
     Root<T> root = criteriaQuery.from(objectType);
 
-    Predicate filters = buildFilters(builder, root, query);
-    addSharingFilters(query, filters, store, builder, root);
-    criteriaQuery.where(filters);
+    criteriaQuery.where(buildFilters(query, store, builder, root));
 
     if (!query.getOrders().isEmpty()) criteriaQuery.orderBy(getOrders(query, builder, root));
 
@@ -110,25 +108,41 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     return typedQuery.getResultList();
   }
 
-  private <T extends IdentifiableObject> void addSharingFilters(
+  private <T extends IdentifiableObject> Predicate buildFilters(
       Query<T> query,
-      Predicate predicate,
+      InternalHibernateGenericStore<T> store,
+      CriteriaBuilder builder,
+      Root<T> root) {
+    Predicate filters = buildQueryFilters(builder, root, query);
+    Predicate sharing = buildSharingFilters(query, store, builder, root);
+    if (sharing == null) return filters;
+    Predicate and = builder.conjunction();
+    and.getExpressions().add(filters);
+    and.getExpressions().add(sharing);
+    return and;
+  }
+
+  private <T extends IdentifiableObject> Predicate buildSharingFilters(
+      Query<T> query,
       InternalHibernateGenericStore<T> store,
       CriteriaBuilder builder,
       Root<T> root) {
     Schema schema = schemaService.getDynamicSchema(query.getObjectType());
     boolean shareable = schema.isShareable();
-    if (!shareable) return;
+    if (!shareable) return null;
     UserDetails user = query.getCurrentUserDetails();
     if (user == null) user = getCurrentUserDetails();
+    if (user.isSuper()) return null;
     List<Function<Root<T>, Predicate>> predicates = List.of();
     if (query.isDataSharing()) {
       predicates = store.getDataSharingPredicates(builder, user);
     } else if (!query.isSkipSharing()) {
       predicates = store.getSharingPredicates(builder, user);
     }
-    if (!predicates.isEmpty())
-      predicate.getExpressions().addAll(predicates.stream().map(t -> t.apply(root)).toList());
+    if (predicates.isEmpty()) return null;
+    Predicate and = builder.conjunction();
+    predicates.stream().map(t -> t.apply(root)).forEach(f -> and.getExpressions().add(f));
+    return and;
   }
 
   @Override
@@ -152,9 +166,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
 
     criteriaQuery.select(builder.count(root));
 
-    Predicate filters = buildFilters(builder, root, query);
-    addSharingFilters(query, filters, store, builder, root);
-    criteriaQuery.where(filters);
+    criteriaQuery.where(buildFilters(query, store, builder, root));
 
     TypedQuery<Long> typedQuery = entityManager.createQuery(criteriaQuery);
 
@@ -198,7 +210,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     return (InternalHibernateGenericStore<E>) stores.get(klass);
   }
 
-  private <Y> Predicate buildFilters(CriteriaBuilder builder, Root<Y> root, Query<?> query) {
+  private <Y> Predicate buildQueryFilters(CriteriaBuilder builder, Root<Y> root, Query<?> query) {
     if (query.getFilters().isEmpty()) return builder.conjunction();
 
     Predicate rootJunction =

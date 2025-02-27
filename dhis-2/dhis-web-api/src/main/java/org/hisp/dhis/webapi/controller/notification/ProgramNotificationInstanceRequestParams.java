@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,45 +25,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.webapi.controller.notification;
 
-import java.util.Objects;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import java.util.Date;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
 
-/**
- * {@link PageParams} represent the parameters that configure the page of items to be returned by a
- * service or store.
- */
-@Getter
-@ToString
-@EqualsAndHashCode
-public class PageParams {
-  private static final int DEFAULT_PAGE = 1;
-  private static final int DEFAULT_PAGE_SIZE = 50;
+@OpenApi.Shared(name = "ProgramNotificationInstanceRequestParams")
+@OpenApi.Property
+@Data
+@NoArgsConstructor
+public class ProgramNotificationInstanceRequestParams implements PageRequestParams {
+  @OpenApi.Description(
+      """
+Get the given page.
+""")
+  @OpenApi.Property(defaultValue = "1")
+  private Integer page;
 
-  public static PageParams single() {
-    return new PageParams(1, 1, false);
-  }
+  @OpenApi.Description(
+      """
+Get given number of items per page.
+""")
+  @OpenApi.Property(defaultValue = "50")
+  private Integer pageSize;
 
-  /** The page number to be returned. */
-  final int page;
+  @OpenApi.Description(
+      """
+Get the total number of items and pages in the pager.
 
-  /** The number of items to be returned. */
-  final int pageSize;
+**Only enable this if absolutely necessary as this is resource intensive.** Use the pagers
+`prev/nextPage` to determine if there is a previous or a next page instead.
+""")
+  private boolean totalPages = false;
 
-  /** Indicates whether to fetch the total number of items. */
-  final boolean pageTotal;
+  @OpenApi.Description(
+      """
+Get all items by specifying `paging=false`. Requests are paginated by default.
 
-  public PageParams(Integer page, Integer pageSize, boolean pageTotal) {
-    this.page = Objects.requireNonNullElse(page, DEFAULT_PAGE);
-    this.pageSize = Objects.requireNonNullElse(pageSize, DEFAULT_PAGE_SIZE);
-    this.pageTotal = pageTotal;
-  }
+**Be aware that the performance is directly related to the amount of data requested. Larger pages
+will take more time to return.**
+""")
+  private boolean paging = true;
 
-  /** Zero-based offset to be used in a SQL offset clause. */
-  public int getOffset() {
-    return (page - 1) * pageSize;
-  }
+  UID enrollment;
+  UID event;
+  Date scheduledAt;
 }

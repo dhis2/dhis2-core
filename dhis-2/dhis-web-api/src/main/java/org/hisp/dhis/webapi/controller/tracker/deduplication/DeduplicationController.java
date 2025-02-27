@@ -109,7 +109,7 @@ public class DeduplicationController {
           .header(HEADER_CACHE_CONTROL, HEADER_VALUE_NO_STORE)
           .contentType(MediaType.APPLICATION_JSON)
           .body(
-              Page.withFullPager(
+              Page.withPager(
                   "potentialDuplicates", page.withItems(objectNodes), getRequestURL(request)));
     }
 
