@@ -48,12 +48,15 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.jsontree.JsonDiff;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.util.DateUtils;
+import org.intellij.lang.annotations.Language;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.function.Executable;
@@ -79,6 +82,33 @@ public class Assertions {
 
   private static final DateTimeFormatter DATE_WITH_TIMESTAMP =
       DateTimeFormat.forPattern(DATE_WITH_TIMESTAMP_PATTERN).withZoneUTC();
+
+  public static void assertNoDiff(
+      @Language("json") String expected, @Language("json") String actual) {
+    assertNoDiff(JsonValue.of(expected), JsonValue.of(actual));
+  }
+
+  public static void assertNoDiff(
+      @Language("json") String expected, @Language("json") String actual, JsonDiff.Mode mode) {
+    assertNoDiff(JsonValue.of(expected), JsonValue.of(actual), mode);
+  }
+
+  public static void assertNoDiff(@Language("json") String expected, JsonValue actual) {
+    assertNoDiff(JsonValue.of(expected), actual);
+  }
+
+  public static void assertNoDiff(
+      @Language("json") String expected, JsonValue actual, JsonDiff.Mode mode) {
+    assertNoDiff(JsonValue.of(expected), actual, mode);
+  }
+
+  public static void assertNoDiff(JsonValue expected, JsonValue actual) {
+    assertNoDiff(expected, actual, JsonDiff.Mode.DEFAULT);
+  }
+
+  public static void assertNoDiff(JsonValue expected, JsonValue actual, JsonDiff.Mode mode) {
+    assertEquals(List.of(), expected.diff(actual, mode).differences());
+  }
 
   /**
    * assertHasErrors asserts the report contains only errors of given codes in any order.
