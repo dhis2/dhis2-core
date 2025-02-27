@@ -122,8 +122,7 @@ class EnrollmentsExportController {
 
       return ResponseEntity.ok()
           .contentType(MediaType.APPLICATION_JSON)
-          .body(
-              Page.withFullPager(ENROLLMENTS, page.withItems(objectNodes), getRequestURL(request)));
+          .body(Page.withPager(ENROLLMENTS, page.withItems(objectNodes), getRequestURL(request)));
     }
 
     List<Enrollment> enrollments =
