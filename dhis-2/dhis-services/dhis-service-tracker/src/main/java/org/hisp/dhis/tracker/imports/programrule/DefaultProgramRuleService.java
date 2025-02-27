@@ -32,6 +32,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -172,13 +173,16 @@ class DefaultProgramRuleService implements ProgramRuleService {
         bundle
             .findEnrollmentByUid(enrollmentUid)
             .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getAttributes)
+            .filter(Objects::nonNull)
             .map(attributes -> RuleEngineMapper.mapAttributes(preheat, attributes))
             .orElse(Collections.emptyList());
 
     List<RuleAttributeValue> payloadTrackedEntityAttributes =
         bundle
             .findTrackedEntityByUid(teUid)
-            .map(te -> RuleEngineMapper.mapAttributes(preheat, te.getAttributes()))
+            .map(org.hisp.dhis.tracker.imports.domain.TrackedEntity::getAttributes)
+            .filter(Objects::nonNull)
+            .map(attributes -> RuleEngineMapper.mapAttributes(preheat, attributes))
             .orElse(Collections.emptyList());
 
     TrackedEntity trackedEntity = preheat.getTrackedEntity(teUid);
