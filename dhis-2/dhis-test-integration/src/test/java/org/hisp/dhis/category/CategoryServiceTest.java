@@ -77,8 +77,6 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager idObjectManager;
 
-  @Autowired private CategoryManager categoryManager;
-
   @BeforeEach
   void setUp() {
     categoryOptionA = createCategoryOption('A');
@@ -295,7 +293,7 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
 
     ccA = createCategoryCombo('A', categoryA, categoryB);
     categoryService.addCategoryCombo(ccA);
-    categoryManager.addAndPruneAllOptionCombos();
+    categoryService.addAndPruneAllOptionCombos();
 
     assertEquals(3, categoryService.getAllCategoryOptionCombos().size());
 
@@ -305,7 +303,7 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
     entityManager.flush();
     entityManager.clear();
 
-    categoryManager.addAndPruneAllOptionCombos();
+    categoryService.addAndPruneAllOptionCombos();
 
     List<CategoryOptionCombo> cocs = categoryService.getAllCategoryOptionCombos();
     assertEquals(3, cocs.size());

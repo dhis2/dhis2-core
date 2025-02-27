@@ -29,6 +29,7 @@ package org.hisp.dhis.category;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.apache.commons.collections4.SetValuedMap;
@@ -37,6 +38,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -554,4 +556,16 @@ public interface CategoryService {
   void validate(CategoryCombo combo) throws ConflictException;
 
   void validate(CategoryOptionCombo combo) throws ConflictException;
+
+  /**
+   * Generates the complete set of category option combos for the given category combo. Removes
+   * obsolete category option combos.
+   *
+   * @param categoryCombo the CategoryCombo.
+   */
+  Optional<ImportSummaries> addAndPruneOptionCombos(
+      CategoryCombo categoryCombo, boolean requiresSummary);
+
+  /** Generates the complete set of category option combos for all category combos. */
+  void addAndPruneAllOptionCombos();
 }

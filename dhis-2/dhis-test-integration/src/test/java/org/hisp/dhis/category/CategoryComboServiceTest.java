@@ -54,8 +54,6 @@ class CategoryComboServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
 
-  @Autowired private CategoryManager categoryManager;
-
   private CategoryOption categoryOptionA;
 
   private CategoryOption categoryOptionB;
@@ -338,7 +336,7 @@ class CategoryComboServiceTest extends PostgresIntegrationTestBase {
     categoryComboT = categoryService.getCategoryCombo(id);
     assertNotNull(categoryComboT);
     assertEquals(categories, categoryComboT.getCategories());
-    categoryManager.addAndPruneAllOptionCombos();
+    categoryService.addAndPruneAllOptionCombos();
     assertTrue(
         categoryComboT
             .getOptionCombos()
@@ -350,7 +348,7 @@ class CategoryComboServiceTest extends PostgresIntegrationTestBase {
     categoryB.removeCategoryOption(categoryOptionC);
     categoryB.addCategoryOption(categoryOptionE);
     categoryService.updateCategory(categoryB);
-    categoryManager.addAndPruneAllOptionCombos();
+    categoryService.addAndPruneAllOptionCombos();
     categoryComboT = categoryService.getCategoryCombo(id);
     assertFalse(
         categoryComboT

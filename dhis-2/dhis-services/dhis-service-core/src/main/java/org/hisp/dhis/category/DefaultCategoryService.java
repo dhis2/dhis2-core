@@ -28,11 +28,15 @@
 package org.hisp.dhis.category;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +51,9 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
@@ -422,6 +429,34 @@ public class DefaultCategoryService implements CategoryService {
   @Transactional(readOnly = true)
   public void validate(CategoryOptionCombo combo) throws ConflictException {
     validate(combo.getCategoryCombo());
+  }
+
+  @Override
+  @Transactional
+  public Optional<ImportSummaries> addAndPruneOptionCombos(
+      @Nonnull CategoryCombo categoryCombo, boolean requiresSummary) {
+    if (!categoryCombo.isValid()) {
+      String msg =
+          "Category combo %s is invalid, could not update option combos"
+              .formatted(categoryCombo.getUid());
+      log.warn(msg);
+      if (requiresSummary) {
+        ImportSummaries importSummaries = new ImportSummaries();
+        importSummaries.addImportSummary(new ImportSummary(ImportStatus.ERROR, msg));
+        return Optional.of(importSummaries);
+      }
+    }
+    return addAndPruneOptionComboInternal(categoryCombo, requiresSummary);
+  }
+
+  @Override
+  @Transactional
+  public void addAndPruneAllOptionCombos() {
+    List<CategoryCombo> categoryCombos = getAllCategoryCombos();
+
+    for (CategoryCombo categoryCombo : categoryCombos) {
+      addAndPruneOptionComboInternal(categoryCombo, false);
+    }
   }
 
   @Override
@@ -867,4 +902,105 @@ public class DefaultCategoryService implements CategoryService {
       Set<String> uids) {
     return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser(uids);
   }
+
+  /**
+   * Aligns the persisted state (DB) of COCs with the generated state (in-memory) of COCs for a CC.
+   * The generated state is treated as the most up-to-date state of the COCs. This method does the
+   * following: <br>
+   *
+   * <ol>
+   *   <li>Delete a persisted COC if it is not present in the generated COCs
+   *   <li>Updates a persisted COC name if it is present and has a different name to its generated
+   *       COC match
+   *   <li>Add a generated COC if it is not present in the persisted COCs
+   * </ol>
+   *
+   * @param categoryCombo the CategoryCombo.
+   */
+  private Optional<ImportSummaries> addAndPruneOptionComboInternal(
+      @Nonnull CategoryCombo categoryCombo, boolean requiresSummary) {
+    Optional<ImportSummaries> importSummaries =
+        requiresSummary ? Optional.of(new ImportSummaries()) : Optional.empty();
+
+    List<CategoryOptionCombo> generatedCocs = categoryCombo.generateOptionCombosList();
+    Set<CategoryOptionCombo> persistedCocs = Sets.newHashSet(categoryCombo.getOptionCombos());
+
+    // Persisted COC checks (update name or delete)
+    for (CategoryOptionCombo persistedCoc : persistedCocs) {
+      generatedCocs.stream()
+          .filter(generatedCoc -> equalOrSameUid.test(persistedCoc, generatedCoc))
+          .findFirst()
+          .ifPresentOrElse(
+              generatedCoc -> updateNameIfNotEqual.accept(persistedCoc, generatedCoc),
+              () -> deleteObsoleteCoc(persistedCoc, categoryCombo, importSummaries));
+    }
+
+    // Generated COC check (add if missing)
+    for (CategoryOptionCombo generatedCoc : generatedCocs) {
+      if (!persistedCocs.contains(generatedCoc)) {
+        categoryCombo.getOptionCombos().add(generatedCoc);
+        addCategoryOptionCombo(generatedCoc);
+
+        String msg =
+            "Added missing category option combo: %s for category combo: %s"
+                .formatted(generatedCoc.getUid(), categoryCombo.getUid());
+        log.info(msg);
+        importSummaries.ifPresent(
+            report -> {
+              ImportSummary importSummary = new ImportSummary();
+              importSummary.setDescription(msg);
+              importSummary.incrementImported();
+              report.addImportSummary(importSummary);
+            });
+      }
+    }
+    updateCategoryCombo(categoryCombo);
+    return importSummaries;
+  }
+
+  private void deleteObsoleteCoc(
+      CategoryOptionCombo coc, CategoryCombo cc, Optional<ImportSummaries> summaries) {
+    try {
+      deleteCategoryOptionComboNoRollback(coc);
+
+      summaries.ifPresent(
+          report -> {
+            ImportSummary importSummary = new ImportSummary();
+            importSummary.setDescription(
+                "Deleted obsolete category option combo: ("
+                    + coc.getName()
+                    + ") for category combo: "
+                    + cc.getName());
+            importSummary.incrementDeleted();
+            report.addImportSummary(importSummary);
+          });
+
+    } catch (DeleteNotAllowedException ex) {
+      String msg =
+          "Could not delete category option combo: %s due to %s"
+              .formatted(cc.getUid(), ex.getMessage());
+      log.warn(msg);
+
+      summaries.ifPresent(
+          report -> {
+            ImportSummary importSummary = new ImportSummary();
+            importSummary.setDescription(msg);
+            importSummary.incrementDeleted();
+            report.addImportSummary(importSummary);
+          });
+    }
+    cc.getOptionCombos().remove(coc);
+    log.info(
+        "Removed obsolete category option combo: {} for category combo: {}", coc, cc.getName());
+  }
+
+  private final BiPredicate<CategoryOptionCombo, CategoryOptionCombo> equalOrSameUid =
+      (coc1, coc2) -> coc1.equals(coc2) || coc1.getUid().equals(coc2.getUid());
+
+  private final BiConsumer<CategoryOptionCombo, CategoryOptionCombo> updateNameIfNotEqual =
+      (coc1, coc2) -> {
+        if (!coc1.getName().equals(coc2.getName())) {
+          coc1.setName(coc2.getName());
+        }
+      };
 }
