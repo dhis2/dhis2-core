@@ -86,10 +86,12 @@ public class HibernateProgramNotificationInstanceStore
             .addOrder(root -> builder.desc(root.get("created")));
 
     if (params.isPaging()) {
+      // javax.persistence.TypedQuery position of the first result is numbered from 0 while
+      // user-facing pagination parameters start at 1
       jpaParameters
           .setFirstResult((params.getPage() - 1) * params.getPageSize())
           .setMaxResults(
-              params.getPageSize() + 1); // get extra enrollment to determine if there is a nextPage
+              params.getPageSize() + 1); // get extra item to determine if there is a nextPage
     }
 
     return getList(builder, jpaParameters);

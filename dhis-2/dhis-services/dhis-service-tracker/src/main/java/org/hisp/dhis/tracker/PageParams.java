@@ -33,8 +33,8 @@ import lombok.Getter;
 import lombok.ToString;
 
 /**
- * {@link PageParams} represent the parameters that configure the page of items to be returned. By
- * default, the total number of items will not be fetched.
+ * {@link PageParams} represent the parameters that configure the page of items to be returned by a
+ * service or store.
  */
 @Getter
 @ToString

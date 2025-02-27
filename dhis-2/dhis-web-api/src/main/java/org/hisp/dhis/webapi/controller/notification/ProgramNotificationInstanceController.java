@@ -63,7 +63,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Document(
     entity = ProgramNotificationInstance.class,
-    classifiers = {"team:tracker", "purpose:metadata"})
+    classifiers = {"team:tracker", "purpose:data"})
 @Controller
 @RequestMapping("/api/programNotificationInstances")
 @ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -124,7 +124,7 @@ public class ProgramNotificationInstanceController {
       return ResponseEntity.ok()
           .contentType(MediaType.APPLICATION_JSON)
           .body(
-              Page.withFullPager(
+              Page.withPager(
                   ProgramNotificationInstanceSchemaDescriptor.PLURAL,
                   page,
                   getRequestURL(request)));

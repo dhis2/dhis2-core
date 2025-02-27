@@ -144,7 +144,7 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
   }
 
   @Test
-  void shouldGetPaginatedItemsFirstPage() {
+  void shouldGetFirstPage() {
     JsonPage page =
         GET(
                 "/programNotificationInstances?enrollment={uid}&page=1&pageSize=1&totalPages=false",
@@ -173,7 +173,7 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
   }
 
   @Test
-  void shouldGetPaginatedItemsLastPage() {
+  void shouldGetLastPage() {
     JsonPage page =
         GET(
                 "/programNotificationInstances?enrollment={uid}&page=2&pageSize=1&totalPages=true",
