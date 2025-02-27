@@ -158,6 +158,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       throws ForbiddenException {
     validateGrantTemporaryOwnershipInputs(trackedEntity, program, user);
 
+    // TODO(tracker) jdbc-hibernate: check the impact on performance
     TrackedEntity hibernateTrackedEntity = manager.get(TrackedEntity.class, trackedEntity.getUid());
     if (config.isEnabled(CHANGELOG_TRACKER)) {
       programTempOwnershipAuditService.addProgramTempOwnershipAudit(
