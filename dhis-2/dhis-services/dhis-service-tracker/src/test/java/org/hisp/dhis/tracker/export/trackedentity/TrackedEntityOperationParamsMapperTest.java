@@ -511,14 +511,14 @@ class TrackedEntityOperationParamsMapperTest {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder().orgUnitMode(ACCESSIBLE).program(PROGRAM_UID).build();
 
-    Exception illegalQueryException =
+    Exception exception =
         assertThrows(
             IllegalQueryException.class,
             () -> mapper.map(operationParams, currentUserWithOrgUnits));
 
     assertEquals(
         "At least 1 attributes should be mentioned in the search criteria.",
-        illegalQueryException.getMessage());
+        exception.getMessage());
   }
 
   @Test
@@ -544,11 +544,11 @@ class TrackedEntityOperationParamsMapperTest {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder().orgUnitMode(ACCESSIBLE).program(PROGRAM_UID).build();
 
-    Exception illegalQueryException =
+    Exception exception =
         assertThrows(
             IllegalQueryException.class,
             () -> mapper.map(operationParams, currentUserWithOrgUnits));
-    assertEquals("maxteicountreached", illegalQueryException.getMessage());
+    assertEquals("maxteicountreached", exception.getMessage());
   }
 
   @Test
@@ -567,10 +567,10 @@ class TrackedEntityOperationParamsMapperTest {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder().orgUnitMode(ACCESSIBLE).build();
 
-    Exception forbiddenException =
+    Exception exception =
         assertThrows(
             ForbiddenException.class, () -> mapper.map(operationParams, currentUserWithOrgUnits));
 
-    assertEquals("User has no access to any Tracked Entity Type", forbiddenException.getMessage());
+    assertEquals("User has no access to any Tracked Entity Type", exception.getMessage());
   }
 }
