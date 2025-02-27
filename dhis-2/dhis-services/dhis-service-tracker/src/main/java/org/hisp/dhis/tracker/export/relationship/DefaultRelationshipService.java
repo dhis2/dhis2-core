@@ -97,7 +97,7 @@ public class DefaultRelationshipService implements RelationshipService {
       throws ForbiddenException, NotFoundException, BadRequestException {
     RelationshipQueryParams queryParams = mapper.map(params);
     Page<Relationship> relationships = relationshipStore.getRelationships(queryParams, pageParams);
-    return relationships.withItems(map(relationships.getItems()));
+    return relationships.withFilteredItems(map(relationships.getItems()));
   }
 
   @Override

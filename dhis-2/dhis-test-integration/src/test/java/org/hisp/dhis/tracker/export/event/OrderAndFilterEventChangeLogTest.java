@@ -76,7 +76,7 @@ class OrderAndFilterEventChangeLogTest extends TrackerTest {
 
   private TrackerImportParams importParams;
 
-  private final PageParams defaultPageParams = new PageParams(null, null, false);
+  private final PageParams defaultPageParams = PageParams.of(null, null, false);
 
   private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
