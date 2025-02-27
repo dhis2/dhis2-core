@@ -75,8 +75,6 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
 
-  @Autowired private CategoryStore categoryStore;
-
   @Autowired private IdentifiableObjectManager idObjectManager;
 
   @Autowired private CategoryManager categoryManager;
@@ -294,14 +292,21 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
     categoryB = createCategory('B', categoryOptionC);
     categoryService.addCategory(categoryA);
     categoryService.addCategory(categoryB);
+
     ccA = createCategoryCombo('A', categoryA, categoryB);
     categoryService.addCategoryCombo(ccA);
     categoryManager.addAndPruneAllOptionCombos();
+
     assertEquals(3, categoryService.getAllCategoryOptionCombos().size());
+
     CategoryOption categoryOption = categoryService.getCategoryOption(categoryOptionB.getUid());
     categoryOption.setName("UpdateOption");
     categoryService.updateCategoryOption(categoryOption);
+    entityManager.flush();
+    entityManager.clear();
+
     categoryManager.addAndPruneAllOptionCombos();
+
     List<CategoryOptionCombo> cocs = categoryService.getAllCategoryOptionCombos();
     assertEquals(3, cocs.size());
     assertTrue(cocs.stream().anyMatch(coc -> coc.getName().contains("UpdateOption")));
