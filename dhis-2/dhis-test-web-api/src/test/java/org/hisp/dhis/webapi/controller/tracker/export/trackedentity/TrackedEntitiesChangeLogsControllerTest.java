@@ -283,6 +283,29 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
         () -> assertHasNoMember(pagerObject, "prevPage", "nextPage", "total", "pageCount"));
   }
 
+  @Test
+  void shouldIgnoreTotalPages() {
+    JsonPage page =
+        GET("/tracker/trackedEntities/{id}/changeLogs?totalPages=true", trackedEntity.getUid())
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
+
+    JsonPager pager = page.getPager();
+    assertHasNoMember(pager, "total", "pageCount");
+  }
+
+  @Test
+  void shouldAlwaysReturnPages() {
+    JsonPage page =
+        GET("/tracker/trackedEntities/{id}/changeLogs?paging=false", trackedEntity.getUid())
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
+
+    JsonPager pager = page.getPager();
+    assertEquals(1, pager.getPage());
+    assertEquals(50, pager.getPageSize());
+  }
+
   private TrackerObjects fromJson(String path) throws IOException {
     return renderService.fromJson(
         new ClassPathResource(path).getInputStream(), TrackerObjects.class);

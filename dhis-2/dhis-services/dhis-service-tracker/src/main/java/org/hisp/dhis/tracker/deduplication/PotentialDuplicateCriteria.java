@@ -31,20 +31,13 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
 @Data
 public class PotentialDuplicateCriteria {
-  private PageParams pageParams;
-
   private List<OrderCriteria> order = new ArrayList<>();
 
   private List<UID> trackedEntities = new ArrayList<>();
 
   private DeduplicationStatus status = DeduplicationStatus.OPEN;
-
-  boolean isPaging() {
-    return pageParams != null;
-  }
 }

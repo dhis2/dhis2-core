@@ -192,13 +192,7 @@ class TrackedEntityOperationParamsMapper {
                 attributeFilter.getKey()));
       }
 
-      if (attributeFilter.getValue().isEmpty()) {
-        params.filterBy(tea);
-      }
-
-      for (QueryFilter filter : attributeFilter.getValue()) {
-        params.filterBy(tea, filter);
-      }
+      params.filterBy(tea, attributeFilter.getValue());
     }
   }
 
@@ -289,9 +283,13 @@ class TrackedEntityOperationParamsMapper {
         validateSearchableAttributes(params, searchableAttributeIds);
       }
 
-      int maxTeiLimit = getMaxTeiLimit(params);
-      checkIfMaxTeiLimitIsReached(params, maxTeiLimit);
-      params.setMaxTeLimit(maxTeiLimit);
+      int maxTeLimit = getMaxTeLimit(params);
+      if (maxTeLimit > 0
+          && trackedEntityStore.getTrackedEntityCountWithMaxTrackedEntityLimit(params)
+              > maxTeLimit) {
+        throw new IllegalQueryException("maxteicountreached");
+      }
+      params.setMaxTeLimit(maxTeLimit);
     }
   }
 
@@ -335,10 +333,10 @@ class TrackedEntityOperationParamsMapper {
     }
   }
 
-  private int getMaxTeiLimit(TrackedEntityQueryParams params) {
-    int maxTeiLimit = 0;
+  private int getMaxTeLimit(TrackedEntityQueryParams params) {
+    int maxTeLimit = 0;
     if (params.hasTrackedEntityType()) {
-      maxTeiLimit = params.getTrackedEntityType().getMaxTeiCountToReturn();
+      maxTeLimit = params.getTrackedEntityType().getMaxTeiCountToReturn();
 
       if (!params.hasTrackedEntities() && isTeTypeMinAttributesViolated(params)) {
         throw new IllegalQueryException(
@@ -349,7 +347,7 @@ class TrackedEntityOperationParamsMapper {
     }
 
     if (params.hasEnrolledInTrackerProgram()) {
-      maxTeiLimit = params.getEnrolledInTrackerProgram().getMaxTeiCountToReturn();
+      maxTeLimit = params.getEnrolledInTrackerProgram().getMaxTeiCountToReturn();
 
       if (!params.hasTrackedEntities() && isProgramMinAttributesViolated(params)) {
         throw new IllegalQueryException(
@@ -359,7 +357,7 @@ class TrackedEntityOperationParamsMapper {
       }
     }
 
-    return maxTeiLimit;
+    return maxTeLimit;
   }
 
   private boolean isLocalSearch(TrackedEntityQueryParams params, UserDetails user) {
@@ -418,15 +416,5 @@ class TrackedEntityOperationParamsMapper {
         || (params.hasFilters()
             && params.getFilters().size()
                 < params.getEnrolledInTrackerProgram().getMinAttributesRequiredToSearch());
-  }
-
-  private void checkIfMaxTeiLimitIsReached(TrackedEntityQueryParams params, int maxTeiLimit) {
-    if (maxTeiLimit > 0) {
-      int teCount = trackedEntityStore.getTrackedEntityCountWithMaxTrackedEntityLimit(params);
-
-      if (teCount > maxTeiLimit) {
-        throw new IllegalQueryException("maxteicountreached");
-      }
-    }
   }
 }

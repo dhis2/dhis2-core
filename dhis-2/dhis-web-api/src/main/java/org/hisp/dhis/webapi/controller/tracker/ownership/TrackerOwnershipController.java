@@ -91,7 +91,7 @@ public class TrackerOwnershipController {
       @RequestParam UID trackedEntity,
       @RequestParam UID program,
       @Deprecated(
-              since = "2.41",
+              since = "2.42",
               forRemoval = true) // TODO(tracker) remove `ou` parameter in favor of `orgUnit` in v43
           @RequestParam(required = false)
           UID ou,

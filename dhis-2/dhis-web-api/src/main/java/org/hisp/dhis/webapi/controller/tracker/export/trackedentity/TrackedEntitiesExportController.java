@@ -168,7 +168,8 @@ class TrackedEntitiesExportController {
   ResponseEntity<Page<ObjectNode>> getTrackedEntities(
       TrackedEntityRequestParams requestParams,
       TrackerIdSchemeParams idSchemeParams,
-      @CurrentUser UserDetails currentUser)
+      @CurrentUser UserDetails currentUser,
+      HttpServletRequest request)
       throws BadRequestException, ForbiddenException, NotFoundException, WebMessageException {
     validatePaginationParameters(requestParams);
     TrackedEntityOperationParams operationParams = paramsMapper.map(requestParams, currentUser);
@@ -191,7 +192,11 @@ class TrackedEntitiesExportController {
 
       return ResponseEntity.ok()
           .contentType(MediaType.APPLICATION_JSON)
-          .body(Page.withPager(TRACKED_ENTITIES, trackedEntitiesPage.withItems(objectNodes)));
+          .body(
+              Page.withFullPager(
+                  TRACKED_ENTITIES,
+                  trackedEntitiesPage.withItems(objectNodes),
+                  getRequestURL(request)));
     }
 
     MappingErrors errors = new MappingErrors(idSchemeParams);
