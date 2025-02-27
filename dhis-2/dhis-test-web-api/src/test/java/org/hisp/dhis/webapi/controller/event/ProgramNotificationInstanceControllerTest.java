@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.event;
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertPagerLink;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
@@ -49,6 +50,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
+import org.hisp.dhis.webapi.controller.tracker.JsonPage.JsonPager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -71,14 +73,12 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
 
   private ProgramNotificationInstance eventNotification;
 
-  private User user;
-
   @BeforeEach
   void setUp() {
     OrganisationUnit orgUnit = createOrganisationUnit('A');
     manager.save(orgUnit);
 
-    user = createAndAddUser("tester", orgUnit, ALL.name());
+    User user = createAndAddUser("tester", orgUnit, ALL.name());
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
     this.userService.updateUser(user);
 
@@ -137,16 +137,18 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
         List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
         list.toList(JsonIdentifiableObject::getName));
 
-    assertEquals(1, page.getPager().getPage());
-    assertEquals(50, page.getPager().getPageSize());
-    assertEquals(2, page.getPager().getTotal());
-    assertEquals(1, page.getPager().getPageCount());
+    JsonPager pager = page.getPager();
+    assertEquals(1, pager.getPage());
+    assertEquals(50, pager.getPageSize());
+    assertHasNoMember(pager, "total", "pageCount");
   }
 
   @Test
-  void shouldGetPaginatedItemsWithNonDefaults() {
+  void shouldGetPaginatedItemsFirstPage() {
     JsonPage page =
-        GET("/programNotificationInstances?enrollment={uid}&page=2&pageSize=1", enrollment.getUid())
+        GET(
+                "/programNotificationInstances?enrollment={uid}&page=1&pageSize=1&totalPages=false",
+                enrollment.getUid())
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
@@ -157,10 +159,48 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
         list.size(),
         () -> String.format("mismatch in number of expected notification(s), got %s", list));
 
-    assertEquals(2, page.getPager().getPage());
+    JsonPager pager = page.getPager();
+    assertEquals(1, pager.getPage());
+    assertEquals(1, page.getPager().getPageSize());
+    assertHasNoMember(pager, "total", "pageCount", "prevPage");
+    assertPagerLink(
+        pager.getNextPage(),
+        2,
+        1,
+        String.format(
+            "http://localhost/api/programNotificationInstances?enrollment=%s",
+            enrollment.getUid()));
+  }
+
+  @Test
+  void shouldGetPaginatedItemsLastPage() {
+    JsonPage page =
+        GET(
+                "/programNotificationInstances?enrollment={uid}&page=2&pageSize=1&totalPages=true",
+                enrollment.getUid())
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
+
+    JsonList<JsonIdentifiableObject> list =
+        page.getList("programNotificationInstances", JsonIdentifiableObject.class);
+    assertEquals(
+        1,
+        list.size(),
+        () -> String.format("mismatch in number of expected notification(s), got %s", list));
+
+    JsonPager pager = page.getPager();
+    assertEquals(2, pager.getPage());
     assertEquals(1, page.getPager().getPageSize());
     assertEquals(2, page.getPager().getTotal());
     assertEquals(2, page.getPager().getPageCount());
+    assertPagerLink(
+        pager.getPrevPage(),
+        1,
+        1,
+        String.format(
+            "http://localhost/api/programNotificationInstances?enrollment=%s",
+            enrollment.getUid()));
+    assertHasNoMember(pager, "nextPage");
   }
 
   @Test
@@ -176,10 +216,10 @@ class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegr
         List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
         list.toList(JsonIdentifiableObject::getName));
 
-    assertEquals(1, page.getPager().getPage());
+    JsonPager pager = page.getPager();
+    assertEquals(1, pager.getPage());
     assertEquals(50, page.getPager().getPageSize());
-    assertEquals(2, page.getPager().getTotal());
-    assertEquals(1, page.getPager().getPageCount());
+    assertHasNoMember(pager, "total", "pageCount");
   }
 
   @Test
