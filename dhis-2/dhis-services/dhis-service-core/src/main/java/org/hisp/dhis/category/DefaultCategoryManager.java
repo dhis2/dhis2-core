@@ -81,7 +81,7 @@ public class DefaultCategoryManager implements CategoryManager {
           .findFirst()
           .ifPresentOrElse(
               generatedCoc -> updateNameIfNotEqual.accept(persistedCoc, generatedCoc),
-              () -> deleteCoc.accept(persistedCoc, categoryCombo));
+              () -> deleteCoc(persistedCoc, categoryCombo));
     }
 
     // Generated COC check (add if missing)
@@ -99,17 +99,16 @@ public class DefaultCategoryManager implements CategoryManager {
     categoryService.updateCategoryCombo(categoryCombo);
   }
 
-  private final BiConsumer<CategoryOptionCombo, CategoryCombo> deleteCoc =
-      (coc, cc) -> {
-        try {
-          categoryService.deleteCategoryOptionComboNoRollback(coc);
-        } catch (DeleteNotAllowedException ex) {
-          log.warn("Could not delete category option combo: {} due to {}", cc, ex.getMessage());
-        }
-        cc.getOptionCombos().remove(coc);
-        log.info(
-            "Removed obsolete category option combo: {} for category combo: {}", coc, cc.getName());
-      };
+  private void deleteCoc(CategoryOptionCombo coc, CategoryCombo cc) {
+    try {
+      categoryService.deleteCategoryOptionComboNoRollback(coc);
+    } catch (DeleteNotAllowedException ex) {
+      log.warn("Could not delete category option combo: {} due to {}", cc, ex.getMessage());
+    }
+    cc.getOptionCombos().remove(coc);
+    log.info(
+        "Removed obsolete category option combo: {} for category combo: {}", coc, cc.getName());
+  }
 
   private final BiPredicate<CategoryOptionCombo, CategoryOptionCombo> equalOrSameUid =
       (coc1, coc2) -> coc1.equals(coc2) || coc1.getUid().equals(coc2.getUid());
