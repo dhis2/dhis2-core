@@ -209,7 +209,7 @@ public class MaintenanceController {
 
     return importSummaries(
         categoryService
-            .addAndPruneOptionCombos(categoryCombo, true)
+            .addAndPruneOptionCombosWithSummary(categoryCombo)
             .orElseThrow(
                 () ->
                     new IllegalStateException(

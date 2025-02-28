@@ -35,7 +35,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -433,20 +432,23 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional
-  public Optional<ImportSummaries> addAndPruneOptionCombos(
-      @Nonnull CategoryCombo categoryCombo, boolean requiresSummary) {
+  public Optional<ImportSummaries> addAndPruneOptionCombosWithSummary(
+      @Nonnull CategoryCombo categoryCombo) {
+    ImportSummaries importSummaries = new ImportSummaries();
     if (!categoryCombo.isValid()) {
       String msg =
           "Category combo %s is invalid, could not update option combos"
               .formatted(categoryCombo.getUid());
       log.warn(msg);
-      if (requiresSummary) {
-        ImportSummaries importSummaries = new ImportSummaries();
-        importSummaries.addImportSummary(new ImportSummary(ImportStatus.ERROR, msg));
-        return Optional.of(importSummaries);
-      }
+      importSummaries.addImportSummary(new ImportSummary(ImportStatus.ERROR, msg));
+      return Optional.of(importSummaries);
     }
-    return addAndPruneOptionComboInternal(categoryCombo, requiresSummary);
+    return addAndPruneOptionCombo(categoryCombo, Optional.of(importSummaries));
+  }
+
+  @Override
+  public void addAndPruneOptionCombos(CategoryCombo categoryCombo) {
+    addAndPruneOptionCombo(categoryCombo, Optional.empty());
   }
 
   @Override
@@ -455,7 +457,7 @@ public class DefaultCategoryService implements CategoryService {
     List<CategoryCombo> categoryCombos = getAllCategoryCombos();
 
     for (CategoryCombo categoryCombo : categoryCombos) {
-      addAndPruneOptionComboInternal(categoryCombo, false);
+      addAndPruneOptionCombo(categoryCombo, Optional.empty());
     }
   }
 
@@ -634,41 +636,8 @@ public class DefaultCategoryService implements CategoryService {
   public void updateOptionCombos(Category category) {
     for (CategoryCombo categoryCombo : getAllCategoryCombos()) {
       if (categoryCombo.getCategories().contains(category)) {
-        updateOptionCombos(categoryCombo);
+        addAndPruneOptionCombos(categoryCombo);
       }
-    }
-  }
-
-  @Override
-  @Transactional
-  public void updateOptionCombos(CategoryCombo categoryCombo) {
-    if (categoryCombo == null || !categoryCombo.isValid()) {
-      log.warn(
-          "Category combo is null or invalid, could not update option combos: " + categoryCombo);
-      return;
-    }
-
-    List<CategoryOptionCombo> generatedOptionCombos = categoryCombo.generateOptionCombosList();
-    Set<CategoryOptionCombo> persistedOptionCombos = categoryCombo.getOptionCombos();
-
-    boolean modified = false;
-
-    for (CategoryOptionCombo optionCombo : generatedOptionCombos) {
-      if (!persistedOptionCombos.contains(optionCombo)) {
-        categoryCombo.getOptionCombos().add(optionCombo);
-        addCategoryOptionCombo(optionCombo);
-
-        log.info(
-            "Added missing category option combo: "
-                + optionCombo
-                + " for category combo: "
-                + categoryCombo.getName());
-        modified = true;
-      }
-    }
-
-    if (modified) {
-      updateCategoryCombo(categoryCombo);
     }
   }
 
@@ -917,13 +886,11 @@ public class DefaultCategoryService implements CategoryService {
    *
    * @param categoryCombo the CategoryCombo.
    */
-  private Optional<ImportSummaries> addAndPruneOptionComboInternal(
-      @Nonnull CategoryCombo categoryCombo, boolean requiresSummary) {
-    Optional<ImportSummaries> importSummaries =
-        requiresSummary ? Optional.of(new ImportSummaries()) : Optional.empty();
-
+  private Optional<ImportSummaries> addAndPruneOptionCombo(
+      @Nonnull CategoryCombo categoryCombo, Optional<ImportSummaries> importSummaries) {
     List<CategoryOptionCombo> generatedCocs = categoryCombo.generateOptionCombosList();
-    Set<CategoryOptionCombo> persistedCocs = Sets.newHashSet(categoryCombo.getOptionCombos());
+    Set<CategoryOptionCombo> persistedCocs =
+        Sets.newHashSet(categoryComboStore.getByUid(categoryCombo.getUid()).getOptionCombos());
 
     // Persisted COC checks (update name or delete)
     for (CategoryOptionCombo persistedCoc : persistedCocs) {
@@ -931,7 +898,7 @@ public class DefaultCategoryService implements CategoryService {
           .filter(generatedCoc -> equalOrSameUid.test(persistedCoc, generatedCoc))
           .findFirst()
           .ifPresentOrElse(
-              generatedCoc -> updateNameIfNotEqual.accept(persistedCoc, generatedCoc),
+              generatedCoc -> updateNameIfNotEqual(persistedCoc, generatedCoc, importSummaries),
               () -> deleteObsoleteCoc(persistedCoc, categoryCombo, importSummaries));
     }
 
@@ -954,7 +921,6 @@ public class DefaultCategoryService implements CategoryService {
             });
       }
     }
-    updateCategoryCombo(categoryCombo);
     return importSummaries;
   }
 
@@ -995,10 +961,19 @@ public class DefaultCategoryService implements CategoryService {
   private final BiPredicate<CategoryOptionCombo, CategoryOptionCombo> equalOrSameUid =
       (coc1, coc2) -> coc1.equals(coc2) || coc1.getUid().equals(coc2.getUid());
 
-  private final BiConsumer<CategoryOptionCombo, CategoryOptionCombo> updateNameIfNotEqual =
-      (coc1, coc2) -> {
-        if (!coc1.getName().equals(coc2.getName())) {
-          coc1.setName(coc2.getName());
-        }
-      };
+  private void updateNameIfNotEqual(
+      CategoryOptionCombo coc1, CategoryOptionCombo coc2, Optional<ImportSummaries> summaries) {
+    if (!coc1.getName().equals(coc2.getName())) {
+      coc1.setName(coc2.getName());
+      summaries.ifPresent(
+          (summary) -> {
+            ImportSummary importSummary = new ImportSummary();
+            importSummary.setDescription(
+                "Update category option combo %S name to %s"
+                    .formatted(coc1.getUid(), coc1.getName()));
+            importSummary.incrementUpdated();
+            summary.addImportSummary(importSummary);
+          });
+    }
+  }
 }

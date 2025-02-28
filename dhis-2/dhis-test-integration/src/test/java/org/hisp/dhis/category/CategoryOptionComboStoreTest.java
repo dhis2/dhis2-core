@@ -312,7 +312,7 @@ class CategoryOptionComboStoreTest extends PostgresIntegrationTestBase {
 
     CategoryCombo categoryCombo = createCategoryCombo('Z', c1, c2);
     categoryService.addCategoryCombo(categoryCombo);
-    categoryService.updateOptionCombos(categoryCombo);
+    categoryService.addAndPruneOptionCombos(categoryCombo);
 
     List<CategoryOptionCombo> cocsByCategoryOption =
         categoryOptionComboStore.getCategoryOptionCombosByCategoryOption(

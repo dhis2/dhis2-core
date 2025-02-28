@@ -429,14 +429,6 @@ public interface CategoryService {
   void updateOptionCombos(Category category);
 
   /**
-   * Generates the complete set of category option combos for the given category combo and compares
-   * it to the set of persisted category option combos. Those which are not matched are persisted.
-   *
-   * @param categoryCombo the CategoryCombo.
-   */
-  void updateOptionCombos(CategoryCombo categoryCombo);
-
-  /**
    * Returns the category option combo with the given uid. Respects access control by only returning
    * objects which the current user has {@code data write} access to.
    *
@@ -562,10 +554,16 @@ public interface CategoryService {
    * obsolete category option combos.
    *
    * @param categoryCombo the CategoryCombo
-   * @param requiresSummary whether a summary is to be returned as part of the process
    */
-  Optional<ImportSummaries> addAndPruneOptionCombos(
-      CategoryCombo categoryCombo, boolean requiresSummary);
+  Optional<ImportSummaries> addAndPruneOptionCombosWithSummary(CategoryCombo categoryCombo);
+
+  /**
+   * Generates the complete set of category option combos for the given category combo. Removes
+   * obsolete category option combos.
+   *
+   * @param categoryCombo the CategoryCombo
+   */
+  void addAndPruneOptionCombos(CategoryCombo categoryCombo);
 
   /** Generates the complete set of category option combos for all category combos. */
   void addAndPruneAllOptionCombos();
