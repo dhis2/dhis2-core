@@ -149,8 +149,7 @@ public class DeduplicationController {
       throws NotFoundException,
           PotentialDuplicateConflictException,
           PotentialDuplicateForbiddenException,
-          ForbiddenException,
-          BadRequestException {
+          ForbiddenException {
     PotentialDuplicate potentialDuplicate = deduplicationService.getPotentialDuplicate(uid);
 
     if (potentialDuplicate.getOriginal() == null || potentialDuplicate.getDuplicate() == null) {
@@ -159,9 +158,9 @@ public class DeduplicationController {
     }
 
     TrackedEntity original =
-        trackedEntityService.getTrackedEntity(potentialDuplicate.getOriginal());
+        trackedEntityService.getNewTrackedEntity(potentialDuplicate.getOriginal());
     TrackedEntity duplicate =
-        trackedEntityService.getTrackedEntity(potentialDuplicate.getDuplicate());
+        trackedEntityService.getNewTrackedEntity(potentialDuplicate.getDuplicate());
 
     if (mergeObject == null) {
       mergeObject = new MergeObject();
@@ -202,9 +201,9 @@ public class DeduplicationController {
           BadRequestException {
     checkValidTrackedEntity(potentialDuplicate.getOriginal(), "original");
     checkValidTrackedEntity(potentialDuplicate.getDuplicate(), "duplicate");
-    trackedEntityService.getTrackedEntity(potentialDuplicate.getOriginal());
-    trackedEntityService.getTrackedEntity(potentialDuplicate.getDuplicate());
     checkAlreadyExistingDuplicate(potentialDuplicate);
+    trackedEntityService.getNewTrackedEntity(potentialDuplicate.getOriginal());
+    trackedEntityService.getNewTrackedEntity(potentialDuplicate.getDuplicate());
   }
 
   private void checkAlreadyExistingDuplicate(PotentialDuplicate potentialDuplicate)
