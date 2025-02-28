@@ -283,7 +283,6 @@ class JdbcEventStore {
               event = eventsByUid.get(eventUid);
             } else {
               event = new Event();
-              event.setId(resultSet.getLong(COLUMN_EVENT_ID));
               event.setUid(eventUid);
               eventsByUid.put(eventUid, event);
               dataElementUids.put(eventUid, new HashSet<>());

@@ -1407,7 +1407,6 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     assertTrue(eventOpt.isPresent());
     Event event = eventOpt.get();
     assertAll(
-        () -> assertEquals(eventA.getId(), event.getId()),
         () -> assertEquals(eventA.getUid(), event.getUid()),
         () -> assertEquals(EventStatus.ACTIVE, event.getStatus()),
         () -> assertEquals(orgUnitA.getUid(), event.getOrganisationUnit().getUid()),

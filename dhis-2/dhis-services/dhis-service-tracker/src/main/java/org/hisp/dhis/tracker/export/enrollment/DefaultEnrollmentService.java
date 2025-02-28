@@ -182,7 +182,6 @@ class DefaultEnrollmentService implements EnrollmentService {
       boolean includeDeleted,
       @Nonnull UserDetails user) {
     Enrollment result = new Enrollment();
-    result.setId(enrollment.getId());
     result.setUid(enrollment.getUid());
 
     if (enrollment.getTrackedEntity() != null) {
