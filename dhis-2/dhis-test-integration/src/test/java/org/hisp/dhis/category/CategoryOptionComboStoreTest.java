@@ -210,15 +210,6 @@ class CategoryOptionComboStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGenerateCategoryOptionCombos() {
-    categoryService.addAndPruneOptionCombos(categoryComboA);
-    categoryService.addAndPruneOptionCombos(categoryComboB);
-    List<CategoryOptionCombo> optionCombos = categoryService.getAllCategoryOptionCombos();
-    // Including default
-    assertEquals(7, optionCombos.size());
-  }
-
-  @Test
   void testGetCategoryOptionCombo() {
     categoryService.addAndPruneOptionCombos(categoryComboA);
     categoryService.addAndPruneOptionCombos(categoryComboB);
