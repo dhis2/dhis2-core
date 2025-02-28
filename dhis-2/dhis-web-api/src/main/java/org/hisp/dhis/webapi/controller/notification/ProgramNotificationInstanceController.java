@@ -33,7 +33,9 @@ import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestH
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Response.Status;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -67,6 +69,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping("/api/programNotificationInstances")
 @ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@RequiredArgsConstructor
 public class ProgramNotificationInstanceController {
   private final ProgramNotificationInstanceService programNotificationInstanceService;
 
@@ -74,14 +77,7 @@ public class ProgramNotificationInstanceController {
 
   private final EventService eventService;
 
-  public ProgramNotificationInstanceController(
-      ProgramNotificationInstanceService programNotificationInstanceService,
-      EnrollmentService enrollmentService,
-      EventService eventService) {
-    this.programNotificationInstanceService = programNotificationInstanceService;
-    this.enrollmentService = enrollmentService;
-    this.eventService = eventService;
-  }
+  private final IdentifiableObjectManager manager;
 
   @OpenApi.Response(status = Status.OK, value = Page.class)
   @RequiresAuthority(anyOf = ALL)
@@ -93,11 +89,13 @@ public class ProgramNotificationInstanceController {
 
     Event storedEvent = null;
     if (requestParams.getEvent() != null) {
-      storedEvent = eventService.getEvent(requestParams.getEvent());
+      eventService.getEvent(requestParams.getEvent());
+      storedEvent = manager.get(Event.class, requestParams.getEvent());
     }
     Enrollment storedEnrollment = null;
     if (requestParams.getEnrollment() != null) {
-      storedEnrollment = enrollmentService.getEnrollment(requestParams.getEnrollment());
+      enrollmentService.getEnrollment(requestParams.getEnrollment());
+      storedEnrollment = manager.get(Enrollment.class, requestParams.getEnrollment());
     }
 
     if (requestParams.isPaging()) {
