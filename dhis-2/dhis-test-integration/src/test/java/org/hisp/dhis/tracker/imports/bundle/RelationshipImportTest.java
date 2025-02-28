@@ -30,11 +30,11 @@ package org.hisp.dhis.tracker.imports.bundle;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.tracker.Assertions.assertHasError;
-import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 
 import java.io.IOException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -53,6 +53,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 class RelationshipImportTest extends TrackerTest {
+  @Autowired private TestSetup testSetup;
 
   @Autowired private TrackerImportService trackerImportService;
 
@@ -62,17 +63,14 @@ class RelationshipImportTest extends TrackerTest {
 
   @BeforeAll
   void setUp() throws IOException {
-    setUpMetadata("tracker/simple_metadata.json");
+    testSetup.setUpMetadata();
 
     userA = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(userA);
 
-    TrackerImportParams params = TrackerImportParams.builder().build();
-    assertNoErrors(trackerImportService.importTracker(params, fromJson("tracker/single_te.json")));
-    assertNoErrors(
-        trackerImportService.importTracker(params, fromJson("tracker/single_enrollment.json")));
-    assertNoErrors(
-        trackerImportService.importTracker(params, fromJson("tracker/single_event.json")));
+    testSetup.setUpTrackerData("tracker/single_te.json");
+    testSetup.setUpTrackerData("tracker/single_enrollment.json");
+    testSetup.setUpTrackerData("tracker/single_event.json");
     manager.flush();
   }
 

@@ -47,6 +47,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -61,13 +62,12 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class OrderAndFilterTrackedEntityChangeLogTest extends TrackerTest {
+  @Autowired private TestSetup testSetup;
   @Autowired private TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   @Autowired private TrackerImportService trackerImportService;
 
   private User importUser;
-
-  private TrackerImportParams importParams;
 
   private final PageParams defaultPageParams = PageParams.of(null, null, false);
 
@@ -75,16 +75,12 @@ class OrderAndFilterTrackedEntityChangeLogTest extends TrackerTest {
 
   @BeforeAll
   void setUp() throws IOException {
-    injectSecurityContextUser(getAdminUser());
-    setUpMetadata("tracker/simple_metadata.json");
+    testSetup.setUpMetadata();
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    importParams = TrackerImportParams.builder().build();
-    trackerObjects = fromJson("tracker/event_and_enrollment.json");
-
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+    trackerObjects = testSetup.setUpTrackerData();
   }
 
   @BeforeEach
@@ -272,7 +268,8 @@ class OrderAndFilterTrackedEntityChangeLogTest extends TrackerTest {
 
               assertNoErrors(
                   trackerImportService.importTracker(
-                      importParams, TrackerObjects.builder().trackedEntities(List.of(t)).build()));
+                      TrackerImportParams.builder().build(),
+                      TrackerObjects.builder().trackedEntities(List.of(t)).build()));
             });
   }
 

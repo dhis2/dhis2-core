@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -49,11 +50,13 @@ class ReportSummaryIntegrationTest extends TrackerTest {
 
   @Autowired private TrackerImportService trackerImportService;
 
+  @Autowired private TestSetup testSetup;
+
   private User userA;
 
   @BeforeAll
   void setUp() throws IOException {
-    setUpMetadata("tracker/simple_metadata.json");
+    testSetup.setUpMetadata();
 
     userA = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(userA);
