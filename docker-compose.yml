@@ -3,7 +3,6 @@ version: "3.8"
 x-web-base: &web-base
   image: "${DHIS2_IMAGE:-dhis2/core-dev:local}"
   volumes:
-    - ./docker/dhis.conf:/opt/dhis2/dhis.conf:ro
     - ./docker/log4j2.xml:/opt/dhis2/log4j2.xml:ro
   environment:
     JAVA_OPTS:
@@ -44,6 +43,8 @@ x-db-base: &db-base
 services:
   web:
     <<: *web-base
+    volumes:
+      - ./docker/dhis.conf:/opt/dhis2/dhis.conf:ro
     ports:
       - "127.0.0.1:8080:8080" # DHIS2
       - "127.0.0.1:8081:8081" # Debugger: connect using commandline flag -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081
@@ -60,10 +61,11 @@ services:
   # Test synchronizing data and metadata between two DHIS2 instances
   # Run
   #   docker compose --profile sync up
-  # then follow
-  # https://github.com/dhis2/wow-backend/blob/c190287f8bf6493ed6f93d10bda4e764fcaf9930/guides/testing/metadata_sync_testing.md
+
   web-sync:
     <<: *web-base
+    volumes:
+      - ./docker/dhis-sync.conf:/opt/dhis2/dhis.conf:ro
     profiles: [sync]
     ports:
       - "127.0.0.1:8082:8080" # DHIS2
