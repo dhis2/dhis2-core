@@ -181,9 +181,7 @@ class EventsExportController {
 
       return ResponseEntity.ok()
           .contentType(MediaType.APPLICATION_JSON)
-          .body(
-              Page.withFullPager(
-                  EVENTS, eventsPage.withItems(objectNodes), getRequestURL(request)));
+          .body(Page.withPager(EVENTS, eventsPage.withItems(objectNodes), getRequestURL(request)));
     }
 
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =

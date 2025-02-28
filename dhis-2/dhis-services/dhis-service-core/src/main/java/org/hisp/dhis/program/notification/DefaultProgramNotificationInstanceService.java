@@ -28,6 +28,7 @@
 package org.hisp.dhis.program.notification;
 
 import java.util.List;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,11 +42,21 @@ public class DefaultProgramNotificationInstanceService
     implements ProgramNotificationInstanceService {
   private final ProgramNotificationInstanceStore notificationInstanceStore;
 
+  @Nonnull
   @Override
   @Transactional(readOnly = true)
   public List<ProgramNotificationInstance> getProgramNotificationInstances(
       ProgramNotificationInstanceParam programNotificationInstanceParam) {
     return notificationInstanceStore.getProgramNotificationInstances(
+        programNotificationInstanceParam);
+  }
+
+  @Nonnull
+  @Override
+  @Transactional(readOnly = true)
+  public List<ProgramNotificationInstance> getProgramNotificationInstancesPage(
+      ProgramNotificationInstanceParam programNotificationInstanceParam) {
+    return notificationInstanceStore.getProgramNotificationInstancesPage(
         programNotificationInstanceParam);
   }
 

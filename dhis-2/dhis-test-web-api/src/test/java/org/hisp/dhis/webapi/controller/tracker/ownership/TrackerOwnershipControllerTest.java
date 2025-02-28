@@ -39,14 +39,12 @@ import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link TrackerOwnershipController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
-@Transactional
 class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBase {
 
   private String orgUnitAUid;
@@ -90,6 +88,24 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
                 "/trackedEntityTypes/",
                 "{'name': 'A', 'sharing':{'external':false,'public':'rwrw----'}}"));
 
+    pId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                """
+                                {
+                                  'name':'P1',
+                                  'shortName':'P1',
+                                  'programType':'WITH_REGISTRATION',
+                                  'accessLevel':'PROTECTED',
+                                  'trackedEntityType': {'id': '%s'},
+                                  'organisationUnits': [{'id':'%s'},{'id':'%s'}],
+                                  'sharing':{'external':false,'public':'rwrw----'}
+                                }
+                                """
+                    .formatted(tetId, orgUnitAUid, orgUnitBUid)));
+
     teUid = CodeGenerator.generateUid();
     assertStatus(
         HttpStatus.OK,
@@ -101,30 +117,20 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
                {
                  "trackedEntity": "%s",
                  "trackedEntityType": "%s",
-                 "orgUnit": "%s"
+                 "orgUnit": "%s",
+                 "enrollments": [
+                  {
+                    "orgUnit": "%s",
+                    "program": "%s",
+                    "occurredAt": "2025-02-26",
+                    "enrolledAt": "2025-02-26"
+                  }
+                 ]
                }
              ]
             }
             """
-                .formatted(teUid, tetId, orgUnitAUid)));
-
-    pId =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/programs/",
-                """
-                    {
-                      'name':'P1',
-                      'shortName':'P1',
-                      'programType':'WITH_REGISTRATION',
-                      'accessLevel':'PROTECTED',
-                      'trackedEntityType': {'id': '%s'},
-                      'organisationUnits': [{'id':'%s'},{'id':'%s'}],
-                      'sharing':{'external':false,'public':'rwrw----'}
-                    }
-                    """
-                    .formatted(tetId, orgUnitAUid, orgUnitBUid)));
+                .formatted(teUid, tetId, orgUnitAUid, orgUnitAUid, pId)));
   }
 
   @Test

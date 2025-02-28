@@ -149,13 +149,13 @@ class TrackedEntityChangeLogServiceTest extends TrackerTest {
 
     Exception exception =
         assertThrows(
-            ForbiddenException.class,
+            NotFoundException.class,
             () ->
                 trackedEntityChangeLogService.getTrackedEntityChangeLog(
                     UID.of(trackedEntity), null, defaultOperationParams, defaultPageParams));
 
     assertEquals(
-        String.format("User has no access to TrackedEntity:%s", trackedEntity),
+        String.format("TrackedEntity with id %s could not be found.", trackedEntity),
         exception.getMessage());
   }
 

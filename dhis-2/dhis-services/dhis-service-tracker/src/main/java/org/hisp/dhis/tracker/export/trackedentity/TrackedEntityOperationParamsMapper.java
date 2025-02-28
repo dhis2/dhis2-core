@@ -145,7 +145,7 @@ class TrackedEntityOperationParamsMapper {
   }
 
   private List<TrackedEntityType> getTrackedEntityTypes(Program program, UserDetails user)
-      throws BadRequestException {
+      throws ForbiddenException {
 
     if (program != null) {
       return List.of(program.getTrackedEntityType());
@@ -155,14 +155,14 @@ class TrackedEntityOperationParamsMapper {
   }
 
   private List<TrackedEntityType> filterAndValidateTrackedEntityTypes(UserDetails user)
-      throws BadRequestException {
+      throws ForbiddenException {
     List<TrackedEntityType> trackedEntityTypes =
         trackedEntityTypeService.getAllTrackedEntityType().stream()
             .filter(tet -> aclService.canDataRead(user, tet))
             .toList();
 
     if (trackedEntityTypes.isEmpty()) {
-      throw new BadRequestException("User has no access to any Tracked Entity Type");
+      throw new ForbiddenException("User has no access to any Tracked Entity Type");
     }
 
     return trackedEntityTypes;

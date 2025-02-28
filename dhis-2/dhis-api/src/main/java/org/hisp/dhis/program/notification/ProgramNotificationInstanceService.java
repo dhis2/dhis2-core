@@ -44,5 +44,18 @@ public interface ProgramNotificationInstanceService {
   List<ProgramNotificationInstance> getProgramNotificationInstances(
       ProgramNotificationInstanceParam programNotificationInstanceParam);
 
+  /**
+   * Get a page of program notification instances. Use {@link
+   * #getProgramNotificationInstances(ProgramNotificationInstanceParam)} if you want all program
+   * notification instances. This method will fetch one extra item than the page size so the caller
+   * can determine if there is a next page.
+   */
+  // TODO(tracker) ProgramNotificationInstances lives in module dhis-api which is why we
+  // cannot reuse code from the dhis-service-tracker module like org.hisp.dhis.tracker.Page. This is
+  // why we cannot return a Page here. We need to make a decision and either move this into
+  // dhis-service-tracker or use metadata patterns/code.
+  List<ProgramNotificationInstance> getProgramNotificationInstancesPage(
+      ProgramNotificationInstanceParam programNotificationInstanceParam);
+
   Long countProgramNotificationInstances(ProgramNotificationInstanceParam params);
 }
