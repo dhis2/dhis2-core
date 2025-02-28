@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker;
 
 import static org.hisp.dhis.feedback.Assertions.assertNoErrors;
+import static org.hisp.dhis.webapi.controller.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -117,14 +118,22 @@ public class TestSetup {
     return setUpTrackerData("tracker/base_data.json");
   }
 
+  /**
+   * Setup tracker data from a JSON fixture using the default import parameters. Use {@link
+   * #setUpTrackerData(String, TrackerImportParams)} if you need non-default import parameters.
+   */
   public TrackerObjects setUpTrackerData(String path) throws IOException {
+    return setUpTrackerData(path, TrackerImportParams.builder().build());
+  }
+
+  public TrackerObjects setUpTrackerData(String path, TrackerImportParams params)
+      throws IOException {
     TrackerObjects trackerObjects = fromJson(path);
-    org.hisp.dhis.webapi.controller.tracker.Assertions.assertNoErrors(
-        trackerImportService.importTracker(TrackerImportParams.builder().build(), trackerObjects));
+    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
     return trackerObjects;
   }
 
-  private TrackerObjects fromJson(String path) throws IOException {
+  public TrackerObjects fromJson(String path) throws IOException {
     return renderService.fromJson(
         new ClassPathResource(path).getInputStream(), TrackerObjects.class);
   }

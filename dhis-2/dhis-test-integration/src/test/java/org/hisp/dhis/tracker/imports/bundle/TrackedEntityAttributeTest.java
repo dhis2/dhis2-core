@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.imports.bundle;
 
-import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -42,12 +41,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheatService;
-import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
@@ -65,8 +61,6 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
   @Autowired private TestSetup testSetup;
 
   @Autowired private TrackerPreheatService trackerPreheatService;
-
-  @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
@@ -88,6 +82,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
 
     TrackerPreheat preheat =
         trackerPreheatService.preheat(trackerObjects, new TrackerIdSchemeParams());
+
     assertNotNull(preheat.get(OrganisationUnit.class, "cNEZTkdAvmg"));
     assertNotNull(preheat.get(TrackedEntityType.class, "KrYIdvLxkMb"));
     assertNotNull(preheat.get(TrackedEntityAttribute.class, "sYn3tkL3XKa"));
@@ -97,11 +92,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
 
   @Test
   void testTrackedAttributeValueBundleImporter() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().build();
-    TrackerObjects trackerObjects = testSetup.fromJson("tracker/te_with_tea_data.json");
-
-    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
-    assertNoErrors(importReport);
+    testSetup.setUpTrackerData("tracker/te_with_tea_data.json");
 
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
     assertEquals(1, trackedEntities.size());

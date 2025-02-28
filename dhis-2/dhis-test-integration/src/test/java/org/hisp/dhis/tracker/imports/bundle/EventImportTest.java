@@ -79,7 +79,7 @@ class EventImportTest extends PostgresIntegrationTestBase {
   void shouldPopulateCompletedDataWhenCreatingAnEventWithStatusCompleted()
       throws IOException, ForbiddenException, NotFoundException {
     TrackerImportParams params = TrackerImportParams.builder().build();
-    TrackerObjects trackerObjects = this.testSetup.fromJson("tracker/te_enrollment_event.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/te_enrollment_event.json");
     trackerObjects.getEvents().get(0).setStatus(EventStatus.COMPLETED);
 
     importTracker(params, trackerObjects);
@@ -95,7 +95,7 @@ class EventImportTest extends PostgresIntegrationTestBase {
   void shouldNotPopulateCompletedDataWhenCreatingAnEventWithNotCompletedStatus(EventStatus status)
       throws IOException, ForbiddenException, NotFoundException {
     TrackerImportParams params = TrackerImportParams.builder().build();
-    TrackerObjects trackerObjects = this.testSetup.fromJson("tracker/te_enrollment_event.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/te_enrollment_event.json");
     trackerObjects.getEvents().get(0).setStatus(status);
 
     importTracker(params, trackerObjects);
@@ -110,7 +110,7 @@ class EventImportTest extends PostgresIntegrationTestBase {
   void shouldDeleteCompletedDataWhenUpdatingAnEventWithStatusActive()
       throws IOException, ForbiddenException, NotFoundException {
     TrackerImportParams params = TrackerImportParams.builder().build();
-    TrackerObjects trackerObjects = this.testSetup.fromJson("tracker/te_enrollment_event.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/te_enrollment_event.json");
     trackerObjects.getEvents().get(0).setStatus(EventStatus.COMPLETED);
 
     importTracker(params, trackerObjects);
@@ -130,7 +130,7 @@ class EventImportTest extends PostgresIntegrationTestBase {
   void shouldPopulateCompletedDataWhenUpdatingAnEventWithStatusCompleted(EventStatus status)
       throws IOException, ForbiddenException, NotFoundException {
     TrackerImportParams params = TrackerImportParams.builder().build();
-    TrackerObjects trackerObjects = this.testSetup.fromJson("tracker/te_enrollment_event.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/te_enrollment_event.json");
     trackerObjects.getEvents().get(0).setStatus(status);
 
     importTracker(params, trackerObjects);

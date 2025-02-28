@@ -32,6 +32,7 @@ import static org.hisp.dhis.http.HttpStatus.NOT_FOUND;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.webapi.controller.tracker.Assertions.*;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContains;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertEnrollmentWithinRelationshipItem;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertEventWithinRelationshipItem;
@@ -48,7 +49,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -71,9 +71,6 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.report.ImportReport;
-import org.hisp.dhis.tracker.imports.report.Status;
-import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.trackerdataview.TrackerDataView;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -871,30 +868,5 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
         .filter(r -> r.getRelationship().equals(relationship))
         .findFirst()
         .get();
-  }
-
-  public static void assertNoErrors(ImportReport report) {
-    assertNotNull(report);
-    assertEquals(
-        Status.OK,
-        report.getStatus(),
-        errorMessage(
-            "Expected import with status OK, instead got:%n", report.getValidationReport()));
-  }
-
-  private static Supplier<String> errorMessage(String errorTitle, ValidationReport report) {
-    return () -> {
-      StringBuilder msg = new StringBuilder(errorTitle);
-      report
-          .getErrors()
-          .forEach(
-              e -> {
-                msg.append(e.getErrorCode());
-                msg.append(": ");
-                msg.append(e.getMessage());
-                msg.append('\n');
-              });
-      return msg.toString();
-    };
   }
 }
