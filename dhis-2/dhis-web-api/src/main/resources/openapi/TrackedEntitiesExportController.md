@@ -69,34 +69,34 @@ and program attributes too.
 
 `<orgUnit1-uid>[,<orgUnit2-uid>...]`
 
-Get tracked entities and enrollments owned by given orgUnits relative to the `orgUnitMode` and
-`program` parameters. If a `program` is provided, the ownership is determied with this program. When
+Get tracked entities owned by given orgUnits relative to the `orgUnitMode` and
+`program` parameters. If a `program` is provided, the ownership is determined with this program. When
 no program is provided, the registration orgUnit for the tracked entity would be used to determine
 ownership.
 
-- When `orgUnitMode=SELECTED` - or no `orgUnitMode` is given (default) - the tracked entities or
-  enrollments owned by the `orgUnits` are returned.
-- When `orgUnitMode=CHILDREN` the tracked entities or enrollments owned by the orgUnits or by the
-  orgUnits direct children is returned.
-- When `orgUnitMode=DESCENDANTS` the tracked entities or enrollments owned by the orgUnits or any of
-  its descendants are returned.
+- When `orgUnitMode=SELECTED` - or no `orgUnitMode` is given (default) - the tracked entities 
+  owned by the `orgUnits` are returned.
+- When `orgUnitMode=CHILDREN` the tracked entities owned by the orgUnits or by the orgUnits 
+  direct children is returned.
+- When `orgUnitMode=DESCENDANTS` the tracked entities owned by the orgUnits or any of its 
+  descendants are returned.
 - When `orgUnitMode=ALL`, `orgUnitMode=CAPTURE` or `orgUnitMode=ACCESSIBLE` the `orgUnits` parameter
   is not allowed.
 
 ### `*.parameter.TrackedEntityRequestParams.orgUnitMode`
 
-Get tracked entities and enrollments using given `orgUnitMode` and `program` parameters. If a
-`program` is provided, the ownership is determied with this program. When no program is provided,
+Get tracked entities using given `orgUnitMode` and `program` parameters. If a
+`program` is provided, the ownership is determined with this program. When no program is provided,
 the registration organisation unit for the tracked entity would be used to determine ownership.
 
 - When `orgUnitMode=SELECTED`, `orgUnitMode=CHILDREN` or `orgUnitMode=DESCENDANTS`, the `orgUnit`
-  parameter is required to specify which tracked entities or enrollments to return.
-- When `orgUnitMode=ALL` tracked entities or enrollments will be downloaded irrespective of the
-  organization unit they are owned by. To use this parameter, the user needs the `Search Tracked
+  parameter is required to specify which tracked entities to return.
+- When `orgUnitMode=ALL` tracked entities will be downloaded irrespective of the organization 
+  unit they are owned by. To use this parameter, the user needs the `Search Tracked
   entity in all org units` authority.
-- When `orgUnitMode=ACCESSIBLE` tracked entities or enrollments owned by any organisation unit in the
+- When `orgUnitMode=ACCESSIBLE` tracked entities owned by any organisation unit in the
   users capture scope will be returned.
-- When `orgUnitMode=CAPTURE` tracked entities or enrollments that has an enrollment organisation unit
+- When `orgUnitMode=CAPTURE` tracked entities that have an enrollment organisation unit
   in the users capture scope will be returned.
 
 ### `*.parameter.TrackedEntityRequestParams.program`
@@ -122,8 +122,8 @@ Get tracked entities that have at least one enrollment that is marked with follo
 ### `*.parameter.TrackedEntityRequestParams.updatedAfter`
 
 Get tracked entities that are updated after the given time. A tracked entity is considered 
-updated if any of its tracked entity attributes,  enrollments, events or relationships have been 
-modified. The `updatedAt` property of the tracked entity reflects the latest time  at which any 
+updated if any of its tracked entity attributes, enrollments, events or relationships have been 
+modified. The `updatedAt` property of the tracked entity reflects the latest time at which any 
 of its tracked entity attributes, enrollments, events or relationships were modified.
 This parameter is inclusive, so results with the exact date and time specified will be included 
 in the response.
@@ -140,19 +140,19 @@ the response.
 ### `*.parameter.TrackedEntityRequestParams.updatedWithin`
 
 Get tracked entities updated since given ISO-8601 duration. A tracked entity is considered 
-updated if any of its tracked entity attributes,  enrollments, events or relationships have been 
-modified. The `updatedAt` property of the tracked entity reflects the latest time  at which any 
+updated if any of its tracked entity attributes, enrollments, events or relationships have been 
+modified. The `updatedAt` property of the tracked entity reflects the latest time at which any 
 of its tracked entity attributes, enrollments, events or relationships were modified.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentEnrolledAfter`
 
-Get tracked entities that has at least one enrollment with an enrollment date after this date.
+Get tracked entities that have at least one enrollment with an enrollment date after this date.
 This parameter is inclusive, so results with the exact date and time specified will be included 
 in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentEnrolledBefore`
 
-Get tracked entities that has at least one enrollment with an enrollment date before this date.
+Get tracked entities that have at least one enrollment with an enrollment date before this date.
 This parameter is inclusive, so results with the exact date and time specified will be included 
 in the response.
 
