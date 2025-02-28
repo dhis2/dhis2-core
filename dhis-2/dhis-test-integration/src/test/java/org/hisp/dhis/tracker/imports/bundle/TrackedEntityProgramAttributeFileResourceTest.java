@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.imports.bundle;
 
-import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -43,9 +42,6 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TestSetup;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.TrackerImportService;
-import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
@@ -61,8 +57,6 @@ import org.springframework.transaction.annotation.Transactional;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TrackedEntityProgramAttributeFileResourceTest extends PostgresIntegrationTestBase {
   @Autowired private TestSetup testSetup;
-
-  @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
@@ -82,7 +76,6 @@ class TrackedEntityProgramAttributeFileResourceTest extends PostgresIntegrationT
 
   @Test
   void testTrackedEntityProgramAttributeFileResourceValue() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().build();
     FileResource fileResource =
         new FileResource(
             "test.pdf",
@@ -94,10 +87,7 @@ class TrackedEntityProgramAttributeFileResourceTest extends PostgresIntegrationT
     File file = File.createTempFile("file-resource", "test");
     fileResourceService.asyncSaveFileResource(fileResource, file);
     assertFalse(fileResource.isAssigned());
-    ImportReport importReport =
-        trackerImportService.importTracker(
-            params, testSetup.fromJson("tracker/te_program_with_tea_fileresource_data.json"));
-    assertNoErrors(importReport);
+    testSetup.setUpTrackerData("tracker/te_program_with_tea_fileresource_data.json");
 
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
     assertEquals(1, trackedEntities.size());

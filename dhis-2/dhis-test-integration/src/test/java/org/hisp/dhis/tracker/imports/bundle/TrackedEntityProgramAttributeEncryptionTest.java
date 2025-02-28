@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.imports.bundle;
 
-import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -38,9 +37,6 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TestSetup;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.TrackerImportService;
-import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
@@ -58,8 +54,6 @@ import org.springframework.transaction.annotation.Transactional;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TrackedEntityProgramAttributeEncryptionTest extends PostgresIntegrationTestBase {
   @Autowired private TestSetup testSetup;
-
-  @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
@@ -79,11 +73,7 @@ class TrackedEntityProgramAttributeEncryptionTest extends PostgresIntegrationTes
 
   @Test
   void testTrackedEntityProgramAttributeEncryptedValue() throws IOException {
-    TrackerImportParams params = TrackerImportParams.builder().build();
-    ImportReport importReport =
-        trackerImportService.importTracker(
-            params, testSetup.fromJson("tracker/te_program_with_tea_encryption_data.json"));
-    assertNoErrors(importReport);
+    testSetup.setUpTrackerData("tracker/te_program_with_tea_encryption_data.json");
 
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
     assertEquals(1, trackedEntities.size());

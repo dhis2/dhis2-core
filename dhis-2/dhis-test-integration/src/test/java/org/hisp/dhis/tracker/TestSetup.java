@@ -118,10 +118,18 @@ public class TestSetup {
     return setUpTrackerData("tracker/base_data.json");
   }
 
+  /**
+   * Setup tracker data from a JSON fixture using the default import parameters. Use {@link
+   * #setUpTrackerData(String, TrackerImportParams)} if you need non-default import parameters.
+   */
   public TrackerObjects setUpTrackerData(String path) throws IOException {
+    return setUpTrackerData(path, TrackerImportParams.builder().build());
+  }
+
+  public TrackerObjects setUpTrackerData(String path, TrackerImportParams params)
+      throws IOException {
     TrackerObjects trackerObjects = fromJson(path);
-    assertNoErrors(
-        trackerImportService.importTracker(TrackerImportParams.builder().build(), trackerObjects));
+    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
     return trackerObjects;
   }
 
