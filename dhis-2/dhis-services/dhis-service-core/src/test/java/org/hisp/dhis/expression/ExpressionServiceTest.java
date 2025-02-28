@@ -146,8 +146,6 @@ class ExpressionServiceTest extends TestBase {
 
   private Category categoryB;
 
-  private CategoryCombo categoryCombo;
-
   private DataElement deA;
 
   private DataElement deB;
