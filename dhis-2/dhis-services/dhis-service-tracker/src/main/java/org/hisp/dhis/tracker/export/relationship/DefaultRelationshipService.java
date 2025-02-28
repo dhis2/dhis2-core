@@ -91,6 +91,7 @@ public class DefaultRelationshipService implements RelationshipService {
     return map(relationshipStore.getRelationships(queryParams));
   }
 
+  @Nonnull
   @Override
   public Page<Relationship> getRelationships(
       @Nonnull RelationshipOperationParams params, @Nonnull PageParams pageParams)

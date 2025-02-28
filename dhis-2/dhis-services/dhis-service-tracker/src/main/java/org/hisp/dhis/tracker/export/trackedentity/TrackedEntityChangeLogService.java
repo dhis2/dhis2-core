@@ -28,8 +28,8 @@
 package org.hisp.dhis.tracker.export.trackedentity;
 
 import java.util.Set;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
@@ -46,8 +46,8 @@ public interface TrackedEntityChangeLogService {
   void addTrackedEntityChangeLog(
       @Nonnull TrackedEntity trackedEntity,
       @Nonnull TrackedEntityAttribute trackedEntityAttribute,
-      @Nullable String previousValue,
-      @Nullable String currentValue,
+      @CheckForNull String previousValue,
+      @CheckForNull String currentValue,
       @Nonnull ChangeLogType changeLogType,
       @Nonnull String username);
 
@@ -58,9 +58,10 @@ public interface TrackedEntityChangeLogService {
    *
    * @return the paged change logs of the supplied tracked entity, if any
    */
+  @Nonnull
   Page<TrackedEntityChangeLog> getTrackedEntityChangeLog(
       @Nonnull UID trackedEntityUid,
-      @Nullable UID programUid,
+      @CheckForNull UID programUid,
       @Nonnull TrackedEntityChangeLogOperationParams operationParams,
       @Nonnull PageParams pageParams)
       throws NotFoundException, ForbiddenException, BadRequestException;
