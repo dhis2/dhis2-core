@@ -52,6 +52,7 @@ public interface RelationshipService {
       throws ForbiddenException, NotFoundException, BadRequestException;
 
   /** Get a page of relationships matching given params. */
+  @Nonnull
   Page<Relationship> getRelationships(RelationshipOperationParams params, PageParams pageParams)
       throws ForbiddenException, NotFoundException, BadRequestException;
 
