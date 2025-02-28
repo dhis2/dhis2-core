@@ -34,8 +34,8 @@ import static org.hisp.dhis.tracker.Assertions.assertHasError;
 import java.io.IOException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
-import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -47,12 +47,16 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class RelationshipImportTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class RelationshipImportTest extends PostgresIntegrationTestBase {
   @Autowired private TestSetup testSetup;
 
   @Autowired private TrackerImportService trackerImportService;
@@ -84,7 +88,8 @@ class RelationshipImportTest extends TrackerTest {
     injectSecurityContextUser(userService.getUser("M5zQapPyTZI"));
     TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
-        trackerImportService.importTracker(params, fromJson("tracker/relationships.json"));
+        trackerImportService.importTracker(
+            params, this.testSetup.fromJson("tracker/relationships.json"));
     assertThat(importReport.getStatus(), is(Status.OK));
     assertThat(importReport.getStats().getCreated(), is(2));
   }
@@ -95,7 +100,8 @@ class RelationshipImportTest extends TrackerTest {
     TrackerImportParams params = TrackerImportParams.builder().build();
 
     ImportReport importReport =
-        trackerImportService.importTracker(params, fromJson("tracker/relationships.json"));
+        trackerImportService.importTracker(
+            params, this.testSetup.fromJson("tracker/relationships.json"));
 
     assertHasError(importReport, ValidationCode.E4020);
     assertThat(importReport.getStats().getIgnored(), is(2));
@@ -104,9 +110,9 @@ class RelationshipImportTest extends TrackerTest {
   @Test
   void successUpdateRelationships() throws IOException {
     TrackerImportParams trackerImportParams = TrackerImportParams.builder().build();
-    TrackerObjects trackerObjects = fromJson("tracker/relationships.json");
+    TrackerObjects trackerObjects = this.testSetup.fromJson("tracker/relationships.json");
     trackerImportService.importTracker(trackerImportParams, trackerObjects);
-    trackerObjects = fromJson("tracker/relationshipToUpdate.json");
+    trackerObjects = this.testSetup.fromJson("tracker/relationshipToUpdate.json");
     trackerImportParams.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
     ImportReport importReport =
         trackerImportService.importTracker(trackerImportParams, trackerObjects);
@@ -118,7 +124,7 @@ class RelationshipImportTest extends TrackerTest {
   @Test
   void shouldFailWhenTryingToUpdateADeletedRelationship() throws IOException {
     TrackerImportParams trackerImportParams = TrackerImportParams.builder().build();
-    TrackerObjects trackerObjects = fromJson("tracker/relationships.json");
+    TrackerObjects trackerObjects = this.testSetup.fromJson("tracker/relationships.json");
     trackerImportService.importTracker(trackerImportParams, trackerObjects);
 
     manager.delete(manager.get(Relationship.class, "Nva3Xj2j75W"));

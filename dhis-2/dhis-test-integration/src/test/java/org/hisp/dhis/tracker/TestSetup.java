@@ -125,7 +125,7 @@ public class TestSetup {
     return trackerObjects;
   }
 
-  private TrackerObjects fromJson(String path) throws IOException {
+  public TrackerObjects fromJson(String path) throws IOException {
     return renderService.fromJson(
         new ClassPathResource(path).getInputStream(), TrackerObjects.class);
   }

@@ -44,10 +44,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -59,9 +59,13 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class LastUpdateImportTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class LastUpdateImportTest extends PostgresIntegrationTestBase {
   @Autowired private TestSetup testSetup;
   @Autowired private TrackerImportService trackerImportService;
 
@@ -114,7 +118,9 @@ class LastUpdateImportTest extends TrackerTest {
     TrackerImportParams params =
         TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build();
 
-    assertNoErrors(trackerImportService.importTracker(params, fromJson("tracker/single_te.json")));
+    assertNoErrors(
+        trackerImportService.importTracker(
+            params, this.testSetup.fromJson("tracker/single_te.json")));
 
     Date lastUpdateAfter = getTrackedEntity().getLastUpdated();
 
