@@ -53,8 +53,8 @@ import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -386,7 +386,7 @@ class ProgramRuleTest extends PostgresIntegrationTestBase {
   void shouldImportWhenTEAHasNullValue() throws IOException {
     errorProgramRuleWithD2HasValue();
     TrackerObjects trackerObjects =
-            testSetup.fromJson("tracker/programrule/te_enrollment_completed_event.json");
+        testSetup.fromJson("tracker/programrule/te_enrollment_completed_event.json");
 
     ImportReport importReport =
         trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
