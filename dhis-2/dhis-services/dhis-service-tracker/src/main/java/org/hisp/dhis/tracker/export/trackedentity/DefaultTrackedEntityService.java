@@ -27,11 +27,9 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import static org.hisp.dhis.audit.AuditOperationType.READ;
 import static org.hisp.dhis.audit.AuditOperationType.SEARCH;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,7 +45,6 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -64,7 +61,6 @@ import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.TrackedEntityAggregate;
@@ -105,7 +101,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   @Override
   public FileResourceStream getFileResource(
       @Nonnull UID trackedEntity, @Nonnull UID attribute, @CheckForNull UID program)
-      throws NotFoundException {
+      throws NotFoundException, ForbiddenException {
     FileResource fileResource = getFileResourceMetadata(trackedEntity, attribute, program);
     return FileResourceStream.of(fileResourceService, fileResource);
   }
@@ -116,18 +112,17 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       @Nonnull UID attribute,
       @CheckForNull UID program,
       ImageFileDimension dimension)
-      throws NotFoundException {
+      throws NotFoundException, ForbiddenException {
     FileResource fileResource = getFileResourceMetadata(trackedEntity, attribute, program);
     return FileResourceStream.ofImage(fileResourceService, fileResource, dimension);
   }
 
   private FileResource getFileResourceMetadata(
       UID trackedEntityUid, UID attributeUid, @CheckForNull UID programUid)
-      throws NotFoundException {
-    TrackedEntity trackedEntity = trackedEntityStore.getByUid(trackedEntityUid.getValue());
-    if (trackedEntity == null || trackedEntity.isDeleted()) {
-      throw new NotFoundException(TrackedEntity.class, trackedEntityUid.getValue());
-    }
+      throws NotFoundException, ForbiddenException {
+    TrackedEntity trackedEntity =
+        getNewTrackedEntity(
+            trackedEntityUid, programUid, TrackedEntityParams.FALSE.withIncludeAttributes(true));
 
     TrackedEntityAttribute attribute = getAttribute(attributeUid, trackedEntity, programUid);
     if (!attribute.getValueType().isFile()) {
@@ -163,23 +158,12 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private TrackedEntityAttribute getAttribute(
       UID attributeUid, TrackedEntity trackedEntity, @CheckForNull UID programUid)
       throws NotFoundException {
-    UserDetails currentUser = getCurrentUserDetails();
 
     if (programUid != null) {
       Program program = programService.getProgram(programUid.getValue());
-      if (program == null) {
-        throw new NotFoundException(Program.class, programUid.getValue());
-      }
-
-      if (!trackerAccessManager.canRead(currentUser, trackedEntity, program, false).isEmpty()) {
-        throw new NotFoundException(TrackedEntity.class, trackedEntity.getUid());
-      }
       return getAttribute(attributeUid, program);
     }
 
-    if (!trackerAccessManager.canRead(currentUser, trackedEntity).isEmpty()) {
-      throw new NotFoundException(TrackedEntity.class, trackedEntity.getUid());
-    }
     return getAttribute(attributeUid, trackedEntity.getTrackedEntityType());
   }
 
@@ -234,24 +218,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     return getNewTrackedEntity(trackedEntityUid, program, params);
   }
 
-  @Nonnull
-  @Override
-  public TrackedEntity getTrackedEntity(
-      @Nonnull UID trackedEntityUid,
-      @CheckForNull UID programIdentifier,
-      @Nonnull TrackedEntityParams params)
-      throws NotFoundException, ForbiddenException, BadRequestException {
-    Program program = null;
-    if (programIdentifier != null) {
-      program = programService.getProgram(programIdentifier.getValue());
-      if (program == null) {
-        throw new NotFoundException(Program.class, programIdentifier);
-      }
-    }
-
-    return getTrackedEntity(trackedEntityUid, program, params, getCurrentUserDetails());
-  }
-
   private TrackedEntity getNewTrackedEntity(UID uid, Program program, TrackedEntityParams params)
       throws NotFoundException, ForbiddenException {
     Page<TrackedEntity> trackedEntities;
@@ -273,69 +239,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     return trackedEntities.getItems().get(0);
-  }
-
-  /**
-   * Gets a tracked entity based on the program and org unit ownership.
-   *
-   * @return the TE object if found and accessible by the current user
-   * @throws NotFoundException if uid does not exist
-   * @throws ForbiddenException if TE owner is not in user's scope or not enough sharing access
-   */
-  private TrackedEntity getTrackedEntity(
-      UID uid, Program program, TrackedEntityParams params, UserDetails user)
-      throws NotFoundException, ForbiddenException, BadRequestException {
-    TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid.getValue());
-    if (trackedEntity == null || trackedEntity.isDeleted()) {
-      throw new NotFoundException(TrackedEntity.class, uid);
-    }
-
-    trackedEntityAuditService.addTrackedEntityAudit(READ, user.getUsername(), trackedEntity);
-
-    if (program != null) {
-      List<String> errors =
-          trackerAccessManager.canReadProgramAndTrackedEntityType(user, trackedEntity, program);
-      if (!errors.isEmpty()) {
-        throw new ForbiddenException(errors.toString());
-      }
-
-      String error =
-          trackerAccessManager.canAccessProgramOwner(user, trackedEntity, program, false);
-      if (error != null) {
-        throw new ForbiddenException(error);
-      }
-    } else {
-      if (!trackerAccessManager.canRead(user, trackedEntity).isEmpty()) {
-        throw new ForbiddenException(TrackedEntity.class, uid);
-      }
-    }
-
-    if (params.isIncludeEnrollments()) {
-      EnrollmentOperationParams enrollmentOperationParams =
-          mapToEnrollmentParams(uid, program, params);
-      List<Enrollment> enrollments = enrollmentService.getEnrollments(enrollmentOperationParams);
-      trackedEntity.setEnrollments(new HashSet<>(enrollments));
-    }
-    if (params.isIncludeRelationships()) {
-      trackedEntity.setRelationshipItems(
-          relationshipService.getRelationshipItems(
-              TrackerType.TRACKED_ENTITY, UID.of(trackedEntity), false));
-    }
-    if (params.isIncludeProgramOwners()) {
-      trackedEntity.setProgramOwners(getTrackedEntityProgramOwners(trackedEntity, program));
-    }
-    trackedEntity.setTrackedEntityAttributeValues(
-        getTrackedEntityAttributeValues(trackedEntity, program));
-    return trackedEntity;
-  }
-
-  private EnrollmentOperationParams mapToEnrollmentParams(
-      UID trackedEntity, Program program, TrackedEntityParams params) {
-    return EnrollmentOperationParams.builder()
-        .trackedEntity(trackedEntity)
-        .program(program)
-        .enrollmentParams(params.getEnrollmentParams())
-        .build();
   }
 
   private static Set<TrackedEntityProgramOwner> getTrackedEntityProgramOwners(
