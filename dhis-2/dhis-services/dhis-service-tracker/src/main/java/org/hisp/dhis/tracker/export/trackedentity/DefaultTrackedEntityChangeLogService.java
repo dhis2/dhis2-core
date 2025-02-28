@@ -31,8 +31,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.changelog.ChangeLogType;
@@ -71,8 +71,8 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
   public void addTrackedEntityChangeLog(
       @Nonnull TrackedEntity trackedEntity,
       @Nonnull TrackedEntityAttribute trackedEntityAttribute,
-      @Nullable String previousValue,
-      @Nullable String currentValue,
+      @CheckForNull String previousValue,
+      @CheckForNull String currentValue,
       @Nonnull ChangeLogType changeLogType,
       @Nonnull String username) {
 
@@ -95,11 +95,12 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
     hibernateTrackedEntityChangeLogStore.deleteTrackedEntityChangeLogs(trackedEntity);
   }
 
+  @Nonnull
   @Override
   @Transactional(readOnly = true)
   public Page<TrackedEntityChangeLog> getTrackedEntityChangeLog(
       @Nonnull UID trackedEntityUid,
-      @Nullable UID programUid,
+      @CheckForNull UID programUid,
       @Nonnull TrackedEntityChangeLogOperationParams operationParams,
       @Nonnull PageParams pageParams)
       throws NotFoundException, ForbiddenException {
