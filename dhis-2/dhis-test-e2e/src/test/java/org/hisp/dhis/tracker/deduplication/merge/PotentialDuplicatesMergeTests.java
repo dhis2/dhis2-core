@@ -110,7 +110,7 @@ public class PotentialDuplicatesMergeTests extends PotentialDuplicatesApiTest {
   public void shouldNotMergeDifferentTypeTrackedEntities() {
     String trackedEntityType = new TrackedEntityTypeActions().create();
     // A tracked entity is accessible only if it is enrollable somewhere
-    // so we need at least one program to make such teB accessible.
+    // so we need at least one program to make such te accessible.
     new ProgramActions().createTrackerProgram(trackedEntityType);
     String teA = createTrackedEntity(Constants.TRACKED_ENTITY_TYPE);
     String teB = createTrackedEntity(trackedEntityType);
