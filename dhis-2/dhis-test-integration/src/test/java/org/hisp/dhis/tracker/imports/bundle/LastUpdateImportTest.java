@@ -119,8 +119,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
         TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build();
 
     assertNoErrors(
-        trackerImportService.importTracker(
-            params, this.testSetup.fromJson("tracker/single_te.json")));
+        trackerImportService.importTracker(params, testSetup.fromJson("tracker/single_te.json")));
 
     Date lastUpdateAfter = getTrackedEntity().getLastUpdated();
 

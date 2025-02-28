@@ -65,8 +65,7 @@ class AtomicModeIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testImportSuccessWithAtomicModeObjectIfThereIsAnErrorInOneTE() throws IOException {
-    TrackerObjects trackerObjects =
-        this.testSetup.fromJson("tracker/one_valid_te_and_one_invalid.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/one_valid_te_and_one_invalid.json");
     TrackerImportParams params =
         TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
 
@@ -81,8 +80,7 @@ class AtomicModeIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testImportFailWithAtomicModeAllIfThereIsAnErrorInOneTE() throws IOException {
-    TrackerObjects trackerObjects =
-        this.testSetup.fromJson("tracker/one_valid_te_and_one_invalid.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/one_valid_te_and_one_invalid.json");
     TrackerImportParams params = TrackerImportParams.builder().atomicMode(AtomicMode.ALL).build();
 
     ImportReport trackerImportTeReport = trackerImportService.importTracker(params, trackerObjects);

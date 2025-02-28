@@ -89,7 +89,7 @@ class RelationshipImportTest extends PostgresIntegrationTestBase {
     TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport =
         trackerImportService.importTracker(
-            params, this.testSetup.fromJson("tracker/relationships.json"));
+            params, testSetup.fromJson("tracker/relationships.json"));
     assertThat(importReport.getStatus(), is(Status.OK));
     assertThat(importReport.getStats().getCreated(), is(2));
   }
@@ -101,7 +101,7 @@ class RelationshipImportTest extends PostgresIntegrationTestBase {
 
     ImportReport importReport =
         trackerImportService.importTracker(
-            params, this.testSetup.fromJson("tracker/relationships.json"));
+            params, testSetup.fromJson("tracker/relationships.json"));
 
     assertHasError(importReport, ValidationCode.E4020);
     assertThat(importReport.getStats().getIgnored(), is(2));
@@ -110,9 +110,9 @@ class RelationshipImportTest extends PostgresIntegrationTestBase {
   @Test
   void successUpdateRelationships() throws IOException {
     TrackerImportParams trackerImportParams = TrackerImportParams.builder().build();
-    TrackerObjects trackerObjects = this.testSetup.fromJson("tracker/relationships.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/relationships.json");
     trackerImportService.importTracker(trackerImportParams, trackerObjects);
-    trackerObjects = this.testSetup.fromJson("tracker/relationshipToUpdate.json");
+    trackerObjects = testSetup.fromJson("tracker/relationshipToUpdate.json");
     trackerImportParams.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
     ImportReport importReport =
         trackerImportService.importTracker(trackerImportParams, trackerObjects);
@@ -124,7 +124,7 @@ class RelationshipImportTest extends PostgresIntegrationTestBase {
   @Test
   void shouldFailWhenTryingToUpdateADeletedRelationship() throws IOException {
     TrackerImportParams trackerImportParams = TrackerImportParams.builder().build();
-    TrackerObjects trackerObjects = this.testSetup.fromJson("tracker/relationships.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/relationships.json");
     trackerImportService.importTracker(trackerImportParams, trackerObjects);
 
     manager.delete(manager.get(Relationship.class, "Nva3Xj2j75W"));

@@ -107,7 +107,7 @@ class EventDataValueTest extends PostgresIntegrationTestBase {
     // update
 
     TrackerObjects updatedTrackerObjects =
-        this.testSetup.fromJson("tracker/event_with_updated_data_values.json");
+        testSetup.fromJson("tracker/event_with_updated_data_values.json");
     TrackerImportParams params = new TrackerImportParams();
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
     ImportReport importReport = trackerImportService.importTracker(params, updatedTrackerObjects);
