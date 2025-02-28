@@ -599,6 +599,11 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     return sqlBuilder.toString();
   }
 
+  /**
+   * Generates the WHERE-clause related to the user provided attribute filters. It will find the
+   * tracked entity attributes that match the given user filter criteria. This condition only
+   * applies when an attribute filter is specified.
+   */
   private String getWhereClauseFromAttributeFilterConditions(
       EventQueryParams params, MapSqlParameterSource mapSqlParameterSource, SqlHelper hlp) {
     StringBuilder fromBuilder = new StringBuilder();
@@ -672,8 +677,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   /**
-   * Generates the LEFT JOINs used for attributes we are ordering and filtering by (If any). We use
-   * LEFT JOIN to avoid removing any rows if there is no value for a given attribute and te. The
+   * Generates the LEFT JOIN based on the attributes we are ordering and filtering by, if any. We
+   * use LEFT JOIN to avoid removing any rows if there is no value for a given attribute and te. The
    * result of this LEFT JOIN is used in the sub-query projection, and ordering in the sub-query and
    * main query.
    *
@@ -687,7 +692,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     StringBuilder attributes = new StringBuilder();
 
     for (TrackedEntityAttribute orderAttribute : params.leftJoinAttributes()) {
-
       attributes
           .append(" left join trackedentityattributevalue as ")
           .append(quote(orderAttribute.getUid()))

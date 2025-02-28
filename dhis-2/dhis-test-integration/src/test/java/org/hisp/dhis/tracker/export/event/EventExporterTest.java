@@ -922,7 +922,7 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
-  void shouldFilterByEventsContainingGivenAttributeValueWhenCombiningTwoUnaryOperatorsInFilter()
+  void shouldFilterByEventsContainingGivenAttributeValueWhenCombiningTwoUnaryOperators()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         EventOperationParams.builder()
@@ -940,9 +940,8 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
-  void
-      shouldFilterByEventsContainingGivenAttributeValueWhenCombiningUnaryAndBinaryOperatorsInFilter()
-          throws ForbiddenException, BadRequestException {
+  void shouldFilterByEventsContainingGivenAttributeValueWhenCombiningUnaryAndBinaryOperators()
+      throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         EventOperationParams.builder()
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
