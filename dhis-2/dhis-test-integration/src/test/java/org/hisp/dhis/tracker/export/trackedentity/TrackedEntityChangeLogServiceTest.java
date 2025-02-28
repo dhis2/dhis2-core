@@ -65,7 +65,7 @@ class TrackedEntityChangeLogServiceTest extends TrackerTest {
 
   private final TrackedEntityChangeLogOperationParams defaultOperationParams =
       TrackedEntityChangeLogOperationParams.builder().build();
-  private final PageParams defaultPageParams = new PageParams(null, null, false);
+  private final PageParams defaultPageParams = PageParams.of(null, null, false);
 
   private TrackerObjects trackerObjects;
 

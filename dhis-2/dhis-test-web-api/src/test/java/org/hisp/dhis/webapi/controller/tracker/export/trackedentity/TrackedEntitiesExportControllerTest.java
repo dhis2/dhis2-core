@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.http.HttpClientAdapter.Accept;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
@@ -96,6 +97,7 @@ import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.tracker.JsonAttribute;
@@ -505,6 +507,27 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
                 response.header("content-disposition").contains("filename=trackedEntities.csv")),
         () ->
             assertTrue(response.content().toString().contains("trackedEntity,trackedEntityType")));
+  }
+
+  @Test
+  void shouldGetTrackedEntitiesDisregardingSearchScope() {
+    // Create a user with a distinct search scope, separate from capture scope
+    User testUser = createAndAddUser("testingUser");
+    testUser.setOrganisationUnits(Set.of(get(OrganisationUnit.class, "RojfDTBhoGC")));
+    testUser.setTeiSearchOrganisationUnits(Set.of(get(OrganisationUnit.class, "h4w96yEMlzO")));
+    testUser.setUserRoles(Set.of(get(UserRole.class, "nJ4Ml8ads4M")));
+
+    this.switchContextToUser(testUser);
+
+    Program program = get(Program.class, "BFcipDERJnf");
+
+    HttpResponse response =
+        GET(
+            "/tracker/trackedEntities?program={programId}&orgUnitMode={orgUnitMode}",
+            program.getUid(),
+            CAPTURE);
+
+    assertEquals(HttpStatus.OK, response.status());
   }
 
   @Test

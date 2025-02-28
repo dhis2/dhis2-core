@@ -37,8 +37,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.Session;
 import org.hisp.dhis.changelog.ChangeLogType;
@@ -89,7 +89,7 @@ public class HibernateTrackedEntityChangeLogStore {
 
   public Page<TrackedEntityChangeLog> getTrackedEntityChangeLogs(
       @Nonnull UID trackedEntity,
-      @Nullable UID program,
+      @CheckForNull UID program,
       @Nonnull Set<UID> attributes,
       @Nonnull TrackedEntityChangeLogOperationParams operationParams,
       @Nonnull PageParams pageParams) {

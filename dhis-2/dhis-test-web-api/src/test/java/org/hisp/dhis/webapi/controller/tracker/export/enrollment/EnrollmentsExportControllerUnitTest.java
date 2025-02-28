@@ -38,7 +38,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,8 +50,6 @@ class EnrollmentsExportControllerUnitTest {
   @Mock private EnrollmentService enrollmentService;
 
   @Mock private EnrollmentRequestParamsMapper paramsMapper;
-
-  @Mock private FieldFilterService fieldFilterService;
 
   @Mock private EnrollmentFieldsParamMapper fieldsMapper;
 
@@ -74,7 +71,7 @@ class EnrollmentsExportControllerUnitTest {
             IllegalStateException.class,
             () ->
                 new EnrollmentsExportController(
-                    enrollmentService, paramsMapper, fieldFilterService, fieldsMapper));
+                    enrollmentService, paramsMapper, null, fieldsMapper));
 
     assertAll(
         () ->
