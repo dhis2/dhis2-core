@@ -109,22 +109,11 @@ entities. Only tracked entities with an enrollment into the `program` will be re
 
 Get tracked entities that have at least one enrollment with the status specified.
 
-Valid options are:
-- `ACTIVE`
-- `COMPLETED`
-- `CANCELLED`
-
 ### `*.parameter.TrackedEntityRequestParams.programStatus`
 
 Get tracked entities that have at least one enrollment with the status specified.
 
-Valid options are:
-- `ACTIVE`
-- `COMPLETED`
-- `CANCELLED`
-
 **DEPRECATED as of 2.42:** Use parameter `enrollmentStatus` instead.
-
 
 ### `*.parameter.TrackedEntityRequestParams.followUp`
 
