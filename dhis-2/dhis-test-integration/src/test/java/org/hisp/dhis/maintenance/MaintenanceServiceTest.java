@@ -221,7 +221,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testDeleteSoftDeletedTrackedEntityLinkedToARelationshipItem()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+      throws ForbiddenException, NotFoundException {
     RelationshipType rType = createRelationshipType('A');
     rType.getFromConstraint().setRelationshipEntity(RelationshipEntity.PROGRAM_INSTANCE);
     rType.getFromConstraint().setProgram(program);
@@ -318,7 +318,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testDeleteSoftDeletedTrackedEntityAProgramMessage()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+      throws ForbiddenException, NotFoundException {
     ProgramMessageRecipients programMessageRecipients = new ProgramMessageRecipients();
     programMessageRecipients.setEmailAddresses(Sets.newHashSet("testemail"));
     programMessageRecipients.setPhoneNumbers(Sets.newHashSet("testphone"));
