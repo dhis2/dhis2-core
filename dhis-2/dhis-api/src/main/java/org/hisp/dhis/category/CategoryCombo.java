@@ -154,6 +154,10 @@ public class CategoryCombo extends BaseIdentifiableObject implements SystemDefau
       optionCombo.setCategoryOptions(new HashSet<>(generator.getNext()));
       optionCombo.setCategoryCombo(this);
       list.add(optionCombo);
+
+      for (CategoryOption categoryOption : optionCombo.getCategoryOptions()) {
+        categoryOption.addCategoryOptionCombo(optionCombo);
+      }
     }
 
     return list;
@@ -176,26 +180,11 @@ public class CategoryCombo extends BaseIdentifiableObject implements SystemDefau
 
         if (categoryOptionSet.equals(persistedCategoryOptions)) {
           list.add(optionCombo);
-          continue;
         }
       }
     }
 
     return list;
-  }
-
-  public void generateOptionCombos() {
-    this.optionCombos = new HashSet<>(generateOptionCombosList());
-
-    for (CategoryOptionCombo optionCombo : optionCombos) {
-      for (CategoryOption categoryOption : optionCombo.getCategoryOptions()) {
-        categoryOption.addCategoryOptionCombo(optionCombo);
-      }
-    }
-  }
-
-  public boolean hasOptionCombos() {
-    return optionCombos != null && !optionCombos.isEmpty();
   }
 
   @JsonIgnore

@@ -410,6 +410,14 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
     assertEquals(2, cocs.size());
   }
 
+  @Test
+  void test() {
+    setupCategoryCombo();
+    List<CategoryOptionCombo> list = ccA.generateOptionCombosList();
+    categoryService.addAndPruneOptionCombos(ccA);
+    assertEquals(list, ccA.getSortedOptionCombos());
+  }
+
   private void setupCategoryCombo() {
     categoryA = createCategory('A', categoryOptionA, categoryOptionB);
     categoryB = createCategory('B', categoryOptionC);
