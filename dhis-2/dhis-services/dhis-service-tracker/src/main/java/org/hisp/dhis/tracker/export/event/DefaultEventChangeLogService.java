@@ -60,6 +60,7 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
   private final EventService eventService;
   private final HibernateEventChangeLogStore hibernateEventChangeLogStore;
 
+  @Nonnull
   @Override
   @Transactional(readOnly = true)
   public Page<EventChangeLog> getEventChangeLog(

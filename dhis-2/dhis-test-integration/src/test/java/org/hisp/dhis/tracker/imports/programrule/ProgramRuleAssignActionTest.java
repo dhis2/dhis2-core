@@ -58,6 +58,7 @@ import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -74,6 +75,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class ProgramRuleAssignActionTest extends TrackerTest {
+  @Autowired private TestSetup testSetup;
   @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private ProgramRuleService programRuleService;
@@ -94,7 +96,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
 
   @BeforeAll
   void setUp() throws IOException {
-    ObjectBundle bundle = setUpMetadata("tracker/simple_metadata.json");
+    ObjectBundle bundle = testSetup.setUpMetadata();
 
     User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
@@ -125,9 +127,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     calculatedValuePRV.setValueType(ValueType.TEXT);
     programRuleVariableService.addProgramRuleVariable(calculatedValuePRV);
 
-    trackerImportService.importTracker(
-        new TrackerImportParams(),
-        fromJson("tracker/programrule/te_enrollment_completed_event.json"));
+    testSetup.setUpTrackerData("tracker/programrule/te_enrollment_completed_event.json");
   }
 
   @Test

@@ -84,14 +84,13 @@ class AclEventExporterTest extends TrackerTest {
 
   @BeforeAll
   void setUp() throws IOException {
-    setUpMetadata("tracker/simple_metadata.json");
+    setUpMetadata("tracker/base_metadata.json");
 
     User userA = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(userA);
 
     TrackerImportParams params = TrackerImportParams.builder().build();
-    assertNoErrors(
-        trackerImportService.importTracker(params, fromJson("tracker/event_and_enrollment.json")));
+    assertNoErrors(trackerImportService.importTracker(params, fromJson("tracker/base_data.json")));
     orgUnit = get(OrganisationUnit.class, "h4w96yEMlzO");
     ProgramStage programStage = get(ProgramStage.class, "NpsdDv6kKSO");
     program = programStage.getProgram();
