@@ -30,12 +30,12 @@ package org.hisp.dhis.security.oauth2.consent;
 import java.util.HashSet;
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.security.oauth2.client.DHIS2OAuth2RegisteredClientRepository;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
-import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -47,11 +47,11 @@ import org.springframework.util.StringUtils;
 @Service
 public class DHIS2OAuth2AuthorizationConsentService implements OAuth2AuthorizationConsentService {
   private final OAuth2AuthorizationConsentStore authorizationConsentStore;
-  private final RegisteredClientRepository clientRepository;
+  private final DHIS2OAuth2RegisteredClientRepository clientRepository;
 
   public DHIS2OAuth2AuthorizationConsentService(
       OAuth2AuthorizationConsentStore authorizationConsentStore,
-      RegisteredClientRepository clientRepository) {
+      DHIS2OAuth2RegisteredClientRepository clientRepository) {
     Assert.notNull(authorizationConsentStore, "authorizationConsentStore cannot be null");
     Assert.notNull(clientRepository, "registeredClientRepository cannot be null");
     this.authorizationConsentStore = authorizationConsentStore;
@@ -99,7 +99,7 @@ public class DHIS2OAuth2AuthorizationConsentService implements OAuth2Authorizati
       toObject(OAuth2AuthorizationConsent entity) {
 
     String registeredClientId = entity.getRegisteredClientId();
-    RegisteredClient registeredClient = this.clientRepository.findById(registeredClientId);
+    RegisteredClient registeredClient = this.clientRepository.findByUID(registeredClientId);
     if (registeredClient == null) {
       throw new DataRetrievalFailureException(
           "The RegisteredClient with id '"

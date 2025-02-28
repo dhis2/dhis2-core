@@ -32,9 +32,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.security.oauth2.client.OAuth2ClientStore;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,8 +52,10 @@ import org.springframework.security.oauth2.server.authorization.OAuth2Authorizat
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 /** Integration tests for {@link DHIS2OAuth2AuthorizationService}. */
+@Transactional
 public class DHIS2OAuth2AuthorizationServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private DHIS2OAuth2AuthorizationService authorizationService;
@@ -68,7 +72,7 @@ public class DHIS2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
   public void setUp() {
     // Create and save a test client
     registeredClient =
-        RegisteredClient.withId(UUID.randomUUID().toString())
+        RegisteredClient.withId(CodeGenerator.generateUid())
             .clientId("auth-test-client-" + UUID.randomUUID())
             .clientName("Auth Test Client")
             .clientSecret("auth-test-secret")
@@ -91,6 +95,7 @@ public class DHIS2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
             .principalName("user1")
             .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
             .attribute("custom_attribute", "value1")
+            .id(CodeGenerator.generateUid())
             .build();
 
     // When
@@ -119,10 +124,19 @@ public class DHIS2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
             .principalName("user1")
             .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
             .token(authorizationCode)
+            .id(CodeGenerator.generateUid())
             .build();
 
     // When
     authorizationService.save(authorization);
+
+    List<org.hisp.dhis.security.oauth2.authorization.OAuth2Authorization> all =
+        authorizationService.getAll();
+    for (org.hisp.dhis.security.oauth2.authorization.OAuth2Authorization oAuth2Authorization :
+        all) {
+      System.out.println(oAuth2Authorization);
+    }
+
     OAuth2Authorization foundAuthorization =
         authorizationService.findByToken(
             "code-value", new OAuth2TokenType(OAuth2ParameterNames.CODE));
@@ -155,6 +169,7 @@ public class DHIS2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
             .principalName("user1")
             .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
             .token(accessToken)
+            .id(CodeGenerator.generateUid())
             .build();
 
     // When
@@ -187,6 +202,7 @@ public class DHIS2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
             .principalName("user1")
             .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
             .token(refreshToken)
+            .id(CodeGenerator.generateUid())
             .build();
 
     // When
@@ -211,6 +227,7 @@ public class DHIS2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
             .principalName("user1")
             .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
             .attribute(OAuth2ParameterNames.STATE, "state-value")
+            .id(CodeGenerator.generateUid())
             .build();
 
     // When
@@ -243,6 +260,7 @@ public class DHIS2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
             .principalName("user1")
             .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
             .token(accessToken, (m) -> m.putAll(metadata))
+            .id(CodeGenerator.generateUid())
             .build();
 
     // When
@@ -266,6 +284,7 @@ public class DHIS2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
         OAuth2Authorization.withRegisteredClient(registeredClient)
             .principalName("user1")
             .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+            .id(CodeGenerator.generateUid())
             .build();
 
     // When

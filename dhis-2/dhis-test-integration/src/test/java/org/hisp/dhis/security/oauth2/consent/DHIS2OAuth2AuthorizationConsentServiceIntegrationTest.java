@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.security.oauth2.client.OAuth2ClientStore;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,8 +47,10 @@ import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsent;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 /** Integration tests for {@link DHIS2OAuth2AuthorizationConsentService}. */
+@Transactional
 public class DHIS2OAuth2AuthorizationConsentServiceIntegrationTest
     extends PostgresIntegrationTestBase {
 
@@ -65,7 +68,7 @@ public class DHIS2OAuth2AuthorizationConsentServiceIntegrationTest
   public void setUp() {
     // Create and save a test client
     registeredClient =
-        RegisteredClient.withId(UUID.randomUUID().toString())
+        RegisteredClient.withId(CodeGenerator.generateUid())
             .clientId("consent-test-client-" + UUID.randomUUID())
             .clientName("Consent Test Client")
             .clientSecret("consent-test-secret")
@@ -216,7 +219,7 @@ public class DHIS2OAuth2AuthorizationConsentServiceIntegrationTest
   public void testConsentsForMultipleClients() {
     // Given - create another client
     RegisteredClient anotherClient =
-        RegisteredClient.withId(UUID.randomUUID().toString())
+        RegisteredClient.withId(CodeGenerator.generateUid())
             .clientId("another-consent-client-" + UUID.randomUUID())
             .clientName("Another Consent Test Client")
             .clientSecret("another-consent-secret")

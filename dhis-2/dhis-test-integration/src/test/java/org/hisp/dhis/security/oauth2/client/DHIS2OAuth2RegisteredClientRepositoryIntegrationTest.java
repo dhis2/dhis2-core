@@ -209,9 +209,10 @@ public class DHIS2OAuth2RegisteredClientRepositoryIntegrationTest
             + AuthorizationGrantType.REFRESH_TOKEN.getValue());
     entity.setRedirectUris("https://direct.example.com/callback");
     entity.setScopes("read,write");
-    entity.setClientSettings("{\"settings.client.require-authorization-consent\":true}");
+    entity.setClientSettings(
+        "{\"@class\": \"java.util.Collections$UnmodifiableMap\",\"settings.client.require-authorization-consent\":true}");
     entity.setTokenSettings(
-        "{\"settings.token.access-token-time-to-live\":3600,\"settings.token.refresh-token-time-to-live\":7200}");
+        "{\"@class\": \"java.util.Collections$UnmodifiableMap\",\"settings.token.access-token-time-to-live\":3600,\"settings.token.refresh-token-time-to-live\":7200}");
 
     // When
     clientStore.save(entity);

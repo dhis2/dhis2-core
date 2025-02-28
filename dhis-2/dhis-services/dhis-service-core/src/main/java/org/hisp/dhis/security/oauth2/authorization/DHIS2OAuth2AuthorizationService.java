@@ -34,7 +34,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.security.oauth2.client.DHIS2OAuth2RegisteredClientRepository;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -50,7 +52,6 @@ import org.springframework.security.oauth2.server.authorization.OAuth2Authorizat
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
-import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.jackson2.OAuth2AuthorizationServerJackson2Module;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -60,14 +61,16 @@ import org.springframework.util.StringUtils;
  * DHIS2 implementation of Spring Authorization Server's OAuth2AuthorizationService that uses
  * HibernateOAuth2AuthorizationStore for persistence.
  */
+@Slf4j
 @Service
 public class DHIS2OAuth2AuthorizationService implements OAuth2AuthorizationService {
   private final OAuth2AuthorizationStore authorizationStore;
-  private final RegisteredClientRepository clientRepository;
+  private final DHIS2OAuth2RegisteredClientRepository clientRepository;
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   public DHIS2OAuth2AuthorizationService(
-      OAuth2AuthorizationStore authorizationStore, RegisteredClientRepository clientRepository) {
+      OAuth2AuthorizationStore authorizationStore,
+      DHIS2OAuth2RegisteredClientRepository clientRepository) {
     Assert.notNull(authorizationStore, "authorizationStore cannot be null");
     Assert.notNull(clientRepository, "clientRepository cannot be null");
     this.authorizationStore = authorizationStore;
@@ -85,7 +88,8 @@ public class DHIS2OAuth2AuthorizationService implements OAuth2AuthorizationServi
   public void save(
       org.springframework.security.oauth2.server.authorization.OAuth2Authorization authorization) {
     Assert.notNull(authorization, "authorization cannot be null");
-    this.authorizationStore.save(toEntity(authorization));
+    OAuth2Authorization entity = toEntity(authorization);
+    this.authorizationStore.save(entity);
   }
 
   @Override
@@ -140,7 +144,7 @@ public class DHIS2OAuth2AuthorizationService implements OAuth2AuthorizationServi
   private org.springframework.security.oauth2.server.authorization.OAuth2Authorization toObject(
       OAuth2Authorization entity) {
     RegisteredClient registeredClient =
-        this.clientRepository.findById(entity.getRegisteredClientId());
+        this.clientRepository.findByUID(entity.getRegisteredClientId());
     if (registeredClient == null) {
       throw new DataRetrievalFailureException(
           "The RegisteredClient with id '"
@@ -419,5 +423,9 @@ public class DHIS2OAuth2AuthorizationService implements OAuth2AuthorizationServi
       return AuthorizationGrantType.DEVICE_CODE;
     }
     return new AuthorizationGrantType(authorizationGrantType); // Custom authorization grant type
+  }
+
+  public List<OAuth2Authorization> getAll() {
+    return authorizationStore.getAll();
   }
 }

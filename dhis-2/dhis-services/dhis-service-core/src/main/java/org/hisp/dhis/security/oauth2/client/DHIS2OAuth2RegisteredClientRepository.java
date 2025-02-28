@@ -220,7 +220,7 @@ public class DHIS2OAuth2RegisteredClientRepository implements RegisteredClientRe
       return Map.of();
     }
     try {
-      return MAPPER.readValue(data, new TypeReference<Map<String, Object>>() {});
+      return this.objectMapper.readValue(data, new TypeReference<Map<String, Object>>() {});
     } catch (Exception ex) {
       throw new IllegalArgumentException("Failed to parse JSON data: " + ex.getMessage(), ex);
     }
