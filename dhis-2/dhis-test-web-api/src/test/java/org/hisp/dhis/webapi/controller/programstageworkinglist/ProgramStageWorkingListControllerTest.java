@@ -54,7 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class ProgramStageWorkingListControllerTest extends PostgresControllerIntegrationTestBase {
+class ProgramStageWorkingListControllerTest extends PostgresControllerIntegrationTestBase {
   @Autowired private TestSetup testSetup;
 
   @Autowired private IdentifiableObjectManager manager;
