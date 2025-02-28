@@ -34,6 +34,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -81,6 +82,8 @@ public class DeduplicationController {
   private final RequestHandler requestHandler;
 
   private final TrackedEntityService trackedEntityService;
+
+  private final IdentifiableObjectManager manager;
 
   @OpenApi.Response(PotentialDuplicate[].class)
   @GetMapping
@@ -170,8 +173,8 @@ public class DeduplicationController {
         DeduplicationMergeParams.builder()
             .potentialDuplicate(potentialDuplicate)
             .mergeObject(mergeObject)
-            .original(original)
-            .duplicate(duplicate)
+            .original(manager.get(TrackedEntity.class, original.getUid()))
+            .duplicate(manager.get(TrackedEntity.class, duplicate.getUid()))
             .build();
 
     if (MergeStrategy.MANUAL.equals(mergeStrategy)) {
