@@ -144,8 +144,7 @@ class ProgramRuleAssignActionTest extends PostgresIntegrationTestBase {
     assignProgramRule();
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
-        this.testSetup.fromJson(
-            "tracker/programrule/te_enrollment_update_attribute_same_value.json");
+        testSetup.fromJson("tracker/programrule/te_enrollment_update_attribute_same_value.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -159,14 +158,14 @@ class ProgramRuleAssignActionTest extends PostgresIntegrationTestBase {
       String eventOccurredDate, String previousEventDataValue) throws IOException {
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
-        this.testSetup.fromJson("tracker/programrule/three_events_with_different_dates.json");
+        testSetup.fromJson("tracker/programrule/three_events_with_different_dates.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     trackerImportService.importTracker(params, trackerObjects);
 
     assignPreviousEventProgramRule();
 
-    trackerObjects = this.testSetup.fromJson("tracker/programrule/event_with_data_value.json");
+    trackerObjects = testSetup.fromJson("tracker/programrule/event_with_data_value.json");
 
     trackerObjects
         .getEvents()
@@ -243,7 +242,7 @@ class ProgramRuleAssignActionTest extends PostgresIntegrationTestBase {
     assignProgramRule();
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
-        this.testSetup.fromJson("tracker/programrule/event_update_datavalue_same_value.json");
+        testSetup.fromJson("tracker/programrule/event_update_datavalue_same_value.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -256,7 +255,7 @@ class ProgramRuleAssignActionTest extends PostgresIntegrationTestBase {
     assignProgramRule();
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
-        this.testSetup.fromJson("tracker/programrule/event_update_datavalue_different_value.json");
+        testSetup.fromJson("tracker/programrule/event_update_datavalue_different_value.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -273,7 +272,7 @@ class ProgramRuleAssignActionTest extends PostgresIntegrationTestBase {
     settingsService.clearCurrentSettings();
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
-        this.testSetup.fromJson("tracker/programrule/event_update_datavalue_different_value.json");
+        testSetup.fromJson("tracker/programrule/event_update_datavalue_different_value.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -290,7 +289,7 @@ class ProgramRuleAssignActionTest extends PostgresIntegrationTestBase {
     settingsService.clearCurrentSettings();
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
-        this.testSetup.fromJson("tracker/programrule/event_update_datavalue_empty_value.json");
+        testSetup.fromJson("tracker/programrule/event_update_datavalue_empty_value.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -303,7 +302,7 @@ class ProgramRuleAssignActionTest extends PostgresIntegrationTestBase {
     assignToCalculatedValueProgramRule();
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
-        this.testSetup.fromJson("tracker/programrule/event_update_datavalue_different_value.json");
+        testSetup.fromJson("tracker/programrule/event_update_datavalue_different_value.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     ImportReport report = trackerImportService.importTracker(params, trackerObjects);
@@ -314,7 +313,7 @@ class ProgramRuleAssignActionTest extends PostgresIntegrationTestBase {
   private TrackerObjects getEvent(UID eventUid, String occurredDate, String value)
       throws IOException {
     TrackerObjects trackerObjects =
-        this.testSetup.fromJson("tracker/programrule/event_without_date.json");
+        testSetup.fromJson("tracker/programrule/event_without_date.json");
     trackerObjects
         .getEvents()
         .get(0)

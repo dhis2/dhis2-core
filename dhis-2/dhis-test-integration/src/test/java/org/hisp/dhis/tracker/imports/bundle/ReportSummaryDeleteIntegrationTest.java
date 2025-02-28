@@ -86,8 +86,6 @@ class ReportSummaryDeleteIntegrationTest extends PostgresIntegrationTestBase {
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    TrackerImportParams params = TrackerImportParams.builder().build();
-
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/tracker_basic_data_before_deletion.json");
     assertEquals(13, trackerObjects.getTrackedEntities().size());
@@ -95,6 +93,7 @@ class ReportSummaryDeleteIntegrationTest extends PostgresIntegrationTestBase {
     assertEquals(2, trackerObjects.getEvents().size());
     assertEquals(2, trackerObjects.getRelationships().size());
 
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     PersistenceReport persistenceReport = importReport.getPersistenceReport();
 
@@ -127,6 +126,7 @@ class ReportSummaryDeleteIntegrationTest extends PostgresIntegrationTestBase {
     assertEquals(2, trackerObjects.getRelationships().size());
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
     assertDeletedObjects(1, importReport.getPersistenceReport(), TrackerType.RELATIONSHIP);
     assertHasOnlyErrors(importReport, E4016);
   }

@@ -91,13 +91,8 @@ class OwnershipTest extends PostgresIntegrationTestBase {
     User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    TrackerImportParams params = TrackerImportParams.builder().build();
-    assertNoErrors(
-        trackerImportService.importTracker(
-            params, testSetup.fromJson("tracker/ownership_te.json")));
-    assertNoErrors(
-        trackerImportService.importTracker(
-            params, testSetup.fromJson("tracker/ownership_enrollment.json")));
+    testSetup.setUpTrackerData("tracker/ownership_te.json");
+    testSetup.setUpTrackerData("tracker/ownership_enrollment.json");
 
     nonSuperUser = userService.getUser("Tu9fv8ezgHl");
   }
@@ -128,13 +123,10 @@ class OwnershipTest extends PostgresIntegrationTestBase {
   void testClientDatesForTrackedEntityEnrollmentEvent() throws IOException {
     User nonSuperUser = userService.getUser(this.nonSuperUser.getUid());
     injectSecurityContextUser(nonSuperUser);
-    TrackerImportParams params = TrackerImportParams.builder().build();
-    TrackerObjects trackerObjects = testSetup.fromJson("tracker/ownership_event.json");
-    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+    TrackerObjects trackerObjects = testSetup.setUpTrackerData("tracker/ownership_event.json");
     manager.flush();
     TrackerObjects teTrackerObjects = testSetup.fromJson("tracker/ownership_te.json");
     TrackerObjects enTrackerObjects = testSetup.fromJson("tracker/ownership_enrollment.json");
-    assertNoErrors(importReport);
 
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
     assertEquals(1, trackedEntities.size());
@@ -271,7 +263,9 @@ class OwnershipTest extends PostgresIntegrationTestBase {
         TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/ownership_te_ok_enrollment_no_access.json");
+
     ImportReport report = trackerImportService.importTracker(params, trackerObjects);
+
     assertEquals(1, report.getStats().getCreated());
     assertEquals(1, report.getStats().getIgnored());
     assertHasOnlyErrors(report, ValidationCode.E1000);

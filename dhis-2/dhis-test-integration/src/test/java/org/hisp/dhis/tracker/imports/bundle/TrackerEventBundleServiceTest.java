@@ -90,10 +90,9 @@ class TrackerEventBundleServiceTest extends PostgresIntegrationTestBase {
             .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
             .build();
     TrackerObjects trackerObjects = testSetup.fromJson("tracker/event_events_and_enrollment.json");
-
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
-
     assertNoErrors(importReport);
+
     assertEquals(8, manager.getAll(Event.class).size());
 
     importReport = trackerImportService.importTracker(params, trackerObjects);

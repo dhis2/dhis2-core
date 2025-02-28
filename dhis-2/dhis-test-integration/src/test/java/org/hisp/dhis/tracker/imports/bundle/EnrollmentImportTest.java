@@ -80,7 +80,7 @@ class EnrollmentImportTest extends PostgresIntegrationTestBase {
   void shouldCorrectlyPopulateCompletedDataWhenCreatingAnEnrollment(EnrollmentStatus status)
       throws IOException, ForbiddenException, NotFoundException {
     TrackerImportParams params = TrackerImportParams.builder().build();
-    TrackerObjects trackerObjects = this.testSetup.fromJson("tracker/te_enrollment_event.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/te_enrollment_event.json");
     trackerObjects.getEnrollments().get(0).setStatus(status);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -99,7 +99,7 @@ class EnrollmentImportTest extends PostgresIntegrationTestBase {
       EnrollmentStatus savedStatus, EnrollmentStatus updatedStatus)
       throws IOException, ForbiddenException, NotFoundException {
     TrackerImportParams params = TrackerImportParams.builder().build();
-    TrackerObjects trackerObjects = this.testSetup.fromJson("tracker/te_enrollment_event.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/te_enrollment_event.json");
     trackerObjects.getEnrollments().get(0).setStatus(savedStatus);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);

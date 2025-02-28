@@ -87,9 +87,11 @@ class RelationshipImportTest extends PostgresIntegrationTestBase {
   void successImportingRelationships() throws IOException {
     injectSecurityContextUser(userService.getUser("M5zQapPyTZI"));
     TrackerImportParams params = TrackerImportParams.builder().build();
+
     ImportReport importReport =
         trackerImportService.importTracker(
-            params, this.testSetup.fromJson("tracker/relationships.json"));
+            params, testSetup.fromJson("tracker/relationships.json"));
+
     assertThat(importReport.getStatus(), is(Status.OK));
     assertThat(importReport.getStats().getCreated(), is(2));
   }
@@ -101,7 +103,7 @@ class RelationshipImportTest extends PostgresIntegrationTestBase {
 
     ImportReport importReport =
         trackerImportService.importTracker(
-            params, this.testSetup.fromJson("tracker/relationships.json"));
+            params, testSetup.fromJson("tracker/relationships.json"));
 
     assertHasError(importReport, ValidationCode.E4020);
     assertThat(importReport.getStats().getIgnored(), is(2));
@@ -109,13 +111,16 @@ class RelationshipImportTest extends PostgresIntegrationTestBase {
 
   @Test
   void successUpdateRelationships() throws IOException {
-    TrackerImportParams trackerImportParams = TrackerImportParams.builder().build();
-    TrackerObjects trackerObjects = this.testSetup.fromJson("tracker/relationships.json");
-    trackerImportService.importTracker(trackerImportParams, trackerObjects);
-    trackerObjects = this.testSetup.fromJson("tracker/relationshipToUpdate.json");
-    trackerImportParams.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
+    testSetup.setUpTrackerData("tracker/relationships.json");
+
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/relationshipToUpdate.json");
+    TrackerImportParams trackerImportParams =
+        TrackerImportParams.builder()
+            .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
+            .build();
     ImportReport importReport =
         trackerImportService.importTracker(trackerImportParams, trackerObjects);
+
     assertThat(importReport.getStatus(), is(Status.OK));
     assertThat(importReport.getStats().getCreated(), is(0));
     assertThat(importReport.getStats().getIgnored(), is(1));
@@ -123,15 +128,17 @@ class RelationshipImportTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFailWhenTryingToUpdateADeletedRelationship() throws IOException {
-    TrackerImportParams trackerImportParams = TrackerImportParams.builder().build();
-    TrackerObjects trackerObjects = this.testSetup.fromJson("tracker/relationships.json");
-    trackerImportService.importTracker(trackerImportParams, trackerObjects);
+    TrackerObjects trackerObjects = testSetup.setUpTrackerData("tracker/relationships.json");
 
     manager.delete(manager.get(Relationship.class, "Nva3Xj2j75W"));
 
-    trackerImportParams.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
+    TrackerImportParams trackerImportParams =
+        TrackerImportParams.builder()
+            .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
+            .build();
     ImportReport importReport =
         trackerImportService.importTracker(trackerImportParams, trackerObjects);
+
     assertHasError(importReport, ValidationCode.E4017);
     assertThat(importReport.getStats().getIgnored(), is(2));
   }
