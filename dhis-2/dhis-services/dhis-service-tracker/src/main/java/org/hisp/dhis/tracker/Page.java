@@ -90,14 +90,21 @@ public class Page<T> {
   }
 
   /**
-   * Create a new page based on an existing one but with given {@code items}. Page related counts
-   * will not be changed so make sure the given {@code items} match the previous page size.
+   * Create a new page based on an existing one but with given {@code items}.
+   *
+   * <p>Prefer {@link #withMappedItems(Function)} and only use this one if you have to. The only
+   * reason to use this is to filter items. This obviously invalidates pageSize, counts and
+   * potentially nextPage. Any filtering of result sets must move into the store.
+   *
+   * @deprecated use {@link #withMappedItems(Function)}
    */
-  public <U> Page<U> withItems(List<U> items) {
+  @Deprecated(forRemoval = true)
+  public <U> Page<U> withFilteredItems(List<U> items) {
     return new Page<>(items, this.page, this.pageSize, this.total, this.prevPage, this.nextPage);
   }
 
-  public <R> Page<R> withItems(Function<T, R> map) {
+  /** Create a new page based on this existing page mapping the individual items. */
+  public <R> Page<R> withMappedItems(Function<T, R> map) {
     return new Page<>(
         items.stream().map(map).toList(),
         this.page,

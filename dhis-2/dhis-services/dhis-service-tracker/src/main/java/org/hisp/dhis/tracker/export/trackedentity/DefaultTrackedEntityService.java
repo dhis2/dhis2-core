@@ -412,7 +412,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
             .filter(te -> trackerAccessManager.canRead(user, te).isEmpty())
             .toList();
 
-    return ids.withItems(trackedEntities);
+    return ids.withFilteredItems(trackedEntities);
   }
 
   private List<TrackedEntity> getTrackedEntities(
