@@ -620,19 +620,6 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional
-  public void generateOptionCombos(CategoryCombo categoryCombo) {
-    categoryCombo.generateOptionCombos();
-
-    for (CategoryOptionCombo optionCombo : categoryCombo.getOptionCombos()) {
-      categoryCombo.getOptionCombos().add(optionCombo);
-      addCategoryOptionCombo(optionCombo);
-    }
-
-    updateCategoryCombo(categoryCombo);
-  }
-
-  @Override
-  @Transactional
   public void updateOptionCombos(Category category) {
     for (CategoryCombo categoryCombo : getAllCategoryCombos()) {
       if (categoryCombo.getCategories().contains(category)) {
@@ -966,7 +953,7 @@ public class DefaultCategoryService implements CategoryService {
     if (!coc1.getName().equals(coc2.getName())) {
       coc1.setName(coc2.getName());
       summaries.ifPresent(
-          (summary) -> {
+          summary -> {
             ImportSummary importSummary = new ImportSummary();
             importSummary.setDescription(
                 "Update category option combo %S name to %s"

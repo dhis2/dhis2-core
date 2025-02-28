@@ -209,13 +209,8 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetOperands() {
-    categoryA = createCategory('A', categoryOptionA, categoryOptionB);
-    categoryB = createCategory('B', categoryOptionC);
-    categoryService.addCategory(categoryA);
-    categoryService.addCategory(categoryB);
-    ccA = createCategoryCombo('A', categoryA, categoryB);
-    categoryService.addCategoryCombo(ccA);
-    categoryService.generateOptionCombos(ccA);
+    setupCategoryCombo();
+    categoryService.addAndPruneOptionCombos(ccA);
     List<CategoryOptionCombo> optionCombos = Lists.newArrayList(ccA.getOptionCombos());
     deA = createDataElement('A', ccA);
     deB = createDataElement('B', ccA);
@@ -231,13 +226,8 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetOperandsWithTotals() {
-    categoryA = createCategory('A', categoryOptionA, categoryOptionB);
-    categoryB = createCategory('B', categoryOptionC);
-    categoryService.addCategory(categoryA);
-    categoryService.addCategory(categoryB);
-    ccA = createCategoryCombo('A', categoryA, categoryB);
-    categoryService.addCategoryCombo(ccA);
-    categoryService.generateOptionCombos(ccA);
+    setupCategoryCombo();
+    categoryService.addAndPruneOptionCombos(ccA);
     List<CategoryOptionCombo> optionCombos = Lists.newArrayList(ccA.getOptionCombos());
     deA = createDataElement('A', ccA);
     deB = createDataElement('B', ccA);
@@ -256,12 +246,7 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetDisaggregationCategoryCombos() {
-    categoryA = createCategory('A', categoryOptionA, categoryOptionB);
-    categoryB = createCategory('B', categoryOptionC);
-    categoryService.addCategory(categoryA);
-    categoryService.addCategory(categoryB);
-    ccA = createCategoryCombo('A', categoryA, categoryB);
-    categoryService.addCategoryCombo(ccA);
+    setupCategoryCombo();
     assertEquals(1, categoryService.getDisaggregationCategoryCombos().size());
   }
 
@@ -290,13 +275,7 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testAddAndPruneAllCategoryCombos() {
-    categoryA = createCategory('A', categoryOptionA, categoryOptionB);
-    categoryB = createCategory('B', categoryOptionC);
-    categoryService.addCategory(categoryA);
-    categoryService.addCategory(categoryB);
-
-    ccA = createCategoryCombo('A', categoryA, categoryB);
-    categoryService.addCategoryCombo(ccA);
+    setupCategoryCombo();
     categoryService.addAndPruneAllOptionCombos();
 
     assertEquals(3, categoryService.getAllCategoryOptionCombos().size());
@@ -316,13 +295,7 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void addAndPruneCategoryCombo() {
-    categoryA = createCategory('A', categoryOptionA, categoryOptionB);
-    categoryB = createCategory('B', categoryOptionC);
-    categoryService.addCategory(categoryA);
-    categoryService.addCategory(categoryB);
-
-    ccA = createCategoryCombo('A', categoryA, categoryB);
-    categoryService.addCategoryCombo(ccA);
+    setupCategoryCombo();
 
     categoryService.addAndPruneOptionCombos(ccA);
     assertEquals(3, categoryService.getAllCategoryOptionCombos().size());
@@ -342,13 +315,7 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void addAndPruneCategoryComboWithSummary() {
-    categoryA = createCategory('A', categoryOptionA, categoryOptionB);
-    categoryB = createCategory('B', categoryOptionC);
-    categoryService.addCategory(categoryA);
-    categoryService.addCategory(categoryB);
-
-    ccA = createCategoryCombo('A', categoryA, categoryB);
-    categoryService.addCategoryCombo(ccA);
+    setupCategoryCombo();
 
     Optional<ImportSummaries> importSummary =
         categoryService.addAndPruneOptionCombosWithSummary(ccA);
@@ -397,13 +364,7 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void addAndPruneCategoryComboWithSummaryDelete() {
-    categoryA = createCategory('A', categoryOptionA, categoryOptionB);
-    categoryB = createCategory('B', categoryOptionC);
-    categoryService.addCategory(categoryA);
-    categoryService.addCategory(categoryB);
-
-    ccA = createCategoryCombo('A', categoryA, categoryB);
-    categoryService.addCategoryCombo(ccA);
+    setupCategoryCombo();
 
     Optional<ImportSummaries> importSummary =
         categoryService.addAndPruneOptionCombosWithSummary(ccA);
@@ -447,5 +408,15 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
 
     List<CategoryOptionCombo> cocs = categoryService.getAllCategoryOptionCombos();
     assertEquals(2, cocs.size());
+  }
+
+  private void setupCategoryCombo() {
+    categoryA = createCategory('A', categoryOptionA, categoryOptionB);
+    categoryB = createCategory('B', categoryOptionC);
+    categoryService.addCategory(categoryA);
+    categoryService.addCategory(categoryB);
+
+    ccA = createCategoryCombo('A', categoryA, categoryB);
+    categoryService.addCategoryCombo(ccA);
   }
 }

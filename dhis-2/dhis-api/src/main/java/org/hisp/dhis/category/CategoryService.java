@@ -414,13 +414,6 @@ public interface CategoryService {
   CategoryOptionCombo getDefaultCategoryOptionCombo();
 
   /**
-   * Generates and persists CategoryOptionCombos for the given CategoryCombo.
-   *
-   * @param categoryCombo the CategoryCombo.
-   */
-  void generateOptionCombos(CategoryCombo categoryCombo);
-
-  /**
    * Invokes updateOptionCombos( CategoryCombo ) for all category combos which the given category is
    * a part of.
    *
