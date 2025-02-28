@@ -56,12 +56,10 @@ import org.hisp.dhis.webapi.controller.tracker.TestSetup;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author luca@dhis2.org
  */
-@Transactional
 class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase {
   @Autowired private TestSetup testSetup;
 
@@ -76,12 +74,12 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
 
   @BeforeEach
   void setUp() throws IOException {
-    testSetup.setUpMetadata("tracker/simple_metadata.json");
+    testSetup.setUpMetadata();
 
     User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    trackerObjects = testSetup.setUpTrackerData("tracker/event_and_enrollment.json");
+    trackerObjects = testSetup.setUpTrackerData();
     TrackerObjects duplicateTrackedEntities =
         testSetup.setUpTrackerData("tracker/deduplication/potential_duplicates.json");
 
@@ -201,7 +199,7 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
                 .formatted(
                     trackedEntityAOriginal.getUid(),
                     testSetup.getTrackedEntity(trackerObjects, "dUE514NMOlo").getUid()))
-        .content(HttpStatus.FORBIDDEN);
+        .content(HttpStatus.NOT_FOUND);
   }
 
   @Test
@@ -228,7 +226,7 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
     switchContextToUser(user);
 
     POST("/potentialDuplicates/" + potentialDuplicateA.getUid() + "/merge", "{}")
-        .content(HttpStatus.FORBIDDEN);
+        .content(HttpStatus.NOT_FOUND);
   }
 
   @Test

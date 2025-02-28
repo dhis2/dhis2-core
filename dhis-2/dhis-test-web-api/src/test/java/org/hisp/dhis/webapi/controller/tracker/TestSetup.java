@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker;
 
 import static org.hisp.dhis.feedback.Assertions.assertNoErrors;
+import static org.hisp.dhis.webapi.controller.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -71,6 +72,20 @@ public class TestSetup {
 
   @Autowired private TrackerImportService trackerImportService;
 
+  /**
+   * Set up the base metadata used by most tracker tests.
+   *
+   * <p>Use {@link #setUpMetadata(String)} (String)}
+   *
+   * <ul>
+   *   <li>instead if your test only needs a subset of what the tracker base metadata contains
+   *   <li>in addition if your test needs some additional metadata that not all tracker tests need
+   * </ul>
+   */
+  public ObjectBundle setUpMetadata() throws IOException {
+    return setUpMetadata("tracker/base_metadata.json", null);
+  }
+
   public ObjectBundle setUpMetadata(String path) throws IOException {
     return setUpMetadata(path, null);
   }
@@ -89,14 +104,36 @@ public class TestSetup {
     return bundle;
   }
 
+  /**
+   * Set up the base tracker data used by most tracker tests.
+   *
+   * <p>Use {@link #setUpTrackerData(String)}
+   *
+   * <ul>
+   *   <li>instead if your test only needs a subset of what the tracker base data contains
+   *   <li>in addition if your test needs some additional data that not all tracker tests need
+   * </ul>
+   */
+  public TrackerObjects setUpTrackerData() throws IOException {
+    return setUpTrackerData("tracker/base_data.json");
+  }
+
+  /**
+   * Setup tracker data from a JSON fixture using the default import parameters. Use {@link
+   * #setUpTrackerData(String, TrackerImportParams)} if you need non-default import parameters.
+   */
   public TrackerObjects setUpTrackerData(String path) throws IOException {
+    return setUpTrackerData(path, TrackerImportParams.builder().build());
+  }
+
+  public TrackerObjects setUpTrackerData(String path, TrackerImportParams params)
+      throws IOException {
     TrackerObjects trackerObjects = fromJson(path);
-    org.hisp.dhis.webapi.controller.tracker.Assertions.assertNoErrors(
-        trackerImportService.importTracker(TrackerImportParams.builder().build(), trackerObjects));
+    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
     return trackerObjects;
   }
 
-  private TrackerObjects fromJson(String path) throws IOException {
+  public TrackerObjects fromJson(String path) throws IOException {
     return renderService.fromJson(
         new ClassPathResource(path).getInputStream(), TrackerObjects.class);
   }
