@@ -39,9 +39,10 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
@@ -49,12 +50,17 @@ import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeV
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class TrackedEntityProgramAttributeFileResourceTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class TrackedEntityProgramAttributeFileResourceTest extends PostgresIntegrationTestBase {
+  @Autowired private TestSetup testSetup;
 
   @Autowired private TrackerImportService trackerImportService;
 
@@ -68,7 +74,7 @@ class TrackedEntityProgramAttributeFileResourceTest extends TrackerTest {
 
   @BeforeAll
   void setUp() throws IOException {
-    setUpMetadata("tracker/te_program_with_tea_fileresource_metadata.json");
+    testSetup.setUpMetadata("tracker/te_program_with_tea_fileresource_metadata.json");
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
@@ -90,7 +96,7 @@ class TrackedEntityProgramAttributeFileResourceTest extends TrackerTest {
     assertFalse(fileResource.isAssigned());
     ImportReport importReport =
         trackerImportService.importTracker(
-            params, fromJson("tracker/te_program_with_tea_fileresource_data.json"));
+            params, testSetup.fromJson("tracker/te_program_with_tea_fileresource_data.json"));
     assertNoErrors(importReport);
 
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);

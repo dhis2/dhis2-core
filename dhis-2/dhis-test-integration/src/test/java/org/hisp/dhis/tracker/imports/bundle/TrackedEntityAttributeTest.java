@@ -35,12 +35,13 @@ import java.io.IOException;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -51,12 +52,17 @@ import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeV
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class TrackedEntityAttributeTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
+  @Autowired private TestSetup testSetup;
 
   @Autowired private TrackerPreheatService trackerPreheatService;
 
@@ -70,7 +76,7 @@ class TrackedEntityAttributeTest extends TrackerTest {
 
   @BeforeAll
   void setUp() throws IOException {
-    setUpMetadata("tracker/te_with_tea_metadata.json");
+    testSetup.setUpMetadata("tracker/te_with_tea_metadata.json");
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
@@ -78,7 +84,7 @@ class TrackedEntityAttributeTest extends TrackerTest {
 
   @Test
   void testTrackedAttributePreheater() throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/te_with_tea_data.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/te_with_tea_data.json");
 
     TrackerPreheat preheat =
         trackerPreheatService.preheat(trackerObjects, new TrackerIdSchemeParams());
@@ -92,7 +98,7 @@ class TrackedEntityAttributeTest extends TrackerTest {
   @Test
   void testTrackedAttributeValueBundleImporter() throws IOException {
     TrackerImportParams params = TrackerImportParams.builder().build();
-    TrackerObjects trackerObjects = fromJson("tracker/te_with_tea_data.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/te_with_tea_data.json");
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);

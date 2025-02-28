@@ -43,10 +43,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TestSetup;
-import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
@@ -58,12 +58,16 @@ import org.joda.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class EventChangeLogServiceTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private EventChangeLogService eventChangeLogService;
 
@@ -451,7 +455,7 @@ class EventChangeLogServiceTest extends TrackerTest {
   }
 
   private void updateEventDates(UID event, Instant newDate) throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/base_data.json");
+    TrackerObjects trackerObjects = this.testSetup.fromJson("tracker/base_data.json");
 
     trackerObjects.getEvents().stream()
         .filter(e -> e.getEvent().equals(event))
