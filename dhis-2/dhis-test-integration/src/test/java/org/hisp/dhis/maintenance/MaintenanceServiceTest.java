@@ -33,7 +33,6 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -157,6 +156,8 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     coA = categoryService.getDefaultCategoryOptionCombo();
     organisationUnit = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnit);
+    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
+    trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
     program = createProgram('A', new HashSet<>(), organisationUnit);
     programService.addProgram(program);
     ProgramStage stageA = createProgramStage('A', program);
@@ -169,9 +170,8 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     programStages.add(stageA);
     programStages.add(stageB);
     program.setProgramStages(programStages);
+    program.setTrackedEntityType(trackedEntityType);
     programService.updateProgram(program);
-    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
-    trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
     trackedEntity = createTrackedEntity(organisationUnit, trackedEntityType);
     manager.save(trackedEntity);
     trackedEntityB = createTrackedEntity(organisationUnit, trackedEntityType);
@@ -239,12 +239,12 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     r.setKey(RelationshipUtils.generateRelationshipKey(r));
     r.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(r));
     manager.save(r);
-    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(trackedEntity)));
+    assertNotNull(trackedEntityService.getNewTrackedEntity(UID.of(trackedEntity)));
     assertNotNull(getRelationship(r.getUid()));
     manager.delete(trackedEntity);
     assertThrows(
         NotFoundException.class,
-        () -> trackedEntityService.getTrackedEntity(UID.of(trackedEntity)));
+        () -> trackedEntityService.getNewTrackedEntity(UID.of(trackedEntity)));
     manager.delete(r);
     manager.delete(enrollment);
     assertThrows(NotFoundException.class, () -> getRelationship(r.getUid()));
@@ -333,11 +333,11 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
             .build();
     manager.save(trackedEntityB);
     programMessageService.saveProgramMessage(message);
-    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(trackedEntityB)));
+    assertNotNull(trackedEntityService.getNewTrackedEntity(UID.of(trackedEntityB)));
     manager.delete(trackedEntityB);
     assertThrows(
         NotFoundException.class,
-        () -> trackedEntityService.getTrackedEntity(UID.of(trackedEntityB)));
+        () -> trackedEntityService.getNewTrackedEntity(UID.of(trackedEntityB)));
     assertTrue(trackedEntityExistsIncludingDeleted(trackedEntityB.getUid()));
 
     maintenanceService.deleteSoftDeletedTrackedEntities();
@@ -451,10 +451,11 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   @Disabled("until we can inject dhis.conf property overrides")
-  void testAuditEntryForDeletionOfSoftDeletedTrackedEntity()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+  void testAuditEntryForDeletionOfSoftDeletedTrackedEntity() {
     manager.delete(trackedEntityWithAssociations);
-    assertNull(trackedEntityService.getTrackedEntity(UID.of(trackedEntityWithAssociations)));
+    assertThrows(
+        NotFoundException.class,
+        () -> trackedEntityService.getNewTrackedEntity(UID.of(trackedEntityWithAssociations)));
     assertTrue(trackedEntityExistsIncludingDeleted(trackedEntityWithAssociations.getUid()));
     maintenanceService.deleteSoftDeletedTrackedEntities();
     List<Audit> audits =
