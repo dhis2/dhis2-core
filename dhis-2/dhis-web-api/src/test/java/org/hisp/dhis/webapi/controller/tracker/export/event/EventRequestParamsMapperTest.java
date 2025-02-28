@@ -133,7 +133,7 @@ class EventRequestParamsMapperTest {
   private TrackerIdSchemeParams idSchemeParams;
 
   @BeforeEach
-  void setUp() throws ForbiddenException, NotFoundException, BadRequestException {
+  void setUp() throws ForbiddenException, NotFoundException {
     User user = new User();
 
     when(userService.getUserByUsername(null)).thenReturn(user);

@@ -314,11 +314,7 @@ class TrackedEntitiesExportController {
       HttpServletResponse response,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader,
       @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program)
-      throws IOException,
-          ForbiddenException,
-          NotFoundException,
-          BadRequestException,
-          WebMessageException {
+      throws IOException, ForbiddenException, NotFoundException, WebMessageException {
     TrackedEntityParams trackedEntityParams = fieldsMapper.map(CSV_FIELDS);
 
     MappingErrors errors = new MappingErrors(idSchemeParams);

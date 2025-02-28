@@ -720,7 +720,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnEnrollmentsFromSpecifiedProgramWhenRequestingSingleTrackedEntity()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+      throws ForbiddenException, NotFoundException {
     Enrollment enrollmentProgramB = createEnrollment(programB, trackedEntityA, orgUnitA);
     manager.save(enrollmentProgramB);
     trackedEntityA.getEnrollments().add(enrollmentProgramB);
@@ -735,7 +735,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnAllEnrollmentsWhenRequestingSingleTrackedEntityAndNoProgramSpecified()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+      throws ForbiddenException, NotFoundException {
     Enrollment enrollmentProgramB = createEnrollment(programB, trackedEntityA, orgUnitA);
     manager.save(enrollmentProgramB);
     trackedEntityA.getEnrollments().add(enrollmentProgramB);
@@ -2140,7 +2140,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnTrackedEntityTypeAttributesOnlyWhenSingleTERequestedAndNoProgramSpecified()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+      throws ForbiddenException, NotFoundException {
     TrackedEntity trackedEntity =
         trackedEntityService.getNewTrackedEntity(
             UID.of(trackedEntityA), null, TrackedEntityParams.TRUE);
@@ -2154,7 +2154,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   @Test
   void
       shouldFindTrackedEntityWhenCaptureScopeIndependentFromSearchScopeAndCaptureScopeOrgUnitRequested()
-          throws ForbiddenException, NotFoundException, BadRequestException {
+          throws ForbiddenException, NotFoundException {
     injectAdminIntoSecurityContext();
     programA.setAccessLevel(AccessLevel.OPEN);
     manager.update(programA);
@@ -2173,7 +2173,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFindTrackedEntityWithEventsWhenEventRequestedAndAccessible()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+      throws ForbiddenException, NotFoundException {
     injectAdminIntoSecurityContext();
     User testUser = createAndAddUser(false, "testUser", emptySet(), emptySet(), "F_EXPORT_DATA");
     testUser.setOrganisationUnits(Set.of(orgUnitA));
@@ -2197,7 +2197,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFindTrackedEntityWithoutEventsWhenEventRequestedButNotAccessible()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+      throws ForbiddenException, NotFoundException {
     injectAdminIntoSecurityContext();
     programStageA1.setSharing(Sharing.builder().publicAccess("--------").build());
     manager.update(programStageA1);
