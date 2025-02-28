@@ -160,21 +160,25 @@ public class DeduplicationController {
           "PotentialDuplicate is missing references and cannot be merged.");
     }
 
-    TrackedEntity original =
-        trackedEntityService.getNewTrackedEntity(potentialDuplicate.getOriginal());
-    TrackedEntity duplicate =
-        trackedEntityService.getNewTrackedEntity(potentialDuplicate.getDuplicate());
+    trackedEntityService.getNewTrackedEntity(potentialDuplicate.getOriginal());
+    trackedEntityService.getNewTrackedEntity(potentialDuplicate.getDuplicate());
 
     if (mergeObject == null) {
       mergeObject = new MergeObject();
     }
 
+    // TODO(tracker) jdbc-hibernate: check the impact on performance
+    TrackedEntity hibernateOriginal =
+        manager.get(TrackedEntity.class, potentialDuplicate.getOriginal());
+    TrackedEntity hibernateDuplicate =
+        manager.get(TrackedEntity.class, potentialDuplicate.getDuplicate());
+
     DeduplicationMergeParams params =
         DeduplicationMergeParams.builder()
             .potentialDuplicate(potentialDuplicate)
             .mergeObject(mergeObject)
-            .original(manager.get(TrackedEntity.class, original.getUid()))
-            .duplicate(manager.get(TrackedEntity.class, duplicate.getUid()))
+            .original(hibernateOriginal)
+            .duplicate(hibernateDuplicate)
             .build();
 
     if (MergeStrategy.MANUAL.equals(mergeStrategy)) {
