@@ -53,6 +53,7 @@ import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -71,6 +72,7 @@ class ProgramRuleTest extends TrackerTest {
 
   private static final UID PROGRAM_EVENT_UID = UID.of("PEVENT12345");
 
+  @Autowired private TestSetup testSetup;
   @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private ProgramRuleService programRuleService;
@@ -93,7 +95,7 @@ class ProgramRuleTest extends TrackerTest {
 
   @BeforeAll
   void setUp() throws IOException {
-    ObjectBundle bundle = setUpMetadata("tracker/simple_metadata.json");
+    ObjectBundle bundle = testSetup.setUpMetadata();
 
     User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
