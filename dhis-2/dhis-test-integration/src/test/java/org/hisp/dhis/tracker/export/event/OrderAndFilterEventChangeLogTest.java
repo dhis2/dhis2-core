@@ -49,6 +49,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -65,6 +66,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class OrderAndFilterEventChangeLogTest extends TrackerTest {
+  @Autowired private TestSetup testSetup;
 
   @Autowired private EventChangeLogService eventChangeLogService;
 
@@ -74,8 +76,6 @@ class OrderAndFilterEventChangeLogTest extends TrackerTest {
 
   private User importUser;
 
-  private TrackerImportParams importParams;
-
   private final PageParams defaultPageParams = PageParams.of(null, null, false);
 
   private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS");
@@ -84,16 +84,12 @@ class OrderAndFilterEventChangeLogTest extends TrackerTest {
 
   @BeforeAll
   void setUp() throws IOException {
-    injectSecurityContextUser(getAdminUser());
-    setUpMetadata("tracker/simple_metadata.json");
+    testSetup.setUpMetadata();
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    importParams = TrackerImportParams.builder().build();
-    trackerObjects = fromJson("tracker/event_and_enrollment.json");
-
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+    trackerObjects = testSetup.setUpTrackerData();
   }
 
   private static Stream<Arguments> provideDateAndUsernameOrderParams() {
@@ -372,12 +368,13 @@ class OrderAndFilterEventChangeLogTest extends TrackerTest {
 
               assertNoErrors(
                   trackerImportService.importTracker(
-                      importParams, TrackerObjects.builder().events(List.of(e)).build()));
+                      TrackerImportParams.builder().build(),
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 
   private void updateEventDates(UID event, Instant newDate) throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
+    TrackerObjects trackerObjects = fromJson("tracker/base_data.json");
 
     trackerObjects.getEvents().stream()
         .filter(e -> e.getEvent().equals(event))
@@ -389,7 +386,8 @@ class OrderAndFilterEventChangeLogTest extends TrackerTest {
 
               assertNoErrors(
                   trackerImportService.importTracker(
-                      importParams, TrackerObjects.builder().events(List.of(e)).build()));
+                      TrackerImportParams.builder().build(),
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 
