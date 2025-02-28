@@ -35,6 +35,7 @@ import static org.hamcrest.CoreMatchers.everyItem;
 import java.util.Arrays;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.test.e2e.Constants;
+import org.hisp.dhis.test.e2e.actions.metadata.ProgramActions;
 import org.hisp.dhis.test.e2e.actions.metadata.TrackedEntityTypeActions;
 import org.hisp.dhis.test.e2e.helpers.JsonObjectBuilder;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicatesApiTest;
@@ -108,7 +109,9 @@ public class PotentialDuplicatesMergeTests extends PotentialDuplicatesApiTest {
   @Test
   public void shouldNotMergeDifferentTypeTrackedEntities() {
     String trackedEntityType = new TrackedEntityTypeActions().create();
-
+    // A tracked entity is accessible only if it is enrollable somewhere
+    // so we need at least one program to make such teB accessible.
+    new ProgramActions().createTrackerProgram(trackedEntityType);
     String teA = createTrackedEntity(Constants.TRACKED_ENTITY_TYPE);
     String teB = createTrackedEntity(trackedEntityType);
 
