@@ -37,7 +37,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Program;
@@ -103,11 +102,10 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
       @Nullable UID programUid,
       @Nonnull TrackedEntityChangeLogOperationParams operationParams,
       @Nonnull PageParams pageParams)
-      throws NotFoundException, ForbiddenException, BadRequestException {
-    TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity(trackedEntityUid);
-    if (trackedEntity == null) {
-      throw new NotFoundException(TrackedEntity.class, trackedEntityUid.getValue());
-    }
+      throws NotFoundException, ForbiddenException {
+    TrackedEntity trackedEntity =
+        trackedEntityService.getNewTrackedEntity(
+            trackedEntityUid, programUid, TrackedEntityParams.FALSE.withIncludeAttributes(true));
 
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     Set<UID> trackedEntityAttributes = Collections.emptySet();
@@ -115,7 +113,6 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
       Program program = validateProgram(programUid.getValue());
       validateOwnership(currentUser, trackedEntity, program);
     } else {
-      validateTrackedEntity(currentUser, trackedEntity);
       trackedEntityAttributes = validateTrackedEntityAttributes(trackedEntity);
     }
 
@@ -149,13 +146,6 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
     if (!trackerAccessManager
         .canRead(currentUser, trackedEntity, program, currentUser.isSuper())
         .isEmpty()) {
-      throw new NotFoundException(TrackedEntity.class, trackedEntity.getUid());
-    }
-  }
-
-  private void validateTrackedEntity(UserDetails currentUser, TrackedEntity trackedEntity)
-      throws NotFoundException {
-    if (!trackerAccessManager.canRead(currentUser, trackedEntity).isEmpty()) {
       throw new NotFoundException(TrackedEntity.class, trackedEntity.getUid());
     }
   }
