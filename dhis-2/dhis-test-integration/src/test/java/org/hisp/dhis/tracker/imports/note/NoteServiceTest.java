@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.imports.note;
 
-import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -40,11 +39,10 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventService;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.Note;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -54,7 +52,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class NoteServiceTest extends TrackerTest {
-  @Autowired private TrackerImportService trackerImportService;
+  @Autowired private TestSetup testSetup;
 
   @Autowired private EventService eventService;
 
@@ -66,15 +64,13 @@ class NoteServiceTest extends TrackerTest {
 
   @BeforeAll
   void setUp() throws IOException {
-    setUpMetadata("tracker/simple_metadata.json");
+    testSetup.setUpMetadata();
 
     User importUser = userService.getUser("tTgjgobT1oS");
     userDetails = UserDetails.fromUser(importUser);
     injectSecurityContext(userDetails);
 
-    TrackerImportParams params = TrackerImportParams.builder().build();
-    assertNoErrors(
-        trackerImportService.importTracker(params, fromJson("tracker/event_and_enrollment.json")));
+    testSetup.setUpTrackerData();
   }
 
   @BeforeEach

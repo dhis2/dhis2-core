@@ -28,9 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.deduplication;
 
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationParameters;
-import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
-import static org.hisp.dhis.webapi.utils.ContextUtils.HEADER_CACHE_CONTROL;
-import static org.hisp.dhis.webapi.utils.ContextUtils.HEADER_VALUE_NO_STORE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,7 +40,6 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.deduplication.DeduplicationMergeParams;
@@ -56,10 +52,10 @@ import org.hisp.dhis.tracker.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateCriteria;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicateForbiddenException;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
+import org.hisp.dhis.webapi.controller.tracker.RequestHandler;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -82,7 +78,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 public class DeduplicationController {
   private final DeduplicationService deduplicationService;
 
-  private final FieldFilterService fieldFilterService;
+  private final RequestHandler requestHandler;
 
   private final TrackedEntityService trackedEntityService;
 
@@ -97,31 +93,18 @@ public class DeduplicationController {
     criteria.setStatus(requestParams.getStatus());
     criteria.setTrackedEntities(requestParams.getTrackedEntities());
     criteria.setOrder(requestParams.getOrder());
+
     if (requestParams.isPaging()) {
       PageParams pageParams =
-          new PageParams(requestParams.getPage(), requestParams.getPageSize(), false);
+          PageParams.of(requestParams.getPage(), requestParams.getPageSize(), false);
       org.hisp.dhis.tracker.Page<PotentialDuplicate> page =
           deduplicationService.getPotentialDuplicates(criteria, pageParams);
-      List<ObjectNode> objectNodes =
-          fieldFilterService.toObjectNodes(page.getItems(), requestParams.getFields());
 
-      return ResponseEntity.ok()
-          .header(HEADER_CACHE_CONTROL, HEADER_VALUE_NO_STORE)
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(
-              Page.withPager(
-                  "potentialDuplicates", page.withItems(objectNodes), getRequestURL(request)));
+      return requestHandler.serve(request, "potentialDuplicates", page, requestParams);
     }
 
-    List<PotentialDuplicate> potentialDuplicates =
-        deduplicationService.getPotentialDuplicates(criteria);
-    List<ObjectNode> objectNodes =
-        fieldFilterService.toObjectNodes(potentialDuplicates, requestParams.getFields());
-
-    return ResponseEntity.ok()
-        .header(HEADER_CACHE_CONTROL, HEADER_VALUE_NO_STORE)
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(Page.withoutPager("potentialDuplicates", objectNodes));
+    List<PotentialDuplicate> items = deduplicationService.getPotentialDuplicates(criteria);
+    return requestHandler.serve("potentialDuplicates", items, requestParams);
   }
 
   @GetMapping(value = "/{uid}")

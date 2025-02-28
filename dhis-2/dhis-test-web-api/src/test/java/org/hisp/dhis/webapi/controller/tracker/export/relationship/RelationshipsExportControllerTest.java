@@ -43,33 +43,20 @@ import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertProgr
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertRelationship;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertTrackedEntityWithinRelationshipItem;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.http.HttpStatus;
-import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.render.RenderFormat;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -97,23 +84,18 @@ import org.hisp.dhis.webapi.controller.tracker.JsonProgramOwner;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationshipItem;
 import org.hisp.dhis.webapi.controller.tracker.JsonUser;
+import org.hisp.dhis.webapi.controller.tracker.TestSetup;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RelationshipsExportControllerTest extends PostgresControllerIntegrationTestBase {
-  @Autowired private RenderService renderService;
-
-  @Autowired private ObjectBundleService objectBundleService;
-
-  @Autowired private ObjectBundleValidationService objectBundleValidationService;
-
+  @Autowired private TestSetup testSetup;
   @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private IdentifiableObjectManager manager;
@@ -130,34 +112,14 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   private Relationship deletedTEToEventRelationship;
   private TrackerObjects trackerObjects;
 
-  protected ObjectBundle setUpMetadata(String path) throws IOException {
-    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
-        renderService.fromMetadata(new ClassPathResource(path).getInputStream(), RenderFormat.JSON);
-    ObjectBundleParams params = new ObjectBundleParams();
-    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
-    params.setImportStrategy(ImportStrategy.CREATE);
-    params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
-    assertNoErrors(objectBundleValidationService.validate(bundle));
-    objectBundleService.commit(bundle);
-    return bundle;
-  }
-
-  protected TrackerObjects fromJson(String path) throws IOException {
-    return renderService.fromJson(
-        new ClassPathResource(path).getInputStream(), TrackerObjects.class);
-  }
-
   @BeforeAll
   void setUp() throws IOException {
-    setUpMetadata("tracker/simple_metadata.json");
+    testSetup.setUpMetadata();
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    TrackerImportParams params = TrackerImportParams.builder().build();
-    trackerObjects = fromJson("tracker/event_and_enrollment.json");
-    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
+    trackerObjects = testSetup.setUpTrackerData();
 
     manager.flush();
     manager.clear();
@@ -340,10 +302,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
             .getList("relationships", JsonRelationship.class);
 
     JsonList<JsonDataValue> dataValues = relationships.get(0).getTo().getEvent().getDataValues();
-    dataValues.forEach(
-        dv -> {
-          assertHasOnlyMembers(dv, "dataElement", "value");
-        });
+    dataValues.forEach(dv -> assertHasOnlyMembers(dv, "dataElement", "value"));
   }
 
   @Test
@@ -363,9 +322,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
 
     JsonList<JsonNote> notes = jsonRelationship.getTo().getEvent().getNotes();
     notes.forEach(
-        note -> {
-          assertHasOnlyMembers(note, "note", "value", "storedAt", "storedBy", "createdBy");
-        });
+        note -> assertHasOnlyMembers(note, "note", "value", "storedAt", "storedBy", "createdBy"));
   }
 
   @Test
@@ -494,9 +451,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
 
     JsonList<JsonNote> notes = jsonRelationship.getTo().getEnrollment().getNotes();
     notes.forEach(
-        note -> {
-          assertHasOnlyMembers(note, "note", "value", "storedAt", "storedBy", "createdBy");
-        });
+        note -> assertHasOnlyMembers(note, "note", "value", "storedAt", "storedBy", "createdBy"));
   }
 
   @Test
@@ -699,7 +654,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
     List<String> expectedAttributes =
         getTrackedEntity(UID.of("mHWCacsGYYn")).getAttributes().stream()
             .map(Attribute::getAttribute)
-            .map(a -> a.getIdentifier())
+            .map(MetadataIdentifier::getIdentifier)
             .toList();
 
     assertContainsOnly(expectedAttributes, jsonAttributes);
@@ -941,13 +896,5 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
               });
       return msg.toString();
     };
-  }
-
-  public static void assertNoErrors(ObjectBundleValidationReport report) {
-    assertNotNull(report);
-    List<String> errors = new ArrayList<>();
-    report.forEachErrorReport(err -> errors.add(err.toString()));
-    assertFalse(
-        report.hasErrorReports(), String.format("Expected no errors, instead got: %s%n", errors));
   }
 }

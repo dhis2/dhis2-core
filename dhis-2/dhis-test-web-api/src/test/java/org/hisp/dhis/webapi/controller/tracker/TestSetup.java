@@ -71,6 +71,20 @@ public class TestSetup {
 
   @Autowired private TrackerImportService trackerImportService;
 
+  /**
+   * Set up the base metadata used by most tracker tests.
+   *
+   * <p>Use {@link #setUpMetadata(String)} (String)}
+   *
+   * <ul>
+   *   <li>instead if your test only needs a subset of what the tracker base metadata contains
+   *   <li>in addition if your test needs some additional metadata that not all tracker tests need
+   * </ul>
+   */
+  public ObjectBundle setUpMetadata() throws IOException {
+    return setUpMetadata("tracker/base_metadata.json", null);
+  }
+
   public ObjectBundle setUpMetadata(String path) throws IOException {
     return setUpMetadata(path, null);
   }
@@ -87,6 +101,20 @@ public class TestSetup {
     assertNoErrors(objectBundleValidationService.validate(bundle));
     objectBundleService.commit(bundle);
     return bundle;
+  }
+
+  /**
+   * Set up the base tracker data used by most tracker tests.
+   *
+   * <p>Use {@link #setUpTrackerData(String)}
+   *
+   * <ul>
+   *   <li>instead if your test only needs a subset of what the tracker base data contains
+   *   <li>in addition if your test needs some additional data that not all tracker tests need
+   * </ul>
+   */
+  public TrackerObjects setUpTrackerData() throws IOException {
+    return setUpTrackerData("tracker/base_data.json");
   }
 
   public TrackerObjects setUpTrackerData(String path) throws IOException {

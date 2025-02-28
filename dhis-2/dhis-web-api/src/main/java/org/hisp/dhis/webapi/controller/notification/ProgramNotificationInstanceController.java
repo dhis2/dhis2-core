@@ -102,7 +102,7 @@ public class ProgramNotificationInstanceController {
 
     if (requestParams.isPaging()) {
       PageParams pageParams =
-          new PageParams(
+          PageParams.of(
               requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
       ProgramNotificationInstanceParam params =
           ProgramNotificationInstanceParam.builder()
