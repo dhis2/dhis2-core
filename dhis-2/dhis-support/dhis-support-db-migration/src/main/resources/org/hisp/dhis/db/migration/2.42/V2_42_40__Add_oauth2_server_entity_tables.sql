@@ -10,7 +10,7 @@ create table if not exists oauth2_authorization
     lastupdatedby                 bigint                      not null,
     createdby                     bigint                      not null,
 
-    name                          varchar(230)                not null,
+--     name                          varchar(230)                not null,
 
     principal_name                varchar(255)                not null,
     registered_client_id          varchar(255)                not null,
@@ -66,7 +66,7 @@ create table if not exists oauth2_client
     lastupdatedby                 bigint                      not null,
     createdby                     bigint                      not null,
 
-    name                          varchar(230)                not null,
+--     name                          varchar(230)                not null,
 
     client_id                     varchar(255)                not null unique,
     client_secret                 varchar(255),
@@ -94,7 +94,7 @@ create table if not exists oauth2_authorization_consent
     lastupdatedby        bigint                      not null,
     createdby            bigint                      not null,
 
-    name                 varchar(230)                not null,
+--     name                 varchar(230)                not null,
 
     principal_name       varchar(255)                not null,
     registered_client_id varchar(255)                not null,

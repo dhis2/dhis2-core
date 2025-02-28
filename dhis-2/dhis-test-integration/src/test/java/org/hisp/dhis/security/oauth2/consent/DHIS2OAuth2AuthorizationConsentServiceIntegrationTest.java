@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oauth2;
+package org.hisp.dhis.security.oauth2.consent;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -36,8 +36,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import org.hisp.dhis.security.oauth2.client.OAuth2ClientStore;
-import org.hisp.dhis.security.oauth2.consent.DHIS2OAuth2AuthorizationConsentService;
-import org.hisp.dhis.security.oauth2.consent.OAuth2AuthorizationConsentStore;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
