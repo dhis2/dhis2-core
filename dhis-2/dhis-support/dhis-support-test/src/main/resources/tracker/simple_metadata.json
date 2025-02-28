@@ -2296,44 +2296,7 @@
         }
       ],
       "username": "trackeradmin"
-    },{
-      "id": "tTgjgobT1x2",
-      "access": {
-        "delete": true,
-        "externalize": true,
-        "manage": true,
-        "read": true,
-        "update": true,
-        "write": true
-      },
-      "code": "tracker with search",
-      "created": "2020-05-31T08:55:27.984",
-      "displayName": "tracker with search",
-      "firstName": "tracker with search",
-      "lastLogin": "2020-05-31T08:55:38.571",
-      "lastUpdated": "2020-05-31T11:41:22.356",
-      "name": "tracker with search",
-      "organisationUnits": [
-        {
-          "id": "RojfDTBhoGC"
-        }
-      ],
-      "teiSearchOrganisationUnits": [
-        {
-          "id": "h4w96yEMlzO"
-        }
-      ],
-      "password": "Test123###...",
-      "passwordLastUpdated": "2020-05-31T08:55:28.232",
-      "surname": "tracker with search",
-      "userRoles": [
-        {
-          "id": "nJ4Ml8ads4M"
-        }
-      ],
-      "username": "trackeradmin2"
-    }
-  ,
+    },
     {
       "id": "Z7870757a75",
       "access": {
