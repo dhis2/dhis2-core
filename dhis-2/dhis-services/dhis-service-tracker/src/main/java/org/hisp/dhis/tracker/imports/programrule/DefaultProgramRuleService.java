@@ -51,6 +51,7 @@ import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.engine.ProgramRuleEngine;
 import org.hisp.dhis.tracker.imports.programrule.engine.RuleEngineEffects;
@@ -173,7 +174,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
         bundle
             .findEnrollmentByUid(enrollmentUid)
             .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getAttributes)
-            .filter(Objects::nonNull)
+            .map(this::filterNullAttributes)
             .map(attributes -> RuleEngineMapper.mapAttributes(preheat, attributes))
             .orElse(Collections.emptyList());
 
@@ -181,7 +182,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
         bundle
             .findTrackedEntityByUid(teUid)
             .map(org.hisp.dhis.tracker.imports.domain.TrackedEntity::getAttributes)
-            .filter(Objects::nonNull)
+            .map(this::filterNullAttributes)
             .map(attributes -> RuleEngineMapper.mapAttributes(preheat, attributes))
             .orElse(Collections.emptyList());
 
@@ -233,6 +234,13 @@ class DefaultProgramRuleService implements ProgramRuleService {
 
     return Stream.concat(
             RuleEngineMapper.mapSavedEvents(events.toList()).stream(), ruleEvents.stream())
+        .toList();
+  }
+
+  private List<Attribute> filterNullAttributes(List<Attribute> attributes) {
+    return attributes.stream()
+        .filter(Objects::nonNull)
+        .filter(attr -> attr.getValue() != null)
         .toList();
   }
 }
