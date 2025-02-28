@@ -45,10 +45,10 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TestSetup;
-import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -56,12 +56,16 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class OrderAndFilterTrackedEntityChangeLogTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class OrderAndFilterTrackedEntityChangeLogTest extends PostgresIntegrationTestBase {
   @Autowired private TestSetup testSetup;
   @Autowired private TrackedEntityChangeLogService trackedEntityChangeLogService;
 

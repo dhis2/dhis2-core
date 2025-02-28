@@ -34,9 +34,11 @@ import static org.hisp.dhis.tracker.imports.validation.Users.USER_12;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4020;
 
 import java.io.IOException;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -46,17 +48,24 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class RelationshipSecurityImportValidationTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class RelationshipSecurityImportValidationTest extends PostgresIntegrationTestBase {
+  @Autowired private TestSetup testSetup;
 
   @Autowired private TrackerImportService trackerImportService;
+
+  @Autowired private IdentifiableObjectManager manager;
 
   private User importUser;
 
   @BeforeAll
   void setUp() throws IOException {
-    setUpMetadata("tracker/tracker_basic_metadata.json");
+    testSetup.setUpMetadata("tracker/tracker_basic_metadata.json");
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
@@ -64,7 +73,7 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
     TrackerImportParams params = TrackerImportParams.builder().build();
     assertNoErrors(
         trackerImportService.importTracker(
-            params, fromJson("tracker/validations/te_relationship.json")));
+            params, testSetup.fromJson("tracker/validations/te_relationship.json")));
     manager.flush();
   }
 
@@ -76,7 +85,8 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
   @Test
   void shouldCreateWhenUserHasAccessToRelationshipTypeAndWriteAccessToBidirectionalRelationship()
       throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_siblings.json");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/validations/relationship_siblings.json");
     TrackerImportParams params = new TrackerImportParams();
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -87,7 +97,8 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
   void
       shouldFailToCreateWhenUserHasNoAccessToRelationshipTypeAndWriteAccessToBidirectionalRelationship()
           throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_siblings.json");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/validations/relationship_siblings.json");
     TrackerImportParams params = new TrackerImportParams();
 
     RelationshipType relationshipType = manager.get(RelationshipType.class, "xLmPUYJX8Ks");
@@ -104,7 +115,8 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
   void
       shouldFailToCreateWhenUserHasAccessToRelationshipTypeAndNoWriteAccessToBidirectionalRelationshipFrom()
           throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_siblings.json");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/validations/relationship_siblings.json");
     TrackerImportParams params = new TrackerImportParams();
 
     Program program = manager.get(Program.class, "E8o1E9tAppy");
@@ -121,7 +133,8 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
   void
       shouldFailToCreateWhenUserHasAccessToRelationshipTypeAndNoWriteAccessToBidirectionalBidirectionalRelationshipTo()
           throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_siblings.json");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/validations/relationship_siblings.json");
     TrackerImportParams params = new TrackerImportParams();
 
     Program program = manager.get(Program.class, "YYY1E9tAbbW");
@@ -137,7 +150,8 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
   @Test
   void shouldDeleteWhenUserHasAccessToRelationshipTypeAndWriteAccessToBidirectionalRelationship()
       throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_siblings.json");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/validations/relationship_siblings.json");
     TrackerImportParams params = new TrackerImportParams();
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -152,7 +166,8 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
   void
       shouldFailToDeleteWhenUserHasNoAccessToRelationshipTypeAndWriteAccessToBidirectionalRelationship()
           throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_siblings.json");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/validations/relationship_siblings.json");
     TrackerImportParams params = new TrackerImportParams();
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -173,7 +188,8 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
   void
       shouldFailToDeleteWhenUserHasAccessToRelationshipTypeAndNoWriteAccessToBidirectionalRelationshipFrom()
           throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_siblings.json");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/validations/relationship_siblings.json");
     TrackerImportParams params = new TrackerImportParams();
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -194,7 +210,8 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
   void
       shouldFailToDeleteWhenUserHasAccessToRelationshipTypeAndNoWriteAccessToBidirectionalRelationshipTo()
           throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_siblings.json");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/validations/relationship_siblings.json");
     TrackerImportParams params = new TrackerImportParams();
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -214,7 +231,8 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
   @Test
   void shouldCreateWhenUserHasAccessToRelationshipTypeAndWriteAccessToRelationship()
       throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_parent_child.json");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/validations/relationship_parent_child.json");
     TrackerImportParams params = new TrackerImportParams();
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
@@ -223,7 +241,8 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
   @Test
   void shouldFailToCreateWhenUserHasNoAccessToRelationshipTypeAndWriteAccessToRelationship()
       throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_parent_child.json");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/validations/relationship_parent_child.json");
     TrackerImportParams params = new TrackerImportParams();
     RelationshipType relationshipType = manager.get(RelationshipType.class, "TV9oB9LT3sh");
     relationshipType.getSharing().getUsers().remove(USER_12);
@@ -238,7 +257,8 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
   @Test
   void shouldFailToCreateWhenUserHasAccessToRelationshipTypeAndNoWriteAccessToRelationshipFrom()
       throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_parent_child.json");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/validations/relationship_parent_child.json");
     TrackerImportParams params = new TrackerImportParams();
     Program program = manager.get(Program.class, "E8o1E9tAppy");
     program.getSharing().getUsers().get(USER_12).setAccess("r-r-----");
@@ -253,7 +273,8 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
   @Test
   void shouldFailToCreateWhenUserHasAccessToRelationshipTypeAndNoWriteAccessToRelationshipTo()
       throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_parent_child.json");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/validations/relationship_parent_child.json");
     TrackerImportParams params = new TrackerImportParams();
     Program program = manager.get(Program.class, "YYY1E9tAbbW");
     program.getSharing().getUsers().remove(USER_12);
@@ -268,7 +289,8 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
   @Test
   void shouldDeleteWhenUserHasAccessToRelationshipTypeAndWriteAccessToRelationship()
       throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_parent_child.json");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/validations/relationship_parent_child.json");
     TrackerImportParams params = new TrackerImportParams();
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
@@ -285,7 +307,8 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
   @Test
   void shouldFailToDeleteWhenUserHasNoAccessToRelationshipTypeAndWriteAccessToRelationship()
       throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_parent_child.json");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/validations/relationship_parent_child.json");
     TrackerImportParams params = new TrackerImportParams();
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
@@ -304,7 +327,8 @@ class RelationshipSecurityImportValidationTest extends TrackerTest {
   @Test
   void shouldFailToDeleteWhenUserHasAccessToRelationshipTypeAndNoWriteAccessToRelationshipFrom()
       throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/validations/relationship_parent_child.json");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/validations/relationship_parent_child.json");
     TrackerImportParams params = new TrackerImportParams();
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);

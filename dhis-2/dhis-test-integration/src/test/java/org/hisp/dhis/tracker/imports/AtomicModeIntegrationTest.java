@@ -32,19 +32,26 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.IOException;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TestSetup;
-import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class AtomicModeIntegrationTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class AtomicModeIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private TestSetup testSetup;
+
+  @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private TrackerImportService trackerImportService;
 
@@ -58,7 +65,7 @@ class AtomicModeIntegrationTest extends TrackerTest {
 
   @Test
   void testImportSuccessWithAtomicModeObjectIfThereIsAnErrorInOneTE() throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/one_valid_te_and_one_invalid.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/one_valid_te_and_one_invalid.json");
     TrackerImportParams params =
         TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
 
@@ -73,7 +80,7 @@ class AtomicModeIntegrationTest extends TrackerTest {
 
   @Test
   void testImportFailWithAtomicModeAllIfThereIsAnErrorInOneTE() throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/one_valid_te_and_one_invalid.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/one_valid_te_and_one_invalid.json");
     TrackerImportParams params = TrackerImportParams.builder().atomicMode(AtomicMode.ALL).build();
 
     ImportReport trackerImportTeReport = trackerImportService.importTracker(params, trackerObjects);

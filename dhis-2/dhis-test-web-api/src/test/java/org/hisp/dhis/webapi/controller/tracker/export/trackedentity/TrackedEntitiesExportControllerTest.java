@@ -35,6 +35,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.webapi.controller.tracker.Assertions.*;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
@@ -47,16 +48,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -84,9 +82,6 @@ import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.report.ImportReport;
-import org.hisp.dhis.tracker.imports.report.Status;
-import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -1359,39 +1354,6 @@ trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtCli
             String.format(
                 "'%s' with uid '%s' should have been created", type.getSimpleName(), uid));
     return t;
-  }
-
-  public static void assertNoErrors(ImportReport report) {
-    assertNotNull(report);
-    assertEquals(
-        Status.OK,
-        report.getStatus(),
-        errorMessage(
-            "Expected import with status OK, instead got:%n", report.getValidationReport()));
-  }
-
-  private static Supplier<String> errorMessage(String errorTitle, ValidationReport report) {
-    return () -> {
-      StringBuilder msg = new StringBuilder(errorTitle);
-      report
-          .getErrors()
-          .forEach(
-              e -> {
-                msg.append(e.getErrorCode());
-                msg.append(": ");
-                msg.append(e.getMessage());
-                msg.append('\n');
-              });
-      return msg.toString();
-    };
-  }
-
-  public static void assertNoErrors(ObjectBundleValidationReport report) {
-    assertNotNull(report);
-    List<String> errors = new ArrayList<>();
-    report.forEachErrorReport(err -> errors.add(err.toString()));
-    assertFalse(
-        report.hasErrorReports(), String.format("Expected no errors, instead got: %s%n", errors));
   }
 
   public static JsonRelationship assertFirstRelationship(
