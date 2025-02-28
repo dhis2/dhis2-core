@@ -876,7 +876,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         .append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
 
     // LEFT JOIN attributes we need to sort on and/or filter by.
-    // fromBuilder.append(joinAttributeValue(params, mapSqlParameterSource));
     fromBuilder.append(getFromSubQueryJoinOrderByAttributes(params));
 
     fromBuilder.append(getCategoryOptionComboQuery(user));
