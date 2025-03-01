@@ -964,22 +964,13 @@ class EventExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         EventOperationParams.builder()
-            .programStage(manager.get(ProgramStage.class, "qLZC0lvvxQH"))
             .eventParams(EventParams.FALSE)
             .filterByAttribute(UID.of("toDelete000"), List.of(new QueryFilter(QueryOperator.NULL)))
             .build();
 
     List<String> events = getEvents(params);
 
-    assertContainsOnly(
-        List.of(
-            "cadc5eGj0j7",
-            "lumVtWwwy0O",
-            "ck7DzdxqLqA",
-            "OTmjvJDn0Fu",
-            "kWjSezkXHVp",
-            "QRYjLTiJTrA"),
-        events);
+    assertContainsOnly(List.of("H0PbzJY8bJG"), events);
   }
 
   @Test

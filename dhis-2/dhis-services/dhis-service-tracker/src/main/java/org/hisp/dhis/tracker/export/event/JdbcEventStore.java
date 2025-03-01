@@ -615,6 +615,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
       fromBuilder
           .append(hlp.whereAnd())
+          .append(" TE.trackedentityid is not null ") // filters out results from event programs
+          .append(AND)
           .append(SPACE)
           .append(
               getAttributeFilterQuery(
@@ -637,7 +639,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     StringBuilder query = new StringBuilder();
-
     List<String> filterStrings = new ArrayList<>();
 
     for (int i = 0; i < filters.size(); i++) {
@@ -688,20 +689,20 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    *
    * @return a SQL LEFT JOIN for the relevant attributes, or an empty string if none are provided.
    */
-  private String getFromSubQueryJoinOrderByAttributes(EventQueryParams params) {
+  private String getLeftJoinFromAttributes(EventQueryParams params) {
     StringBuilder attributes = new StringBuilder();
 
-    for (TrackedEntityAttribute orderAttribute : params.leftJoinAttributes()) {
+    for (TrackedEntityAttribute attribute : params.leftJoinAttributes()) {
       attributes
           .append(" left join trackedentityattributevalue as ")
-          .append(quote(orderAttribute.getUid()))
+          .append(quote(attribute.getUid()))
           .append(" on ")
-          .append(quote(orderAttribute.getUid()))
+          .append(quote(attribute.getUid()))
           .append(".trackedentityid = TE.trackedentityid ")
           .append("and ")
-          .append(quote(orderAttribute.getUid()))
+          .append(quote(attribute.getUid()))
           .append(".trackedentityattributeid = ")
-          .append(orderAttribute.getId())
+          .append(attribute.getId())
           .append(SPACE);
     }
 
@@ -880,7 +881,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         .append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
 
     // LEFT JOIN attributes we need to sort on and/or filter by.
-    fromBuilder.append(getFromSubQueryJoinOrderByAttributes(params));
+    fromBuilder.append(getLeftJoinFromAttributes(params));
 
     fromBuilder.append(getCategoryOptionComboQuery(user));
 
