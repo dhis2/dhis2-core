@@ -54,6 +54,7 @@ import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -99,7 +100,7 @@ class ProgramRuleTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() throws IOException {
-    ObjectBundle bundle = testSetup.setUpMetadata();
+    ObjectBundle bundle = testSetup.importMetadata();
 
     User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
@@ -110,13 +111,18 @@ class ProgramRuleTest extends PostgresIntegrationTestBase {
     dataElement1 = bundle.getPreheat().get(PreheatIdentifier.UID, DataElement.class, "DATAEL00001");
     DataElement dataElement2 =
         bundle.getPreheat().get(PreheatIdentifier.UID, DataElement.class, "DATAEL00002");
+    TrackedEntityAttribute trackedEntityAttribute =
+        bundle.getPreheat().get(PreheatIdentifier.UID, TrackedEntityAttribute.class, "dIVt4l5vIOa");
     programStageOnInsert =
         bundle.getPreheat().get(PreheatIdentifier.UID, ProgramStage.class, "NpsdDv6kKSO");
     programStageOnComplete =
         bundle.getPreheat().get(PreheatIdentifier.UID, ProgramStage.class, "NpsdDv6kKS2");
     ProgramRuleVariable programRuleVariable =
         createProgramRuleVariableWithDataElement('A', program, dataElement2);
+    ProgramRuleVariable programRuleVariable2 =
+        createProgramRuleVariableWithTEA('B', program, trackedEntityAttribute);
     programRuleVariableService.addProgramRuleVariable(programRuleVariable);
+    programRuleVariableService.addProgramRuleVariable(programRuleVariable2);
     constantService.saveConstant(constant());
   }
 
@@ -377,6 +383,18 @@ class ProgramRuleTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldImportWhenTEAHasNullValue() throws IOException {
+    errorProgramRuleWithD2HasValue();
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/programrule/te_enrollment_completed_event.json");
+
+    ImportReport importReport =
+        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+
+    assertNoErrors(importReport.getValidationReport());
+  }
+
+  @Test
   void shouldImportWithNoWarningsWhenDataElementHasNoValue() throws IOException {
     showErrorWhenVariableHasValueRule();
     TrackerObjects trackerObjects =
@@ -443,6 +461,17 @@ class ProgramRuleTest extends PostgresIntegrationTestBase {
     programRuleService.addProgramRule(programRule);
     ProgramRuleAction programRuleAction =
         createProgramRuleAction(programRule, SHOWWARNING, dataElement1, null);
+    programRuleActionService.addProgramRuleAction(programRuleAction);
+    programRule.getProgramRuleActions().add(programRuleAction);
+    programRuleService.updateProgramRule(programRule);
+  }
+
+  private void errorProgramRuleWithD2HasValue() {
+    ProgramRule programRule =
+        createProgramRule('H', program, null, "d2:hasValue(#{ProgramRuleVariableB})");
+    programRuleService.addProgramRule(programRule);
+    ProgramRuleAction programRuleAction =
+        createProgramRuleAction(programRule, SHOWERROR, null, null);
     programRuleActionService.addProgramRuleAction(programRuleAction);
     programRule.getProgramRuleActions().add(programRuleAction);
     programRuleService.updateProgramRule(programRule);

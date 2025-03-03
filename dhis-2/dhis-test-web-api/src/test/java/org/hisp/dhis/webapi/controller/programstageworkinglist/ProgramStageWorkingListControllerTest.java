@@ -65,7 +65,7 @@ class ProgramStageWorkingListControllerTest extends PostgresControllerIntegratio
 
   @BeforeAll
   void setUp() throws IOException {
-    testSetup.setUpMetadata();
+    testSetup.importMetadata();
 
     User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);

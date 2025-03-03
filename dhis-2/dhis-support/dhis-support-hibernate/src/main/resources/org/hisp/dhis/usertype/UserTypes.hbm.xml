@@ -199,4 +199,13 @@
     <param name="clazz">org.hisp.dhis.eventhook.Target</param>
   </typedef>
 
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonSetBinaryType" name="jsbProgramCategoryMappings">
+    <param name="clazz">org.hisp.dhis.program.ProgramCategoryMapping</param>
+  </typedef>
+
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonSetBinaryType" name="jsbString">
+    <param name="clazz">java.lang.String</param>
+  </typedef>
+
+
 </hibernate-mapping>
