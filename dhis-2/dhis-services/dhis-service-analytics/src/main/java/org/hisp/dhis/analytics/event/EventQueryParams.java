@@ -40,31 +40,11 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 
 import com.google.common.base.MoreObjects;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.EnumMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Getter;
 import org.apache.commons.collections4.MapUtils;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsAggregationType;
-import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.EventOutputType;
-import org.hisp.dhis.analytics.OrgUnitField;
-import org.hisp.dhis.analytics.Partitions;
-import org.hisp.dhis.analytics.QueryKey;
-import org.hisp.dhis.analytics.QueryParamsBuilder;
-import org.hisp.dhis.analytics.SortOrder;
-import org.hisp.dhis.analytics.TimeField;
+import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.common.AnalyticsDateFilter;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DateRange;
@@ -274,6 +254,7 @@ public class EventQueryParams extends DataQueryParams {
     params.programIndicator = this.programIndicator;
     params.asc = new ArrayList<>(this.asc);
     params.desc = new ArrayList<>(this.desc);
+    params.measureCriteria = new HashMap<>(this.measureCriteria);
     params.completedOnly = this.completedOnly;
     params.organisationUnitMode = this.organisationUnitMode;
     params.page = this.page;
@@ -376,6 +357,10 @@ public class EventQueryParams extends DataQueryParams {
     for (DimensionalItemObject object : dataQueryParams.getProgramIndicators()) {
       ProgramIndicator programIndicator = (ProgramIndicator) object;
       builder.addItemProgramIndicator(programIndicator);
+    }
+
+    for (Map.Entry<MeasureFilter, Double> entry : dataQueryParams.getMeasureCriteria().entrySet()) {
+      builder.addMeasureCriteria(entry.getKey(), entry.getValue());
     }
 
     return builder.withAggregateData(true).removeDimension(DATA_X_DIM_ID).build();
@@ -1359,6 +1344,10 @@ public class EventQueryParams extends DataQueryParams {
     public Builder withUserOrgUnits(List<OrganisationUnit> userOrgUnits) {
       this.params.userOrgUnits = userOrgUnits;
       return this;
+    }
+
+    public void addMeasureCriteria(MeasureFilter filter, Double value) {
+      this.params.measureCriteria.put(filter, value);
     }
   }
 }
