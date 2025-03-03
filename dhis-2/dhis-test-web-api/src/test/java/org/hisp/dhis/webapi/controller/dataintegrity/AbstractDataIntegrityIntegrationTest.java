@@ -243,19 +243,6 @@ class AbstractDataIntegrityIntegrationTest extends PostgresControllerIntegration
     assertEquals(1, dimensions.size());
   }
 
-  private String getNameLikeQueryParams(@Nonnull String... options) {
-    StringBuilder sb = new StringBuilder();
-    String queryParam = "filter=name:like:";
-    for (int i = 0; i < options.length; i++) {
-      if (i == 0) {
-        sb.append("?").append(queryParam).append(options[i]);
-      } else {
-        sb.append("&").append(queryParam).append(options[i]);
-      }
-    }
-    return sb.toString();
-  }
-
   final void deleteAllMetadataObjects(String endpoint) {
     GET("/" + endpoint + "/gist?fields=id&headless=true")
         .content()
