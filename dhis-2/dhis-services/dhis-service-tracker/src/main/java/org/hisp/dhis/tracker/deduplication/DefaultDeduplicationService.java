@@ -178,6 +178,7 @@ public class DefaultDeduplicationService implements DeduplicationService {
         original, duplicate, mergeObject.getTrackedEntityAttributes());
     potentialDuplicateStore.moveRelationships(original, duplicate, mergeObject.getRelationships());
     potentialDuplicateStore.moveEnrollments(original, duplicate, mergeObject.getEnrollments());
+    potentialDuplicateStore.moveOwnerships(original, duplicate);
     try {
       trackerObjectDeletionService.deleteTrackedEntities(List.of(UID.of(duplicate)));
     } catch (NotFoundException e) {

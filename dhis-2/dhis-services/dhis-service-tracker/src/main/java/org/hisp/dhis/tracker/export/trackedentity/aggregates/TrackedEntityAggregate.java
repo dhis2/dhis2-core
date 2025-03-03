@@ -202,8 +202,7 @@ public class TrackedEntityAggregate {
                                     .getTrackedEntityAttributesByTrackedEntityTypes(),
                                 trackedEntityAttributeService.getTrackedEntityAttributesByProgram(),
                                 ctx));
-                        te.setEnrollments(
-                            filterEnrollments(enrollments.get(uid), ownedTeis.get(uid), ctx));
+                        te.setEnrollments(new HashSet<>(enrollments.get(uid)));
                         te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
                         return te;
                       })
@@ -211,23 +210,6 @@ public class TrackedEntityAggregate {
             },
             getPool())
         .join();
-  }
-
-  /** Filter enrollments based on ownership and super user status. */
-  private Set<Enrollment> filterEnrollments(
-      Collection<Enrollment> enrollments, Collection<String> programs, Context ctx) {
-    Set<Enrollment> enrollmentList = new HashSet<>();
-
-    if (enrollments.isEmpty()) {
-      return enrollmentList;
-    }
-
-    enrollmentList.addAll(
-        enrollments.stream()
-            .filter(e -> (programs.contains(e.getProgram().getUid()) || ctx.isSuperUser()))
-            .toList());
-
-    return enrollmentList;
   }
 
   /** Filter attributes based on queryParams, ownership and superuser status */
