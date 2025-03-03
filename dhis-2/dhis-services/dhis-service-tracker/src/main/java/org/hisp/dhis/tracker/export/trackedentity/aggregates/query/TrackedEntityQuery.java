@@ -45,6 +45,7 @@ public class TrackedEntityQuery {
     INACTIVE,
     DELETED,
     GEOMETRY,
+    TYPE_ID,
     TYPE_UID,
     TYPE_CODE,
     TYPE_NAME,
@@ -71,6 +72,7 @@ public class TrackedEntityQuery {
           .put(COLUMNS.INACTIVE, new TableColumn("te", "inactive"))
           .put(COLUMNS.DELETED, new TableColumn("te", "deleted"))
           .put(COLUMNS.GEOMETRY, new Function("ST_AsBinary", "te", "geometry", "geometry"))
+          .put(COLUMNS.TYPE_ID, new TableColumn("tet", "trackedentitytypeid", "type_id"))
           .put(COLUMNS.TYPE_UID, new TableColumn("tet", "uid", "type_uid"))
           .put(COLUMNS.TYPE_CODE, new TableColumn("tet", "code", "type_code"))
           .put(COLUMNS.TYPE_NAME, new TableColumn("tet", "name", "type_name"))

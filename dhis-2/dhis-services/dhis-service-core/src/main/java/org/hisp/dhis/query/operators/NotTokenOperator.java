@@ -30,44 +30,34 @@ package org.hisp.dhis.query.operators;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
+import java.util.List;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
-import org.hisp.dhis.query.Typed;
-import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.query.planner.PropertyPath;
 
 /**
  * @author Henning Håkonsen
  */
-public class NotTokenOperator<T extends Comparable<? super T>> extends Operator<T> {
-  private final boolean caseSensitive;
+public class NotTokenOperator<T extends Comparable<T>> extends Operator<T> {
 
+  private final boolean caseSensitive;
   private final org.hibernate.criterion.MatchMode matchMode;
 
   public NotTokenOperator(
       T arg, boolean caseSensitive, org.hisp.dhis.query.operators.MatchMode matchMode) {
-    super("!token", Typed.from(String.class), arg);
+    super("!token", List.of(String.class), arg);
     this.caseSensitive = caseSensitive;
     this.matchMode = getMatchMode(matchMode);
   }
 
   @Override
-  public Criterion getHibernateCriterion(QueryPath queryPath) {
-    String value = caseSensitive ? getValue(String.class) : getValue(String.class).toLowerCase();
-
-    return Restrictions.sqlRestriction(
-        "c_." + queryPath.getPath() + " !~* '" + TokenUtils.createRegex(value) + "' ");
-  }
-
-  @Override
-  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, QueryPath queryPath) {
+  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, PropertyPath path) {
     String value = caseSensitive ? getValue(String.class) : getValue(String.class).toLowerCase();
 
     return builder.equal(
         builder.function(
             JsonbFunctions.REGEXP_SEARCH,
             Boolean.class,
-            root.get(queryPath.getPath()),
+            root.get(path.getPath()),
             builder.literal(TokenUtils.createRegex(value).toString())),
         false);
   }

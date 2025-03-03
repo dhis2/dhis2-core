@@ -25,58 +25,57 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query;
+package org.hisp.dhis.query.planner;
 
-import lombok.AccessLevel;
+import com.google.common.base.Joiner;
+import com.google.common.base.MoreObjects;
+import java.util.Arrays;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.query.operators.InOperator;
-import org.hisp.dhis.query.operators.Operator;
-import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.schema.Property;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Getter
-@Accessors(chain = true)
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public final class Restriction implements Criterion {
-  /**
-   * Path to property you want to restrict only, one first-level properties are currently supported.
-   */
-  private final String path;
+@RequiredArgsConstructor
+public class PropertyPath {
 
-  /** Operator for restriction. */
-  private final Operator<?> operator;
+  private static final Joiner PATH_JOINER = Joiner.on(".");
 
-  /**
-   * Indicates that the {@link #path} is a attribute UID. This also means the {@link Restriction} is
-   * an in-memory filter.
-   */
-  private final boolean attribute;
+  private final Property property;
+  private final boolean persisted;
+  private final String[] alias;
 
-  /** Query Path used in persistent part of a query. */
-  @Setter private QueryPath queryPath;
-
-  public Restriction(String path, Operator<?> operator) {
-    this(path, operator, false);
+  public PropertyPath(Property property, boolean persisted) {
+    this(property, persisted, new String[0]);
   }
 
-  public Restriction asAttribute() {
-    return new Restriction(path, operator, true);
+  public String getPath() {
+    String fieldName = property.getFieldName();
+
+    if (fieldName == null) {
+      fieldName = property.getName();
+    }
+
+    return haveAlias() ? PATH_JOINER.join(alias) + "." + fieldName : fieldName;
+  }
+
+  public boolean haveAlias() {
+    return haveAlias(0);
+  }
+
+  public boolean haveAlias(int n) {
+    return alias != null && alias.length > n;
   }
 
   @Override
   public String toString() {
-    return "[" + path + ", op: " + operator + "]";
-  }
-
-  @Override
-  public boolean isAlwaysFalse() {
-    if (operator instanceof InOperator<?> in)
-      return in.getCollectionArgs().isEmpty() || in.getCollectionArgs().get(0).isEmpty();
-    return false;
+    return MoreObjects.toStringHelper(this)
+        .add("name", property.getName())
+        .add("path", getPath())
+        .add("persisted", persisted)
+        .add("alias", Arrays.toString(alias))
+        .toString();
   }
 }

@@ -28,12 +28,14 @@
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.http.HttpClientAdapter.Accept;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.webapi.controller.tracker.Assertions.*;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
@@ -46,28 +48,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Supplier;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.http.HttpStatus;
-import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -79,8 +71,6 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.render.RenderFormat;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -92,10 +82,8 @@ import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.report.ImportReport;
-import org.hisp.dhis.tracker.imports.report.Status;
-import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.tracker.JsonAttribute;
@@ -104,13 +92,13 @@ import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationshipItem;
 import org.hisp.dhis.webapi.controller.tracker.JsonTrackedEntity;
+import org.hisp.dhis.webapi.controller.tracker.TestSetup;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
@@ -118,12 +106,6 @@ import org.springframework.transaction.annotation.Transactional;
 class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationTestBase {
   // Used to generate unique chars for creating test objects like TEA, ...
   private static final String UNIQUE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-  @Autowired private RenderService renderService;
-
-  @Autowired private ObjectBundleService objectBundleService;
-
-  @Autowired private ObjectBundleValidationService objectBundleValidationService;
 
   @Autowired private TrackerImportService trackerImportService;
 
@@ -133,34 +115,16 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
 
   private User importUser;
 
-  protected ObjectBundle setUpMetadata(String path) throws IOException {
-    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
-        renderService.fromMetadata(new ClassPathResource(path).getInputStream(), RenderFormat.JSON);
-    ObjectBundleParams params = new ObjectBundleParams();
-    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
-    params.setImportStrategy(ImportStrategy.CREATE);
-    params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
-    assertNoErrors(objectBundleValidationService.validate(bundle));
-    objectBundleService.commit(bundle);
-    return bundle;
-  }
-
-  protected TrackerObjects fromJson(String path) throws IOException {
-    return renderService.fromJson(
-        new ClassPathResource(path).getInputStream(), TrackerObjects.class);
-  }
+  @Autowired private TestSetup testSetup;
 
   @BeforeAll
   void setUp() throws IOException {
-    setUpMetadata("tracker/simple_metadata.json");
+    testSetup.setUpMetadata();
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    TrackerImportParams params = TrackerImportParams.builder().build();
-    trackerObjects = fromJson("tracker/event_and_enrollment.json");
-    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
+    trackerObjects = testSetup.setUpTrackerData();
 
     manager.flush();
     manager.clear();
@@ -505,6 +469,27 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
                 response.header("content-disposition").contains("filename=trackedEntities.csv")),
         () ->
             assertTrue(response.content().toString().contains("trackedEntity,trackedEntityType")));
+  }
+
+  @Test
+  void shouldGetTrackedEntitiesDisregardingSearchScope() {
+    // Create a user with a distinct search scope, separate from capture scope
+    User testUser = createAndAddUser("testingUser");
+    testUser.setOrganisationUnits(Set.of(get(OrganisationUnit.class, "RojfDTBhoGC")));
+    testUser.setTeiSearchOrganisationUnits(Set.of(get(OrganisationUnit.class, "h4w96yEMlzO")));
+    testUser.setUserRoles(Set.of(get(UserRole.class, "nJ4Ml8ads4M")));
+
+    this.switchContextToUser(testUser);
+
+    Program program = get(Program.class, "BFcipDERJnf");
+
+    HttpResponse response =
+        GET(
+            "/tracker/trackedEntities?program={programId}&orgUnitMode={orgUnitMode}",
+            program.getUid(),
+            CAPTURE);
+
+    assertEquals(HttpStatus.OK, response.status());
   }
 
   @Test
@@ -1369,39 +1354,6 @@ trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtCli
             String.format(
                 "'%s' with uid '%s' should have been created", type.getSimpleName(), uid));
     return t;
-  }
-
-  public static void assertNoErrors(ImportReport report) {
-    assertNotNull(report);
-    assertEquals(
-        Status.OK,
-        report.getStatus(),
-        errorMessage(
-            "Expected import with status OK, instead got:%n", report.getValidationReport()));
-  }
-
-  private static Supplier<String> errorMessage(String errorTitle, ValidationReport report) {
-    return () -> {
-      StringBuilder msg = new StringBuilder(errorTitle);
-      report
-          .getErrors()
-          .forEach(
-              e -> {
-                msg.append(e.getErrorCode());
-                msg.append(": ");
-                msg.append(e.getMessage());
-                msg.append('\n');
-              });
-      return msg.toString();
-    };
-  }
-
-  public static void assertNoErrors(ObjectBundleValidationReport report) {
-    assertNotNull(report);
-    List<String> errors = new ArrayList<>();
-    report.forEachErrorReport(err -> errors.add(err.toString()));
-    assertFalse(
-        report.hasErrorReports(), String.format("Expected no errors, instead got: %s%n", errors));
   }
 
   public static JsonRelationship assertFirstRelationship(

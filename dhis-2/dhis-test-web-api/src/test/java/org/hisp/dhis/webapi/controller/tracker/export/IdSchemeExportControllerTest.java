@@ -40,13 +40,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.attribute.Attribute;
@@ -54,35 +52,21 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.http.HttpStatus;
-import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.render.RenderFormat;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.TrackerImportService;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.report.ImportReport;
-import org.hisp.dhis.tracker.imports.report.Status;
-import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.JsonDataValue;
 import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
 import org.hisp.dhis.webapi.controller.tracker.JsonTrackedEntity;
+import org.hisp.dhis.webapi.controller.tracker.TestSetup;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -91,7 +75,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Tests tracker exporter idScheme support. */
@@ -102,46 +85,20 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
   private static final String METADATA_ATTRIBUTE = "j45AR9cBQKc";
   private static final String UNUSED_METADATA_ATTRIBUTE = "i57a0734128";
 
-  @Autowired private RenderService renderService;
-
-  @Autowired private ObjectBundleService objectBundleService;
-
-  @Autowired private ObjectBundleValidationService objectBundleValidationService;
-
-  @Autowired private TrackerImportService trackerImportService;
+  @Autowired private TestSetup testSetup;
 
   @Autowired private IdentifiableObjectManager manager;
 
   private User importUser;
 
-  protected ObjectBundle setUpMetadata(String path) throws IOException {
-    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
-        renderService.fromMetadata(new ClassPathResource(path).getInputStream(), RenderFormat.JSON);
-    ObjectBundleParams params = new ObjectBundleParams();
-    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
-    params.setImportStrategy(ImportStrategy.CREATE);
-    params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
-    assertNoErrors(objectBundleValidationService.validate(bundle));
-    objectBundleService.commit(bundle);
-    return bundle;
-  }
-
-  protected TrackerObjects fromJson(String path) throws IOException {
-    return renderService.fromJson(
-        new ClassPathResource(path).getInputStream(), TrackerObjects.class);
-  }
-
   @BeforeAll
   void setUp() throws IOException {
-    setUpMetadata("tracker/simple_metadata.json");
+    testSetup.setUpMetadata();
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    TrackerImportParams params = TrackerImportParams.builder().build();
-    assertNoErrors(
-        trackerImportService.importTracker(params, fromJson("tracker/event_and_enrollment.json")));
+    testSetup.setUpTrackerData();
     // ensure these are created in the setup
     get(Attribute.class, METADATA_ATTRIBUTE);
     get(Attribute.class, UNUSED_METADATA_ATTRIBUTE);
@@ -550,41 +507,5 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
             String.format(
                 "'%s' with uid '%s' should have been created", type.getSimpleName(), uid));
     return t;
-  }
-
-  public static void assertNoErrors(ImportReport report) {
-    assertNotNull(report);
-    assertEquals(
-        Status.OK,
-        report.getStatus(),
-        errorMessage(
-            "Expected import with status OK, instead got:%n", report.getValidationReport()));
-  }
-
-  private static Supplier<String> errorMessage(String errorTitle, ValidationReport report) {
-    return () -> {
-      StringBuilder msg = new StringBuilder(errorTitle);
-      report
-          .getErrors()
-          .forEach(
-              e -> {
-                msg.append(e.getErrorCode());
-                msg.append(": ");
-                msg.append(e.getMessage());
-                msg.append('\n');
-              });
-      return msg.toString();
-    };
-  }
-
-  public static void assertNoErrors(ObjectBundleValidationReport report) {
-    assertNotNull(report);
-    List<String> errors = new ArrayList<>();
-    report.forEachErrorReport(
-        err -> {
-          errors.add(err.toString());
-        });
-    assertFalse(
-        report.hasErrorReports(), String.format("Expected no errors, instead got: %s%n", errors));
   }
 }

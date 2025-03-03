@@ -39,6 +39,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1310;
 
 import java.io.IOException;
 import java.util.List;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -57,8 +58,9 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -69,11 +71,19 @@ import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class ProgramRuleAssignActionTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class ProgramRuleAssignActionTest extends PostgresIntegrationTestBase {
+  @Autowired private TestSetup testSetup;
+
+  @Autowired private IdentifiableObjectManager manager;
+
   @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private ProgramRuleService programRuleService;
@@ -94,7 +104,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
 
   @BeforeAll
   void setUp() throws IOException {
-    ObjectBundle bundle = setUpMetadata("tracker/simple_metadata.json");
+    ObjectBundle bundle = testSetup.setUpMetadata();
 
     User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
@@ -125,9 +135,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     calculatedValuePRV.setValueType(ValueType.TEXT);
     programRuleVariableService.addProgramRuleVariable(calculatedValuePRV);
 
-    trackerImportService.importTracker(
-        new TrackerImportParams(),
-        fromJson("tracker/programrule/te_enrollment_completed_event.json"));
+    testSetup.setUpTrackerData("tracker/programrule/te_enrollment_completed_event.json");
   }
 
   @Test
@@ -136,7 +144,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     assignProgramRule();
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
-        fromJson("tracker/programrule/te_enrollment_update_attribute_same_value.json");
+        testSetup.fromJson("tracker/programrule/te_enrollment_update_attribute_same_value.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -150,14 +158,14 @@ class ProgramRuleAssignActionTest extends TrackerTest {
       String eventOccurredDate, String previousEventDataValue) throws IOException {
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
-        fromJson("tracker/programrule/three_events_with_different_dates.json");
+        testSetup.fromJson("tracker/programrule/three_events_with_different_dates.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     trackerImportService.importTracker(params, trackerObjects);
 
     assignPreviousEventProgramRule();
 
-    trackerObjects = fromJson("tracker/programrule/event_with_data_value.json");
+    trackerObjects = testSetup.fromJson("tracker/programrule/event_with_data_value.json");
 
     trackerObjects
         .getEvents()
@@ -234,7 +242,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     assignProgramRule();
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
-        fromJson("tracker/programrule/event_update_datavalue_same_value.json");
+        testSetup.fromJson("tracker/programrule/event_update_datavalue_same_value.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -247,7 +255,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     assignProgramRule();
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
-        fromJson("tracker/programrule/event_update_datavalue_different_value.json");
+        testSetup.fromJson("tracker/programrule/event_update_datavalue_different_value.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -264,7 +272,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     settingsService.clearCurrentSettings();
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
-        fromJson("tracker/programrule/event_update_datavalue_different_value.json");
+        testSetup.fromJson("tracker/programrule/event_update_datavalue_different_value.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -281,7 +289,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     settingsService.clearCurrentSettings();
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
-        fromJson("tracker/programrule/event_update_datavalue_empty_value.json");
+        testSetup.fromJson("tracker/programrule/event_update_datavalue_empty_value.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -294,7 +302,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     assignToCalculatedValueProgramRule();
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
-        fromJson("tracker/programrule/event_update_datavalue_different_value.json");
+        testSetup.fromJson("tracker/programrule/event_update_datavalue_different_value.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     ImportReport report = trackerImportService.importTracker(params, trackerObjects);
@@ -304,7 +312,8 @@ class ProgramRuleAssignActionTest extends TrackerTest {
 
   private TrackerObjects getEvent(UID eventUid, String occurredDate, String value)
       throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/programrule/event_without_date.json");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/programrule/event_without_date.json");
     trackerObjects
         .getEvents()
         .get(0)

@@ -25,18 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query;
+package org.hisp.dhis.webapi.controller.tracker.deduplication;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface Criterion {
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.tracker.deduplication.PotentialDuplicate;
 
-  /**
-   * @return true, when the condition cannot match any rows, e.g. an in-operator with an empty
-   *     collection to test against
-   */
-  default boolean isAlwaysFalse() {
-    return false;
+/** Representation of {@link PotentialDuplicate}. */
+public interface JsonPotentialDuplicate extends JsonObject {
+  default String getUid() {
+    return getString("id").string();
+  }
+
+  default UID getOriginal() {
+    return UID.of(getString("original").string());
+  }
+
+  default UID getDuplicate() {
+    return UID.of(getString("duplicate").string());
+  }
+
+  default String getLastUpdated() {
+    return getString("lastUpdated").string();
+  }
+
+  default String getCreated() {
+    return getString("created").string();
+  }
+
+  default String getStatus() {
+    return getString("status").string();
   }
 }

@@ -59,10 +59,10 @@ public class HibernateTrackedEntityProgramOwnerStore
     Query<TrackedEntityProgramOwner> query =
         getQuery(
             "from TrackedEntityProgramOwner tepo where "
-                + "tepo.trackedEntity.id= :teId and "
+                + "tepo.trackedEntity.uid= :teUid and "
                 + "tepo.program.id= :programId");
 
-    query.setParameter("teId", te.getId());
+    query.setParameter("teUid", te.getUid());
     query.setParameter("programId", program.getId());
     return query.uniqueResult();
   }

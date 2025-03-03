@@ -48,49 +48,36 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component
 public class DefaultQueryService implements QueryService {
-  private static final Junction.Type DEFAULT_JUNCTION_TYPE = Junction.Type.AND;
 
   private final QueryParser queryParser;
   private final QueryPlanner queryPlanner;
   private final SchemaService schemaService;
 
-  private final JpaCriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine;
-  private final InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine;
+  private final JpaCriteriaQueryEngine dbQueryEngine;
+  private final InMemoryQueryEngine memoryQueryEngine;
 
   @Override
-  public List<? extends IdentifiableObject> query(Query query) {
+  public <T extends IdentifiableObject> List<T> query(Query<T> query) {
     return queryObjects(query);
   }
 
   @Override
-  @SuppressWarnings({"unchecked", "rawtypes"})
-  public List<? extends IdentifiableObject> query(Query query, ResultTransformer transformer) {
-    List<? extends IdentifiableObject> objects = queryObjects(query);
+  public long count(Query<?> query) {
+    Query<?> count = Query.copyOf(query);
 
-    if (transformer != null) {
-      return transformer.transform(objects);
-    }
+    count.clearOrders();
+    count.setFirstResult(0);
+    count.setMaxResults(Integer.MAX_VALUE);
 
-    return objects;
+    return countObjects(count);
   }
 
   @Override
-  public long count(Query query) {
-    Query cloned = Query.from(query);
-
-    cloned.clearOrders();
-    cloned.setFirstResult(0);
-    cloned.setMaxResults(Integer.MAX_VALUE);
-
-    return countObjects(cloned);
-  }
-
-  @Override
-  public Query getQueryFromUrl(Class<?> type, GetObjectListParams params)
-      throws QueryParserException {
+  public <T extends IdentifiableObject> Query<T> getQueryFromUrl(
+      Class<T> type, GetObjectListParams params) throws QueryParserException {
     List<String> filters = params.getFilters();
     if (filters == null) filters = List.of();
-    Query query = queryParser.parse(type, filters, params.getRootJunction());
+    Query<T> query = queryParser.parse(type, filters, params.getRootJunction());
 
     Schema schema = schemaService.getDynamicSchema(type);
     query.addOrders(QueryUtils.convertOrderStrings(params.getOrders(), schema));
@@ -108,62 +95,48 @@ public class DefaultQueryService implements QueryService {
   // Helper methods
   // ---------------------------------------------------------------------------------------------
 
-  private long countObjects(Query query) {
+  private <T extends IdentifiableObject> long countObjects(Query<T> query) {
     List<? extends IdentifiableObject> objects;
-    QueryPlan queryPlan = queryPlanner.planQuery(query);
-    Query pQuery = queryPlan.getPersistedQuery();
-    Query npQuery = queryPlan.getNonPersistedQuery();
-    if (!npQuery.isEmpty()) {
-      npQuery.setObjects(criteriaQueryEngine.query(pQuery));
-      objects = inMemoryQueryEngine.query(npQuery);
+    QueryPlan<T> plan = queryPlanner.planQuery(query);
+    Query<T> dbQuery = plan.dbQuery();
+    Query<T> memoryQuery = plan.memoryQuery();
+    if (!memoryQuery.isEmpty()) {
+      memoryQuery.setObjects(dbQueryEngine.query(dbQuery));
+      objects = memoryQueryEngine.query(memoryQuery);
       return objects.size();
     }
-    return criteriaQueryEngine.count(pQuery);
+    return dbQueryEngine.count(dbQuery);
   }
 
-  private List<? extends IdentifiableObject> queryObjects(Query query) {
-    List<? extends IdentifiableObject> objects = query.getObjects();
+  private <T extends IdentifiableObject> List<T> queryObjects(Query<T> query) {
+    List<T> objects = query.getObjects();
 
     if (objects != null) {
-      objects = inMemoryQueryEngine.query(query.setObjects(objects));
-      clearDefaults(query.getSchema().getKlass(), objects, query.getDefaults());
-
+      objects = memoryQueryEngine.query(query.setObjects(objects));
+      removeDefaultObject(query.getObjectType(), objects, query.getDefaults());
       return objects;
     }
 
-    QueryPlan queryPlan = queryPlanner.planQuery(query);
+    QueryPlan<T> queryPlan = queryPlanner.planQuery(query);
+    Query<T> dbQuery = queryPlan.dbQuery();
+    Query<T> memoryQuery = queryPlan.memoryQuery();
 
-    Query pQuery = queryPlan.getPersistedQuery();
-    Query npQuery = queryPlan.getNonPersistedQuery();
+    objects = dbQueryEngine.query(dbQuery);
 
-    objects = criteriaQueryEngine.query(pQuery);
-
-    if (!npQuery.isEmpty()) {
-      if (log.isDebugEnabled()) {
-        log.debug(
-            "Doing in-memory for "
-                + npQuery.getCriterions().size()
-                + " criterions and "
-                + npQuery.getOrders().size()
-                + " orders.");
-      }
-
-      npQuery.setObjects(objects);
-
-      objects = inMemoryQueryEngine.query(npQuery);
+    if (!memoryQuery.isEmpty()) {
+      memoryQuery.setObjects(objects);
+      objects = memoryQueryEngine.query(memoryQuery);
     }
 
-    clearDefaults(query.getSchema().getKlass(), objects, query.getDefaults());
-
+    removeDefaultObject(query.getObjectType(), objects, query.getDefaults());
     return objects;
   }
 
-  private void clearDefaults(
+  private void removeDefaultObject(
       Class<?> klass, List<? extends IdentifiableObject> objects, Defaults defaults) {
     if (Defaults.INCLUDE == defaults || !Preheat.isDefaultClass(klass)) {
       return;
     }
-
     objects.removeIf(object -> "default".equals(object.getName()));
   }
 }

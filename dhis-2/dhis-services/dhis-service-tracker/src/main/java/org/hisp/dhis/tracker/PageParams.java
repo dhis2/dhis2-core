@@ -28,24 +28,23 @@
 package org.hisp.dhis.tracker;
 
 import java.util.Objects;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 /**
- * {@link PageParams} represent the parameters that configure the page of items to be returned. By
- * default, the total number of items will not be fetched.
+ * {@link PageParams} represent the parameters that configure the page of items to be returned by a
+ * service or store.
  */
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 @ToString
 @EqualsAndHashCode
 public class PageParams {
   private static final int DEFAULT_PAGE = 1;
   private static final int DEFAULT_PAGE_SIZE = 50;
-
-  public static PageParams single() {
-    return new PageParams(1, 1, false);
-  }
 
   /** The page number to be returned. */
   final int page;
@@ -60,6 +59,15 @@ public class PageParams {
     this.page = Objects.requireNonNullElse(page, DEFAULT_PAGE);
     this.pageSize = Objects.requireNonNullElse(pageSize, DEFAULT_PAGE_SIZE);
     this.pageTotal = pageTotal;
+  }
+
+  public static PageParams of(Integer page, Integer pageSize, boolean pageTotal) {
+    return new PageParams(page, pageSize, pageTotal);
+  }
+
+  /** Create page parameters for the first page of a single item with no totals. */
+  public static PageParams single() {
+    return new PageParams(1, 1, false);
   }
 
   /** Zero-based offset to be used in a SQL offset clause. */

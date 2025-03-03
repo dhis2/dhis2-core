@@ -31,7 +31,6 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -39,7 +38,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -57,11 +55,12 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
-import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
@@ -73,19 +72,22 @@ import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /** Tests ordering and pagination of tracker exporters via the service layer. */
-class OrderAndPaginationExporterTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
+  @Autowired private TestSetup testSetup;
 
   @Autowired private TrackedEntityService trackedEntityService;
 
@@ -94,8 +96,6 @@ class OrderAndPaginationExporterTest extends TrackerTest {
   @Autowired private EventService eventService;
 
   @Autowired private RelationshipService relationshipService;
-
-  @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -111,14 +111,12 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
   @BeforeAll
   void setUp() throws IOException {
-    setUpMetadata("tracker/simple_metadata.json");
+    testSetup.setUpMetadata();
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    TrackerImportParams params = TrackerImportParams.builder().build();
-    assertNoErrors(
-        trackerImportService.importTracker(params, fromJson("tracker/event_and_enrollment.json")));
+    testSetup.setUpTrackerData();
     orgUnit = get(OrganisationUnit.class, "h4w96yEMlzO");
     programStage = get(ProgramStage.class, "NpsdDv6kKSO");
     trackedEntityType = get(TrackedEntityType.class, "ja8NY4PW7Xm");
@@ -151,7 +149,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     Page<String> firstPage =
         trackedEntityService
             .getTrackedEntities(params, new PageParams(1, 3, false))
-            .withItems(IdentifiableObject::getUid);
+            .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
         new Page<>(List.of("dUE514NMOlo", "mHWCacsGYYn", "QS6w44flWAf"), 1, 3, null, null, 2),
@@ -161,7 +159,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     Page<String> secondPage =
         trackedEntityService
             .getTrackedEntities(params, new PageParams(2, 3, true))
-            .withItems(IdentifiableObject::getUid);
+            .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
         new Page<>(List.of("QesgJkTyTCk", "woitxQbWYNq", "guVNoAerxWo"), 2, 3, 6L, 1, null),
@@ -171,7 +169,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     Page<String> thirdPage =
         trackedEntityService
             .getTrackedEntities(params, new PageParams(3, 3, false))
-            .withItems(IdentifiableObject::getUid);
+            .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(new Page<>(List.of(), 3, 3, null, 2, null), thirdPage, "past the last page");
   }
@@ -193,14 +191,14 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     Page<String> firstPage =
         trackedEntityService
             .getTrackedEntities(params, new PageParams(1, 1, false))
-            .withItems(IdentifiableObject::getUid);
+            .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(new Page<>(List.of("dUE514NMOlo"), 1, 1, null, null, 2), firstPage, "first page");
 
     Page<String> secondPage =
         trackedEntityService
             .getTrackedEntities(params, new PageParams(2, 1, true))
-            .withItems(IdentifiableObject::getUid);
+            .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
         new Page<>(List.of("QS6w44flWAf"), 2, 1, 2L, 1, null), secondPage, "second (last) page");
@@ -208,7 +206,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     Page<String> thirdPage =
         trackedEntityService
             .getTrackedEntities(params, new PageParams(3, 1, false))
-            .withItems(IdentifiableObject::getUid);
+            .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(new Page<>(List.of(), 3, 1, null, 2, null), thirdPage, "past the last page");
   }
@@ -477,8 +475,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .orgUnitMode(SELECTED)
             .trackedEntityType(trackedEntityType)
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
-            .filters(
-                Map.of(UID.of("numericAttr"), List.of(new QueryFilter(QueryOperator.LT, "75"))))
+            .filterBy(UID.of("numericAttr"), List.of(new QueryFilter(QueryOperator.LT, "75")))
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -494,8 +491,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
             .organisationUnits(orgUnit)
             .orgUnitMode(SELECTED)
             .trackedEntityType(trackedEntityType)
-            .filters(
-                Map.of(UID.of("numericAttr"), List.of(new QueryFilter(QueryOperator.LT, "75"))))
+            .filterBy(UID.of("numericAttr"), List.of(new QueryFilter(QueryOperator.LT, "75")))
             .orderBy(UID.of("numericAttr"), SortDirection.DESC)
             .build();
 
@@ -633,14 +629,14 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     Page<String> firstPage =
         enrollmentService
             .getEnrollments(operationParams, PageParams.single())
-            .withItems(IdentifiableObject::getUid);
+            .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(new Page<>(List.of("nxP7UnKhomJ"), 1, 1, null, null, 2), firstPage, "first page");
 
     Page<String> secondPage =
         enrollmentService
             .getEnrollments(operationParams, new PageParams(2, 1, false))
-            .withItems(IdentifiableObject::getUid);
+            .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
         new Page<>(List.of("TvctPPhpD8z"), 2, 1, null, 1, null), secondPage, "second (last) page");
@@ -664,14 +660,14 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     Page<String> firstPage =
         enrollmentService
             .getEnrollments(operationParams, new PageParams(1, 1, true))
-            .withItems(IdentifiableObject::getUid);
+            .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(new Page<>(List.of("nxP7UnKhomJ"), 1, 1, 2L, null, 2), firstPage, "first page");
 
     Page<String> secondPage =
         enrollmentService
             .getEnrollments(operationParams, new PageParams(2, 1, true))
-            .withItems(IdentifiableObject::getUid);
+            .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
         new Page<>(List.of("TvctPPhpD8z"), 2, 1, 2L, 1, null), secondPage, "second (last) page");
@@ -765,14 +761,14 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     Page<String> firstPage =
         eventService
             .getEvents(operationParams, PageParams.single())
-            .withItems(IdentifiableObject::getUid);
+            .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(new Page<>(List.of("D9PbzJY8bJM"), 1, 1, null, null, 2), firstPage, "first page");
 
     Page<String> secondPage =
         eventService
             .getEvents(operationParams, new PageParams(2, 1, true))
-            .withItems(IdentifiableObject::getUid);
+            .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
         new Page<>(List.of("pTzf9KYMk72"), 2, 1, 2L, 1, null), secondPage, "second (last) page");
@@ -798,7 +794,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     Page<String> firstPage =
         eventService
             .getEvents(operationParams, new PageParams(1, 3, false))
-            .withItems(IdentifiableObject::getUid);
+            .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
         new Page<>(List.of("ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp"), 1, 3, null, null, 2),
@@ -808,7 +804,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     Page<String> secondPage =
         eventService
             .getEvents(operationParams, new PageParams(2, 3, true))
-            .withItems(IdentifiableObject::getUid);
+            .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
         new Page<>(List.of("lumVtWwwy0O", "QRYjLTiJTrA", "cadc5eGj0j7"), 2, 3, 6L, 1, null),
@@ -977,14 +973,14 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     Page<String> firstPage =
         eventService
             .getEvents(operationParams, PageParams.single())
-            .withItems(IdentifiableObject::getUid);
+            .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(new Page<>(List.of("D9PbzJY8bJM"), 1, 1, null, null, 2), firstPage, "first page");
 
     Page<String> secondPage =
         eventService
             .getEvents(operationParams, new PageParams(2, 1, false))
-            .withItems(IdentifiableObject::getUid);
+            .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
         new Page<>(List.of("pTzf9KYMk72"), 2, 1, null, 1, null), secondPage, "second (last) page");
@@ -992,7 +988,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     Page<String> thirdPage =
         eventService
             .getEvents(operationParams, new PageParams(3, 3, false))
-            .withItems(IdentifiableObject::getUid);
+            .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(new Page<>(List.of(), 3, 3, null, 2, null), thirdPage, "past the last page");
   }
@@ -1421,7 +1417,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     Page<String> firstPage =
         relationshipService
             .getRelationships(params, PageParams.single())
-            .withItems(IdentifiableObject::getUid);
+            .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
         new Page<>(List.of(expectedOnPage1), 1, 1, null, null, 2), firstPage, "first page");
@@ -1429,7 +1425,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
     Page<String> secondPage =
         relationshipService
             .getRelationships(params, new PageParams(2, 1, true))
-            .withItems(IdentifiableObject::getUid);
+            .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
         new Page<>(List.of(expectedOnPage2), 2, 1, 2L, 1, null), secondPage, "second (last) page");

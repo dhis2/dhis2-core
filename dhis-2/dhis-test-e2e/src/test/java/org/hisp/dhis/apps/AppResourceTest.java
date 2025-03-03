@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,20 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query;
+package org.hisp.dhis.apps;
 
-import org.hisp.dhis.schema.Schema;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public final class Conjunction extends Junction {
-  public Conjunction(Schema schema) {
-    super(schema, Type.AND);
-  }
+import java.io.File;
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
-  @Override
-  public String toString() {
-    return "AND[" + criterions + "]";
+class AppResourceTest extends ApiTest {
+
+  @Test
+  @DisplayName("Redirect location should have correct format")
+  void redirectLocationCorrectFormatTest() {
+    // given an app is installed
+    File file = new File("src/test/resources/apps/test-app-v1.zip");
+    given()
+        .multiPart("file", file)
+        .contentType("multipart/form-data")
+        .when()
+        .post("/apps")
+        .then()
+        .statusCode(201);
+
+    // when called with missing trailing slash
+    ApiResponse response =
+        new ApiResponse(given().redirects().follow(false).get("/apps/test-minio"));
+
+    // then redirect should be returned with trailing slash
+    response.validate().header("location", equalTo("http://web:8080/api/apps/test-minio/"));
+    response.validate().statusCode(302);
   }
 }

@@ -131,4 +131,12 @@ class DashboardControllerTest extends PostgresControllerIntegrationTestBase {
     switchToAdminUser();
     GET("/dashboards/f1OijtLnf8a").content(HttpStatus.OK);
   }
+
+  @Test
+  void testDeletePrivateDashboardWithSuperUser() {
+    switchToNewUser("userTest", "ALL");
+    POST("/metadata", Path.of("dashboard/create_dashboard.json")).content(HttpStatus.OK);
+    switchToAdminUser();
+    DELETE("/dashboards/f1OijtLnf8a").content(HttpStatus.OK);
+  }
 }

@@ -42,6 +42,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -144,7 +145,7 @@ class TrackedEntityOperationParamsMapper {
   }
 
   private List<TrackedEntityType> getTrackedEntityTypes(Program program, UserDetails user)
-      throws BadRequestException {
+      throws ForbiddenException {
 
     if (program != null) {
       return List.of(program.getTrackedEntityType());
@@ -154,14 +155,14 @@ class TrackedEntityOperationParamsMapper {
   }
 
   private List<TrackedEntityType> filterAndValidateTrackedEntityTypes(UserDetails user)
-      throws BadRequestException {
+      throws ForbiddenException {
     List<TrackedEntityType> trackedEntityTypes =
         trackedEntityTypeService.getAllTrackedEntityType().stream()
             .filter(tet -> aclService.canDataRead(user, tet))
             .toList();
 
     if (trackedEntityTypes.isEmpty()) {
-      throw new BadRequestException("User has no access to any Tracked Entity Type");
+      throw new ForbiddenException("User has no access to any Tracked Entity Type");
     }
 
     return trackedEntityTypes;
@@ -191,13 +192,7 @@ class TrackedEntityOperationParamsMapper {
                 attributeFilter.getKey()));
       }
 
-      if (attributeFilter.getValue().isEmpty()) {
-        params.filterBy(tea);
-      }
-
-      for (QueryFilter filter : attributeFilter.getValue()) {
-        params.filterBy(tea, filter);
-      }
+      params.filterBy(tea, attributeFilter.getValue());
     }
   }
 
@@ -366,6 +361,11 @@ class TrackedEntityOperationParamsMapper {
   }
 
   private boolean isLocalSearch(TrackedEntityQueryParams params, UserDetails user) {
+    // If the organization unit selection mode is set to CAPTURE, then it's a local search.
+    if (OrganisationUnitSelectionMode.CAPTURE == params.getOrgUnitMode()) {
+      return true;
+    }
+
     List<OrganisationUnit> localOrgUnits =
         organisationUnitService.getOrganisationUnitsByUid(user.getUserOrgUnitIds());
     Set<OrganisationUnit> searchOrgUnits = new HashSet<>();

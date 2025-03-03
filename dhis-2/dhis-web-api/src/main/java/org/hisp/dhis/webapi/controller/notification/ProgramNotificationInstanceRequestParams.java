@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,38 +25,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query;
+package org.hisp.dhis.webapi.controller.notification;
 
-import static java.util.Arrays.stream;
+import java.util.Date;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.hisp.dhis.schema.Klass;
+@OpenApi.Shared(name = "ProgramNotificationInstanceRequestParams")
+@OpenApi.Property
+@Data
+@NoArgsConstructor
+public class ProgramNotificationInstanceRequestParams implements PageRequestParams {
+  @OpenApi.Description(
+      """
+Get the given page.
+""")
+  @OpenApi.Property(defaultValue = "1")
+  private Integer page;
 
-/**
- * Simple class for checking if an object is one of several allowed classes, mainly used in Operator
- * where a parameter can be type constrained.
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Getter
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public final class Typed {
-  private final Class<?>[] klasses;
+  @OpenApi.Description(
+      """
+Get given number of items per page.
+""")
+  @OpenApi.Property(defaultValue = "50")
+  private Integer pageSize;
 
-  public boolean isValid(Klass klass) {
-    return klass == null || isValid(klass.getKlass());
-  }
+  @OpenApi.Description(
+      """
+Get the total number of items and pages in the pager.
 
-  public boolean isValid(Class<?> klass) {
-    if (klasses.length == 0 || klass == null) {
-      return true;
-    }
-    return stream(klasses).anyMatch(k -> k != null && k.isAssignableFrom(klass));
-  }
+**Only enable this if absolutely necessary as this is resource intensive.** Use the pagers
+`prev/nextPage` to determine if there is a previous or a next page instead.
+""")
+  private boolean totalPages = false;
 
-  public static Typed from(Class<?>... klasses) {
-    return new Typed(klasses);
-  }
+  @OpenApi.Description(
+      """
+Get all items by specifying `paging=false`. Requests are paginated by default.
+
+**Be aware that the performance is directly related to the amount of data requested. Larger pages
+will take more time to return.**
+""")
+  private boolean paging = true;
+
+  UID enrollment;
+  UID event;
+  Date scheduledAt;
 }

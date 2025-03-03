@@ -32,37 +32,16 @@ import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.http.HttpStatus;
-import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.render.RenderFormat;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.TrackerImportService;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.report.ImportReport;
-import org.hisp.dhis.tracker.imports.report.Status;
-import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -70,22 +49,13 @@ import org.hisp.dhis.webapi.controller.tracker.JsonPage;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage.JsonPager;
 import org.hisp.dhis.webapi.controller.tracker.JsonTrackedEntityChangeLog;
 import org.hisp.dhis.webapi.controller.tracker.JsonUser;
+import org.hisp.dhis.webapi.controller.tracker.TestSetup;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.transaction.annotation.Transactional;
 
-@Transactional
 class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrationTestBase {
-
-  @Autowired private ObjectBundleService objectBundleService;
-
-  @Autowired private ObjectBundleValidationService objectBundleValidationService;
-
-  @Autowired private RenderService _renderService;
-
-  @Autowired private TrackerImportService trackerImportService;
+  @Autowired private TestSetup testSetup;
 
   @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
 
@@ -95,15 +65,12 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
 
   @BeforeEach
   void setUp() throws IOException {
-    this.renderService = _renderService;
-    setUpMetadata("tracker/simple_metadata.json");
+    testSetup.setUpMetadata();
 
     User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    TrackerImportParams params = TrackerImportParams.builder().build();
-    assertNoDataErrors(
-        trackerImportService.importTracker(params, fromJson("tracker/single_te.json")));
+    testSetup.setUpTrackerData("tracker/single_te.json");
 
     trackedEntity = manager.get(TrackedEntity.class, "IOR1AXXl24H");
 
@@ -283,58 +250,27 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
         () -> assertHasNoMember(pagerObject, "prevPage", "nextPage", "total", "pageCount"));
   }
 
-  private TrackerObjects fromJson(String path) throws IOException {
-    return renderService.fromJson(
-        new ClassPathResource(path).getInputStream(), TrackerObjects.class);
+  @Test
+  void shouldIgnoreTotalPages() {
+    JsonPage page =
+        GET("/tracker/trackedEntities/{id}/changeLogs?totalPages=true", trackedEntity.getUid())
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
+
+    JsonPager pager = page.getPager();
+    assertHasNoMember(pager, "total", "pageCount");
   }
 
-  private ObjectBundle setUpMetadata(String path) throws IOException {
-    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
-        renderService.fromMetadata(new ClassPathResource(path).getInputStream(), RenderFormat.JSON);
-    ObjectBundleParams params = new ObjectBundleParams();
-    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
-    params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
-    params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
-    assertNoMetadataErrors(objectBundleValidationService.validate(bundle));
-    objectBundleService.commit(bundle);
-    return bundle;
-  }
+  @Test
+  void shouldAlwaysReturnPages() {
+    JsonPage page =
+        GET("/tracker/trackedEntities/{id}/changeLogs?paging=false", trackedEntity.getUid())
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
 
-  private void assertNoMetadataErrors(ObjectBundleValidationReport report) {
-    assertNotNull(report);
-    List<String> errors = new ArrayList<>();
-    report.forEachErrorReport(
-        err -> {
-          errors.add(err.toString());
-        });
-    assertFalse(
-        report.hasErrorReports(), String.format("Expected no errors, instead got: %s\n", errors));
-  }
-
-  private void assertNoDataErrors(ImportReport report) {
-    assertNotNull(report);
-    assertEquals(
-        Status.OK,
-        report.getStatus(),
-        errorMessage(
-            "Expected import with status OK, instead got:\n", report.getValidationReport()));
-  }
-
-  private Supplier<String> errorMessage(String errorTitle, ValidationReport report) {
-    return () -> {
-      StringBuilder msg = new StringBuilder(errorTitle);
-      report
-          .getErrors()
-          .forEach(
-              e -> {
-                msg.append(e.getErrorCode());
-                msg.append(": ");
-                msg.append(e.getMessage());
-                msg.append('\n');
-              });
-      return msg.toString();
-    };
+    JsonPager pager = page.getPager();
+    assertEquals(1, pager.getPage());
+    assertEquals(50, pager.getPageSize());
   }
 
   private String createJsonPayload(String attribute, int value) {

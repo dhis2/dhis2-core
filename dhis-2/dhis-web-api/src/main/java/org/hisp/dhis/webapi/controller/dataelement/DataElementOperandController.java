@@ -135,7 +135,6 @@ public class DataElementOperandController {
   }
 
   @GetMapping
-  @SuppressWarnings("unchecked")
   public @ResponseBody RootNode getObjectList(GetDataElementOperandObjectListParams params)
       throws QueryParserException {
     List<DataElementOperand> allItems = getUnfilteredDataElementOperands(params);
@@ -148,7 +147,8 @@ public class DataElementOperandController {
     Pager pager = null;
     if (params.isPaging()) {
       params.setPaging(false);
-      Query queryForCount = queryService.getQueryFromUrl(DataElementOperand.class, params);
+      Query<DataElementOperand> queryForCount =
+          queryService.getQueryFromUrl(DataElementOperand.class, params);
       queryForCount.setObjects(allItems);
 
       List<?> totalOfItems = queryService.query(queryForCount);
@@ -158,11 +158,12 @@ public class DataElementOperandController {
       params.setPaging(true);
     }
 
-    Query query = queryService.getQueryFromUrl(DataElementOperand.class, params);
+    Query<DataElementOperand> query =
+        queryService.getQueryFromUrl(DataElementOperand.class, params);
     query.setDefaultOrder();
     query.setObjects(allItems);
 
-    List<DataElementOperand> pageItems = (List<DataElementOperand>) queryService.query(query);
+    List<DataElementOperand> pageItems = queryService.query(query);
 
     RootNode rootNode = NodeUtils.createMetadata();
 

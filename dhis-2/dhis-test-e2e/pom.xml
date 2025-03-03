@@ -17,9 +17,9 @@
     <gson.version>2.12.1</gson.version>
     <log4j.version>2.24.3</log4j.version>
     <rest-assured.version>5.5.1</rest-assured.version>
-    <jackson.version>2.18.2</jackson.version>
+    <jackson.version>2.18.3</jackson.version>
     <guava.version>33.4.0-jre</guava.version>
-    <json-tree.version>1.6</json-tree.version>
+    <json-tree.version>1.8</json-tree.version>
     <epam-reportportal.version>5.2.1</epam-reportportal.version>
     <javafaker.version>1.0.2</javafaker.version>
     <opencsv.version>5.10</opencsv.version>
@@ -32,7 +32,7 @@
     <lombok.version>1.18.36</lombok.version>
     <allure.version>2.29.1</allure.version>
     <selenium-java.version>4.29.0</selenium-java.version>
-    <slf4j-simple.version>2.0.16</slf4j-simple.version>
+    <slf4j-simple.version>2.0.17</slf4j-simple.version>
     <fluent-hc.version>4.5.14</fluent-hc.version>
     <httpclient5.version>5.4.2</httpclient5.version>
     <commons-io.version>2.18.0</commons-io.version>

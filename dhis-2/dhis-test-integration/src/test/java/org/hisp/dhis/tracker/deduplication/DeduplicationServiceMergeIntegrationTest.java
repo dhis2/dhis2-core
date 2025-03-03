@@ -78,9 +78,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
-@Transactional
 class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private DeduplicationService deduplicationService;
 
@@ -123,6 +121,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
     manager.save(original);
     manager.save(duplicate);
     program = createProgram('A');
+    program.setTrackedEntityType(trackedEntityType);
     program1 = createProgram('B');
     programService.addProgram(program);
     programService.addProgram(program1);
@@ -160,7 +159,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
 
     assertEquals(
         DeduplicationStatus.MERGED,
-        deduplicationService.getPotentialDuplicateByUid(UID.of(potentialDuplicate)).getStatus());
+        deduplicationService.getPotentialDuplicate(UID.of(potentialDuplicate)).getStatus());
     assertTrue(
         requireNonNull(manager.get(TrackedEntity.class, original.getUid()))
                 .getLastUpdated()
@@ -196,7 +195,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
 
     assertEquals(
         DeduplicationStatus.MERGED,
-        deduplicationService.getPotentialDuplicateByUid(UID.of(potentialDuplicate)).getStatus());
+        deduplicationService.getPotentialDuplicate(UID.of(potentialDuplicate)).getStatus());
     assertTrue(
         requireNonNull(manager.get(TrackedEntity.class, original.getUid()))
                 .getLastUpdated()
@@ -222,7 +221,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
 
     assertEquals(
         DeduplicationStatus.MERGED,
-        deduplicationService.getPotentialDuplicateByUid(UID.of(potentialDuplicate)).getStatus());
+        deduplicationService.getPotentialDuplicate(UID.of(potentialDuplicate)).getStatus());
 
     List<TrackedEntityChangeLog> trackedEntityChangeLogs =
         trackedEntityChangeLogService
@@ -254,7 +253,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
 
     assertEquals(
         DeduplicationStatus.MERGED,
-        deduplicationService.getPotentialDuplicateByUid(UID.of(potentialDuplicate)).getStatus());
+        deduplicationService.getPotentialDuplicate(UID.of(potentialDuplicate)).getStatus());
     List<TrackedEntityChangeLog> trackedEntityChangeLogs =
         trackedEntityChangeLogService
             .getTrackedEntityChangeLog(
@@ -292,7 +291,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
 
     assertEquals(
         DeduplicationStatus.MERGED,
-        deduplicationService.getPotentialDuplicateByUid(UID.of(potentialDuplicate)).getStatus());
+        deduplicationService.getPotentialDuplicate(UID.of(potentialDuplicate)).getStatus());
 
     List<TrackedEntityChangeLog> trackedEntityChangeLogs =
         trackedEntityChangeLogService

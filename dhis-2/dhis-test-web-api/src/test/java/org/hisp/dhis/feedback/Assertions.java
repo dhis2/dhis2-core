@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,44 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query;
+package org.hisp.dhis.feedback;
 
-import static java.util.Arrays.asList;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import lombok.Getter;
-import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Assertions for feedback like metadata validation reports.
+ *
+ * <p>Keep the copies in dhis-test-integration and dhis-test-web-api in sync! We can currently not
+ * share test code between these modules without introducing cycles or adding test code to the main
+ * module.
  */
-public abstract class Criteria {
-  @Getter protected final List<Criterion> criterions = new ArrayList<>();
-
-  @Getter private final Set<String> aliases = new HashSet<>();
-
-  protected final Schema schema;
-
-  Criteria(Schema schema) {
-    this.schema = schema;
-  }
-
-  public Criteria add(Criterion criterion) {
-    this.criterions.add(criterion);
-    return this;
-  }
-
-  public Criteria add(Criterion... criterions) {
-    this.criterions.addAll(asList(criterions));
-    return this;
-  }
-
-  public Criteria add(Collection<? extends Criterion> criterions) {
-    this.criterions.addAll(criterions);
-    return this;
+public class Assertions {
+  public static void assertNoErrors(ObjectBundleValidationReport report) {
+    assertNotNull(report);
+    List<String> errors = new ArrayList<>();
+    report.forEachErrorReport(
+        err -> {
+          errors.add(err.toString());
+        });
+    assertFalse(
+        report.hasErrorReports(), String.format("Expected no errors, instead got: %s\n", errors));
   }
 }

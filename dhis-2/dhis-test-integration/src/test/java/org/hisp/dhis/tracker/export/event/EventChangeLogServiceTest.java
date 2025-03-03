@@ -43,9 +43,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
-import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
@@ -57,12 +58,16 @@ import org.joda.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class EventChangeLogServiceTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private EventChangeLogService eventChangeLogService;
 
@@ -74,8 +79,6 @@ class EventChangeLogServiceTest extends TrackerTest {
 
   private User importUser;
 
-  private TrackerImportParams importParams;
-
   private final EventChangeLogOperationParams defaultOperationParams =
       EventChangeLogOperationParams.builder().build();
   private final PageParams defaultPageParams = new PageParams(null, null, false);
@@ -83,19 +86,16 @@ class EventChangeLogServiceTest extends TrackerTest {
   private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
   private TrackerObjects trackerObjects;
+  @Autowired private TestSetup testSetup;
 
   @BeforeAll
   void setUp() throws IOException {
-    injectSecurityContextUser(getAdminUser());
-    setUpMetadata("tracker/simple_metadata.json");
+    testSetup.setUpMetadata();
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    importParams = TrackerImportParams.builder().build();
-    trackerObjects = fromJson("tracker/event_and_enrollment.json");
-
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+    trackerObjects = testSetup.setUpTrackerData();
   }
 
   @BeforeEach
@@ -449,12 +449,13 @@ class EventChangeLogServiceTest extends TrackerTest {
 
               assertNoErrors(
                   trackerImportService.importTracker(
-                      importParams, TrackerObjects.builder().events(List.of(e)).build()));
+                      TrackerImportParams.builder().build(),
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 
   private void updateEventDates(UID event, Instant newDate) throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/base_data.json");
 
     trackerObjects.getEvents().stream()
         .filter(e -> e.getEvent().equals(event))
@@ -466,7 +467,8 @@ class EventChangeLogServiceTest extends TrackerTest {
 
               assertNoErrors(
                   trackerImportService.importTracker(
-                      importParams, TrackerObjects.builder().events(List.of(e)).build()));
+                      TrackerImportParams.builder().build(),
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 
@@ -480,7 +482,8 @@ class EventChangeLogServiceTest extends TrackerTest {
 
               assertNoErrors(
                   trackerImportService.importTracker(
-                      importParams, TrackerObjects.builder().events(List.of(e)).build()));
+                      TrackerImportParams.builder().build(),
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 
@@ -494,7 +497,8 @@ class EventChangeLogServiceTest extends TrackerTest {
 
               assertNoErrors(
                   trackerImportService.importTracker(
-                      importParams, TrackerObjects.builder().events(List.of(e)).build()));
+                      TrackerImportParams.builder().build(),
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 
@@ -508,7 +512,8 @@ class EventChangeLogServiceTest extends TrackerTest {
 
               assertNoErrors(
                   trackerImportService.importTracker(
-                      importParams, TrackerObjects.builder().events(List.of(e)).build()));
+                      TrackerImportParams.builder().build(),
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 

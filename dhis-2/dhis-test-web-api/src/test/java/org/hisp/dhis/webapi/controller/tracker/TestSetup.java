@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,15 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.webapi.controller.tracker;
 
 import static org.hisp.dhis.feedback.Assertions.assertNoErrors;
+import static org.hisp.dhis.webapi.controller.tracker.Assertions.assertNoErrors;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
@@ -42,48 +46,51 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Luciano Fiandesio
+ * Setup metadata and tracker data for tests.
+ *
+ * <p>Keep the copies in dhis-test-integration and dhis-test-web-api in sync! We can currently not
+ * share test code between these modules without introducing cycles or adding test code to the main
+ * module.
  */
-@Transactional
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public abstract class TrackerTest extends PostgresIntegrationTestBase {
-  @Autowired protected IdentifiableObjectManager manager;
-
-  @Autowired private RenderService _renderService;
+@Component
+public class TestSetup {
+  @Autowired private RenderService renderService;
 
   @Autowired private ObjectBundleService objectBundleService;
 
   @Autowired private ObjectBundleValidationService objectBundleValidationService;
 
-  @BeforeAll
-  final void setUpRenderService() {
-    renderService = _renderService;
+  @Autowired private TrackerImportService trackerImportService;
+
+  /**
+   * Set up the base metadata used by most tracker tests.
+   *
+   * <p>Use {@link #setUpMetadata(String)} (String)}
+   *
+   * <ul>
+   *   <li>instead if your test only needs a subset of what the tracker base metadata contains
+   *   <li>in addition if your test needs some additional metadata that not all tracker tests need
+   * </ul>
+   */
+  public ObjectBundle setUpMetadata() throws IOException {
+    return setUpMetadata("tracker/base_metadata.json", null);
   }
 
-  protected ObjectBundle setUpMetadata(String path) throws IOException {
-    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
-        renderService.fromMetadata(new ClassPathResource(path).getInputStream(), RenderFormat.JSON);
-    ObjectBundleParams params = new ObjectBundleParams();
-    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
-    params.setImportStrategy(ImportStrategy.CREATE);
-    params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
-    assertNoErrors(objectBundleValidationService.validate(bundle));
-    objectBundleService.commit(bundle);
-    return bundle;
+  public ObjectBundle setUpMetadata(String path) throws IOException {
+    return setUpMetadata(path, null);
   }
 
-  protected ObjectBundle setUpMetadata(String path, User user) throws IOException {
+  public ObjectBundle setUpMetadata(String path, User user) throws IOException {
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
         renderService.fromMetadata(new ClassPathResource(path).getInputStream(), RenderFormat.JSON);
     ObjectBundleParams params = new ObjectBundleParams();
@@ -97,8 +104,47 @@ public abstract class TrackerTest extends PostgresIntegrationTestBase {
     return bundle;
   }
 
-  protected TrackerObjects fromJson(String path) throws IOException {
+  /**
+   * Set up the base tracker data used by most tracker tests.
+   *
+   * <p>Use {@link #setUpTrackerData(String)}
+   *
+   * <ul>
+   *   <li>instead if your test only needs a subset of what the tracker base data contains
+   *   <li>in addition if your test needs some additional data that not all tracker tests need
+   * </ul>
+   */
+  public TrackerObjects setUpTrackerData() throws IOException {
+    return setUpTrackerData("tracker/base_data.json");
+  }
+
+  /**
+   * Setup tracker data from a JSON fixture using the default import parameters. Use {@link
+   * #setUpTrackerData(String, TrackerImportParams)} if you need non-default import parameters.
+   */
+  public TrackerObjects setUpTrackerData(String path) throws IOException {
+    return setUpTrackerData(path, TrackerImportParams.builder().build());
+  }
+
+  public TrackerObjects setUpTrackerData(String path, TrackerImportParams params)
+      throws IOException {
+    TrackerObjects trackerObjects = fromJson(path);
+    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
+    return trackerObjects;
+  }
+
+  public TrackerObjects fromJson(String path) throws IOException {
     return renderService.fromJson(
         new ClassPathResource(path).getInputStream(), TrackerObjects.class);
+  }
+
+  @Nonnull
+  public TrackedEntity getTrackedEntity(
+      @Nonnull TrackerObjects trackerObjects, @Nonnull String uid) {
+    Optional<TrackedEntity> trackedEntity = trackerObjects.findTrackedEntity(UID.of(uid));
+    assertTrue(
+        trackedEntity.isPresent(),
+        () -> String.format("TrackedEntity with uid '%s' should have been created", uid));
+    return trackedEntity.orElse(null);
   }
 }

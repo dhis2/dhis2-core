@@ -151,7 +151,7 @@ class DefaultEnrollmentService implements EnrollmentService {
             params.getEnrollmentParams(),
             params.isIncludeDeleted(),
             queryParams.getOrganisationUnitMode());
-    return enrollmentsPage.withItems(enrollments);
+    return enrollmentsPage.withFilteredItems(enrollments);
   }
 
   private Set<Event> getEvents(
