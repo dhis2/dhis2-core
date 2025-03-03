@@ -8,49 +8,49 @@ Get tracked entities matching given query parameters.
 
 ### `getTrackedEntityByUid`
 
-Get a tracked entity with given UID.
+Get a tracked entity with a given UID.
 
 ### `getTrackedEntityByUid.parameter.uid`
 
-Get a tracked entity with given UID.
+Get a tracked entity with a given UID.
 
 ### `getTrackedEntityByUid.parameter.program`
 
 Get tracked entity with tracked entity attribute and enrollment data from the specified tracker
-program. The ownership of the given `program` will be used to determine access to the tracked
+program. The given `program` ownership will be used to determine access to the tracked
 entity.
 
 ### `getTrackedEntityByUid.parameter.fields`
 
 Get only the specified fields in the JSON response. This query parameter allows you to remove
-unnecessary fields from the response and in some cases decrease the response time. Refer to
+unnecessary fields from the response and sometimes decrease the response time. Refer to
 https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata.html#webapi_metadata_field_filter
 for how to use it.
 
-NOTE: this query parameter has no effect on a response in CSV!
+NOTE: This query parameter does not affect a response in CSV!
 
 ### `getAttributeValueFile`
 
-Get a tracked entity attribute value file or image for given tracked entity and tracked entity
+Get a tracked entity attribute value file or image for a given tracked entity and tracked entity
 attribute UID. Images are returned in their original dimension.
 
 ### `getAttributeValueFile.parameter.program`
 
-The program to be used for evaluating the users access to the file content. A program is required
+The program to be used for evaluating the user's access to the file content. A program is required
 when requesting a program-specific tracked entity attribute. When no program is specified, access
-to the file content is evaluated based on the users access to the relevant tracked entity type.
+to the file content is evaluated based on the user's access to the relevant tracked entity type.
 
 ### `getAttributeValueImage`
 
-Get an event data value image for given event and data element UID. Images are returned in their
-original dimension by default. This endpoint is only supported for data elements of value type
+Get an event data value image for a given event and data element UID. Images are returned in their
+original dimension by default. This endpoint is only supported for data elements of value-type
 image.
 
 ### `getAttributeValueImage.parameter.program`
 
-The program to be used for evaluating the users access to the image. A program is required when
+The program to be used for evaluating the user's access to the image. A program is required when
 requesting a program-specific tracked entity attribute. When no program is specified, access to the
-image is evaluated based on the users access to the relevant tracked entity type.
+image is evaluated based on the user's access to the relevant tracked entity type.
 
 ### `getTrackedEntityAttributeChangeLog`
 
@@ -85,7 +85,7 @@ ownership.
 
 ### `*.parameter.TrackedEntityRequestParams.orgUnitMode`
 
-Get tracked entities using given `orgUnitMode` and `program` parameters. If a
+Get tracked entities using the given `orgUnitMode` and `program` parameters. If a
 `program` is provided, the ownership is determined with this program. When no program is provided,
 the registration organisation unit for the tracked entity would be used to determine ownership.
 
@@ -95,13 +95,13 @@ the registration organisation unit for the tracked entity would be used to deter
   unit they are owned by. To use this parameter, the user needs the `Search Tracked
   entity in all org units` authority.
 - When `orgUnitMode=ACCESSIBLE` tracked entities owned by any organisation unit in the
-  users capture scope will be returned.
+  user's capture scope will be returned.
 - When `orgUnitMode=CAPTURE` tracked entities that have an enrollment organisation unit
-  in the users capture scope will be returned.
+  in the user's capture scope will be returned.
 
 ### `*.parameter.TrackedEntityRequestParams.program`
 
-Get tracked entities with tracked entity attribute and enrollment data from the specified tracker
+Get tracked entities with tracked entity attributes and enrollment data from the specified tracker
 program. The ownership of the given `program` will be used to determine access to the tracked
 entities. Only tracked entities with an enrollment into the `program` will be returned.
 
@@ -117,7 +117,7 @@ Get tracked entities that have at least one enrollment with the status specified
 
 ### `*.parameter.TrackedEntityRequestParams.followUp`
 
-Get tracked entities that have at least one enrollment that is marked with follow up.
+Get tracked entities that have at least one enrollment that is marked with follow-up.
 
 ### `*.parameter.TrackedEntityRequestParams.updatedAfter`
 
@@ -139,7 +139,7 @@ the response.
 
 ### `*.parameter.TrackedEntityRequestParams.updatedWithin`
 
-Get tracked entities updated since given ISO-8601 duration. A tracked entity is considered 
+Get tracked entities updated since the given ISO-8601 duration. A tracked entity is considered 
 updated if any of its tracked entity attributes, enrollments, events or relationships have been 
 modified. The `updatedAt` property of the tracked entity reflects the latest time at which any 
 of its tracked entity attributes, enrollments, events or relationships were modified.
@@ -272,7 +272,7 @@ unnecessary fields from the JSON response and in some cases decrease the respons
 https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata.html#webapi_metadata_field_filter
 for how to use it.
 
-NOTE: this query parameter has no effect on a CSV response!
+NOTE: This query parameter has no effect on a CSV response!
 
 ### `*.parameter.TrackedEntityRequestParams.query`
 
