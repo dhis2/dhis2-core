@@ -27,15 +27,20 @@
  */
 package org.hisp.dhis.test.webapi;
 
+import static org.apache.commons.lang3.stream.LangCollectors.joining;
 import static org.hisp.dhis.test.utils.JavaToJson.singleToDoubleQuotes;
+import static org.junit.jupiter.api.AssertionFailureBuilder.assertionFailure;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.http.HttpClientAdapter.HttpResponse;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.http.HttpStatus.Series;
+import org.hisp.dhis.jsontree.JsonDiff;
 import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
+import org.intellij.lang.annotations.Language;
 
 /**
  * Assertions contains web related assertions. General purpose assertions can be found and put into
@@ -79,5 +84,43 @@ public final class Assertions {
 
   public static void assertJson(String expected, HttpResponse actual) {
     assertEquals(singleToDoubleQuotes(expected), actual.content().toString());
+  }
+
+  public static void assertNoDiff(
+      @Language("json") String expected, @Language("json") String actual) {
+    assertNoDiff(JsonValue.of(expected), JsonValue.of(actual));
+  }
+
+  public static void assertNoDiff(
+      @Language("json") String expected, @Language("json") String actual, JsonDiff.Mode mode) {
+    assertNoDiff(JsonValue.of(expected), JsonValue.of(actual), mode);
+  }
+
+  public static void assertNoDiff(@Language("json") String expected, JsonValue actual) {
+    assertNoDiff(JsonValue.of(expected), actual);
+  }
+
+  public static void assertNoDiff(
+      @Language("json") String expected, JsonValue actual, JsonDiff.Mode mode) {
+    assertNoDiff(JsonValue.of(expected), actual, mode);
+  }
+
+  public static void assertNoDiff(JsonValue expected, JsonValue actual) {
+    assertNoDiff(expected, actual, JsonDiff.Mode.DEFAULT);
+  }
+
+  public static void assertNoDiff(JsonValue expected, JsonValue actual, JsonDiff.Mode mode) {
+    JsonDiff diff = expected.diff(actual, mode);
+    if (!diff.differences().isEmpty()) {
+      assertionFailure()
+          .expected(expected.toJson())
+          .actual(actual.toJson())
+          .message(
+              "JSON has %d structural differences:\n  %s\n[-- missing, ++ unexpected, >> out-of-order, != value-not-equal]\n"
+                  .formatted(
+                      diff.differences().size(),
+                      diff.differences().stream().collect(joining("\n  "))))
+          .buildAndThrow();
+    }
   }
 }
