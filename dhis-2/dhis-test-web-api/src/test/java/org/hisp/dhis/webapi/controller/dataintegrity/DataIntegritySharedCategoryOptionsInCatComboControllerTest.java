@@ -103,7 +103,7 @@ class DataIntegritySharedCategoryOptionsInCatComboControllerTest
                     + "'}]} "));
 
     assertHasDataIntegrityIssues(
-        detailsIdType, check, 20, testCatCombo, "Taste and color", null, true);
+        detailsIdType, check, 25, testCatCombo, "Taste and color", null, true);
   }
 
   @Test
