@@ -75,7 +75,7 @@ class TeTaValidationTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() throws IOException {
-    testSetup.setUpMetadata("tracker/validations/te-program_with_tea_fileresource_metadata.json");
+    testSetup.importMetadata("tracker/validations/te-program_with_tea_fileresource_metadata.json");
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);

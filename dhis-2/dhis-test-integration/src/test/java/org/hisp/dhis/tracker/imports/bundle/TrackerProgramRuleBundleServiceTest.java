@@ -79,7 +79,7 @@ class TrackerProgramRuleBundleServiceTest extends PostgresIntegrationTestBase {
             ProgramNotificationRecipient.USER_GROUP);
     notificationTemplateService.save(pnt);
 
-    ObjectBundle bundle = testSetup.setUpMetadata("tracker/event_metadata.json");
+    ObjectBundle bundle = testSetup.importMetadata("tracker/event_metadata.json");
     ProgramRule programRule =
         createProgramRule(
             'A', bundle.getPreheat().get(PreheatIdentifier.UID, Program.class, "BFcipDERJwr"));

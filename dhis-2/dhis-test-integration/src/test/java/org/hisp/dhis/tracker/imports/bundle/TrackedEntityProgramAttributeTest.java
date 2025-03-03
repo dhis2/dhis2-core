@@ -62,7 +62,7 @@ class TrackedEntityProgramAttributeTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() throws IOException {
-    testSetup.setUpMetadata("tracker/te_program_with_tea_metadata.json");
+    testSetup.importMetadata("tracker/te_program_with_tea_metadata.json");
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
@@ -70,7 +70,7 @@ class TrackedEntityProgramAttributeTest extends PostgresIntegrationTestBase {
 
   @Test
   void testTrackedEntityProgramAttributeValue() throws IOException {
-    testSetup.setUpTrackerData("tracker/te_program_with_tea_data.json");
+    testSetup.importTrackerData("tracker/te_program_with_tea_data.json");
 
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
     assertEquals(1, trackedEntities.size());
@@ -82,7 +82,7 @@ class TrackedEntityProgramAttributeTest extends PostgresIntegrationTestBase {
 
   @Test
   void testTrackedEntityProgramAttributeValueUpdate() throws IOException {
-    testSetup.setUpTrackerData("tracker/te_program_with_tea_data.json");
+    testSetup.importTrackerData("tracker/te_program_with_tea_data.json");
 
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
     assertEquals(1, trackedEntities.size());
@@ -96,7 +96,7 @@ class TrackedEntityProgramAttributeTest extends PostgresIntegrationTestBase {
         TrackerImportParams.builder()
             .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
             .build();
-    testSetup.setUpTrackerData("tracker/te_program_with_tea_update_data.json", importParams);
+    testSetup.importTrackerData("tracker/te_program_with_tea_update_data.json", importParams);
 
     trackedEntities = manager.getAll(TrackedEntity.class);
     assertEquals(1, trackedEntities.size());
@@ -108,7 +108,7 @@ class TrackedEntityProgramAttributeTest extends PostgresIntegrationTestBase {
 
   @Test
   void testTrackedEntityProgramAttributeValueUpdateAndDelete() throws IOException {
-    testSetup.setUpTrackerData("tracker/te_program_with_tea_data.json");
+    testSetup.importTrackerData("tracker/te_program_with_tea_data.json");
 
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
     assertEquals(1, trackedEntities.size());
@@ -122,7 +122,7 @@ class TrackedEntityProgramAttributeTest extends PostgresIntegrationTestBase {
         TrackerImportParams.builder()
             .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
             .build();
-    testSetup.setUpTrackerData("tracker/te_program_with_tea_update_data.json", params);
+    testSetup.importTrackerData("tracker/te_program_with_tea_update_data.json", params);
 
     trackedEntities = manager.getAll(TrackedEntity.class);
     assertEquals(1, trackedEntities.size());
@@ -133,7 +133,7 @@ class TrackedEntityProgramAttributeTest extends PostgresIntegrationTestBase {
     manager.clear();
     // delete
     params = TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build();
-    testSetup.setUpTrackerData("tracker/te_program_with_tea_delete_data.json", params);
+    testSetup.importTrackerData("tracker/te_program_with_tea_delete_data.json", params);
 
     trackedEntities =
         manager.getAll(TrackedEntity.class).stream().filter(te -> !te.isDeleted()).toList();

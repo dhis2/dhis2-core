@@ -61,7 +61,7 @@ class EnrollmentAttrValidationTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() throws IOException {
-    testSetup.setUpMetadata("tracker/tracker_basic_metadata_mandatory_attr.json");
+    testSetup.importMetadata("tracker/tracker_basic_metadata_mandatory_attr.json");
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);

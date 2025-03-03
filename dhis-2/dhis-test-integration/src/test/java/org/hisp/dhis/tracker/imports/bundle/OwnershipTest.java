@@ -86,13 +86,13 @@ class OwnershipTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() throws IOException {
-    testSetup.setUpMetadata("tracker/ownership_metadata.json");
+    testSetup.importMetadata("tracker/ownership_metadata.json");
 
     User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    testSetup.setUpTrackerData("tracker/ownership_te.json");
-    testSetup.setUpTrackerData("tracker/ownership_enrollment.json");
+    testSetup.importTrackerData("tracker/ownership_te.json");
+    testSetup.importTrackerData("tracker/ownership_enrollment.json");
 
     nonSuperUser = userService.getUser("Tu9fv8ezgHl");
   }
@@ -123,7 +123,7 @@ class OwnershipTest extends PostgresIntegrationTestBase {
   void testClientDatesForTrackedEntityEnrollmentEvent() throws IOException {
     User nonSuperUser = userService.getUser(this.nonSuperUser.getUid());
     injectSecurityContextUser(nonSuperUser);
-    TrackerObjects trackerObjects = testSetup.setUpTrackerData("tracker/ownership_event.json");
+    TrackerObjects trackerObjects = testSetup.importTrackerData("tracker/ownership_event.json");
     manager.flush();
     TrackerObjects teTrackerObjects = testSetup.fromJson("tracker/ownership_te.json");
     TrackerObjects enTrackerObjects = testSetup.fromJson("tracker/ownership_enrollment.json");

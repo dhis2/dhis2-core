@@ -64,7 +64,7 @@ class TrackerEventBundleServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() throws IOException {
-    testSetup.setUpMetadata("tracker/event_metadata.json");
+    testSetup.importMetadata("tracker/event_metadata.json");
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);

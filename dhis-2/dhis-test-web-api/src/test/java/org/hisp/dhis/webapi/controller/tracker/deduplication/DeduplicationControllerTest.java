@@ -74,14 +74,14 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
 
   @BeforeEach
   void setUp() throws IOException {
-    testSetup.setUpMetadata();
+    testSetup.importMetadata();
 
     User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    trackerObjects = testSetup.setUpTrackerData();
+    trackerObjects = testSetup.importTrackerData();
     TrackerObjects duplicateTrackedEntities =
-        testSetup.setUpTrackerData("tracker/deduplication/potential_duplicates.json");
+        testSetup.importTrackerData("tracker/deduplication/potential_duplicates.json");
 
     // potential duplicate A
     trackedEntityAOriginal = testSetup.getTrackedEntity(trackerObjects, "QS6w44flWAf");

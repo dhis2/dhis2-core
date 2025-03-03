@@ -104,7 +104,7 @@ class ProgramRuleAssignActionTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() throws IOException {
-    ObjectBundle bundle = testSetup.setUpMetadata();
+    ObjectBundle bundle = testSetup.importMetadata();
 
     User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
@@ -135,7 +135,7 @@ class ProgramRuleAssignActionTest extends PostgresIntegrationTestBase {
     calculatedValuePRV.setValueType(ValueType.TEXT);
     programRuleVariableService.addProgramRuleVariable(calculatedValuePRV);
 
-    testSetup.setUpTrackerData("tracker/programrule/te_enrollment_completed_event.json");
+    testSetup.importTrackerData("tracker/programrule/te_enrollment_completed_event.json");
   }
 
   @Test
