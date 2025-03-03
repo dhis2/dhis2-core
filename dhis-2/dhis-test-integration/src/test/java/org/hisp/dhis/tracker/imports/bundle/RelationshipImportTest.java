@@ -67,14 +67,14 @@ class RelationshipImportTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() throws IOException {
-    testSetup.setUpMetadata();
+    testSetup.importMetadata();
 
     userA = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(userA);
 
-    testSetup.setUpTrackerData("tracker/single_te.json");
-    testSetup.setUpTrackerData("tracker/single_enrollment.json");
-    testSetup.setUpTrackerData("tracker/single_event.json");
+    testSetup.importTrackerData("tracker/single_te.json");
+    testSetup.importTrackerData("tracker/single_enrollment.json");
+    testSetup.importTrackerData("tracker/single_event.json");
     manager.flush();
   }
 
@@ -111,7 +111,7 @@ class RelationshipImportTest extends PostgresIntegrationTestBase {
 
   @Test
   void successUpdateRelationships() throws IOException {
-    testSetup.setUpTrackerData("tracker/relationships.json");
+    testSetup.importTrackerData("tracker/relationships.json");
 
     TrackerObjects trackerObjects = testSetup.fromJson("tracker/relationshipToUpdate.json");
     TrackerImportParams trackerImportParams =
@@ -128,7 +128,7 @@ class RelationshipImportTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFailWhenTryingToUpdateADeletedRelationship() throws IOException {
-    TrackerObjects trackerObjects = testSetup.setUpTrackerData("tracker/relationships.json");
+    TrackerObjects trackerObjects = testSetup.importTrackerData("tracker/relationships.json");
 
     manager.delete(manager.get(Relationship.class, "Nva3Xj2j75W"));
 

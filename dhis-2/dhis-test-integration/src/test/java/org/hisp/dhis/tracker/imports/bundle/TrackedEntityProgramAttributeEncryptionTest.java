@@ -65,7 +65,8 @@ class TrackedEntityProgramAttributeEncryptionTest extends PostgresIntegrationTes
 
   @BeforeAll
   void setUp() throws IOException {
-    testSetup.setUpMetadata("tracker/te_program_with_tea_encryption_metadata.json", getAdminUser());
+    testSetup.importMetadata(
+        "tracker/te_program_with_tea_encryption_metadata.json", getAdminUser());
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
@@ -73,7 +74,7 @@ class TrackedEntityProgramAttributeEncryptionTest extends PostgresIntegrationTes
 
   @Test
   void testTrackedEntityProgramAttributeEncryptedValue() throws IOException {
-    testSetup.setUpTrackerData("tracker/te_program_with_tea_encryption_data.json");
+    testSetup.importTrackerData("tracker/te_program_with_tea_encryption_data.json");
 
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
     assertEquals(1, trackedEntities.size());

@@ -68,7 +68,7 @@ class TrackedEntityProgramAttributeFileResourceTest extends PostgresIntegrationT
 
   @BeforeAll
   void setUp() throws IOException {
-    testSetup.setUpMetadata("tracker/te_program_with_tea_fileresource_metadata.json");
+    testSetup.importMetadata("tracker/te_program_with_tea_fileresource_metadata.json");
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
@@ -87,7 +87,7 @@ class TrackedEntityProgramAttributeFileResourceTest extends PostgresIntegrationT
     File file = File.createTempFile("file-resource", "test");
     fileResourceService.asyncSaveFileResource(fileResource, file);
     assertFalse(fileResource.isAssigned());
-    testSetup.setUpTrackerData("tracker/te_program_with_tea_fileresource_data.json");
+    testSetup.importTrackerData("tracker/te_program_with_tea_fileresource_data.json");
 
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
     assertEquals(1, trackedEntities.size());
