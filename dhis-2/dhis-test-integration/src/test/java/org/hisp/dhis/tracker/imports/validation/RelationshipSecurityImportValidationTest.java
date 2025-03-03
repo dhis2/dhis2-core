@@ -65,7 +65,7 @@ class RelationshipSecurityImportValidationTest extends PostgresIntegrationTestBa
 
   @BeforeAll
   void setUp() throws IOException {
-    testSetup.setUpMetadata("tracker/tracker_basic_metadata.json");
+    testSetup.importMetadata("tracker/tracker_basic_metadata.json");
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
