@@ -99,6 +99,7 @@ public class MetadataImportBasedOnSchemasTest extends ApiTest {
             "programRuleActions",
             "programRuleVariables",
             "eventCharts",
+            "programIndicators",
             "programStages",
             "programStageWorkingLists",
             "categoryOptionCombos");
