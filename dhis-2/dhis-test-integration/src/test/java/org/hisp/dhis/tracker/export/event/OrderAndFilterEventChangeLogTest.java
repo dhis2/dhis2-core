@@ -378,7 +378,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
   }
 
   private void updateEventDates(UID event, Instant newDate) throws IOException {
-    TrackerObjects trackerObjects = this.testSetup.fromJson("tracker/base_data.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/base_data.json");
 
     trackerObjects.getEvents().stream()
         .filter(e -> e.getEvent().equals(event))
