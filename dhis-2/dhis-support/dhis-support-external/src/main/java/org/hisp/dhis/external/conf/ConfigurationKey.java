@@ -710,6 +710,9 @@ public enum ConfigurationKey {
   /** Enable TOTP-based 2FA authentication. (default: true) */
   TOTP_2FA_ENABLED("login.security.totp_2fa.enabled", Constants.ON, false),
 
+  /** Use read replica database for tracker queries. (default: false) */
+  TRACKER_USE_READ_REPLICA_ENABLED("tracker.use_read_replica.enabled", Constants.OFF, false),
+
   SESSION_COOKIE_SAME_SITE("session.cookie.samesite", "Lax", false);
 
   private final String key;

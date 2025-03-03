@@ -49,6 +49,7 @@ import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
 import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -78,15 +79,27 @@ public class DataSourceConfig {
   }
 
   @Bean
-  public JdbcTemplate readOnlyJdbcTemplate(
-      DhisConfigurationProvider config, DataSource dataSource) {
-    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(config);
+  public NamedParameterJdbcTemplate namedParameterReadOnlyJdbcTemplate(
+      @Qualifier("readReplicaDataSource") DataSource dataSource) {
+    return new NamedParameterJdbcTemplate(dataSource);
+  }
 
+  @Bean
+  public JdbcTemplate readOnlyJdbcTemplate(
+          @Qualifier("readReplicaDataSource") DataSource dataSource) {
     JdbcTemplate jdbcTemplate =
-        new JdbcTemplate(MoreObjects.firstNonNull(manager.getReadOnlyDataSource(), dataSource));
+            new JdbcTemplate(dataSource);
     jdbcTemplate.setFetchSize(1000);
 
     return jdbcTemplate;
+  }
+
+  @Bean("readReplicaDataSource")
+  public DataSource readReplicaDataSource(
+          DhisConfigurationProvider config, DataSource dataSource) {
+    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(config);
+
+    return (MoreObjects.firstNonNull(manager.getReadOnlyDataSource(), dataSource));
   }
 
   @Primary

@@ -103,6 +103,9 @@ import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -227,12 +230,28 @@ class JdbcEventStore {
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
-  @Qualifier("dataValueJsonMapper")
   private final ObjectMapper jsonMapper;
 
   private final UserService userService;
 
   private final IdentifiableObjectManager manager;
+
+  @Autowired
+  public JdbcEventStore(
+          NamedParameterJdbcTemplate jdbcTemplate,
+          @Qualifier("namedParameterReadOnlyJdbcTemplate") NamedParameterJdbcTemplate readOnlyJdbcTemplate,
+          @Qualifier("dataValueJsonMapper") ObjectMapper jsonMapper,
+          UserService userService,
+          IdentifiableObjectManager manager,
+          DhisConfigurationProvider configurationProvider) {
+    log.info(configurationProvider.isEnabled(ConfigurationKey.TRACKER_USE_READ_REPLICA_ENABLED)?"Enabled Tracker queries to read replica database (if configured)": "Disabled Tracker queries to read replica");
+    this.jdbcTemplate = configurationProvider.isEnabled(ConfigurationKey.TRACKER_USE_READ_REPLICA_ENABLED)
+            ? readOnlyJdbcTemplate
+            : jdbcTemplate;;
+    this.jsonMapper = jsonMapper;
+    this.userService = userService;
+    this.manager = manager;
+  }
 
   public List<Event> getEvents(EventQueryParams queryParams) {
     return fetchEvents(queryParams, null);

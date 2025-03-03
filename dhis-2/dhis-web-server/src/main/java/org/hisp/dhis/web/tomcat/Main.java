@@ -76,7 +76,7 @@ import org.springframework.util.StringUtils;
 @Slf4j
 public class Main {
 
-  private static final int DEFAULT_HTTP_PORT = 8080;
+  private static final int DEFAULT_HTTP_PORT = 8082;
 
   private static int getPort() {
     return Integer.parseInt(System.getProperty("server.port", Integer.toString(DEFAULT_HTTP_PORT)));

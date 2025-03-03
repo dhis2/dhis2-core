@@ -68,10 +68,13 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 
 @Component("org.hisp.dhis.tracker.export.trackedentity.TrackedEntityStore")
 class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<TrackedEntity> {
@@ -129,11 +132,15 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   public HibernateTrackedEntityStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
+      @Qualifier("readOnlyJdbcTemplate") JdbcTemplate readOnlyJdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService,
       OrganisationUnitStore organisationUnitStore,
-      SystemSettingsProvider settingsProvider) {
-    super(entityManager, jdbcTemplate, publisher, TrackedEntity.class, aclService, false);
+      SystemSettingsProvider settingsProvider,
+      DhisConfigurationProvider configurationProvider) {
+    super(entityManager, configurationProvider.isEnabled(ConfigurationKey.TRACKER_USE_READ_REPLICA_ENABLED)
+            ? readOnlyJdbcTemplate
+            : jdbcTemplate, publisher, TrackedEntity.class, aclService, false);
 
     checkNotNull(organisationUnitStore);
     checkNotNull(settingsProvider);
