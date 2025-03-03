@@ -890,13 +890,12 @@ public class DefaultCategoryService implements CategoryService {
               () -> deleteObsoleteCoc(persistedCoc, categoryCombo, importSummaries));
     }
 
-    // Generated COC check (add if missing and valid)
+    // Generated COC check (add if missing and not empty)
     for (CategoryOptionCombo generatedCoc : generatedCocs) {
-      int size = generatedCoc.getCategoryOptions().size();
-      if (size <= 1) {
+      if (generatedCoc.getCategoryOptions().isEmpty()) {
         log.warn(
-            "Generated category option combo %S has %d option(s), skip adding for category combo %s as this is an invalid category option combo. Consider cleaning up the metadata model."
-                .formatted(generatedCoc.getName(), size, categoryCombo.getUid()));
+            "Generated category option combo %S has 0 options, skip adding for category combo %s as this is an invalid category option combo. Consider cleaning up the metadata model."
+                .formatted(generatedCoc.getName(), categoryCombo.getUid()));
       } else if (!persistedCocs.contains(generatedCoc)) {
         categoryCombo.getOptionCombos().add(generatedCoc);
         addCategoryOptionCombo(generatedCoc);
