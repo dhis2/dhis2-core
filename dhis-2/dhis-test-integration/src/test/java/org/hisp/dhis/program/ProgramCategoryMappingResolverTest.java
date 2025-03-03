@@ -43,8 +43,8 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.InconsistentMetadataException;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -236,7 +236,7 @@ class ProgramCategoryMappingResolverTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testResolveProgramCategoryMappings() {
+  void testResolveProgramCategoryMappings() throws ConflictException {
     // Given
     Program program = createProgram(categoryMappings);
 
@@ -254,13 +254,11 @@ class ProgramCategoryMappingResolverTest extends PostgresIntegrationTestBase {
     Program program = createProgram(Set.of(cmBad, cm2, cm3));
 
     // When throws
-    InconsistentMetadataException thrown =
-        assertThrows(
-            InconsistentMetadataException.class,
-            () -> target.resolveProgramCategoryMappings(program));
+    ConflictException thrown =
+        assertThrows(ConflictException.class, () -> target.resolveProgramCategoryMappings(program));
 
     // Then
-    assertEquals(E4072, thrown.getErrorCode());
+    assertEquals(E4072, thrown.getCode());
   }
 
   @Test
@@ -271,17 +269,15 @@ class ProgramCategoryMappingResolverTest extends PostgresIntegrationTestBase {
     Program program = createProgram(Set.of(cmBad, cm2, cm3));
 
     // When throws
-    InconsistentMetadataException thrown =
-        assertThrows(
-            InconsistentMetadataException.class,
-            () -> target.resolveProgramCategoryMappings(program));
+    ConflictException thrown =
+        assertThrows(ConflictException.class, () -> target.resolveProgramCategoryMappings(program));
 
     // Then
-    assertEquals(E4073, thrown.getErrorCode());
+    assertEquals(E4073, thrown.getCode());
   }
 
   @Test
-  void testResolveProgramIndicatorCategoryMappings() {
+  void testResolveProgramIndicatorCategoryMappings() throws ConflictException {
     // Given
     Program program = createProgram(categoryMappings);
     ProgramIndicator programIndicator = createProgramIndicator(program, categoryMappingIds);
@@ -302,13 +298,13 @@ class ProgramCategoryMappingResolverTest extends PostgresIntegrationTestBase {
         createProgramIndicator(program, Set.of("NoMappingId", CM2_ID, CM3_ID));
 
     // When throws
-    InconsistentMetadataException thrown =
+    ConflictException thrown =
         assertThrows(
-            InconsistentMetadataException.class,
+            ConflictException.class,
             () -> target.resolveProgramIndicatorCategoryMappings(programIndicator));
 
     // Then
-    assertEquals(E4071, thrown.getErrorCode());
+    assertEquals(E4071, thrown.getCode());
   }
 
   @Test
@@ -318,13 +314,13 @@ class ProgramCategoryMappingResolverTest extends PostgresIntegrationTestBase {
     ProgramIndicator programIndicator = createProgramIndicator(program, Set.of(CM2_ID, CM3_ID));
 
     // When throws
-    InconsistentMetadataException thrown =
+    ConflictException thrown =
         assertThrows(
-            InconsistentMetadataException.class,
+            ConflictException.class,
             () -> target.resolveProgramIndicatorCategoryMappings(programIndicator));
 
     // Then
-    assertEquals(E4074, thrown.getErrorCode());
+    assertEquals(E4074, thrown.getCode());
   }
 
   // -------------------------------------------------------------------------

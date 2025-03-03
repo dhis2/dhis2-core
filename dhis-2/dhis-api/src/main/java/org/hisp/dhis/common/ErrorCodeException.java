@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.common;
 
-import java.util.Arrays;
-import java.util.List;
-import lombok.Getter;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 
@@ -38,17 +35,13 @@ import org.hisp.dhis.feedback.ErrorMessage;
  *
  * @author Lars Helge Overland
  */
-@Getter
 public class ErrorCodeException extends RuntimeException {
   private final ErrorCode errorCode;
-
-  private final transient List<Object> args;
 
   /** Deprecated, use {@link ErrorCode} or {@ErrorMessage} constructors instead. */
   public ErrorCodeException(String message) {
     super(message);
     this.errorCode = null;
-    this.args = null;
   }
 
   /**
@@ -59,7 +52,6 @@ public class ErrorCodeException extends RuntimeException {
   public ErrorCodeException(ErrorCode errorCode) {
     super(errorCode.getMessage());
     this.errorCode = errorCode;
-    this.args = null;
   }
 
   /**
@@ -70,7 +62,6 @@ public class ErrorCodeException extends RuntimeException {
   public ErrorCodeException(ErrorMessage errorMessage) {
     super(errorMessage.getMessage());
     this.errorCode = errorMessage.getErrorCode();
-    this.args = null;
   }
 
   /**
@@ -80,8 +71,15 @@ public class ErrorCodeException extends RuntimeException {
    * @param args the message format arguments.
    */
   public ErrorCodeException(ErrorCode errorCode, Object... args) {
-    super(new ErrorMessage(errorCode, args).getMessage());
-    this.errorCode = errorCode;
-    this.args = Arrays.asList(args);
+    this(new ErrorMessage(errorCode, args));
+  }
+
+  /**
+   * Returns the {@link ErrorCode} of the exception.
+   *
+   * @return the {@link ErrorCode} of the exception.
+   */
+  public ErrorCode getErrorCode() {
+    return errorCode;
   }
 }

@@ -36,8 +36,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.InconsistentMetadataException;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -197,8 +197,8 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
   private void validateCategoryMappingObjects(Program program, Consumer<ErrorReport> addReports) {
     try {
       categoryMappingResolver.resolveProgramCategoryMappings(program);
-    } catch (InconsistentMetadataException ex) {
-      addReports.accept(new ErrorReport(Program.class, ex.getErrorCode(), ex.getArgs()));
+    } catch (ConflictException ex) {
+      addReports.accept(new ErrorReport(Program.class, ex.getCode(), ex.getArgs()));
     }
   }
 

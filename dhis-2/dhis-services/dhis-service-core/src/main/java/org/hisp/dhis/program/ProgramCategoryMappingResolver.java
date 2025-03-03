@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.program;
 
+import static java.util.Collections.unmodifiableSet;
 import static org.apache.commons.collections4.ListUtils.union;
 import static org.hisp.dhis.feedback.ErrorCode.E4071;
 import static org.hisp.dhis.feedback.ErrorCode.E4072;
@@ -45,17 +46,16 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.InconsistentMetadataException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.springframework.stereotype.Service;
 
 /**
  * This component resolves the {@link Category} and {@link CategoryOption} references by UID within
  * a {@link Set} of {@link ProgramCategoryMapping}.
  *
- * <p>Methods may throw the {@link InconsistentMetadataException}. During metadata import this
- * exception can be caught and turned into an import error report. While servicing analytics queries
- * this exception can be caused when metadata has become inconsistent because other metadata has
- * been modified.
+ * <p>Methods may throw the {@link ConflictException}. During metadata import this exception can be
+ * caught and turned into an import error report. While servicing analytics queries this exception
+ * can be caused when metadata has become inconsistent because other metadata has been modified.
  *
  * @author Jim Grace
  */
@@ -72,7 +72,8 @@ public class ProgramCategoryMappingResolver {
    * @param program the {@link Program} to resolve category mappings for
    * @return the set of {@link ProgramCategoryMapping} with UIDs resolved
    */
-  public Set<ProgramCategoryMapping> resolveProgramCategoryMappings(Program program) {
+  public Set<ProgramCategoryMapping> resolveProgramCategoryMappings(Program program)
+      throws ConflictException {
     return resolveCategoryMappings(program, program.getCategoryMappings());
   }
 
@@ -84,7 +85,7 @@ public class ProgramCategoryMappingResolver {
    * @return the set of {@link ProgramCategoryMapping} with UIDs resolved
    */
   public Set<ProgramCategoryMapping> resolveProgramIndicatorCategoryMappings(
-      ProgramIndicator programIndicator) {
+      ProgramIndicator programIndicator) throws ConflictException {
 
     Set<ProgramCategoryMapping> unresolvedMappings = getUnresolvedMappings(programIndicator);
     Set<ProgramCategoryMapping> mappings =
@@ -106,20 +107,23 @@ public class ProgramCategoryMappingResolver {
    * a program indicator if resolving for a program indicator.
    */
   private Set<ProgramCategoryMapping> resolveCategoryMappings(
-      Program program, Collection<ProgramCategoryMapping> mappings) {
+      Program program, Collection<ProgramCategoryMapping> mappings) throws ConflictException {
     Map<String, Category> categoryUidMap = getCategoryUidMap(mappings);
     Map<String, CategoryOption> optionUidMap = getOptionUidMap(mappings);
 
-    return mappings.stream()
-        .map(mapping -> resolveCategoryMapping(program, mapping, categoryUidMap, optionUidMap))
-        .collect(Collectors.toUnmodifiableSet());
+    Set<ProgramCategoryMapping> result = new HashSet<>();
+    for (ProgramCategoryMapping mapping : mappings) {
+      result.add(resolveCategoryMapping(program, mapping, categoryUidMap, optionUidMap));
+    }
+    return unmodifiableSet(result);
   }
 
   /**
    * Gets the (unresolved) category mappings for a program indicator. These are found within the
    * program using the UID of the category mappings.
    */
-  private Set<ProgramCategoryMapping> getUnresolvedMappings(ProgramIndicator programIndicator) {
+  private Set<ProgramCategoryMapping> getUnresolvedMappings(ProgramIndicator programIndicator)
+      throws ConflictException {
 
     Map<String, ProgramCategoryMapping> mappingMap =
         programIndicator.getProgram().getCategoryMappings().stream()
@@ -130,7 +134,7 @@ public class ProgramCategoryMappingResolver {
     for (String mappingId : programIndicator.getCategoryMappingIds()) {
       ProgramCategoryMapping mapping = mappingMap.get(mappingId);
       if (mapping == null) {
-        throw new InconsistentMetadataException(
+        throw new ConflictException(
             E4071, programIndicator.getUid(), mappingId, programIndicator.getProgram().getUid());
       }
       mappings.add(mapping);
@@ -178,21 +182,23 @@ public class ProgramCategoryMappingResolver {
       Program program,
       ProgramCategoryMapping mapping,
       Map<String, Category> categoryUidMap,
-      Map<String, CategoryOption> optionUidMap) {
+      Map<String, CategoryOption> optionUidMap)
+      throws ConflictException {
 
     Category category = categoryUidMap.get(mapping.getCategoryId());
     if (category == null) {
-      throw new InconsistentMetadataException(
+      throw new ConflictException(
           E4072, program.getUid(), mapping.getId(), mapping.getCategoryId());
     }
 
-    Set<ProgramCategoryOptionMapping> optionMappings =
-        mapping.getOptionMappings().stream()
-            .map(
-                optionMapping ->
-                    resolveOptionMapping(program, mapping, optionMapping, optionUidMap))
-            .collect(Collectors.toUnmodifiableSet());
-    return mapping.toBuilder().category(category).optionMappings(optionMappings).build();
+    Set<ProgramCategoryOptionMapping> resultMappings = new HashSet<>();
+    for (ProgramCategoryOptionMapping optionMapping : mapping.getOptionMappings()) {
+      resultMappings.add(resolveOptionMapping(program, mapping, optionMapping, optionUidMap));
+    }
+    return mapping.toBuilder()
+        .category(category)
+        .optionMappings(unmodifiableSet(resultMappings))
+        .build();
   }
 
   /**
@@ -203,11 +209,12 @@ public class ProgramCategoryMappingResolver {
       Program program,
       ProgramCategoryMapping mapping,
       ProgramCategoryOptionMapping optionMapping,
-      Map<String, CategoryOption> optionUidMap) {
+      Map<String, CategoryOption> optionUidMap)
+      throws ConflictException {
 
     CategoryOption option = optionUidMap.get(optionMapping.getOptionId());
     if (option == null) {
-      throw new InconsistentMetadataException(
+      throw new ConflictException(
           E4073,
           program.getUid(),
           mapping.getCategoryId(),
@@ -224,7 +231,7 @@ public class ProgramCategoryMappingResolver {
    * default cat combo).
    */
   private void validateProgramIndicatorCategories(
-      ProgramIndicator pi, Set<ProgramCategoryMapping> mappings) {
+      ProgramIndicator pi, Set<ProgramCategoryMapping> mappings) throws ConflictException {
 
     Set<String> mappedCategoryIds =
         mappings.stream()
@@ -236,7 +243,7 @@ public class ProgramCategoryMappingResolver {
 
     for (Category cat : neededCats) {
       if (!cat.isDefault() && !mappedCategoryIds.contains(cat.getUid())) {
-        throw new InconsistentMetadataException(
+        throw new ConflictException(
             E4074, pi.getUid(), cat.getDataDimensionType().getValue().toLowerCase(), cat.getUid());
       }
     }
