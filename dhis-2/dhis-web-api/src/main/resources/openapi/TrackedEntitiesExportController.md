@@ -130,7 +130,7 @@ in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.updatedBefore`
 
-Get tracked entities that are updated before the given time. A tracked entity is considered 
+Get tracked entities that were updated before the given time. A tracked entity is considered 
 updated if any of its tracked entity attributes, enrollments, events or relationships have been 
 modified. The `updatedAt` property of the tracked entity reflects the latest time at which any 
 of its tracked entity attributes, enrollments, events or relationships were modified. This 
