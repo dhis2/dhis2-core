@@ -36,10 +36,12 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityIdentifiers;
 import org.hisp.dhis.user.AuthenticationService;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -71,6 +73,7 @@ class EnrollmentAggregate {
                     .enrollmentParams(ctx.getParams().getEnrollmentParams())
                     .trackedEntity(UID.of(id.uid()))
                     .includeDeleted(ctx.getQueryParams().isIncludeDeleted())
+                    .program(ctx.getQueryParams().getEnrolledInTrackerProgram())
                     .build();
             try {
               result.putAll(id.uid(), enrollmentService.getEnrollments(params));

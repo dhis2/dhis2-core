@@ -64,7 +64,6 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
@@ -323,25 +322,5 @@ class HibernatePotentialDuplicateStore
                                     .auditableEntity(
                                         new AuditableEntity(Relationship.class, relationship))
                                     .build())));
-  }
-
-  public void moveOwnerships(TrackedEntity original, TrackedEntity duplicate) {
-    List<TrackedEntityProgramOwner> owners =
-        duplicate.getProgramOwners().stream()
-            .map(
-                ownership -> {
-                  TrackedEntityProgramOwner tpo =
-                      new TrackedEntityProgramOwner(
-                          original, ownership.getProgram(), ownership.getOrganisationUnit());
-                  tpo.updateDates();
-                  return tpo;
-                })
-            .toList();
-
-    original.getProgramOwners().addAll(owners);
-
-    owners.forEach(o -> getSession().merge(o));
-
-    duplicate.getProgramOwners().clear();
   }
 }
