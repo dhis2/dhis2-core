@@ -207,13 +207,7 @@ public class MaintenanceController {
       return conflict("CategoryCombo does not exist: " + uid);
     }
 
-    return importSummaries(
-        categoryService
-            .addAndPruneOptionCombosWithSummary(categoryCombo)
-            .orElseThrow(
-                () ->
-                    new IllegalStateException(
-                        "Error processing category option combos with import summary")));
+    return importSummaries(categoryService.addAndPruneOptionCombosWithSummary(categoryCombo));
   }
 
   @RequestMapping(

@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiPredicate;
 import javax.annotation.Nonnull;
@@ -432,8 +431,7 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional
-  public Optional<ImportSummaries> addAndPruneOptionCombosWithSummary(
-      @Nonnull CategoryCombo categoryCombo) {
+  public ImportSummaries addAndPruneOptionCombosWithSummary(@Nonnull CategoryCombo categoryCombo) {
     ImportSummaries importSummaries = new ImportSummaries();
     if (!categoryCombo.isValid()) {
       String msg =
@@ -441,15 +439,15 @@ public class DefaultCategoryService implements CategoryService {
               .formatted(categoryCombo.getUid());
       log.warn(msg);
       importSummaries.addImportSummary(new ImportSummary(ImportStatus.ERROR, msg));
-      return Optional.of(importSummaries);
+      return importSummaries;
     }
-    return addAndPruneOptionCombo(categoryCombo, Optional.of(importSummaries));
+    return addAndPruneOptionCombo(categoryCombo, importSummaries);
   }
 
   @Override
   @Transactional
   public void addAndPruneOptionCombos(CategoryCombo categoryCombo) {
-    addAndPruneOptionCombo(categoryCombo, Optional.empty());
+    addAndPruneOptionCombo(categoryCombo, null);
   }
 
   @Override
@@ -458,7 +456,7 @@ public class DefaultCategoryService implements CategoryService {
     List<CategoryCombo> categoryCombos = getAllCategoryCombos();
 
     for (CategoryCombo categoryCombo : categoryCombos) {
-      addAndPruneOptionCombo(categoryCombo, Optional.empty());
+      addAndPruneOptionCombo(categoryCombo, null);
     }
   }
 
@@ -872,10 +870,13 @@ public class DefaultCategoryService implements CategoryService {
    *   <li>Add a generated COC if it is not present in the persisted COCs
    * </ol>
    *
-   * @param categoryCombo the CategoryCombo.
+   * @param categoryCombo the CategoryCombo
+   * @param importSummaries pass in an instantiated Import Summary if a report of the process is
+   *     required valid one
+   * @return returns an Import Summary if one was provided
    */
-  private Optional<ImportSummaries> addAndPruneOptionCombo(
-      @Nonnull CategoryCombo categoryCombo, Optional<ImportSummaries> importSummaries) {
+  private ImportSummaries addAndPruneOptionCombo(
+      @Nonnull CategoryCombo categoryCombo, ImportSummaries importSummaries) {
     List<CategoryOptionCombo> generatedCocs = categoryCombo.generateOptionCombosList();
     Set<CategoryOptionCombo> persistedCocs =
         Sets.newHashSet(categoryComboStore.getByUid(categoryCombo.getUid()).getOptionCombos());
@@ -904,20 +905,19 @@ public class DefaultCategoryService implements CategoryService {
             "Added missing category option combo: %s for category combo: %s"
                 .formatted(generatedCoc.getUid(), categoryCombo.getUid());
         log.info(msg);
-        importSummaries.ifPresent(
-            report -> {
-              ImportSummary importSummary = new ImportSummary();
-              importSummary.setDescription(msg);
-              importSummary.incrementImported();
-              report.addImportSummary(importSummary);
-            });
+        if (importSummaries != null) {
+          ImportSummary importSummary = new ImportSummary();
+          importSummary.setDescription(msg);
+          importSummary.incrementImported();
+          importSummaries.addImportSummary(importSummary);
+        }
       }
     }
     return importSummaries;
   }
 
   private void deleteObsoleteCoc(
-      CategoryOptionCombo coc, CategoryCombo cc, Optional<ImportSummaries> summaries) {
+      CategoryOptionCombo coc, CategoryCombo cc, ImportSummaries summaries) {
     try {
       String cocUid = coc.getUid();
       cc.getOptionCombos().remove(coc);
@@ -927,26 +927,23 @@ public class DefaultCategoryService implements CategoryService {
           ("Deleted obsolete category option combo: %s for category combo: %s"
               .formatted(cocUid, cc.getUid()));
       log.info(msg);
-      summaries.ifPresent(
-          report -> {
-            ImportSummary importSummary = new ImportSummary();
-            importSummary.setDescription(msg);
-            importSummary.incrementDeleted();
-            report.addImportSummary(importSummary);
-          });
-
+      if (summaries != null) {
+        ImportSummary importSummary = new ImportSummary();
+        importSummary.setDescription(msg);
+        importSummary.incrementDeleted();
+        summaries.addImportSummary(importSummary);
+      }
     } catch (DeleteNotAllowedException ex) {
       String msg =
           "Could not delete category option combo: %s due to %s"
               .formatted(coc.getUid(), ex.getMessage());
       log.warn(msg);
 
-      summaries.ifPresent(
-          report -> {
-            ImportSummary importSummary = new ImportSummary();
-            importSummary.setDescription(msg);
-            report.addImportSummary(importSummary);
-          });
+      if (summaries != null) {
+        ImportSummary importSummary = new ImportSummary();
+        importSummary.setDescription(msg);
+        summaries.addImportSummary(importSummary);
+      }
     }
   }
 
@@ -954,18 +951,16 @@ public class DefaultCategoryService implements CategoryService {
       (coc1, coc2) -> coc1.equals(coc2) || coc1.getUid().equals(coc2.getUid());
 
   private void updateNameIfNotEqual(
-      CategoryOptionCombo coc1, CategoryOptionCombo coc2, Optional<ImportSummaries> summaries) {
+      CategoryOptionCombo coc1, CategoryOptionCombo coc2, ImportSummaries summaries) {
     if (!coc1.getName().equals(coc2.getName())) {
       coc1.setName(coc2.getName());
-      summaries.ifPresent(
-          summary -> {
-            ImportSummary importSummary = new ImportSummary();
-            importSummary.setDescription(
-                "Update category option combo %S name to %s"
-                    .formatted(coc1.getUid(), coc1.getName()));
-            importSummary.incrementUpdated();
-            summary.addImportSummary(importSummary);
-          });
+      if (summaries != null) {
+        ImportSummary importSummary = new ImportSummary();
+        importSummary.setDescription(
+            "Update category option combo %S name to %s".formatted(coc1.getUid(), coc1.getName()));
+        importSummary.incrementUpdated();
+        summaries.addImportSummary(importSummary);
+      }
     }
   }
 }

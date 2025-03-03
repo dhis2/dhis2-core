@@ -317,21 +317,13 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
   void addAndPruneCategoryComboWithSummary() {
     setupCategoryCombo();
 
-    Optional<ImportSummaries> importSummary =
-        categoryService.addAndPruneOptionCombosWithSummary(ccA);
-    importSummary.ifPresentOrElse(
-        summary -> {
-          assertEquals(2, summary.getImported());
-          assertEquals(SUCCESS, summary.getStatus());
-          assertTrue(
-              summary.getImportSummaries().stream()
-                  .map(ImportSummary::getDescription)
-                  .allMatch(desc -> desc.contains(ccA.getUid())));
-        },
-        () -> {
-          throw new IllegalStateException(
-              "Should have received Import Summary during addAndPruneCategoryComboWithSummary test");
-        });
+    ImportSummaries importSummary = categoryService.addAndPruneOptionCombosWithSummary(ccA);
+    assertEquals(2, importSummary.getImported());
+    assertEquals(SUCCESS, importSummary.getStatus());
+    assertTrue(
+        importSummary.getImportSummaries().stream()
+            .map(ImportSummary::getDescription)
+            .allMatch(desc -> desc.contains(ccA.getUid())));
 
     assertEquals(3, categoryService.getAllCategoryOptionCombos().size());
 
@@ -341,21 +333,14 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
     entityManager.flush();
     entityManager.clear();
 
-    Optional<ImportSummaries> updateSummary =
-        categoryService.addAndPruneOptionCombosWithSummary(ccA);
-    updateSummary.ifPresentOrElse(
-        summary -> {
-          assertEquals(1, summary.getUpdated());
-          assertEquals(SUCCESS, summary.getStatus());
-          assertTrue(
-              summary.getImportSummaries().stream()
-                  .map(ImportSummary::getDescription)
-                  .allMatch(desc -> desc.contains("Update category option combo")));
-        },
-        () -> {
-          throw new IllegalStateException(
-              "Should have received Import Summary during addAndPruneCategoryComboWithSummary test");
-        });
+    ImportSummaries updateSummary = categoryService.addAndPruneOptionCombosWithSummary(ccA);
+
+    assertEquals(1, updateSummary.getUpdated());
+    assertEquals(SUCCESS, updateSummary.getStatus());
+    assertTrue(
+        updateSummary.getImportSummaries().stream()
+            .map(ImportSummary::getDescription)
+            .allMatch(desc -> desc.contains("Update category option combo")));
 
     List<CategoryOptionCombo> cocs = categoryService.getAllCategoryOptionCombos();
     assertEquals(3, cocs.size());
@@ -366,21 +351,13 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
   void addAndPruneCategoryComboWithSummaryDelete() {
     setupCategoryCombo();
 
-    Optional<ImportSummaries> importSummary =
-        categoryService.addAndPruneOptionCombosWithSummary(ccA);
-    importSummary.ifPresentOrElse(
-        summary -> {
-          assertEquals(2, summary.getImported());
-          assertEquals(SUCCESS, summary.getStatus());
-          assertTrue(
-              summary.getImportSummaries().stream()
-                  .map(ImportSummary::getDescription)
-                  .allMatch(desc -> desc.contains(ccA.getUid())));
-        },
-        () -> {
-          throw new IllegalStateException(
-              "Should have received Import Summary during addAndPruneCategoryComboWithSummary test");
-        });
+    ImportSummaries importSummary = categoryService.addAndPruneOptionCombosWithSummary(ccA);
+    assertEquals(2, importSummary.getImported());
+    assertEquals(SUCCESS, importSummary.getStatus());
+    assertTrue(
+        importSummary.getImportSummaries().stream()
+            .map(ImportSummary::getDescription)
+            .allMatch(desc -> desc.contains(ccA.getUid())));
 
     assertEquals(3, categoryService.getAllCategoryOptionCombos().size());
 
@@ -390,21 +367,13 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
     entityManager.clear();
 
     // trigger update
-    Optional<ImportSummaries> updateSummary =
-        categoryService.addAndPruneOptionCombosWithSummary(ccA);
-    updateSummary.ifPresentOrElse(
-        summary -> {
-          assertEquals(1, summary.getDeleted());
-          assertEquals(SUCCESS, summary.getStatus());
-          assertTrue(
-              summary.getImportSummaries().stream()
-                  .map(ImportSummary::getDescription)
-                  .allMatch(desc -> desc.contains("Deleted obsolete category option combo")));
-        },
-        () -> {
-          throw new IllegalStateException(
-              "Should have received Import Summary during addAndPruneCategoryComboWithSummary test");
-        });
+    ImportSummaries updateSummary = categoryService.addAndPruneOptionCombosWithSummary(ccA);
+    assertEquals(1, updateSummary.getDeleted());
+    assertEquals(SUCCESS, updateSummary.getStatus());
+    assertTrue(
+        updateSummary.getImportSummaries().stream()
+            .map(ImportSummary::getDescription)
+            .allMatch(desc -> desc.contains("Deleted obsolete category option combo")));
 
     List<CategoryOptionCombo> cocs = categoryService.getAllCategoryOptionCombos();
     assertEquals(2, cocs.size());

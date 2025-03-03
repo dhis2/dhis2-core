@@ -29,7 +29,6 @@ package org.hisp.dhis.category;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.apache.commons.collections4.SetValuedMap;
@@ -547,8 +546,9 @@ public interface CategoryService {
    * obsolete category option combos.
    *
    * @param categoryCombo the CategoryCombo
+   * @return returns an optional ImportSummary
    */
-  Optional<ImportSummaries> addAndPruneOptionCombosWithSummary(CategoryCombo categoryCombo);
+  ImportSummaries addAndPruneOptionCombosWithSummary(CategoryCombo categoryCombo);
 
   /**
    * Generates the complete set of category option combos for the given category combo. Removes
