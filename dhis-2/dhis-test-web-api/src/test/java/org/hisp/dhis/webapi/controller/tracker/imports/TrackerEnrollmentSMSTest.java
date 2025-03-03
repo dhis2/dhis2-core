@@ -273,12 +273,12 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEqualUids(submission.getTrackedEntityInstance(), actual.getTrackedEntity()));
     assertDoesNotThrow(
         () ->
-            trackedEntityService.getNewTrackedEntity(
+            trackedEntityService.getTrackedEntity(
                 UID.of(submission.getTrackedEntityInstance().getUid()),
                 UID.of(submission.getTrackerProgram().getUid()),
                 TrackedEntityParams.FALSE));
     TrackedEntity actualTe =
-        trackedEntityService.getNewTrackedEntity(
+        trackedEntityService.getTrackedEntity(
             UID.of(submission.getTrackedEntityInstance().getUid()),
             UID.of(submission.getTrackerProgram().getUid()),
             TrackedEntityParams.FALSE.withIncludeAttributes(true));
@@ -373,12 +373,12 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEqualUids(submission.getTrackedEntityInstance(), actual.getTrackedEntity()));
     assertDoesNotThrow(
         () ->
-            trackedEntityService.getNewTrackedEntity(
+            trackedEntityService.getTrackedEntity(
                 UID.of(submission.getTrackedEntityInstance().getUid()),
                 UID.of(submission.getTrackerProgram().getUid()),
                 TrackedEntityParams.FALSE));
     TrackedEntity actualTe =
-        trackedEntityService.getNewTrackedEntity(
+        trackedEntityService.getTrackedEntity(
             UID.of(submission.getTrackedEntityInstance().getUid()),
             UID.of(submission.getTrackerProgram().getUid()),
             TrackedEntityParams.FALSE.withIncludeAttributes(true));
@@ -461,10 +461,10 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     assertNotNull(trackedEntity);
     assertDoesNotThrow(
         () ->
-            trackedEntityService.getNewTrackedEntity(
+            trackedEntityService.getTrackedEntity(
                 UID.of(trackedEntity), UID.of(trackerProgram), TrackedEntityParams.FALSE));
     TrackedEntity actualTe =
-        trackedEntityService.getNewTrackedEntity(
+        trackedEntityService.getTrackedEntity(
             UID.of(trackedEntity),
             UID.of(trackerProgram),
             TrackedEntityParams.FALSE.withIncludeAttributes(true));

@@ -121,11 +121,11 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute('A');
     trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttribute);
     TrackedEntity trackedEntity = createTrackedEntity(trackedEntityAttribute);
-    assertNotNull(trackedEntityService.getNewTrackedEntity(UID.of(trackedEntity)));
+    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(trackedEntity)));
     removeTrackedEntity(trackedEntity);
     assertThrows(
         NotFoundException.class,
-        () -> trackedEntityService.getNewTrackedEntity(UID.of(trackedEntity)));
+        () -> trackedEntityService.getTrackedEntity(UID.of(trackedEntity)));
   }
 
   @Test
@@ -136,11 +136,11 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     trackedEntity
         .getTrackedEntityAttributeValues()
         .forEach(trackedEntityAttributeValueService::addTrackedEntityAttributeValue);
-    assertNotNull(trackedEntityService.getNewTrackedEntity(UID.of(trackedEntity)));
+    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(trackedEntity)));
     removeTrackedEntity(trackedEntity);
     assertThrows(
         NotFoundException.class,
-        () -> trackedEntityService.getNewTrackedEntity(UID.of(trackedEntity)));
+        () -> trackedEntityService.getTrackedEntity(UID.of(trackedEntity)));
     assertNull(
         trackedEntityAttributeValueService.getTrackedEntityAttributeValue(
             trackedEntity, trackedEntityAttribute));
@@ -162,10 +162,10 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     manager.save(relationship5);
     manager.flush();
     manager.clear();
-    assertNotNull(trackedEntityService.getNewTrackedEntity(UID.of(original)));
-    assertNotNull(trackedEntityService.getNewTrackedEntity(UID.of(duplicate)));
-    assertNotNull(trackedEntityService.getNewTrackedEntity(UID.of(control1)));
-    assertNotNull(trackedEntityService.getNewTrackedEntity(UID.of(control2)));
+    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(original)));
+    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(duplicate)));
+    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(control1)));
+    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(control2)));
 
     removeTrackedEntity(duplicate);
     assertThrows(NotFoundException.class, () -> getRelationship(UID.of(relationship3)));
@@ -174,7 +174,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     assertNotNull(getRelationship(UID.of(relationship2)));
     assertNotNull(getRelationship(UID.of(relationship5)));
     assertThrows(
-        NotFoundException.class, () -> trackedEntityService.getNewTrackedEntity(UID.of(duplicate)));
+        NotFoundException.class, () -> trackedEntityService.getTrackedEntity(UID.of(duplicate)));
   }
 
   @Test
@@ -200,10 +200,10 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     manager.update(duplicate);
     manager.update(control1);
     manager.update(control2);
-    assertNotNull(trackedEntityService.getNewTrackedEntity(UID.of(original)));
-    assertNotNull(trackedEntityService.getNewTrackedEntity(UID.of(duplicate)));
-    assertNotNull(trackedEntityService.getNewTrackedEntity(UID.of(control1)));
-    assertNotNull(trackedEntityService.getNewTrackedEntity(UID.of(control2)));
+    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(original)));
+    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(duplicate)));
+    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(control1)));
+    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(control2)));
     removeTrackedEntity(duplicate);
     assertThrows(
         NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollment2)));
@@ -211,7 +211,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     assertNotNull(enrollmentService.getEnrollment(UID.of(enrollment3)));
     assertNotNull(enrollmentService.getEnrollment(UID.of(enrollment4)));
     assertThrows(
-        NotFoundException.class, () -> trackedEntityService.getNewTrackedEntity(UID.of(duplicate)));
+        NotFoundException.class, () -> trackedEntityService.getTrackedEntity(UID.of(duplicate)));
   }
 
   private TrackedEntity createTrackedEntity(TrackedEntityAttribute trackedEntityAttribute) {

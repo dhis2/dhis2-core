@@ -54,11 +54,11 @@ public interface TrackedEntityService {
   /**
    * Get the tracked entity matching given {@code UID} under the privileges of the currently
    * authenticated user. No program attributes are included, only TETAs. Enrollments and
-   * relationships are not included. Use {@link #getNewTrackedEntity(UID, UID, TrackedEntityParams)}
+   * relationships are not included. Use {@link #getTrackedEntity(UID, UID, TrackedEntityParams)}
    * instead to also get the relationships, enrollments and program attributes.
    */
   @Nonnull
-  TrackedEntity getNewTrackedEntity(@Nonnull UID uid) throws NotFoundException, ForbiddenException;
+  TrackedEntity getTrackedEntity(@Nonnull UID uid) throws NotFoundException, ForbiddenException;
 
   /**
    * Get the tracked entity matching given {@code UID} under the privileges of the currently
@@ -67,8 +67,7 @@ public interface TrackedEntityService {
    * attributes and ownerships as defined in {@code params}.
    */
   @Nonnull
-  TrackedEntity getNewTrackedEntity(
-      @Nonnull UID uid, UID program, @Nonnull TrackedEntityParams params)
+  TrackedEntity getTrackedEntity(@Nonnull UID uid, UID program, @Nonnull TrackedEntityParams params)
       throws NotFoundException, ForbiddenException;
 
   /** Get all tracked entities matching given params. */

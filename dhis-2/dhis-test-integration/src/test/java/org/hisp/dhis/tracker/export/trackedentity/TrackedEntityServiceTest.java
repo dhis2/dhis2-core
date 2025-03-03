@@ -612,7 +612,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .build();
 
     TrackedEntity te =
-        trackedEntityService.getNewTrackedEntity(
+        trackedEntityService.getTrackedEntity(
             UID.of(trackedEntityA), UID.of(programA), TrackedEntityParams.TRUE);
     assertEquals(1, te.getEnrollments().size());
     assertEquals(enrollmentA.getUid(), te.getEnrollments().stream().findFirst().get().getUid());
@@ -727,7 +727,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     manager.update(trackedEntityA);
 
     TrackedEntity trackedEntity =
-        trackedEntityService.getNewTrackedEntity(
+        trackedEntityService.getTrackedEntity(
             UID.of(trackedEntityA), UID.of(programA), TrackedEntityParams.TRUE);
 
     assertContainsOnly(Set.of(enrollmentA), trackedEntity.getEnrollments(), Enrollment::getUid);
@@ -742,7 +742,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     manager.update(trackedEntityA);
 
     TrackedEntity trackedEntity =
-        trackedEntityService.getNewTrackedEntity(
+        trackedEntityService.getTrackedEntity(
             UID.of(trackedEntityA), null, TrackedEntityParams.TRUE);
 
     assertContainsOnly(
@@ -1928,7 +1928,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         assertThrows(
             NotFoundException.class,
             () ->
-                trackedEntityService.getNewTrackedEntity(
+                trackedEntityService.getTrackedEntity(
                     UID.of(trackedEntityA), UID.of(programUid), TrackedEntityParams.TRUE));
     assertEquals(
         String.format("Program with id %s could not be found.", programUid),
@@ -1942,7 +1942,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         assertThrows(
             NotFoundException.class,
             () ->
-                trackedEntityService.getNewTrackedEntity(
+                trackedEntityService.getTrackedEntity(
                     UID.of(notExistentTE), UID.of(programA), TrackedEntityParams.TRUE));
     assertEquals(
         String.format("TrackedEntity with id %s could not be found.", notExistentTE),
@@ -1962,7 +1962,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         assertThrows(
             ForbiddenException.class,
             () ->
-                trackedEntityService.getNewTrackedEntity(
+                trackedEntityService.getTrackedEntity(
                     UID.of(trackedEntityA), UID.of(inaccessibleProgram), TrackedEntityParams.TRUE));
     assertContains(
         String.format("User has no access to program: %s", inaccessibleProgram.getUid()),
@@ -1981,7 +1981,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         assertThrows(
             NotFoundException.class,
             () ->
-                trackedEntityService.getNewTrackedEntity(
+                trackedEntityService.getTrackedEntity(
                     UID.of(trackedEntity), UID.of(programA), TrackedEntityParams.TRUE));
     assertContains(
         String.format("TrackedEntity with id %s could not be found.", trackedEntity.getUid()),
@@ -2033,7 +2033,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         assertThrows(
             NotFoundException.class,
             () ->
-                trackedEntityService.getNewTrackedEntity(
+                trackedEntityService.getTrackedEntity(
                     UID.of(trackedEntityA), null, TrackedEntityParams.TRUE));
     assertContains(
         String.format("TrackedEntity with id %s could not be found.", trackedEntityA.getUid()),
@@ -2054,7 +2054,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         assertThrows(
             NotFoundException.class,
             () ->
-                trackedEntityService.getNewTrackedEntity(
+                trackedEntityService.getTrackedEntity(
                     UID.of(trackedEntityA), null, TrackedEntityParams.TRUE));
 
     assertContains(
@@ -2079,7 +2079,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         assertThrows(
             NotFoundException.class,
             () ->
-                trackedEntityService.getNewTrackedEntity(
+                trackedEntityService.getTrackedEntity(
                     UID.of(trackedEntityA), null, TrackedEntityParams.TRUE));
 
     assertContains(
@@ -2099,7 +2099,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         assertThrows(
             NotFoundException.class,
             () ->
-                trackedEntityService.getNewTrackedEntity(
+                trackedEntityService.getTrackedEntity(
                     UID.of(trackedEntityA), null, TrackedEntityParams.TRUE));
 
     assertContains(
@@ -2118,7 +2118,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         assertThrows(
             ForbiddenException.class,
             () ->
-                trackedEntityService.getNewTrackedEntity(
+                trackedEntityService.getTrackedEntity(
                     UID.of(trackedEntityA), null, TrackedEntityParams.TRUE));
 
     assertEquals("User has no access to any Tracked Entity Type", exception.getMessage());
@@ -2128,7 +2128,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   void shouldReturnProgramAttributesWhenSingleTERequestedAndProgramSpecified()
       throws ForbiddenException, NotFoundException {
     TrackedEntity trackedEntity =
-        trackedEntityService.getNewTrackedEntity(
+        trackedEntityService.getTrackedEntity(
             UID.of(trackedEntityA), UID.of(programA), TrackedEntityParams.TRUE);
 
     assertContainsOnly(
@@ -2141,7 +2141,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   void shouldReturnTrackedEntityTypeAttributesOnlyWhenSingleTERequestedAndNoProgramSpecified()
       throws ForbiddenException, NotFoundException {
     TrackedEntity trackedEntity =
-        trackedEntityService.getNewTrackedEntity(
+        trackedEntityService.getTrackedEntity(
             UID.of(trackedEntityA), null, TrackedEntityParams.TRUE);
 
     assertContainsOnly(
@@ -2166,7 +2166,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
     assertEquals(
         trackedEntityA,
-        trackedEntityService.getNewTrackedEntity(
+        trackedEntityService.getTrackedEntity(
             UID.of(trackedEntityA), UID.of(programA), TrackedEntityParams.TRUE));
   }
 
@@ -2180,7 +2180,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     injectSecurityContext(UserDetails.fromUser(testUser));
 
     TrackedEntity trackedEntity =
-        trackedEntityService.getNewTrackedEntity(
+        trackedEntityService.getTrackedEntity(
             UID.of(trackedEntityA), UID.of(programA), TrackedEntityParams.TRUE);
 
     assertEquals(trackedEntityA.getUid(), trackedEntity.getUid());
@@ -2206,7 +2206,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     injectSecurityContext(UserDetails.fromUser(testUser));
 
     TrackedEntity trackedEntity =
-        trackedEntityService.getNewTrackedEntity(
+        trackedEntityService.getTrackedEntity(
             UID.of(trackedEntityA), UID.of(programA), TrackedEntityParams.TRUE);
 
     assertEquals(trackedEntityA.getUid(), trackedEntity.getUid());
