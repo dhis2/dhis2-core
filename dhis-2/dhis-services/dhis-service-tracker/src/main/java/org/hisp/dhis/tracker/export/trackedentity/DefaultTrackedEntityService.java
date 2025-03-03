@@ -31,6 +31,7 @@ import static org.hisp.dhis.audit.AuditOperationType.SEARCH;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
@@ -145,6 +146,16 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   public TrackedEntity getTrackedEntity(@Nonnull UID uid)
       throws NotFoundException, ForbiddenException {
     return getTrackedEntity(uid, (Program) null, TrackedEntityParams.FALSE);
+  }
+
+  @Nonnull
+  @Override
+  public Optional<TrackedEntity> findTrackedEntity(@Nonnull UID uid) {
+    try {
+      return Optional.of(getTrackedEntity(uid, (Program) null, TrackedEntityParams.FALSE));
+    } catch (NotFoundException | ForbiddenException e) {
+      return Optional.empty();
+    }
   }
 
   @Nonnull

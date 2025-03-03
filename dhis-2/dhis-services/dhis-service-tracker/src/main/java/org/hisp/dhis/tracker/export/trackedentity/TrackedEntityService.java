@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.export.trackedentity;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
@@ -52,19 +53,40 @@ public interface TrackedEntityService {
       throws NotFoundException, ForbiddenException;
 
   /**
-   * Get the tracked entity matching given {@code UID} under the privileges of the currently
-   * authenticated user. No program attributes are included, only TETAs. Enrollments and
-   * relationships are not included. Use {@link #getTrackedEntity(UID, UID, TrackedEntityParams)}
-   * instead to also get the relationships, enrollments and program attributes.
+   * Finds the tracked entity that matches the given {@code UID} based on the privileges of the
+   * currently authenticated user. Returns an {@link Optional} indicating whether the tracked entity
+   * was found.
+   *
+   * @return an {@link Optional} containing the tracked entity if found, or an empty {@link
+   *     Optional} if not
+   */
+  @Nonnull
+  Optional<TrackedEntity> findTrackedEntity(@Nonnull UID uid);
+
+  /**
+   * Retrieves the tracked entity that matches the given {@code UID} based on the privileges of the
+   * currently authenticated user. This method only includes TETAs (Tracked Entity Type Attributes)
+   * and excludes program attributes, enrollments, and relationships. To include enrollments,
+   * relationships, and program attributes, use {@link #getTrackedEntity(UID, UID,
+   * TrackedEntityParams)}.
+   *
+   * @return the tracked entity associated with the specified {@code UID}
+   * @throws NotFoundException if the tracked entity cannot be found
+   * @throws ForbiddenException if the user does not have permission to access the tracked entity
    */
   @Nonnull
   TrackedEntity getTrackedEntity(@Nonnull UID uid) throws NotFoundException, ForbiddenException;
 
   /**
-   * Get the tracked entity matching given {@code UID} under the privileges of the currently
-   * authenticated user. If {@code program} is defined, program attributes for such program are
-   * included, otherwise only TETAs are included. It will include enrollments, relationships,
-   * attributes and ownerships as defined in {@code params}.
+   * Retrieves the tracked entity that matches the given {@code UID} based on the privileges of the
+   * currently authenticated user. If the {@code program} is provided, the program attributes for
+   * the specified program are included; otherwise, only TETAs (Tracked Entity Type Attributes) are
+   * included. This method also includes any enrollments, relationships, attributes, and ownerships
+   * as defined by the provided {@code params}.
+   *
+   * @return the tracked entity with additional details based on the provided parameters
+   * @throws NotFoundException if the tracked entity cannot be found
+   * @throws ForbiddenException if the user does not have permission to access the tracked entity
    */
   @Nonnull
   TrackedEntity getTrackedEntity(@Nonnull UID uid, UID program, @Nonnull TrackedEntityParams params)
