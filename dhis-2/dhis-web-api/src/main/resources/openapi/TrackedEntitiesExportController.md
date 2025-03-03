@@ -214,7 +214,7 @@ parameters should be applied to.
 ### `*.parameter.TrackedEntityRequestParams.eventStatus`
 
 Get tracked entities that have at least one event with the given status. `eventStatus` must be 
-specified together
+specified together with `eventOccurredAfter` and `eventOccurredBefore`.
 with `eventOccurredAfter` and `eventOccurredBefore`.
 
 Only return tracked entities that have at least one event in the specified status. See also
