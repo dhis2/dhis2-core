@@ -611,7 +611,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         params.getAttributes().entrySet()) {
       TrackedEntityAttribute tea = queryItem.getKey();
       String teaUid = tea.getUid();
-      String teaValueCol = quote(teaUid);
 
       fromBuilder
           .append(hlp.whereAnd())
@@ -622,7 +621,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
               getAttributeFilterQuery(
                   mapSqlParameterSource,
                   queryItem.getValue(),
-                  teaValueCol,
+                  teaUid,
                   tea.getValueType().isNumeric()));
     }
     return fromBuilder.toString();
@@ -631,9 +630,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   private String getAttributeFilterQuery(
       MapSqlParameterSource mapSqlParameterSource,
       List<QueryFilter> filters,
-      String teaValueCol,
+      String teaUid,
       boolean isNumericTea) {
-
+    String teaValueCol = quote(teaUid);
     if (filters.isEmpty()) {
       return "";
     }
@@ -646,7 +645,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       final String queryCol =
           isNumericTea ? castToNumber(teaValueCol + ".value") : lower(teaValueCol + ".value");
       int itemType = isNumericTea ? Types.NUMERIC : Types.VARCHAR;
-      String parameterKey = "attributeFilter_%s_%d".formatted(teaValueCol.replace("\"", ""), i);
+      String parameterKey = "attributeFilter_%s_%d".formatted(teaUid, i);
 
       StringBuilder filterString = new StringBuilder();
       filterString.append(queryCol).append(SPACE);
@@ -698,8 +697,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           .append(quote(attribute.getUid()))
           .append(" on ")
           .append(quote(attribute.getUid()))
-          .append(".trackedentityid = TE.trackedentityid ")
-          .append("and ")
+          .append(".trackedentityid = TE.trackedentityid and ")
           .append(quote(attribute.getUid()))
           .append(".trackedentityattributeid = ")
           .append(attribute.getId())
@@ -887,10 +885,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
     fromBuilder.append(dataElementFiltersSql);
 
-    if (!params.getAttributes().isEmpty()) {
-      fromBuilder.append(
-          getWhereClauseFromAttributeFilterConditions(params, mapSqlParameterSource, hlp));
-    }
+    fromBuilder.append(
+        getWhereClauseFromAttributeFilterConditions(params, mapSqlParameterSource, hlp));
 
     if (params.getTrackedEntity() != null) {
       mapSqlParameterSource.addValue("trackedentityid", params.getTrackedEntity().getId());

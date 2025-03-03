@@ -78,7 +78,7 @@ class EventChangeLogServiceTest extends TrackerTest {
 
   private final EventChangeLogOperationParams defaultOperationParams =
       EventChangeLogOperationParams.builder().build();
-  private final PageParams defaultPageParams = new PageParams(null, null, false);
+  private final PageParams defaultPageParams = new PageParams(1, 10, false);
 
   private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
