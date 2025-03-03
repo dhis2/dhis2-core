@@ -894,9 +894,9 @@ public class DefaultCategoryService implements CategoryService {
     for (CategoryOptionCombo generatedCoc : generatedCocs) {
       int size = generatedCoc.getCategoryOptions().size();
       if (size <= 1) {
-        log.info(
-            "Generated category option combo has %d option(s), skip adding for category combo %s as this is an invalid category option combo. Consider cleaning up the metadata model."
-                .formatted(size, categoryCombo.getUid()));
+        log.warn(
+            "Generated category option combo %S has %d option(s), skip adding for category combo %s as this is an invalid category option combo. Consider cleaning up the metadata model."
+                .formatted(generatedCoc.getName(), size, categoryCombo.getUid()));
       } else if (!persistedCocs.contains(generatedCoc)) {
         categoryCombo.getOptionCombos().add(generatedCoc);
         addCategoryOptionCombo(generatedCoc);
