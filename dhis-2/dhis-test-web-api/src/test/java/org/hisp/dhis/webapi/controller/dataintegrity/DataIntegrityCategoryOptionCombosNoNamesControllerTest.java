@@ -28,8 +28,8 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
-import static org.hisp.dhis.http.HttpStatus.CREATED;
 
+import org.hisp.dhis.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -46,7 +46,6 @@ class DataIntegrityCategoryOptionCombosNoNames extends AbstractDataIntegrityInte
   private final String check = "category_option_combos_no_names";
 
   private String categoryOptionRed;
-  private String categoryOptionLarge;
 
   @Test
   void testCategoryOptionCombosHaveNames() {
@@ -57,30 +56,17 @@ class DataIntegrityCategoryOptionCombosNoNames extends AbstractDataIntegrityInte
   @BeforeEach
   void setupTest() {
     categoryOptionRed =
-        assertStatus(CREATED, POST("/categoryOptions", "{ 'name': 'Red', 'shortName': 'Red' }"));
-
-    categoryOptionLarge =
         assertStatus(
-            CREATED, POST("/categoryOptions", "{ 'name': 'Large', 'shortName': 'Large' }"));
+            HttpStatus.CREATED, POST("/categoryOptions", "{ 'name': 'Red', 'shortName': 'Red' }"));
 
     String categoryColor =
         assertStatus(
-            CREATED,
+            HttpStatus.CREATED,
             POST(
                 "/categories",
                 "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType': 'DISAGGREGATION' ,"
                     + "'categoryOptions' : [{'id' : '"
                     + categoryOptionRed
-                    + "'} ] }"));
-
-    String categorySize =
-        assertStatus(
-            CREATED,
-            POST(
-                "/categories",
-                "{ 'name': 'Size', 'shortName': 'Size', 'dataDimensionType': 'DISAGGREGATION' ,"
-                    + "'categoryOptions' : [{'id' : '"
-                    + categoryOptionLarge
                     + "'} ] }"));
 
     POST(
@@ -89,13 +75,10 @@ class DataIntegrityCategoryOptionCombosNoNames extends AbstractDataIntegrityInte
                 + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
                 + "{'id' : '"
                 + categoryColor
-                + "'},"
-                + "{'id' : '"
-                + categorySize
                 + "'}]} ")
-        .content(CREATED);
+        .content(HttpStatus.CREATED);
 
     assertNamedMetadataObjectExists("categoryOptionCombos", "default");
-    assertCocExists("Red, Large");
+    assertNamedMetadataObjectExists("categoryOptionCombos", "Red");
   }
 }

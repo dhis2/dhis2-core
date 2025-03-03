@@ -243,12 +243,6 @@ class AbstractDataIntegrityIntegrationTest extends PostgresControllerIntegration
     assertEquals(1, dimensions.size());
   }
 
-  final void assertCocExists(String... options) {
-    JsonObject response = GET("/categoryOptionCombos" + getNameLikeQueryParams(options)).content();
-    JsonArray cocs = response.getArray("categoryOptionCombos");
-    assertEquals(1, cocs.size());
-  }
-
   private String getNameLikeQueryParams(@Nonnull String... options) {
     StringBuilder sb = new StringBuilder();
     String queryParam = "filter=name:like:";

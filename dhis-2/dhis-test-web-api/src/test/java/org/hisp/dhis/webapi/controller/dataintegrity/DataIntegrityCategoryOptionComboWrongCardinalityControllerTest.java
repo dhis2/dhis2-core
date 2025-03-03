@@ -41,13 +41,16 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityCategoryOptionComboWrongCardinalityControllerTest
     extends AbstractDataIntegrityIntegrationTest {
+  private final String check = "cocs_wrong_cardinality";
+
+  private final String detailsIdType = "categoryOptionCombos";
+
+  private String categoryColor;
 
   @Test
   void setTestCatCombosWrongCardinalityDoesNotExist() {
 
     setupTest();
-    String check = "cocs_wrong_cardinality";
-    String detailsIdType = "categoryOptionCombos";
     assertHasNoDataIntegrityIssues(detailsIdType, check, true);
   }
 
@@ -61,7 +64,7 @@ class DataIntegrityCategoryOptionComboWrongCardinalityControllerTest
         assertStatus(
             HttpStatus.CREATED, POST("/categoryOptions", "{ 'name': 'Red', 'shortName': 'Red' }"));
 
-    String categoryColor =
+    categoryColor =
         assertStatus(
             HttpStatus.CREATED,
             POST(
