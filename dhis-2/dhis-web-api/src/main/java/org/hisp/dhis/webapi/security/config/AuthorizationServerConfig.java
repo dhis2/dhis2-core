@@ -47,20 +47,12 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-import org.springframework.security.oauth2.core.oidc.OidcScopes;
-import org.springframework.security.oauth2.core.oidc.StandardClaimNames;
 import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
-import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
-import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
-import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
-import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.web.SecurityFilterChain;
@@ -170,28 +162,28 @@ public class AuthorizationServerConfig {
     };
   }
 
-  @Bean
-  public RegisteredClientRepository registeredClientRepository() {
-    RegisteredClient oidcClient =
-        RegisteredClient.withId(UUID.randomUUID().toString())
-            .clientId("dhis2-client")
-            .clientSecret("$2a$12$FtWBAB.hWkR3SSul7.HWROr8/aEuUEjywnB86wrYz0HtHh4iam6/G")
-            .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
-            .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-            .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-            //            .redirectUri("http://localhost:9090/oauth2/code/dhis2-client")
-            .redirectUri("http://localhost:8080/oauth2/code/xxx")
-            .postLogoutRedirectUri("http://127.0.0.1:8080/")
-            .scope(OidcScopes.OPENID)
-            .scope(OidcScopes.PROFILE)
-            .scope(OidcScopes.EMAIL)
-            .scope(StandardClaimNames.EMAIL)
-            .scope(StandardClaimNames.EMAIL_VERIFIED)
-            .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
-            .build();
-
-    return new InMemoryRegisteredClientRepository(oidcClient);
-  }
+  //  @Bean
+  //  public RegisteredClientRepository registeredClientRepository() {
+  //    RegisteredClient oidcClient =
+  //        RegisteredClient.withId(UUID.randomUUID().toString())
+  //            .clientId("dhis2-client")
+  //            .clientSecret("$2a$12$FtWBAB.hWkR3SSul7.HWROr8/aEuUEjywnB86wrYz0HtHh4iam6/G")
+  //            .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
+  //            .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+  //            .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+  //            //            .redirectUri("http://localhost:9090/oauth2/code/dhis2-client")
+  //            .redirectUri("http://localhost:8080/oauth2/code/xxx")
+  //            .postLogoutRedirectUri("http://127.0.0.1:8080/")
+  //            .scope(OidcScopes.OPENID)
+  //            .scope(OidcScopes.PROFILE)
+  //            .scope(OidcScopes.EMAIL)
+  //            .scope(StandardClaimNames.EMAIL)
+  //            .scope(StandardClaimNames.EMAIL_VERIFIED)
+  //            .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
+  //            .build();
+  //
+  //    return new InMemoryRegisteredClientRepository(oidcClient);
+  //  }
 
   @Bean
   public JWKSource<SecurityContext> jwkSource() {
