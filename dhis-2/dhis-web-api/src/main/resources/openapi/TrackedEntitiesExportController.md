@@ -222,7 +222,7 @@ Only return tracked entities that have at least one event in the specified statu
 
 ### `*.parameter.TrackedEntityRequestParams.eventOccurredAfter`
 
-Get tracked entities with an event occurred after given date and time.
+Get tracked entities with an event that occurred after the given date and time.
 This parameter is inclusive, so results with the exact date and time specified will be included 
 in the response. `eventOccurredAfter` must be specified together with `eventStatus` and 
 `eventOccurredBefore`.
