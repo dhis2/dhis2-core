@@ -99,7 +99,7 @@ class ProgramRuleTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() throws IOException {
-    ObjectBundle bundle = testSetup.setUpMetadata();
+    ObjectBundle bundle = testSetup.importMetadata();
 
     User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);

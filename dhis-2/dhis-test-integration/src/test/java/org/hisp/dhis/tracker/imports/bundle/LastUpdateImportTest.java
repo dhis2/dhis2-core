@@ -83,20 +83,20 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() throws IOException {
-    testSetup.setUpMetadata();
+    testSetup.importMetadata();
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    TrackerObjects trackerObjects = testSetup.setUpTrackerData("tracker/single_te.json");
+    TrackerObjects trackerObjects = testSetup.importTrackerData("tracker/single_te.json");
 
     trackedEntity = trackerObjects.getTrackedEntities().get(0);
 
-    trackerObjects = testSetup.setUpTrackerData("tracker/single_enrollment.json");
+    trackerObjects = testSetup.importTrackerData("tracker/single_enrollment.json");
 
     enrollment = trackerObjects.getEnrollments().get(0);
 
-    trackerObjects = testSetup.setUpTrackerData("tracker/single_event.json");
+    trackerObjects = testSetup.importTrackerData("tracker/single_event.json");
 
     event = trackerObjects.getEvents().get(0);
 
@@ -117,7 +117,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
 
     TrackerImportParams params =
         TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build();
-    testSetup.setUpTrackerData("tracker/single_te.json", params);
+    testSetup.importTrackerData("tracker/single_te.json", params);
 
     Date lastUpdateAfter = getTrackedEntity().getLastUpdated();
 
@@ -135,14 +135,14 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
 
     clearSession();
 
-    testSetup.setUpTrackerData("tracker/event_with_data_values.json");
+    testSetup.importTrackerData("tracker/event_with_data_values.json");
 
     TrackerImportParams params =
         TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build();
 
     assertNoErrors(
         trackerImportService.importTracker(
-            params, testSetup.setUpTrackerData("tracker/event_with_updated_data_values.json")));
+            params, testSetup.importTrackerData("tracker/event_with_updated_data_values.json")));
 
     clearSession();
 
@@ -483,7 +483,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
   }
 
   private org.hisp.dhis.tracker.imports.domain.Event importEventProgram() throws IOException {
-    TrackerObjects trackerObjects = testSetup.setUpTrackerData("tracker/single_event.json");
+    TrackerObjects trackerObjects = testSetup.importTrackerData("tracker/single_event.json");
     org.hisp.dhis.tracker.imports.domain.Event ev = trackerObjects.getEvents().get(0);
     ev.setEnrollment(null);
     ev.setEvent(UID.generate());

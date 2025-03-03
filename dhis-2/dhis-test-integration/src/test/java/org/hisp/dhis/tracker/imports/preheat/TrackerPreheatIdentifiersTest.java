@@ -80,7 +80,7 @@ class TrackerPreheatIdentifiersTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() throws IOException {
-    testSetup.setUpMetadata("tracker/identifier_metadata.json");
+    testSetup.importMetadata("tracker/identifier_metadata.json");
 
     User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
