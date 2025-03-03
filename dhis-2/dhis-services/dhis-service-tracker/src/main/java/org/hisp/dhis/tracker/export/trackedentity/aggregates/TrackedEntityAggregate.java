@@ -198,16 +198,9 @@ public class TrackedEntityAggregate {
                             filterAttributes(
                                 attributes.get(uid),
                                 ownedTeis.get(uid),
-                                teAttributesCache.get(
-                                    "ALL_ATTRIBUTES",
-                                    s ->
-                                        trackedEntityAttributeService
-                                            .getTrackedEntityAttributesByTrackedEntityTypes()),
-                                programTeAttributesCache.get(
-                                    "ATTRIBUTES_BY_PROGRAM",
-                                    s ->
-                                        trackedEntityAttributeService
-                                            .getTrackedEntityAttributesByProgram()),
+                                trackedEntityAttributeService
+                                    .getTrackedEntityAttributesByTrackedEntityTypes(),
+                                trackedEntityAttributeService.getTrackedEntityAttributesByProgram(),
                                 ctx));
                         te.setEnrollments(
                             filterEnrollments(enrollments.get(uid), ownedTeis.get(uid), ctx));
