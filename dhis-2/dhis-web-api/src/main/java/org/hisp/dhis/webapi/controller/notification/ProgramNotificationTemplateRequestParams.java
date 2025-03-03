@@ -57,13 +57,14 @@ Get given number of items per page.
   @OpenApi.Property(defaultValue = "50")
   private Integer pageSize;
 
-  @OpenApi.Description(
-      """
-Get the total number of items and pages in the pager.
-
-**Only enable this if absolutely necessary as this is resource intensive.** Use the pagers `prev/nextPage` to determine if there is a previous or a next page instead.
-""")
-  private boolean totalPages = false;
+  /**
+   * Parameter {@code totalPages} is not supported. Like other metadata totals are always returned.
+   */
+  @OpenApi.Ignore
+  @Override
+  public boolean isTotalPages() {
+    return true;
+  }
 
   @OpenApi.Description(
       """

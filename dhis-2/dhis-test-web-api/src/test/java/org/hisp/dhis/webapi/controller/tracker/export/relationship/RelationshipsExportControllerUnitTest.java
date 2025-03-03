@@ -38,7 +38,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,8 +50,6 @@ class RelationshipsExportControllerUnitTest {
   @Mock private RelationshipService relationshipService;
 
   @Mock private RelationshipRequestParamsMapper paramsMapper;
-
-  @Mock private FieldFilterService fieldFilterService;
 
   @Test
   void shouldFailInstantiatingControllerIfAnyOrderableFieldIsUnsupported() {
@@ -68,9 +65,7 @@ class RelationshipsExportControllerUnitTest {
     Exception exception =
         assertThrows(
             IllegalStateException.class,
-            () ->
-                new RelationshipsExportController(
-                    relationshipService, paramsMapper, fieldFilterService));
+            () -> new RelationshipsExportController(relationshipService, paramsMapper, null));
 
     assertAll(
         () ->

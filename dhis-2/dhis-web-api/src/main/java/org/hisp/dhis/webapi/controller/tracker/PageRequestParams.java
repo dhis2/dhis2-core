@@ -30,13 +30,18 @@ package org.hisp.dhis.webapi.controller.tracker;
 import org.hisp.dhis.common.OpenApi;
 
 /**
- * {@link PageRequestParams} represent the HTTP request parameters that configure whether the
- * response should be paginated and if so how. Tracker supports disabling pagination via {@code
- * paging=false} and enabling pagination via {@code paging=true}. Enabling and disabling parameters
- * are mutually exclusive. We can thus not set default values in our {@code RequestParams} classes
- * as we would not be able to discern a user supplied parameter value from a default value.
+ * Represents the HTTP request parameters for configuring pagination in tracker endpoints. Tracker
+ * endpoints that support disabling pagination do so via {@code paging=false}. Enabling and
+ * disabling parameters are mutually exclusive, so default values cannot be set in {@code
+ * RequestParams} classes as user-supplied values cannot be distinguished from defaults.
  *
- * <p>{@code totalPages=true} is only supported on paginated responses.
+ * <p>{@code totalPages=true} is supported only on paginated responses by some endpoints.
+ *
+ * <p>Define fields with setters for {@code paging} and {@code totalPages} if the endpoint supports
+ * them.
+ *
+ * <p>Define methods {@code isPaging} and {@code isTotalPages} to return appropriate values if the
+ * endpoint does not support them.
  */
 @OpenApi.Shared(name = "TrackerPageRequestParams")
 public interface PageRequestParams {

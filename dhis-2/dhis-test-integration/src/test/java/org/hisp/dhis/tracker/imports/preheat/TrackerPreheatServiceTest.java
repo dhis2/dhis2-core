@@ -42,20 +42,26 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerIdentifierCollector;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class TrackerPreheatServiceTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class TrackerPreheatServiceTest extends PostgresIntegrationTestBase {
+  @Autowired private TestSetup testSetup;
 
   @Autowired private TrackerPreheatService trackerPreheatService;
 
@@ -63,7 +69,7 @@ class TrackerPreheatServiceTest extends TrackerTest {
 
   @Test
   void testCollectIdentifiersEvents() throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/event_events.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/event_events.json");
     assertTrue(trackerObjects.getTrackedEntities().isEmpty());
     assertTrue(trackerObjects.getEnrollments().isEmpty());
     assertFalse(trackerObjects.getEvents().isEmpty());
@@ -126,7 +132,7 @@ class TrackerPreheatServiceTest extends TrackerTest {
 
   @Test
   void testPreheatValidation() throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/event_events.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/event_events.json");
     assertTrue(trackerObjects.getTrackedEntities().isEmpty());
     assertTrue(trackerObjects.getEnrollments().isEmpty());
     assertFalse(trackerObjects.getEvents().isEmpty());
@@ -134,12 +140,12 @@ class TrackerPreheatServiceTest extends TrackerTest {
 
   @Test
   void testPreheatEvents() throws IOException {
-    setUpMetadata("tracker/event_metadata.json");
+    testSetup.setUpMetadata("tracker/event_metadata.json");
 
     User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    TrackerObjects trackerObjects = fromJson("tracker/event_events.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/event_events.json");
 
     TrackerPreheat preheat =
         trackerPreheatService.preheat(trackerObjects, new TrackerIdSchemeParams());

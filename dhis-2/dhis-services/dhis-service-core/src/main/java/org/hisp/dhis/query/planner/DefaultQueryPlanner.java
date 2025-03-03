@@ -51,17 +51,11 @@ public class DefaultQueryPlanner implements QueryPlanner {
   public <T extends IdentifiableObject> QueryPlan<T> planQuery(Query<T> query) {
     autoFill(query);
 
-    // if only one filter, always set to Junction.Type AND
-    if (query.getFilters().size() > 1 && Junction.Type.OR == query.getRootJunctionType()) {
-      return new QueryPlan<>(Query.emptyOf(query), Query.copyOf(query));
-    }
-
     QueryPlan<T> plan = split(query);
     Query<T> memoryQuery = plan.memoryQuery();
     Query<T> dbQuery = plan.dbQuery();
 
-    // if there are any non persisted criterions left, we leave the paging
-    // to the in-memory engine
+    // if there are any non persisted filters, leave the paging to the in-memory engine
     if (!memoryQuery.isEmpty()) {
       dbQuery.setSkipPaging(true);
     } else {
@@ -99,6 +93,14 @@ public class DefaultQueryPlanner implements QueryPlanner {
       } else {
         memoryQuery.add(filter);
       }
+    }
+    if (query.getRootJunctionType() == Junction.Type.OR
+        && !memoryQuery.getFilters().isEmpty()
+        && !dbQuery.getFilters().isEmpty()) {
+      // OR with some filters DB some filters in-memory => all must be in-memory
+      dbQuery.getFilters().clear();
+      memoryQuery.getFilters().clear();
+      memoryQuery.getFilters().addAll(query.getFilters());
     }
 
     if (query.ordersPersisted()) {

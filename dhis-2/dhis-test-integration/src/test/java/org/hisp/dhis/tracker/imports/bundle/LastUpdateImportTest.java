@@ -44,9 +44,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -58,9 +59,14 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class LastUpdateImportTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class LastUpdateImportTest extends PostgresIntegrationTestBase {
+  @Autowired private TestSetup testSetup;
   @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private IdentifiableObjectManager manager;
@@ -77,25 +83,20 @@ class LastUpdateImportTest extends TrackerTest {
 
   @BeforeAll
   void setUp() throws IOException {
-    setUpMetadata("tracker/simple_metadata.json");
+    testSetup.setUpMetadata();
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    TrackerImportParams params = TrackerImportParams.builder().build();
-
-    TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
-    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
+    TrackerObjects trackerObjects = testSetup.setUpTrackerData("tracker/single_te.json");
 
     trackedEntity = trackerObjects.getTrackedEntities().get(0);
 
-    trackerObjects = fromJson("tracker/single_enrollment.json");
-    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
+    trackerObjects = testSetup.setUpTrackerData("tracker/single_enrollment.json");
 
     enrollment = trackerObjects.getEnrollments().get(0);
 
-    trackerObjects = fromJson("tracker/single_event.json");
-    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
+    trackerObjects = testSetup.setUpTrackerData("tracker/single_event.json");
 
     event = trackerObjects.getEvents().get(0);
 
@@ -116,8 +117,7 @@ class LastUpdateImportTest extends TrackerTest {
 
     TrackerImportParams params =
         TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build();
-
-    assertNoErrors(trackerImportService.importTracker(params, fromJson("tracker/single_te.json")));
+    testSetup.setUpTrackerData("tracker/single_te.json", params);
 
     Date lastUpdateAfter = getTrackedEntity().getLastUpdated();
 
@@ -135,16 +135,14 @@ class LastUpdateImportTest extends TrackerTest {
 
     clearSession();
 
-    TrackerImportParams params = TrackerImportParams.builder().build();
-    assertNoErrors(
-        trackerImportService.importTracker(
-            params, fromJson("tracker/event_with_data_values.json")));
+    testSetup.setUpTrackerData("tracker/event_with_data_values.json");
 
-    params = TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build();
+    TrackerImportParams params =
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build();
 
     assertNoErrors(
         trackerImportService.importTracker(
-            params, fromJson("tracker/event_with_updated_data_values.json")));
+            params, testSetup.setUpTrackerData("tracker/event_with_updated_data_values.json")));
 
     clearSession();
 
@@ -485,7 +483,7 @@ class LastUpdateImportTest extends TrackerTest {
   }
 
   private org.hisp.dhis.tracker.imports.domain.Event importEventProgram() throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/single_event.json");
+    TrackerObjects trackerObjects = testSetup.setUpTrackerData("tracker/single_event.json");
     org.hisp.dhis.tracker.imports.domain.Event ev = trackerObjects.getEvents().get(0);
     ev.setEnrollment(null);
     ev.setEvent(UID.generate());
