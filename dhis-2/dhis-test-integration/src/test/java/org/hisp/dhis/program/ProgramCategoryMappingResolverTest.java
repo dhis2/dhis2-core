@@ -86,31 +86,15 @@ class ProgramCategoryMappingResolverTest extends PostgresIntegrationTestBase {
   private ProgramCategoryOptionMapping omE;
   private ProgramCategoryOptionMapping omF;
 
-  private ProgramCategoryOptionMapping omAResolved;
-  private ProgramCategoryOptionMapping omBResolved;
-  private ProgramCategoryOptionMapping omCResolved;
-  private ProgramCategoryOptionMapping omDResolved;
-  private ProgramCategoryOptionMapping omEResolved;
-  private ProgramCategoryOptionMapping omFResolved;
-
   private Set<ProgramCategoryOptionMapping> omSet1;
   private Set<ProgramCategoryOptionMapping> omSet2;
   private Set<ProgramCategoryOptionMapping> omSet3;
-
-  private Set<ProgramCategoryOptionMapping> omSet1Resolved;
-  private Set<ProgramCategoryOptionMapping> omSet2Resolved;
-  private Set<ProgramCategoryOptionMapping> omSet3Resolved;
 
   private ProgramCategoryMapping cm1;
   private ProgramCategoryMapping cm2;
   private ProgramCategoryMapping cm3;
 
-  private ProgramCategoryMapping cm1Resolved;
-  private ProgramCategoryMapping cm2Resolved;
-  private ProgramCategoryMapping cm3Resolved;
-
   private Set<ProgramCategoryMapping> categoryMappings;
-  private Set<ProgramCategoryMapping> categoryMappingsResolved;
   private Set<String> categoryMappingIds;
 
   private static final String CM1_ID = "iOChed1vei4";
@@ -188,20 +172,9 @@ class ProgramCategoryMappingResolverTest extends PostgresIntegrationTestBase {
             .filter(de + " > 6")
             .build();
 
-    omAResolved = omA.toBuilder().option(optionA).build();
-    omBResolved = omB.toBuilder().option(optionB).build();
-    omCResolved = omC.toBuilder().option(optionC).build();
-    omDResolved = omD.toBuilder().option(optionD).build();
-    omEResolved = omE.toBuilder().option(optionE).build();
-    omFResolved = omF.toBuilder().option(optionF).build();
-
     omSet1 = Set.of(omA, omB);
     omSet2 = Set.of(omC, omD);
     omSet3 = Set.of(omE, omF);
-
-    omSet1Resolved = Set.of(omAResolved, omBResolved);
-    omSet2Resolved = Set.of(omCResolved, omDResolved);
-    omSet3Resolved = Set.of(omEResolved, omFResolved);
 
     cm1 =
         ProgramCategoryMapping.builder()
@@ -225,12 +198,7 @@ class ProgramCategoryMappingResolverTest extends PostgresIntegrationTestBase {
             .optionMappings(omSet3)
             .build();
 
-    cm1Resolved = cm1.toBuilder().category(category1).optionMappings(omSet1Resolved).build();
-    cm2Resolved = cm2.toBuilder().category(category2).optionMappings(omSet2Resolved).build();
-    cm3Resolved = cm3.toBuilder().category(category3).optionMappings(omSet3Resolved).build();
-
     categoryMappings = Set.of(cm1, cm2, cm3);
-    categoryMappingsResolved = Set.of(cm1Resolved, cm2Resolved, cm3Resolved);
 
     categoryMappingIds = Set.of(CM1_ID, CM2_ID, CM3_ID);
   }
@@ -244,7 +212,7 @@ class ProgramCategoryMappingResolverTest extends PostgresIntegrationTestBase {
     Set<ProgramCategoryMapping> result = target.resolveProgramCategoryMappings(program);
 
     // Then
-    assertContainsOnly(categoryMappingsResolved, result);
+    assertResolvedCategoryMappings(result);
   }
 
   @Test
@@ -287,7 +255,7 @@ class ProgramCategoryMappingResolverTest extends PostgresIntegrationTestBase {
         target.resolveProgramIndicatorCategoryMappings(programIndicator);
 
     // Then
-    assertContainsOnly(categoryMappingsResolved, result);
+    assertResolvedCategoryMappings(result);
   }
 
   @Test
@@ -340,5 +308,18 @@ class ProgramCategoryMappingResolverTest extends PostgresIntegrationTestBase {
     programIndicator.setCategoryMappingIds(mappingIds);
 
     return programIndicator;
+  }
+
+  private void assertResolvedCategoryMappings(Set<ProgramCategoryMapping> result) {
+    // Compare the non-transient fields
+    assertContainsOnly(categoryMappings, result);
+
+    // Check that transient Category and CategoryOption fields are filled correctly
+    for (ProgramCategoryMapping catMap : result) {
+      assertEquals(catMap.getCategoryId(), catMap.getCategory().getUid());
+      for (ProgramCategoryOptionMapping optMap : catMap.getOptionMappings()) {
+        assertEquals(optMap.getOptionId(), optMap.getOption().getUid());
+      }
+    }
   }
 }

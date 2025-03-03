@@ -67,7 +67,7 @@ public class ProgramCategoryMapping implements EmbeddedObject, Serializable {
   private String categoryId = "";
 
   /** The category for this category mapping (from the category UID) */
-  @Setter @Getter @EqualsAndHashCode.Include private transient Category category;
+  @Setter @Getter private transient Category category;
 
   /** The category mapping name, must be unique within a program and category */
   private String mappingName = "";

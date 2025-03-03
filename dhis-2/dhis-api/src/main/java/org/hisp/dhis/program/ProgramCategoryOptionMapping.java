@@ -59,7 +59,7 @@ public class ProgramCategoryOptionMapping implements EmbeddedObject, Serializabl
   private String optionId;
 
   /** The category for this category mapping (from the category option UID) */
-  @Setter @Getter @EqualsAndHashCode.Include private transient CategoryOption option;
+  @Setter @Getter private transient CategoryOption option;
 
   /** The filter for this category option */
   private String filter;
