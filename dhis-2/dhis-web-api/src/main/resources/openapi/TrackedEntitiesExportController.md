@@ -107,7 +107,7 @@ entities. Only tracked entities with an enrollment into the `program` will be re
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentStatus`
 
-Get tracked entities that have at least one enrollment with the status specified.
+Get tracked entities that have at least one enrollment with the specified status.
 
 ### `*.parameter.TrackedEntityRequestParams.programStatus`
 
@@ -121,7 +121,7 @@ Get tracked entities that have at least one enrollment that is marked with follo
 
 ### `*.parameter.TrackedEntityRequestParams.updatedAfter`
 
-Get tracked entities that are updated after the given time. A tracked entity is considered 
+Get tracked entities that were updated after the given time. A tracked entity is considered 
 updated if any of its tracked entity attributes, enrollments, events or relationships have been 
 modified. The `updatedAt` property of the tracked entity reflects the latest time at which any 
 of its tracked entity attributes, enrollments, events or relationships were modified.
@@ -130,7 +130,7 @@ in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.updatedBefore`
 
-Get tracked entities that is updated before the given time. A tracked entity is considered 
+Get tracked entities that are updated before the given time. A tracked entity is considered 
 updated if any of its tracked entity attributes, enrollments, events or relationships have been 
 modified. The `updatedAt` property of the tracked entity reflects the latest time at which any 
 of its tracked entity attributes, enrollments, events or relationships were modified. This 
@@ -193,7 +193,7 @@ all events will be retrieved, regardless of whether a user is assigned.
   an assigned user will be returned.
 
 - When `assignedUserMode=NONE`, tracked entities that have no events 
-  that is assigned to any user will be returned. 
+  that are assigned to any user will be returned. 
 
 - When `assignedUserMode=PROVIDED`, tracked
   entities that have any events assigned to the users specified in `assignedUsers` will be 
@@ -229,8 +229,8 @@ in the response. `eventOccurredAfter` must be specified together with `eventStat
 
 ### `*.parameter.TrackedEntityRequestParams.eventOccurredBefore`
 
-Get tracked entities with an event occurred before given date and time.
-This parameter is inclusive, so results with the exact date and time specified will be included 
+Get tracked entities with an event occurred before given date and time. This parameter is 
+inclusive, so results with the exact date and time specified will be included 
 in the response.
 `eventOccurredBefore` must be specified together with `eventStatus` and `eventOccurredAfter`.
 
