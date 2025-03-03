@@ -29,9 +29,7 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.http.HttpStatus.CREATED;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
