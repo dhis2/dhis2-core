@@ -27,9 +27,8 @@
  */
 package org.hisp.dhis.tablereplication;
 
-import org.hisp.dhis.db.model.Table;
-
 import java.util.List;
+import org.hisp.dhis.db.model.Table;
 
 /**
  * @author Lars Helge Overland
@@ -42,5 +41,4 @@ public interface TableReplicationStore {
    * @param tables the {@link Table} to replicate.
    */
   void replicateAnalyticsDatabaseTables(List<Table> tables);
-
 }

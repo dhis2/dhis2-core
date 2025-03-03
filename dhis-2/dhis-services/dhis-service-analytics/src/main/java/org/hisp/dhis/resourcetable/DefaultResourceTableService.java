@@ -116,9 +116,8 @@ public class DefaultResourceTableService implements ResourceTableService {
   @Override
   @Transactional
   public void replicateAnalyticsResourceTables() {
-    tableReplicationStore.replicateAnalyticsDatabaseTables(getResourceTables()
-            .stream().map(ResourceTable::getMainTable).toList());
-
+    tableReplicationStore.replicateAnalyticsDatabaseTables(
+        getResourceTables().stream().map(ResourceTable::getMainTable).toList());
   }
 
   @Override

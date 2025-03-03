@@ -308,8 +308,8 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
 
     if (params.getFromDate() != null) {
       sql.append(" and (" + eventDateExpression + ") >= '")
-              .append(toMediumDate(params.getFromDate()))
-              .append("'");
+          .append(toMediumDate(params.getFromDate()))
+          .append("'");
     }
 
     List<Integer> availableDataYears =

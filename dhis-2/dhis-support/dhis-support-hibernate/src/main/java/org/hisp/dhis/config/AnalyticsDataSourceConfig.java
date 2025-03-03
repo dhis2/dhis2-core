@@ -33,11 +33,10 @@ import static org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper.ANALYTI
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 
+import com.google.common.base.MoreObjects;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import javax.sql.DataSource;
-
-import com.google.common.base.MoreObjects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsDataSourceFactory;
@@ -79,9 +78,10 @@ public class AnalyticsDataSourceConfig implements AnalyticsDataSourceFactory {
   }
 
   /**
-   * Creates a DataSource for the analytics database. If the analytics database is not configured, the
-   * actualDataSource is returned. If the analytics database is configured, a new DataSource is
+   * Creates a DataSource for the analytics database. If the analytics database is not configured,
+   * the actualDataSource is returned. If the analytics database is configured, a new DataSource is
    * created based on the configuration.
+   *
    * @param actualDataSource the actual DataSource
    * @return a DataSource
    */
