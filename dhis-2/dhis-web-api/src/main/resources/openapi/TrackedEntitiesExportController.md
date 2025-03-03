@@ -124,8 +124,8 @@ Get tracked entities that have at least one enrollment that is marked with follo
 Get tracked entities that were updated after the given time. A tracked entity is considered 
 updated if any of its tracked entity attributes, enrollments, events or relationships have been 
 modified. The `updatedAt` property of the tracked entity reflects the latest time at which any 
-of its tracked entity attributes, enrollments, events or relationships were modified.
-This parameter is inclusive, so results with the exact date and time specified will be included 
+of its tracked entity attributes, enrollments, events or relationships were modified. This 
+parameter is inclusive, so results with the exact date and time specified will be included 
 in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.updatedBefore`
@@ -146,7 +146,7 @@ of its tracked entity attributes, enrollments, events or relationships were modi
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentEnrolledAfter`
 
-Get tracked entities that have at least one enrollment with an enrollment date after this date.
+Get tracked entities that have at least one enrollment with an enrollment date after this date. 
 This parameter is inclusive, so results with the exact date and time specified will be included 
 in the response.
 
@@ -222,10 +222,9 @@ Only return tracked entities that have at least one event in the specified statu
 
 ### `*.parameter.TrackedEntityRequestParams.eventOccurredAfter`
 
-Get tracked entities with an event that occurred after the given date and time.
-This parameter is inclusive, so results with the exact date and time specified will be included 
-in the response. `eventOccurredAfter` must be specified together with `eventStatus` and 
-`eventOccurredBefore`.
+Get tracked entities with an event that occurred after the given date and time. This parameter 
+is inclusive, so results with the exact date and time specified will be included in the response.
+`eventOccurredAfter` must be specified together with `eventStatus` and `eventOccurredBefore`.
 
 ### `*.parameter.TrackedEntityRequestParams.eventOccurredBefore`
 
