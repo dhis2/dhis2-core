@@ -286,8 +286,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testDeleteSoftDeletedEventsWithAProgramMessage()
-      throws ForbiddenException, NotFoundException {
+  void testDeleteSoftDeletedEventsWithAProgramMessage() {
     ProgramMessageRecipients programMessageRecipients = new ProgramMessageRecipients();
     programMessageRecipients.setEmailAddresses(Sets.newHashSet("testemail"));
     programMessageRecipients.setPhoneNumbers(Sets.newHashSet("testphone"));
@@ -303,9 +302,9 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     manager.save(event);
     UID idA = UID.of(event);
     programMessageService.saveProgramMessage(message);
-    assertNotNull(getEvent(idA));
+    assertTrue(eventService.findEvent(idA).isPresent());
     manager.delete(event);
-    assertThrows(NotFoundException.class, () -> getEvent(idA));
+    assertFalse(eventService.findEvent(idA).isPresent());
     assertTrue(eventExistsIncludingDeleted(event.getUid()));
 
     maintenanceService.deleteSoftDeletedEvents();
@@ -391,10 +390,10 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     r.setKey(RelationshipUtils.generateRelationshipKey(r));
     r.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(r));
     manager.save(r);
-    assertNotNull(getEvent(idA));
+    assertTrue(eventService.findEvent(idA).isPresent());
     assertNotNull(getRelationship(r.getUid()));
     manager.delete(eventA);
-    assertThrows(NotFoundException.class, () -> getEvent(idA));
+    assertFalse(eventService.findEvent(idA).isPresent());
     manager.delete(r);
     assertThrows(NotFoundException.class, () -> getRelationship(r.getUid()));
     assertTrue(eventExistsIncludingDeleted(eventA.getUid()));
@@ -484,10 +483,6 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
 
     maintenanceService.deleteSoftDeletedRelationships();
     assertFalse(relationshipExistsIncludingDeleted(relationship.getUid()));
-  }
-
-  private Event getEvent(UID uid) throws ForbiddenException, NotFoundException {
-    return eventService.getEvent(uid);
   }
 
   private Relationship getRelationship(String uid) throws ForbiddenException, NotFoundException {

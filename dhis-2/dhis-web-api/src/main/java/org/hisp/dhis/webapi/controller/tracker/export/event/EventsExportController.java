@@ -285,7 +285,7 @@ class EventsExportController {
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
           List<FieldPath> fields,
       TrackerIdSchemeParams idSchemeParams)
-      throws NotFoundException, ForbiddenException, WebMessageException {
+      throws NotFoundException, WebMessageException {
     EventParams eventParams = eventsMapper.map(fields);
 
     MappingErrors errors = new MappingErrors(idSchemeParams);
@@ -344,7 +344,7 @@ class EventsExportController {
       @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
       ChangeLogRequestParams requestParams,
       HttpServletRequest request)
-      throws NotFoundException, BadRequestException, ForbiddenException {
+      throws NotFoundException, BadRequestException {
     EventChangeLogOperationParams operationParams =
         ChangeLogRequestParamsMapper.map(
             eventChangeLogService.getOrderableFields(),
