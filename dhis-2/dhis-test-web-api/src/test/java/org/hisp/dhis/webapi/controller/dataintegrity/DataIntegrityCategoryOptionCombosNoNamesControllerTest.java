@@ -28,6 +28,8 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpStatus.CREATED;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,7 +49,6 @@ class DataIntegrityCategoryOptionCombosNoNames extends AbstractDataIntegrityInte
 
   private String categoryOptionRed;
   private String categoryOptionLarge;
-  private String categoryCombo;
 
   @Test
   void testCategoryOptionCombosHaveNames() {
@@ -58,17 +59,15 @@ class DataIntegrityCategoryOptionCombosNoNames extends AbstractDataIntegrityInte
   @BeforeEach
   void setupTest() {
     categoryOptionRed =
-        assertStatus(
-            HttpStatus.CREATED, POST("/categoryOptions", "{ 'name': 'Red', 'shortName': 'Red' }"));
+        assertStatus(CREATED, POST("/categoryOptions", "{ 'name': 'Red', 'shortName': 'Red' }"));
 
     categoryOptionLarge =
         assertStatus(
-            HttpStatus.CREATED,
-            POST("/categoryOptions", "{ 'name': 'Large', 'shortName': 'Large' }"));
+            CREATED, POST("/categoryOptions", "{ 'name': 'Large', 'shortName': 'Large' }"));
 
     String categoryColor =
         assertStatus(
-            HttpStatus.CREATED,
+            CREATED,
             POST(
                 "/categories",
                 "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType': 'DISAGGREGATION' ,"
@@ -78,7 +77,7 @@ class DataIntegrityCategoryOptionCombosNoNames extends AbstractDataIntegrityInte
 
     String categorySize =
         assertStatus(
-            HttpStatus.CREATED,
+            CREATED,
             POST(
                 "/categories",
                 "{ 'name': 'Size', 'shortName': 'Size', 'dataDimensionType': 'DISAGGREGATION' ,"
@@ -86,8 +85,7 @@ class DataIntegrityCategoryOptionCombosNoNames extends AbstractDataIntegrityInte
                     + categoryOptionLarge
                     + "'} ] }"));
 
-    HttpResponse response =
-        POST(
+    POST(
             "/categoryCombos",
             "{ 'name' : 'Color', "
                 + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
@@ -96,8 +94,8 @@ class DataIntegrityCategoryOptionCombosNoNames extends AbstractDataIntegrityInte
                 + "'},"
                 + "{'id' : '"
                 + categorySize
-                + "'}]} ");
-    categoryCombo = response.content(HttpStatus.CREATED).getString("response.uid").string();
+                + "'}]} ")
+        .content(CREATED);
 
     assertNamedMetadataObjectExists("categoryOptionCombos", "default");
     assertCocExists("Red, Large");
