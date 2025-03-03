@@ -86,16 +86,10 @@ public class TrackedEntityAggregate {
 
   @Nonnull private final CacheProvider cacheProvider;
 
-  private Cache<Set<TrackedEntityAttribute>> teAttributesCache;
-
-  private Cache<Map<Program, Set<TrackedEntityAttribute>>> programTeAttributesCache;
-
   private Cache<Context> securityCache;
 
   @PostConstruct
   protected void init() {
-    teAttributesCache = cacheProvider.createTeAttributesCache();
-    programTeAttributesCache = cacheProvider.createProgramTeAttributesCache();
     securityCache = cacheProvider.createSecurityCache();
   }
 

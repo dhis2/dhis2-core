@@ -90,11 +90,13 @@ public class ProgramNotificationInstanceController {
     Event storedEvent = null;
     if (requestParams.getEvent() != null) {
       eventService.getEvent(requestParams.getEvent());
+      // TODO(tracker) jdbc-hibernate: check the impact on performance
       storedEvent = manager.get(Event.class, requestParams.getEvent());
     }
     Enrollment storedEnrollment = null;
     if (requestParams.getEnrollment() != null) {
       enrollmentService.getEnrollment(requestParams.getEnrollment());
+      // TODO(tracker) jdbc-hibernate: check the impact on performance
       storedEnrollment = manager.get(Enrollment.class, requestParams.getEnrollment());
     }
 
