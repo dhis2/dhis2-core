@@ -117,9 +117,9 @@ class DataIntegrityUsersCaptureOrgUnitNotInTeiSearchHierarchy
                 + userRoleUid
                 + "'}]}"));
 
-    // Note that there are already two users which exist due to the overall test setup, thus, five
+    // Note that there are already one user which exist due to the overall test setup, thus, 4
     // users in total. Only userB should be flagged.
-    assertHasDataIntegrityIssues(DETAILS_ID_TYPE, CHECK_NAME, 20, userBUid, "janedoe", null, true);
+    assertHasDataIntegrityIssues(DETAILS_ID_TYPE, CHECK_NAME, 25, userBUid, "janedoe", null, true);
 
     JsonDataIntegrityDetails details = getDetails(CHECK_NAME);
     JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();

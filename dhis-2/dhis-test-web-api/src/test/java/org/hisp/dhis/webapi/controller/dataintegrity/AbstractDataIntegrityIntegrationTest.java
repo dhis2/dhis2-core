@@ -243,6 +243,25 @@ class AbstractDataIntegrityIntegrationTest extends PostgresControllerIntegration
     assertEquals(1, dimensions.size());
   }
 
+  final void assertCocExists(String... options) {
+    JsonObject response = GET("/categoryOptionCombos" + getNameLikeQueryParams(options)).content();
+    JsonArray cocs = response.getArray("categoryOptionCombos");
+    assertEquals(1, cocs.size());
+  }
+
+  private String getNameLikeQueryParams(@Nonnull String... options) {
+    StringBuilder sb = new StringBuilder();
+    String queryParam = "filter=name:like:";
+    for (int i = 0; i < options.length; i++) {
+      if (i == 0) {
+        sb.append("?").append(queryParam).append(options[i]);
+      } else {
+        sb.append("&").append(queryParam).append(options[i]);
+      }
+    }
+    return sb.toString();
+  }
+
   final void deleteAllMetadataObjects(String endpoint) {
     GET("/" + endpoint + "/gist?fields=id&headless=true")
         .content()

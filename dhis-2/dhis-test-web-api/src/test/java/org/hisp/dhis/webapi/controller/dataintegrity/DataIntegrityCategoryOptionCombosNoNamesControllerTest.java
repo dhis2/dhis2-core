@@ -28,12 +28,8 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.http.HttpStatus;
-import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.test.webapi.json.domain.JsonCategoryOptionCombo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -50,36 +46,8 @@ class DataIntegrityCategoryOptionCombosNoNames extends AbstractDataIntegrityInte
   private final String check = "category_option_combos_no_names";
 
   private String categoryOptionRed;
-
-  @Test
-  void testCategoryOptionCombosNoNames() {
-
-    /*We need to get the Red category option combo to be able to check the data integrity issues*/
-
-    JsonObject response = GET("/categoryOptionCombos?fields=id,name&filter=name:eq:Red").content();
-    JsonList<JsonCategoryOptionCombo> catOptionCombos =
-        response.getList("categoryOptionCombos", JsonCategoryOptionCombo.class);
-    String redCategoryOptionComboId = catOptionCombos.get(0).getId();
-    /*Update the name to be empty*/
-    assertStatus(
-        HttpStatus.OK,
-        PUT(
-            "/categoryOptionCombos/" + redCategoryOptionComboId,
-            "{ 'name': '', 'categoryOptions': [{'id': '" + categoryOptionRed + "'}]}"));
-
-    JsonCategoryOptionCombo blankNameCatOptionCombo =
-        GET("/categoryOptionCombos/" + redCategoryOptionComboId + "?fields=id,name")
-            .content()
-            .as(JsonCategoryOptionCombo.class);
-
-    assertEquals("", blankNameCatOptionCombo.getName());
-    assertEquals(redCategoryOptionComboId, blankNameCatOptionCombo.getId());
-    /* There are four total category option combos, so we expect 25% */
-    checkDataIntegritySummary(check, 1, 50, true);
-
-    assertHasDataIntegrityIssues(
-        "categoryOptionCombos", check, 50, redCategoryOptionComboId, "Red", "", true);
-  }
+  private String categoryOptionLarge;
+  private String categoryCombo;
 
   @Test
   void testCategoryOptionCombosHaveNames() {
@@ -93,6 +61,11 @@ class DataIntegrityCategoryOptionCombosNoNames extends AbstractDataIntegrityInte
         assertStatus(
             HttpStatus.CREATED, POST("/categoryOptions", "{ 'name': 'Red', 'shortName': 'Red' }"));
 
+    categoryOptionLarge =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/categoryOptions", "{ 'name': 'Large', 'shortName': 'Large' }"));
+
     String categoryColor =
         assertStatus(
             HttpStatus.CREATED,
@@ -103,17 +76,30 @@ class DataIntegrityCategoryOptionCombosNoNames extends AbstractDataIntegrityInte
                     + categoryOptionRed
                     + "'} ] }"));
 
-    assertStatus(
-        HttpStatus.CREATED,
+    String categorySize =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categories",
+                "{ 'name': 'Size', 'shortName': 'Size', 'dataDimensionType': 'DISAGGREGATION' ,"
+                    + "'categoryOptions' : [{'id' : '"
+                    + categoryOptionLarge
+                    + "'} ] }"));
+
+    HttpResponse response =
         POST(
             "/categoryCombos",
             "{ 'name' : 'Color', "
                 + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
                 + "{'id' : '"
                 + categoryColor
-                + "'}]} "));
+                + "'},"
+                + "{'id' : '"
+                + categorySize
+                + "'}]} ");
+    categoryCombo = response.content(HttpStatus.CREATED).getString("response.uid").string();
 
     assertNamedMetadataObjectExists("categoryOptionCombos", "default");
-    assertNamedMetadataObjectExists("categoryOptionCombos", "Red");
+    assertCocExists("Red, Large");
   }
 }

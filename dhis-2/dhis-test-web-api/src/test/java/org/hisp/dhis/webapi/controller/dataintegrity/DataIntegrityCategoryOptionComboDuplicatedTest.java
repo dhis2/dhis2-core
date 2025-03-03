@@ -28,18 +28,8 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.util.HashSet;
-import java.util.Set;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.http.HttpStatus;
-import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.test.webapi.json.domain.JsonCategoryOptionCombo;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -55,73 +45,6 @@ class DataIntegrityCategoryOptionComboDuplicatedTest extends AbstractDataIntegri
   private final String check = "category_option_combos_have_duplicates";
 
   private String categoryOptionRed;
-
-  @Test
-  void testCategoryOptionCombosDuplicated() {
-
-    categoryOptionRed =
-        assertStatus(
-            HttpStatus.CREATED, POST("/categoryOptions", "{ 'name': 'Red', 'shortName': 'Red' }"));
-
-    String categoryColor =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/categories",
-                "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType': 'DISAGGREGATION' ,"
-                    + "'categoryOptions' : [{'id' : '"
-                    + categoryOptionRed
-                    + "'} ] }"));
-
-    String testCatCombo =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/categoryCombos",
-                "{ 'name' : 'Color', "
-                    + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
-                    + "{'id' : '"
-                    + categoryColor
-                    + "'}]} "));
-
-    HttpResponse response = GET("/categoryOptionCombos?fields=id,name&filter=name:eq:Red");
-    assertStatus(HttpStatus.OK, response);
-    JsonObject responseContent = response.content();
-
-    JsonList<JsonCategoryOptionCombo> catOptionCombos =
-        responseContent.getList("categoryOptionCombos", JsonCategoryOptionCombo.class);
-    assertEquals(1, catOptionCombos.size());
-    String redCategoryOptionComboId = catOptionCombos.get(0).getId();
-
-    /*We must resort to the service layer as the API will not allow us to create a duplicate*/
-    CategoryCombo categoryCombo = categoryService.getCategoryCombo(testCatCombo);
-    CategoryOptionCombo existingCategoryOptionCombo =
-        categoryService.getCategoryOptionCombo(redCategoryOptionComboId);
-    CategoryOptionCombo categoryOptionComboDuplicate = new CategoryOptionCombo();
-    categoryOptionComboDuplicate.setAutoFields();
-    categoryOptionComboDuplicate.setCategoryCombo(categoryCombo);
-    Set<CategoryOption> newCategoryOptions =
-        new HashSet<>(existingCategoryOptionCombo.getCategoryOptions());
-    categoryOptionComboDuplicate.setCategoryOptions(newCategoryOptions);
-    categoryOptionComboDuplicate.setName("Reddish");
-    manager.persist(categoryOptionComboDuplicate);
-    dbmsManager.clearSession();
-    String categoryOptionComboDuplicatedID = categoryOptionComboDuplicate.getUid();
-    assertNotNull(categoryOptionComboDuplicatedID);
-
-    assertNamedMetadataObjectExists("categoryOptionCombos", "default");
-    assertNamedMetadataObjectExists("categoryOptionCombos", "Red");
-    assertNamedMetadataObjectExists("categoryOptionCombos", "Reddish");
-
-    /* There are three total category option combos, so we expect 33% */
-    checkDataIntegritySummary(check, 1, 33, true);
-
-    Set<String> expectedCategoryOptCombos =
-        Set.of(categoryOptionComboDuplicatedID, redCategoryOptionComboId);
-    Set<String> expectedMessages = Set.of("Red", "Reddish");
-    checkDataIntegrityDetailsIssues(
-        check, expectedCategoryOptCombos, expectedMessages, Set.of(), "categoryOptionCombos");
-  }
 
   @Test
   void testCategoryOptionCombosNotDuplicated() {

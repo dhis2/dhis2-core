@@ -144,8 +144,10 @@ public class CategoryCombo extends BaseIdentifiableObject implements SystemDefau
   }
 
   public List<CategoryOptionCombo> generateOptionCombosList() {
-    List<CategoryOptionCombo> list = new ArrayList<>();
+    // return default option combos if default
+    if (this.isDefault()) return this.optionCombos.stream().toList();
 
+    List<CategoryOptionCombo> list = new ArrayList<>();
     CombinationGenerator<CategoryOption> generator =
         CombinationGenerator.newInstance(getCategoryOptionsAsLists());
 
