@@ -192,7 +192,7 @@ all events will be retrieved, regardless of whether a user is assigned.
 - When `assignedUserMode=ANY`,tracked entities that have at least one event with
   an assigned user will be returned.
 
-- When `assignedUserMode=NONE`, tracked entities that have no events 
+- When `assignedUserMode=NONE`, tracked entities that have no event 
   that are assigned to any user will be returned. 
 
 - When `assignedUserMode=PROVIDED`, tracked
