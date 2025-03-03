@@ -230,8 +230,8 @@ is inclusive, so results with the exact date and time specified will be included
 
 Get tracked entities with an event occurred before given date and time. This parameter is 
 inclusive, so results with the exact date and time specified will be included 
-in the response.
-`eventOccurredBefore` must be specified together with `eventStatus` and `eventOccurredAfter`.
+in the response. `eventOccurredBefore` must be specified together with `eventStatus` and 
+`eventOccurredAfter`.
 
 ### `*.parameter.TrackedEntityRequestParams.includeDeleted`
 
