@@ -64,10 +64,6 @@ public class ProgramCategoryOptionMapping implements EmbeddedObject, Serializabl
   /** The filter for this category option */
   private String filter;
 
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getOptionId() {

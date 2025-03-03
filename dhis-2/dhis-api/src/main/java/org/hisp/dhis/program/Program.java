@@ -950,10 +950,6 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
     this.categoryMappings = categoryMappings;
   }
 
-  // -------------------------------------------------------------------------
-  // Copy logic
-  // -------------------------------------------------------------------------
-
   public static Program shallowCopy(Program original, Map<String, String> options) {
     Program copy = new Program();
     copy.setAutoFields();

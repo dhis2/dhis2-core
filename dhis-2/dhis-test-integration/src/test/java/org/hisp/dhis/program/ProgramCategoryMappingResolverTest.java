@@ -323,10 +323,6 @@ class ProgramCategoryMappingResolverTest extends PostgresIntegrationTestBase {
     assertEquals(E4074, thrown.getCode());
   }
 
-  // -------------------------------------------------------------------------
-  // Supportive methods
-  // -------------------------------------------------------------------------
-
   /** Creates a program with a set of category mappings. */
   private Program createProgram(Set<ProgramCategoryMapping> categoryMappings) {
     Program program = createProgram('A');

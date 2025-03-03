@@ -75,10 +75,6 @@ public class ProgramCategoryMapping implements EmbeddedObject, Serializable {
   /** The category option mappings for this program, category, and name */
   private Set<ProgramCategoryOptionMapping> optionMappings = new HashSet<>();
 
-  // -------------------------------------------------------------------------
-  // Getters and setters
-  // -------------------------------------------------------------------------
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getId() {

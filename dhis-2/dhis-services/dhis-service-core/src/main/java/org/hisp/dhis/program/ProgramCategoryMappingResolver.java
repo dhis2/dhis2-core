@@ -96,10 +96,6 @@ public class ProgramCategoryMappingResolver {
     return mappings;
   }
 
-  // -------------------------------------------------------------------------
-  // Supportive methods
-  // -------------------------------------------------------------------------
-
   /**
    * Resolves a set of category mappings from a given program.
    *

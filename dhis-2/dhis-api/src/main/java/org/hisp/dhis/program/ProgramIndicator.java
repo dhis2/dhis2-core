@@ -478,10 +478,6 @@ public class ProgramIndicator extends BaseDataDimensionalItemObject implements M
     this.categoryMappingIds = categoryMappingIds;
   }
 
-  // -------------------------------------------------------------------------
-  // Copy logic
-  // -------------------------------------------------------------------------
-
   public static ProgramIndicator copyOf(
       ProgramIndicator original, Program program, Map<String, String> copyOptions) {
     ProgramIndicator copy = new ProgramIndicator();
