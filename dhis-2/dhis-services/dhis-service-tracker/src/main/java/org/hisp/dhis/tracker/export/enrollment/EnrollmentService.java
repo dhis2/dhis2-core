@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.export.enrollment;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
@@ -39,12 +40,40 @@ import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 
 public interface EnrollmentService {
-  @Nonnull
-  Enrollment getEnrollment(UID uid) throws ForbiddenException, NotFoundException;
 
+  /**
+   * Finds the enrollment that matches the given {@code UID} based on the privileges of the
+   * currently authenticated user. Returns an {@link Optional} indicating whether the enrollment was
+   * found.
+   *
+   * @return an {@link Optional} containing the enrollment if found, or an empty {@link Optional} if
+   *     not
+   */
   @Nonnull
-  Enrollment getEnrollment(UID uid, EnrollmentParams params)
-      throws NotFoundException, ForbiddenException;
+  Optional<Enrollment> findEnrollment(@Nonnull UID uid);
+
+  /**
+   * Retrieves the enrollment that matches the given {@code UID} based on the privileges of the
+   * currently authenticated user. This does not include program attributes,events, and
+   * relationships. To include events, relationships, and program attributes, use {@link
+   * #getEnrollment(UID, EnrollmentParams)}.
+   *
+   * @return the enrollment associated with the specified {@code UID}
+   * @throws NotFoundException if the enrollment cannot be found
+   */
+  @Nonnull
+  Enrollment getEnrollment(UID uid) throws NotFoundException;
+
+  /**
+   * Retrieves the enrollment that matches the given {@code UID} based on the privileges of the
+   * currently authenticated user. This method also includes any events, relationships and program
+   * attributes as defined by the provided {@code params}.
+   *
+   * @return the enrollment associated with the specified {@code UID}
+   * @throws NotFoundException if the enrollment cannot be found
+   */
+  @Nonnull
+  Enrollment getEnrollment(UID uid, EnrollmentParams params) throws NotFoundException;
 
   /** Get all enrollments matching given params. */
   @Nonnull
