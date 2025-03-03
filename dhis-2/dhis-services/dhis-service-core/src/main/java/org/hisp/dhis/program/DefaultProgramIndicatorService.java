@@ -202,11 +202,6 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
   @Override
   @Transactional(readOnly = true)
   public String getFilterDescription(String expression) {
-    return getFilterDescriptionWithoutTransaction(expression);
-  }
-
-  @Override
-  public String getFilterDescriptionWithoutTransaction(String expression) {
     return getDescription(expression, Boolean.class);
   }
 
