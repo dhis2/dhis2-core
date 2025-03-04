@@ -194,6 +194,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     return getQuotedCommaDelimitedString(elements.stream().map(SqlUtils::escape).toList());
   }
 
+  // TODO Remove this method?
   private void checkMaxTrackedEntityCountReached(
       TrackedEntityQueryParams params, SqlRowSet rowSet) {
     if (params.getMaxTeLimit() > 0 && rowSet.last()) {
@@ -1036,6 +1037,10 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     int limit = params.getMaxTeLimit();
     int teQueryLimit = settingsProvider.getCurrentSettings().getTrackedEntityMaxLimit();
 
+    // TODO This is wrong, the "limit" should not affect how and when "teQueryLimit" is used, they
+    // are independent from each other
+    // TODO Do we need to apply pageParams.getPageSize here? If it's specified, is it not already
+    // done somewhere else in the query?
     if (limit == 0 && pageParams == null) {
       if (teQueryLimit > 0) {
         return limitOffset
