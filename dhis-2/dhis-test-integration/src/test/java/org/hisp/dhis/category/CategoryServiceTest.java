@@ -322,7 +322,7 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
     assertTrue(
         importSummary.getImportSummaries().stream()
             .map(ImportSummary::getDescription)
-            .allMatch(desc -> desc.contains(ccA.getUid())));
+            .allMatch(desc -> desc.contains(ccA.getName())));
 
     assertEquals(3, categoryService.getAllCategoryOptionCombos().size());
 
@@ -356,7 +356,7 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
     assertTrue(
         importSummary.getImportSummaries().stream()
             .map(ImportSummary::getDescription)
-            .allMatch(desc -> desc.contains(ccA.getUid())));
+            .allMatch(desc -> desc.contains(ccA.getName())));
 
     assertEquals(3, categoryService.getAllCategoryOptionCombos().size());
 
