@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.security.oauth2.client;
 
-import jakarta.servlet.http.HttpServletRequest;
-import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
+import java.util.List;
+import org.hisp.dhis.user.UserDetails;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public class ForwardedIpAwareWebAuthenticationDetails extends WebAuthenticationDetails {
-  private static final String HEADER_FORWARDED_FOR = "X-Forwarded-For";
+public interface Dhis2OAuth2RegisteredClientRepository {
+  void save(RegisteredClient registeredClient);
 
-  private String ip;
+  void save(RegisteredClient registeredClient, UserDetails userDetails);
 
-  public ForwardedIpAwareWebAuthenticationDetails(HttpServletRequest request) {
-    super(request);
-    this.ip =
-        ObjectUtils.firstNonNull(request.getHeader(HEADER_FORWARDED_FOR), request.getRemoteAddr());
-  }
+  RegisteredClient findByUID(String uid);
 
-  public ForwardedIpAwareWebAuthenticationDetails(
-      String remoteAddress, String sessionId, String ip) {
-    super(remoteAddress, sessionId);
-    this.ip = ip;
-  }
+  RegisteredClient findById(String id);
 
-  public String getIp() {
-    return ip;
-  }
+  RegisteredClient findByClientId(String clientId);
 
-  public void setIp(String ip) {
-    this.ip = ip;
-  }
+  List<Dhis2OAuth2Client> getAll();
 }

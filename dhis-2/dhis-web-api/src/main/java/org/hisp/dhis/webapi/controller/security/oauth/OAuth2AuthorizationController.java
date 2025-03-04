@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.webapi.controller.security.oauth;
 
-import jakarta.servlet.http.HttpServletRequest;
-import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.security.oauth2.authorization.Dhis2OAuth2Authorization;
+import org.hisp.dhis.security.oauth2.authorization.Dhis2OAuth2AuthorizationService;
+import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
+import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
+ * Controller for managing OAuth2 authorizations for the DHIS2 OAuth2 authorization server.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ForwardedIpAwareWebAuthenticationDetails extends WebAuthenticationDetails {
-  private static final String HEADER_FORWARDED_FOR = "X-Forwarded-For";
+@Controller
+@RequestMapping({"/api/oauth2Authorizations"})
+@RequiredArgsConstructor
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@OpenApi.Document(
+    entity = Dhis2OAuth2Client.class,
+    classifiers = {"team:platform", "purpose:security"})
+public class OAuth2AuthorizationController
+    extends AbstractCrudController<Dhis2OAuth2Authorization, GetObjectListParams> {
 
-  private String ip;
+  private final Dhis2OAuth2AuthorizationService authorizationService;
 
-  public ForwardedIpAwareWebAuthenticationDetails(HttpServletRequest request) {
-    super(request);
-    this.ip =
-        ObjectUtils.firstNonNull(request.getHeader(HEADER_FORWARDED_FOR), request.getRemoteAddr());
-  }
-
-  public ForwardedIpAwareWebAuthenticationDetails(
-      String remoteAddress, String sessionId, String ip) {
-    super(remoteAddress, sessionId);
-    this.ip = ip;
-  }
-
-  public String getIp() {
-    return ip;
-  }
-
-  public void setIp(String ip) {
-    this.ip = ip;
+  @DeleteMapping
+  public void deleteAll() {
+    for (Dhis2OAuth2Authorization dhis2OAuth2Authorization : authorizationService.getAll()) {
+      authorizationService.delete(dhis2OAuth2Authorization.getUid());
+    }
   }
 }

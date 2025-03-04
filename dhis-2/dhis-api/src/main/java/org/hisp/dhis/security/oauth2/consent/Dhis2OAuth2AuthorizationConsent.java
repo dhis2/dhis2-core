@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.security.oauth2.consent;
 
-import jakarta.servlet.http.HttpServletRequest;
-import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Objects;
+import lombok.Getter;
+import lombok.Setter;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public class ForwardedIpAwareWebAuthenticationDetails extends WebAuthenticationDetails {
-  private static final String HEADER_FORWARDED_FOR = "X-Forwarded-For";
+@Getter
+@Setter
+@JacksonXmlRootElement(localName = "oauth2AuthorizationConsent", namespace = DxfNamespaces.DXF_2_0)
+public class Dhis2OAuth2AuthorizationConsent extends BaseIdentifiableObject
+    implements MetadataObject {
 
-  private String ip;
+  public Dhis2OAuth2AuthorizationConsent() {}
 
-  public ForwardedIpAwareWebAuthenticationDetails(HttpServletRequest request) {
-    super(request);
-    this.ip =
-        ObjectUtils.firstNonNull(request.getHeader(HEADER_FORWARDED_FOR), request.getRemoteAddr());
+  @JsonProperty private String registeredClientId;
+  @JsonProperty private String principalName;
+  @JsonProperty private String authorities;
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    if (!super.equals(o)) return false;
+    Dhis2OAuth2AuthorizationConsent that = (Dhis2OAuth2AuthorizationConsent) o;
+    return Objects.equals(registeredClientId, that.registeredClientId)
+        && Objects.equals(principalName, that.principalName);
   }
 
-  public ForwardedIpAwareWebAuthenticationDetails(
-      String remoteAddress, String sessionId, String ip) {
-    super(remoteAddress, sessionId);
-    this.ip = ip;
-  }
-
-  public String getIp() {
-    return ip;
-  }
-
-  public void setIp(String ip) {
-    this.ip = ip;
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), registeredClientId, principalName);
   }
 }

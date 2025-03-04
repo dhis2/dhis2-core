@@ -25,37 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.security.oauth2.client;
 
-import jakarta.servlet.http.HttpServletRequest;
-import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public class ForwardedIpAwareWebAuthenticationDetails extends WebAuthenticationDetails {
-  private static final String HEADER_FORWARDED_FOR = "X-Forwarded-For";
+/** Hibernate implementation of the OAuth2ClientStore. */
+@Repository
+public class HibernateDhis2OAuth2ClientStore
+    extends HibernateIdentifiableObjectStore<Dhis2OAuth2Client> implements Dhis2OAuth2ClientStore {
 
-  private String ip;
-
-  public ForwardedIpAwareWebAuthenticationDetails(HttpServletRequest request) {
-    super(request);
-    this.ip =
-        ObjectUtils.firstNonNull(request.getHeader(HEADER_FORWARDED_FOR), request.getRemoteAddr());
+  public HibernateDhis2OAuth2ClientStore(
+      EntityManager entityManager,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      AclService aclService) {
+    super(entityManager, jdbcTemplate, publisher, Dhis2OAuth2Client.class, aclService, true);
   }
 
-  public ForwardedIpAwareWebAuthenticationDetails(
-      String remoteAddress, String sessionId, String ip) {
-    super(remoteAddress, sessionId);
-    this.ip = ip;
-  }
-
-  public String getIp() {
-    return ip;
-  }
-
-  public void setIp(String ip) {
-    this.ip = ip;
+  @Override
+  @CheckForNull
+  public Dhis2OAuth2Client getByClientId(@Nonnull String clientId) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+    return getSingleResult(
+        builder,
+        newJpaParameters().addPredicate(root -> builder.equal(root.get("clientId"), clientId)));
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.security.oauth2.consent;
 
-import jakarta.servlet.http.HttpServletRequest;
-import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public class ForwardedIpAwareWebAuthenticationDetails extends WebAuthenticationDetails {
-  private static final String HEADER_FORWARDED_FOR = "X-Forwarded-For";
+/** Store for OAuth2AuthorizationConsent entities. */
+public interface Dhis2OAuth2AuthorizationConsentStore
+    extends IdentifiableObjectStore<Dhis2OAuth2AuthorizationConsent> {
 
-  private String ip;
+  /**
+   * Retrieves an OAuth2AuthorizationConsent by registered client ID and principal name.
+   *
+   * @param registeredClientId the ID of the registered client
+   * @param principalName the name of the principal (user)
+   * @return the OAuth2AuthorizationConsent, or null if not found
+   */
+  @CheckForNull
+  Dhis2OAuth2AuthorizationConsent getByRegisteredClientIdAndPrincipalName(
+      @Nonnull String registeredClientId, @Nonnull String principalName);
 
-  public ForwardedIpAwareWebAuthenticationDetails(HttpServletRequest request) {
-    super(request);
-    this.ip =
-        ObjectUtils.firstNonNull(request.getHeader(HEADER_FORWARDED_FOR), request.getRemoteAddr());
-  }
-
-  public ForwardedIpAwareWebAuthenticationDetails(
-      String remoteAddress, String sessionId, String ip) {
-    super(remoteAddress, sessionId);
-    this.ip = ip;
-  }
-
-  public String getIp() {
-    return ip;
-  }
-
-  public void setIp(String ip) {
-    this.ip = ip;
-  }
+  /**
+   * Deletes the OAuth2AuthorizationConsent with the given registered client ID and principal name.
+   *
+   * @param registeredClientId the ID of the registered client
+   * @param principalName the name of the principal (user)
+   */
+  void deleteByRegisteredClientIdAndPrincipalName(
+      @Nonnull String registeredClientId, @Nonnull String principalName);
 }
