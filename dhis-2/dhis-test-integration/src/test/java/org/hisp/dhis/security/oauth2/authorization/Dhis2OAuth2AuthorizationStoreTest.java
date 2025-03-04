@@ -40,14 +40,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 /** Tests for the OAuth2AuthorizationStore implementation. */
 @Transactional
-class OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
+class Dhis2OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
 
-  @Autowired private OAuth2AuthorizationStore oauth2AuthorizationStore;
+  @Autowired private Dhis2OAuth2AuthorizationStore oauth2AuthorizationStore;
 
   @Test
   void testSaveAndGetByUid() {
     // Create a test authorization
-    OAuth2Authorization authorization = new OAuth2Authorization();
+    Dhis2OAuth2Authorization authorization = new Dhis2OAuth2Authorization();
     authorization.setAutoFields();
     authorization.setCreatedBy(getAdminUser());
     authorization.setLastUpdatedBy(getAdminUser());
@@ -64,7 +64,7 @@ class OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
     oauth2AuthorizationStore.save(authorization);
 
     // Get the authorization by UID
-    OAuth2Authorization savedAuth = oauth2AuthorizationStore.getByUid(authorization.getUid());
+    Dhis2OAuth2Authorization savedAuth = oauth2AuthorizationStore.getByUid(authorization.getUid());
     assertNotNull(savedAuth);
     assertEquals("Test OAuth2 Authorization", savedAuth.getName());
     assertEquals("test-client-id", savedAuth.getRegisteredClientId());
@@ -78,7 +78,7 @@ class OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
   @Test
   void testGetByState() {
     // Create a test authorization with state
-    OAuth2Authorization authorization = new OAuth2Authorization();
+    Dhis2OAuth2Authorization authorization = new Dhis2OAuth2Authorization();
     authorization.setAutoFields();
     authorization.setCreatedBy(getAdminUser());
     authorization.setLastUpdatedBy(getAdminUser());
@@ -92,20 +92,22 @@ class OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
     oauth2AuthorizationStore.save(authorization);
 
     // Get the authorization by state
-    OAuth2Authorization foundAuth = oauth2AuthorizationStore.getByState("specific-state-value");
+    Dhis2OAuth2Authorization foundAuth =
+        oauth2AuthorizationStore.getByState("specific-state-value");
     assertNotNull(foundAuth);
     assertEquals("State Test Auth", foundAuth.getName());
     assertEquals("specific-state-value", foundAuth.getState());
 
     // Try to get a non-existent state
-    OAuth2Authorization nonExistentAuth = oauth2AuthorizationStore.getByState("non-existent-state");
+    Dhis2OAuth2Authorization nonExistentAuth =
+        oauth2AuthorizationStore.getByState("non-existent-state");
     assertNull(nonExistentAuth);
   }
 
   @Test
   void testGetByAuthorizationCode() {
     // Create a test authorization with authorization code
-    OAuth2Authorization authorization = new OAuth2Authorization();
+    Dhis2OAuth2Authorization authorization = new Dhis2OAuth2Authorization();
     authorization.setAutoFields();
     authorization.setCreatedBy(getAdminUser());
     authorization.setLastUpdatedBy(getAdminUser());
@@ -121,7 +123,7 @@ class OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
     oauth2AuthorizationStore.save(authorization);
 
     // Get the authorization by authorization code
-    OAuth2Authorization foundAuth =
+    Dhis2OAuth2Authorization foundAuth =
         oauth2AuthorizationStore.getByAuthorizationCode("test-auth-code");
     assertNotNull(foundAuth);
     assertEquals("Auth Code Test", foundAuth.getName());
@@ -131,7 +133,7 @@ class OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
   @Test
   void testGetByAccessToken() {
     // Create a test authorization with access token
-    OAuth2Authorization authorization = new OAuth2Authorization();
+    Dhis2OAuth2Authorization authorization = new Dhis2OAuth2Authorization();
     authorization.setAutoFields();
     authorization.setCreatedBy(getAdminUser());
     authorization.setLastUpdatedBy(getAdminUser());
@@ -147,7 +149,8 @@ class OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
     oauth2AuthorizationStore.save(authorization);
 
     // Get the authorization by access token
-    OAuth2Authorization foundAuth = oauth2AuthorizationStore.getByAccessToken("test-access-token");
+    Dhis2OAuth2Authorization foundAuth =
+        oauth2AuthorizationStore.getByAccessToken("test-access-token");
     assertNotNull(foundAuth);
     assertEquals("Access Token Test", foundAuth.getName());
     assertEquals("test-access-token", foundAuth.getAccessTokenValue());
@@ -156,7 +159,7 @@ class OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
   @Test
   void testGetByRefreshToken() {
     // Create a test authorization with refresh token
-    OAuth2Authorization authorization = new OAuth2Authorization();
+    Dhis2OAuth2Authorization authorization = new Dhis2OAuth2Authorization();
     authorization.setAutoFields();
     authorization.setCreatedBy(getAdminUser());
     authorization.setLastUpdatedBy(getAdminUser());
@@ -172,7 +175,7 @@ class OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
     oauth2AuthorizationStore.save(authorization);
 
     // Get the authorization by refresh token
-    OAuth2Authorization foundAuth =
+    Dhis2OAuth2Authorization foundAuth =
         oauth2AuthorizationStore.getByRefreshToken("test-refresh-token");
     assertNotNull(foundAuth);
     assertEquals("Refresh Token Test", foundAuth.getName());
@@ -182,7 +185,7 @@ class OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
   @Test
   void testGetByToken() {
     // Create test authorizations with different token types
-    OAuth2Authorization auth1 = new OAuth2Authorization();
+    Dhis2OAuth2Authorization auth1 = new Dhis2OAuth2Authorization();
     auth1.setAutoFields();
     auth1.setCreatedBy(getAdminUser());
     auth1.setLastUpdatedBy(getAdminUser());
@@ -192,7 +195,7 @@ class OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
     auth1.setAuthorizationGrantType("authorization_code");
     auth1.setAccessTokenValue("multi-token-test-1");
 
-    OAuth2Authorization auth2 = new OAuth2Authorization();
+    Dhis2OAuth2Authorization auth2 = new Dhis2OAuth2Authorization();
     auth2.setAutoFields();
     auth2.setCreatedBy(getAdminUser());
     auth2.setLastUpdatedBy(getAdminUser());
@@ -207,16 +210,17 @@ class OAuth2AuthorizationStoreTest extends PostgresIntegrationTestBase {
     oauth2AuthorizationStore.save(auth2);
 
     // Get the authorizations by token
-    OAuth2Authorization foundAuth1 = oauth2AuthorizationStore.getByToken("multi-token-test-1");
+    Dhis2OAuth2Authorization foundAuth1 = oauth2AuthorizationStore.getByToken("multi-token-test-1");
     assertNotNull(foundAuth1);
     assertEquals("Token Test 1", foundAuth1.getName());
 
-    OAuth2Authorization foundAuth2 = oauth2AuthorizationStore.getByToken("multi-token-test-2");
+    Dhis2OAuth2Authorization foundAuth2 = oauth2AuthorizationStore.getByToken("multi-token-test-2");
     assertNotNull(foundAuth2);
     assertEquals("Token Test 2", foundAuth2.getName());
 
     // Try to get a non-existent token
-    OAuth2Authorization nonExistentAuth = oauth2AuthorizationStore.getByToken("non-existent-token");
+    Dhis2OAuth2Authorization nonExistentAuth =
+        oauth2AuthorizationStore.getByToken("non-existent-token");
     assertNull(nonExistentAuth);
   }
 }

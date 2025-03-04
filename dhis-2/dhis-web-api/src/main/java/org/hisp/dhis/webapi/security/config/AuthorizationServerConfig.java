@@ -48,6 +48,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet.Builder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
@@ -131,7 +132,9 @@ public class AuthorizationServerConfig {
       if (OAuth2TokenType.ACCESS_TOKEN.equals(tokenType)) {
         String username = context.getPrincipal().getName();
         User user = userService.getUserByUsername(username);
-        context.getClaims().claim("email", user.getEmail());
+        String email = user.getEmail();
+        Builder claims = context.getClaims();
+        claims.claim("email", email);
       }
 
       //      if (OidcParameterNames.ID_TOKEN.equals(context.getTokenType().getValue())) {

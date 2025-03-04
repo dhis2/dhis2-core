@@ -32,7 +32,8 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /** Store for OAuth2Authorization entities. */
-public interface OAuth2AuthorizationStore extends IdentifiableObjectStore<OAuth2Authorization> {
+public interface Dhis2OAuth2AuthorizationStore
+    extends IdentifiableObjectStore<Dhis2OAuth2Authorization> {
 
   /**
    * Retrieves an OAuth2Authorization by its state value.
@@ -41,7 +42,7 @@ public interface OAuth2AuthorizationStore extends IdentifiableObjectStore<OAuth2
    * @return the OAuth2Authorization with the given state, or null if not found
    */
   @CheckForNull
-  OAuth2Authorization getByState(@Nonnull String state);
+  Dhis2OAuth2Authorization getByState(@Nonnull String state);
 
   /**
    * Retrieves an OAuth2Authorization by its authorization code value.
@@ -50,7 +51,7 @@ public interface OAuth2AuthorizationStore extends IdentifiableObjectStore<OAuth2
    * @return the OAuth2Authorization with the given authorization code, or null if not found
    */
   @CheckForNull
-  OAuth2Authorization getByAuthorizationCode(@Nonnull String authorizationCode);
+  Dhis2OAuth2Authorization getByAuthorizationCode(@Nonnull String authorizationCode);
 
   /**
    * Retrieves an OAuth2Authorization by its access token value.
@@ -59,7 +60,7 @@ public interface OAuth2AuthorizationStore extends IdentifiableObjectStore<OAuth2
    * @return the OAuth2Authorization with the given access token, or null if not found
    */
   @CheckForNull
-  OAuth2Authorization getByAccessToken(@Nonnull String accessToken);
+  Dhis2OAuth2Authorization getByAccessToken(@Nonnull String accessToken);
 
   /**
    * Retrieves an OAuth2Authorization by its refresh token value.
@@ -68,7 +69,7 @@ public interface OAuth2AuthorizationStore extends IdentifiableObjectStore<OAuth2
    * @return the OAuth2Authorization with the given refresh token, or null if not found
    */
   @CheckForNull
-  OAuth2Authorization getByRefreshToken(@Nonnull String refreshToken);
+  Dhis2OAuth2Authorization getByRefreshToken(@Nonnull String refreshToken);
 
   /**
    * Retrieves an OAuth2Authorization by its OIDC ID token value.
@@ -77,7 +78,7 @@ public interface OAuth2AuthorizationStore extends IdentifiableObjectStore<OAuth2
    * @return the OAuth2Authorization with the given ID token, or null if not found
    */
   @CheckForNull
-  OAuth2Authorization getByOidcIdToken(@Nonnull String idToken);
+  Dhis2OAuth2Authorization getByOidcIdToken(@Nonnull String idToken);
 
   /**
    * Retrieves an OAuth2Authorization by its user code value.
@@ -86,7 +87,7 @@ public interface OAuth2AuthorizationStore extends IdentifiableObjectStore<OAuth2
    * @return the OAuth2Authorization with the given user code, or null if not found
    */
   @CheckForNull
-  OAuth2Authorization getByUserCode(@Nonnull String userCode);
+  Dhis2OAuth2Authorization getByUserCode(@Nonnull String userCode);
 
   /**
    * Retrieves an OAuth2Authorization by its device code value.
@@ -95,7 +96,7 @@ public interface OAuth2AuthorizationStore extends IdentifiableObjectStore<OAuth2
    * @return the OAuth2Authorization with the given device code, or null if not found
    */
   @CheckForNull
-  OAuth2Authorization getByDeviceCode(@Nonnull String deviceCode);
+  Dhis2OAuth2Authorization getByDeviceCode(@Nonnull String deviceCode);
 
   /**
    * Retrieves an OAuth2Authorization by any token value. This method searches across all token
@@ -105,7 +106,7 @@ public interface OAuth2AuthorizationStore extends IdentifiableObjectStore<OAuth2
    * @return the OAuth2Authorization containing the given token, or null if not found
    */
   @CheckForNull
-  OAuth2Authorization getByToken(@Nonnull String token);
+  Dhis2OAuth2Authorization getByToken(@Nonnull String token);
 
   /**
    * Deletes an OAuth2Authorization by its UID.

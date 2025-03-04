@@ -38,14 +38,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 /** Tests for the OAuth2AuthorizationConsentStore implementation. */
 @Transactional
-class OAuth2AuthorizationConsentStoreTest extends PostgresIntegrationTestBase {
+class Dhis2OAuth2AuthorizationConsentStoreTest extends PostgresIntegrationTestBase {
 
-  @Autowired private OAuth2AuthorizationConsentStore oauth2AuthorizationConsentStore;
+  @Autowired private Dhis2OAuth2AuthorizationConsentStore oauth2AuthorizationConsentStore;
 
   @Test
   void testSaveAndGetByUid() {
     // Create a test authorization consent
-    OAuth2AuthorizationConsent consent = new OAuth2AuthorizationConsent();
+    Dhis2OAuth2AuthorizationConsent consent = new Dhis2OAuth2AuthorizationConsent();
     consent.setAutoFields();
     consent.setCreatedBy(getAdminUser());
     consent.setLastUpdatedBy(getAdminUser());
@@ -58,7 +58,7 @@ class OAuth2AuthorizationConsentStoreTest extends PostgresIntegrationTestBase {
     oauth2AuthorizationConsentStore.save(consent);
 
     // Get the consent by UID
-    OAuth2AuthorizationConsent savedConsent =
+    Dhis2OAuth2AuthorizationConsent savedConsent =
         oauth2AuthorizationConsentStore.getByUid(consent.getUid());
     assertNotNull(savedConsent);
     assertEquals("Test OAuth2 Authorization Consent", savedConsent.getName());
@@ -70,7 +70,7 @@ class OAuth2AuthorizationConsentStoreTest extends PostgresIntegrationTestBase {
   @Test
   void testGetByRegisteredClientIdAndPrincipalName() {
     // Create a test authorization consent
-    OAuth2AuthorizationConsent consent = new OAuth2AuthorizationConsent();
+    Dhis2OAuth2AuthorizationConsent consent = new Dhis2OAuth2AuthorizationConsent();
     consent.setAutoFields();
     consent.setCreatedBy(getAdminUser());
     consent.setLastUpdatedBy(getAdminUser());
@@ -83,7 +83,7 @@ class OAuth2AuthorizationConsentStoreTest extends PostgresIntegrationTestBase {
     oauth2AuthorizationConsentStore.save(consent);
 
     // Get the consent by registered client ID and principal name
-    OAuth2AuthorizationConsent foundConsent =
+    Dhis2OAuth2AuthorizationConsent foundConsent =
         oauth2AuthorizationConsentStore.getByRegisteredClientIdAndPrincipalName(
             "specific-client-id", "specific-user");
 
@@ -92,7 +92,7 @@ class OAuth2AuthorizationConsentStoreTest extends PostgresIntegrationTestBase {
     assertEquals("SCOPE_profile,SCOPE_email", foundConsent.getAuthorities());
 
     // Try to get a non-existent combination
-    OAuth2AuthorizationConsent nonExistentConsent =
+    Dhis2OAuth2AuthorizationConsent nonExistentConsent =
         oauth2AuthorizationConsentStore.getByRegisteredClientIdAndPrincipalName(
             "non-existent-client", "non-existent-user");
 
@@ -102,7 +102,7 @@ class OAuth2AuthorizationConsentStoreTest extends PostgresIntegrationTestBase {
   @Test
   void testDeleteByRegisteredClientIdAndPrincipalName() {
     // Create a test authorization consent
-    OAuth2AuthorizationConsent consent = new OAuth2AuthorizationConsent();
+    Dhis2OAuth2AuthorizationConsent consent = new Dhis2OAuth2AuthorizationConsent();
     consent.setAutoFields();
     consent.setCreatedBy(getAdminUser());
     consent.setLastUpdatedBy(getAdminUser());
@@ -115,7 +115,7 @@ class OAuth2AuthorizationConsentStoreTest extends PostgresIntegrationTestBase {
     oauth2AuthorizationConsentStore.save(consent);
 
     // Verify it was saved
-    OAuth2AuthorizationConsent savedConsent =
+    Dhis2OAuth2AuthorizationConsent savedConsent =
         oauth2AuthorizationConsentStore.getByRegisteredClientIdAndPrincipalName(
             "delete-client-id", "delete-user");
 
@@ -126,7 +126,7 @@ class OAuth2AuthorizationConsentStoreTest extends PostgresIntegrationTestBase {
         "delete-client-id", "delete-user");
 
     // Verify it was deleted
-    OAuth2AuthorizationConsent deletedConsent =
+    Dhis2OAuth2AuthorizationConsent deletedConsent =
         oauth2AuthorizationConsentStore.getByRegisteredClientIdAndPrincipalName(
             "delete-client-id", "delete-user");
 

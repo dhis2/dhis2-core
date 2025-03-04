@@ -45,15 +45,15 @@ import org.springframework.security.oauth2.server.authorization.settings.ClientS
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Integration tests for {@link DHIS2OAuth2RegisteredClientRepository}. */
+/** Integration tests for {@link Dhis2OAuth2RegisteredClientRepositoryImpl}. */
 @Slf4j
 @Transactional
-public class DHIS2OAuth2RegisteredClientRepositoryIntegrationTest
+public class Dhis2OAuth2RegisteredClientRepositoryIntegrationTest
     extends PostgresIntegrationTestBase {
 
-  @Autowired private DHIS2OAuth2RegisteredClientRepository clientRepository;
+  @Autowired private Dhis2OAuth2RegisteredClientRepository clientRepository;
 
-  @Autowired private OAuth2ClientStore clientStore;
+  @Autowired private Dhis2OAuth2ClientStore clientStore;
 
   @Test
   public void testSaveAndFindById() {
@@ -196,7 +196,7 @@ public class DHIS2OAuth2RegisteredClientRepositoryIntegrationTest
   @Test
   public void testEntityToDomainConversion() {
     // Given
-    OAuth2Client entity = new OAuth2Client();
+    Dhis2OAuth2Client entity = new Dhis2OAuth2Client();
     entity.setUid(CodeGenerator.generateUid());
     entity.setName("Direct Entity Client");
     entity.setClientId("direct-entity-client");

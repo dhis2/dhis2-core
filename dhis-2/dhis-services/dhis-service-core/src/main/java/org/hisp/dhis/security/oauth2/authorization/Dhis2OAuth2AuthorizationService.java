@@ -25,21 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oauth2.client;
+package org.hisp.dhis.security.oauth2.authorization;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import java.util.List;
+import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
+import org.springframework.transaction.annotation.Transactional;
 
-/** Store for OAuth2Client entities. */
-public interface OAuth2ClientStore extends IdentifiableObjectStore<OAuth2Client> {
+public interface Dhis2OAuth2AuthorizationService {
+  void save(
+      org.springframework.security.oauth2.server.authorization.OAuth2Authorization authorization);
 
-  /**
-   * Retrieves an OAuth2Client by its client ID.
-   *
-   * @param clientId the client ID to search for
-   * @return the OAuth2Client with the given client ID, or null if not found
-   */
-  @CheckForNull
-  OAuth2Client getByClientId(@Nonnull String clientId);
+  void remove(
+      org.springframework.security.oauth2.server.authorization.OAuth2Authorization authorization);
+
+  @Transactional
+  void delete(String uid);
+
+  @Transactional(readOnly = true)
+  List<Dhis2OAuth2Authorization> getAll();
+
+  org.springframework.security.oauth2.server.authorization.OAuth2Authorization findById(String id);
+
+  org.springframework.security.oauth2.server.authorization.OAuth2Authorization findByToken(
+      String token, OAuth2TokenType tokenType);
 }

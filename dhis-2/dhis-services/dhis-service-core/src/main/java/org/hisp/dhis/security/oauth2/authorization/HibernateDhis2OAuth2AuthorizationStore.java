@@ -40,21 +40,21 @@ import org.springframework.stereotype.Repository;
 
 /** Hibernate implementation of the OAuth2AuthorizationStore. */
 @Repository
-public class HibernateOAuth2AuthorizationStore
-    extends HibernateIdentifiableObjectStore<OAuth2Authorization>
-    implements OAuth2AuthorizationStore {
+public class HibernateDhis2OAuth2AuthorizationStore
+    extends HibernateIdentifiableObjectStore<Dhis2OAuth2Authorization>
+    implements Dhis2OAuth2AuthorizationStore {
 
-  public HibernateOAuth2AuthorizationStore(
+  public HibernateDhis2OAuth2AuthorizationStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
-    super(entityManager, jdbcTemplate, publisher, OAuth2Authorization.class, aclService, true);
+    super(entityManager, jdbcTemplate, publisher, Dhis2OAuth2Authorization.class, aclService, true);
   }
 
   @Override
   @CheckForNull
-  public OAuth2Authorization getByState(@Nonnull String state) {
+  public Dhis2OAuth2Authorization getByState(@Nonnull String state) {
     CriteriaBuilder builder = getCriteriaBuilder();
     return getSingleResult(
         builder, newJpaParameters().addPredicate(root -> builder.equal(root.get("state"), state)));
@@ -62,7 +62,7 @@ public class HibernateOAuth2AuthorizationStore
 
   @Override
   @CheckForNull
-  public OAuth2Authorization getByAuthorizationCode(@Nonnull String authorizationCode) {
+  public Dhis2OAuth2Authorization getByAuthorizationCode(@Nonnull String authorizationCode) {
     CriteriaBuilder builder = getCriteriaBuilder();
     return getSingleResult(
         builder,
@@ -73,7 +73,7 @@ public class HibernateOAuth2AuthorizationStore
 
   @Override
   @CheckForNull
-  public OAuth2Authorization getByAccessToken(@Nonnull String accessToken) {
+  public Dhis2OAuth2Authorization getByAccessToken(@Nonnull String accessToken) {
     CriteriaBuilder builder = getCriteriaBuilder();
     return getSingleResult(
         builder,
@@ -83,7 +83,7 @@ public class HibernateOAuth2AuthorizationStore
 
   @Override
   @CheckForNull
-  public OAuth2Authorization getByRefreshToken(@Nonnull String refreshToken) {
+  public Dhis2OAuth2Authorization getByRefreshToken(@Nonnull String refreshToken) {
     CriteriaBuilder builder = getCriteriaBuilder();
     return getSingleResult(
         builder,
@@ -93,7 +93,7 @@ public class HibernateOAuth2AuthorizationStore
 
   @Override
   @CheckForNull
-  public OAuth2Authorization getByOidcIdToken(@Nonnull String idToken) {
+  public Dhis2OAuth2Authorization getByOidcIdToken(@Nonnull String idToken) {
     CriteriaBuilder builder = getCriteriaBuilder();
     return getSingleResult(
         builder,
@@ -103,7 +103,7 @@ public class HibernateOAuth2AuthorizationStore
 
   @Override
   @CheckForNull
-  public OAuth2Authorization getByUserCode(@Nonnull String userCode) {
+  public Dhis2OAuth2Authorization getByUserCode(@Nonnull String userCode) {
     CriteriaBuilder builder = getCriteriaBuilder();
     return getSingleResult(
         builder,
@@ -113,7 +113,7 @@ public class HibernateOAuth2AuthorizationStore
 
   @Override
   @CheckForNull
-  public OAuth2Authorization getByDeviceCode(@Nonnull String deviceCode) {
+  public Dhis2OAuth2Authorization getByDeviceCode(@Nonnull String deviceCode) {
     CriteriaBuilder builder = getCriteriaBuilder();
     return getSingleResult(
         builder,
@@ -123,7 +123,7 @@ public class HibernateOAuth2AuthorizationStore
 
   @Override
   @CheckForNull
-  public OAuth2Authorization getByToken(@Nonnull String token) {
+  public Dhis2OAuth2Authorization getByToken(@Nonnull String token) {
     CriteriaBuilder builder = getCriteriaBuilder();
     return getSingleResult(
         builder,
@@ -142,8 +142,8 @@ public class HibernateOAuth2AuthorizationStore
 
   @Override
   public void deleteByUID(@Nonnull String uid) {
-    Query<OAuth2Authorization> query =
-        getQuery("delete from OAuth2Authorization a where a.uid = :uid");
+    Query<Dhis2OAuth2Authorization> query =
+        getQuery("delete from Dhis2OAuth2Authorization a where a.uid = :uid");
     query.setParameter("uid", uid);
     query.executeUpdate();
   }

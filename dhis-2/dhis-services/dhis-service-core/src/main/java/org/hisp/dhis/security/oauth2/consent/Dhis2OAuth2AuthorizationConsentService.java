@@ -27,31 +27,24 @@
  */
 package org.hisp.dhis.security.oauth2.consent;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
-/** Store for OAuth2AuthorizationConsent entities. */
-public interface OAuth2AuthorizationConsentStore
-    extends IdentifiableObjectStore<OAuth2AuthorizationConsent> {
+public interface Dhis2OAuth2AuthorizationConsentService {
+  void save(
+      org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsent
+          authorizationConsent);
 
-  /**
-   * Retrieves an OAuth2AuthorizationConsent by registered client ID and principal name.
-   *
-   * @param registeredClientId the ID of the registered client
-   * @param principalName the name of the principal (user)
-   * @return the OAuth2AuthorizationConsent, or null if not found
-   */
-  @CheckForNull
-  OAuth2AuthorizationConsent getByRegisteredClientIdAndPrincipalName(
-      @Nonnull String registeredClientId, @Nonnull String principalName);
+  void remove(
+      org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsent
+          authorizationConsent);
 
-  /**
-   * Deletes the OAuth2AuthorizationConsent with the given registered client ID and principal name.
-   *
-   * @param registeredClientId the ID of the registered client
-   * @param principalName the name of the principal (user)
-   */
-  void deleteByRegisteredClientIdAndPrincipalName(
-      @Nonnull String registeredClientId, @Nonnull String principalName);
+  org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsent findById(
+      String registeredClientId, String principalName);
+
+  @Transactional(readOnly = true)
+  List<Dhis2OAuth2AuthorizationConsent> getAll();
+
+  @Transactional
+  void delete(Dhis2OAuth2AuthorizationConsent consent);
 }

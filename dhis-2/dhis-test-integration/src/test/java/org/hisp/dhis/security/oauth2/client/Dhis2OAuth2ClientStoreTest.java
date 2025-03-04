@@ -40,14 +40,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 /** Tests for the OAuth2ClientStore implementation. */
 @Transactional
-class OAuth2ClientStoreTest extends PostgresIntegrationTestBase {
+class Dhis2OAuth2ClientStoreTest extends PostgresIntegrationTestBase {
 
-  @Autowired private OAuth2ClientStore oauth2ClientStore;
+  @Autowired private Dhis2OAuth2ClientStore oauth2ClientStore;
 
   @Test
   void testSaveAndGet() {
     // Create a test client
-    OAuth2Client client = new OAuth2Client();
+    Dhis2OAuth2Client client = new Dhis2OAuth2Client();
     client.setAutoFields();
     client.setCreatedBy(getAdminUser());
     client.setLastUpdatedBy(getAdminUser());
@@ -69,7 +69,7 @@ class OAuth2ClientStoreTest extends PostgresIntegrationTestBase {
     oauth2ClientStore.save(client);
 
     // Get the client by UID
-    OAuth2Client savedClient = oauth2ClientStore.getByUid(client.getUid());
+    Dhis2OAuth2Client savedClient = oauth2ClientStore.getByUid(client.getUid());
     assertNotNull(savedClient);
     assertEquals("Test OAuth2 Client", savedClient.getName());
     assertEquals("test-client-id", savedClient.getClientId());
@@ -87,7 +87,7 @@ class OAuth2ClientStoreTest extends PostgresIntegrationTestBase {
   @Test
   void testGetByClientId() {
     // Create a test client
-    OAuth2Client client = new OAuth2Client();
+    Dhis2OAuth2Client client = new Dhis2OAuth2Client();
     client.setAutoFields();
     client.setCreatedBy(getAdminUser());
     client.setLastUpdatedBy(getAdminUser());
@@ -105,13 +105,13 @@ class OAuth2ClientStoreTest extends PostgresIntegrationTestBase {
     oauth2ClientStore.save(client);
 
     // Get the client by client ID
-    OAuth2Client foundClient = oauth2ClientStore.getByClientId("specific-client-id");
+    Dhis2OAuth2Client foundClient = oauth2ClientStore.getByClientId("specific-client-id");
     assertNotNull(foundClient);
     assertEquals("Client By ID Test", foundClient.getName());
     assertEquals("specific-client-id", foundClient.getClientId());
 
     // Try to get a non-existent client ID
-    OAuth2Client nonExistentClient = oauth2ClientStore.getByClientId("non-existent-id");
+    Dhis2OAuth2Client nonExistentClient = oauth2ClientStore.getByClientId("non-existent-id");
     assertNull(nonExistentClient);
   }
 }

@@ -37,7 +37,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.security.oauth2.client.OAuth2ClientStore;
+import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientStore;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,17 +54,17 @@ import org.springframework.security.oauth2.server.authorization.client.Registere
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Integration tests for {@link DHIS2OAuth2AuthorizationService}. */
+/** Integration tests for {@link Dhis2OAuth2AuthorizationServiceImpl}. */
 @Transactional
-public class DHIS2OAuth2AuthorizationServiceIntegrationTest extends PostgresIntegrationTestBase {
+public class Dhis2OAuth2AuthorizationServiceIntegrationTest extends PostgresIntegrationTestBase {
 
-  @Autowired private DHIS2OAuth2AuthorizationService authorizationService;
+  @Autowired private Dhis2OAuth2AuthorizationService authorizationService;
 
-  @Autowired private OAuth2AuthorizationStore authorizationStore;
+  @Autowired private Dhis2OAuth2AuthorizationStore authorizationStore;
 
   @Autowired private RegisteredClientRepository clientRepository;
 
-  @Autowired private OAuth2ClientStore clientStore;
+  @Autowired private Dhis2OAuth2ClientStore clientStore;
 
   private RegisteredClient registeredClient;
 
@@ -130,10 +130,8 @@ public class DHIS2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
     // When
     authorizationService.save(authorization);
 
-    List<org.hisp.dhis.security.oauth2.authorization.OAuth2Authorization> all =
-        authorizationService.getAll();
-    for (org.hisp.dhis.security.oauth2.authorization.OAuth2Authorization oAuth2Authorization :
-        all) {
+    List<Dhis2OAuth2Authorization> all = authorizationService.getAll();
+    for (Dhis2OAuth2Authorization oAuth2Authorization : all) {
       System.out.println(oAuth2Authorization);
     }
 

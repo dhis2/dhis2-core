@@ -25,11 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oauth2.authorization;
+package org.hisp.dhis.security.oauth2.consent;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.Date;
+import java.util.Objects;
 import lombok.Getter;
 import lombok.Setter;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -38,48 +38,28 @@ import org.hisp.dhis.common.MetadataObject;
 
 @Getter
 @Setter
-@JacksonXmlRootElement(localName = "oauth2Authorization", namespace = DxfNamespaces.DXF_2_0)
-public class OAuth2Authorization extends BaseIdentifiableObject implements MetadataObject {
+@JacksonXmlRootElement(localName = "oauth2AuthorizationConsent", namespace = DxfNamespaces.DXF_2_0)
+public class Dhis2OAuth2AuthorizationConsent extends BaseIdentifiableObject
+    implements MetadataObject {
 
-  OAuth2Authorization() {}
+  public Dhis2OAuth2AuthorizationConsent() {}
 
   @JsonProperty private String registeredClientId;
   @JsonProperty private String principalName;
-  @JsonProperty private String authorizationGrantType;
-  @JsonProperty private String authorizedScopes;
-  @JsonProperty private String attributes;
-  @JsonProperty private String state;
+  @JsonProperty private String authorities;
 
-  @JsonProperty private String authorizationCodeValue;
-  @JsonProperty private Date authorizationCodeIssuedAt;
-  @JsonProperty private Date authorizationCodeExpiresAt;
-  @JsonProperty private String authorizationCodeMetadata;
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    if (!super.equals(o)) return false;
+    Dhis2OAuth2AuthorizationConsent that = (Dhis2OAuth2AuthorizationConsent) o;
+    return Objects.equals(registeredClientId, that.registeredClientId)
+        && Objects.equals(principalName, that.principalName);
+  }
 
-  @JsonProperty private String accessTokenValue;
-  @JsonProperty private Date accessTokenIssuedAt;
-  @JsonProperty private Date accessTokenExpiresAt;
-  @JsonProperty private String accessTokenMetadata;
-  @JsonProperty private String accessTokenType;
-  @JsonProperty private String accessTokenScopes;
-
-  @JsonProperty private String refreshTokenValue;
-  @JsonProperty private Date refreshTokenIssuedAt;
-  @JsonProperty private Date refreshTokenExpiresAt;
-  @JsonProperty private String refreshTokenMetadata;
-
-  @JsonProperty private String oidcIdTokenValue;
-  @JsonProperty private Date oidcIdTokenIssuedAt;
-  @JsonProperty private Date oidcIdTokenExpiresAt;
-  @JsonProperty private String oidcIdTokenMetadata;
-  @JsonProperty private String oidcIdTokenClaims;
-
-  @JsonProperty private String userCodeValue;
-  @JsonProperty private Date userCodeIssuedAt;
-  @JsonProperty private Date userCodeExpiresAt;
-  @JsonProperty private String userCodeMetadata;
-
-  @JsonProperty private String deviceCodeValue;
-  @JsonProperty private Date deviceCodeIssuedAt;
-  @JsonProperty private Date deviceCodeExpiresAt;
-  @JsonProperty private String deviceCodeMetadata;
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), registeredClientId, principalName);
+  }
 }

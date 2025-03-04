@@ -28,15 +28,17 @@
 package org.hisp.dhis.security.oauth2.consent;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.security.oauth2.client.DHIS2OAuth2RegisteredClientRepository;
+import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2RegisteredClientRepository;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -45,19 +47,21 @@ import org.springframework.util.StringUtils;
  * HibernateOAuth2AuthorizationConsentStore for persistence.
  */
 @Service
-public class DHIS2OAuth2AuthorizationConsentService implements OAuth2AuthorizationConsentService {
-  private final OAuth2AuthorizationConsentStore authorizationConsentStore;
-  private final DHIS2OAuth2RegisteredClientRepository clientRepository;
+public class Dhis2OAuth2AuthorizationConsentServiceImpl
+    implements Dhis2OAuth2AuthorizationConsentService, OAuth2AuthorizationConsentService {
+  private final Dhis2OAuth2AuthorizationConsentStore authorizationConsentStore;
+  private final Dhis2OAuth2RegisteredClientRepository clientRepository;
 
-  public DHIS2OAuth2AuthorizationConsentService(
-      OAuth2AuthorizationConsentStore authorizationConsentStore,
-      DHIS2OAuth2RegisteredClientRepository clientRepository) {
+  public Dhis2OAuth2AuthorizationConsentServiceImpl(
+      Dhis2OAuth2AuthorizationConsentStore authorizationConsentStore,
+      Dhis2OAuth2RegisteredClientRepository clientRepository) {
     Assert.notNull(authorizationConsentStore, "authorizationConsentStore cannot be null");
     Assert.notNull(clientRepository, "registeredClientRepository cannot be null");
     this.authorizationConsentStore = authorizationConsentStore;
     this.clientRepository = clientRepository;
   }
 
+  @Transactional
   @Override
   public void save(
       org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsent
@@ -66,6 +70,7 @@ public class DHIS2OAuth2AuthorizationConsentService implements OAuth2Authorizati
     this.authorizationConsentStore.save(toEntity(authorizationConsent));
   }
 
+  @Transactional
   @Override
   public void remove(
       org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsent
@@ -75,17 +80,30 @@ public class DHIS2OAuth2AuthorizationConsentService implements OAuth2Authorizati
         authorizationConsent.getRegisteredClientId(), authorizationConsent.getPrincipalName());
   }
 
+  @Transactional(readOnly = true)
   @Override
   public org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsent
       findById(String registeredClientId, String principalName) {
     Assert.hasText(registeredClientId, "registeredClientId cannot be empty");
     Assert.hasText(principalName, "principalName cannot be empty");
 
-    OAuth2AuthorizationConsent entity =
+    Dhis2OAuth2AuthorizationConsent entity =
         this.authorizationConsentStore.getByRegisteredClientIdAndPrincipalName(
             registeredClientId, principalName);
 
     return entity != null ? toObject(entity) : null;
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public List<Dhis2OAuth2AuthorizationConsent> getAll() {
+    return authorizationConsentStore.getAll();
+  }
+
+  @Transactional
+  @Override
+  public void delete(Dhis2OAuth2AuthorizationConsent consent) {
+    authorizationConsentStore.delete(consent);
   }
 
   /**
@@ -96,7 +114,7 @@ public class DHIS2OAuth2AuthorizationConsentService implements OAuth2Authorizati
    * @return The Spring OAuth2AuthorizationConsent
    */
   private org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsent
-      toObject(OAuth2AuthorizationConsent entity) {
+      toObject(Dhis2OAuth2AuthorizationConsent entity) {
 
     String registeredClientId = entity.getRegisteredClientId();
     RegisteredClient registeredClient = this.clientRepository.findByUID(registeredClientId);
@@ -128,17 +146,17 @@ public class DHIS2OAuth2AuthorizationConsentService implements OAuth2Authorizati
    * @param authorizationConsent The Spring OAuth2AuthorizationConsent
    * @return The DHIS2 OAuth2AuthorizationConsent entity
    */
-  private OAuth2AuthorizationConsent toEntity(
+  private Dhis2OAuth2AuthorizationConsent toEntity(
       org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsent
           authorizationConsent) {
 
     // Check if this record already exists to maintain its UID and created date
-    OAuth2AuthorizationConsent existingEntity =
+    Dhis2OAuth2AuthorizationConsent existingEntity =
         this.authorizationConsentStore.getByRegisteredClientIdAndPrincipalName(
             authorizationConsent.getRegisteredClientId(), authorizationConsent.getPrincipalName());
 
-    OAuth2AuthorizationConsent entity =
-        existingEntity != null ? existingEntity : new OAuth2AuthorizationConsent();
+    Dhis2OAuth2AuthorizationConsent entity =
+        existingEntity != null ? existingEntity : new Dhis2OAuth2AuthorizationConsent();
 
     if (existingEntity == null) {
       entity.setUid(CodeGenerator.generateUid());

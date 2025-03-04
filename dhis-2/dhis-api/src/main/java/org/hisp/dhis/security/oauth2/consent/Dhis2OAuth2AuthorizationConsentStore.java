@@ -25,34 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oauth2.client;
+package org.hisp.dhis.security.oauth2.consent;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.Date;
-import lombok.Getter;
-import lombok.Setter;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
-@Getter
-@Setter
-@JacksonXmlRootElement(localName = "oauth2Client", namespace = DxfNamespaces.DXF_2_0)
-public class OAuth2Client extends BaseIdentifiableObject implements MetadataObject {
+/** Store for OAuth2AuthorizationConsent entities. */
+public interface Dhis2OAuth2AuthorizationConsentStore
+    extends IdentifiableObjectStore<Dhis2OAuth2AuthorizationConsent> {
 
-  public OAuth2Client() {}
+  /**
+   * Retrieves an OAuth2AuthorizationConsent by registered client ID and principal name.
+   *
+   * @param registeredClientId the ID of the registered client
+   * @param principalName the name of the principal (user)
+   * @return the OAuth2AuthorizationConsent, or null if not found
+   */
+  @CheckForNull
+  Dhis2OAuth2AuthorizationConsent getByRegisteredClientIdAndPrincipalName(
+      @Nonnull String registeredClientId, @Nonnull String principalName);
 
-  @JsonProperty private String clientId;
-  @JsonProperty private String clientSecret;
-  @JsonProperty private Date clientIdIssuedAt;
-  @JsonProperty private Date clientSecretExpiresAt;
-  @JsonProperty private String clientAuthenticationMethods;
-
-  @JsonProperty private String authorizationGrantTypes;
-  @JsonProperty private String redirectUris;
-  @JsonProperty private String postLogoutRedirectUris;
-  @JsonProperty private String scopes;
-  @JsonProperty private String clientSettings;
-  @JsonProperty private String tokenSettings;
+  /**
+   * Deletes the OAuth2AuthorizationConsent with the given registered client ID and principal name.
+   *
+   * @param registeredClientId the ID of the registered client
+   * @param principalName the name of the principal (user)
+   */
+  void deleteByRegisteredClientIdAndPrincipalName(
+      @Nonnull String registeredClientId, @Nonnull String principalName);
 }

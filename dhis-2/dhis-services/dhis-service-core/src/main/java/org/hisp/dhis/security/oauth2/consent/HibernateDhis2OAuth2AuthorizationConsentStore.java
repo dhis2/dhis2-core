@@ -39,22 +39,27 @@ import org.springframework.stereotype.Repository;
 
 /** Hibernate implementation of the OAuth2AuthorizationConsentStore. */
 @Repository
-public class HibernateOAuth2AuthorizationConsentStore
-    extends HibernateIdentifiableObjectStore<OAuth2AuthorizationConsent>
-    implements OAuth2AuthorizationConsentStore {
+public class HibernateDhis2OAuth2AuthorizationConsentStore
+    extends HibernateIdentifiableObjectStore<Dhis2OAuth2AuthorizationConsent>
+    implements Dhis2OAuth2AuthorizationConsentStore {
 
-  public HibernateOAuth2AuthorizationConsentStore(
+  public HibernateDhis2OAuth2AuthorizationConsentStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService) {
     super(
-        entityManager, jdbcTemplate, publisher, OAuth2AuthorizationConsent.class, aclService, true);
+        entityManager,
+        jdbcTemplate,
+        publisher,
+        Dhis2OAuth2AuthorizationConsent.class,
+        aclService,
+        true);
   }
 
   @Override
   @CheckForNull
-  public OAuth2AuthorizationConsent getByRegisteredClientIdAndPrincipalName(
+  public Dhis2OAuth2AuthorizationConsent getByRegisteredClientIdAndPrincipalName(
       @Nonnull String registeredClientId, @Nonnull String principalName) {
     CriteriaBuilder builder = getCriteriaBuilder();
     return getSingleResult(
@@ -67,7 +72,7 @@ public class HibernateOAuth2AuthorizationConsentStore
   @Override
   public void deleteByRegisteredClientIdAndPrincipalName(
       @Nonnull String registeredClientId, @Nonnull String principalName) {
-    OAuth2AuthorizationConsent consent =
+    Dhis2OAuth2AuthorizationConsent consent =
         getByRegisteredClientIdAndPrincipalName(registeredClientId, principalName);
     if (consent != null) {
       delete(consent);

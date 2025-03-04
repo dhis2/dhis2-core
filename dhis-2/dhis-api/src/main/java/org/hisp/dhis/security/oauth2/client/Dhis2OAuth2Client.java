@@ -25,11 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oauth2.consent;
+package org.hisp.dhis.security.oauth2.client;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.Objects;
+import java.util.Date;
 import lombok.Getter;
 import lombok.Setter;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -38,27 +38,21 @@ import org.hisp.dhis.common.MetadataObject;
 
 @Getter
 @Setter
-@JacksonXmlRootElement(localName = "oauth2AuthorizationConsent", namespace = DxfNamespaces.DXF_2_0)
-public class OAuth2AuthorizationConsent extends BaseIdentifiableObject implements MetadataObject {
+@JacksonXmlRootElement(localName = "oauth2Client", namespace = DxfNamespaces.DXF_2_0)
+public class Dhis2OAuth2Client extends BaseIdentifiableObject implements MetadataObject {
 
-  public OAuth2AuthorizationConsent() {}
+  public Dhis2OAuth2Client() {}
 
-  @JsonProperty private String registeredClientId;
-  @JsonProperty private String principalName;
-  @JsonProperty private String authorities;
+  @JsonProperty private String clientId;
+  @JsonProperty private String clientSecret;
+  @JsonProperty private Date clientIdIssuedAt;
+  @JsonProperty private Date clientSecretExpiresAt;
+  @JsonProperty private String clientAuthenticationMethods;
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    if (!super.equals(o)) return false;
-    OAuth2AuthorizationConsent that = (OAuth2AuthorizationConsent) o;
-    return Objects.equals(registeredClientId, that.registeredClientId)
-        && Objects.equals(principalName, that.principalName);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(super.hashCode(), registeredClientId, principalName);
-  }
+  @JsonProperty private String authorizationGrantTypes;
+  @JsonProperty private String redirectUris;
+  @JsonProperty private String postLogoutRedirectUris;
+  @JsonProperty private String scopes;
+  @JsonProperty private String clientSettings;
+  @JsonProperty private String tokenSettings;
 }

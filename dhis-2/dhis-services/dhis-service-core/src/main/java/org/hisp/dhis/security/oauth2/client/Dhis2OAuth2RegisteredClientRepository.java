@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,35 +27,20 @@
  */
 package org.hisp.dhis.security.oauth2.client;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import java.util.List;
+import org.hisp.dhis.user.UserDetails;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 
-/** Hibernate implementation of the OAuth2ClientStore. */
-@Repository
-public class HibernateOAuth2ClientStore extends HibernateIdentifiableObjectStore<OAuth2Client>
-    implements OAuth2ClientStore {
+public interface Dhis2OAuth2RegisteredClientRepository {
+  void save(RegisteredClient registeredClient);
 
-  public HibernateOAuth2ClientStore(
-      EntityManager entityManager,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      AclService aclService) {
-    super(entityManager, jdbcTemplate, publisher, OAuth2Client.class, aclService, true);
-  }
+  void save(RegisteredClient registeredClient, UserDetails userDetails);
 
-  @Override
-  @CheckForNull
-  public OAuth2Client getByClientId(@Nonnull String clientId) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-    return getSingleResult(
-        builder,
-        newJpaParameters().addPredicate(root -> builder.equal(root.get("clientId"), clientId)));
-  }
+  RegisteredClient findByUID(String uid);
+
+  RegisteredClient findById(String id);
+
+  RegisteredClient findByClientId(String clientId);
+
+  List<Dhis2OAuth2Client> getAll();
 }

@@ -6,7 +6,7 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.security.oauth2.consent.OAuth2AuthorizationConsent"
+  <class name="org.hisp.dhis.security.oauth2.consent.Dhis2OAuth2AuthorizationConsent"
     table="oauth2_authorization_consent">
 
     <cache usage="read-write"/>

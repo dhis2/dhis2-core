@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
@@ -45,6 +46,7 @@ import org.springframework.security.oauth2.server.authorization.jackson2.OAuth2A
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -53,46 +55,60 @@ import org.springframework.util.StringUtils;
  * HibernateOAuth2ClientStore for persistence.
  */
 @Service
-public class DHIS2OAuth2RegisteredClientRepository implements RegisteredClientRepository {
-  private final OAuth2ClientStore clientStore;
+public class Dhis2OAuth2RegisteredClientRepositoryImpl
+    implements Dhis2OAuth2RegisteredClientRepository, RegisteredClientRepository {
+  private final Dhis2OAuth2ClientStore clientStore;
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  public DHIS2OAuth2RegisteredClientRepository(OAuth2ClientStore clientStore) {
+  public Dhis2OAuth2RegisteredClientRepositoryImpl(Dhis2OAuth2ClientStore clientStore) {
     Assert.notNull(clientStore, "clientStore cannot be null");
     this.clientStore = clientStore;
 
     // Configure Jackson mapper with the required modules
-    ClassLoader classLoader = DHIS2OAuth2RegisteredClientRepository.class.getClassLoader();
+    ClassLoader classLoader = Dhis2OAuth2RegisteredClientRepositoryImpl.class.getClassLoader();
     List<com.fasterxml.jackson.databind.Module> securityModules =
         SecurityJackson2Modules.getModules(classLoader);
     this.objectMapper.registerModules(securityModules);
     this.objectMapper.registerModule(new OAuth2AuthorizationServerJackson2Module());
   }
 
+  @Transactional
   @Override
   public void save(RegisteredClient registeredClient) {
     Assert.notNull(registeredClient, "registeredClient cannot be null");
-    OAuth2Client client = toEntity(registeredClient);
+    Dhis2OAuth2Client client = toEntity(registeredClient);
     this.clientStore.save(client);
   }
 
+  @Transactional
+  @Override
+  public void save(RegisteredClient registeredClient, UserDetails userDetails) {
+    Assert.notNull(registeredClient, "registeredClient cannot be null");
+    Dhis2OAuth2Client client = toEntity(registeredClient);
+    this.clientStore.save(client, userDetails, false);
+  }
+
+  @Transactional(readOnly = true)
+  @Override
   public RegisteredClient findByUID(String uid) {
     Assert.hasText(uid, "uid cannot be empty");
-    OAuth2Client client = this.clientStore.getByUid(uid);
+    Dhis2OAuth2Client client = this.clientStore.getByUidNoAcl(uid);
     return client != null ? toObject(client) : null;
   }
 
+  @Transactional(readOnly = true)
   @Override
   public RegisteredClient findById(String id) {
     Assert.hasText(id, "id cannot be empty");
-    OAuth2Client client = this.clientStore.getByClientId(id);
+    Dhis2OAuth2Client client = this.clientStore.getByClientId(id);
     return client != null ? toObject(client) : null;
   }
 
+  @Transactional(readOnly = true)
   @Override
   public RegisteredClient findByClientId(String clientId) {
     Assert.hasText(clientId, "clientId cannot be empty");
-    OAuth2Client client = this.clientStore.getByClientId(clientId);
+    Dhis2OAuth2Client client = this.clientStore.getByClientId(clientId);
     return client != null ? toObject(client) : null;
   }
 
@@ -102,7 +118,7 @@ public class DHIS2OAuth2RegisteredClientRepository implements RegisteredClientRe
    * @param client The DHIS2 OAuth2Client entity
    * @return The Spring RegisteredClient
    */
-  private RegisteredClient toObject(OAuth2Client client) {
+  private RegisteredClient toObject(Dhis2OAuth2Client client) {
     Set<String> clientAuthenticationMethods =
         StringUtils.commaDelimitedListToSet(client.getClientAuthenticationMethods());
     Set<String> authorizationGrantTypes =
@@ -153,7 +169,7 @@ public class DHIS2OAuth2RegisteredClientRepository implements RegisteredClientRe
    * @param registeredClient The Spring RegisteredClient
    * @return The DHIS2 OAuth2Client entity
    */
-  private OAuth2Client toEntity(RegisteredClient registeredClient) {
+  private Dhis2OAuth2Client toEntity(RegisteredClient registeredClient) {
     List<String> clientAuthenticationMethods =
         new ArrayList<>(registeredClient.getClientAuthenticationMethods().size());
     registeredClient
@@ -170,11 +186,12 @@ public class DHIS2OAuth2RegisteredClientRepository implements RegisteredClientRe
             authorizationGrantType ->
                 authorizationGrantTypes.add(authorizationGrantType.getValue()));
 
-    OAuth2Client entity = new OAuth2Client();
+    Dhis2OAuth2Client entity = new Dhis2OAuth2Client();
 
     // Handle case when we're creating a new client vs updating existing
     if (this.clientStore.getByClientId(registeredClient.getClientId()) != null) {
-      OAuth2Client existingClient = this.clientStore.getByClientId(registeredClient.getClientId());
+      Dhis2OAuth2Client existingClient =
+          this.clientStore.getByClientId(registeredClient.getClientId());
       entity.setUid(existingClient.getUid());
       entity.setCreated(existingClient.getCreated());
 
@@ -285,8 +302,9 @@ public class DHIS2OAuth2RegisteredClientRepository implements RegisteredClientRe
         clientAuthenticationMethod); // Custom client authentication method
   }
 
-  public List<OAuth2Client> getAll() {
-    List<OAuth2Client> all = clientStore.getAll();
+  @Override
+  public List<Dhis2OAuth2Client> getAll() {
+    List<Dhis2OAuth2Client> all = clientStore.getAll();
     return all;
   }
 }

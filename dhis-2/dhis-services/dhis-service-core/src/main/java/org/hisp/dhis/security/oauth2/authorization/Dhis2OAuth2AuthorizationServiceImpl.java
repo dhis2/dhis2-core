@@ -27,16 +27,21 @@
  */
 package org.hisp.dhis.security.oauth2.authorization;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.security.oauth2.client.DHIS2OAuth2RegisteredClientRepository;
+import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2RegisteredClientRepository;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.SystemUser;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -48,12 +53,14 @@ import org.springframework.security.oauth2.core.OAuth2UserCode;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.endpoint.OidcParameterNames;
+import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationCode;
 import org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.jackson2.OAuth2AuthorizationServerJackson2Module;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -63,56 +70,98 @@ import org.springframework.util.StringUtils;
  */
 @Slf4j
 @Service
-public class DHIS2OAuth2AuthorizationService implements OAuth2AuthorizationService {
-  private final OAuth2AuthorizationStore authorizationStore;
-  private final DHIS2OAuth2RegisteredClientRepository clientRepository;
+public class Dhis2OAuth2AuthorizationServiceImpl
+    implements Dhis2OAuth2AuthorizationService, OAuth2AuthorizationService {
+  private final Dhis2OAuth2AuthorizationStore authorizationStore;
+  private final Dhis2OAuth2RegisteredClientRepository clientRepository;
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  public DHIS2OAuth2AuthorizationService(
-      OAuth2AuthorizationStore authorizationStore,
-      DHIS2OAuth2RegisteredClientRepository clientRepository) {
+  private static final String UUID_REGEX =
+      "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$";
+  private static final Pattern UUID_PATTERN = Pattern.compile(UUID_REGEX);
+
+  public Dhis2OAuth2AuthorizationServiceImpl(
+      Dhis2OAuth2AuthorizationStore authorizationStore,
+      Dhis2OAuth2RegisteredClientRepository clientRepository) {
     Assert.notNull(authorizationStore, "authorizationStore cannot be null");
     Assert.notNull(clientRepository, "clientRepository cannot be null");
     this.authorizationStore = authorizationStore;
     this.clientRepository = clientRepository;
 
     // Configure Jackson mapper with required modules
-    ClassLoader classLoader = DHIS2OAuth2AuthorizationService.class.getClassLoader();
+    ClassLoader classLoader = Dhis2OAuth2AuthorizationServiceImpl.class.getClassLoader();
     List<com.fasterxml.jackson.databind.Module> securityModules =
         SecurityJackson2Modules.getModules(classLoader);
     this.objectMapper.registerModules(securityModules);
     this.objectMapper.registerModule(new OAuth2AuthorizationServerJackson2Module());
+
+    this.objectMapper.enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
   }
 
+  @JsonTypeInfo(
+      use = JsonTypeInfo.Id.CLASS,
+      include = JsonTypeInfo.As.PROPERTY,
+      property = "@class")
+  public abstract static class SynchronizedSetMixin {}
+
+  @Transactional
   @Override
-  public void save(
-      org.springframework.security.oauth2.server.authorization.OAuth2Authorization authorization) {
+  public void save(OAuth2Authorization authorization) {
     Assert.notNull(authorization, "authorization cannot be null");
-    OAuth2Authorization entity = toEntity(authorization);
-    this.authorizationStore.save(entity);
+
+    Dhis2OAuth2Authorization entity = toEntity(authorization);
+    Dhis2OAuth2Authorization existing = this.authorizationStore.getByUidNoAcl(entity.getUid());
+    if (existing != null) {
+      log.info("Updating existing authorization with id: " + authorization.getId());
+      entity.setId(existing.getId());
+
+      if (CurrentUserUtil.hasCurrentUser()) {
+        //        this.authorizationStore.merge(entity, CurrentUserUtil.getCurrentUserDetails());
+        this.authorizationStore.merge(entity, new SystemUser());
+      } else {
+        this.authorizationStore.merge(entity, new SystemUser());
+      }
+
+    } else {
+      log.info("Creating new authorization with id: " + authorization.getId());
+      this.authorizationStore.save(entity);
+    }
   }
 
+  @Transactional
   @Override
-  public void remove(
-      org.springframework.security.oauth2.server.authorization.OAuth2Authorization authorization) {
+  public void remove(OAuth2Authorization authorization) {
     Assert.notNull(authorization, "authorization cannot be null");
     this.authorizationStore.deleteByUID(authorization.getId());
   }
 
+  @Transactional
   @Override
-  public org.springframework.security.oauth2.server.authorization.OAuth2Authorization findById(
-      String id) {
+  public void delete(String uid) {
+    Assert.hasText(uid, "uid cannot be empty");
+    this.authorizationStore.deleteByUID(uid);
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public List<Dhis2OAuth2Authorization> getAll() {
+    return authorizationStore.getAll();
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public OAuth2Authorization findById(String id) {
     Assert.hasText(id, "id cannot be empty");
-    OAuth2Authorization entity = this.authorizationStore.getByUid(id);
+    Dhis2OAuth2Authorization entity = this.authorizationStore.getByUid(id);
     return entity != null ? toObject(entity) : null;
   }
 
+  @Transactional(readOnly = true)
   @Override
-  public org.springframework.security.oauth2.server.authorization.OAuth2Authorization findByToken(
-      String token, OAuth2TokenType tokenType) {
+  public OAuth2Authorization findByToken(String token, OAuth2TokenType tokenType) {
     Assert.hasText(token, "token cannot be empty");
 
-    OAuth2Authorization entity = null;
+    Dhis2OAuth2Authorization entity = null;
 
     if (tokenType == null) {
       entity = this.authorizationStore.getByToken(token);
@@ -141,8 +190,7 @@ public class DHIS2OAuth2AuthorizationService implements OAuth2AuthorizationServi
    * @param entity The DHIS2 OAuth2Authorization entity
    * @return The Spring OAuth2Authorization
    */
-  private org.springframework.security.oauth2.server.authorization.OAuth2Authorization toObject(
-      OAuth2Authorization entity) {
+  private OAuth2Authorization toObject(Dhis2OAuth2Authorization entity) {
     RegisteredClient registeredClient =
         this.clientRepository.findByUID(entity.getRegisteredClientId());
     if (registeredClient == null) {
@@ -152,9 +200,8 @@ public class DHIS2OAuth2AuthorizationService implements OAuth2AuthorizationServi
               + "' was not found in the RegisteredClientRepository.");
     }
 
-    org.springframework.security.oauth2.server.authorization.OAuth2Authorization.Builder builder =
-        org.springframework.security.oauth2.server.authorization.OAuth2Authorization
-            .withRegisteredClient(registeredClient)
+    OAuth2Authorization.Builder builder =
+        OAuth2Authorization.withRegisteredClient(registeredClient)
             .id(entity.getUid())
             .principalName(entity.getPrincipalName())
             .authorizationGrantType(
@@ -262,18 +309,26 @@ public class DHIS2OAuth2AuthorizationService implements OAuth2AuthorizationServi
    * @param authorization The Spring OAuth2Authorization
    * @return The DHIS2 OAuth2Authorization entity
    */
-  private OAuth2Authorization toEntity(
-      org.springframework.security.oauth2.server.authorization.OAuth2Authorization authorization) {
-    OAuth2Authorization entity = new OAuth2Authorization();
+  private Dhis2OAuth2Authorization toEntity(OAuth2Authorization authorization) {
+    Dhis2OAuth2Authorization entity = new Dhis2OAuth2Authorization();
 
     // Handle case when we're creating a new authorization
-    if (this.authorizationStore.getByUid(authorization.getId()) != null) {
-      OAuth2Authorization existingEntity = this.authorizationStore.getByUid(authorization.getId());
+    if (this.authorizationStore.getByUidNoAcl(authorization.getId()) != null) {
+      Dhis2OAuth2Authorization existingEntity =
+          this.authorizationStore.getByUidNoAcl(authorization.getId());
       entity.setUid(existingEntity.getUid());
       entity.setCreated(existingEntity.getCreated());
     } else {
-      entity.setUid(
-          authorization.getId() != null ? authorization.getId() : CodeGenerator.generateUid());
+      if (authorization.getId() != null) {
+        boolean isUUID = UUID_PATTERN.matcher(authorization.getId()).matches();
+        if (isUUID) {
+          entity.setUid(CodeGenerator.generateUid());
+        } else {
+          entity.setUid(authorization.getId());
+        }
+      } else {
+        entity.setUid(CodeGenerator.generateUid());
+      }
     }
 
     entity.setRegisteredClientId(authorization.getRegisteredClientId());
@@ -284,9 +339,8 @@ public class DHIS2OAuth2AuthorizationService implements OAuth2AuthorizationServi
     entity.setAttributes(writeMap(authorization.getAttributes()));
     entity.setState(authorization.getAttribute(OAuth2ParameterNames.STATE));
 
-    org.springframework.security.oauth2.server.authorization.OAuth2Authorization.Token<
-            OAuth2AuthorizationCode>
-        authorizationCode = authorization.getToken(OAuth2AuthorizationCode.class);
+    OAuth2Authorization.Token<OAuth2AuthorizationCode> authorizationCode =
+        authorization.getToken(OAuth2AuthorizationCode.class);
     setTokenValues(
         authorizationCode,
         entity::setAuthorizationCodeValue,
@@ -294,9 +348,8 @@ public class DHIS2OAuth2AuthorizationService implements OAuth2AuthorizationServi
         entity::setAuthorizationCodeExpiresAt,
         entity::setAuthorizationCodeMetadata);
 
-    org.springframework.security.oauth2.server.authorization.OAuth2Authorization.Token<
-            OAuth2AccessToken>
-        accessToken = authorization.getToken(OAuth2AccessToken.class);
+    OAuth2Authorization.Token<OAuth2AccessToken> accessToken =
+        authorization.getToken(OAuth2AccessToken.class);
     setTokenValues(
         accessToken,
         entity::setAccessTokenValue,
@@ -308,9 +361,8 @@ public class DHIS2OAuth2AuthorizationService implements OAuth2AuthorizationServi
           StringUtils.collectionToCommaDelimitedString(accessToken.getToken().getScopes()));
     }
 
-    org.springframework.security.oauth2.server.authorization.OAuth2Authorization.Token<
-            OAuth2RefreshToken>
-        refreshToken = authorization.getToken(OAuth2RefreshToken.class);
+    OAuth2Authorization.Token<OAuth2RefreshToken> refreshToken =
+        authorization.getToken(OAuth2RefreshToken.class);
     setTokenValues(
         refreshToken,
         entity::setRefreshTokenValue,
@@ -318,8 +370,7 @@ public class DHIS2OAuth2AuthorizationService implements OAuth2AuthorizationServi
         entity::setRefreshTokenExpiresAt,
         entity::setRefreshTokenMetadata);
 
-    org.springframework.security.oauth2.server.authorization.OAuth2Authorization.Token<OidcIdToken>
-        oidcIdToken = authorization.getToken(OidcIdToken.class);
+    OAuth2Authorization.Token<OidcIdToken> oidcIdToken = authorization.getToken(OidcIdToken.class);
     setTokenValues(
         oidcIdToken,
         entity::setOidcIdTokenValue,
@@ -330,9 +381,8 @@ public class DHIS2OAuth2AuthorizationService implements OAuth2AuthorizationServi
       entity.setOidcIdTokenClaims(writeMap(oidcIdToken.getClaims()));
     }
 
-    org.springframework.security.oauth2.server.authorization.OAuth2Authorization.Token<
-            OAuth2UserCode>
-        userCode = authorization.getToken(OAuth2UserCode.class);
+    OAuth2Authorization.Token<OAuth2UserCode> userCode =
+        authorization.getToken(OAuth2UserCode.class);
     setTokenValues(
         userCode,
         entity::setUserCodeValue,
@@ -340,9 +390,8 @@ public class DHIS2OAuth2AuthorizationService implements OAuth2AuthorizationServi
         entity::setUserCodeExpiresAt,
         entity::setUserCodeMetadata);
 
-    org.springframework.security.oauth2.server.authorization.OAuth2Authorization.Token<
-            OAuth2DeviceCode>
-        deviceCode = authorization.getToken(OAuth2DeviceCode.class);
+    OAuth2Authorization.Token<OAuth2DeviceCode> deviceCode =
+        authorization.getToken(OAuth2DeviceCode.class);
     setTokenValues(
         deviceCode,
         entity::setDeviceCodeValue,
@@ -355,7 +404,7 @@ public class DHIS2OAuth2AuthorizationService implements OAuth2AuthorizationServi
 
   /** Helper method to set token values on entity */
   private <T extends OAuth2Token> void setTokenValues(
-      org.springframework.security.oauth2.server.authorization.OAuth2Authorization.Token<T> token,
+      OAuth2Authorization.Token<T> token,
       Consumer<String> tokenValueConsumer,
       Consumer<Date> issuedAtConsumer,
       Consumer<Date> expiresAtConsumer,
@@ -423,9 +472,5 @@ public class DHIS2OAuth2AuthorizationService implements OAuth2AuthorizationServi
       return AuthorizationGrantType.DEVICE_CODE;
     }
     return new AuthorizationGrantType(authorizationGrantType); // Custom authorization grant type
-  }
-
-  public List<OAuth2Authorization> getAll() {
-    return authorizationStore.getAll();
   }
 }

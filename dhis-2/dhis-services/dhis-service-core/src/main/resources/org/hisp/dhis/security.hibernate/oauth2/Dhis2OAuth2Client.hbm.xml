@@ -6,7 +6,7 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.security.oauth2.client.OAuth2Client" table="oauth2_client">
+  <class name="org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client" table="oauth2_client">
 
     <cache usage="read-write"/>
 

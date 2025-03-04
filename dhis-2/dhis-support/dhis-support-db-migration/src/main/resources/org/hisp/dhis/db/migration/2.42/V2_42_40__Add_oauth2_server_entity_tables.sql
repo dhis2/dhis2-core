@@ -7,8 +7,8 @@ create table if not exists oauth2_authorization
     code                          character varying(50) unique,
     created                       timestamp without time zone not null,
     lastUpdated                   timestamp without time zone not null,
-    lastupdatedby                 bigint                      not null,
-    createdby                     bigint                      not null,
+    lastupdatedby                 bigint                      ,
+    createdby                     bigint                      ,
 
 --     name                          varchar(230)                not null,
 
@@ -63,8 +63,8 @@ create table if not exists oauth2_client
     code                          character varying(50) unique,
     created                       timestamp without time zone not null,
     lastUpdated                   timestamp without time zone not null,
-    lastupdatedby                 bigint                      not null,
-    createdby                     bigint                      not null,
+    lastupdatedby                 bigint                      ,
+    createdby                     bigint                      ,
 
 --     name                          varchar(230)                not null,
 
@@ -91,8 +91,8 @@ create table if not exists oauth2_authorization_consent
     code                 character varying(50) unique,
     created              timestamp without time zone not null,
     lastUpdated          timestamp without time zone not null,
-    lastupdatedby        bigint                      not null,
-    createdby            bigint                      not null,
+    lastupdatedby        bigint                      ,
+    createdby            bigint                      ,
 
 --     name                 varchar(230)                not null,
 
