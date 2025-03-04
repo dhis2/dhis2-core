@@ -73,6 +73,9 @@ public class AttributeValueFilter implements Serializable {
   /** Ends with */
   private String ew;
 
+  /** Null */
+  private Boolean isNull;
+
   /** If the attribute is of type date, then date filtering parameters are specified using this. */
   private DateFilterPeriod dateFilter;
 
@@ -178,6 +181,16 @@ public class AttributeValueFilter implements Serializable {
 
   public void setEw(String ew) {
     this.ew = ew;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Boolean getNull() {
+    return isNull;
+  }
+
+  public void setNull(Boolean isNull) {
+    this.isNull = isNull;
   }
 
   @JsonProperty
