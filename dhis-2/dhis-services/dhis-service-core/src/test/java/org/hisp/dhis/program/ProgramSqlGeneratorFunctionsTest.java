@@ -281,7 +281,7 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
         is(
             " case when (regexp_split_to_array(coalesce(case when ax.\"ps\" = 'ProgrmStagA' "
                 + "then \"DataElmentF\" else null end::text,''),',') "
-                + "@> ARRAY['abc','def']) then 1 else 2 end"));
+                + "@> ARRAY['abc','def']) then 1::numeric else 2::numeric end"));
 
     String sql3 = test("if(containsItems(#{ProgrmStagA.DataElmentF},'abc','def','ghi'),1,2)");
     assertThat(
@@ -289,7 +289,7 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
         is(
             " case when (regexp_split_to_array(coalesce(case when ax.\"ps\" = 'ProgrmStagA' "
                 + "then \"DataElmentF\" else null end::text,''),',') "
-                + "@> ARRAY['abc','def','ghi']) then 1 else 2 end"));
+                + "@> ARRAY['abc','def','ghi']) then 1::numeric else 2::numeric end"));
   }
 
   @Test
