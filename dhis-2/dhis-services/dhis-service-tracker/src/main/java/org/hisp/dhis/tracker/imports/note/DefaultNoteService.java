@@ -53,7 +53,7 @@ public class DefaultNoteService implements NoteService {
   @Transactional
   @Override
   public void addNoteForEnrollment(Note note, UID enrollment)
-      throws ForbiddenException, NotFoundException, BadRequestException {
+      throws NotFoundException, BadRequestException {
     // Check enrollment existence and access
     enrollmentService.getEnrollment(enrollment);
     validateNote(note);

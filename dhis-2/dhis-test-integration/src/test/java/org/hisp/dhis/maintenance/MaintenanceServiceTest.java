@@ -258,7 +258,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testDeleteSoftDeletedEnrollmentWithAProgramMessage()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     ProgramMessageRecipients programMessageRecipients = new ProgramMessageRecipients();
     programMessageRecipients.setEmailAddresses(Sets.newHashSet("testemail"));
     programMessageRecipients.setPhoneNumbers(Sets.newHashSet("testphone"));
@@ -274,11 +274,10 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
             .build();
     manager.save(enrollment);
     programMessageService.saveProgramMessage(message);
-    assertNotNull(enrollmentService.getEnrollment(UID.of(enrollment)));
+    assertTrue(enrollmentService.findEnrollment(UID.of(enrollment)).isPresent());
 
     manager.delete(enrollment);
-    assertThrows(
-        NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollment)));
+    assertFalse(enrollmentService.findEnrollment(UID.of(enrollment)).isPresent());
     assertTrue(enrollmentExistsIncludingDeleted(enrollment));
 
     maintenanceService.deleteSoftDeletedEnrollments();
@@ -342,7 +341,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testDeleteSoftDeletedEnrollmentLinkedToAnEventDataValueChangeLog()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     DataElement dataElement = createDataElement('A');
     dataElementService.addDataElement(dataElement);
     Event eventA = new Event(enrollment, program.getProgramStageByStage(1));
@@ -354,10 +353,9 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     eventChangeLogService.addEventChangeLog(
         eventA, dataElement, "", "value", UPDATE, getCurrentUsername());
     manager.save(enrollment);
-    assertNotNull(enrollmentService.getEnrollment(UID.of(enrollment)));
+    assertTrue(enrollmentService.findEnrollment(UID.of(enrollment)).isPresent());
     manager.delete(enrollment);
-    assertThrows(
-        NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollment)));
+    assertFalse(enrollmentService.findEnrollment(UID.of(enrollment)).isPresent());
     assertTrue(enrollmentExistsIncludingDeleted(enrollment));
 
     maintenanceService.deleteSoftDeletedEnrollments();
@@ -428,11 +426,10 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     r.setKey(RelationshipUtils.generateRelationshipKey(r));
     r.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(r));
     manager.save(r);
-    assertNotNull(enrollmentService.getEnrollment(UID.of(enrollment)));
+    assertTrue(enrollmentService.findEnrollment(UID.of(enrollment)).isPresent());
     assertNotNull(getRelationship(r.getUid()));
     manager.delete(enrollment);
-    assertThrows(
-        NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollment)));
+    assertFalse(enrollmentService.findEnrollment(UID.of(enrollment)).isPresent());
     manager.delete(r);
     assertThrows(NotFoundException.class, () -> getRelationship(r.getUid()));
     assertTrue(enrollmentExistsIncludingDeleted(enrollment));
