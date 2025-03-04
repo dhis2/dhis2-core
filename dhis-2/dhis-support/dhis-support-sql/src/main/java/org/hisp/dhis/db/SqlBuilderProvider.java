@@ -28,7 +28,6 @@
 package org.hisp.dhis.db;
 
 import java.util.Objects;
-
 import lombok.Getter;
 import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.setting.SqlBuilderSettings;

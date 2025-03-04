@@ -64,8 +64,8 @@ public class ServiceConfig {
   }
 
   /**
-   * A dedicated {@link SqlBuilder} for Postgres.
-   * Used for classes that require a Postgres specific implementation.
+   * A dedicated {@link SqlBuilder} for Postgres. Used for classes that require a Postgres specific
+   * implementation.
    */
   @Bean("postgresSqlBuilder")
   public SqlBuilder postgresSqlBuilder() {

@@ -50,7 +50,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.IndexType;
-import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
@@ -66,18 +65,18 @@ import org.springframework.jdbc.core.JdbcTemplate;
  */
 public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableManager {
   public AbstractEventJdbcTableManager(
-          IdentifiableObjectManager idObjectManager,
-          OrganisationUnitService organisationUnitService,
-          CategoryService categoryService,
-          SystemSettingsProvider settingsProvider,
-          DataApprovalLevelService dataApprovalLevelService,
-          ResourceTableService resourceTableService,
-          AnalyticsTableHookService tableHookService,
-          PartitionManager partitionManager,
-          JdbcTemplate jdbcTemplate,
-          AnalyticsTableSettings analyticsTableSettings,
-          PeriodDataProvider periodDataProvider,
-          @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder) {
+      IdentifiableObjectManager idObjectManager,
+      OrganisationUnitService organisationUnitService,
+      CategoryService categoryService,
+      SystemSettingsProvider settingsProvider,
+      DataApprovalLevelService dataApprovalLevelService,
+      ResourceTableService resourceTableService,
+      AnalyticsTableHookService tableHookService,
+      PartitionManager partitionManager,
+      JdbcTemplate jdbcTemplate,
+      AnalyticsTableSettings analyticsTableSettings,
+      PeriodDataProvider periodDataProvider,
+      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
