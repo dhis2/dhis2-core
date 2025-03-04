@@ -68,6 +68,7 @@ import org.springframework.web.filter.ShallowEtagHeaderFilter;
 @Slf4j
 @WebFilter(
     urlPatterns = {"/api/*"},
+    asyncSupported = true,
     initParams = {
       @WebInitParam(name = "excludeUriRegex", value = ExcludableShallowEtagHeaderFilter.ENDPOINTS)
     })

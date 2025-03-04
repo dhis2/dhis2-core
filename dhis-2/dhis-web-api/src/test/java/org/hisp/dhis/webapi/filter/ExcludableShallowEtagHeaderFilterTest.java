@@ -34,8 +34,10 @@ import static org.mockito.Mockito.when;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
+import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.MediaType;
@@ -57,6 +59,12 @@ class ExcludableShallowEtagHeaderFilterTest {
         .thenReturn(ExcludableShallowEtagHeaderFilter.ENDPOINTS);
     when(filter.getFilterConfig()).thenReturn(filterConfig);
     filter.initFilterBean();
+  }
+
+  @Test
+  void shouldHaveAsyncSupportEnabled() {
+    assertTrue(
+        ExcludableShallowEtagHeaderFilter.class.getAnnotation(WebFilter.class).asyncSupported());
   }
 
   @ParameterizedTest
