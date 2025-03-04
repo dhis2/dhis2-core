@@ -44,10 +44,8 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.Page;
@@ -71,15 +69,11 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   private final HibernateTrackedEntityStore trackedEntityStore;
 
-  private final TrackedEntityAttributeService trackedEntityAttributeService;
-
   private final TrackedEntityAuditService trackedEntityAuditService;
 
   private final TrackerAccessManager trackerAccessManager;
 
   private final TrackedEntityAggregate trackedEntityAggregate;
-
-  private final ProgramService programService;
 
   private final RelationshipService relationshipService;
 
