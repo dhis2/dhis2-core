@@ -28,6 +28,8 @@
 package org.hisp.dhis.db;
 
 import java.util.Objects;
+
+import lombok.Getter;
 import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.setting.SqlBuilderSettings;
 import org.hisp.dhis.db.sql.ClickHouseSqlBuilder;
@@ -39,21 +41,13 @@ import org.springframework.stereotype.Service;
 
 /** Provider of {@link SqlBuilder} implementations. */
 @Service
+@Getter
 public class SqlBuilderProvider {
   private final SqlBuilder sqlBuilder;
 
   public SqlBuilderProvider(SqlBuilderSettings config) {
     Objects.requireNonNull(config);
     this.sqlBuilder = getSqlBuilder(config);
-  }
-
-  /**
-   * Returns a {@link SqlBuilder} implementation based on the system configuration.
-   *
-   * @return a {@link SqlBuilder}.
-   */
-  public SqlBuilder getSqlBuilder() {
-    return sqlBuilder;
   }
 
   /**

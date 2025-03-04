@@ -116,7 +116,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      SqlBuilder sqlBuilder) {
+      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -129,8 +129,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         jdbcTemplate,
         analyticsTableSettings,
         periodDataProvider,
-        new PostgreSqlBuilder());
-    fixedColumns = EventAnalyticsColumn.getColumns(new PostgreSqlBuilder());
+        sqlBuilder);
+    fixedColumns = EventAnalyticsColumn.getColumns(sqlBuilder);
   }
 
   @Override

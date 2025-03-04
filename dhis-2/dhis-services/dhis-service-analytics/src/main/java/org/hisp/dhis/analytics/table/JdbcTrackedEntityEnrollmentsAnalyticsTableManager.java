@@ -155,7 +155,7 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
       TrackedEntityTypeService trackedEntityTypeService,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      SqlBuilder sqlBuilder) {
+      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -168,7 +168,7 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
         jdbcTemplate,
         analyticsTableSettings,
         periodDataProvider,
-        new PostgreSqlBuilder());
+        sqlBuilder);
     this.trackedEntityTypeService = trackedEntityTypeService;
   }
 

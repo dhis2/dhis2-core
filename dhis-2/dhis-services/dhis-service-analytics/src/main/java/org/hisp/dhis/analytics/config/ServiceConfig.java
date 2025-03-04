@@ -63,6 +63,10 @@ public class ServiceConfig {
     return provider.getSqlBuilder();
   }
 
+  /**
+   * A dedicated {@link SqlBuilder} for Postgres.
+   * Used for classes that require a Postgres specific implementation.
+   */
   @Bean("postgresSqlBuilder")
   public SqlBuilder postgresSqlBuilder() {
     return new PostgreSqlBuilder();

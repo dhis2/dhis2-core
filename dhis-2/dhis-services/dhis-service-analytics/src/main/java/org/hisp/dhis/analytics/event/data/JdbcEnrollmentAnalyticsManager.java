@@ -154,7 +154,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       ExecutionPlanStore executionPlanStore,
       SystemSettingsService settingsService,
       DhisConfigurationProvider config,
-      SqlBuilder sqlBuilder,
+      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder,
       AnalyticsSqlBuilder analyticsSqlBuilder,
       OrganisationUnitResolver organisationUnitResolver) {
     super(
@@ -162,7 +162,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         programIndicatorService,
         programIndicatorSubqueryBuilder,
         executionPlanStore,
-        new PostgreSqlBuilder(),
+        sqlBuilder,
         settingsService,
         config,
         organisationUnitResolver,

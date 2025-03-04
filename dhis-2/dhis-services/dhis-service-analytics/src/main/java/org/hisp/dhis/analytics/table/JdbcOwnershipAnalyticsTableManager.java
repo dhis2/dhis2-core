@@ -125,7 +125,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
       JdbcConfiguration jdbcConfiguration,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      SqlBuilder sqlBuilder) {
+      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -138,7 +138,7 @@ public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableMa
         jdbcTemplate,
         analyticsTableSettings,
         periodDataProvider,
-        new PostgreSqlBuilder());
+        sqlBuilder);
     this.jdbcConfiguration = jdbcConfiguration;
   }
 

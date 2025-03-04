@@ -58,6 +58,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
@@ -65,18 +66,18 @@ import org.springframework.jdbc.core.JdbcTemplate;
  */
 public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableManager {
   public AbstractEventJdbcTableManager(
-      IdentifiableObjectManager idObjectManager,
-      OrganisationUnitService organisationUnitService,
-      CategoryService categoryService,
-      SystemSettingsProvider settingsProvider,
-      DataApprovalLevelService dataApprovalLevelService,
-      ResourceTableService resourceTableService,
-      AnalyticsTableHookService tableHookService,
-      PartitionManager partitionManager,
-      JdbcTemplate jdbcTemplate,
-      AnalyticsTableSettings analyticsTableSettings,
-      PeriodDataProvider periodDataProvider,
-      SqlBuilder sqlBuilder) {
+          IdentifiableObjectManager idObjectManager,
+          OrganisationUnitService organisationUnitService,
+          CategoryService categoryService,
+          SystemSettingsProvider settingsProvider,
+          DataApprovalLevelService dataApprovalLevelService,
+          ResourceTableService resourceTableService,
+          AnalyticsTableHookService tableHookService,
+          PartitionManager partitionManager,
+          JdbcTemplate jdbcTemplate,
+          AnalyticsTableSettings analyticsTableSettings,
+          PeriodDataProvider periodDataProvider,
+          @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -89,7 +90,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
         jdbcTemplate,
         analyticsTableSettings,
         periodDataProvider,
-        new PostgreSqlBuilder());
+        sqlBuilder);
   }
 
   public static final String OU_GEOMETRY_COL_SUFFIX = "_geom";
