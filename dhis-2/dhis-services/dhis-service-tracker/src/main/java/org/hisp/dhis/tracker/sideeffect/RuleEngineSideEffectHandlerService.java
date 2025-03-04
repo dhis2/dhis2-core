@@ -46,7 +46,7 @@ public class RuleEngineSideEffectHandlerService implements SideEffectHandlerServ
 
   @Override
   public void handleSideEffect(TrackerSideEffectDataBundle sideEffectDataBundle) {
-    ruleEngineMessageManager.addJob(sideEffectDataBundle);
+    ruleEngineMessageManager.sendRuleEngineNotifications(sideEffectDataBundle);
   }
 
   @Override
