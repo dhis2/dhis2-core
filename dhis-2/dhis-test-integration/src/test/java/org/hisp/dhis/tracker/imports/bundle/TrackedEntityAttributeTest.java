@@ -70,7 +70,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() throws IOException {
-    testSetup.setUpMetadata("tracker/te_with_tea_metadata.json");
+    testSetup.importMetadata("tracker/te_with_tea_metadata.json");
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
@@ -92,7 +92,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
 
   @Test
   void testTrackedAttributeValueBundleImporter() throws IOException {
-    testSetup.setUpTrackerData("tracker/te_with_tea_data.json");
+    testSetup.importTrackerData("tracker/te_with_tea_data.json");
 
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
     assertEquals(1, trackedEntities.size());

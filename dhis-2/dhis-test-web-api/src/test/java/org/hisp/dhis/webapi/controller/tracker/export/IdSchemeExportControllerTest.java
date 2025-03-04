@@ -93,12 +93,12 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
 
   @BeforeAll
   void setUp() throws IOException {
-    testSetup.setUpMetadata();
+    testSetup.importMetadata();
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    testSetup.setUpTrackerData();
+    testSetup.importTrackerData();
     // ensure these are created in the setup
     get(Attribute.class, METADATA_ATTRIBUTE);
     get(Attribute.class, UNUSED_METADATA_ATTRIBUTE);

@@ -66,24 +66,24 @@ class EventDataValueTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() throws IOException {
-    testSetup.setUpMetadata();
+    testSetup.importMetadata();
 
     final User userA = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(userA);
 
-    testSetup.setUpTrackerData("tracker/single_te.json");
-    testSetup.setUpTrackerData("tracker/single_enrollment.json");
+    testSetup.importTrackerData("tracker/single_te.json");
+    testSetup.importTrackerData("tracker/single_enrollment.json");
     manager.flush();
   }
 
   @Test
   void successWhenEventHasNoProgramAndHasProgramStage() throws IOException {
-    testSetup.setUpTrackerData("tracker/validations/events-with_no_program.json");
+    testSetup.importTrackerData("tracker/validations/events-with_no_program.json");
   }
 
   @Test
   void testEventDataValue() throws IOException {
-    testSetup.setUpTrackerData("tracker/event_with_data_values.json");
+    testSetup.importTrackerData("tracker/event_with_data_values.json");
 
     List<Event> events = manager.getAll(Event.class);
     assertEquals(1, events.size());
@@ -94,7 +94,7 @@ class EventDataValueTest extends PostgresIntegrationTestBase {
 
   @Test
   void testEventDataValueUpdate() throws IOException {
-    testSetup.setUpTrackerData("tracker/event_with_data_values.json");
+    testSetup.importTrackerData("tracker/event_with_data_values.json");
 
     List<Event> events = manager.getAll(Event.class);
     assertEquals(1, events.size());
@@ -105,7 +105,7 @@ class EventDataValueTest extends PostgresIntegrationTestBase {
 
     TrackerImportParams params = new TrackerImportParams();
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
-    testSetup.setUpTrackerData("tracker/event_with_updated_data_values.json", params);
+    testSetup.importTrackerData("tracker/event_with_updated_data_values.json", params);
 
     List<Event> updatedEvents = manager.getAll(Event.class);
     assertEquals(1, updatedEvents.size());

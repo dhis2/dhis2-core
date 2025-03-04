@@ -160,8 +160,8 @@ public class DeduplicationController {
           "PotentialDuplicate is missing references and cannot be merged.");
     }
 
-    trackedEntityService.getNewTrackedEntity(potentialDuplicate.getOriginal());
-    trackedEntityService.getNewTrackedEntity(potentialDuplicate.getDuplicate());
+    trackedEntityService.getTrackedEntity(potentialDuplicate.getOriginal());
+    trackedEntityService.getTrackedEntity(potentialDuplicate.getDuplicate());
 
     if (mergeObject == null) {
       mergeObject = new MergeObject();
@@ -209,8 +209,8 @@ public class DeduplicationController {
     checkValidTrackedEntity(potentialDuplicate.getOriginal(), "original");
     checkValidTrackedEntity(potentialDuplicate.getDuplicate(), "duplicate");
     checkAlreadyExistingDuplicate(potentialDuplicate);
-    trackedEntityService.getNewTrackedEntity(potentialDuplicate.getOriginal());
-    trackedEntityService.getNewTrackedEntity(potentialDuplicate.getDuplicate());
+    trackedEntityService.getTrackedEntity(potentialDuplicate.getOriginal());
+    trackedEntityService.getTrackedEntity(potentialDuplicate.getDuplicate());
   }
 
   private void checkAlreadyExistingDuplicate(PotentialDuplicate potentialDuplicate)

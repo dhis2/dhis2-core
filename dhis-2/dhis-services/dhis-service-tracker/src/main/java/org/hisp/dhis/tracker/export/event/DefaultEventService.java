@@ -31,7 +31,6 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -121,7 +120,7 @@ class DefaultEventService implements EventService {
               .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
               .events(Set.of(eventUid))
               .eventParams(EventParams.FALSE)
-              .dataElementFilters(Map.of(dataElementUid, List.of()))
+              .filterByDataElement(dataElementUid)
               .build();
       events = getEvents(operationParams, PageParams.single());
     } catch (BadRequestException e) {

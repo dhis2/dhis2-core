@@ -44,12 +44,12 @@ public interface TrackedEntityService {
 
   /** Get a file for a tracked entities' attribute. */
   FileResourceStream getFileResource(UID trackedEntity, UID attribute, UID program)
-      throws NotFoundException;
+      throws NotFoundException, ForbiddenException;
 
   /** Get an image for a tracked entities' attribute in the given dimension. */
   FileResourceStream getFileResourceImage(
       UID trackedEntity, UID attribute, UID program, ImageFileDimension dimension)
-      throws NotFoundException;
+      throws NotFoundException, ForbiddenException;
 
   /**
    * Get the tracked entity matching given {@code UID} under the privileges of the currently
@@ -58,7 +58,7 @@ public interface TrackedEntityService {
    * instead to also get the relationships, enrollments and program attributes.
    */
   @Nonnull
-  TrackedEntity getNewTrackedEntity(@Nonnull UID uid) throws NotFoundException, ForbiddenException;
+  TrackedEntity getTrackedEntity(@Nonnull UID uid) throws NotFoundException, ForbiddenException;
 
   /**
    * Get the tracked entity matching given {@code UID} under the privileges of the currently
@@ -66,23 +66,9 @@ public interface TrackedEntityService {
    * included, otherwise only TETAs are included. It will include enrollments, relationships,
    * attributes and ownerships as defined in {@code params}.
    */
-  @Nonnull
-  TrackedEntity getNewTrackedEntity(
-      @Nonnull UID uid, UID program, @Nonnull TrackedEntityParams params)
-      throws NotFoundException, ForbiddenException;
-
-  /**
-   * Get the tracked entity matching given {@code UID} under the privileges of the currently
-   * authenticated user. If {@code program} is defined, program attributes for such program are
-   * included, otherwise only TETAs are included. It will include enrollments, relationships,
-   * attributes and ownerships as defined in {@code params}.
-   *
-   * @deprecated use {@link #getNewTrackedEntity(UID, UID, TrackedEntityParams)} instead.
-   */
-  @Deprecated(forRemoval = true)
   @Nonnull
   TrackedEntity getTrackedEntity(@Nonnull UID uid, UID program, @Nonnull TrackedEntityParams params)
-      throws NotFoundException, ForbiddenException, BadRequestException;
+      throws NotFoundException, ForbiddenException;
 
   /** Get all tracked entities matching given params. */
   @Nonnull

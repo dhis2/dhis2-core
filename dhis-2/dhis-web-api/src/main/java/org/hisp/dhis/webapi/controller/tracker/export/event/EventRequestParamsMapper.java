@@ -36,6 +36,7 @@ import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.val
 
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -130,8 +131,6 @@ class EventRequestParamsMapper {
             .eventStatus(eventRequestParams.getStatus())
             .attributeCategoryCombo(eventRequestParams.getAttributeCategoryCombo())
             .attributeCategoryOptions(eventRequestParams.getAttributeCategoryOptions())
-            .dataElementFilters(dataElementFilters)
-            .attributeFilters(attributeFilters)
             .events(eventRequestParams.getEvents())
             .enrollments(eventRequestParams.getEnrollments())
             .includeDeleted(eventRequestParams.isIncludeDeleted())
@@ -139,6 +138,8 @@ class EventRequestParamsMapper {
             .idSchemeParams(idSchemeParams);
 
     mapOrderParam(builder, eventRequestParams.getOrder());
+    mapDataElementFilterParam(builder, dataElementFilters);
+    mapAttributeFilterParam(builder, attributeFilters);
 
     return builder.build();
   }
@@ -159,6 +160,36 @@ class EventRequestParamsMapper {
         builder.orderBy(EventMapper.ORDERABLE_FIELDS.get(order.getField()), order.getDirection());
       } else {
         builder.orderBy(UID.of(order.getField()), order.getDirection());
+      }
+    }
+  }
+
+  private void mapDataElementFilterParam(
+      EventOperationParamsBuilder builder, Map<UID, List<QueryFilter>> dataElementFilters) {
+    if (dataElementFilters == null || dataElementFilters.isEmpty()) {
+      return;
+    }
+
+    for (Entry<UID, List<QueryFilter>> entry : dataElementFilters.entrySet()) {
+      if (entry.getValue().isEmpty()) {
+        builder.filterByDataElement(entry.getKey());
+      } else {
+        builder.filterByDataElement(entry.getKey(), entry.getValue());
+      }
+    }
+  }
+
+  private void mapAttributeFilterParam(
+      EventOperationParamsBuilder builder, Map<UID, List<QueryFilter>> attributeFilters) {
+    if (attributeFilters == null || attributeFilters.isEmpty()) {
+      return;
+    }
+
+    for (Entry<UID, List<QueryFilter>> entry : attributeFilters.entrySet()) {
+      if (entry.getValue().isEmpty()) {
+        builder.filterByAttribute(entry.getKey());
+      } else {
+        builder.filterByAttribute(entry.getKey(), entry.getValue());
       }
     }
   }
