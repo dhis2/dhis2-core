@@ -73,7 +73,7 @@ public class WebModule {
 
     String description = subString(app.getDescription(), 0, 80);
 
-    WebModule module = new WebModule(app.getShortName(), app.getShortName(), defaultAction);
+    WebModule module = new WebModule(app.getKey(), app.getBasePath(), defaultAction);
     module.setIcon(icon);
     module.setDescription(description);
     module.setDisplayName(app.getName());
