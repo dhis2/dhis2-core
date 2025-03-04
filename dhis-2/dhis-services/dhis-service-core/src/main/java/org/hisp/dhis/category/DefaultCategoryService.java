@@ -897,15 +897,15 @@ public class DefaultCategoryService implements CategoryService {
     for (CategoryOptionCombo generatedCoc : generatedCocs) {
       if (generatedCoc.getCategoryOptions().isEmpty()) {
         log.warn(
-            "Generated category option combo %S has 0 options, skip adding for category combo %s as this is an invalid category option combo. Consider cleaning up the metadata model."
-                .formatted(generatedCoc.getName(), categoryCombo.getUid()));
+            "Generated category option combo %S has 0 options, skip adding for category combo `%s` as this is an invalid category option combo. Consider cleaning up the metadata model."
+                .formatted(generatedCoc.getName(), categoryCombo.getName()));
       } else if (!persistedCocs.contains(generatedCoc)) {
         categoryCombo.getOptionCombos().add(generatedCoc);
         addCategoryOptionCombo(generatedCoc);
 
         String msg =
-            "Added missing category option combo: %s for category combo: %s"
-                .formatted(generatedCoc.getUid(), categoryCombo.getUid());
+            "Added missing category option combo: `%s` for category combo: `%s`"
+                .formatted(generatedCoc.getName(), categoryCombo.getName());
         log.info(msg);
         if (importSummaries != null) {
           ImportSummary importSummary = new ImportSummary();
@@ -921,13 +921,13 @@ public class DefaultCategoryService implements CategoryService {
   private void deleteObsoleteCoc(
       CategoryOptionCombo coc, CategoryCombo cc, ImportSummaries summaries) {
     try {
-      String cocUid = coc.getUid();
+      String cocName = coc.getName();
       cc.getOptionCombos().remove(coc);
       deleteCategoryOptionComboNoRollback(coc);
 
       String msg =
-          ("Deleted obsolete category option combo: %s for category combo: %s"
-              .formatted(cocUid, cc.getUid()));
+          ("Deleted obsolete category option combo: `%s` for category combo: `%s`"
+              .formatted(cocName, cc.getName()));
       log.info(msg);
       if (summaries != null) {
         ImportSummary importSummary = new ImportSummary();
@@ -937,13 +937,15 @@ public class DefaultCategoryService implements CategoryService {
       }
     } catch (DeleteNotAllowedException ex) {
       String msg =
-          "Could not delete category option combo: %s due to %s"
-              .formatted(coc.getUid(), ex.getMessage());
+          "Could not delete category option combo: `%s` due to `%s`"
+              .formatted(coc.getName(), ex.getMessage());
       log.warn(msg);
 
       if (summaries != null) {
         ImportSummary importSummary = new ImportSummary();
+        importSummary.setStatus(ImportStatus.WARNING);
         importSummary.setDescription(msg);
+        importSummary.incrementIgnored();
         summaries.addImportSummary(importSummary);
       }
     }
@@ -959,7 +961,8 @@ public class DefaultCategoryService implements CategoryService {
       if (summaries != null) {
         ImportSummary importSummary = new ImportSummary();
         importSummary.setDescription(
-            "Update category option combo %S name to %s".formatted(coc1.getUid(), coc1.getName()));
+            "Update category option combo `%S` name to `%s`"
+                .formatted(coc1.getUid(), coc1.getName()));
         importSummary.incrementUpdated();
         summaries.addImportSummary(importSummary);
       }
