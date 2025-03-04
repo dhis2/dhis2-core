@@ -63,10 +63,12 @@ public class OAuth2ClientCredentialsAuthScheme implements AuthScheme {
 
   public static final Authentication ANONYMOUS_AUTHENTICATION =
       new AbstractAuthenticationToken(null) {
+        @Override
         public Object getCredentials() {
           return "";
         }
 
+        @Override
         public Object getPrincipal() {
           return "anonymous";
         }
