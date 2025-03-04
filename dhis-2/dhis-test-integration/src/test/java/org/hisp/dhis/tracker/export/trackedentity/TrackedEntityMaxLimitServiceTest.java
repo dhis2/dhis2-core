@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
+import java.util.Map;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -41,6 +42,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.PageParams;
@@ -61,6 +63,7 @@ public class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBas
   @Autowired private TestSetup testSetup;
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private TrackedEntityService trackedEntityService;
+  @Autowired private SystemSettingsService systemSettingsService;
 
   private User importUser;
   private final TrackedEntityChangeLogOperationParams defaultOperationParams =
@@ -84,11 +87,13 @@ public class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBas
   }
 
   @BeforeEach
-  void resetLimits() {
+  void resetLimits() throws NotFoundException, BadRequestException {
     injectSecurityContextUser(importUser);
     updateTrackedEntityTypeMaxLimit(trackedEntityType.getUid(), 0);
     updateProgramMaxLimit(program.getUid(), 0);
+    systemSettingsService.putAll(Map.of("KeyTrackedEntityMaxLimit", "10"));
     // TODO How to set the system setting limit?
+    // http://localhost:8181/dhis_web_server_war_exploded/api/systemSettings/KeyTrackedEntityMaxLimit?value=10
   }
 
   @Test
@@ -107,7 +112,6 @@ public class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBas
     assertNotEmpty(trackedEntityService.getTrackedEntities(operationParams));
   }
 
-  @Disabled
   @Test
   void shouldReturnEntitiesWhenGlobalSearchAndTrackedEntityTypeLimitNotReached()
       throws ForbiddenException, BadRequestException, NotFoundException {
@@ -127,6 +131,7 @@ public class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBas
   @Disabled
   @Test
   void shouldReturnEntitiesWhenSystemSettingLimitNotReached() {
+    systemSettingsService.getCurrentSettings().getTrackedEntityMaxLimit();
     fail();
   }
 
@@ -148,10 +153,22 @@ public class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBas
     assertEquals("maxteicountreached", exception.getMessage());
   }
 
-  @Disabled
   @Test
   void shouldFailWhenGlobalSearchAndTrackedEntityMaxLimitReached() {
-    fail();
+    updateTrackedEntityTypeMaxLimit(trackedEntityType.getUid(), 1);
+    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(SELECTED)
+            .organisationUnits(organisationUnit)
+            .trackedEntityType(trackedEntityType)
+            .filterBy(UID.of("numericAttr"))
+            .build();
+
+    Exception exception =
+        Assertions.assertThrows(
+            Exception.class, () -> trackedEntityService.getTrackedEntities(operationParams));
+    assertEquals("maxteicountreached", exception.getMessage());
   }
 
   @Disabled
