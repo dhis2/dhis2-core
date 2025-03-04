@@ -40,8 +40,8 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.OAuth2AuthorizationContext;
 import org.springframework.security.oauth2.client.OAuth2AuthorizeRequest;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
@@ -61,6 +61,22 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 public class OAuth2ClientCredentialsAuthScheme implements AuthScheme {
   public static final String OAUTH2_CLIENT_CREDENTIALS_TYPE = "oauth2-client-credentials";
 
+  public static final Authentication ANONYMOUS_AUTHENTICATION =
+      new AbstractAuthenticationToken(null) {
+        public Object getCredentials() {
+          return "";
+        }
+
+        public Object getPrincipal() {
+          return "anonymous";
+        }
+
+        @Override
+        public boolean isAuthenticated() {
+          return true;
+        }
+      };
+
   @JsonProperty(required = true)
   private String clientId;
 
@@ -79,11 +95,11 @@ public class OAuth2ClientCredentialsAuthScheme implements AuthScheme {
 
     final OAuth2AuthorizedClient newOAuth2AuthorizedClient;
     final String registrationId = getRegistrationId();
-    final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     final OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository =
         applicationContext.getBean(OAuth2AuthorizedClientRepository.class);
     final OAuth2AuthorizedClient loadedOAuth2AuthorizedClient =
-        oAuth2AuthorizedClientRepository.loadAuthorizedClient(registrationId, authentication, null);
+        oAuth2AuthorizedClientRepository.loadAuthorizedClient(
+            registrationId, ANONYMOUS_AUTHENTICATION, null);
 
     if (loadedOAuth2AuthorizedClient == null) {
       final ClientRegistration clientRegistration =
@@ -95,7 +111,7 @@ public class OAuth2ClientCredentialsAuthScheme implements AuthScheme {
               .build();
       final OAuth2AuthorizationContext oAuth2AuthorizationContext =
           OAuth2AuthorizationContext.withClientRegistration(clientRegistration)
-              .principal(authentication)
+              .principal(ANONYMOUS_AUTHENTICATION)
               .build();
 
       final OAuth2AuthorizedClientProvider oAuth2AuthorizedClientProvider =
@@ -103,14 +119,14 @@ public class OAuth2ClientCredentialsAuthScheme implements AuthScheme {
       newOAuth2AuthorizedClient =
           oAuth2AuthorizedClientProvider.authorize(oAuth2AuthorizationContext);
       oAuth2AuthorizedClientRepository.saveAuthorizedClient(
-          newOAuth2AuthorizedClient, authentication, null, null);
+          newOAuth2AuthorizedClient, ANONYMOUS_AUTHENTICATION, null, null);
     } else {
       final OAuth2AuthorizedClientManager oAuth2AuthorizedClientManager =
           applicationContext.getBean(OAuth2AuthorizedClientManager.class);
       newOAuth2AuthorizedClient =
           oAuth2AuthorizedClientManager.authorize(
               OAuth2AuthorizeRequest.withAuthorizedClient(loadedOAuth2AuthorizedClient)
-                  .principal(authentication)
+                  .principal(ANONYMOUS_AUTHENTICATION)
                   .build());
     }
 

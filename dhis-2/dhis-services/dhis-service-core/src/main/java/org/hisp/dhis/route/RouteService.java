@@ -189,7 +189,7 @@ public class RouteService {
     WebClient.RequestHeadersSpec<?> requestHeadersSpec =
         buildRequestSpec(headers, httpMethod, targetUri, route, request);
 
-    log.info(
+    log.debug(
         "Sending '{}' '{}' with route '{}' ('{}')",
         httpMethod,
         targetUri,
@@ -198,7 +198,7 @@ public class RouteService {
 
     ResponseEntity<Flux<DataBuffer>> responseEntityFlux = retrieve(requestHeadersSpec);
 
-    log.info(
+    log.debug(
         "Request '{}' '{}' responded with status '{}' for route '{}' ('{}')",
         httpMethod,
         targetUri,

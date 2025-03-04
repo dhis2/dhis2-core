@@ -66,7 +66,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.test.context.ContextConfiguration;
@@ -344,9 +343,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
                 .withContentType(MediaType.APPLICATION_JSON)
                 .withStatusCode(200));
 
-    assertNull(
-        oAuth2AuthorizedClientService.loadAuthorizedClient(
-            "john:" + tokenUri, SecurityContextHolder.getContext().getAuthentication().getName()));
+    assertNull(oAuth2AuthorizedClientService.loadAuthorizedClient("john:" + tokenUri, "anonymous"));
 
     MvcResult mvcResult =
         webRequestWithAsyncMvcResult(
@@ -368,8 +365,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
         responseBody.get("headers").asObject().get("Authorization").as(JsonString.class).string());
 
     OAuth2AuthorizedClient oAuth2AuthorizedClient =
-        oAuth2AuthorizedClientService.loadAuthorizedClient(
-            "john:" + tokenUri, SecurityContextHolder.getContext().getAuthentication().getName());
+        oAuth2AuthorizedClientService.loadAuthorizedClient("john:" + tokenUri, "anonymous");
     assertEquals(
         "MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3",
         oAuth2AuthorizedClient.getAccessToken().getTokenValue());
@@ -412,9 +408,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
     String routeId = postHttpResponse.content().get("response.uid").as(JsonString.class).string();
 
-    assertNull(
-        oAuth2AuthorizedClientService.loadAuthorizedClient(
-            "tom:" + tokenUri, SecurityContextHolder.getContext().getAuthentication().getName()));
+    assertNull(oAuth2AuthorizedClientService.loadAuthorizedClient("tom:" + tokenUri, "anonymous"));
     webRequestWithAsyncMvcResult(
         buildMockRequest(
             HttpMethod.GET,
@@ -424,12 +418,9 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
             null));
 
     assertNotNull(
-        oAuth2AuthorizedClientService.loadAuthorizedClient(
-            "tom:" + tokenUri, SecurityContextHolder.getContext().getAuthentication().getName()));
+        oAuth2AuthorizedClientService.loadAuthorizedClient("tom:" + tokenUri, "anonymous"));
     DELETE("/routes/" + routeId);
-    assertNull(
-        oAuth2AuthorizedClientService.loadAuthorizedClient(
-            "tom:" + tokenUri, SecurityContextHolder.getContext().getAuthentication().getName()));
+    assertNull(oAuth2AuthorizedClientService.loadAuthorizedClient("tom:" + tokenUri, "anonymous"));
   }
 
   @Test
@@ -469,9 +460,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
     String routeId = postHttpResponse.content().get("response.uid").as(JsonString.class).string();
 
-    assertNull(
-        oAuth2AuthorizedClientService.loadAuthorizedClient(
-            "mary:" + tokenUri, SecurityContextHolder.getContext().getAuthentication().getName()));
+    assertNull(oAuth2AuthorizedClientService.loadAuthorizedClient("mary:" + tokenUri, "anonymous"));
     webRequestWithAsyncMvcResult(
         buildMockRequest(
             HttpMethod.GET,
@@ -481,12 +470,9 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
             null));
 
     assertNotNull(
-        oAuth2AuthorizedClientService.loadAuthorizedClient(
-            "mary:" + tokenUri, SecurityContextHolder.getContext().getAuthentication().getName()));
+        oAuth2AuthorizedClientService.loadAuthorizedClient("mary:" + tokenUri, "anonymous"));
     PUT("/routes/" + routeId, jsonMapper.writeValueAsString(route));
-    assertNull(
-        oAuth2AuthorizedClientService.loadAuthorizedClient(
-            "mary:" + tokenUri, SecurityContextHolder.getContext().getAuthentication().getName()));
+    assertNull(oAuth2AuthorizedClientService.loadAuthorizedClient("mary:" + tokenUri, "anonymous"));
   }
 
   @Test

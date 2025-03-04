@@ -49,7 +49,6 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -187,9 +186,10 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
             .equals(OAuth2ClientCredentialsAuthScheme.OAUTH2_CLIENT_CREDENTIALS_TYPE)) {
       OAuth2ClientCredentialsAuthScheme oAuth2ClientCredentialsAuthScheme =
           (OAuth2ClientCredentialsAuthScheme) route.getAuth();
+
       oAuth2AuthorizedClientRepository.removeAuthorizedClient(
           oAuth2ClientCredentialsAuthScheme.getRegistrationId(),
-          SecurityContextHolder.getContext().getAuthentication(),
+          OAuth2ClientCredentialsAuthScheme.ANONYMOUS_AUTHENTICATION,
           contextService.getRequest(),
           null);
     }
