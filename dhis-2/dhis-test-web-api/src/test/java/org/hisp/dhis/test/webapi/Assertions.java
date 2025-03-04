@@ -116,7 +116,7 @@ public final class Assertions {
           .expected(expected.toJson())
           .actual(actual.toJson())
           .message(
-              "JSON has %d structural differences:\n  %s\n[-- missing, ++ unexpected, >> out-of-order, != value-not-equal]\n"
+              "JSON has %d structural differences:%n  %s%n[-- missing, ++ unexpected, >> out-of-order, != value-not-equal]%n"
                   .formatted(
                       diff.differences().size(),
                       diff.differences().stream().collect(joining("\n  "))))
