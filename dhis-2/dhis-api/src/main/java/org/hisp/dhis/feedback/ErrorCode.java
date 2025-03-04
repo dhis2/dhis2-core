@@ -449,6 +449,7 @@ public enum ErrorCode {
   E7146("A {0} date was not specified in periods, dimensions, filters"),
   E7147("Query failed because of a missing column: `{0}`"),
   E7149("Invalid measure filter operator: `{0}`"),
+  E7150("No periods found for subexpression query"),
   /* Analytics outliers */
 
   E7180(
