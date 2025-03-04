@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.controller.tracker;
 
 import java.util.List;
 import org.hisp.dhis.fieldfiltering.FieldPath;
@@ -34,6 +34,6 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
  * FieldsRequestParam represents the HTTP request parameter {@code fields}. This allows users to
  * specify the exact fields they want in the JSON response.
  */
-interface FieldsRequestParam {
+public interface FieldsRequestParam {
   List<FieldPath> getFields();
 }

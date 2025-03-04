@@ -293,7 +293,7 @@ public class TrackedEntityQueryParams {
 
   /** Returns attributes that are only ordered by and not present in any filter. */
   public Set<TrackedEntityAttribute> getLeftJoinAttributes() {
-    return SetUtils.difference(getOrderAttributes(), filters.keySet());
+    return SetUtils.union(getOrderAttributes(), filters.keySet());
   }
 
   public Map<TrackedEntityAttribute, List<QueryFilter>> getFilters() {
@@ -509,18 +509,9 @@ public class TrackedEntityQueryParams {
    * Filter the given tracked entity attribute {@code tea} using the specified {@link QueryFilter}
    * that consist of an operator and a value.
    */
-  public TrackedEntityQueryParams filterBy(TrackedEntityAttribute tea, QueryFilter filter) {
+  public TrackedEntityQueryParams filterBy(TrackedEntityAttribute tea, List<QueryFilter> filter) {
     this.filters.putIfAbsent(tea, new ArrayList<>());
-    this.filters.get(tea).add(filter);
-    return this;
-  }
-
-  /**
-   * Filter out any tracked entity that have no value for the given tracked entity attribute {@code
-   * tea}.
-   */
-  public TrackedEntityQueryParams filterBy(TrackedEntityAttribute tea) {
-    this.filters.putIfAbsent(tea, new ArrayList<>());
+    this.filters.get(tea).addAll(filter);
     return this;
   }
 

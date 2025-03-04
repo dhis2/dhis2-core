@@ -83,7 +83,7 @@ public class ProgramDataElementController {
     Pager pager = null;
     if (params.isPaging()) {
       params.setPaging(false);
-      Query queryForCount =
+      Query<ProgramDataElementDimensionItem> queryForCount =
           queryService.getQueryFromUrl(ProgramDataElementDimensionItem.class, params);
       queryForCount.setObjects(allItems);
       List<?> totalOfItems = queryService.query(queryForCount);
@@ -92,13 +92,12 @@ public class ProgramDataElementController {
       params.setPaging(true);
     }
 
-    Query query = queryService.getQueryFromUrl(ProgramDataElementDimensionItem.class, params);
+    Query<ProgramDataElementDimensionItem> query =
+        queryService.getQueryFromUrl(ProgramDataElementDimensionItem.class, params);
     query.setDefaultOrder();
     query.setObjects(allItems);
 
-    @SuppressWarnings("unchecked")
-    List<ProgramDataElementDimensionItem> pageItems =
-        (List<ProgramDataElementDimensionItem>) queryService.query(query);
+    List<ProgramDataElementDimensionItem> pageItems = queryService.query(query);
 
     RootNode rootNode = NodeUtils.createMetadata();
 

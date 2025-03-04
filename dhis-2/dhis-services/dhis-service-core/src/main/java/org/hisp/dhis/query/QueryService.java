@@ -40,7 +40,7 @@ public interface QueryService {
    * @param query Query instance to use
    * @return Matching objects
    */
-  List<? extends IdentifiableObject> query(Query query);
+  <T extends IdentifiableObject> List<T> query(Query<T> query);
 
   /**
    * Returns how many objects matches the given query.
@@ -48,15 +48,16 @@ public interface QueryService {
    * @param query Query instance to use
    * @return N number of matching objects
    */
-  long count(Query query);
+  long count(Query<?> query);
 
   /**
    * Create a query instance from a given set of filters (property:operator:value), and a list of
    * orders.
    *
-   * @param klass Type of object you want to query
+   * @param objectType Type of object you want to query
    * @param params standard object list query parameters
    * @return New query instance using provided filters/orders
    */
-  Query getQueryFromUrl(Class<?> klass, GetObjectListParams params) throws QueryParserException;
+  <T extends IdentifiableObject> Query<T> getQueryFromUrl(
+      Class<T> objectType, GetObjectListParams params) throws QueryParserException;
 }

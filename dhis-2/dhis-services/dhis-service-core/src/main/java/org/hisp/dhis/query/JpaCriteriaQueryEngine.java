@@ -71,13 +71,10 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
   private final Map<Class<?>, IdentifiableObjectStore<?>> stores = new HashMap<>();
 
   @Override
-  public <T extends IdentifiableObject> List<T> query(Query query) {
-    Schema schema = query.getSchema();
+  public <T extends IdentifiableObject> List<T> query(Query<T> query) {
+    Class<T> objectType = query.getObjectType();
 
-    @SuppressWarnings("unchecked")
-    Class<T> klass = (Class<T>) schema.getKlass();
-
-    InternalHibernateGenericStore<T> store = getStore(klass);
+    InternalHibernateGenericStore<T> store = getStore(objectType);
 
     if (store == null) {
       return new ArrayList<>();
@@ -89,11 +86,11 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
 
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 
-    CriteriaQuery<T> criteriaQuery = builder.createQuery(klass);
-    Root<T> root = criteriaQuery.from(klass);
+    CriteriaQuery<T> criteriaQuery = builder.createQuery(objectType);
+    Root<T> root = criteriaQuery.from(objectType);
 
     Predicate filters = buildFilters(builder, root, query);
-    addSharingFilters(query, schema, filters, store, builder, root);
+    addSharingFilters(query, filters, store, builder, root);
     criteriaQuery.where(filters);
 
     if (!query.getOrders().isEmpty()) criteriaQuery.orderBy(getOrders(query, builder, root));
@@ -107,19 +104,19 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
       typedQuery.setHint(QueryHints.HINT_CACHEABLE, true);
       typedQuery.setHint(
           QueryHints.HINT_CACHE_REGION,
-          queryCacheManager.getQueryCacheRegionName(klass, typedQuery));
+          queryCacheManager.getQueryCacheRegionName(objectType, typedQuery));
     }
 
     return typedQuery.getResultList();
   }
 
-  private static <T extends IdentifiableObject> void addSharingFilters(
-      Query query,
-      Schema schema,
+  private <T extends IdentifiableObject> void addSharingFilters(
+      Query<T> query,
       Predicate predicate,
       InternalHibernateGenericStore<T> store,
       CriteriaBuilder builder,
       Root<T> root) {
+    Schema schema = schemaService.getDynamicSchema(query.getObjectType());
     boolean shareable = schema.isShareable();
     if (!shareable) return;
     UserDetails user = query.getCurrentUserDetails();
@@ -135,13 +132,10 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
   }
 
   @Override
-  public <T extends IdentifiableObject> long count(Query query) {
-    Schema schema = query.getSchema();
+  public <T extends IdentifiableObject> long count(Query<T> query) {
+    Class<T> objectType = query.getObjectType();
 
-    @SuppressWarnings("unchecked")
-    Class<T> klass = (Class<T>) schema.getKlass();
-
-    InternalHibernateGenericStore<T> store = getStore(klass);
+    InternalHibernateGenericStore<T> store = getStore(objectType);
 
     if (store == null) {
       return 0;
@@ -154,12 +148,12 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 
     CriteriaQuery<Long> criteriaQuery = builder.createQuery(Long.class);
-    Root<T> root = criteriaQuery.from(klass);
+    Root<T> root = criteriaQuery.from(objectType);
 
     criteriaQuery.select(builder.count(root));
 
     Predicate filters = buildFilters(builder, root, query);
-    addSharingFilters(query, schema, filters, store, builder, root);
+    addSharingFilters(query, filters, store, builder, root);
     criteriaQuery.where(filters);
 
     TypedQuery<Long> typedQuery = entityManager.createQuery(criteriaQuery);
@@ -169,7 +163,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
 
   @Nonnull
   private static <T extends IdentifiableObject> List<jakarta.persistence.criteria.Order> getOrders(
-      Query query, CriteriaBuilder builder, Root<T> root) {
+      Query<T> query, CriteriaBuilder builder, Root<T> root) {
     return query.getOrders().stream().map(o -> getOrderPredicate(builder, root, o)).toList();
   }
 
@@ -204,7 +198,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     return (InternalHibernateGenericStore<E>) stores.get(klass);
   }
 
-  private <Y> Predicate buildFilters(CriteriaBuilder builder, Root<Y> root, Query query) {
+  private <Y> Predicate buildFilters(CriteriaBuilder builder, Root<Y> root, Query<?> query) {
     if (query.getFilters().isEmpty()) return builder.conjunction();
 
     Predicate rootJunction =
@@ -225,7 +219,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
   }
 
   private <Y> Predicate buildFilter(
-      CriteriaBuilder builder, Root<Y> root, Filter filter, Query query) {
+      CriteriaBuilder builder, Root<Y> root, Filter filter, Query<?> query) {
     if (filter == null || filter.getOperator() == null) return null;
     if (!filter.isVirtual())
       return filter.getOperator().getPredicate(builder, root, filter.getPropertyPath());
@@ -236,11 +230,13 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
   }
 
   private <Y> Predicate buildIdentifiableFilter(
-      CriteriaBuilder builder, Root<Y> root, Filter filter, Query query) {
+      CriteriaBuilder builder, Root<Y> root, Filter filter, Query<?> query) {
     Predicate or = builder.disjunction();
     Operator<?> op = filter.getOperator();
     Function<String, Predicate> getPredicate =
-        path -> op.getPredicate(builder, root, schemaService.getQueryPath(query.getSchema(), path));
+        path ->
+            op.getPredicate(
+                builder, root, schemaService.getPropertyPath(query.getObjectType(), path));
     Consumer<Predicate> add =
         p -> {
           if (p != null) or.getExpressions().add(p);
@@ -248,8 +244,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     add.accept(getPredicate.apply("id"));
     add.accept(getPredicate.apply("code"));
     add.accept(getPredicate.apply("name"));
-    if (query.getSchema().hasPersistedProperty("shortName"))
-      add.accept(getPredicate.apply("shortName"));
+    if (query.isShortNamePersisted()) add.accept(getPredicate.apply("shortName"));
     return or;
   }
 

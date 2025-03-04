@@ -522,8 +522,8 @@ public class DefaultSchemaService implements SchemaService {
   }
 
   @Override
-  public PropertyPath getQueryPath(Schema schema, String path) {
-    Schema curSchema = schema;
+  public PropertyPath getPropertyPath(Class<?> klass, String path) {
+    Schema curSchema = getDynamicSchema(klass);
     Property curProperty = null;
     boolean persisted = true;
     List<String> alias = new ArrayList<>();
