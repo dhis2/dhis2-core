@@ -124,8 +124,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       ExecutionPlanStore executionPlanStore,
       SystemSettingsService settingsService,
       DhisConfigurationProvider config,
-      SqlBuilder sqlBuilder,
-      AnalyticsSqlBuilder analyticsSqlBuilder,
+      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder,
+      @Qualifier("postgresAnalyticsSqlBuilder") AnalyticsSqlBuilder analyticsSqlBuilder,
       OrganisationUnitResolver organisationUnitResolver) {
     super(
         jdbcTemplate,

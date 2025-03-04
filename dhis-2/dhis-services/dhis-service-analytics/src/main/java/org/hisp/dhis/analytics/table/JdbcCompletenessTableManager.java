@@ -100,7 +100,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
+      @Qualifier("analyticsReadOnlyJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {

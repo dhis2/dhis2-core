@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,47 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db;
+package org.hisp.dhis.analytics;
 
-import java.util.Objects;
-import lombok.Getter;
-import org.hisp.dhis.db.model.Database;
-import org.hisp.dhis.db.setting.SqlBuilderSettings;
-import org.hisp.dhis.db.sql.ClickHouseSqlBuilder;
-import org.hisp.dhis.db.sql.DorisSqlBuilder;
-import org.hisp.dhis.db.sql.PostgreSqlBuilder;
-import org.hisp.dhis.db.sql.SqlBuilder;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.stereotype.Service;
+import javax.sql.DataSource;
 
-/** Provider of {@link SqlBuilder} implementations. */
-@Service
-@Getter
-public class SqlBuilderProvider {
-  private final SqlBuilder sqlBuilder;
-
-  public SqlBuilderProvider(SqlBuilderSettings config) {
-    Objects.requireNonNull(config);
-    this.sqlBuilder = getSqlBuilder(config);
-  }
+/** Factory interface for creating temporary analytics DataSources. */
+public interface AnalyticsDataSourceFactory {
 
   /**
-   * Returns the appropriate {@link SqlBuilder} implementation based on the system configuration.
+   * Creates a temporary DataSource for analytics database initialization.
    *
-   * @param config the {@link DhisConfigurationProvider}.
-   * @return a {@link SqlBuilder}.
+   * @return A wrapper containing the DataSource that should be closed after use
    */
-  private SqlBuilder getSqlBuilder(SqlBuilderSettings config) {
-    Database database = config.getAnalyticsDatabase();
-    String catalog = config.getAnalyticsDatabaseCatalog();
-    String driverFilename = config.getAnalyticsDatabaseDriverFilename();
+  TemporaryDataSourceWrapper createTemporaryAnalyticsDataSource();
 
-    Objects.requireNonNull(database);
+  /** Wrapper class that holds a DataSource and provides proper cleanup */
+  record TemporaryDataSourceWrapper(DataSource dataSource) implements AutoCloseable {
 
-    return switch (database) {
-      case DORIS -> new DorisSqlBuilder(catalog, driverFilename);
-      case CLICKHOUSE -> new ClickHouseSqlBuilder();
-      default -> new PostgreSqlBuilder();
-    };
+    @Override
+    public void close() throws Exception {
+      if (dataSource instanceof AutoCloseable ds) {
+        ds.close();
+      }
+    }
   }
 }

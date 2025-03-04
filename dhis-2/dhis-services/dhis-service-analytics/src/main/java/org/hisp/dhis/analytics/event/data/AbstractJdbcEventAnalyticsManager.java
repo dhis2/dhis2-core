@@ -62,7 +62,6 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_P
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.feedback.ErrorCode.E7149;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
@@ -166,7 +165,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   private static final Collector<CharSequence, ?, String> AND_JOINER = joining(AND);
 
-  @Qualifier("analyticsReadOnlyJdbcTemplate")
+  @Qualifier("analyticsJdbcTemplate")
   protected final JdbcTemplate jdbcTemplate;
 
   protected final ProgramIndicatorService programIndicatorService;
@@ -1504,8 +1503,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @return true if the experimental analytics query engine should be used, false otherwise.
    */
   protected boolean useExperimentalAnalyticsQueryEngine() {
-    return "doris".equalsIgnoreCase(config.getPropertyOrDefault(ANALYTICS_DATABASE, "").trim())
-        || this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine();
+    return this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine();
   }
 
   /**

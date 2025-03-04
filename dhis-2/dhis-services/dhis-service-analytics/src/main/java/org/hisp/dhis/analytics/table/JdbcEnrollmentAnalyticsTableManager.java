@@ -78,7 +78,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      SqlBuilder sqlBuilder) {
+      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,

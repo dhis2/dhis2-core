@@ -184,7 +184,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
       TrackedEntityTypeService trackedEntityTypeService,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      SqlBuilder sqlBuilder,
+      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder,
       AnalyticsSqlBuilder analyticsSqlBuilder) {
     super(
         idObjectManager,
@@ -306,8 +306,9 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
                 "tetId", String.valueOf(tet.getId()))));
 
     if (params.getFromDate() != null) {
-      sql.append(
-          " and (" + eventDateExpression + ") >= '" + toMediumDate(params.getFromDate()) + "'");
+      sql.append(" and (" + eventDateExpression + ") >= '")
+          .append(toMediumDate(params.getFromDate()))
+          .append("'");
     }
 
     List<Integer> availableDataYears =
