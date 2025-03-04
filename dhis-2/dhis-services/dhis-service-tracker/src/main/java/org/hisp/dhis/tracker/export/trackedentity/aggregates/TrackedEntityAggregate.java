@@ -223,13 +223,11 @@ public class TrackedEntityAggregate {
             .map(BaseIdentifiableObject::getUid)
             .collect(Collectors.toSet());
 
-    for (Map.Entry<Program, Set<TrackedEntityAttribute>> entry : teaByProgram.entrySet()) {
-      if (programs.contains(entry.getKey().getUid()) || ctx.isSuperUser()) {
-        allowedAttributeUids.addAll(
-            entry.getValue().stream()
-                .map(BaseIdentifiableObject::getUid)
-                .collect(Collectors.toSet()));
-      }
+    if (ctx.getQueryParams().hasEnrolledInTrackerProgram()) {
+      allowedAttributeUids.addAll(
+          teaByProgram.get(ctx.getQueryParams().getEnrolledInTrackerProgram()).stream()
+              .map(BaseIdentifiableObject::getUid)
+              .collect(Collectors.toSet()));
     }
 
     return attributes.stream()

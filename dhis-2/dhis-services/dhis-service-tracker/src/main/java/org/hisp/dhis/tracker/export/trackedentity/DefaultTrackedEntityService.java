@@ -36,9 +36,7 @@ import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -46,12 +44,11 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeStore;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
@@ -76,13 +73,13 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
-  private final TrackedEntityTypeStore trackedEntityTypeStore;
-
   private final TrackedEntityAuditService trackedEntityAuditService;
 
   private final TrackerAccessManager trackerAccessManager;
 
   private final TrackedEntityAggregate trackedEntityAggregate;
+
+  private final ProgramService programService;
 
   private final RelationshipService relationshipService;
 
@@ -119,10 +116,12 @@ class DefaultTrackedEntityService implements TrackedEntityService {
             trackedEntityUid, programUid, TrackedEntityParams.FALSE.withIncludeAttributes(true));
 
     TrackedEntityAttribute attribute =
-        getAttribute(
-            trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(
-                CurrentUserUtil.getCurrentUserDetails()),
-            attributeUid);
+        trackedEntity.getTrackedEntityAttributeValues().stream()
+            .map(TrackedEntityAttributeValue::getAttribute)
+            .filter(att -> att.getUid().equals(attributeUid.getValue()))
+            .findFirst()
+            .orElseThrow(
+                () -> new NotFoundException(TrackedEntityAttribute.class, attributeUid.getValue()));
     if (!attribute.getValueType().isFile()) {
       throw new NotFoundException(
           "Tracked entity attribute " + attributeUid.getValue() + " is not a file (or image).");
@@ -145,15 +144,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     return fileResourceService.getExistingFileResource(fileResourceUid);
-  }
-
-  private static TrackedEntityAttribute getAttribute(
-      Set<TrackedEntityAttribute> attributes, UID attribute) throws NotFoundException {
-    return attributes.stream()
-        .filter(att -> attribute.getValue().equals(att.getUid()))
-        .findFirst()
-        .orElseThrow(
-            () -> new NotFoundException(TrackedEntityAttribute.class, attribute.getValue()));
   }
 
   @Nonnull
@@ -218,32 +208,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
         .collect(Collectors.toSet());
   }
 
-  private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
-      TrackedEntity trackedEntity, Program program) {
-    TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
-    if (CollectionUtils.isEmpty(trackedEntityType.getTrackedEntityTypeAttributes())) {
-      // the TrackedEntityAggregate does not fetch the TrackedEntityTypeAttributes at the moment
-      // TODO(DHIS2-18541) bypass ACL as our controller test as the user must have access to the TET
-      // if it has access to the TE.
-      trackedEntityType =
-          trackedEntityTypeStore.getByUidNoAcl(trackedEntity.getTrackedEntityType().getUid());
-    }
-
-    Set<String> teas = // tracked entity type attributes
-        trackedEntityType.getTrackedEntityAttributes().stream()
-            .map(IdentifiableObject::getUid)
-            .collect(Collectors.toSet());
-    if (program != null) { // add program tracked entity attributes
-      teas.addAll(
-          program.getTrackedEntityAttributes().stream()
-              .map(IdentifiableObject::getUid)
-              .collect(Collectors.toSet()));
-    }
-    return trackedEntity.getTrackedEntityAttributeValues().stream()
-        .filter(av -> teas.contains(av.getAttribute().getUid()))
-        .collect(Collectors.toSet());
-  }
-
   @Nonnull
   @Override
   public List<TrackedEntity> getTrackedEntities(
@@ -302,9 +266,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
             getTrackedEntityProgramOwners(
                 trackedEntity, queryParams.getEnrolledInTrackerProgram()));
       }
-      trackedEntity.setTrackedEntityAttributeValues(
-          getTrackedEntityAttributeValues(
-              trackedEntity, queryParams.getEnrolledInTrackerProgram()));
     }
     trackedEntityAuditService.addTrackedEntityAudit(SEARCH, user.getUsername(), trackedEntities);
     return trackedEntities;

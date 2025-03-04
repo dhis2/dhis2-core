@@ -777,15 +777,19 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
 
     this.switchContextToUser(user);
 
-    assertStartsWith(
-        "TrackedEntityAttribute with id " + tetTea.getUid(),
+    HttpResponse response =
         GET(
-                "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
-                trackedEntity.getUid(),
-                tetTea.getUid(),
-                program.getUid())
-            .error(HttpStatus.NOT_FOUND)
-            .getMessage());
+            "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
+            trackedEntity.getUid(),
+            tetTea.getUid(),
+            program.getUid());
+
+    assertEquals(HttpStatus.OK, response.status());
+    assertEquals("\"" + file1.getUid() + "\"", response.header("Etag"));
+    assertEquals("no-cache, private", response.header("Cache-Control"));
+    assertEquals(Long.toString(file1.getContentLength()), response.header("Content-Length"));
+    assertEquals("filename=" + file1.getName(), response.header("Content-Disposition"));
+    assertEquals("file content", response.content("text/plain"));
   }
 
   @Test
@@ -980,7 +984,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     enroll(trackedEntity, program, orgUnit);
     this.switchContextToUser(user);
     assertStartsWith(
-        "Attribute value for tracked entity attribute " + tea.getUid(),
+        "TrackedEntityAttribute with id " + tea.getUid(),
         GET(
                 "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
                 trackedEntity.getUid(),
