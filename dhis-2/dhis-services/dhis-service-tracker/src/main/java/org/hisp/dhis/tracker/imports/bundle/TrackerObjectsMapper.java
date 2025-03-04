@@ -32,8 +32,8 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import java.util.Date;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
@@ -308,7 +308,7 @@ public class TrackerObjectsMapper {
   }
 
   public static @Nonnull Note map(
-      @Nonnull org.hisp.dhis.tracker.imports.domain.Note note, @Nullable User user) {
+      @Nonnull org.hisp.dhis.tracker.imports.domain.Note note, @CheckForNull User user) {
     Date now = new Date();
 
     Note dbNote = new Note();

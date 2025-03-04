@@ -164,6 +164,12 @@
       "analyticsType": "ENROLLMENT",
       "program": {
         "id": "PrZMWi7rBga"
+      },
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "attributeCombo": {
+        "id": "bjDvmb4bfuf"
       }
     },
     {
@@ -173,6 +179,12 @@
       "analyticsType": "ENROLLMENT",
       "program": {
         "id": "PrZMWi7rBga"
+      },
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "attributeCombo": {
+        "id": "bjDvmb4bfuf"
       }
     }
   ],

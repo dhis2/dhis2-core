@@ -78,9 +78,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
-@Transactional
 class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private DeduplicationService deduplicationService;
 
@@ -123,6 +121,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
     manager.save(original);
     manager.save(duplicate);
     program = createProgram('A');
+    program.setTrackedEntityType(trackedEntityType);
     program1 = createProgram('B');
     programService.addProgram(program);
     programService.addProgram(program1);

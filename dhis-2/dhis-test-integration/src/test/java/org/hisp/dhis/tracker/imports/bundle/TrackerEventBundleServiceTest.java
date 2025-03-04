@@ -32,8 +32,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.util.List;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -42,19 +44,27 @@ import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class TrackerEventBundleServiceTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class TrackerEventBundleServiceTest extends PostgresIntegrationTestBase {
+  @Autowired private TestSetup testSetup;
+
+  @Autowired private IdentifiableObjectManager manager;
+
   @Autowired private TrackerImportService trackerImportService;
 
   private User importUser;
 
   @BeforeAll
   void setUp() throws IOException {
-    setUpMetadata("tracker/event_metadata.json");
+    testSetup.importMetadata("tracker/event_metadata.json");
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
@@ -63,7 +73,7 @@ class TrackerEventBundleServiceTest extends TrackerTest {
   @Test
   void testCreateSingleEventData() throws IOException {
     TrackerImportParams params = TrackerImportParams.builder().build();
-    TrackerObjects trackerObjects = fromJson("tracker/event_events_and_enrollment.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/event_events_and_enrollment.json");
     assertEquals(8, trackerObjects.getEvents().size());
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -79,11 +89,10 @@ class TrackerEventBundleServiceTest extends TrackerTest {
         TrackerImportParams.builder()
             .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
             .build();
-    TrackerObjects trackerObjects = fromJson("tracker/event_events_and_enrollment.json");
-
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/event_events_and_enrollment.json");
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
-
     assertNoErrors(importReport);
+
     assertEquals(8, manager.getAll(Event.class).size());
 
     importReport = trackerImportService.importTracker(params, trackerObjects);
