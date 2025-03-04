@@ -65,12 +65,12 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
 
   @BeforeEach
   void setUp() throws IOException {
-    testSetup.setUpMetadata();
+    testSetup.importMetadata();
 
     User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    testSetup.setUpTrackerData("tracker/single_te.json");
+    testSetup.importTrackerData("tracker/single_te.json");
 
     trackedEntity = manager.get(TrackedEntity.class, "IOR1AXXl24H");
 
