@@ -47,26 +47,6 @@ class DataIntegrityCategoryOptionComboWrongCardinalityControllerTest
 
   private String categoryColor;
 
-  private String testCatCombo;
-
-  @Test
-  void setTestCatCombosWrongCardinalityExists() {
-
-    setupTest();
-    assertStatus(
-        HttpStatus.OK,
-        PUT(
-            "/categoryCombos/" + testCatCombo + "?mergeMode=REPLACE",
-            "{ 'name' : 'Taste and color', "
-                + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
-                + "{'id' : '"
-                + categoryColor
-                + "'} ]} "));
-
-    assertHasDataIntegrityIssues(
-        detailsIdType, check, 33, testCatCombo, "Taste and color", null, true);
-  }
-
   @Test
   void setTestCatCombosWrongCardinalityDoesNotExist() {
 
@@ -104,17 +84,16 @@ class DataIntegrityCategoryOptionComboWrongCardinalityControllerTest
                     + categoryOptionSour
                     + "'} ] }"));
 
-    testCatCombo =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/categoryCombos",
-                "{ 'name' : 'Taste and color', "
-                    + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
-                    + "{'id' : '"
-                    + categoryColor
-                    + "'} , {'id' : '"
-                    + categoryTaste
-                    + "'}]} "));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/categoryCombos",
+            "{ 'name' : 'Taste and color', "
+                + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
+                + "{'id' : '"
+                + categoryColor
+                + "'} , {'id' : '"
+                + categoryTaste
+                + "'}]} "));
   }
 }

@@ -80,7 +80,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
 
   private User importUser;
 
-  private final PageParams defaultPageParams = PageParams.of(null, null, false);
+  private final PageParams defaultPageParams = PageParams.of(1, 10, false);
 
   private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS");
 

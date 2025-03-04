@@ -104,11 +104,11 @@ public class CategoryComboController
 
   @Override
   public void postCreateEntity(CategoryCombo categoryCombo) {
-    categoryService.updateOptionCombos(categoryCombo);
+    categoryService.addAndPruneOptionCombos(categoryCombo);
   }
 
   @Override
   public void postUpdateEntity(CategoryCombo categoryCombo) {
-    categoryService.updateOptionCombos(categoryCombo);
+    categoryService.addAndPruneOptionCombos(categoryCombo);
   }
 }

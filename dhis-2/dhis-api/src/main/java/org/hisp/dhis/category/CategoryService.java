@@ -37,6 +37,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -412,27 +413,12 @@ public interface CategoryService {
   CategoryOptionCombo getDefaultCategoryOptionCombo();
 
   /**
-   * Generates and persists CategoryOptionCombos for the given CategoryCombo.
-   *
-   * @param categoryCombo the CategoryCombo.
-   */
-  void generateOptionCombos(CategoryCombo categoryCombo);
-
-  /**
    * Invokes updateOptionCombos( CategoryCombo ) for all category combos which the given category is
    * a part of.
    *
    * @param category the Category.
    */
   void updateOptionCombos(Category category);
-
-  /**
-   * Generates the complete set of category option combos for the given category combo and compares
-   * it to the set of persisted category option combos. Those which are not matched are persisted.
-   *
-   * @param categoryCombo the CategoryCombo.
-   */
-  void updateOptionCombos(CategoryCombo categoryCombo);
 
   /**
    * Returns the category option combo with the given uid. Respects access control by only returning
@@ -554,4 +540,24 @@ public interface CategoryService {
   void validate(CategoryCombo combo) throws ConflictException;
 
   void validate(CategoryOptionCombo combo) throws ConflictException;
+
+  /**
+   * Generates the complete set of category option combos for the given category combo. Removes
+   * obsolete category option combos.
+   *
+   * @param categoryCombo the CategoryCombo
+   * @return returns an ImportSummary
+   */
+  ImportSummaries addAndPruneOptionCombosWithSummary(CategoryCombo categoryCombo);
+
+  /**
+   * Generates the complete set of category option combos for the given category combo. Removes
+   * obsolete category option combos.
+   *
+   * @param categoryCombo the CategoryCombo
+   */
+  void addAndPruneOptionCombos(CategoryCombo categoryCombo);
+
+  /** Generates the complete set of category option combos for all category combos. */
+  void addAndPruneAllOptionCombos();
 }

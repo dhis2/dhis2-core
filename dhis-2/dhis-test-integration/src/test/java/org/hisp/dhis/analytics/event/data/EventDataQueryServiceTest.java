@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.event.data;
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_ENROLLMENT_GEOMETRY;
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_EVENT_GEOMETRY;
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_TRACKED_ENTITY_GEOMETRY;
-import static org.hisp.dhis.analytics.table.AbstractEventJdbcTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -514,7 +513,7 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
         dataQueryService.getCoordinateFields(
             toRequest(prA.getUid(), null, "eventgeometry", false)));
     assertEquals(
-        List.of(deC.getUid() + OU_GEOMETRY_COL_SUFFIX),
+        List.of(deC.getUid()),
         dataQueryService.getCoordinateFields(toRequest(prA.getUid(), deC.getUid(), null, false)));
   }
 
@@ -549,7 +548,7 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
         dataQueryService.getCoordinateFields(
             toRequest(prA.getUid(), null, OLD_COL_NAME_TRACKED_ENTITY_GEOMETRY, false)));
     assertEquals(
-        List.of(deC.getUid() + OU_GEOMETRY_COL_SUFFIX),
+        List.of(deC.getUid()),
         dataQueryService.getCoordinateFields(toRequest(prA.getUid(), deC.getUid(), null, false)));
   }
 
