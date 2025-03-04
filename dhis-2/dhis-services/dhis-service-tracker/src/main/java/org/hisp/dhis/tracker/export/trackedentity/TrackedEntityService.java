@@ -44,17 +44,17 @@ public interface TrackedEntityService {
 
   /** Get a file for a tracked entities' attribute. */
   FileResourceStream getFileResource(UID trackedEntity, UID attribute, UID program)
-      throws NotFoundException;
+      throws NotFoundException, ForbiddenException;
 
   /** Get an image for a tracked entities' attribute in the given dimension. */
   FileResourceStream getFileResourceImage(
       UID trackedEntity, UID attribute, UID program, ImageFileDimension dimension)
-      throws NotFoundException;
+      throws NotFoundException, ForbiddenException;
 
   /**
    * Get the tracked entity matching given {@code UID} under the privileges of the currently
    * authenticated user. No program attributes are included, only TETAs. Enrollments and
-   * relationships are not included. Use {@link #getTrackedEntity(UID, UID, TrackedEntityParams)}
+   * relationships are not included. Use {@link #getNewTrackedEntity(UID, UID, TrackedEntityParams)}
    * instead to also get the relationships, enrollments and program attributes.
    */
   @Nonnull
@@ -70,19 +70,6 @@ public interface TrackedEntityService {
   TrackedEntity getNewTrackedEntity(
       @Nonnull UID uid, UID program, @Nonnull TrackedEntityParams params)
       throws NotFoundException, ForbiddenException;
-
-  /**
-   * Get the tracked entity matching given {@code UID} under the privileges of the currently
-   * authenticated user. If {@code program} is defined, program attributes for such program are
-   * included, otherwise only TETAs are included. It will include enrollments, relationships,
-   * attributes and ownerships as defined in {@code params}.
-   *
-   * @deprecated use {@link #getNewTrackedEntity(UID, UID, TrackedEntityParams)} instead.
-   */
-  @Deprecated(forRemoval = true)
-  @Nonnull
-  TrackedEntity getTrackedEntity(@Nonnull UID uid, UID program, @Nonnull TrackedEntityParams params)
-      throws NotFoundException, ForbiddenException, BadRequestException;
 
   /** Get all tracked entities matching given params. */
   @Nonnull

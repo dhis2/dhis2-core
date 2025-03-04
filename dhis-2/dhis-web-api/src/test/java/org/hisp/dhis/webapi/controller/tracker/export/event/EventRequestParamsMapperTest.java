@@ -133,7 +133,7 @@ class EventRequestParamsMapperTest {
   private TrackerIdSchemeParams idSchemeParams;
 
   @BeforeEach
-  void setUp() throws ForbiddenException, NotFoundException, BadRequestException {
+  void setUp() throws ForbiddenException, NotFoundException {
     User user = new User();
 
     when(userService.getUserByUsername(null)).thenReturn(user);
@@ -153,7 +153,7 @@ class EventRequestParamsMapperTest {
     when(organisationUnitService.isInUserHierarchy(user, orgUnit)).thenReturn(true);
 
     TrackedEntity trackedEntity = new TrackedEntity();
-    when(trackedEntityService.getTrackedEntity(UID.of("qnR1RK4cTIZ"), null, FALSE))
+    when(trackedEntityService.getNewTrackedEntity(UID.of("qnR1RK4cTIZ"), null, FALSE))
         .thenReturn(trackedEntity);
     TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
     tea1.setUid(TEA_1_UID.getValue());
