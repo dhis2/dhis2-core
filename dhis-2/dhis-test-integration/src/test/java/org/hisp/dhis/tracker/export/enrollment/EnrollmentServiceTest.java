@@ -33,13 +33,13 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourBefore;
 import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -274,7 +274,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldGetEnrollmentWhenUserHasReadWriteAccessToProgramAndAccessToOrgUnit()
-      throws ForbiddenException, NotFoundException {
+      throws NotFoundException {
     programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ_WRITE);
     manager.updateNoAcl(programA);
 
@@ -287,7 +287,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldGetEnrollmentWhenUserHasReadAccessToProgramAndAccessToOrgUnit()
-      throws ForbiddenException, NotFoundException {
+      throws NotFoundException {
     programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
     manager.updateNoAcl(programA);
 
@@ -298,8 +298,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldGetEnrollmentWithEventsWhenUserHasAccessToEvent()
-      throws ForbiddenException, NotFoundException {
+  void shouldGetEnrollmentWithEventsWhenUserHasAccessToEvent() throws NotFoundException {
     EnrollmentParams params = EnrollmentParams.FALSE;
     params = params.withEnrollmentEventsParams(EnrollmentEventsParams.TRUE);
 
@@ -312,7 +311,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldGetEnrollmentWithoutEventsWhenUserHasNoAccessToProgramStage()
-      throws ForbiddenException, NotFoundException {
+      throws NotFoundException {
     programStageA.getSharing().setOwner(admin);
     programStageA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.updateNoAcl(programStageA);
@@ -327,8 +326,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldGetEnrollmentWithRelationshipsWhenUserHasAccessToThem()
-      throws ForbiddenException, NotFoundException {
+  void shouldGetEnrollmentWithRelationshipsWhenUserHasAccessToThem() throws NotFoundException {
     EnrollmentParams params = EnrollmentParams.FALSE;
     params = params.withIncludeRelationships(true);
 
@@ -339,8 +337,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldGetEnrollmentWithoutRelationshipsWhenUserHasAccessToThem()
-      throws ForbiddenException, NotFoundException {
+  void shouldGetEnrollmentWithoutRelationshipsWhenUserHasAccessToThem() throws NotFoundException {
     relationshipTypeA.getSharing().setOwner(admin);
     relationshipTypeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
 
@@ -354,8 +351,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldGetEnrollmentWithAttributesWhenUserHasAccessToThem()
-      throws ForbiddenException, NotFoundException {
+  void shouldGetEnrollmentWithAttributesWhenUserHasAccessToThem() throws NotFoundException {
     EnrollmentParams params = EnrollmentParams.FALSE;
     params = params.withIncludeAttributes(true);
 
@@ -371,10 +367,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     trackedEntityTypeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.updateNoAcl(trackedEntityTypeA);
 
-    NotFoundException exception =
-        assertThrows(
-            NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollmentA)));
-    assertContains("could not be found", exception.getMessage());
+    assertFalse(enrollmentService.findEnrollment(UID.of(enrollmentA)).isPresent());
   }
 
   @Test
@@ -383,13 +376,9 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     trackedEntityTypeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.updateNoAcl(trackedEntityTypeA);
 
-    String nonExistentUid = CodeGenerator.generateUid();
+    UID nonExistentUid = UID.generate();
 
-    NotFoundException exception =
-        assertThrows(
-            NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(nonExistentUid)));
-    assertContains(
-        "Enrollment with id " + nonExistentUid + " could not be found.", exception.getMessage());
+    assertFalse(enrollmentService.findEnrollment(nonExistentUid).isPresent());
   }
 
   @Test
@@ -399,10 +388,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     injectSecurityContextUser(userWithOrgUnitZ);
 
-    NotFoundException exception =
-        assertThrows(
-            NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollmentA)));
-    assertContains("could not be found", exception.getMessage());
+    assertFalse(enrollmentService.findEnrollment(UID.of(enrollmentA)).isPresent());
   }
 
   @Test
@@ -412,10 +398,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     injectSecurityContextUser(userWithOrgUnitZ);
 
-    NotFoundException exception =
-        assertThrows(
-            NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollmentA)));
-    assertContains("could not be found", exception.getMessage());
+    assertFalse(enrollmentService.findEnrollment(UID.of(enrollmentA)).isPresent());
   }
 
   @Test
@@ -423,10 +406,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     programA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.updateNoAcl(programA);
 
-    NotFoundException exception =
-        assertThrows(
-            NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollmentA)));
-    assertContains("could not be found", exception.getMessage());
+    assertFalse(enrollmentService.findEnrollment(UID.of(enrollmentA)).isPresent());
   }
 
   @Test
@@ -756,7 +736,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldNotDeleteNoteWhenDeletingEnrollment() throws ForbiddenException, NotFoundException {
+  void shouldNotDeleteNoteWhenDeletingEnrollment() {
     Note note = new Note();
     note.setCreator(CodeGenerator.generateUid());
     note.setNoteText("text");
@@ -765,12 +745,11 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     manager.save(enrollmentA);
 
-    assertNotNull(enrollmentService.getEnrollment(UID.of(enrollmentA)));
+    assertTrue(enrollmentService.findEnrollment(UID.of(enrollmentA)).isPresent());
 
     manager.delete(enrollmentA);
 
-    assertThrows(
-        NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollmentA)));
+    assertFalse(enrollmentService.findEnrollment(UID.of(enrollmentA)).isPresent());
     assertTrue(manager.exists(Note.class, note.getUid()));
   }
 

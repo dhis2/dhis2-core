@@ -39,7 +39,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Response.Status;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -84,7 +83,7 @@ public class ProgramNotificationInstanceController {
   @GetMapping(produces = {"application/json"})
   public @ResponseBody ResponseEntity<Page<ProgramNotificationInstance>> getScheduledMessage(
       ProgramNotificationInstanceRequestParams requestParams, HttpServletRequest request)
-      throws ForbiddenException, NotFoundException, BadRequestException {
+      throws NotFoundException, BadRequestException {
     validatePaginationParameters(requestParams);
 
     Event storedEvent = null;

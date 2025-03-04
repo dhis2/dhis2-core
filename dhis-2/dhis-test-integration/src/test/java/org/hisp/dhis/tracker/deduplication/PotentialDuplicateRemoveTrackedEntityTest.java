@@ -175,7 +175,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
   }
 
   @Test
-  void shouldDeleteEnrollments() throws ForbiddenException, NotFoundException {
+  void shouldDeleteEnrollments() throws NotFoundException {
     User user =
         createAndAddUser(
             false, "user", Set.of(organisationUnit), Set.of(organisationUnit), ALL.toString());
@@ -202,11 +202,10 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     assertTrue(trackedEntityService.findTrackedEntity(UID.of(control1)).isPresent());
     assertTrue(trackedEntityService.findTrackedEntity(UID.of(control2)).isPresent());
     removeTrackedEntity(duplicate);
-    assertThrows(
-        NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollment2)));
-    assertNotNull(enrollmentService.getEnrollment(UID.of(enrollment1)));
-    assertNotNull(enrollmentService.getEnrollment(UID.of(enrollment3)));
-    assertNotNull(enrollmentService.getEnrollment(UID.of(enrollment4)));
+    assertFalse(enrollmentService.findEnrollment(UID.of(enrollment2)).isPresent());
+    assertTrue(enrollmentService.findEnrollment(UID.of(enrollment1)).isPresent());
+    assertTrue(enrollmentService.findEnrollment(UID.of(enrollment3)).isPresent());
+    assertTrue(enrollmentService.findEnrollment(UID.of(enrollment4)).isPresent());
     assertFalse(trackedEntityService.findTrackedEntity(UID.of(duplicate)).isPresent());
   }
 
