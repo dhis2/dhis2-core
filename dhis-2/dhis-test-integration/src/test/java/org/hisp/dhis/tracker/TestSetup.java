@@ -72,11 +72,25 @@ public class TestSetup {
 
   @Autowired private TrackerImportService trackerImportService;
 
-  public ObjectBundle setUpMetadata(String path) throws IOException {
-    return setUpMetadata(path, null);
+  /**
+   * Import the base metadata used by most tracker tests.
+   *
+   * <p>Use {@link #importMetadata(String)} (String)}
+   *
+   * <ul>
+   *   <li>instead if your test only needs a subset of what the tracker base metadata contains
+   *   <li>in addition if your test needs some additional metadata that not all tracker tests need
+   * </ul>
+   */
+  public ObjectBundle importMetadata() throws IOException {
+    return importMetadata("tracker/base_metadata.json", null);
   }
 
-  public ObjectBundle setUpMetadata(String path, User user) throws IOException {
+  public ObjectBundle importMetadata(String path) throws IOException {
+    return importMetadata(path, null);
+  }
+
+  public ObjectBundle importMetadata(String path, User user) throws IOException {
     Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
         renderService.fromMetadata(new ClassPathResource(path).getInputStream(), RenderFormat.JSON);
     ObjectBundleParams params = new ObjectBundleParams();
@@ -90,14 +104,36 @@ public class TestSetup {
     return bundle;
   }
 
-  public TrackerObjects setUpTrackerData(String path) throws IOException {
+  /**
+   * Import the base tracker data used by most tracker tests.
+   *
+   * <p>Use {@link #importTrackerData(String)}
+   *
+   * <ul>
+   *   <li>instead if your test only needs a subset of what the tracker base data contains
+   *   <li>in addition if your test needs some additional data that not all tracker tests need
+   * </ul>
+   */
+  public TrackerObjects importTrackerData() throws IOException {
+    return importTrackerData("tracker/base_data.json");
+  }
+
+  /**
+   * Import tracker data from a JSON fixture using the default import parameters. Use {@link
+   * #importTrackerData(String, TrackerImportParams)} if you need non-default import parameters.
+   */
+  public TrackerObjects importTrackerData(String path) throws IOException {
+    return importTrackerData(path, TrackerImportParams.builder().build());
+  }
+
+  public TrackerObjects importTrackerData(String path, TrackerImportParams params)
+      throws IOException {
     TrackerObjects trackerObjects = fromJson(path);
-    assertNoErrors(
-        trackerImportService.importTracker(TrackerImportParams.builder().build(), trackerObjects));
+    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
     return trackerObjects;
   }
 
-  private TrackerObjects fromJson(String path) throws IOException {
+  public TrackerObjects fromJson(String path) throws IOException {
     return renderService.fromJson(
         new ClassPathResource(path).getInputStream(), TrackerObjects.class);
   }

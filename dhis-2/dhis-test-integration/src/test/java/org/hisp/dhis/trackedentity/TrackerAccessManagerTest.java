@@ -49,7 +49,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -71,12 +70,10 @@ import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-@Transactional
 class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackerAccessManager trackerAccessManager;
@@ -190,18 +187,22 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     eventB.setScheduledDate(DateUtils.addDays(new Date(), 10));
     eventB.setAttributeOptionCombo(coA);
     manager.save(eventB, false);
+
+    User adminUser = getAdminUser();
+    adminUser.setTeiSearchOrganisationUnits(Set.of(orgUnitA));
+    injectSecurityContextUser(adminUser);
   }
 
   @Test
   void checkAccessPermissionForTeWhenTeOuInCaptureScope()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+      throws ForbiddenException, NotFoundException {
     programA.setPublicAccess(AccessStringHelper.FULL);
     manager.update(programA);
     User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
     UserDetails userDetails = UserDetails.fromUser(user);
     trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
     manager.update(trackedEntityType);
-    TrackedEntity te = trackedEntityService.getTrackedEntity(UID.of(trackedEntityA));
+    TrackedEntity te = trackedEntityService.getNewTrackedEntity(UID.of(trackedEntityA));
     // Can read te
     assertNoErrors(trackerAccessManager.canRead(userDetails, te));
     // can write te
@@ -210,7 +211,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
 
   @Test
   void checkAccessPermissionForTeWhenTeOuInSearchScope()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+      throws ForbiddenException, NotFoundException {
     programA.setPublicAccess(AccessStringHelper.FULL);
     programA.setAccessLevel(AccessLevel.OPEN);
     manager.update(programA);
@@ -219,7 +220,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     UserDetails userDetails = UserDetails.fromUser(user);
     trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
     manager.update(trackedEntityType);
-    TrackedEntity te = trackedEntityService.getTrackedEntity(UID.of(trackedEntityA));
+    TrackedEntity te = trackedEntityService.getNewTrackedEntity(UID.of(trackedEntityA));
     // Can Read
     assertNoErrors(trackerAccessManager.canRead(userDetails, te));
     // Can write
@@ -228,7 +229,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
 
   @Test
   void checkAccessPermissionForTeWhenTeOuOutsideSearchScope()
-      throws ForbiddenException, NotFoundException, BadRequestException {
+      throws ForbiddenException, NotFoundException {
     programA.setPublicAccess(AccessStringHelper.FULL);
     programA.setAccessLevel(AccessLevel.OPEN);
     manager.update(programA);
@@ -236,7 +237,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     UserDetails userDetails = UserDetails.fromUser(user);
     trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
     manager.update(trackedEntityType);
-    TrackedEntity te = trackedEntityService.getTrackedEntity(UID.of(trackedEntityA));
+    TrackedEntity te = trackedEntityService.getNewTrackedEntity(UID.of(trackedEntityA));
     // Cannot Read
     assertHasError(trackerAccessManager.canRead(userDetails, te), OWNERSHIP_ACCESS_DENIED);
     // Cannot write

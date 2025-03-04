@@ -85,7 +85,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>3.3.7</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>3.3.8</dhis2-rule-engine.version>
     <kotlinx-datetime.version>0.6.2</kotlinx-datetime.version>
 
     <!-- HISP Quick and Staxwax -->
@@ -115,7 +115,7 @@
     <lettuce.version>6.5.4.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>11.3.3</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>11.3.4</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <ehcache3.version>3.10.8</ehcache3.version>
     <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
@@ -137,7 +137,7 @@
     <velocity-tools.version>3.1</velocity-tools.version>
 
     <!-- Jackson -->
-    <jackson.version>2.18.2</jackson.version>
+    <jackson.version>2.18.3</jackson.version>
     <jackson-datatype-jts.version>2.14</jackson-datatype-jts.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
 
@@ -169,7 +169,7 @@
 
     <!-- Apache Artemis -->
     <artemis-jakarta.version>2.39.0</artemis-jakarta.version>
-    <netty-all.version>4.1.118.Final</netty-all.version>
+    <netty-all.version>4.1.119.Final</netty-all.version>
     <classgraph.version>4.8.179</classgraph.version>
 
     <!-- SMS/SMPP -->

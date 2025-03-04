@@ -32,7 +32,6 @@ import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.val
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateUnsupportedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeGzip;
 import static org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil.writeZip;
-import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
 import static org.hisp.dhis.webapi.controller.tracker.export.MappingErrors.ensureNoMappingErrors;
 import static org.hisp.dhis.webapi.controller.tracker.export.event.EventRequestParams.DEFAULT_FIELDS_PARAM;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
@@ -70,17 +69,15 @@ import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.webapi.controller.tracker.RequestHandler;
 import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
-import org.hisp.dhis.webapi.controller.tracker.export.FileResourceRequestHandler;
 import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
 import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
-import org.hisp.dhis.webapi.controller.tracker.view.EventChangeLog;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -115,6 +112,8 @@ class EventsExportController {
 
   private final CsvService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService;
 
+  private final RequestHandler requestHandler;
+
   private final FieldFilterService fieldFilterService;
 
   private final EventFieldsParamMapper eventsMapper;
@@ -123,25 +122,23 @@ class EventsExportController {
 
   private final EventChangeLogService eventChangeLogService;
 
-  private final FileResourceRequestHandler fileResourceRequestHandler;
-
   public EventsExportController(
       EventService eventService,
       EventRequestParamsMapper eventParamsMapper,
       CsvService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService,
+      RequestHandler requestHandler,
       FieldFilterService fieldFilterService,
       EventFieldsParamMapper eventsMapper,
       ObjectMapper objectMapper,
-      EventChangeLogService eventChangeLogService,
-      FileResourceRequestHandler fileResourceRequestHandler) {
+      EventChangeLogService eventChangeLogService) {
     this.eventService = eventService;
     this.eventParamsMapper = eventParamsMapper;
     this.csvEventService = csvEventService;
+    this.requestHandler = requestHandler;
     this.fieldFilterService = fieldFilterService;
     this.eventsMapper = eventsMapper;
     this.objectMapper = objectMapper;
     this.eventChangeLogService = eventChangeLogService;
-    this.fileResourceRequestHandler = fileResourceRequestHandler;
 
     assertUserOrderableFieldsAreSupported(
         "event", EventMapper.ORDERABLE_FIELDS, eventService.getOrderableFields());
@@ -163,35 +160,25 @@ class EventsExportController {
 
     if (requestParams.isPaging()) {
       PageParams pageParams =
-          new PageParams(
+          PageParams.of(
               requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
-
       EventOperationParams eventOperationParams =
           eventParamsMapper.map(requestParams, idSchemeParams);
       org.hisp.dhis.tracker.Page<Event> eventsPage =
           eventService.getEvents(eventOperationParams, pageParams);
-      MappingErrors errors = new MappingErrors(idSchemeParams);
-      List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
-          eventsPage.getItems().stream()
-              .map(ev -> EVENTS_MAPPER.map(idSchemeParams, errors, ev))
-              .toList();
-      ensureNoMappingErrors(errors);
-      List<ObjectNode> objectNodes =
-          fieldFilterService.toObjectNodes(events, requestParams.getFields());
 
-      return ResponseEntity.ok()
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(Page.withPager(EVENTS, eventsPage.withItems(objectNodes), getRequestURL(request)));
+      MappingErrors errors = new MappingErrors(idSchemeParams);
+      org.hisp.dhis.tracker.Page<org.hisp.dhis.webapi.controller.tracker.view.Event> page =
+          eventsPage.withMappedItems(ev -> EVENTS_MAPPER.map(idSchemeParams, errors, ev));
+      ensureNoMappingErrors(errors);
+
+      return requestHandler.serve(request, EVENTS, page, requestParams);
     }
 
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
         getEventsList(requestParams, idSchemeParams);
-    List<ObjectNode> objectNodes =
-        fieldFilterService.toObjectNodes(events, requestParams.getFields());
 
-    return ResponseEntity.ok()
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(Page.withoutPager(EVENTS, objectNodes));
+    return requestHandler.serve(EVENTS, events, requestParams);
   }
 
   @GetMapping(produces = CONTENT_TYPE_JSON_GZIP)
@@ -307,7 +294,7 @@ class EventsExportController {
             idSchemeParams, errors, eventService.getEvent(uid, idSchemeParams, eventParams));
     ensureNoMappingErrors(errors);
 
-    return ResponseEntity.ok(fieldFilterService.toObjectNode(event, fields));
+    return requestHandler.serve(event, fields);
   }
 
   private List<org.hisp.dhis.webapi.controller.tracker.view.Event> getEventsList(
@@ -337,8 +324,7 @@ class EventsExportController {
         "Request parameter 'dimension' is only supported for images by API"
             + " /tracker/event/dataValues/{dataElement}/image");
 
-    return fileResourceRequestHandler.handle(
-        request, eventService.getFileResource(event, dataElement));
+    return requestHandler.serve(request, eventService.getFileResource(event, dataElement));
   }
 
   @GetMapping("/{event}/dataValues/{dataElement}/image")
@@ -348,7 +334,7 @@ class EventsExportController {
       @RequestParam(required = false) ImageFileDimension dimension,
       HttpServletRequest request)
       throws NotFoundException, ConflictException, BadRequestException, ForbiddenException {
-    return fileResourceRequestHandler.handle(
+    return requestHandler.serve(
         request, eventService.getFileResourceImage(event, dataElement, dimension));
   }
 
@@ -364,22 +350,13 @@ class EventsExportController {
             eventChangeLogService.getOrderableFields(),
             eventChangeLogService.getFilterableFields(),
             requestParams);
-    PageParams pageParams =
-        new PageParams(requestParams.getPage(), requestParams.getPageSize(), false);
 
-    org.hisp.dhis.tracker.Page<org.hisp.dhis.tracker.export.event.EventChangeLog> changeLogs =
+    PageParams pageParams =
+        PageParams.of(requestParams.getPage(), requestParams.getPageSize(), false);
+    org.hisp.dhis.tracker.Page<org.hisp.dhis.tracker.export.event.EventChangeLog> page =
         eventChangeLogService.getEventChangeLog(event, operationParams, pageParams);
 
-    List<EventChangeLog> eventChangeLogs =
-        changeLogs.getItems().stream().map(EVENT_CHANGE_LOG_MAPPER::map).toList();
-
-    List<ObjectNode> objectNodes =
-        fieldFilterService.toObjectNodes(eventChangeLogs, requestParams.getFields());
-
-    return ResponseEntity.ok()
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(
-            Page.withPager(
-                "changeLogs", changeLogs.withItems(objectNodes), getRequestURL(request)));
+    return requestHandler.serve(
+        request, "changeLogs", page.withMappedItems(EVENT_CHANGE_LOG_MAPPER::map), requestParams);
   }
 }

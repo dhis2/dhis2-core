@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.imports.bundle;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
-import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -40,21 +39,26 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class EventDataValueTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class EventDataValueTest extends PostgresIntegrationTestBase {
+
+  @Autowired private TestSetup testSetup;
 
   @Autowired private TrackerImportService trackerImportService;
 
@@ -62,35 +66,25 @@ class EventDataValueTest extends TrackerTest {
 
   @BeforeAll
   void setUp() throws IOException {
-    setUpMetadata("tracker/simple_metadata.json");
+    testSetup.importMetadata();
 
     final User userA = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(userA);
 
-    TrackerImportParams params = TrackerImportParams.builder().build();
-    TrackerObjects trackerObjects = fromJson("tracker/single_te.json");
-    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
-    TrackerObjects enTrackerObjects = fromJson("tracker/single_enrollment.json");
-    assertNoErrors(trackerImportService.importTracker(params, enTrackerObjects));
+    testSetup.importTrackerData("tracker/single_te.json");
+    testSetup.importTrackerData("tracker/single_enrollment.json");
     manager.flush();
   }
 
   @Test
   void successWhenEventHasNoProgramAndHasProgramStage() throws IOException {
-    ImportReport importReport =
-        trackerImportService.importTracker(
-            new TrackerImportParams(), fromJson("tracker/validations/events-with_no_program.json"));
-
-    assertNoErrors(importReport);
+    testSetup.importTrackerData("tracker/validations/events-with_no_program.json");
   }
 
   @Test
   void testEventDataValue() throws IOException {
-    ImportReport importReport =
-        trackerImportService.importTracker(
-            new TrackerImportParams(), fromJson("tracker/event_with_data_values.json"));
+    testSetup.importTrackerData("tracker/event_with_data_values.json");
 
-    assertNoErrors(importReport);
     List<Event> events = manager.getAll(Event.class);
     assertEquals(1, events.size());
     Event event = events.get(0);
@@ -100,11 +94,8 @@ class EventDataValueTest extends TrackerTest {
 
   @Test
   void testEventDataValueUpdate() throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/event_with_data_values.json");
-    TrackerImportParams params = new TrackerImportParams();
-    ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+    testSetup.importTrackerData("tracker/event_with_data_values.json");
 
-    assertNoErrors(importReport);
     List<Event> events = manager.getAll(Event.class);
     assertEquals(1, events.size());
     Event event = events.get(0);
@@ -112,10 +103,10 @@ class EventDataValueTest extends TrackerTest {
     assertEquals(4, eventDataValues.size());
     // update
 
-    TrackerObjects updatedTrackerObjects = fromJson("tracker/event_with_updated_data_values.json");
+    TrackerImportParams params = new TrackerImportParams();
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
-    importReport = trackerImportService.importTracker(params, updatedTrackerObjects);
-    assertNoErrors(importReport);
+    testSetup.importTrackerData("tracker/event_with_updated_data_values.json", params);
+
     List<Event> updatedEvents = manager.getAll(Event.class);
     assertEquals(1, updatedEvents.size());
     Event updatedEvent = manager.get(Event.class, updatedEvents.get(0).getUid());

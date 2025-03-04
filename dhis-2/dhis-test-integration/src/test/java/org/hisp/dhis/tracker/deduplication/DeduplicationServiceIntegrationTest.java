@@ -63,14 +63,14 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp() throws IOException {
-    testSetup.setUpMetadata("tracker/simple_metadata.json");
+    testSetup.importMetadata();
 
     User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    TrackerObjects trackerObjects = testSetup.setUpTrackerData("tracker/event_and_enrollment.json");
+    TrackerObjects trackerObjects = testSetup.importTrackerData();
     TrackerObjects duplicateTrackedEntities =
-        testSetup.setUpTrackerData("tracker/deduplication/potential_duplicates.json");
+        testSetup.importTrackerData("tracker/deduplication/potential_duplicates.json");
 
     trackedEntityAOriginal = testSetup.getTrackedEntity(trackerObjects, "QS6w44flWAf").getUid();
     trackedEntityADuplicate =
@@ -228,7 +228,7 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
     Page<UID> firstPage =
         deduplicationService
             .getPotentialDuplicates(criteria, new PageParams(1, 2, false))
-            .withItems(PotentialDuplicate::getOriginal);
+            .withMappedItems(PotentialDuplicate::getOriginal);
 
     assertEquals(
         new Page<>(List.of(trackedEntityAOriginal, trackedEntityBOriginal), 1, 2, null, null, 2),
@@ -238,7 +238,7 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
     Page<UID> secondPage =
         deduplicationService
             .getPotentialDuplicates(criteria, new PageParams(2, 2, false))
-            .withItems(PotentialDuplicate::getOriginal);
+            .withMappedItems(PotentialDuplicate::getOriginal);
 
     assertEquals(
         new Page<>(List.of(trackedEntityCOriginal), 2, 2, null, 1, null),
@@ -248,7 +248,7 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
     Page<UID> thirdPage =
         deduplicationService
             .getPotentialDuplicates(criteria, new PageParams(3, 3, false))
-            .withItems(PotentialDuplicate::getOriginal);
+            .withMappedItems(PotentialDuplicate::getOriginal);
 
     assertEquals(new Page<>(List.of(), 3, 3, null, 2, null), thirdPage, "past the last page");
   }

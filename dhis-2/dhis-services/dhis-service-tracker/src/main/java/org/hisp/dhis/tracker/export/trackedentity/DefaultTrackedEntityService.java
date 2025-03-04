@@ -215,13 +215,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Nonnull
   @Override
-  public TrackedEntity getTrackedEntity(@Nonnull UID uid)
-      throws NotFoundException, ForbiddenException, BadRequestException {
-    return getTrackedEntity(uid, null, TrackedEntityParams.FALSE);
-  }
-
-  @Nonnull
-  @Override
   public TrackedEntity getNewTrackedEntity(
       @Nonnull UID trackedEntityUid,
       @CheckForNull UID programIdentifier,
@@ -412,7 +405,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
             .filter(te -> trackerAccessManager.canRead(user, te).isEmpty())
             .toList();
 
-    return ids.withItems(trackedEntities);
+    return ids.withFilteredItems(trackedEntities);
   }
 
   private List<TrackedEntity> getTrackedEntities(
