@@ -192,7 +192,7 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
 
     assertNoDiff(
         """
-        { "paga": 1, "pageSize": 50 }""",
+        { "page": 1, "pageSize": 50 }""",
         page.getPager());
   }
 
