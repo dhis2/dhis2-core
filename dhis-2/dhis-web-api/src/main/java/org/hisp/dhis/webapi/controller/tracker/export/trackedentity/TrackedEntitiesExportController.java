@@ -299,7 +299,7 @@ class TrackedEntitiesExportController {
         TRACKED_ENTITY_MAPPER.map(
             idSchemeParams,
             errors,
-            trackedEntityService.getNewTrackedEntity(uid, program, trackedEntityParams));
+            trackedEntityService.getTrackedEntity(uid, program, trackedEntityParams));
     ensureNoMappingErrors(errors);
 
     return ResponseEntity.ok(fieldFilterService.toObjectNode(trackedEntity, fields));
@@ -322,7 +322,7 @@ class TrackedEntitiesExportController {
         TRACKED_ENTITY_MAPPER.map(
             idSchemeParams,
             errors,
-            trackedEntityService.getNewTrackedEntity(uid, program, trackedEntityParams));
+            trackedEntityService.getTrackedEntity(uid, program, trackedEntityParams));
     ensureNoMappingErrors(errors);
 
     OutputStream outputStream = response.getOutputStream();

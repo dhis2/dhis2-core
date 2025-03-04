@@ -106,7 +106,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       UID trackedEntityUid, UID attributeUid, @CheckForNull UID programUid)
       throws NotFoundException, ForbiddenException {
     TrackedEntity trackedEntity =
-        getNewTrackedEntity(
+        getTrackedEntity(
             trackedEntityUid, programUid, TrackedEntityParams.FALSE.withIncludeAttributes(true));
 
     TrackedEntityAttribute attribute =
@@ -142,14 +142,14 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Nonnull
   @Override
-  public TrackedEntity getNewTrackedEntity(@Nonnull UID uid)
+  public TrackedEntity getTrackedEntity(@Nonnull UID uid)
       throws NotFoundException, ForbiddenException {
-    return getNewTrackedEntity(uid, (Program) null, TrackedEntityParams.FALSE);
+    return getTrackedEntity(uid, (Program) null, TrackedEntityParams.FALSE);
   }
 
   @Nonnull
   @Override
-  public TrackedEntity getNewTrackedEntity(
+  public TrackedEntity getTrackedEntity(
       @Nonnull UID trackedEntityUid,
       @CheckForNull UID programIdentifier,
       @Nonnull TrackedEntityParams params)
@@ -165,10 +165,10 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       }
     }
 
-    return getNewTrackedEntity(trackedEntityUid, program, params);
+    return getTrackedEntity(trackedEntityUid, program, params);
   }
 
-  private TrackedEntity getNewTrackedEntity(UID uid, Program program, TrackedEntityParams params)
+  private TrackedEntity getTrackedEntity(UID uid, Program program, TrackedEntityParams params)
       throws NotFoundException, ForbiddenException {
     Page<TrackedEntity> trackedEntities;
     try {

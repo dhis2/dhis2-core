@@ -153,7 +153,7 @@ class EventRequestParamsMapperTest {
     when(organisationUnitService.isInUserHierarchy(user, orgUnit)).thenReturn(true);
 
     TrackedEntity trackedEntity = new TrackedEntity();
-    when(trackedEntityService.getNewTrackedEntity(UID.of("qnR1RK4cTIZ"), null, FALSE))
+    when(trackedEntityService.getTrackedEntity(UID.of("qnR1RK4cTIZ"), null, FALSE))
         .thenReturn(trackedEntity);
     TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
     tea1.setUid(TEA_1_UID.getValue());

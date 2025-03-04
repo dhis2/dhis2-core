@@ -239,12 +239,12 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     r.setKey(RelationshipUtils.generateRelationshipKey(r));
     r.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(r));
     manager.save(r);
-    assertNotNull(trackedEntityService.getNewTrackedEntity(UID.of(trackedEntity)));
+    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(trackedEntity)));
     assertNotNull(getRelationship(r.getUid()));
     manager.delete(trackedEntity);
     assertThrows(
         NotFoundException.class,
-        () -> trackedEntityService.getNewTrackedEntity(UID.of(trackedEntity)));
+        () -> trackedEntityService.getTrackedEntity(UID.of(trackedEntity)));
     manager.delete(r);
     manager.delete(enrollment);
     assertThrows(NotFoundException.class, () -> getRelationship(r.getUid()));
@@ -333,11 +333,11 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
             .build();
     manager.save(trackedEntityB);
     programMessageService.saveProgramMessage(message);
-    assertNotNull(trackedEntityService.getNewTrackedEntity(UID.of(trackedEntityB)));
+    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(trackedEntityB)));
     manager.delete(trackedEntityB);
     assertThrows(
         NotFoundException.class,
-        () -> trackedEntityService.getNewTrackedEntity(UID.of(trackedEntityB)));
+        () -> trackedEntityService.getTrackedEntity(UID.of(trackedEntityB)));
     assertTrue(trackedEntityExistsIncludingDeleted(trackedEntityB.getUid()));
 
     maintenanceService.deleteSoftDeletedTrackedEntities();
@@ -455,7 +455,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     manager.delete(trackedEntityWithAssociations);
     assertThrows(
         NotFoundException.class,
-        () -> trackedEntityService.getNewTrackedEntity(UID.of(trackedEntityWithAssociations)));
+        () -> trackedEntityService.getTrackedEntity(UID.of(trackedEntityWithAssociations)));
     assertTrue(trackedEntityExistsIncludingDeleted(trackedEntityWithAssociations.getUid()));
     maintenanceService.deleteSoftDeletedTrackedEntities();
     List<Audit> audits =
