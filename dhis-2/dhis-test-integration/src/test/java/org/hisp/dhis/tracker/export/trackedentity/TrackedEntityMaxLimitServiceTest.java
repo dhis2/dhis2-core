@@ -59,7 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
+class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
   @Autowired private TestSetup testSetup;
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private TrackedEntityService trackedEntityService;
@@ -254,6 +254,4 @@ public class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBas
         .filterBy(UID.of("dIVt4l5vIOa"))
         .build();
   }
-
-  // TODO Does pagination affect any of these limits?
 }
