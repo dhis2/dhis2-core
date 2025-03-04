@@ -129,6 +129,14 @@
             "identifier": "numericAttr"
           },
           "value": "70"
+        },
+        {
+          "valueType": "TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "dIVt4l5vIOa"
+          },
+          "value": "Value"
         }
       ],
       "enrollments": []
