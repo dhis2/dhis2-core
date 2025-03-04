@@ -71,6 +71,7 @@ class EnrollmentAggregate {
                     .enrollmentParams(ctx.getParams().getEnrollmentParams())
                     .trackedEntity(UID.of(id.uid()))
                     .includeDeleted(ctx.getQueryParams().isIncludeDeleted())
+                    .program(ctx.getQueryParams().getEnrolledInTrackerProgram())
                     .build();
             try {
               result.putAll(id.uid(), enrollmentService.getEnrollments(params));

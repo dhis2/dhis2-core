@@ -40,6 +40,7 @@ import org.hisp.dhis.eventhook.EventHook;
 import org.hisp.dhis.eventhook.Handler;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
 import org.hisp.dhis.system.util.HttpUtils;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -56,16 +57,21 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
  */
 @Slf4j
 public class WebhookHandler implements Handler {
+  private final ApplicationContext applicationContext;
+
   private final WebhookTarget webhookTarget;
 
   private final RestTemplate restTemplate;
 
-  public WebhookHandler(WebhookTarget target) {
+  public WebhookHandler(ApplicationContext applicationContext, WebhookTarget target) {
     this.webhookTarget = target;
+    this.applicationContext = applicationContext;
     this.restTemplate = new RestTemplate();
     configure(this.restTemplate);
   }
 
+  // Exceptions thrown in this method cannot be handled in a meaningful way other than logging
+  @SuppressWarnings("java:S112")
   @Override
   public void run(EventHook eventHook, Event event, String payload) {
     HttpHeaders httpHeaders = new HttpHeaders();
@@ -74,7 +80,11 @@ public class WebhookHandler implements Handler {
 
     MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
     if (webhookTarget.getAuth() != null) {
-      webhookTarget.getAuth().apply(httpHeaders, queryParams);
+      try {
+        webhookTarget.getAuth().apply(applicationContext, httpHeaders, queryParams);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
     }
 
     HttpEntity<String> httpEntity = new HttpEntity<>(payload, httpHeaders);

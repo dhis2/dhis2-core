@@ -206,7 +206,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
         assertThrows(
             NotFoundException.class,
             () ->
-                trackedEntityService.getNewTrackedEntity(
+                trackedEntityService.getTrackedEntity(
                     UID.of(trackedEntityA1), UID.of(programA), defaultParams));
     assertEquals(
         String.format("TrackedEntity with id %s could not be found.", trackedEntityA1.getUid()),
@@ -221,7 +221,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(userB);
     assertEquals(
         trackedEntityA1,
-        trackedEntityService.getNewTrackedEntity(
+        trackedEntityService.getTrackedEntity(
             UID.of(trackedEntityA1), UID.of(programA), defaultParams));
   }
 
@@ -235,7 +235,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(superUser);
     assertEquals(
         trackedEntityA1,
-        trackedEntityService.getNewTrackedEntity(
+        trackedEntityService.getTrackedEntity(
             UID.of(trackedEntityA1), UID.of(programA), defaultParams));
   }
 
@@ -246,7 +246,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
 
     assertEquals(
         trackedEntityA1,
-        trackedEntityService.getNewTrackedEntity(UID.of(trackedEntityA1), null, defaultParams));
+        trackedEntityService.getTrackedEntity(UID.of(trackedEntityA1), null, defaultParams));
   }
 
   @Test
@@ -259,7 +259,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
         assertThrows(
             NotFoundException.class,
             () ->
-                trackedEntityService.getNewTrackedEntity(
+                trackedEntityService.getTrackedEntity(
                     UID.of(trackedEntityA1), null, defaultParams));
 
     assertEquals(
@@ -311,7 +311,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
         assertThrows(
             NotFoundException.class,
             () ->
-                trackedEntityService.getNewTrackedEntity(
+                trackedEntityService.getTrackedEntity(
                     UID.of(trackedEntityA1), UID.of(programA), defaultParams));
     assertEquals(
         String.format("TrackedEntity with id %s could not be found.", trackedEntityA1.getUid()),
@@ -337,7 +337,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
         assertThrows(
             NotFoundException.class,
             () ->
-                trackedEntityService.getNewTrackedEntity(
+                trackedEntityService.getTrackedEntity(
                     UID.of(trackedEntityA1), UID.of(programA), defaultParams));
     assertEquals(
         String.format("TrackedEntity with id %s could not be found.", trackedEntityA1.getUid()),
@@ -430,7 +430,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(userA);
     assertEquals(
         trackedEntityA1,
-        trackedEntityService.getNewTrackedEntity(
+        trackedEntityService.getTrackedEntity(
             UID.of(trackedEntityA1), UID.of(programA), defaultParams));
   }
 
@@ -446,7 +446,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
         assertThrows(
             NotFoundException.class,
             () ->
-                trackedEntityService.getNewTrackedEntity(
+                trackedEntityService.getTrackedEntity(
                     UID.of(trackedEntityA1), UID.of(programA), defaultParams));
     assertEquals(
         String.format("TrackedEntity with id %s could not be found.", trackedEntityA1.getUid()),
@@ -461,7 +461,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(userB);
     assertEquals(
         trackedEntityA1,
-        trackedEntityService.getNewTrackedEntity(UID.of(trackedEntityA1), null, defaultParams));
+        trackedEntityService.getTrackedEntity(UID.of(trackedEntityA1), null, defaultParams));
   }
 
   @Test
@@ -472,7 +472,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
         assertThrows(
             NotFoundException.class,
             () ->
-                trackedEntityService.getNewTrackedEntity(
+                trackedEntityService.getTrackedEntity(
                     UID.of(trackedEntityA1), null, defaultParams));
     assertEquals(
         String.format("TrackedEntity with id %s could not be found.", trackedEntityA1.getUid()),
@@ -486,7 +486,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
 
     assertEquals(
         trackedEntityB1,
-        trackedEntityService.getNewTrackedEntity(UID.of(trackedEntityB1), null, defaultParams));
+        trackedEntityService.getTrackedEntity(UID.of(trackedEntityB1), null, defaultParams));
   }
 
   @Test
@@ -497,7 +497,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
         assertThrows(
             NotFoundException.class,
             () ->
-                trackedEntityService.getNewTrackedEntity(
+                trackedEntityService.getTrackedEntity(
                     UID.of(trackedEntityB1), null, defaultParams));
     assertEquals(
         String.format("TrackedEntity with id %s could not be found.", trackedEntityB1.getUid()),

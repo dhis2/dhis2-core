@@ -95,7 +95,7 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
       @Nonnull PageParams pageParams)
       throws NotFoundException, ForbiddenException {
     TrackedEntity trackedEntity =
-        trackedEntityService.getNewTrackedEntity(
+        trackedEntityService.getTrackedEntity(
             trackedEntityUid, programUid, TrackedEntityParams.FALSE.withIncludeAttributes(true));
 
     Set<UID> trackedEntityAttributes =
