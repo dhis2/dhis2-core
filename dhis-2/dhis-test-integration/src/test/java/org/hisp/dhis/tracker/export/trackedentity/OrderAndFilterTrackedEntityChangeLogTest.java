@@ -45,9 +45,10 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
-import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -55,36 +56,35 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class OrderAndFilterTrackedEntityChangeLogTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class OrderAndFilterTrackedEntityChangeLogTest extends PostgresIntegrationTestBase {
+  @Autowired private TestSetup testSetup;
   @Autowired private TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   @Autowired private TrackerImportService trackerImportService;
 
   private User importUser;
 
-  private TrackerImportParams importParams;
-
-  private final PageParams defaultPageParams = new PageParams(null, null, false);
+  private final PageParams defaultPageParams = PageParams.of(null, null, false);
 
   private TrackerObjects trackerObjects;
 
   @BeforeAll
   void setUp() throws IOException {
-    injectSecurityContextUser(getAdminUser());
-    setUpMetadata("tracker/simple_metadata.json");
+    testSetup.importMetadata();
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    importParams = TrackerImportParams.builder().build();
-    trackerObjects = fromJson("tracker/event_and_enrollment.json");
-
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+    trackerObjects = testSetup.importTrackerData();
   }
 
   @BeforeEach
@@ -272,7 +272,8 @@ class OrderAndFilterTrackedEntityChangeLogTest extends TrackerTest {
 
               assertNoErrors(
                   trackerImportService.importTracker(
-                      importParams, TrackerObjects.builder().trackedEntities(List.of(t)).build()));
+                      TrackerImportParams.builder().build(),
+                      TrackerObjects.builder().trackedEntities(List.of(t)).build()));
             });
   }
 

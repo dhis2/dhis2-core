@@ -2283,6 +2283,12 @@
       "program": {
         "id": "f1AyMswryyQ"
       },
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "attributeCombo": {
+        "id": "bjDvmb4bfuf"
+      },
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {
@@ -2360,6 +2366,12 @@
       "program": {
         "id": "Zd2rkv8FsWq",
         "code": "TA EVENT_PROGRAM"
+      },
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "attributeCombo": {
+        "id": "bjDvmb4bfuf"
       },
       "analyticsPeriodBoundaries": [
         {

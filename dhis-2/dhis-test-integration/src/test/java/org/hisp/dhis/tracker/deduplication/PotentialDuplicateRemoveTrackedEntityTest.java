@@ -36,18 +36,15 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -59,18 +56,16 @@ import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
-@Transactional
 class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackerObjectDeletionService trackerObjectDeletionService;
 
   @Autowired private RelationshipTypeService relationshipTypeService;
-
-  @Autowired private OrganisationUnitService organisationUnitService;
 
   @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
 
@@ -78,63 +73,81 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired private DbmsManager dbmsManager;
-
   @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private RelationshipService relationshipService;
 
-  @Autowired private ProgramService programService;
+  private TrackedEntityType trackedEntityType;
 
-  @Test
-  void shouldDeleteTrackedEntity()
-      throws NotFoundException, ForbiddenException, BadRequestException {
-    TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute('A');
-    trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttribute);
-    TrackedEntity trackedEntity = createTrackedEntity(trackedEntityAttribute);
-    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(trackedEntity)));
-    removeTrackedEntity(trackedEntity);
-    assertThrows(
-        NotFoundException.class,
-        () -> trackedEntityService.getTrackedEntity(UID.of(trackedEntity)));
+  private OrganisationUnit organisationUnit;
+
+  private Program program;
+
+  private TrackedEntity original;
+  private TrackedEntity duplicate;
+  private TrackedEntity control1;
+  private TrackedEntity control2;
+
+  @BeforeEach
+  void setupTestUser() {
+    User user = getAdminUser();
+    trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    program = createProgram('A');
+    program.setTrackedEntityType(trackedEntityType);
+    program.setSharing(Sharing.builder().publicAccess(AccessStringHelper.FULL).build());
+    manager.save(program);
+    organisationUnit = createOrganisationUnit('A');
+    manager.save(organisationUnit);
+    user.setTeiSearchOrganisationUnits(Set.of(organisationUnit));
+    injectSecurityContextUser(user);
+
+    original = createTrackedEntity(organisationUnit, trackedEntityType);
+    duplicate = createTrackedEntity(organisationUnit, trackedEntityType);
+    control1 = createTrackedEntity(organisationUnit, trackedEntityType);
+    control2 = createTrackedEntity(organisationUnit, trackedEntityType);
+    manager.save(original);
+    manager.save(duplicate);
+    manager.save(control1);
+    manager.save(control2);
+    manager.flush();
+    manager.clear();
   }
 
   @Test
-  void shouldDeleteTeAndAttributeValues()
-      throws NotFoundException, ForbiddenException, BadRequestException {
+  void shouldDeleteTrackedEntity() throws NotFoundException, ForbiddenException {
+    TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute('A');
+    trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttribute);
+    TrackedEntity trackedEntity = createTrackedEntity(trackedEntityAttribute);
+    assertNotNull(trackedEntityService.getNewTrackedEntity(UID.of(trackedEntity)));
+    removeTrackedEntity(trackedEntity);
+    assertThrows(
+        NotFoundException.class,
+        () -> trackedEntityService.getNewTrackedEntity(UID.of(trackedEntity)));
+  }
+
+  @Test
+  void shouldDeleteTeAndAttributeValues() throws NotFoundException, ForbiddenException {
     TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute('A');
     trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttribute);
     TrackedEntity trackedEntity = createTrackedEntity(trackedEntityAttribute);
     trackedEntity
         .getTrackedEntityAttributeValues()
         .forEach(trackedEntityAttributeValueService::addTrackedEntityAttributeValue);
-    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(trackedEntity)));
+    assertNotNull(trackedEntityService.getNewTrackedEntity(UID.of(trackedEntity)));
     removeTrackedEntity(trackedEntity);
     assertThrows(
         NotFoundException.class,
-        () -> trackedEntityService.getTrackedEntity(UID.of(trackedEntity)));
+        () -> trackedEntityService.getNewTrackedEntity(UID.of(trackedEntity)));
     assertNull(
         trackedEntityAttributeValueService.getTrackedEntityAttributeValue(
             trackedEntity, trackedEntityAttribute));
   }
 
   @Test
-  void shouldDeleteRelationShips()
-      throws NotFoundException, ForbiddenException, BadRequestException {
-    OrganisationUnit ou = createOrganisationUnit("OU_A");
-    organisationUnitService.addOrganisationUnit(ou);
-    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
-    manager.save(trackedEntityType);
-    TrackedEntity original = createTrackedEntity(ou, trackedEntityType);
-    TrackedEntity duplicate = createTrackedEntity(ou, trackedEntityType);
-    TrackedEntity control1 = createTrackedEntity(ou, trackedEntityType);
-    TrackedEntity control2 = createTrackedEntity(ou, trackedEntityType);
-    manager.save(original);
-    manager.save(duplicate);
-    manager.save(control1);
-    manager.save(control2);
+  void shouldDeleteRelationShips() throws NotFoundException, ForbiddenException {
     RelationshipType relationshipType = createRelationshipType('A');
     relationshipTypeService.addRelationshipType(relationshipType);
     Relationship relationship1 = createTeToTeRelationship(original, control1, relationshipType);
@@ -147,11 +160,13 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     manager.save(relationship3);
     manager.save(relationship4);
     manager.save(relationship5);
-    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(original)));
-    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(duplicate)));
-    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(control1)));
-    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(control2)));
-    dbmsManager.clearSession();
+    manager.flush();
+    manager.clear();
+    assertNotNull(trackedEntityService.getNewTrackedEntity(UID.of(original)));
+    assertNotNull(trackedEntityService.getNewTrackedEntity(UID.of(duplicate)));
+    assertNotNull(trackedEntityService.getNewTrackedEntity(UID.of(control1)));
+    assertNotNull(trackedEntityService.getNewTrackedEntity(UID.of(control2)));
+
     removeTrackedEntity(duplicate);
     assertThrows(NotFoundException.class, () -> getRelationship(UID.of(relationship3)));
     assertThrows(NotFoundException.class, () -> getRelationship(UID.of(relationship4)));
@@ -159,34 +174,20 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     assertNotNull(getRelationship(UID.of(relationship2)));
     assertNotNull(getRelationship(UID.of(relationship5)));
     assertThrows(
-        NotFoundException.class, () -> trackedEntityService.getTrackedEntity(UID.of(duplicate)));
+        NotFoundException.class, () -> trackedEntityService.getNewTrackedEntity(UID.of(duplicate)));
   }
 
   @Test
-  void shouldDeleteEnrollments() throws ForbiddenException, NotFoundException, BadRequestException {
-    OrganisationUnit ou = createOrganisationUnit("OU_A");
-    organisationUnitService.addOrganisationUnit(ou);
-
-    TrackedEntityType trackedEntityType = createTrackedEntityType('P');
-    manager.save(trackedEntityType);
-
-    User user = createAndAddUser(false, "user", Set.of(ou), Set.of(ou), ALL.toString());
+  void shouldDeleteEnrollments() throws ForbiddenException, NotFoundException {
+    User user =
+        createAndAddUser(
+            false, "user", Set.of(organisationUnit), Set.of(organisationUnit), ALL.toString());
     injectSecurityContextUser(user);
-    TrackedEntity original = createTrackedEntity(ou, trackedEntityType);
-    TrackedEntity duplicate = createTrackedEntity(ou, trackedEntityType);
-    TrackedEntity control1 = createTrackedEntity(ou, trackedEntityType);
-    TrackedEntity control2 = createTrackedEntity(ou, trackedEntityType);
 
-    manager.save(original);
-    manager.save(duplicate);
-    manager.save(control1);
-    manager.save(control2);
-    Program program = createProgram('A');
-    programService.addProgram(program);
-    Enrollment enrollment1 = createEnrollment(program, original, ou);
-    Enrollment enrollment2 = createEnrollment(program, duplicate, ou);
-    Enrollment enrollment3 = createEnrollment(program, control1, ou);
-    Enrollment enrollment4 = createEnrollment(program, control2, ou);
+    Enrollment enrollment1 = createEnrollment(program, original, organisationUnit);
+    Enrollment enrollment2 = createEnrollment(program, duplicate, organisationUnit);
+    Enrollment enrollment3 = createEnrollment(program, control1, organisationUnit);
+    Enrollment enrollment4 = createEnrollment(program, control2, organisationUnit);
     manager.save(enrollment1);
     manager.save(enrollment2);
     manager.save(enrollment3);
@@ -199,10 +200,10 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     manager.update(duplicate);
     manager.update(control1);
     manager.update(control2);
-    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(original)));
-    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(duplicate)));
-    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(control1)));
-    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(control2)));
+    assertNotNull(trackedEntityService.getNewTrackedEntity(UID.of(original)));
+    assertNotNull(trackedEntityService.getNewTrackedEntity(UID.of(duplicate)));
+    assertNotNull(trackedEntityService.getNewTrackedEntity(UID.of(control1)));
+    assertNotNull(trackedEntityService.getNewTrackedEntity(UID.of(control2)));
     removeTrackedEntity(duplicate);
     assertThrows(
         NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollment2)));
@@ -210,17 +211,12 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     assertNotNull(enrollmentService.getEnrollment(UID.of(enrollment3)));
     assertNotNull(enrollmentService.getEnrollment(UID.of(enrollment4)));
     assertThrows(
-        NotFoundException.class, () -> trackedEntityService.getTrackedEntity(UID.of(duplicate)));
+        NotFoundException.class, () -> trackedEntityService.getNewTrackedEntity(UID.of(duplicate)));
   }
 
   private TrackedEntity createTrackedEntity(TrackedEntityAttribute trackedEntityAttribute) {
-    OrganisationUnit ou = createOrganisationUnit("OU_A");
-    organisationUnitService.addOrganisationUnit(ou);
-
-    TrackedEntityType trackedEntityType = createTrackedEntityType('R');
-    manager.save(trackedEntityType);
     TrackedEntity trackedEntity =
-        createTrackedEntity('T', ou, trackedEntityAttribute, trackedEntityType);
+        createTrackedEntity('T', organisationUnit, trackedEntityAttribute, trackedEntityType);
     manager.save(trackedEntity);
     return trackedEntity;
   }

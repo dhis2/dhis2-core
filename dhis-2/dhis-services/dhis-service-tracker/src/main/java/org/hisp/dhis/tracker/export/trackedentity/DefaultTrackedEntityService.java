@@ -63,10 +63,12 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.FileResourceStream;
+import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.TrackedEntityAggregate;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -95,6 +97,8 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private final RelationshipService relationshipService;
 
   private final FileResourceService fileResourceService;
+
+  private final OperationsParamsValidator operationsParamsValidator;
 
   private final TrackedEntityOperationParamsMapper mapper;
 
@@ -204,9 +208,30 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Nonnull
   @Override
-  public TrackedEntity getTrackedEntity(@Nonnull UID uid)
-      throws NotFoundException, ForbiddenException, BadRequestException {
-    return getTrackedEntity(uid, null, TrackedEntityParams.FALSE);
+  public TrackedEntity getNewTrackedEntity(@Nonnull UID uid)
+      throws NotFoundException, ForbiddenException {
+    return getNewTrackedEntity(uid, (Program) null, TrackedEntityParams.FALSE);
+  }
+
+  @Nonnull
+  @Override
+  public TrackedEntity getNewTrackedEntity(
+      @Nonnull UID trackedEntityUid,
+      @CheckForNull UID programIdentifier,
+      @Nonnull TrackedEntityParams params)
+      throws NotFoundException, ForbiddenException {
+    Program program = null;
+    if (programIdentifier != null) {
+      try {
+        program =
+            operationsParamsValidator.validateProgramAccess(
+                programIdentifier, CurrentUserUtil.getCurrentUserDetails());
+      } catch (BadRequestException e) {
+        throw new NotFoundException(Program.class, programIdentifier.getValue());
+      }
+    }
+
+    return getNewTrackedEntity(trackedEntityUid, program, params);
   }
 
   @Nonnull
@@ -225,6 +250,29 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     return getTrackedEntity(trackedEntityUid, program, params, getCurrentUserDetails());
+  }
+
+  private TrackedEntity getNewTrackedEntity(UID uid, Program program, TrackedEntityParams params)
+      throws NotFoundException, ForbiddenException {
+    Page<TrackedEntity> trackedEntities;
+    try {
+      TrackedEntityOperationParams operationParams =
+          TrackedEntityOperationParams.builder()
+              .trackedEntities(Set.of(uid))
+              .trackedEntityParams(params)
+              .program(program)
+              .build();
+      trackedEntities = getTrackedEntities(operationParams, PageParams.single());
+    } catch (BadRequestException e) {
+      throw new IllegalArgumentException(
+          "this must be a bug in how the TrackedEntityOperationParams are built");
+    }
+
+    if (trackedEntities.getItems().isEmpty()) {
+      throw new NotFoundException(TrackedEntity.class, uid);
+    }
+
+    return trackedEntities.getItems().get(0);
   }
 
   /**
@@ -350,7 +398,14 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
     List<TrackedEntity> trackedEntities =
         getTrackedEntities(ids.getItems(), operationParams, queryParams, user);
-    return ids.withItems(trackedEntities);
+
+    // TODO(tracker): Push this filter into the store because it is breaking pagination
+    trackedEntities =
+        trackedEntities.stream()
+            .filter(te -> trackerAccessManager.canRead(user, te).isEmpty())
+            .toList();
+
+    return ids.withFilteredItems(trackedEntities);
   }
 
   private List<TrackedEntity> getTrackedEntities(

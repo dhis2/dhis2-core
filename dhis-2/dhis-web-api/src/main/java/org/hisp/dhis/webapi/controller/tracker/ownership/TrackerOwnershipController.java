@@ -100,7 +100,7 @@ public class TrackerOwnershipController {
     UID orgUnitUid = validateMandatoryDeprecatedUidParameter("ou", ou, "orgUnit", orgUnit);
 
     trackerOwnershipAccessManager.transferOwnership(
-        trackedEntityService.getTrackedEntity(trackedEntity, program, TrackedEntityParams.FALSE),
+        trackedEntityService.getNewTrackedEntity(trackedEntity, program, TrackedEntityParams.FALSE),
         programService.getProgram(program.getValue()),
         organisationUnitService.getOrganisationUnit(orgUnitUid.getValue()));
     return ok("Ownership transferred");
@@ -110,10 +110,10 @@ public class TrackerOwnershipController {
   @ResponseBody
   public WebMessage grantTemporaryAccess(
       @RequestParam UID trackedEntity, @RequestParam String reason, @RequestParam UID program)
-      throws BadRequestException, ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     trackerOwnershipAccessManager.grantTemporaryOwnership(
-        trackedEntityService.getTrackedEntity(trackedEntity),
+        trackedEntityService.getNewTrackedEntity(trackedEntity),
         programService.getProgram(program.getValue()),
         currentUser,
         reason);

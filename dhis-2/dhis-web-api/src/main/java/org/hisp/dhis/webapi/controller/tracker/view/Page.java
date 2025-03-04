@@ -33,6 +33,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -55,101 +56,35 @@ public class Page<T> {
 
   @JsonProperty private final Pager pager;
 
-  /**
-   * Create a page without a pager.
-   *
-   * <p>Only the items will be serialized into {@link #items} under given {@code key}. All other
-   * fields will be omitted from the JSON.
-   */
   private Page(String key, List<T> values) {
     this.items.put(key, values);
     this.pager = null;
   }
 
-  /**
-   * Create a page with a pager without a total, prev and next page links.
-   *
-   * <p>The pager will thus only show the page and its size.
-   */
-  private Page(String key, List<T> values, int page, int pageSize) {
-    this.items.put(key, values);
-    this.pager = new Pager(page, pageSize, null, null, null, null);
-  }
-
-  /** Create a page with a pager with a total but without prev and next page links. */
-  private Page(String key, List<T> values, int page, int pageSize, long total) {
-    this.items.put(key, values);
-    int pageCount = (int) Math.ceil(total / (double) pageSize);
-    this.pager = new Pager(page, pageSize, total, pageCount, null, null);
-  }
-
-  /** Create a page with a pager without a total but with prev and next page links. */
-  private Page(
-      String key, List<T> values, int page, int pageSize, String prevPage, String nextPage) {
-    this.items.put(key, values);
-    this.pager = new Pager(page, pageSize, null, null, prevPage, nextPage);
-  }
-
-  /** Create a page with a pager without a total but with prev and next page links. */
-  private Page(
-      String key,
-      List<T> values,
-      int page,
-      int pageSize,
-      Long total,
-      String prevPage,
-      String nextPage) {
-    this.items.put(key, values);
+  private Page(String key, org.hisp.dhis.tracker.Page<T> pager, String requestURL) {
+    this.items.put(key, pager.getItems());
     Integer pageCount = null;
-    if (total != null) {
-      pageCount = (int) Math.ceil(total / (double) pageSize);
-    }
-    this.pager = new Pager(page, pageSize, total, pageCount, prevPage, nextPage);
-  }
-
-  /**
-   * Returns a page which will serialize the items into {@link #items} under given {@code key}.
-   * Pagination details will be serialized as well including totals only if {@link
-   * org.hisp.dhis.tracker.Page#getTotal()} is not null.
-   */
-  public static <T> Page<T> withPager(String key, org.hisp.dhis.tracker.Page<T> pager) {
     if (pager.getTotal() != null) {
-      return new Page<>(
-          key, pager.getItems(), pager.getPage(), pager.getPageSize(), pager.getTotal());
+      pageCount = (int) Math.ceil(pager.getTotal() / (double) pager.getPageSize());
     }
-    return new Page<>(key, pager.getItems(), pager.getPage(), pager.getPageSize());
-  }
-
-  /**
-   * Returns a page which will serialize the items into {@link #items} under given {@code key}.
-   * Previous and next page links will be generated based on the request if {@link
-   * org.hisp.dhis.tracker.Page#getPrevPage()} or next are not null.
-   */
-  public static <T> Page<T> withPager(
-      String key, org.hisp.dhis.tracker.Page<T> pager, String requestURL) {
     String prevPage = getPageLink(requestURL, pager.getPrevPage());
     String nextPage = getPageLink(requestURL, pager.getNextPage());
-
-    return new Page<>(
-        key, pager.getItems(), pager.getPage(), pager.getPageSize(), prevPage, nextPage);
+    this.pager =
+        new Pager(
+            pager.getPage(), pager.getPageSize(), pager.getTotal(), pageCount, prevPage, nextPage);
   }
 
   /**
    * Returns a page which will serialize the items into {@link #items} under given {@code key}.
    * Previous and next page links will be generated based on the request if {@link
    * org.hisp.dhis.tracker.Page#getPrevPage()} or next are not null. Total and page count will also
-   * be set if the pager has a total.
+   * be set if the pager has a non-null total.
    */
-  public static <T> Page<T> withFullPager(
-      String key, org.hisp.dhis.tracker.Page<T> pager, String requestURL) {
-    return new Page<>(
-        key,
-        pager.getItems(),
-        pager.getPage(),
-        pager.getPageSize(),
-        pager.getTotal(),
-        getPageLink(requestURL, pager.getPrevPage()),
-        getPageLink(requestURL, pager.getNextPage()));
+  public static <T> Page<T> withPager(
+      @Nonnull String key,
+      @Nonnull org.hisp.dhis.tracker.Page<T> pager,
+      @Nonnull String requestURL) {
+    return new Page<>(key, pager, requestURL);
   }
 
   /**

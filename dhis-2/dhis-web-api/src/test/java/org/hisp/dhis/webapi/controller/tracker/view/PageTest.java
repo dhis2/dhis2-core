@@ -35,21 +35,25 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
+import java.util.Map;
+import org.hisp.dhis.tracker.PageParams;
 import org.junit.jupiter.api.Test;
 
 class PageTest {
-
   @Test
-  void shouldNotSetNoPageLinkIfThereAreNone() {
+  void shouldNotSetNoPageLinksIfThereAreNone() {
     List<String> fruits = List.of("apple", "banana", "cherry");
+    PageParams pageParams = new PageParams(1, 3, false);
     org.hisp.dhis.tracker.Page<String> exportPage =
-        org.hisp.dhis.tracker.Page.withPrevAndNext(fruits, 1, 3, null, null);
+        new org.hisp.dhis.tracker.Page<>(fruits, pageParams);
 
     Page<String> page =
         Page.withPager(
             "fruits",
             exportPage,
             "http://localhost/organisationUnits?page=1&pageSize=3&fields=displayName");
+
+    assertEquals(Map.of("fruits", fruits), page.getItems());
 
     assertEquals(1, page.getPager().getPage());
     assertEquals(3, page.getPager().getPageSize());
@@ -63,14 +67,17 @@ class PageTest {
   @Test
   void shouldSetPrevPage() {
     List<String> fruits = List.of("apple", "banana", "cherry");
+    PageParams pageParams = new PageParams(2, 3, false);
     org.hisp.dhis.tracker.Page<String> exportPage =
-        org.hisp.dhis.tracker.Page.withPrevAndNext(fruits, 2, 3, 1, null);
+        new org.hisp.dhis.tracker.Page<>(fruits, pageParams);
 
     Page<String> page =
         Page.withPager(
             "fruits",
             exportPage,
             "http://localhost/organisationUnits?page=2&pageSize=3&fields=displayName");
+
+    assertEquals(Map.of("fruits", fruits), page.getItems());
 
     assertEquals(2, page.getPager().getPage());
     assertEquals(3, page.getPager().getPageSize());
@@ -88,17 +95,20 @@ class PageTest {
 
   @Test
   void shouldSetNextPage() {
-    List<String> fruits = List.of("apple", "banana", "cherry");
+    List<String> fruits = List.of("apple", "banana", "cherry", "mango");
+    PageParams pageParams = new PageParams(1, 3, false);
     org.hisp.dhis.tracker.Page<String> exportPage =
-        org.hisp.dhis.tracker.Page.withPrevAndNext(fruits, 2, 3, null, 3);
+        new org.hisp.dhis.tracker.Page<>(fruits, pageParams);
 
     Page<String> page =
         Page.withPager(
             "fruits",
             exportPage,
-            "http://localhost/organisationUnits?page=2&pageSize=3&fields=displayName");
+            "http://localhost/organisationUnits?page=1&pageSize=3&fields=displayName");
 
-    assertEquals(2, page.getPager().getPage());
+    assertEquals(Map.of("fruits", List.of("apple", "banana", "cherry")), page.getItems());
+
+    assertEquals(1, page.getPager().getPage());
     assertEquals(3, page.getPager().getPageSize());
     assertNull(page.getPager().getTotal());
     assertNull(page.getPager().getPageCount());
@@ -106,7 +116,7 @@ class PageTest {
     assertNull(page.getPager().getPrevPage());
     assertPagerLink(
         page.getPager().getNextPage(),
-        3,
+        2,
         3,
         "http://localhost/organisationUnits",
         "fields=displayName");

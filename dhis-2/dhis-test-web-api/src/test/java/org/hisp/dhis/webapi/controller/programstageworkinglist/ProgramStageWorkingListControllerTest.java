@@ -31,31 +31,18 @@ import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.http.HttpStatus;
-import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsontree.JsonArray;
-import org.hisp.dhis.render.RenderFormat;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.tracker.TestSetup;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -63,18 +50,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class ProgramStageWorkingListControllerTest extends PostgresControllerIntegrationTestBase {
-
-  @Autowired private RenderService renderService;
-
-  @Autowired private ObjectBundleService objectBundleService;
-
-  @Autowired private ObjectBundleValidationService objectBundleValidationService;
+class ProgramStageWorkingListControllerTest extends PostgresControllerIntegrationTestBase {
+  @Autowired private TestSetup testSetup;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -82,21 +63,9 @@ public class ProgramStageWorkingListControllerTest extends PostgresControllerInt
 
   private final String programStageId = "NpsdDv6kKSO";
 
-  protected void setUpMetadata(String path) throws IOException {
-    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
-        renderService.fromMetadata(new ClassPathResource(path).getInputStream(), RenderFormat.JSON);
-    ObjectBundleParams params = new ObjectBundleParams();
-    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
-    params.setImportStrategy(ImportStrategy.CREATE);
-    params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
-    assertNoErrors(objectBundleValidationService.validate(bundle));
-    objectBundleService.commit(bundle);
-  }
-
   @BeforeAll
   void setUp() throws IOException {
-    setUpMetadata("tracker/simple_metadata.json");
+    testSetup.importMetadata();
 
     User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
@@ -423,13 +392,5 @@ public class ProgramStageWorkingListControllerTest extends PostgresControllerInt
                 }
               """
                 .formatted(programId, programStageId, workingListName)));
-  }
-
-  public static void assertNoErrors(ObjectBundleValidationReport report) {
-    assertNotNull(report);
-    List<String> errors = new ArrayList<>();
-    report.forEachErrorReport(err -> errors.add(err.toString()));
-    assertFalse(
-        report.hasErrorReports(), String.format("Expected no errors, instead got: %s%n", errors));
   }
 }

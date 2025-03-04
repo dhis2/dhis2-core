@@ -57,10 +57,17 @@ public class Page<T> {
     return new Page<>(List.of(), 0, 0, 0L, null, null);
   }
 
+  /** Create a page without a total count of items. */
   public Page(@Nonnull List<T> items, @Nonnull PageParams pageParams) {
     this(items, pageParams, null);
   }
 
+  /**
+   * Create a page that optionally supplies a total count of items and indicates if there is a
+   * previous or next page. It is assumed that there is a previous page when the current page is
+   * greater than 1. It is assumed there is a next page if there are more items than the page size.
+   * This means that the store has to fetch one more item than the requested page size.
+   */
   public Page(
       @Nonnull List<T> items, @Nonnull PageParams pageParams, @CheckForNull LongSupplier total) {
     this.page = pageParams.getPage();
@@ -83,14 +90,21 @@ public class Page<T> {
   }
 
   /**
-   * Create a new page based on an existing one but with given {@code items}. Page related counts
-   * will not be changed so make sure the given {@code items} match the previous page size.
+   * Create a new page based on an existing one but with given {@code items}.
+   *
+   * <p>Prefer {@link #withMappedItems(Function)} and only use this one if you have to. The only
+   * reason to use this is to filter items. This obviously invalidates pageSize, counts and
+   * potentially nextPage. Any filtering of result sets must move into the store.
+   *
+   * @deprecated use {@link #withMappedItems(Function)}
    */
-  public <U> Page<U> withItems(List<U> items) {
+  @Deprecated(forRemoval = true)
+  public <U> Page<U> withFilteredItems(List<U> items) {
     return new Page<>(items, this.page, this.pageSize, this.total, this.prevPage, this.nextPage);
   }
 
-  public <R> Page<R> withItems(Function<T, R> map) {
+  /** Create a new page based on this existing page mapping the individual items. */
+  public <R> Page<R> withMappedItems(Function<T, R> map) {
     return new Page<>(
         items.stream().map(map).toList(),
         this.page,
@@ -98,18 +112,5 @@ public class Page<T> {
         this.total,
         this.prevPage,
         this.nextPage);
-  }
-
-  public static <T> Page<T> withTotals(List<T> items, int page, int pageSize, long total) {
-    return new Page<>(items, page, pageSize, total, null, null);
-  }
-
-  public static <T> Page<T> withoutTotals(List<T> items, int page, int pageSize) {
-    return new Page<>(items, page, pageSize, null, null, null);
-  }
-
-  public static <T> Page<T> withPrevAndNext(
-      List<T> items, int page, int pageSize, Integer prevPage, Integer nextPage) {
-    return new Page<>(items, page, pageSize, null, prevPage, nextPage);
   }
 }
