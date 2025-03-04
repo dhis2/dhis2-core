@@ -48,11 +48,12 @@ import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Hibernate;
+import org.hisp.dhis.feedback.BadGatewayException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.user.UserDetails;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
@@ -80,6 +81,8 @@ import reactor.netty.http.client.HttpClientRequest;
 @RequiredArgsConstructor
 public class RouteService {
   private static final String HEADER_X_FORWARDED_USER = "X-Forwarded-User";
+
+  private final ApplicationContext applicationContext;
 
   private final RouteStore routeStore;
 
@@ -137,7 +140,7 @@ public class RouteService {
    * @param id the route UID or code.
    * @return {@link Route}.
    */
-  public Route getRouteWithDecryptedAuth(@Nonnull String id) {
+  public Route getRoute(@Nonnull String id) {
     Route route = routeStore.getByUidNoAcl(id);
 
     if (route == null) {
@@ -146,13 +149,6 @@ public class RouteService {
 
     if (route == null || route.isDisabled()) {
       return null;
-    }
-
-    // prevents Hibernate from persisting updates made to the route object
-    route = Hibernate.unproxy(route, Route.class);
-
-    if (route.getAuth() != null) {
-      route.setAuth(route.getAuth().decrypt(encryptor::decrypt));
     }
 
     return route;
@@ -171,7 +167,7 @@ public class RouteService {
    */
   public ResponseEntity<StreamingResponseBody> execute(
       Route route, UserDetails userDetails, Optional<String> subPath, HttpServletRequest request)
-      throws IOException, BadRequestException {
+      throws BadGatewayException {
 
     HttpHeaders headers = filterRequestHeaders(request);
     route.getHeaders().forEach(headers::add);
@@ -186,10 +182,54 @@ public class RouteService {
                     .computeIfAbsent(key, k -> new LinkedList<>())
                     .addAll(Arrays.asList(value)));
 
-    if (route.getAuth() != null) {
-      route.getAuth().apply(headers, queryParameters);
-    }
+    applyAuthScheme(route, headers, queryParameters);
+    String targetUri = createTargetUri(route, subPath, queryParameters);
+    HttpMethod httpMethod =
+        Objects.requireNonNullElse(HttpMethod.valueOf(request.getMethod()), HttpMethod.GET);
+    WebClient.RequestHeadersSpec<?> requestHeadersSpec =
+        buildRequestSpec(headers, httpMethod, targetUri, route, request);
 
+    log.debug(
+        "Sending '{}' '{}' with route '{}' ('{}')",
+        httpMethod,
+        targetUri,
+        route.getName(),
+        route.getUid());
+
+    ResponseEntity<Flux<DataBuffer>> responseEntityFlux = retrieve(requestHeadersSpec);
+
+    log.debug(
+        "Request '{}' '{}' responded with status '{}' for route '{}' ('{}')",
+        httpMethod,
+        targetUri,
+        responseEntityFlux.getStatusCode(),
+        route.getName(),
+        route.getUid());
+
+    return new ResponseEntity<>(
+        streamResponseBody(responseEntityFlux),
+        filterResponseHeaders(responseEntityFlux.getHeaders()),
+        responseEntityFlux.getStatusCode());
+  }
+
+  protected ResponseEntity<Flux<DataBuffer>> retrieve(
+      WebClient.RequestHeadersSpec<?> requestHeadersSpec) {
+    WebClient.ResponseSpec responseSpec =
+        requestHeadersSpec
+            .retrieve()
+            .onStatus(httpStatusCode -> true, clientResponse -> Mono.empty());
+
+    return responseSpec
+        .toEntityFlux(DataBuffer.class)
+        .onErrorReturn(
+            throwable -> throwable.getCause() instanceof ReadTimeoutException,
+            new ResponseEntity<>(HttpStatus.GATEWAY_TIMEOUT))
+        .block();
+  }
+
+  protected String createTargetUri(
+      Route route, Optional<String> subPath, Map<String, List<String>> queryParameters)
+      throws BadGatewayException {
     UriComponentsBuilder uriComponentsBuilder =
         UriComponentsBuilder.fromHttpUrl(route.getBaseUrl());
 
@@ -198,22 +238,30 @@ public class RouteService {
           uriComponentsBuilder.queryParam(queryParameter.getKey(), queryParameter.getValue());
     }
 
-    if (subPath.isPresent()) {
-      if (!route.allowsSubpaths()) {
-        throw new BadRequestException(
-            String.format("Route '%s' does not allow sub-paths", route.getId()));
-      }
-      uriComponentsBuilder.path(subPath.get());
+    uriComponentsBuilder.path(getSubPath(route, subPath));
+
+    return uriComponentsBuilder.toUriString();
+  }
+
+  protected WebClient.RequestHeadersSpec<?> buildRequestSpec(
+      HttpHeaders headers,
+      HttpMethod httpMethod,
+      String targetUri,
+      Route route,
+      HttpServletRequest request)
+      throws BadGatewayException {
+
+    final Flux<DataBuffer> requestBodyFlux;
+    try {
+      requestBodyFlux =
+          DataBufferUtils.read(
+                  new InputStreamResource(request.getInputStream()), dataBufferFactory, 8192)
+              .doOnNext(DataBufferUtils.releaseConsumer());
+    } catch (IOException e) {
+      log.error(e.getMessage(), e);
+      throw new BadGatewayException("An error occurred while reading the upstream response");
     }
 
-    HttpMethod httpMethod =
-        Objects.requireNonNullElse(HttpMethod.valueOf(request.getMethod()), HttpMethod.GET);
-    String targetUri = uriComponentsBuilder.toUriString();
-
-    Flux<DataBuffer> requestBodyFlux =
-        DataBufferUtils.read(
-                new InputStreamResource(request.getInputStream()), dataBufferFactory, 8192)
-            .doOnNext(DataBufferUtils.releaseConsumer());
     WebClient.RequestHeadersSpec<?> requestHeadersSpec =
         webClient
             .method(httpMethod)
@@ -233,52 +281,52 @@ public class RouteService {
           requestHeadersSpec.header(header.getKey(), header.getValue().toArray(new String[0]));
     }
 
-    log.info(
-        "Sending '{}' '{}' with route '{}' ('{}')",
-        httpMethod,
-        targetUri,
-        route.getName(),
-        route.getUid());
+    return requestHeadersSpec;
+  }
 
-    WebClient.ResponseSpec responseSpec =
-        requestHeadersSpec
-            .retrieve()
-            .onStatus(httpStatusCode -> true, clientResponse -> Mono.empty());
+  protected StreamingResponseBody streamResponseBody(
+      ResponseEntity<Flux<DataBuffer>> responseEntityFlux) {
+    return out -> {
+      if (responseEntityFlux.getBody() != null) {
+        try {
+          Flux<DataBuffer> dataBufferFlux =
+              DataBufferUtils.write(responseEntityFlux.getBody(), out)
+                  .doOnNext(DataBufferUtils.releaseConsumer());
+          dataBufferFlux.blockLast(Duration.ofMinutes(5));
+        } catch (Exception e) {
+          out.close();
+          throw e;
+        }
+      }
+    };
+  }
 
-    ResponseEntity<Flux<DataBuffer>> responseEntityFlux =
-        responseSpec
-            .toEntityFlux(DataBuffer.class)
-            .onErrorReturn(
-                throwable -> throwable.getCause() instanceof ReadTimeoutException,
-                new ResponseEntity<>(HttpStatus.GATEWAY_TIMEOUT))
-            .block();
+  protected void applyAuthScheme(
+      Route route, Map<String, List<String>> headers, Map<String, List<String>> queryParameters)
+      throws BadGatewayException {
+    if (route.getAuth() != null) {
+      try {
+        route
+            .getAuth()
+            .decrypt(encryptor::decrypt)
+            .apply(applicationContext, headers, queryParameters);
+      } catch (Exception e) {
+        log.error(e.getMessage(), e);
+        throw new BadGatewayException("An error occurred during authentication");
+      }
+    }
+  }
 
-    log.info(
-        "Request '{}' '{}' responded with status '{}' for route '{}' ('{}')",
-        httpMethod,
-        targetUri,
-        responseEntityFlux.getStatusCode(),
-        route.getName(),
-        route.getUid());
-
-    StreamingResponseBody streamingResponseBody =
-        out -> {
-          if (responseEntityFlux.getBody() != null) {
-            try {
-              Flux<DataBuffer> dataBufferFlux =
-                  DataBufferUtils.write(responseEntityFlux.getBody(), out)
-                      .doOnNext(DataBufferUtils.releaseConsumer());
-              dataBufferFlux.blockLast(Duration.ofMinutes(5));
-            } catch (Exception e) {
-              out.close();
-              throw e;
-            }
-          }
-        };
-    return new ResponseEntity<>(
-        streamingResponseBody,
-        filterResponseHeaders(responseEntityFlux.getHeaders()),
-        responseEntityFlux.getStatusCode());
+  protected String getSubPath(Route route, Optional<String> subPath) throws BadGatewayException {
+    if (subPath.isPresent()) {
+      if (!route.allowsSubpaths()) {
+        throw new BadGatewayException(
+            String.format("Route '%s' does not allow sub-paths", route.getId()));
+      }
+      return subPath.get();
+    } else {
+      return "";
+    }
   }
 
   /**
