@@ -32,27 +32,25 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.query.Type;
-import org.hisp.dhis.query.Typed;
-import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.query.planner.PropertyPath;
 import org.hisp.dhis.schema.Property;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class LessEqualOperator<T extends Comparable<? super T>> extends Operator<T> {
+public class LessEqualOperator<T extends Comparable<T>> extends Operator<T> {
   public LessEqualOperator(T arg) {
-    super("le", Typed.from(String.class, Boolean.class, Number.class, Date.class), arg);
+    super("le", List.of(String.class, Boolean.class, Number.class, Date.class), arg);
   }
 
   @Override
-  public Criterion getHibernateCriterion(QueryPath queryPath) {
-    Property property = queryPath.getProperty();
+  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, PropertyPath path) {
+    Property property = path.getProperty();
 
     if (property.isCollection()) {
       Integer value = QueryUtils.parseValue(Integer.class, args.get(0));
@@ -62,28 +60,10 @@ public class LessEqualOperator<T extends Comparable<? super T>> extends Operator
             "Left-side is collection, and right-side is not a valid integer, so can't compare by size.");
       }
 
-      return Restrictions.sizeLe(queryPath.getPath(), value);
+      return builder.lessThanOrEqualTo(builder.size(root.get(path.getPath())), value);
     }
 
-    return Restrictions.le(queryPath.getPath(), args.get(0));
-  }
-
-  @Override
-  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, QueryPath queryPath) {
-    Property property = queryPath.getProperty();
-
-    if (property.isCollection()) {
-      Integer value = QueryUtils.parseValue(Integer.class, args.get(0));
-
-      if (value == null) {
-        throw new QueryException(
-            "Left-side is collection, and right-side is not a valid integer, so can't compare by size.");
-      }
-
-      return builder.lessThanOrEqualTo(builder.size(root.get(queryPath.getPath())), value);
-    }
-
-    return builder.lessThanOrEqualTo(root.get(queryPath.getPath()), args.get(0));
+    return builder.lessThanOrEqualTo(root.get(path.getPath()), args.get(0));
   }
 
   @Override

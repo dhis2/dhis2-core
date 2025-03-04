@@ -58,15 +58,4 @@ class AsyncUtils {
         ? supplyAsync(supplier, executor)
         : supplyAsync(ArrayListMultimap::create, executor));
   }
-
-  /**
-   * Executes the Supplier asynchronously using the thread pool from the provided {@see Executor}
-   *
-   * @param supplier The Supplier to execute
-   * @return A CompletableFuture with the result of the Supplier
-   */
-  static <T> CompletableFuture<Multimap<String, T>> asyncFetch(
-      Supplier<Multimap<String, T>> supplier, Executor executor) {
-    return supplyAsync(supplier, executor);
-  }
 }

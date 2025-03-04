@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,8 +65,6 @@ class TrackedEntityStore extends AbstractStore {
           + "join organisationunit o on teop.organisationunitid = o.organisationunitid "
           + "join trackedentity te on teop.trackedentityid = te.trackedentityid "
           + "where teop.trackedentityid in (:ids)";
-
-  private static final String FILTER_OUT_DELETED_TE = "te.deleted=false";
 
   private String getTrackedEntitiesOwnershipSqlForAllPrograms(boolean skipUserScopeValidation) {
     String sql =
@@ -112,36 +109,21 @@ class TrackedEntityStore extends AbstractStore {
     super(jdbcTemplate);
   }
 
-  @Override
-  String getRelationshipEntityColumn() {
-    return "trackedentityid";
-  }
-
-  Map<String, TrackedEntity> getTrackedEntities(List<Long> ids, Context ctx) {
+  Map<String, TrackedEntity> getTrackedEntities(List<Long> ids) {
     List<List<Long>> idPartitions = Lists.partition(ids, PARITITION_SIZE);
 
     Map<String, TrackedEntity> trackedEntityMap = new LinkedHashMap<>();
 
     idPartitions.forEach(
-        partition -> trackedEntityMap.putAll(getTrackedEntitiesPartitioned(partition, ctx)));
+        partition -> trackedEntityMap.putAll(getTrackedEntitiesPartitioned(partition)));
     return trackedEntityMap;
   }
 
-  private Map<String, TrackedEntity> getTrackedEntitiesPartitioned(List<Long> ids, Context ctx) {
+  private Map<String, TrackedEntity> getTrackedEntitiesPartitioned(List<Long> ids) {
     TrackedEntityRowCallbackHandler handler = new TrackedEntityRowCallbackHandler();
 
-    if (!ctx.isSuperUser() && ctx.getTrackedEntityTypes().isEmpty()) {
-      // If not super user and no tets are accessible. then simply return
-      // empty list.
-      return new HashMap<>();
-    }
-
-    String sql =
-        getQuery(GET_TE_SQL, ctx, "te.trackedentitytypeid in (:teTypeIds)", FILTER_OUT_DELETED_TE);
     jdbcTemplate.query(
-        applySortOrder(sql, StringUtils.join(ids, ",")),
-        createIdsParam(ids).addValue("teTypeIds", ctx.getTrackedEntityTypes()),
-        handler);
+        applySortOrder(GET_TE_SQL, StringUtils.join(ids, ",")), createIdsParam(ids), handler);
 
     return handler.getItems();
   }
@@ -163,12 +145,12 @@ class TrackedEntityStore extends AbstractStore {
     teds.forEach(
         partition ->
             ownedTeisMultiMap.putAll(
-                getOwnedTeisPartitioned(partition, ctx, skipUserScopeValidation)));
+                getOwnedTrackedEntitiesPartitioned(partition, ctx, skipUserScopeValidation)));
 
     return ownedTeisMultiMap;
   }
 
-  private Multimap<String, String> getOwnedTeisPartitioned(
+  private Multimap<String, String> getOwnedTrackedEntitiesPartitioned(
       List<Long> ids, Context ctx, boolean skipUserScopeValidation) {
     OwnedTeMapper handler = new OwnedTeMapper();
 
@@ -180,9 +162,10 @@ class TrackedEntityStore extends AbstractStore {
 
     String sql;
 
-    if (ctx.getQueryParams().hasProgram()) {
+    if (ctx.getQueryParams().hasEnrolledInTrackerProgram()) {
       sql = getTrackedEntitiesOwnershipSqlForSpecificProgram(skipUserScopeValidation);
-      paramSource.addValue("programUid", ctx.getQueryParams().getProgram().getUid());
+      paramSource.addValue(
+          "programUid", ctx.getQueryParams().getEnrolledInTrackerProgram().getUid());
     } else if (checkForOwnership) {
       sql = getTrackedEntitiesOwnershipSqlForAllPrograms(skipUserScopeValidation);
     } else {

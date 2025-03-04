@@ -46,16 +46,8 @@ import org.hisp.dhis.program.message.ProgramMessageStatus;
 public class ProgramMessageRequestParams {
   private Set<String> ou;
 
-  @Deprecated(since = "2.41")
-  @OpenApi.Property(value = Enrollment.class)
-  private UID programInstance;
-
   @OpenApi.Property({UID.class, Enrollment.class})
   private UID enrollment;
-
-  @Deprecated(since = "2.41")
-  @OpenApi.Property(value = Event.class)
-  private UID programStageInstance;
 
   @OpenApi.Property({UID.class, Event.class})
   private UID event;
@@ -66,9 +58,17 @@ public class ProgramMessageRequestParams {
 
   private Date beforeDate;
 
+  @OpenApi.Description(
+      """
+Get the given page.
+""")
   @OpenApi.Property(defaultValue = "1")
   private Integer page;
 
+  @OpenApi.Description(
+      """
+Get given number of items per page.
+""")
   @OpenApi.Property(defaultValue = "50")
   private Integer pageSize;
 }

@@ -27,9 +27,36 @@
  */
 package org.hisp.dhis.db.sql;
 
+import java.time.LocalDateTime;
+import org.apache.commons.lang3.StringUtils;
+
 public class DorisAnalyticsSqlBuilder implements AnalyticsSqlBuilder {
   @Override
   public String getEventDataValues() {
     return "ev.eventdatavalues";
+  }
+
+  @Override
+  public String renderTimestamp(String timestampAsString) {
+    if (StringUtils.isBlank(timestampAsString)) return null;
+    LocalDateTime dateTime = LocalDateTime.parse(timestampAsString);
+    String formattedDate = dateTime.format(TIMESTAMP_FORMATTER);
+
+    // Find the position of the decimal point
+    int decimalPoint = formattedDate.lastIndexOf('.');
+    if (decimalPoint != -1) {
+      // Remove trailing zeros after decimal point
+      String millisPart = formattedDate.substring(decimalPoint + 1);
+      millisPart = millisPart.replaceAll("0+$", ""); // Remove all trailing zeros
+
+      // If all digits were zeros, use "0" instead of empty string
+      if (millisPart.isEmpty()) {
+        millisPart = "0";
+      }
+
+      formattedDate = formattedDate.substring(0, decimalPoint + 1) + millisPart;
+    }
+
+    return formattedDate;
   }
 }

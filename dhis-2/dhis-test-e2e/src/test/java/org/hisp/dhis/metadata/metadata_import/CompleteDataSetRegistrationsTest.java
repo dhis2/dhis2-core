@@ -95,7 +95,7 @@ class CompleteDataSetRegistrationsTest extends ApiTest {
     // wait for job to be completed (24 seconds used as the job schedule loop is 20 seconds)
     ApiResponse taskStatus =
         systemActions.waitUntilTaskCompleted("COMPLETE_DATA_SET_REGISTRATION_IMPORT", taskId, 24);
-    assertTrue(taskStatus.getAsString().contains("\"completed\":true"));
+    assertTrue(taskStatus.extractList("completed").contains(true));
 
     // get complete data sets which should be 1 now
     ApiResponse completedResponse2 =

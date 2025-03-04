@@ -364,7 +364,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
             assertSmsResponse(submissionId + ":" + SmsResponse.SUCCESS, originator, messageSender));
     Enrollment actual =
         enrollmentService.getEnrollment(
-            UID.of(enrollment), EnrollmentParams.FALSE.withIncludeAttributes(true), false);
+            UID.of(enrollment), EnrollmentParams.FALSE.withIncludeAttributes(true));
     assertAll(
         "update enrollment and program attributes",
         () -> assertEqualUids(submission.getTrackedEntityInstance(), actual.getTrackedEntity()));
@@ -510,8 +510,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
 
   private TrackedEntity trackedEntity(
       OrganisationUnit orgUnit, TrackedEntityType trackedEntityType) {
-    TrackedEntity te = createTrackedEntity(orgUnit);
-    te.setTrackedEntityType(trackedEntityType);
+    TrackedEntity te = createTrackedEntity(orgUnit, trackedEntityType);
     te.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     te.getSharing().setOwner(user);
     return te;

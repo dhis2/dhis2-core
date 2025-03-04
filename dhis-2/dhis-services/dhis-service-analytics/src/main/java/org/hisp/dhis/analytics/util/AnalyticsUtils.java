@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.analytics.util;
 
-import static org.hisp.dhis.common.DataDimensionItem.DATA_DIM_TYPE_CLASS_MAP;
 import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
@@ -56,6 +56,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -67,7 +68,6 @@ import java.util.regex.Pattern;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -75,6 +75,8 @@ import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DataDimensionItemType;
 import org.hisp.dhis.common.DataDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
@@ -105,13 +107,16 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.FinancialPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramDataElementOptionDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeOptionDimensionItem;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
@@ -219,7 +224,7 @@ public final class AnalyticsUtils {
     for (DimensionalItemObject object : dataDimensionOptions) {
       Class<?> type = HibernateProxyUtils.getRealClass(object);
 
-      if (type.equals(DATA_DIM_TYPE_CLASS_MAP.get(itemType))) {
+      if (type.equals(DataDimensionItem.getType(itemType))) {
         list.add(object);
       }
     }
@@ -644,8 +649,8 @@ public final class AnalyticsUtils {
         coc = dataItem.getAggregateExportCategoryOptionCombo();
         aoc = dataItem.getAggregateExportAttributeOptionCombo();
       } else if (DataElementOperand.class.isAssignableFrom(item.getClass())) {
-        row.set(dxInx, DimensionalObjectUtils.getFirstIdentifer(dx));
-        coc = DimensionalObjectUtils.getSecondIdentifer(dx);
+        row.set(dxInx, DimensionalObjectUtils.getFirstIdentifier(dx));
+        coc = DimensionalObjectUtils.getSecondIdentifier(dx);
       }
 
       cocCol.add(coc);
@@ -826,6 +831,24 @@ public final class AnalyticsUtils {
                     includeMetadataDetails ? coc : null));
           }
         }
+
+        if (DimensionItemType.PROGRAM_DATA_ELEMENT_OPTION == item.getDimensionItemType()
+            && item instanceof ProgramDataElementOptionDimensionItem dimensionItem) {
+          addOptionSetToMap(
+              dimensionItem.getOptionSet(),
+              map,
+              dimensionItem.getDataElement(),
+              includeMetadataDetails);
+        }
+
+        if (DimensionItemType.PROGRAM_ATTRIBUTE_OPTION == item.getDimensionItemType()
+            && item instanceof ProgramTrackedEntityAttributeOptionDimensionItem dimensionItem) {
+          addOptionSetToMap(
+              dimensionItem.getOption().getOptionSet(),
+              map,
+              dimensionItem.getAttribute(),
+              includeMetadataDetails);
+        }
       }
 
       for (OrganisationUnit unit : organisationUnitList) {
@@ -862,7 +885,7 @@ public final class AnalyticsUtils {
     Program program = params.getProgram();
     ProgramStage stage = params.getProgramStage();
 
-    if (ObjectUtils.allNotNull(program)) {
+    if (program != null) {
       map.put(
           program.getUid(),
           new MetadataItem(
@@ -887,6 +910,30 @@ public final class AnalyticsUtils {
     }
 
     return map;
+  }
+
+  /**
+   * Adds the given {@link OptionSet} data into the given map, respecting the internal business
+   * rules.
+   *
+   * @param optionSet the {@link OptionSet} to add.
+   * @param map the source map where to add the given {@link OptionSet}.
+   * @param element the {@link BaseDimensionalItemObject} associated with the {@link OptionSet}.
+   * @param includeDetails include {@link OptionSet} details or not.
+   */
+  private static void addOptionSetToMap(
+      OptionSet optionSet,
+      Map<String, MetadataItem> map,
+      BaseDimensionalItemObject element,
+      boolean includeDetails) {
+    if (optionSet != null) {
+      map.put(
+          element.getUid() + DIMENSION_IDENTIFIER_SEP + optionSet.getUid(),
+          includeDetails
+              ? new MetadataItem(
+                  optionSet.getName(), optionSet, new LinkedHashSet<>(optionSet.getOptions()))
+              : new MetadataItem(optionSet.getName()));
+    }
   }
 
   /**

@@ -38,7 +38,6 @@ import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
@@ -49,28 +48,24 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeStore;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.FileResourceStream;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
-import org.hisp.dhis.tracker.export.event.EventParams;
-import org.hisp.dhis.tracker.export.event.EventService;
+import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.TrackedEntityAggregate;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
@@ -81,13 +76,11 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 class DefaultTrackedEntityService implements TrackedEntityService {
 
-  private final TrackedEntityStore trackedEntityStore;
+  private final HibernateTrackedEntityStore trackedEntityStore;
 
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
   private final TrackedEntityTypeStore trackedEntityTypeStore;
-  private final TrackedEntityTypeService trackedEntityTypeService;
-  private final AclService aclService;
 
   private final TrackedEntityAuditService trackedEntityAuditService;
 
@@ -99,7 +92,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   private final EnrollmentService enrollmentService;
 
-  private final EventService eventService;
+  private final RelationshipService relationshipService;
 
   private final FileResourceService fileResourceService;
 
@@ -128,7 +121,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       UID trackedEntityUid, UID attributeUid, @CheckForNull UID programUid)
       throws NotFoundException {
     TrackedEntity trackedEntity = trackedEntityStore.getByUid(trackedEntityUid.getValue());
-    if (trackedEntity == null) {
+    if (trackedEntity == null || trackedEntity.isDeleted()) {
       throw new NotFoundException(TrackedEntity.class, trackedEntityUid.getValue());
     }
 
@@ -212,7 +205,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   @Nonnull
   @Override
   public TrackedEntity getTrackedEntity(@Nonnull UID uid)
-      throws NotFoundException, ForbiddenException {
+      throws NotFoundException, ForbiddenException, BadRequestException {
     return getTrackedEntity(uid, null, TrackedEntityParams.FALSE);
   }
 
@@ -222,7 +215,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       @Nonnull UID trackedEntityUid,
       @CheckForNull UID programIdentifier,
       @Nonnull TrackedEntityParams params)
-      throws NotFoundException, ForbiddenException {
+      throws NotFoundException, ForbiddenException, BadRequestException {
     Program program = null;
     if (programIdentifier != null) {
       program = programService.getProgram(programIdentifier.getValue());
@@ -243,9 +236,9 @@ class DefaultTrackedEntityService implements TrackedEntityService {
    */
   private TrackedEntity getTrackedEntity(
       UID uid, Program program, TrackedEntityParams params, UserDetails user)
-      throws NotFoundException, ForbiddenException {
+      throws NotFoundException, ForbiddenException, BadRequestException {
     TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid.getValue());
-    if (trackedEntity == null) {
+    if (trackedEntity == null || trackedEntity.isDeleted()) {
       throw new NotFoundException(TrackedEntity.class, uid);
     }
 
@@ -270,9 +263,16 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     if (params.isIncludeEnrollments()) {
-      trackedEntity.setEnrollments(getEnrollments(trackedEntity, user, false, program));
+      EnrollmentOperationParams enrollmentOperationParams =
+          mapToEnrollmentParams(uid, program, params);
+      List<Enrollment> enrollments = enrollmentService.getEnrollments(enrollmentOperationParams);
+      trackedEntity.setEnrollments(new HashSet<>(enrollments));
     }
-    setRelationshipItems(trackedEntity, trackedEntity, params, false);
+    if (params.isIncludeRelationships()) {
+      trackedEntity.setRelationshipItems(
+          relationshipService.getRelationshipItems(
+              TrackerType.TRACKED_ENTITY, UID.of(trackedEntity), false));
+    }
     if (params.isIncludeProgramOwners()) {
       trackedEntity.setProgramOwners(getTrackedEntityProgramOwners(trackedEntity, program));
     }
@@ -281,25 +281,13 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     return trackedEntity;
   }
 
-  private Set<Enrollment> getEnrollments(
-      TrackedEntity trackedEntity, UserDetails user, boolean includeDeleted, Program program) {
-    return trackedEntity.getEnrollments().stream()
-        .filter(e -> program == null || program.getUid().equals(e.getProgram().getUid()))
-        .filter(e -> includeDeleted || !e.isDeleted())
-        .filter(e -> trackerAccessManager.canRead(user, e, false).isEmpty())
-        .map(
-            e -> {
-              Set<Event> filteredEvents =
-                  e.getEvents().stream()
-                      .filter(
-                          event ->
-                              (includeDeleted || !event.isDeleted())
-                                  && trackerAccessManager.canRead(user, event, false).isEmpty())
-                      .collect(Collectors.toSet());
-              e.setEvents(filteredEvents);
-              return e;
-            })
-        .collect(Collectors.toSet());
+  private EnrollmentOperationParams mapToEnrollmentParams(
+      UID trackedEntity, Program program, TrackedEntityParams params) {
+    return EnrollmentOperationParams.builder()
+        .trackedEntity(trackedEntity)
+        .program(program)
+        .enrollmentParams(params.getEnrollmentParams())
+        .build();
   }
 
   private static Set<TrackedEntityProgramOwner> getTrackedEntityProgramOwners(
@@ -346,7 +334,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       throws ForbiddenException, NotFoundException, BadRequestException {
     UserDetails user = getCurrentUserDetails();
     TrackedEntityQueryParams queryParams = mapper.map(operationParams, user);
-    final List<Long> ids = trackedEntityStore.getTrackedEntityIds(queryParams);
+    final List<TrackedEntityIdentifiers> ids = trackedEntityStore.getTrackedEntityIds(queryParams);
 
     return getTrackedEntities(ids, operationParams, queryParams, user);
   }
@@ -357,7 +345,8 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       throws BadRequestException, ForbiddenException, NotFoundException {
     UserDetails user = getCurrentUserDetails();
     TrackedEntityQueryParams queryParams = mapper.map(operationParams, user);
-    final Page<Long> ids = trackedEntityStore.getTrackedEntityIds(queryParams, pageParams);
+    final Page<TrackedEntityIdentifiers> ids =
+        trackedEntityStore.getTrackedEntityIds(queryParams, pageParams);
 
     List<TrackedEntity> trackedEntities =
         getTrackedEntities(ids.getItems(), operationParams, queryParams, user);
@@ -365,11 +354,10 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private List<TrackedEntity> getTrackedEntities(
-      List<Long> ids,
+      List<TrackedEntityIdentifiers> ids,
       TrackedEntityOperationParams operationParams,
       TrackedEntityQueryParams queryParams,
-      UserDetails user)
-      throws NotFoundException {
+      UserDetails user) {
 
     List<TrackedEntity> trackedEntities =
         this.trackedEntityAggregate.find(
@@ -377,199 +365,25 @@ class DefaultTrackedEntityService implements TrackedEntityService {
             operationParams.getTrackedEntityParams(),
             queryParams,
             queryParams.getOrgUnitMode());
-    setRelationshipItems(
-        trackedEntities,
-        operationParams.getTrackedEntityParams(),
-        operationParams.isIncludeDeleted());
+    for (TrackedEntity trackedEntity : trackedEntities) {
+      if (operationParams.getTrackedEntityParams().isIncludeRelationships()) {
+        trackedEntity.setRelationshipItems(
+            relationshipService.getRelationshipItems(
+                TrackerType.TRACKED_ENTITY, UID.of(trackedEntity), queryParams.isIncludeDeleted()));
+      }
+    }
     for (TrackedEntity trackedEntity : trackedEntities) {
       if (operationParams.getTrackedEntityParams().isIncludeProgramOwners()) {
         trackedEntity.setProgramOwners(
-            getTrackedEntityProgramOwners(trackedEntity, queryParams.getProgram()));
+            getTrackedEntityProgramOwners(
+                trackedEntity, queryParams.getEnrolledInTrackerProgram()));
       }
       trackedEntity.setTrackedEntityAttributeValues(
-          getTrackedEntityAttributeValues(trackedEntity, queryParams.getProgram()));
+          getTrackedEntityAttributeValues(
+              trackedEntity, queryParams.getEnrolledInTrackerProgram()));
     }
     trackedEntityAuditService.addTrackedEntityAudit(SEARCH, user.getUsername(), trackedEntities);
     return trackedEntities;
-  }
-
-  /**
-   * We need to return the full models for relationship items (i.e. trackedEntity, enrollment and
-   * event) in our API. The aggregate stores currently do not support that, so we need to fetch the
-   * entities individually.
-   */
-  private void setRelationshipItems(
-      List<TrackedEntity> trackedEntities, TrackedEntityParams params, boolean includeDeleted)
-      throws NotFoundException {
-    for (TrackedEntity trackedEntity : trackedEntities) {
-      setRelationshipItems(trackedEntity, trackedEntity, params, includeDeleted);
-    }
-  }
-
-  private void setRelationshipItems(
-      TrackedEntity targetTrackedEntity,
-      TrackedEntity sourceTrackedEntity,
-      TrackedEntityParams params,
-      boolean includeDeleted)
-      throws NotFoundException {
-    if (params.isIncludeRelationships()) {
-      targetTrackedEntity.setRelationshipItems(
-          getRelationshipItems(sourceTrackedEntity, includeDeleted));
-    }
-    if (params.getEnrollmentParams().isIncludeRelationships()) {
-      for (Enrollment sourceEnrollment : sourceTrackedEntity.getEnrollments()) {
-        for (Enrollment targetEnrollment : targetTrackedEntity.getEnrollments()) {
-          if (sourceEnrollment.getUid().equals(targetEnrollment.getUid())) {
-            targetEnrollment.setRelationshipItems(
-                getRelationshipItems(sourceEnrollment, sourceTrackedEntity, includeDeleted));
-
-            if (params.getEventParams().isIncludeRelationships()) {
-              for (Event sourceEvent : sourceEnrollment.getEvents()) {
-                for (Event targetEvent : targetEnrollment.getEvents()) {
-                  if (targetEvent.getUid().equals(sourceEvent.getUid())) {
-                    targetEvent.setRelationshipItems(
-                        getRelationshipItems(sourceEvent, sourceTrackedEntity, includeDeleted));
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  private Set<RelationshipItem> getRelationshipItems(
-      TrackedEntity trackedEntity, boolean includeDeleted) throws NotFoundException {
-    Set<RelationshipItem> result = new HashSet<>();
-
-    for (RelationshipItem item : trackedEntity.getRelationshipItems()) {
-      RelationshipItem relationshipItem =
-          getRelationshipItem(item, trackedEntity, trackedEntity, includeDeleted);
-      if (relationshipItem != null) {
-        result.add(relationshipItem);
-      }
-    }
-
-    return result;
-  }
-
-  private Set<RelationshipItem> getRelationshipItems(
-      Enrollment enrollment, TrackedEntity trackedEntity, boolean includeDeleted)
-      throws NotFoundException {
-    Set<RelationshipItem> result = new HashSet<>();
-
-    for (RelationshipItem item : enrollment.getRelationshipItems()) {
-      RelationshipItem relationshipItem =
-          getRelationshipItem(item, enrollment, trackedEntity, includeDeleted);
-      if (relationshipItem != null) {
-        result.add(relationshipItem);
-      }
-    }
-
-    return result;
-  }
-
-  private Set<RelationshipItem> getRelationshipItems(
-      Event event, TrackedEntity trackedEntity, boolean includeDeleted) throws NotFoundException {
-    Set<RelationshipItem> result = new HashSet<>();
-
-    for (RelationshipItem item : event.getRelationshipItems()) {
-      RelationshipItem relationshipItem =
-          getRelationshipItem(item, event, trackedEntity, includeDeleted);
-      if (relationshipItem != null) {
-        result.add(relationshipItem);
-      }
-    }
-    return result;
-  }
-
-  private RelationshipItem getRelationshipItem(
-      RelationshipItem item,
-      BaseIdentifiableObject itemOwner,
-      TrackedEntity trackedEntity,
-      boolean includeDeleted)
-      throws NotFoundException {
-    Relationship rel = item.getRelationship();
-
-    // We cannot use trackerAccessManager.canRead(getCurrentUserDetails(), rel).isEmpty() as at
-    // least the TE items are not hibernate proxies as they come from the aggregate store. At least
-    // check relationship type access.
-    if (!aclService.canDataRead(getCurrentUserDetails(), rel.getRelationshipType())
-        || (!includeDeleted && rel.isDeleted())) {
-      return null;
-    }
-
-    RelationshipItem from = getRelationshipItem(trackedEntity, rel.getFrom(), includeDeleted);
-    RelationshipItem to = getRelationshipItem(trackedEntity, rel.getTo(), includeDeleted);
-    if (from == null || to == null) {
-      return null;
-    }
-    from.setRelationship(rel);
-    rel.setFrom(from);
-    to.setRelationship(rel);
-    rel.setTo(to);
-
-    if (rel.getFrom().getTrackedEntity() != null
-        && itemOwner.getUid().equals(rel.getFrom().getTrackedEntity().getUid())) {
-      return from;
-    }
-
-    return to;
-  }
-
-  private RelationshipItem getRelationshipItem(
-      TrackedEntity trackedEntity, RelationshipItem item, boolean includeDeleted)
-      throws NotFoundException {
-    // relationships of relationship items are not mapped to JSON so there is no need to fetch them
-    RelationshipItem result = new RelationshipItem();
-
-    if (item.getTrackedEntity() != null) {
-      if (trackedEntity.getUid().equals(item.getTrackedEntity().getUid())) {
-        // only fetch the TE if we do not already have access to it. meaning the TE owns the item
-        // this is just mapping the TE
-        result.setTrackedEntity(trackedEntity);
-      } else {
-        result = getTrackedEntityInRelationshipItem(item.getTrackedEntity().getUid());
-      }
-    } else if (item.getEnrollment() != null) {
-      result =
-          enrollmentService.getEnrollmentInRelationshipItem(
-              UID.of(item.getEnrollment()), includeDeleted);
-    } else if (item.getEvent() != null) {
-      result =
-          eventService.getEventInRelationshipItem(
-              UID.of(item.getEvent()), EventParams.TRUE.withIncludeRelationships(false));
-    }
-
-    return result;
-  }
-
-  /**
-   * Gets a tracked entity that's part of a relationship item. This method is meant to be used when
-   * fetching relationship items only, because it won't throw an exception if the TE is not
-   * accessible.
-   *
-   * @return the TE object if found and accessible by the current user or null otherwise
-   * @throws NotFoundException if uid does not exist
-   */
-  private RelationshipItem getTrackedEntityInRelationshipItem(String uid) throws NotFoundException {
-    RelationshipItem relationshipItem = new RelationshipItem();
-
-    TrackedEntity trackedEntity = trackedEntityStore.getByUid(uid);
-    if (trackedEntity == null) {
-      throw new NotFoundException(TrackedEntity.class, uid);
-    }
-
-    UserDetails user = getCurrentUserDetails();
-    if (!trackerAccessManager.canRead(user, trackedEntity).isEmpty()) {
-      return null;
-    }
-
-    trackedEntityAuditService.addTrackedEntityAudit(SEARCH, user.getUsername(), trackedEntity);
-
-    relationshipItem.setTrackedEntity(trackedEntity);
-    return relationshipItem;
   }
 
   @Override

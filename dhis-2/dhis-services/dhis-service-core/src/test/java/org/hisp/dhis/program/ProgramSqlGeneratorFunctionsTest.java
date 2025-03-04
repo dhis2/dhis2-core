@@ -525,10 +525,11 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
     assertThat(
         sql,
         is(
-            "(select count(*) from relationship r "
-                + "join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid "
-                + "join trackedentity te on rifrom.trackedentityid = te.trackedentityid and te.uid = ax.trackedentity"
-                + " where r.deleted is false)"));
+            """
+             (select sum(relationship_count)
+              from analytics_rs_relationship arr
+              where arr.trackedentityid = ax.trackedentity)
+             """));
   }
 
   @Test
@@ -539,11 +540,11 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
     assertThat(
         sql,
         is(
-            "(select count(*) from relationship r "
-                + "join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and rt.uid = 'RelatnTypeA' "
-                + "join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid "
-                + "join trackedentity te on rifrom.trackedentityid = te.trackedentityid and te.uid = ax.trackedentity"
-                + " where r.deleted is false)"));
+            """
+                     (select relationship_count
+                      from analytics_rs_relationship arr
+                      where arr.trackedentityid = ax.trackedentity and relationshiptypeuid = 'RelatnTypeA')
+                     """));
   }
 
   @Test

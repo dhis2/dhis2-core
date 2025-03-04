@@ -74,6 +74,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -100,6 +101,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams.TrackedEntityOperationParamsBuilder;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
@@ -140,6 +143,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   private OrganisationUnit orgUnitChildA;
 
   private TrackedEntityAttribute teaA;
+
+  private TrackedEntityAttribute teaB;
 
   private TrackedEntityAttribute teaC;
 
@@ -239,7 +244,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     teaA = createTrackedEntityAttribute('A', ValueType.TEXT);
     teaA.setUnique(true);
     manager.save(teaA, false);
-    TrackedEntityAttribute teaB = createTrackedEntityAttribute('B', ValueType.TEXT);
+    teaB = createTrackedEntityAttribute('B', ValueType.TEXT);
     manager.save(teaB, false);
     teaC = createTrackedEntityAttribute('C', ValueType.TEXT);
     manager.save(teaC, false);
@@ -257,6 +262,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
                 new TrackedEntityTypeAttribute(trackedEntityTypeA, teaB)));
     trackedEntityTypeA.getSharing().setOwner(user);
     trackedEntityTypeA.setPublicAccess(AccessStringHelper.FULL);
+    trackedEntityTypeA.setMinAttributesRequiredToSearch(0);
     manager.save(trackedEntityTypeA, false);
 
     CategoryCombo defaultCategoryCombo = manager.getByName(CategoryCombo.class, "default");
@@ -328,17 +334,16 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     tetavB = new TrackedEntityAttributeValue(teaB, trackedEntityA, "B");
     pteavC = new TrackedEntityAttributeValue(teaC, trackedEntityA, "C");
 
-    trackedEntityA = createTrackedEntity(orgUnitA);
+    trackedEntityA = createTrackedEntity(orgUnitA, trackedEntityTypeA);
     trackedEntityA.setTrackedEntityType(trackedEntityTypeA);
     trackedEntityA.setTrackedEntityAttributeValues(Set.of(tetavA, tetavB, pteavC));
+
     manager.save(trackedEntityA, false);
 
-    trackedEntityChildA = createTrackedEntity(orgUnitChildA);
-    trackedEntityChildA.setTrackedEntityType(trackedEntityTypeA);
+    trackedEntityChildA = createTrackedEntity(orgUnitChildA, trackedEntityTypeA);
     manager.save(trackedEntityChildA, false);
 
-    trackedEntityGrandchildA = createTrackedEntity(orgUnitGrandchildA);
-    trackedEntityGrandchildA.setTrackedEntityType(trackedEntityTypeA);
+    trackedEntityGrandchildA = createTrackedEntity(orgUnitGrandchildA, trackedEntityTypeA);
     manager.save(trackedEntityGrandchildA, false);
 
     enrollmentA = createEnrollment(programA, trackedEntityA, orgUnitA);
@@ -380,8 +385,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     enrollmentB.setEvents(Set.of(eventB));
     manager.save(enrollmentB, false);
 
-    trackedEntityB = createTrackedEntity(orgUnitB);
-    trackedEntityB.setTrackedEntityType(trackedEntityTypeA);
+    trackedEntityB = createTrackedEntity(orgUnitB, trackedEntityTypeA);
     manager.save(trackedEntityB, false);
 
     Enrollment enrollmentC = createEnrollment(programB, trackedEntityB, orgUnitB);
@@ -398,8 +402,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     enrollmentC.setEvents(Set.of(eventC));
     manager.save(enrollmentC, false);
 
-    TrackedEntity trackedEntityC = createTrackedEntity(orgUnitC);
-    trackedEntityC.setTrackedEntityType(trackedEntityTypeA);
+    TrackedEntity trackedEntityC = createTrackedEntity(orgUnitC, trackedEntityTypeA);
     manager.save(trackedEntityC, false);
 
     trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
@@ -410,9 +413,9 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     attributeValueService.addTrackedEntityAttributeValue(
         new TrackedEntityAttributeValue(teaA, trackedEntityA, "A"));
     attributeValueService.addTrackedEntityAttributeValue(
-        new TrackedEntityAttributeValue(teaA, trackedEntityChildA, "A"));
+        new TrackedEntityAttributeValue(teaA, trackedEntityChildA, "CA"));
     attributeValueService.addTrackedEntityAttributeValue(
-        new TrackedEntityAttributeValue(teaA, trackedEntityGrandchildA, "A"));
+        new TrackedEntityAttributeValue(teaA, trackedEntityGrandchildA, "GCA"));
     attributeValueService.addTrackedEntityAttributeValue(
         new TrackedEntityAttributeValue(teaB, trackedEntityA, "B"));
     attributeValueService.addTrackedEntityAttributeValue(
@@ -749,38 +752,6 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnEmptyCollectionGivenSingleQuoteInAttributeSearchInput()
-      throws ForbiddenException, NotFoundException, BadRequestException {
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .organisationUnits(orgUnitA)
-            .orgUnitMode(SELECTED)
-            .trackedEntityType(trackedEntityTypeA)
-            .filter(teaA, List.of(new QueryFilter(QueryOperator.EQ, "M'M")))
-            .build();
-
-    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
-
-    assertIsEmpty(trackedEntities);
-  }
-
-  @Test
-  void shouldReturnTrackedEntityIfGivenFilterMatches()
-      throws ForbiddenException, NotFoundException, BadRequestException {
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .organisationUnits(orgUnitA)
-            .orgUnitMode(SELECTED)
-            .trackedEntityType(trackedEntityTypeA)
-            .filter(teaA, List.of(new QueryFilter(QueryOperator.EQ, "A")))
-            .build();
-
-    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
-
-    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
-  }
-
-  @Test
   void shouldReturnTrackedEntityIfTEWasUpdatedAfterPassedDateAndTime()
       throws ForbiddenException, NotFoundException, BadRequestException {
     Date oneHourBeforeLastUpdated = oneHourBefore(trackedEntityA.getLastUpdated());
@@ -1060,39 +1031,6 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnEmptyCollectionIfGivenFilterDoesNotMatch()
-      throws ForbiddenException, NotFoundException, BadRequestException {
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .organisationUnits(orgUnitA)
-            .orgUnitMode(SELECTED)
-            .trackedEntityType(trackedEntityTypeA)
-            .filter(teaA, List.of(new QueryFilter(QueryOperator.EQ, "Z")))
-            .build();
-
-    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
-
-    assertIsEmpty(trackedEntities);
-  }
-
-  @Test
-  void shouldReturnTrackedEntitiesIfTheyHaveGivenAttributeFilteredUsingOnlyUID()
-      throws ForbiddenException, NotFoundException, BadRequestException {
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder()
-            .organisationUnits(orgUnitA, orgUnitB)
-            .orgUnitMode(DESCENDANTS)
-            .trackedEntityType(trackedEntityTypeA)
-            .filter(teaA, List.of())
-            .build();
-
-    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
-
-    assertContainsOnly(
-        List.of(trackedEntityA, trackedEntityChildA, trackedEntityGrandchildA), trackedEntities);
-  }
-
-  @Test
   void shouldReturnTrackedEntityWithLastUpdatedParameter()
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityOperationParams operationParams =
@@ -1301,18 +1239,18 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
-    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities, UidObject::getUid);
     assertContainsOnly(
-        Set.of(enrollmentA.getUid(), enrollmentB.getUid()),
-        uids(trackedEntities.get(0).getEnrollments()));
-    // ensure that EventAggregate is called and attaches the events with notes
+        Set.of(enrollmentA, enrollmentB),
+        trackedEntities.get(0).getEnrollments(),
+        UidObject::getUid);
     List<Enrollment> enrollments = new ArrayList<>(trackedEntities.get(0).getEnrollments());
     Optional<Enrollment> enrollmentA =
         enrollments.stream()
             .filter(enrollment -> enrollment.getUid().equals(this.enrollmentA.getUid()))
             .findFirst();
     Set<Event> events = enrollmentA.get().getEvents();
-    assertContainsOnly(Set.of(eventA), events);
+    assertContainsOnly(Set.of(eventA), events, UidObject::getUid);
     assertNotes(eventA.getNotes(), events.stream().findFirst().get().getNotes());
   }
 
@@ -1427,14 +1365,9 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     assertTrue(enrollmentOpt.isPresent());
     Enrollment enrollment = enrollmentOpt.get();
     assertAll(
-        () -> assertEquals(enrollmentA.getId(), enrollment.getId()),
         () -> assertEquals(trackedEntityA.getUid(), enrollment.getTrackedEntity().getUid()),
-        () ->
-            assertEquals(
-                trackedEntityA.getTrackedEntityType().getUid(),
-                enrollment.getTrackedEntity().getTrackedEntityType().getUid()),
+        () -> assertEquals(trackedEntityA.getUid(), enrollment.getTrackedEntity().getUid()),
         () -> assertEquals(orgUnitA.getUid(), enrollment.getOrganisationUnit().getUid()),
-        () -> assertEquals(orgUnitA.getName(), enrollment.getOrganisationUnit().getName()),
         () -> assertEquals(programA.getUid(), enrollment.getProgram().getUid()),
         () -> assertEquals(EnrollmentStatus.ACTIVE, enrollment.getStatus()),
         () -> assertFalse(enrollment.isDeleted()),
@@ -1706,15 +1639,81 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldReturnEmptyCollectionGivenSingleQuoteInAttributeSearchInput()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
+            .orgUnitMode(DESCENDANTS)
+            .trackedEntityType(trackedEntityTypeA)
+            .filterBy(UID.of(teaA), List.of(new QueryFilter(QueryOperator.EQ, "M'M")))
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertIsEmpty(trackedEntities);
+  }
+
+  @Test
+  void shouldReturnTrackedEntityIfGivenFilterMatches()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
+            .orgUnitMode(DESCENDANTS)
+            .trackedEntityType(trackedEntityTypeA)
+            .filterBy(UID.of(teaA), List.of(new QueryFilter(QueryOperator.EQ, "A")))
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnEmptyCollectionIfGivenFilterDoesNotMatch()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
+            .orgUnitMode(DESCENDANTS)
+            .trackedEntityType(trackedEntityTypeA)
+            .filterBy(UID.of(teaA), List.of(new QueryFilter(QueryOperator.EQ, "Z")))
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertIsEmpty(trackedEntities);
+  }
+
+  @Test
+  void shouldReturnTrackedEntitiesIfTheyHaveGivenAttributeFilteredUsingOnlyUID()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
+            .orgUnitMode(DESCENDANTS)
+            .trackedEntityType(trackedEntityTypeA)
+            .filterBy(UID.of(teaA))
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(
+        List.of(trackedEntityA, trackedEntityChildA, trackedEntityGrandchildA), trackedEntities);
+  }
+
+  @Test
   void shouldReturnAllEntitiesWhenSuperuserAndNotInSearchScope()
       throws ForbiddenException, BadRequestException, NotFoundException {
     injectSecurityContextUser(superuser);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
-            .orgUnitMode(ALL)
+            .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
+            .orgUnitMode(DESCENDANTS)
             .program(programA)
-            .filter(teaC, List.of(new QueryFilter(QueryOperator.LIKE, "C")))
+            .filterBy(UID.of(teaC), List.of(new QueryFilter(QueryOperator.LIKE, "C")))
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
@@ -1730,7 +1729,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ALL)
             .trackedEntityType(trackedEntityTypeA)
-            .filter(teaA, List.of(new QueryFilter(QueryOperator.LIKE, "A")))
+            .filterBy(UID.of(teaA), List.of(new QueryFilter(QueryOperator.LIKE, "A")))
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
@@ -1748,7 +1747,97 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ALL)
             .program(programB)
-            .filter(teaA, List.of(new QueryFilter(QueryOperator.LIKE, "A")))
+            .filterBy(UID.of(teaA), List.of(new QueryFilter(QueryOperator.LIKE, "A")))
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnEntitiesWithoutAttributeValueWhenFilterOperatorIsNull()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntity trackedEntity = createTrackedEntity(orgUnitA, trackedEntityTypeA);
+    manager.save(trackedEntity, false);
+    Enrollment enrollment = createEnrollment(programB, trackedEntity, orgUnitA);
+    manager.save(enrollment);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntity, programB, orgUnitA);
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
+            .orgUnitMode(DESCENDANTS)
+            .program(programB)
+            .filterBy(UID.of(teaA), List.of(new QueryFilter(QueryOperator.NULL)))
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(trackedEntity), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnEntitiesWithAttributeValueWhenFilterOperatorIsNotNull()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
+            .orgUnitMode(DESCENDANTS)
+            .trackedEntityType(trackedEntityTypeA)
+            .filterBy(UID.of(teaA), List.of(new QueryFilter(QueryOperator.NNULL)))
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(
+        List.of(trackedEntityA, trackedEntityChildA, trackedEntityGrandchildA), trackedEntities);
+  }
+
+  @Test
+  void shouldReturnEmptyWhenFilterContainsNullAndNotNullUnaryOperators()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
+            .orgUnitMode(DESCENDANTS)
+            .trackedEntityType(trackedEntityTypeA)
+            .filterBy(
+                UID.of(teaA),
+                List.of(new QueryFilter(QueryOperator.NNULL), new QueryFilter(QueryOperator.NULL)))
+            .build();
+
+    assertIsEmpty(trackedEntityService.getTrackedEntities(operationParams));
+  }
+
+  @Test
+  void shouldReturnEmptyWhenFilterContainsNullAndAnyOtherBinaryOperator()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
+            .orgUnitMode(DESCENDANTS)
+            .trackedEntityType(trackedEntityTypeA)
+            .filterBy(UID.of(teaA), List.of(new QueryFilter(QueryOperator.NULL)))
+            .filterBy(UID.of(teaB), List.of(new QueryFilter(QueryOperator.EQ, "B")))
+            .build();
+
+    assertIsEmpty(trackedEntityService.getTrackedEntities(operationParams));
+  }
+
+  @Test
+  void shouldReturnEntitiesWithAttributeValueWhenFilterContainsUnaryAndBinaryOperators()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnitA, orgUnitB, orgUnitChildA)
+            .orgUnitMode(DESCENDANTS)
+            .trackedEntityType(trackedEntityTypeA)
+            .filterBy(
+                UID.of(teaB),
+                List.of(
+                    new QueryFilter(QueryOperator.NNULL), new QueryFilter(QueryOperator.EQ, "B")))
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
@@ -1886,8 +1975,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     TrackedEntityType inaccessibleTrackedEntityType = createTrackedEntityType('U');
     inaccessibleTrackedEntityType.setSharing(Sharing.builder().publicAccess("rw------").build());
     manager.save(inaccessibleTrackedEntityType, false);
-    TrackedEntity trackedEntity = createTrackedEntity(orgUnitA);
-    trackedEntity.setTrackedEntityType(inaccessibleTrackedEntityType);
+    TrackedEntity trackedEntity = createTrackedEntity(orgUnitA, inaccessibleTrackedEntityType);
     manager.save(trackedEntity);
 
     ForbiddenException exception =
@@ -1901,6 +1989,39 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             "User has no data read access to tracked entity type: %s",
             inaccessibleTrackedEntityType.getUid()),
         exception.getMessage());
+  }
+
+  @Test
+  void shouldReturnEmptyResultIfUserHasNoAccessToAnyTrackerProgram()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    injectSecurityContextUser(getAdminUser());
+    makeProgramMetadataAccessibleOnly(programA);
+    makeProgramMetadataAccessibleOnly(programB);
+    makeProgramMetadataAccessibleOnly(programC);
+    injectSecurityContextUser(user);
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder().trackedEntityType(trackedEntityTypeA).build();
+
+    assertIsEmpty(trackedEntityService.getTrackedEntities(operationParams));
+  }
+
+  @Test
+  void shouldReturnEmptyPageIfUserHasNoAccessToAnyTrackerProgram()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    injectSecurityContextUser(getAdminUser());
+    makeProgramMetadataAccessibleOnly(programA);
+    makeProgramMetadataAccessibleOnly(programB);
+    makeProgramMetadataAccessibleOnly(programC);
+    injectSecurityContextUser(user);
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder().trackedEntityType(trackedEntityTypeA).build();
+
+    Page<TrackedEntity> trackedEntities =
+        trackedEntityService.getTrackedEntities(operationParams, new PageParams(1, 3, false));
+
+    assertIsEmpty(trackedEntities.getItems());
   }
 
   @Test

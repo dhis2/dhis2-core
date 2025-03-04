@@ -64,7 +64,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
@@ -78,7 +78,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private DeduplicationService deduplicationService;
 
@@ -116,10 +118,8 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
     organisationUnitService.addOrganisationUnit(orgUnit);
     trackedEntityType = createTrackedEntityType('A');
     trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
-    original = createTrackedEntity(orgUnit);
-    duplicate = createTrackedEntity(orgUnit);
-    original.setTrackedEntityType(trackedEntityType);
-    duplicate.setTrackedEntityType(trackedEntityType);
+    original = createTrackedEntity(orgUnit, trackedEntityType);
+    duplicate = createTrackedEntity(orgUnit, trackedEntityType);
     manager.save(original);
     manager.save(duplicate);
     program = createProgram('A');
@@ -160,7 +160,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
 
     assertEquals(
         DeduplicationStatus.MERGED,
-        deduplicationService.getPotentialDuplicateByUid(UID.of(potentialDuplicate)).getStatus());
+        deduplicationService.getPotentialDuplicate(UID.of(potentialDuplicate)).getStatus());
     assertTrue(
         requireNonNull(manager.get(TrackedEntity.class, original.getUid()))
                 .getLastUpdated()
@@ -196,7 +196,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
 
     assertEquals(
         DeduplicationStatus.MERGED,
-        deduplicationService.getPotentialDuplicateByUid(UID.of(potentialDuplicate)).getStatus());
+        deduplicationService.getPotentialDuplicate(UID.of(potentialDuplicate)).getStatus());
     assertTrue(
         requireNonNull(manager.get(TrackedEntity.class, original.getUid()))
                 .getLastUpdated()
@@ -222,7 +222,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
 
     assertEquals(
         DeduplicationStatus.MERGED,
-        deduplicationService.getPotentialDuplicateByUid(UID.of(potentialDuplicate)).getStatus());
+        deduplicationService.getPotentialDuplicate(UID.of(potentialDuplicate)).getStatus());
 
     List<TrackedEntityChangeLog> trackedEntityChangeLogs =
         trackedEntityChangeLogService
@@ -254,7 +254,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
 
     assertEquals(
         DeduplicationStatus.MERGED,
-        deduplicationService.getPotentialDuplicateByUid(UID.of(potentialDuplicate)).getStatus());
+        deduplicationService.getPotentialDuplicate(UID.of(potentialDuplicate)).getStatus());
     List<TrackedEntityChangeLog> trackedEntityChangeLogs =
         trackedEntityChangeLogService
             .getTrackedEntityChangeLog(
@@ -292,7 +292,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
 
     assertEquals(
         DeduplicationStatus.MERGED,
-        deduplicationService.getPotentialDuplicateByUid(UID.of(potentialDuplicate)).getStatus());
+        deduplicationService.getPotentialDuplicate(UID.of(potentialDuplicate)).getStatus());
 
     List<TrackedEntityChangeLog> trackedEntityChangeLogs =
         trackedEntityChangeLogService

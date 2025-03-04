@@ -123,4 +123,20 @@ class DashboardControllerTest extends PostgresControllerIntegrationTestBase {
     assertTrue(dashboardItem.isPresent());
     assertEquals("gyYXi0rXAIc", dashboardItem.get().getVisualization().getUid());
   }
+
+  @Test
+  void testGetPrivateDashboardWithSuperUser() {
+    switchToNewUser("userTest", "ALL");
+    POST("/metadata", Path.of("dashboard/create_dashboard.json")).content(HttpStatus.OK);
+    switchToAdminUser();
+    GET("/dashboards/f1OijtLnf8a").content(HttpStatus.OK);
+  }
+
+  @Test
+  void testDeletePrivateDashboardWithSuperUser() {
+    switchToNewUser("userTest", "ALL");
+    POST("/metadata", Path.of("dashboard/create_dashboard.json")).content(HttpStatus.OK);
+    switchToAdminUser();
+    DELETE("/dashboards/f1OijtLnf8a").content(HttpStatus.OK);
+  }
 }

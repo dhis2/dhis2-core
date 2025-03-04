@@ -76,10 +76,6 @@ public interface EventMapper {
           entry("enrollmentStatus", "enrollment.status"),
           entry("event", "uid"),
           entry("followUp", "enrollment.followUp"),
-          entry(
-              "followup",
-              "enrollment.followUp"), // TODO(tracker): Deprecated 2.41, making it a TODO so we
-          // tracker remember to remove this.
           entry("occurredAt", "occurredDate"),
           entry("orgUnit", "organisationUnit.uid"),
           entry("program", "enrollment.program.uid"),
@@ -92,6 +88,12 @@ public interface EventMapper {
           entry("updatedAtClient", "lastUpdatedAtClient"),
           entry("updatedBy", "lastUpdatedBy"));
 
+  default org.hisp.dhis.webapi.controller.tracker.view.Event map(Event event) {
+    // events as part of enrollments and relationships are always exported using idScheme=UID
+    TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
+    return map(idSchemeParams, new MappingErrors(idSchemeParams), event);
+  }
+
   @Mapping(target = "event", source = "uid")
   @Mapping(target = "program", source = "enrollment.program")
   @Mapping(target = "programStage", source = "programStage")
@@ -100,11 +102,6 @@ public interface EventMapper {
   @Mapping(target = "orgUnit", source = "organisationUnit")
   @Mapping(target = "occurredAt", source = "occurredDate")
   @Mapping(target = "scheduledAt", source = "scheduledDate")
-  @Mapping(
-      target = "legacyFollowUp",
-      source =
-          "enrollment.followup") // TODO(tracker): Deprecated 2.41, making it a TODO so we tracker
-  // remember to remove this.
   @Mapping(target = "followUp", source = "enrollment.followup")
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "createdAtClient", source = "createdAtClient")

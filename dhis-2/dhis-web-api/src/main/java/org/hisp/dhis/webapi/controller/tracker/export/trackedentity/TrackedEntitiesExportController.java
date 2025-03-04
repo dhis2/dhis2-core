@@ -29,9 +29,10 @@ package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationParameters;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateUnsupportedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateUnsupportedParameter;
+import static org.hisp.dhis.webapi.controller.tracker.export.MappingErrors.ensureNoMappingErrors;
 import static org.hisp.dhis.webapi.controller.tracker.export.trackedentity.TrackedEntityRequestParams.DEFAULT_FIELDS_PARAM;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
@@ -49,6 +50,7 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -58,8 +60,8 @@ import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.export.PageParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
@@ -164,41 +166,45 @@ class TrackedEntitiesExportController {
       // from a browser
       )
   ResponseEntity<Page<ObjectNode>> getTrackedEntities(
-      TrackedEntityRequestParams requestParams, @CurrentUser UserDetails currentUser)
-      throws BadRequestException, ForbiddenException, NotFoundException {
+      TrackedEntityRequestParams requestParams,
+      TrackerIdSchemeParams idSchemeParams,
+      @CurrentUser UserDetails currentUser,
+      HttpServletRequest request)
+      throws BadRequestException, ForbiddenException, NotFoundException, WebMessageException {
     validatePaginationParameters(requestParams);
     TrackedEntityOperationParams operationParams = paramsMapper.map(requestParams, currentUser);
 
-    if (requestParams.isPaged()) {
+    if (requestParams.isPaging()) {
       PageParams pageParams =
           new PageParams(
-              requestParams.getPage(), requestParams.getPageSize(), requestParams.getTotalPages());
+              requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
 
-      org.hisp.dhis.tracker.export.Page<org.hisp.dhis.trackedentity.TrackedEntity>
-          trackedEntitiesPage =
-              trackedEntityService.getTrackedEntities(operationParams, pageParams);
-      // only supports idScheme=UID
-      TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
+      org.hisp.dhis.tracker.Page<org.hisp.dhis.trackedentity.TrackedEntity> trackedEntitiesPage =
+          trackedEntityService.getTrackedEntities(operationParams, pageParams);
       MappingErrors errors = new MappingErrors(idSchemeParams);
       List<TrackedEntity> trackedEntities =
           trackedEntitiesPage.getItems().stream()
               .map(te -> TRACKED_ENTITY_MAPPER.map(idSchemeParams, errors, te))
               .toList();
+      ensureNoMappingErrors(errors);
       List<ObjectNode> objectNodes =
           fieldFilterService.toObjectNodes(trackedEntities, requestParams.getFields());
 
       return ResponseEntity.ok()
           .contentType(MediaType.APPLICATION_JSON)
-          .body(Page.withPager(TRACKED_ENTITIES, trackedEntitiesPage.withItems(objectNodes)));
+          .body(
+              Page.withFullPager(
+                  TRACKED_ENTITIES,
+                  trackedEntitiesPage.withItems(objectNodes),
+                  getRequestURL(request)));
     }
 
-    // only supports idScheme=UID
-    TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
     MappingErrors errors = new MappingErrors(idSchemeParams);
     List<TrackedEntity> trackedEntities =
         trackedEntityService.getTrackedEntities(operationParams).stream()
             .map(te -> TRACKED_ENTITY_MAPPER.map(idSchemeParams, errors, te))
             .toList();
+    ensureNoMappingErrors(errors);
     List<ObjectNode> objectNodes =
         fieldFilterService.toObjectNodes(trackedEntities, requestParams.getFields());
 
@@ -210,11 +216,17 @@ class TrackedEntitiesExportController {
   @GetMapping(produces = {CONTENT_TYPE_CSV, CONTENT_TYPE_TEXT_CSV})
   void getTrackedEntitiesAsCsv(
       TrackedEntityRequestParams requestParams,
+      TrackerIdSchemeParams idSchemeParams,
       HttpServletResponse response,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader,
       @CurrentUser UserDetails currentUser)
-      throws IOException, BadRequestException, ForbiddenException, NotFoundException {
-    List<TrackedEntity> trackedEntities = getTrackedEntitiesForCsv(requestParams, currentUser);
+      throws IOException,
+          BadRequestException,
+          ForbiddenException,
+          NotFoundException,
+          WebMessageException {
+    List<TrackedEntity> trackedEntities =
+        getTrackedEntitiesForCsv(requestParams, idSchemeParams, currentUser);
 
     ResponseHeader.addContentDispositionAttachment(response, TE_CSV_FILE);
     ResponseHeader.addContentTransferEncodingBinary(response);
@@ -226,11 +238,17 @@ class TrackedEntitiesExportController {
   @GetMapping(produces = {CONTENT_TYPE_CSV_ZIP})
   void getTrackedEntitiesAsCsvZip(
       TrackedEntityRequestParams requestParams,
+      TrackerIdSchemeParams idSchemeParams,
       HttpServletResponse response,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader,
       @CurrentUser UserDetails currentUser)
-      throws IOException, BadRequestException, ForbiddenException, NotFoundException {
-    List<TrackedEntity> trackedEntities = getTrackedEntitiesForCsv(requestParams, currentUser);
+      throws IOException,
+          BadRequestException,
+          ForbiddenException,
+          NotFoundException,
+          WebMessageException {
+    List<TrackedEntity> trackedEntities =
+        getTrackedEntitiesForCsv(requestParams, idSchemeParams, currentUser);
 
     ResponseHeader.addContentDispositionAttachment(response, TE_CSV_FILE + ZIP_EXT);
     ResponseHeader.addContentTransferEncodingBinary(response);
@@ -243,11 +261,17 @@ class TrackedEntitiesExportController {
   @GetMapping(produces = {CONTENT_TYPE_CSV_GZIP})
   void getTrackedEntitiesAsCsvGZip(
       TrackedEntityRequestParams requestParams,
+      TrackerIdSchemeParams idSchemeParams,
       HttpServletResponse response,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader,
       @CurrentUser UserDetails currentUser)
-      throws IOException, BadRequestException, ForbiddenException, NotFoundException {
-    List<TrackedEntity> trackedEntities = getTrackedEntitiesForCsv(requestParams, currentUser);
+      throws IOException,
+          BadRequestException,
+          ForbiddenException,
+          NotFoundException,
+          WebMessageException {
+    List<TrackedEntity> trackedEntities =
+        getTrackedEntitiesForCsv(requestParams, idSchemeParams, currentUser);
 
     ResponseHeader.addContentDispositionAttachment(response, TE_CSV_FILE + GZIP_EXT);
     ResponseHeader.addContentTransferEncodingBinary(response);
@@ -257,17 +281,20 @@ class TrackedEntitiesExportController {
   }
 
   private List<TrackedEntity> getTrackedEntitiesForCsv(
-      TrackedEntityRequestParams requestParams, UserDetails currentUser)
-      throws BadRequestException, ForbiddenException, NotFoundException {
+      TrackedEntityRequestParams requestParams,
+      TrackerIdSchemeParams idSchemeParams,
+      UserDetails currentUser)
+      throws BadRequestException, ForbiddenException, NotFoundException, WebMessageException {
     TrackedEntityOperationParams operationParams =
         paramsMapper.map(requestParams, CSV_FIELDS, currentUser);
 
-    // only supports idScheme=UID
-    TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
     MappingErrors errors = new MappingErrors(idSchemeParams);
-    return trackedEntityService.getTrackedEntities(operationParams).stream()
-        .map(te -> TRACKED_ENTITY_MAPPER.map(idSchemeParams, errors, te))
-        .toList();
+    List<TrackedEntity> result =
+        trackedEntityService.getTrackedEntities(operationParams).stream()
+            .map(te -> TRACKED_ENTITY_MAPPER.map(idSchemeParams, errors, te))
+            .toList();
+    ensureNoMappingErrors(errors);
+    return result;
   }
 
   @OpenApi.Response(OpenApi.EntityType.class)
@@ -277,18 +304,18 @@ class TrackedEntitiesExportController {
           UID uid,
       @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
-          List<FieldPath> fields)
-      throws ForbiddenException, NotFoundException, BadRequestException {
+          List<FieldPath> fields,
+      TrackerIdSchemeParams idSchemeParams)
+      throws ForbiddenException, NotFoundException, BadRequestException, WebMessageException {
     TrackedEntityParams trackedEntityParams = fieldsMapper.map(fields);
 
-    // only supports idScheme=UID
-    TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
     MappingErrors errors = new MappingErrors(idSchemeParams);
     TrackedEntity trackedEntity =
         TRACKED_ENTITY_MAPPER.map(
             idSchemeParams,
             errors,
             trackedEntityService.getTrackedEntity(uid, program, trackedEntityParams));
+    ensureNoMappingErrors(errors);
 
     return ResponseEntity.ok(fieldFilterService.toObjectNode(trackedEntity, fields));
   }
@@ -298,20 +325,24 @@ class TrackedEntitiesExportController {
       produces = {CONTENT_TYPE_CSV, CONTENT_TYPE_TEXT_CSV})
   void getTrackedEntityByUidAsCsv(
       @PathVariable UID uid,
+      TrackerIdSchemeParams idSchemeParams,
       HttpServletResponse response,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader,
       @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program)
-      throws IOException, ForbiddenException, NotFoundException, BadRequestException {
+      throws IOException,
+          ForbiddenException,
+          NotFoundException,
+          BadRequestException,
+          WebMessageException {
     TrackedEntityParams trackedEntityParams = fieldsMapper.map(CSV_FIELDS);
 
-    // only supports idScheme=UID
-    TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
     MappingErrors errors = new MappingErrors(idSchemeParams);
     TrackedEntity trackedEntity =
         TRACKED_ENTITY_MAPPER.map(
             idSchemeParams,
             errors,
             trackedEntityService.getTrackedEntity(uid, program, trackedEntityParams));
+    ensureNoMappingErrors(errors);
 
     OutputStream outputStream = response.getOutputStream();
     response.setContentType(CONTENT_TYPE_CSV);
@@ -369,7 +400,7 @@ class TrackedEntitiesExportController {
     PageParams pageParams =
         new PageParams(requestParams.getPage(), requestParams.getPageSize(), false);
 
-    org.hisp.dhis.tracker.export.Page<TrackedEntityChangeLog> changeLogs =
+    org.hisp.dhis.tracker.Page<TrackedEntityChangeLog> changeLogs =
         trackedEntityChangeLogService.getTrackedEntityChangeLog(
             trackedEntity, program, operationParams, pageParams);
 

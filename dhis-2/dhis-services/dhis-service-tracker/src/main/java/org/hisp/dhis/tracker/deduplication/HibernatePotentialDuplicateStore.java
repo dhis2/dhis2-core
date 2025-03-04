@@ -65,6 +65,8 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.trackedentity.HibernateTrackedEntityChangeLogStore;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -98,30 +100,31 @@ class HibernatePotentialDuplicateStore
     this.config = config;
   }
 
-  public int getCountPotentialDuplicates(PotentialDuplicateCriteria query) {
-    CriteriaBuilder cb = getCriteriaBuilder();
-
-    CriteriaQuery<Long> countCriteriaQuery = cb.createQuery(Long.class);
-    Root<PotentialDuplicate> root = countCriteriaQuery.from(PotentialDuplicate.class);
-
-    countCriteriaQuery.select(cb.count(root));
-
-    countCriteriaQuery.where(getQueryPredicates(query, cb, root));
-
-    TypedQuery<Long> relationshipTypedQuery = entityManager.createQuery(countCriteriaQuery);
-
-    return relationshipTypedQuery.getSingleResult().intValue();
+  public List<PotentialDuplicate> getPotentialDuplicates(PotentialDuplicateCriteria criteria) {
+    TypedQuery<PotentialDuplicate> query = getQuery(criteria);
+    return query.getResultList();
   }
 
-  public List<PotentialDuplicate> getPotentialDuplicates(PotentialDuplicateCriteria criteria) {
+  public Page<PotentialDuplicate> getPotentialDuplicates(
+      PotentialDuplicateCriteria criteria, PageParams pageParams) {
+    if (pageParams.isPageTotal()) {
+      throw new UnsupportedOperationException("pageTotal is not supported");
+    }
+
+    TypedQuery<PotentialDuplicate> query = getQuery(criteria);
+
+    query.setFirstResult(pageParams.getOffset());
+    query.setMaxResults(
+        pageParams.getPageSize() + 1); // get extra item to determine if there is a nextPage
+
+    return new Page<>(query.getResultList(), pageParams);
+  }
+
+  private TypedQuery<PotentialDuplicate> getQuery(PotentialDuplicateCriteria criteria) {
     CriteriaBuilder cb = getCriteriaBuilder();
-
     CriteriaQuery<PotentialDuplicate> cq = cb.createQuery(PotentialDuplicate.class);
-
     Root<PotentialDuplicate> root = cq.from(PotentialDuplicate.class);
-
     cq.where(getQueryPredicates(criteria, cb, root));
-
     cq.orderBy(
         criteria.getOrder().stream()
             .map(
@@ -130,15 +133,7 @@ class HibernatePotentialDuplicateStore
                         ? cb.asc(root.get(order.getField()))
                         : cb.desc(root.get(order.getField())))
             .toList());
-
-    TypedQuery<PotentialDuplicate> relationshipTypedQuery = entityManager.createQuery(cq);
-
-    if (criteria.isPagingRequest()) {
-      relationshipTypedQuery.setFirstResult(criteria.getFirstResult());
-      relationshipTypedQuery.setMaxResults(criteria.getPageSize());
-    }
-
-    return relationshipTypedQuery.getResultList();
+    return entityManager.createQuery(cq);
   }
 
   private Predicate[] getQueryPredicates(
@@ -176,8 +171,10 @@ class HibernatePotentialDuplicateStore
 
     NativeQuery<BigInteger> query =
         nativeSynchronizedQuery(
-            "select count(potentialduplicateid) from potentialduplicate pd "
-                + "where (pd.original = :original and pd.duplicate = :duplicate) or (pd.original = :duplicate and pd.duplicate = :original)");
+            """
+            select count(potentialduplicateid) from potentialduplicate pd where (pd.original =\
+             :original and pd.duplicate = :duplicate) or (pd.original = :duplicate and\
+             pd.duplicate = :original)""");
 
     query.setParameter("original", potentialDuplicate.getOriginal().getValue());
     query.setParameter("duplicate", potentialDuplicate.getDuplicate().getValue());
@@ -256,14 +253,18 @@ class HibernatePotentialDuplicateStore
 
   public void moveRelationships(
       TrackedEntity original, TrackedEntity duplicate, Set<UID> relationships) {
-    duplicate.getRelationshipItems().stream()
-        .filter(r -> relationships.contains(UID.of(r.getRelationship())))
-        .forEach(
-            ri -> {
-              ri.setTrackedEntity(original);
+    List<RelationshipItem> duplicateRelationshipItems =
+        duplicate.getRelationshipItems().stream()
+            .filter(r -> relationships.contains(UID.of(r.getRelationship())))
+            .toList();
+    duplicateRelationshipItems.forEach(
+        ri -> {
+          ri.setTrackedEntity(original);
+          original.getRelationshipItems().add(ri);
+          getSession().update(ri);
+        });
 
-              getSession().update(ri);
-            });
+    duplicateRelationshipItems.forEach(duplicate.getRelationshipItems()::remove);
   }
 
   public void moveEnrollments(

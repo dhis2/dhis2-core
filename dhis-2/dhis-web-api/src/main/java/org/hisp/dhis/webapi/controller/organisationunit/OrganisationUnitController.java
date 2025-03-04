@@ -29,11 +29,11 @@ package org.hisp.dhis.webapi.controller.organisationunit;
 
 import static java.lang.Math.max;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
-import static org.hisp.dhis.query.Restrictions.eq;
-import static org.hisp.dhis.query.Restrictions.in;
-import static org.hisp.dhis.query.Restrictions.le;
-import static org.hisp.dhis.query.Restrictions.like;
-import static org.hisp.dhis.query.Restrictions.or;
+import static org.hisp.dhis.query.Filters.eq;
+import static org.hisp.dhis.query.Filters.in;
+import static org.hisp.dhis.query.Filters.le;
+import static org.hisp.dhis.query.Filters.like;
+import static org.hisp.dhis.query.Filters.token;
 import static org.hisp.dhis.security.Authorities.F_ORGANISATION_UNIT_MERGE;
 import static org.hisp.dhis.security.Authorities.F_ORGANISATION_UNIT_SPLIT;
 import static org.hisp.dhis.system.util.GeoUtils.getCoordinatesFromGeometry;
@@ -65,9 +65,8 @@ import org.hisp.dhis.merge.orgunit.OrgUnitMergeService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.query.Criterion;
+import org.hisp.dhis.query.Filter;
 import org.hisp.dhis.query.GetObjectListParams;
-import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.split.orgunit.OrgUnitSplitQuery;
@@ -223,7 +222,7 @@ public class OrganisationUnitController
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException, ConflictException {
     OrganisationUnit parent = getEntity(uid);
-    List<Criterion> children =
+    List<Filter> children =
         List.of(
             in("level", List.of(parent.getLevel(), parent.getLevel() + 1)),
             like("path", uid, MatchMode.ANYWHERE));
@@ -252,9 +251,9 @@ public class OrganisationUnitController
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, NotFoundException, ConflictException {
     OrganisationUnit parent = getEntity(uid);
-    List<Criterion> childrenWithLevel =
-        List.of(like("path", parent.getStoredPath(), MatchMode.START));
+    List<Filter> childrenWithLevel = List.of(like("path", parent.getStoredPath(), MatchMode.START));
     params.setParentLevel(parent.getLevel());
+    params.setLevel(level);
     return getObjectListWith(params, response, currentUser, childrenWithLevel);
   }
 
@@ -277,7 +276,7 @@ public class OrganisationUnitController
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
       throws ForbiddenException, BadRequestException, ConflictException {
-    Criterion descendants = like("path", uid, MatchMode.ANYWHERE);
+    Filter descendants = like("path", uid, MatchMode.ANYWHERE);
     return getObjectListWith(params, response, currentUser, List.of(descendants));
   }
 
@@ -302,10 +301,10 @@ public class OrganisationUnitController
       throws ForbiddenException, BadRequestException, NotFoundException, ConflictException {
     OrganisationUnit root = getEntity(uid);
     List<String> ancestorsIds = List.of(root.getStoredPath().split("/"));
-    List<Criterion> ancestorPaths = new ArrayList<>();
-    for (int i = 0; i < ancestorsIds.size(); i++)
-      ancestorPaths.add(Restrictions.eq("path", String.join("/", ancestorsIds.subList(0, i + 1))));
-    Criterion ancestors = or(getSchema(), ancestorPaths);
+    List<String> ancestorPaths = new ArrayList<>();
+    for (int i = 1; i < ancestorsIds.size(); i++)
+      ancestorPaths.add(String.join("/", ancestorsIds.subList(0, i + 1)));
+    Filter ancestors = in("path", ancestorPaths);
     params.addOrder("level:asc");
     return getObjectListWith(params, response, currentUser, List.of(ancestors));
   }
@@ -323,10 +322,10 @@ public class OrganisationUnitController
     if (parent.getLevel() == 1)
       return getObjectListWith(params, response, currentUser, List.of(in("id", List.<String>of())));
     List<String> ancestorsIds = List.of(parent.getStoredPath().split("/"));
-    List<Criterion> parentPaths = new ArrayList<>();
-    for (int i = 0; i < ancestorsIds.size() - 1; i++)
-      parentPaths.add(Restrictions.eq("path", String.join("/", ancestorsIds.subList(0, i + 1))));
-    Criterion parents = or(getSchema(), parentPaths);
+    List<String> parentPaths = new ArrayList<>();
+    for (int i = 1; i < ancestorsIds.size() - 1; i++)
+      parentPaths.add(String.join("/", ancestorsIds.subList(0, i + 1)));
+    Filter parents = in("path", parentPaths);
     params.addOrder("level:asc");
     return getObjectListWith(params, response, currentUser, List.of(parents));
   }
@@ -338,9 +337,9 @@ public class OrganisationUnitController
 
   @Nonnull
   @Override
-  protected List<Criterion> getAdditionalFilters(GetOrganisationUnitObjectListParams params)
+  protected List<Filter> getAdditionalFilters(GetOrganisationUnitObjectListParams params)
       throws ConflictException {
-    List<Criterion> specialFilters = super.getAdditionalFilters(params);
+    List<Filter> specialFilters = super.getAdditionalFilters(params);
     Integer parentLevel = params.getParentLevel();
     Integer level = params.getLevel();
     if (level != null)
@@ -362,11 +361,8 @@ public class OrganisationUnitController
         parents.addAll(searchIds);
       }
     }
-    if (parents != null) {
-      specialFilters.add(
-          or(
-              getSchema(),
-              parents.stream().map(id -> like("path", id, MatchMode.ANYWHERE)).toList()));
+    if (parents != null && !parents.isEmpty()) {
+      specialFilters.add(token("path", String.join("|", parents), MatchMode.ANYWHERE));
     }
     if (params.isUserOnly())
       specialFilters.add(in("id", getCurrentUserDetails().getUserOrgUnitIds()));

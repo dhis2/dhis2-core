@@ -43,18 +43,24 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.random.BeanRandomizer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({MockitoExtension.class})
+@MockitoSettings(strictness = Strictness.LENIENT)
 class ProgramIndicatorSubqueryBuilderTest {
   private static final String DUMMY_EXPRESSION = "#{1234567}";
 
@@ -70,13 +76,18 @@ class ProgramIndicatorSubqueryBuilderTest {
 
   @Mock private ProgramIndicatorService programIndicatorService;
 
+  @Mock private SystemSettingsService systemSettingsService;
+
   @InjectMocks private DefaultProgramIndicatorSubqueryBuilder subject;
 
+  @Spy private SystemSettings systemSettings;
+
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     program = createProgram('A');
     startDate = getDate(2018, 1, 1);
     endDate = getDate(2018, 6, 30);
+    when(systemSettingsService.getCurrentSettings()).thenReturn(systemSettings);
   }
 
   @Test
@@ -167,14 +178,14 @@ class ProgramIndicatorSubqueryBuilderTest {
             "(SELECT avg (distinct event) FROM analytics_event_"
                 + program.getUid().toLowerCase()
                 + " as subax WHERE  subax.trackedentity in (select te.uid from trackedentity te "
-                + "LEFT JOIN relationshipitem ri on te.trackedentityid = ri.trackedentityid  "
-                + "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
-                + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
-                + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
-                + "LEFT JOIN trackedentity te on te.trackedentityid = ri2.trackedentityid "
+                + "left join relationshipitem ri on te.trackedentityid = ri.trackedentityid  "
+                + "left join relationship r on r.from_relationshipitemid = ri.relationshipitemid "
+                + "left join relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
+                + "left join relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
+                + "left join trackedentity te2 on te2.trackedentityid = ri2.trackedentityid "
                 + "WHERE rty.relationshiptypeid = "
                 + relationshipType.getId()
-                + " AND te.uid = ax.trackedentity ))"));
+                + " and te2.uid = ax.trackedentity ))"));
   }
 
   @Test

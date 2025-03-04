@@ -45,7 +45,8 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
-import org.hisp.dhis.webapi.controller.tracker.export.PageRequestParams;
+import org.hisp.dhis.webapi.controller.tracker.FieldsRequestParam;
+import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
 
@@ -54,52 +55,45 @@ import org.hisp.dhis.webapi.webdomain.StartDateTime;
 @OpenApi.Property
 @Data
 @NoArgsConstructor
-public class EnrollmentRequestParams implements PageRequestParams {
+public class EnrollmentRequestParams implements PageRequestParams, FieldsRequestParam {
   static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!events,!attributes";
 
+  @OpenApi.Description(
+      """
+Get the given page.
+""")
   @OpenApi.Property(defaultValue = "1")
   private Integer page;
 
+  @OpenApi.Description(
+      """
+Get given number of items per page.
+""")
   @OpenApi.Property(defaultValue = "50")
   private Integer pageSize;
 
-  @OpenApi.Property(defaultValue = "false")
-  private Boolean totalPages = false;
+  @OpenApi.Description(
+      """
+Get the total number of items and pages in the pager.
 
-  /**
-   * @deprecated use {@link #paging} instead
-   */
-  @Deprecated(since = "2.41")
-  @OpenApi.Property(defaultValue = "false")
-  private Boolean skipPaging;
+**Only enable this if absolutely necessary as this is resource intensive.** Use the pagers
+`prev/nextPage` to determine if there is a previous or a next page instead.
+""")
+  private boolean totalPages = false;
 
-  // TODO(tracker): set paging=true once skipPaging is removed. Both cannot have a default right
-  // now. This would lead to invalid parameters if the user passes the other param i.e.
-  // skipPaging==paging.
-  // PageRequestParams.isPaged handles the default case of skipPaging==paging==null => paging
-  // enabled
-  @OpenApi.Property(defaultValue = "true")
-  private Boolean paging;
+  @OpenApi.Description(
+      """
+Get all items by specifying `paging=false`. Requests are paginated by default.
+
+**Be aware that the performance is directly related to the amount of data requested. Larger pages
+will take more time to return.**
+""")
+  private boolean paging = true;
 
   private List<OrderCriteria> order = new ArrayList<>();
 
-  /**
-   * Semicolon-delimited list of organisation unit UIDs.
-   *
-   * @deprecated use {@link #orgUnits} instead which is comma instead of semicolon separated.
-   */
-  @Deprecated(since = "2.41")
-  @OpenApi.Property({UID[].class, OrganisationUnit.class})
-  private String orgUnit;
-
   @OpenApi.Property({UID[].class, OrganisationUnit.class})
   private Set<UID> orgUnits = new HashSet<>();
-
-  /**
-   * @deprecated use {@link #orgUnitMode} instead.
-   */
-  @Deprecated(since = "2.41")
-  private OrganisationUnitSelectionMode ouMode;
 
   private OrganisationUnitSelectionMode orgUnitMode;
 
@@ -129,15 +123,6 @@ public class EnrollmentRequestParams implements PageRequestParams {
 
   @OpenApi.Property({UID.class, TrackedEntity.class})
   private UID trackedEntity;
-
-  /**
-   * Semicolon-delimited list of enrollment UIDs.
-   *
-   * @deprecated use {@link #enrollments} instead which is comma instead of semicolon separated.
-   */
-  @Deprecated(since = "2.41")
-  @OpenApi.Property({UID[].class, Enrollment.class})
-  private String enrollment;
 
   @OpenApi.Property({UID[].class, Enrollment.class})
   private Set<UID> enrollments = new HashSet<>();

@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller.tracker;
 
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -39,15 +42,17 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.test.utils.Assertions;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.imports.domain.Enrollment;
+import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.domain.Relationship;
+import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.util.DateUtils;
 
 public class JsonAssertions {
@@ -60,6 +65,23 @@ public class JsonAssertions {
         () -> assertEquals(expected.getFirstName(), actual.getFirstName(), "firstName"),
         () -> assertEquals(expected.getSurname(), actual.getSurname(), "surname"),
         () -> assertEquals(expected.getDisplayName(), actual.getDisplayName(), "displayName"));
+  }
+
+  public static void assertProgramOwners(
+      List<Enrollment> enrollments, JsonList<JsonProgramOwner> programOwners) {
+    for (Enrollment enrollment : enrollments) {
+      JsonProgramOwner programOwner =
+          programOwners.stream()
+              .filter(po -> po.getProgram().equals(enrollment.getProgram().getIdentifier()))
+              .findFirst()
+              .get();
+      assertAll(
+          () -> assertEquals(enrollment.getOrgUnit().getIdentifier(), programOwner.getOrgUnit()),
+          () ->
+              assertEquals(
+                  enrollment.getTrackedEntity().getValue(), programOwner.getTrackedEntity()),
+          () -> assertEquals(enrollment.getProgram().getIdentifier(), programOwner.getProgram()));
+    }
   }
 
   public static JsonRelationship assertFirstRelationship(
@@ -80,13 +102,13 @@ public class JsonAssertions {
 
   public static void assertRelationship(Relationship expected, JsonRelationship actual) {
     assertFalse(actual.isEmpty(), "relationship should not be empty");
-    assertEquals(expected.getUid(), actual.getRelationship(), "relationship UID");
+    assertEquals(expected.getUid().getValue(), actual.getRelationship(), "relationship UID");
     assertEquals(
-        DateUtils.toIso8601NoTz(expected.getCreatedAtClient()),
+        DateUtils.toIso8601NoTz(DateUtils.fromInstant(expected.getCreatedAtClient())),
         actual.getCreatedAtClient(),
         "createdAtClient date");
     assertEquals(
-        expected.getRelationshipType().getUid(),
+        expected.getRelationshipType().getIdentifier(),
         actual.getRelationshipType(),
         "relationshipType UID");
   }
@@ -101,55 +123,54 @@ public class JsonAssertions {
       Event expected, JsonRelationshipItem actual) {
     JsonRelationshipItem.JsonEvent jsonEvent = actual.getEvent();
     assertFalse(jsonEvent.isEmpty(), "event should not be empty");
-    assertEquals(expected.getUid(), jsonEvent.getEvent(), "event UID");
+    assertEquals(expected.getUid().getValue(), jsonEvent.getEvent(), "event UID");
 
     assertEquals(expected.getStatus().toString(), jsonEvent.getStatus(), "event status");
     assertEquals(
-        expected.getProgramStage().getUid(), jsonEvent.getProgramStage(), "event programStage UID");
+        expected.getProgramStage().getIdentifier(),
+        jsonEvent.getProgramStage(),
+        "event programStage UID");
     assertEquals(
-        expected.getEnrollment().getUid(), jsonEvent.getEnrollment(), "event enrollment UID");
+        expected.getEnrollment().getValue(), jsonEvent.getEnrollment(), "event enrollment UID");
     assertFalse(
         jsonEvent.has("relationships"), "relationships is not returned within relationship items");
-    assertEquals(expected.getEnrollment().getFollowup(), jsonEvent.getFollowUp(), "followUp");
-    assertEquals(expected.getEnrollment().getFollowup(), jsonEvent.getLegacyFollowUp(), "followup");
   }
 
   public static void assertTrackedEntityWithinRelationshipItem(
       TrackedEntity expected, JsonRelationshipItem actual) {
     JsonRelationshipItem.JsonTrackedEntity jsonTe = actual.getTrackedEntity();
     assertFalse(jsonTe.isEmpty(), "trackedEntity should not be empty");
-    assertEquals(expected.getUid(), jsonTe.getTrackedEntity(), "trackedEntity UID");
+    assertEquals(expected.getUid().getValue(), jsonTe.getTrackedEntity(), "trackedEntity UID");
     assertEquals(
-        expected.getTrackedEntityType().getUid(),
+        expected.getTrackedEntityType().getIdentifier(),
         jsonTe.getTrackedEntityType(),
         "trackedEntityType UID");
-    assertEquals(expected.getOrganisationUnit().getUid(), jsonTe.getOrgUnit(), "orgUnit UID");
-    assertTrue(jsonTe.getAttributes().isEmpty(), "attributes should be empty");
+    assertEquals(expected.getOrgUnit().getIdentifier(), jsonTe.getOrgUnit(), "orgUnit UID");
+    assertFalse(jsonTe.getAttributes().isEmpty(), "attributes should be empty");
     assertFalse(
         jsonTe.has("relationships"), "relationships is not returned within relationship items");
   }
 
-  public static void assertHasOnlyUid(String expectedUid, String member, JsonObject json) {
+  public static void assertHasOnlyUid(UID expected, String member, JsonObject json) {
     JsonObject j = json.getObject(member);
     assertFalse(j.isEmpty(), member + " should not be empty");
     assertHasOnlyMembers(j, member);
-    assertEquals(expectedUid, j.getString(member).string(), member + " UID");
+    assertEquals(expected.getValue(), j.getString(member).string(), member + " UID");
   }
 
-  public static void assertEnrollmentWithinRelationship(
+  public static void assertEnrollmentWithinRelationshipItem(
       Enrollment expected, JsonRelationshipItem actual) {
     JsonRelationshipItem.JsonEnrollment jsonEnrollment = actual.getEnrollment();
     assertFalse(jsonEnrollment.isEmpty(), "enrollment should not be empty");
-    assertEquals(expected.getUid(), jsonEnrollment.getEnrollment(), "enrollment UID");
+    assertEquals(expected.getUid().getValue(), jsonEnrollment.getEnrollment(), "enrollment UID");
     assertEquals(
-        expected.getTrackedEntity().getUid(),
+        expected.getTrackedEntity().getValue(),
         jsonEnrollment.getTrackedEntity(),
         "trackedEntity UID");
-    assertEquals(expected.getProgram().getUid(), jsonEnrollment.getProgram(), "program UID");
-    assertEquals(expected.getFollowup(), jsonEnrollment.getFollowUp(), "followUp");
-    assertEquals(
-        expected.getOrganisationUnit().getUid(), jsonEnrollment.getOrgUnit(), "orgUnit UID");
-    assertTrue(jsonEnrollment.getArray("events").isEmpty(), "events should be empty");
+    assertEquals(expected.getProgram().getIdentifier(), jsonEnrollment.getProgram(), "program UID");
+    assertEquals(expected.isFollowUp(), jsonEnrollment.getFollowUp(), "followUp");
+    assertEquals(expected.getOrgUnit().getIdentifier(), jsonEnrollment.getOrgUnit(), "orgUnit UID");
+    assertFalse(jsonEnrollment.getArray("events").isEmpty(), "events should be empty");
     assertFalse(
         jsonEnrollment.has("relationships"),
         "relationships is not returned within relationship items");
@@ -165,8 +186,15 @@ public class JsonAssertions {
         () -> "members mismatch between actual: " + actual + ", expected: " + expected);
   }
 
-  public static void assertHasNoMember(JsonObject json, String name) {
-    assertFalse(json.has(name), String.format("member \"%s\" should NOT be in %s", name, json));
+  public static void assertHasNoMember(JsonObject json, String... names) {
+    assertAll(
+        String.format("Unexpected member(s) in %s", json),
+        Arrays.stream(names)
+            .map(
+                name ->
+                    () ->
+                        assertFalse(
+                            json.has(name), String.format("member \"%s\" unexpected ", name))));
   }
 
   public static void assertHasMember(JsonObject json, String name) {
@@ -213,5 +241,14 @@ public class JsonAssertions {
     List<String> reportEntityUids =
         jsonTypeReport.getEntityReport().stream().map(JsonEntity::getUid).toList();
     assertEquals(expectedEntityUids, reportEntityUids);
+  }
+
+  public static void assertPagerLink(String actual, int page, int pageSize, String start) {
+    assertNotNull(actual, "expected a link to a prev/nextPage");
+    assertAll(
+        "asserting link to a prev/nextPage",
+        () -> assertStartsWith(start, actual),
+        () -> Assertions.assertContains("page=" + page, actual),
+        () -> Assertions.assertContains("pageSize=" + pageSize, actual));
   }
 }

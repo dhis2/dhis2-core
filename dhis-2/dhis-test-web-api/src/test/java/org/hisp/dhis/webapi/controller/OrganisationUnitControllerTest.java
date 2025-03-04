@@ -230,6 +230,7 @@ class OrganisationUnitControllerTest extends H2ControllerIntegrationTestBase {
 
   private void assertListOfOrganisationUnits(JsonObject response, String... names) {
     assertContainsOnly(List.of(names), toOrganisationUnitNames(response));
+    assertEquals(names.length, response.getObject("pager").getNumber("total").intValue());
   }
 
   private List<String> toOrganisationUnitNames(JsonObject response) {

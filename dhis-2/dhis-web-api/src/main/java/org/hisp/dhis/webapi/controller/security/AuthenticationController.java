@@ -39,7 +39,9 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationEnrolmentException;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationException;
+import org.hisp.dhis.security.spring2fa.TwoFactorCodeSentException;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
+import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -162,8 +164,18 @@ public class AuthenticationController {
 
       return LoginResponse.builder().loginStatus(STATUS.SUCCESS).redirectUrl(redirectUrl).build();
 
+    } catch (TwoFactorCodeSentException e) {
+      TwoFactorType twoFactorType = e.getType();
+      if (twoFactorType == TwoFactorType.EMAIL_ENABLED) {
+        return LoginResponse.builder().loginStatus(STATUS.EMAIL_TWO_FACTOR_CODE_SENT).build();
+      }
+      return LoginResponse.builder().loginStatus(STATUS.INCORRECT_TWO_FACTOR_CODE_TOTP).build();
     } catch (TwoFactorAuthenticationException e) {
-      return LoginResponse.builder().loginStatus(STATUS.INCORRECT_TWO_FACTOR_CODE).build();
+      TwoFactorType twoFactorType = e.getType();
+      if (twoFactorType == TwoFactorType.EMAIL_ENABLED) {
+        return LoginResponse.builder().loginStatus(STATUS.INCORRECT_TWO_FACTOR_CODE_EMAIL).build();
+      }
+      return LoginResponse.builder().loginStatus(STATUS.INCORRECT_TWO_FACTOR_CODE_TOTP).build();
     } catch (TwoFactorAuthenticationEnrolmentException e) {
       return LoginResponse.builder().loginStatus(STATUS.REQUIRES_TWO_FACTOR_ENROLMENT).build();
     } catch (CredentialsExpiredException e) {

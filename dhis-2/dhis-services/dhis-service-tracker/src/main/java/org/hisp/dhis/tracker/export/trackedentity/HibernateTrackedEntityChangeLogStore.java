@@ -48,16 +48,18 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
 import org.springframework.stereotype.Repository;
 
 @Repository("org.hisp.dhis.tracker.export.trackedentity.HibernateTrackedEntityChangeLogStore")
 public class HibernateTrackedEntityChangeLogStore {
   private static final String COLUMN_CHANGELOG_CREATED = "tecl.created";
   private static final String COLUMN_CHANGELOG_USER = "tecl.createdByUsername";
-  private static final String COLUMN_CHANGELOG_DATA_ELEMENT = "tea.uid";
+  private static final String COLUMN_CHANGELOG_TEA_UID = "tea.uid";
+  private static final String ORDER_ATTRIBUTE_EXPRESSION =
+      "CONCAT(COALESCE(LOWER(tea.formName), ''), COALESCE(LOWER(tea.name), ''))";
 
   private static final String DEFAULT_ORDER =
       COLUMN_CHANGELOG_CREATED + " " + SortDirection.DESC.getValue();
@@ -66,12 +68,12 @@ public class HibernateTrackedEntityChangeLogStore {
       Map.ofEntries(
           entry("createdAt", COLUMN_CHANGELOG_CREATED),
           entry("username", COLUMN_CHANGELOG_USER),
-          entry("attribute", COLUMN_CHANGELOG_DATA_ELEMENT));
+          entry("attribute", ORDER_ATTRIBUTE_EXPRESSION));
 
   private static final Map<Pair<String, Class<?>>, String> FILTERABLE_FIELDS =
       Map.ofEntries(
           entry(Pair.of("username", String.class), COLUMN_CHANGELOG_USER),
-          entry(Pair.of("attribute", UID.class), COLUMN_CHANGELOG_DATA_ELEMENT));
+          entry(Pair.of("attribute", UID.class), COLUMN_CHANGELOG_TEA_UID));
 
   private final EntityManager entityManager;
   private final Session session;
@@ -91,6 +93,9 @@ public class HibernateTrackedEntityChangeLogStore {
       @Nonnull Set<UID> attributes,
       @Nonnull TrackedEntityChangeLogOperationParams operationParams,
       @Nonnull PageParams pageParams) {
+    if (pageParams.isPageTotal()) {
+      throw new UnsupportedOperationException("pageTotal is not supported");
+    }
 
     String hql =
         """
@@ -159,8 +164,9 @@ public class HibernateTrackedEntityChangeLogStore {
           "attributes", attributes.stream().map(UID::getValue).collect(Collectors.toSet()));
     }
 
-    query.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
-    query.setMaxResults(pageParams.getPageSize() + 1);
+    query.setFirstResult(pageParams.getOffset());
+    query.setMaxResults(
+        pageParams.getPageSize() + 1); // get extra changeLog to determine if there is a nextPage
 
     if (filter != null) {
       query.setParameter("filterValue", filter.getValue().getFilter());
@@ -193,18 +199,7 @@ public class HibernateTrackedEntityChangeLogStore {
                 })
             .toList();
 
-    Integer prevPage = pageParams.getPage() > 1 ? pageParams.getPage() - 1 : null;
-    if (trackedEntityChangeLogs.size() > pageParams.getPageSize()) {
-      return Page.withPrevAndNext(
-          trackedEntityChangeLogs.subList(0, pageParams.getPageSize()),
-          pageParams.getPage(),
-          pageParams.getPageSize(),
-          prevPage,
-          pageParams.getPage() + 1);
-    }
-
-    return Page.withPrevAndNext(
-        trackedEntityChangeLogs, pageParams.getPage(), pageParams.getPageSize(), prevPage, null);
+    return new Page<>(trackedEntityChangeLogs, pageParams);
   }
 
   public void deleteTrackedEntityChangeLogs(TrackedEntity trackedEntity) {

@@ -118,7 +118,8 @@ class TrackedEntityAuditStoreTest extends PostgresIntegrationTestBase {
 
     params =
         new TrackedEntityAuditQueryParams()
-            .setAuditTypes(List.of(AuditOperationType.CREATE, AuditOperationType.DELETE));
+            .setAuditTypes(List.of(AuditOperationType.CREATE, AuditOperationType.DELETE))
+            .setUsers(List.of("userA", "userB", "userC", "userD"));
 
     assertContainsOnly(List.of(auditA, auditD), store.getTrackedEntityAudit(params));
 

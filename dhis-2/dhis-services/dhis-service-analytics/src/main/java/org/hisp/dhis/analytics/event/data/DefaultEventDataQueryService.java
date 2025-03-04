@@ -202,7 +202,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
             .withEndpointItem(request.getEndpointItem())
             .withEndpointAction(request.getEndpointAction())
             .withUserOrganisationUnitsCriteria(request.getUserOrganisationUnitCriteria())
-            .withRowContext(request.isRowContext());
+            .withRowContext(request.isRowContext())
+            .withUserOrgUnits(userOrgUnits);
 
     if (analyzeOnly) {
       builder = builder.withSkipData(true).withAnalyzeOrderId();
@@ -406,12 +407,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
    * <p>All possible coordinate fields are collected. The order defines the priority of geometries
    * and is used as a parameters in SQL coalesce function.
    *
-   * @param program the program identifier.
-   * @param coordinateField the coordinate field.
-   * @param fallbackCoordinateField the fallback coordinate field applied if coordinate field in
-   *     result set is null.
-   * @param defaultCoordinateFallback flag for cascade fallback, first not null geometry (coalesce)
-   *     will be applied.
+   * @param request the {@link EventDataQueryRequest}.
    * @return the coordinate column list.
    */
   @Override

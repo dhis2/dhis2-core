@@ -424,6 +424,24 @@ public class DimensionalObjectProvider {
   }
 
   /**
+   * This method will return a list of {@link OrganisationUnit} UIDs based on the given items and
+   * user organisation units.
+   *
+   * @param items the list of items that might be included into the resulting organisation unit and
+   *     its keywords.
+   * @param userOrgUnits the list of organisation units associated with the current user.
+   * @return a list of {@link OrganisationUnit} UIDs.
+   */
+  public List<String> getOrgUnitDimensionUid(
+      List<String> items, List<OrganisationUnit> userOrgUnits) {
+    return getOrgUnitDimensionItems(
+            items, userOrgUnits, IdScheme.UID, new ArrayList<>(), new ArrayList<>())
+        .stream()
+        .map(DimensionalItemObject::getUid)
+        .toList();
+  }
+
+  /**
    * Based on the given parameters, this method will return a list of {@link DimensionalItemObject}
    * of type {@link OrganisationUnit}. It also adds to the given levels and groups if certain
    * internal rules match.

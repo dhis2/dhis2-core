@@ -1,0 +1,114 @@
+/*
+ * Copyright (c) 2004-2025, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.tracker;
+
+import static org.hisp.dhis.feedback.Assertions.assertNoErrors;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
+import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.render.RenderFormat;
+import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
+import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Component;
+
+/**
+ * Setup metadata and tracker data for tests.
+ *
+ * <p>Keep the copies in dhis-test-integration and dhis-test-web-api in sync! We can currently not
+ * share test code between these modules without introducing cycles or adding test code to the main
+ * module.
+ */
+@Component
+public class TestSetup {
+  @Autowired private RenderService renderService;
+
+  @Autowired private ObjectBundleService objectBundleService;
+
+  @Autowired private ObjectBundleValidationService objectBundleValidationService;
+
+  @Autowired private TrackerImportService trackerImportService;
+
+  public ObjectBundle setUpMetadata(String path) throws IOException {
+    return setUpMetadata(path, null);
+  }
+
+  public ObjectBundle setUpMetadata(String path, User user) throws IOException {
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
+        renderService.fromMetadata(new ClassPathResource(path).getInputStream(), RenderFormat.JSON);
+    ObjectBundleParams params = new ObjectBundleParams();
+    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
+    params.setImportStrategy(ImportStrategy.CREATE);
+    params.setObjects(metadata);
+    params.setUser(user);
+    ObjectBundle bundle = objectBundleService.create(params);
+    assertNoErrors(objectBundleValidationService.validate(bundle));
+    objectBundleService.commit(bundle);
+    return bundle;
+  }
+
+  public TrackerObjects setUpTrackerData(String path) throws IOException {
+    TrackerObjects trackerObjects = fromJson(path);
+    assertNoErrors(
+        trackerImportService.importTracker(TrackerImportParams.builder().build(), trackerObjects));
+    return trackerObjects;
+  }
+
+  private TrackerObjects fromJson(String path) throws IOException {
+    return renderService.fromJson(
+        new ClassPathResource(path).getInputStream(), TrackerObjects.class);
+  }
+
+  @Nonnull
+  public TrackedEntity getTrackedEntity(
+      @Nonnull TrackerObjects trackerObjects, @Nonnull String uid) {
+    Optional<TrackedEntity> trackedEntity = trackerObjects.findTrackedEntity(UID.of(uid));
+    assertTrue(
+        trackedEntity.isPresent(),
+        () -> String.format("TrackedEntity with uid '%s' should have been created", uid));
+    return trackedEntity.orElse(null);
+  }
+}

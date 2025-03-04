@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
+import static org.hisp.dhis.http.HttpStatus.BAD_REQUEST;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
-import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContains;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
@@ -43,9 +44,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
@@ -63,9 +67,11 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
@@ -81,6 +87,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.transaction.annotation.Transactional;
@@ -88,6 +97,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestBase {
+  private static final String DELETE_TRACKED_ENTITY_UID = "mHWCacsGYYn";
 
   @Autowired private RenderService renderService;
 
@@ -98,6 +108,8 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
   @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private IdentifiableObjectManager manager;
+
+  private TrackerObjects trackerObjects;
 
   private User importUser;
 
@@ -127,11 +139,13 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
     injectSecurityContextUser(importUser);
 
     TrackerImportParams params = TrackerImportParams.builder().build();
-    assertNoErrors(
-        trackerImportService.importTracker(params, fromJson("tracker/event_and_enrollment.json")));
+    trackerObjects = fromJson("tracker/event_and_enrollment.json");
+    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
 
     manager.flush();
     manager.clear();
+
+    deleteTrackedEntity(UID.of(DELETE_TRACKED_ENTITY_UID));
   }
 
   @BeforeEach
@@ -151,48 +165,42 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
     assertDefaultResponse(enrollment, jsonEnrollment);
   }
 
-  @Test
-  void getEnrollmentByIdWithFields() {
+  @ParameterizedTest
+  @MethodSource("getEnrollment")
+  void getEnrollmentByIdWithFields(BiFunction<Enrollment, String, JsonEnrollment> getEnrollment) {
     Enrollment enrollment = get(Enrollment.class, "TvctPPhpD8z");
 
-    JsonEnrollment jsonEnrollment =
-        GET("/tracker/enrollments/{id}?fields=orgUnit,status", enrollment.getUid())
-            .content(HttpStatus.OK)
-            .as(JsonEnrollment.class);
+    JsonEnrollment jsonEnrollment = getEnrollment.apply(enrollment, "orgUnit,status");
 
     assertHasOnlyMembers(jsonEnrollment, "orgUnit", "status");
     assertEquals(enrollment.getOrganisationUnit().getUid(), jsonEnrollment.getOrgUnit());
     assertEquals(enrollment.getStatus().toString(), jsonEnrollment.getStatus());
   }
 
-  @Test
-  void getEnrollmentByIdWithNotes() {
+  @ParameterizedTest
+  @MethodSource("getEnrollment")
+  void shouldGetEnrollmentWithNotes(BiFunction<Enrollment, String, JsonEnrollment> getEnrollment) {
     Enrollment enrollment = get(Enrollment.class, "TvctPPhpD8z");
     assertNotEmpty(enrollment.getNotes(), "test expects an enrollment with notes");
 
-    JsonEnrollment jsonEnrollment =
-        GET("/tracker/enrollments/{uid}?fields=notes", enrollment.getUid())
-            .content(HttpStatus.OK)
-            .as(JsonEnrollment.class);
+    JsonEnrollment jsonEnrollment = getEnrollment.apply(enrollment, "notes");
 
     JsonNote note = jsonEnrollment.getNotes().get(0);
     assertEquals("f9423652692", note.getNote());
     assertEquals("enrollment comment value", note.getValue());
   }
 
-  @Test
-  void getEnrollmentByIdWithAttributes() {
+  @ParameterizedTest
+  @MethodSource("getEnrollment")
+  void shouldGetEnrollmentsWithAttributes(
+      BiFunction<Enrollment, String, JsonEnrollment> getEnrollment) {
     Enrollment enrollment = get(Enrollment.class, "TvctPPhpD8z");
     assertNotEmpty(
         enrollment.getTrackedEntity().getTrackedEntityAttributeValues(),
         "test expects an enrollment with attribute values");
     TrackedEntityAttribute ptea = get(TrackedEntityAttribute.class, "dIVt4l5vIOa");
 
-    JsonEnrollment jsonEnrollment =
-        GET("/tracker/enrollments/{id}?fields=attributes", enrollment.getUid())
-            .content(HttpStatus.OK)
-            .as(JsonEnrollment.class);
-
+    JsonEnrollment jsonEnrollment = getEnrollment.apply(enrollment, "attributes");
     assertHasOnlyMembers(jsonEnrollment, "attributes");
     JsonAttribute attribute = jsonEnrollment.getAttributes().get(0);
     assertEquals(ptea.getUid(), attribute.getAttribute());
@@ -205,16 +213,44 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
   }
 
   @Test
-  void getEnrollmentByIdWithRelationshipsFields() {
+  void shouldGetEnrollmentWithoutRelationshipsWhenRelationshipIsDeletedAndIncludeDeletedIsFalse() {
     Relationship relationship = get(Relationship.class, "p53a6314631");
+    manager.delete(relationship);
+
     assertNotNull(
         relationship.getTo().getEnrollment(),
         "test expects relationship to have a 'to' enrollment");
     Enrollment enrollment = relationship.getTo().getEnrollment();
 
     JsonList<JsonRelationship> jsonRelationships =
-        GET("/tracker/enrollments/{id}?fields=relationships", enrollment.getUid())
+        GET(
+                "/tracker/enrollments?enrollments={id}&fields=*&includeDeleted=false",
+                enrollment.getUid())
             .content(HttpStatus.OK)
+            .getList("enrollments", JsonEnrollment.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    assertIsEmpty(jsonRelationships.stream().toList());
+  }
+
+  @Test
+  void shouldGetEnrollmentWithRelationshipsWhenRelationshipIsDeletedAndIncludeDeletedIsTrue() {
+    Relationship relationship = get(Relationship.class, "p53a6314631");
+    manager.delete(relationship);
+
+    assertNotNull(
+        relationship.getTo().getEnrollment(),
+        "test expects relationship to have a 'to' enrollment");
+    Enrollment enrollment = relationship.getTo().getEnrollment();
+
+    JsonList<JsonRelationship> jsonRelationships =
+        GET(
+                "/tracker/enrollments?enrollments={id}&fields=*&includeDeleted=true",
+                enrollment.getUid())
+            .content(HttpStatus.OK)
+            .getList("enrollments", JsonEnrollment.class)
+            .get(0)
             .getList("relationships", JsonRelationship.class);
 
     JsonRelationship jsonRelationship =
@@ -229,10 +265,34 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
             assertEquals(
                 relationship.getFrom().getTrackedEntity().getUid(),
                 jsonRelationship.getFrom().getTrackedEntity().getTrackedEntity()),
+        () -> assertHasNoMember(jsonRelationship.getFrom().getTrackedEntity(), "relationships"),
+        () -> assertHasMember(jsonRelationship.getFrom().getTrackedEntity(), "enrollments"),
+        () ->
+            assertHasNoMember(
+                jsonRelationship.getFrom().getTrackedEntity().getEnrollments().get(0),
+                "relationships"),
+        () ->
+            assertHasMember(
+                jsonRelationship.getFrom().getTrackedEntity().getEnrollments().get(0), "events"),
+        () ->
+            assertHasNoMember(
+                jsonRelationship
+                    .getFrom()
+                    .getTrackedEntity()
+                    .getEnrollments()
+                    .get(0)
+                    .getEvents()
+                    .get(0),
+                "relationships"),
         () ->
             assertEquals(
                 relationship.getTo().getEnrollment().getUid(),
                 jsonRelationship.getTo().getEnrollment().getEnrollment()),
+        () -> assertHasNoMember(jsonRelationship.getTo().getEnrollment(), "relationships"),
+        () -> assertHasMember(jsonRelationship.getTo().getEnrollment(), "events"),
+        () ->
+            assertHasNoMember(
+                jsonRelationship.getTo().getEnrollment().getEvents().get(0), "relationships"),
         () -> assertHasMember(jsonRelationship, "relationshipName"),
         () -> assertHasMember(jsonRelationship, "relationshipType"),
         () -> assertHasMember(jsonRelationship, "createdAt"),
@@ -240,17 +300,79 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
         () -> assertHasMember(jsonRelationship, "bidirectional"));
   }
 
-  @Test
-  void getEnrollmentByIdWithEventsFields() {
+  @ParameterizedTest
+  @MethodSource("getEnrollment")
+  void shouldGetEnrollmentWithRelationshipsFields(
+      BiFunction<Enrollment, String, JsonEnrollment> getEnrollment) {
+    Relationship relationship = get(Relationship.class, "p53a6314631");
+    assertNotNull(
+        relationship.getTo().getEnrollment(),
+        "test expects relationship to have a 'to' enrollment");
+    Enrollment enrollment = relationship.getTo().getEnrollment();
+
+    JsonList<JsonRelationship> jsonRelationships =
+        getEnrollment
+            .apply(enrollment, "relationships")
+            .getList("relationships", JsonRelationship.class);
+
+    JsonRelationship jsonRelationship =
+        assertContains(
+            jsonRelationships,
+            re -> relationship.getUid().equals(re.getRelationship()),
+            relationship.getUid());
+
+    assertAll(
+        "relationship JSON",
+        () ->
+            assertEquals(
+                relationship.getFrom().getTrackedEntity().getUid(),
+                jsonRelationship.getFrom().getTrackedEntity().getTrackedEntity()),
+        () -> assertHasNoMember(jsonRelationship.getFrom().getTrackedEntity(), "relationships"),
+        () -> assertHasMember(jsonRelationship.getFrom().getTrackedEntity(), "enrollments"),
+        () ->
+            assertHasNoMember(
+                jsonRelationship.getFrom().getTrackedEntity().getEnrollments().get(0),
+                "relationships"),
+        () ->
+            assertHasMember(
+                jsonRelationship.getFrom().getTrackedEntity().getEnrollments().get(0), "events"),
+        () ->
+            assertHasNoMember(
+                jsonRelationship
+                    .getFrom()
+                    .getTrackedEntity()
+                    .getEnrollments()
+                    .get(0)
+                    .getEvents()
+                    .get(0),
+                "relationships"),
+        () ->
+            assertEquals(
+                relationship.getTo().getEnrollment().getUid(),
+                jsonRelationship.getTo().getEnrollment().getEnrollment()),
+        () -> assertHasNoMember(jsonRelationship.getTo().getEnrollment(), "relationships"),
+        () -> assertHasMember(jsonRelationship.getTo().getEnrollment(), "events"),
+        () ->
+            assertHasNoMember(
+                jsonRelationship.getTo().getEnrollment().getEvents().get(0), "relationships"),
+        () -> assertHasMember(jsonRelationship, "relationshipName"),
+        () -> assertHasMember(jsonRelationship, "relationshipType"),
+        () -> assertHasMember(jsonRelationship, "createdAt"),
+        () -> assertHasMember(jsonRelationship, "updatedAt"),
+        () -> assertHasMember(jsonRelationship, "bidirectional"));
+  }
+
+  @ParameterizedTest
+  @MethodSource("getEnrollment")
+  void shouldGetEnrollmentWithEventsFields(
+      BiFunction<Enrollment, String, JsonEnrollment> getEnrollment) {
     Event event = get(Event.class, "pTzf9KYMk72");
     assertNotNull(event.getEnrollment(), "test expects an event with an enrollment");
     assertNotEmpty(event.getEventDataValues(), "test expects an event with data values");
     EventDataValue eventDataValue = event.getEventDataValues().iterator().next();
 
     JsonList<JsonEvent> jsonEvents =
-        GET("/tracker/enrollments/{id}?fields=events", event.getEnrollment().getUid())
-            .content(HttpStatus.OK)
-            .getList("events", JsonEvent.class);
+        getEnrollment.apply(event.getEnrollment(), "events").getList("events", JsonEvent.class);
 
     JsonEvent jsonEvent = jsonEvents.get(0);
     assertAll(
@@ -275,8 +397,49 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
         },
         () -> assertHasMember(jsonEvent, "status"),
         () -> assertHasMember(jsonEvent, "followUp"),
-        () -> assertHasMember(jsonEvent, "followup"),
         () -> assertEquals(event.isDeleted(), jsonEvent.getDeleted()));
+  }
+
+  @Test
+  void shouldGetSoftDeletedEnrollmentWithEventsWhenIncludeDeletedIsTrue() {
+    Event event = get(Event.class, "pTzf9KYMk72");
+    assertNotNull(event.getEnrollment(), "test expects an event with an enrollment");
+    manager.delete(get(Enrollment.class, event.getEnrollment().getUid()));
+
+    JsonList<JsonEvent> jsonEvents =
+        GET(
+                "/tracker/enrollments?enrollments={id}&fields=events[event]&includeDeleted=true",
+                event.getEnrollment().getUid())
+            .content(HttpStatus.OK)
+            .getList("enrollments", JsonEnrollment.class)
+            .get(0)
+            .getList("events", JsonEvent.class);
+
+    JsonEvent jsonEvent = jsonEvents.get(0);
+    assertEquals(event.getUid(), jsonEvent.getEvent());
+  }
+
+  @Test
+  void shouldGetEnrollmentsByTrackedEntityWhenTrackedEntityIsDeletedAndIncludeDeletedIsTrue() {
+    JsonList<JsonEnrollment> enrollments =
+        GET(
+                "/tracker/enrollments?trackedEntity={te}&includeDeleted=true&fields=deleted,trackedEntity",
+                DELETE_TRACKED_ENTITY_UID)
+            .content(HttpStatus.OK)
+            .getList("enrollments", JsonEnrollment.class);
+
+    enrollments.forEach(
+        en -> {
+          assertTrue(en.getDeleted());
+          assertEquals(DELETE_TRACKED_ENTITY_UID, en.getTrackedEntity());
+        });
+  }
+
+  @Test
+  void
+      shouldGetNotFoundWhenGettingEnrollmentsByTrackedEntityAndTrackedEntityIsDeletedAndIncludeDeletedIsFalse() {
+    GET("/tracker/enrollments?trackedEntity={te}&includeDeleted=false", DELETE_TRACKED_ENTITY_UID)
+        .error(BAD_REQUEST);
   }
 
   @Test
@@ -301,13 +464,26 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
         GET("/tracker/enrollments/Hq3Kc6HK4OZ").error(HttpStatus.NOT_FOUND).getMessage());
   }
 
-  @Test
-  void getEnrollmentsFailsIfGivenEnrollmentAndEnrollmentsParameters() {
-    assertStartsWith(
-        "Only one parameter of 'enrollment' (deprecated",
-        GET("/tracker/enrollments?enrollment=IsdLBTOBzMi&enrollments=IsdLBTOBzMi")
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
+  private Stream<Arguments> getEnrollment() {
+    return Stream.of(
+        Arguments.of(getEnrollmentFromSingleEnrollmentEndpoint()),
+        Arguments.of(getEnrollmentFromEnrollmentsEndpoint()));
+  }
+
+  private BiFunction<Enrollment, String, JsonEnrollment> getEnrollmentFromEnrollmentsEndpoint() {
+    return (Enrollment enrollment, String fields) ->
+        GET("/tracker/enrollments?enrollments={id}&fields={fields}", enrollment.getUid(), fields)
+            .content(HttpStatus.OK)
+            .getList("enrollments", JsonEnrollment.class)
+            .get(0);
+  }
+
+  private BiFunction<Enrollment, String, JsonEnrollment>
+      getEnrollmentFromSingleEnrollmentEndpoint() {
+    return (Enrollment enrollment, String fields) ->
+        GET("/tracker/enrollments/{id}?fields={fields}", enrollment.getUid(), fields)
+            .content(HttpStatus.OK)
+            .as(JsonEnrollment.class);
   }
 
   private void assertDefaultResponse(Enrollment expected, JsonEnrollment actual) {
@@ -328,6 +504,25 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
     assertHasNoMember(actual, "relationships");
     assertHasNoMember(actual, "events");
     assertHasNoMember(actual, "attributes");
+  }
+
+  private TrackedEntity deleteTrackedEntity(UID uid) {
+    TrackedEntity trackedEntity = get(TrackedEntity.class, uid.getValue());
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity deletedTrackedEntity =
+        trackerObjects.getTrackedEntities().stream()
+            .filter(te -> te.getTrackedEntity().equals(uid))
+            .findFirst()
+            .get();
+
+    TrackerObjects deleteTrackerObjects =
+        TrackerObjects.builder().trackedEntities(List.of(deletedTrackedEntity)).build();
+    assertNoErrors(
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build(),
+            deleteTrackerObjects));
+    manager.clear();
+    manager.flush();
+    return trackedEntity;
   }
 
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {

@@ -176,23 +176,21 @@ public class TrackerImportExportActions extends RestApiActions {
   public void overrideOwnership(String te, String program, String reason) {
     this.post(
             String.format(
-                "/ownership/override?trackedEntityInstance=%s&program=%s&reason=%s",
-                te, program, reason),
+                "/ownership/override?trackedEntity=%s&program=%s&reason=%s", te, program, reason),
             new JsonObject())
         .validateStatus(200);
   }
 
   public void transferOwnership(String te, String program, String ou) {
     this.update(
-            String.format(
-                "/ownership/transfer?trackedEntityInstance=%s&program=%s&ou=%s", te, program, ou),
+            String.format("/ownership/transfer?trackedEntity=%s&program=%s&ou=%s", te, program, ou),
             new JsonObject())
         .validateStatus(200);
   }
 
   private void saveCreatedData(ApiResponse response) {
     String[] val = {
-      "TRACKED_ENTITY,/trackedEntityInstances",
+      "TRACKED_ENTITY,/trackedEntities",
       "EVENT,/events",
       "ENROLLMENT,/enrollments",
       "RELATIONSHIP,/relationships"

@@ -284,6 +284,11 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
         conditionA, thenResultA, conditionB, thenResultB, elseResult);
   }
 
+  @Override
+  public String log10(String expression) {
+    return String.format("log10(%s)", expression);
+  }
+
   // Statements
 
   @Override

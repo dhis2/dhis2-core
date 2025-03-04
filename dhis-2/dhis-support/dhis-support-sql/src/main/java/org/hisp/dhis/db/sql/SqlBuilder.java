@@ -339,6 +339,15 @@ public interface SqlBuilder {
   String ifThen(String condition, String result);
 
   /**
+   * Generates a SQL fragment that computes the base-10 logarithm of the specified expression.
+   *
+   * @param expression a valid SQL numeric expression or column name for which to compute the
+   *     logarithm.
+   * @return a SQL fragment that calculates the base-10 logarithm of the given expression.
+   */
+  String log10(String expression);
+
+  /**
    * Returns a conditional statement.
    *
    * @param condition the condition to evaluate.
@@ -483,13 +492,4 @@ public interface SqlBuilder {
    * @return in insert into select from statement.
    */
   String insertIntoSelectFrom(Table intoTable, String fromTable);
-
-  /** Enumeration of time units. */
-  enum DateUnit {
-    DAYS,
-    WEEKS,
-    MONTHS,
-    MINUTES,
-    YEARS
-  }
 }

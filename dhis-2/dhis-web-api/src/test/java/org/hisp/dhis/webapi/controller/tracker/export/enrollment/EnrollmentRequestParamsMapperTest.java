@@ -97,17 +97,6 @@ class EnrollmentRequestParamsMapperTest {
   }
 
   @Test
-  void testMappingOrgUnit() throws BadRequestException {
-    EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
-    enrollmentRequestParams.setOrgUnit(ORG_UNIT_1_UID.getValue() + ";" + ORG_UNIT_2_UID.getValue());
-    enrollmentRequestParams.setProgram(PROGRAM_UID);
-
-    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
-
-    assertContainsOnly(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID), params.getOrgUnits());
-  }
-
-  @Test
   void testMappingOrgUnits() throws BadRequestException {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
     enrollmentRequestParams.setOrgUnits(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID));
@@ -126,28 +115,6 @@ class EnrollmentRequestParamsMapperTest {
     EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
     assertEquals(OrganisationUnitSelectionMode.CAPTURE, params.getOrgUnitMode());
-  }
-
-  @Test
-  void shouldMapOrgUnitModeGivenOuModeParam() throws BadRequestException {
-    EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
-    enrollmentRequestParams.setOuMode(OrganisationUnitSelectionMode.CAPTURE);
-
-    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
-
-    assertEquals(OrganisationUnitSelectionMode.CAPTURE, params.getOrgUnitMode());
-  }
-
-  @Test
-  void shouldThrowIfDeprecatedAndNewOrgUnitModeParameterIsSet() {
-    EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
-    enrollmentRequestParams.setOuMode(OrganisationUnitSelectionMode.SELECTED);
-    enrollmentRequestParams.setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
-
-    BadRequestException exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(enrollmentRequestParams));
-
-    assertStartsWith("Only one parameter of 'ouMode' and 'orgUnitMode'", exception.getMessage());
   }
 
   @Test

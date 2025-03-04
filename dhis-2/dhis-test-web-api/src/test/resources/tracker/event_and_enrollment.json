@@ -346,6 +346,13 @@
             "identifier": "dIVt4l5vIOa"
           },
           "value": "Frank PTEA"
+        },
+        {
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "fRGt4l6yIRb"
+          },
+          "value": "Test PTEA"
         }
       ],
       "notes": [
@@ -750,7 +757,11 @@
           },
           "value": "1.5"
         }
-      ]
+      ],
+      "assignedUser": {
+        "uid": "lPaILkLkgOM",
+        "username": "testuser"
+      }
     },
     {
       "event": "kWjSezkXHVp",
@@ -1168,6 +1179,45 @@
       },
       "to": {
         "enrollment": "nxP7UnKhomJ"
+      }
+    },
+    {
+      "relationship": "rSXvGDlJRBT",
+      "relationshipType": {
+        "idScheme": "UID",
+        "identifier": "xLmPUYJX8Ks"
+      },
+      "from": {
+        "trackedEntity": "guVNoAerxWo"
+      },
+      "to": {
+        "enrollment": "ipBifypAQTo"
+      }
+    },
+    {
+      "relationship": "rq1MGCJ8hlq",
+      "relationshipType": {
+        "idScheme": "UID",
+        "identifier": "TV9oB9LT3sh"
+      },
+      "from": {
+        "trackedEntity": "H8732208127"
+      },
+      "to": {
+        "event": "LCSfHnurnNB"
+      }
+    },
+    {
+      "relationship": "wVsN59nBTmc",
+      "relationshipType": {
+        "idScheme": "UID",
+        "identifier": "xLmPUYJX8Ks"
+      },
+      "from": {
+        "trackedEntity": "woitxQbWYNq"
+      },
+      "to": {
+        "enrollment": "TvctPPhpD8z"
       }
     }
   ],

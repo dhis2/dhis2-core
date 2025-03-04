@@ -131,8 +131,8 @@ class DefaultExportServiceTest extends PostgresIntegrationTestBase {
   @SuppressWarnings("unchecked")
   void exportMetaDataTest() throws IOException, XPathExpressionException {
     MetadataExportParams params = new MetadataExportParams();
-    params.addQuery(Query.from(schemaService.getSchema(DataElement.class)));
-    params.addQuery(Query.from(schemaService.getSchema(OrganisationUnit.class)));
+    params.addQuery(Query.of(DataElement.class));
+    params.addQuery(Query.of(OrganisationUnit.class));
     Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadataMap =
         exportService.getMetadata(params);
     Metadata metadata = new Metadata();

@@ -50,7 +50,9 @@ import org.hisp.dhis.eventhook.EventHookPublisher;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.AuthenticationService;
 import org.hisp.dhis.user.UserDetails;
@@ -257,19 +259,25 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   }
 
   private JobProgress startRecording(@Nonnull JobConfiguration job, @Nonnull Runnable observer) {
-    JobProgress tracker =
-        job.getJobType().isUsingNotifications()
-            ? new NotifierJobProgress(notifier, job)
-            : JobProgress.noop();
-    boolean logInfoOnDebug =
-        job.getSchedulingType() != SchedulingType.ONCE_ASAP
-            && job.getLastExecuted() != null
-            && Duration.between(job.getLastExecuted().toInstant(), Instant.now()).getSeconds()
-                < settingsProvider.getCurrentSettings().getJobsLogDebugBelowSeconds();
+    SystemSettings settings = settingsProvider.getCurrentSettings();
+    boolean nonVerboseLogging = isNonVerboseLogging(job, settings);
+    NotificationLevel level =
+        job.getJobType().isUsingNotifications() && !nonVerboseLogging
+            ? settings.getNotifierLogLevel()
+            : NotificationLevel.ERROR;
+    JobProgress tracker = new NotifierJobProgress(notifier, job, level);
     RecordingJobProgress progress =
-        new RecordingJobProgress(messages, job, tracker, true, observer, logInfoOnDebug, false);
+        new RecordingJobProgress(messages, job, tracker, true, observer, nonVerboseLogging, false);
     recordingsById.put(job.getUid(), progress);
     return progress;
+  }
+
+  private static boolean isNonVerboseLogging(
+      @Nonnull JobConfiguration job, SystemSettings settings) {
+    return job.getSchedulingType() != SchedulingType.ONCE_ASAP
+        && job.getLastExecuted() != null
+        && Duration.between(job.getLastExecuted().toInstant(), Instant.now()).getSeconds()
+            < settings.getJobsLogDebugBelowSeconds();
   }
 
   private void stopRecording(@Nonnull String jobId) {

@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.db.sql;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.DataType;
@@ -215,6 +217,15 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public String concat(String... columns) {
+    return "concat("
+        + Arrays.stream(columns)
+            .map(this::wrapTrimNullIf) // Adjust wrapping logic
+            .collect(Collectors.joining(", "))
+        + ")";
+  }
+
+  @Override
   public String differenceInSeconds(String columnA, String columnB) {
     return String.format("(unix_timestamp(%s) - unix_timestamp(%s))", columnA, columnB);
   }
@@ -280,6 +291,11 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return String.format(
         "case when %s then %s when %s then %s else %s end",
         conditionA, thenResultA, conditionB, thenResultB, elseResult);
+  }
+
+  @Override
+  public String log10(String expression) {
+    return String.format("log(%s, 10)", expression);
   }
 
   // Statements
@@ -445,6 +461,8 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   /**
+   * Returns a create catalog statement.
+   *
    * @param connectionUrl the JDBC connection URL.
    * @param username the JDBC connection username.
    * @param password the JDBC connection password.
@@ -468,6 +486,28 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
             "password", password,
             "connection_url", connectionUrl,
             "driver_filename", driverFilename));
+  }
+
+  /**
+   * Ensures {@code trim(nullif(...))} regardless of incoming column formatting.
+   *
+   * @param column the column to be wrapped.
+   * @return the wrapped column.
+   */
+  private String wrapTrimNullIf(String column) {
+    // If the column is a literal, return it as is
+    if (isSingleQuoted(column)) {
+      return column;
+    }
+
+    // If the column already contains 'trim', insert 'nullif' inside 'trim'
+    if (column.startsWith("trim(")) {
+      String innerValue = column.substring(5, column.length() - 1);
+      return "trim(nullif('', " + innerValue + "))";
+    }
+
+    // For other cases, apply both 'trim' and 'nullif'
+    return "trim(nullif('', " + column + "))";
   }
 
   /**

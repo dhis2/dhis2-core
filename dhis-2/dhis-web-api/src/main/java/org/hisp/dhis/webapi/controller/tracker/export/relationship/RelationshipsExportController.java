@@ -29,11 +29,13 @@ package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
 import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationParameters;
+import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
 import static org.hisp.dhis.webapi.controller.tracker.export.relationship.RelationshipRequestParams.DEFAULT_FIELDS_PARAM;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -43,7 +45,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
@@ -99,17 +101,18 @@ class RelationshipsExportController {
       // use the text/html Accept header to default to a Json response when a generic request comes
       // from a browser
       )
-  ResponseEntity<Page<ObjectNode>> getRelationships(RelationshipRequestParams requestParams)
+  ResponseEntity<Page<ObjectNode>> getRelationships(
+      RelationshipRequestParams requestParams, HttpServletRequest request)
       throws NotFoundException, BadRequestException, ForbiddenException {
     validatePaginationParameters(requestParams);
     RelationshipOperationParams operationParams = mapper.map(requestParams);
 
-    if (requestParams.isPaged()) {
+    if (requestParams.isPaging()) {
       PageParams pageParams =
           new PageParams(
-              requestParams.getPage(), requestParams.getPageSize(), requestParams.getTotalPages());
+              requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
 
-      org.hisp.dhis.tracker.export.Page<org.hisp.dhis.relationship.Relationship> relationshipsPage =
+      org.hisp.dhis.tracker.Page<org.hisp.dhis.relationship.Relationship> relationshipsPage =
           relationshipService.getRelationships(operationParams, pageParams);
       List<Relationship> relationships =
           relationshipsPage.getItems().stream().map(RELATIONSHIP_MAPPER::map).toList();
@@ -118,7 +121,9 @@ class RelationshipsExportController {
 
       return ResponseEntity.ok()
           .contentType(MediaType.APPLICATION_JSON)
-          .body(Page.withPager(RELATIONSHIPS, relationshipsPage.withItems(objectNodes)));
+          .body(
+              Page.withFullPager(
+                  RELATIONSHIPS, relationshipsPage.withItems(objectNodes), getRequestURL(request)));
     }
 
     List<Relationship> relationships =

@@ -93,10 +93,11 @@ class SystemSettingsTest {
   @Test
   void testKeysWithDefaults() {
     Set<String> keys = SystemSettings.keysWithDefaults();
-    assertEquals(139, keys.size());
+    assertEquals(142, keys.size());
     // just check some at random
     assertTrue(keys.contains("syncSkipSyncForDataChangedBefore"));
     assertTrue(keys.contains("keyTrackerDashboardLayout"));
+    assertTrue(keys.contains("experimentalAnalyticsSqlEngineEnabled"));
   }
 
   @Test
@@ -225,6 +226,14 @@ class SystemSettingsTest {
     assertTrue(settings.isValid("keyLastMonitoringRun", date));
     assertFalse(settings.isValid("keyLastMonitoringRun", "hello"));
     assertFalse(settings.isValid("keyLastMonitoringRun", "true"));
+  }
+
+  @Test
+  void testIsValid_Reset() {
+    SystemSettings settings = SystemSettings.of(Map.of("keyCacheStrategy", "NO_CACHE"));
+    assertEquals(CacheStrategy.NO_CACHE, settings.getCacheStrategy());
+    assertTrue(settings.isValid("keyCacheStrategy", ""));
+    assertTrue(settings.isValid("keyCacheStrategy", null));
   }
 
   @Test

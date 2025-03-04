@@ -16,6 +16,10 @@ Get a tracked entity with given UID.
 
 ### `getTrackedEntityByUid.parameter.program`
 
+Get tracked entity with tracked entity attribute and enrollment data from the specified tracker
+program. The ownership of the given `program` will be used to determine access to the tracked
+entity.
+
 ### `getTrackedEntityByUid.parameter.fields`
 
 Get only the specified fields in the JSON response. This query parameter allows you to remove
@@ -65,28 +69,41 @@ and program attributes too.
 
 `<orgUnit1-uid>[,<orgUnit2-uid>...]`
 
-Get tracked entities owned by given `orgUnit`.
+Get tracked entities and enrollments owned by given orgUnits relative to the `orgUnitMode` and
+`program` parameters. If a `program` is provided, the ownership is determied with this program. When
+no program is provided, the registration orgUnit for the tracked entity would be used to determine
+ownership.
 
-### `*.parameter.TrackedEntityRequestParams.orgUnit`
-
-**DEPRECATED as of 2.41:** Use parameter `orgUnits` instead where UIDs have to be separated by
-comma!
-
-`<orgUnit1-uid>[;<orgUnit2-uid>...]`
-
-Get tracked entities owned by given `orgUnit`.
+- When `orgUnitMode=SELECTED` - or no `orgUnitMode` is given (default) - the tracked entities or
+  enrollments owned by the `orgUnits` are returned.
+- When `orgUnitMode=CHILDREN` the tracked entities or enrollments owned by the orgUnits or by the
+  orgUnits direct children is returned.
+- When `orgUnitMode=DESCENDANTS` the tracked entities or enrollments owned by the orgUnits or any of
+  its descendants are returned.
+- When `orgUnitMode=ALL`, `orgUnitMode=CAPTURE` or `orgUnitMode=ACCESSIBLE` the `orgUnits` parameter
+  is not allowed.
 
 ### `*.parameter.TrackedEntityRequestParams.orgUnitMode`
 
-Get tracked entities using given organisation unit mode.
+Get tracked entities and enrollments using given `orgUnitMode` and `program` parameters. If a
+`program` is provided, the ownership is determied with this program. When no program is provided,
+the registration organisation unit for the tracked entity would be used to determine ownership.
 
-### `*.parameter.TrackedEntityRequestParams.ouMode`
-
-**DEPRECATED as of 2.41:** Use parameter `orgUnitMode` instead.
-
-Get tracked entities using given organisation unit mode.
+- When `orgUnitMode=SELECTED`, `orgUnitMode=CHILDREN` or `orgUnitMode=DESCENDANTS`, the `orgUnit`
+  parameter is required to specify which tracked entities or enrollments to return.
+- When `orgUnitMode=ALL` tracked entities or enrollments will be downloaded irrespective of the
+  organization unit they are owned by. To use this parameter, the user needs the `Search Tracked
+  entity in all org units` authority.
+- When `orgUnitMode=ACCESSIBLE` tracked entities or enrollments owned by any organisation unit in the
+  users capture scope will be returned.
+- When `orgUnitMode=CAPTURE` tracked entities or enrollments that has an enrollment organisation unit
+  in the users capture scope will be returned.
 
 ### `*.parameter.TrackedEntityRequestParams.program`
+
+Get tracked entities with tracked entity attribute and enrollment data from the specified tracker
+program. The ownership of the given `program` will be used to determine access to the tracked
+entities. Only tracked entities with an enrollment into the `program` will be returned.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentStatus`
 
@@ -144,15 +161,6 @@ This parameter is inclusive, so results with the exact date and time specified w
 
 Get tracked entities with given UID(s).
 
-### `*.parameter.TrackedEntityRequestParams.trackedEntity`
-
-**DEPRECATED as of 2.41:** Use parameter `trackedEntities` instead where UIDs have to be separated
-by comma!
-
-`<trackedEntity1-uid>[;<trackedEntity2-uid>...]`
-
-Get tracked entities with given UID(s).
-
 ### `*.parameter.TrackedEntityRequestParams.assignedUserMode`
 
 Get tracked entities with events assigned to users according to the specified user mode. By default,
@@ -161,16 +169,6 @@ all events will be retrieved, regardless of whether a user is assigned.
 ### `*.parameter.TrackedEntityRequestParams.assignedUsers`
 
 `<user1-uid>[,<user2-uid>...]`
-
-Get tracked entities with an event assigned to given user(s). Specifying `assignedUsers` is only
-valid if `assignedUserMode` is either `PROVIDED` or not specified.
-
-### `*.parameter.TrackedEntityRequestParams.assignedUser`
-
-**DEPRECATED as of 2.41:** Use parameter `assignedUsers` instead where UIDs have to be separated by
-comma!
-
-`<user1-uid>[;<user2-uid>...]`
 
 Get tracked entities with an event assigned to given user(s). Specifying `assignedUsers` is only
 valid if `assignedUserMode` is either `PROVIDED` or not specified.
