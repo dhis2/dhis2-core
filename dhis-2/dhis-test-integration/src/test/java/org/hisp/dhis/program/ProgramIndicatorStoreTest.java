@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
@@ -96,5 +97,24 @@ class ProgramIndicatorStoreTest extends PostgresIntegrationTestBase {
     assertTrue(
         programIndicators.containsAll(List.of(pi1, pi2)),
         "retrieved result set should contain 2 program indicators");
+  }
+
+  @Test
+  @DisplayName("retrieving ProgramIndicator with category mapping IDs returns expected entries")
+  void programIndicatorWithCategoryMappingIdsTest() {
+    // given
+    Program program = createProgram('p');
+    identifiableObjectManager.save(program);
+
+    Set<String> ids = Set.of("OIR9ahphaec", "IOhquup3yoo", "Sasiayi0Jee", "QUfahM4tho3");
+    ProgramIndicator pi = createProgramIndicator('1', program, "#{999999.de1}", "");
+    pi.setCategoryMappingIds(ids);
+    programIndicatorStore.save(pi);
+
+    // when
+    ProgramIndicator result = programIndicatorStore.getByUid(pi.getUid());
+
+    // then
+    assertEquals(ids, result.getCategoryMappingIds());
   }
 }

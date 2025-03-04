@@ -133,7 +133,7 @@ class EventRequestParamsMapperTest {
   private TrackerIdSchemeParams idSchemeParams;
 
   @BeforeEach
-  void setUp() throws ForbiddenException, NotFoundException, BadRequestException {
+  void setUp() throws ForbiddenException, NotFoundException {
     User user = new User();
 
     when(userService.getUserByUsername(null)).thenReturn(user);
@@ -444,7 +444,8 @@ class EventRequestParamsMapperTest {
 
     Map<UID, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
     assertNotNull(dataElementFilters);
-    Map<UID, List<QueryFilter>> expected = Map.of(DE_1_UID, List.of());
+    Map<UID, List<QueryFilter>> expected =
+        Map.of(DE_1_UID, List.of(new QueryFilter(QueryOperator.NNULL)));
     assertEquals(expected, dataElementFilters);
   }
 
@@ -504,7 +505,8 @@ class EventRequestParamsMapperTest {
 
     Map<UID, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
     assertNotNull(attributeFilters);
-    Map<UID, List<QueryFilter>> expected = Map.of(TEA_1_UID, List.of());
+    Map<UID, List<QueryFilter>> expected =
+        Map.of(TEA_1_UID, List.of(new QueryFilter(QueryOperator.NNULL)));
     assertEquals(expected, attributeFilters);
   }
 

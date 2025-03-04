@@ -248,12 +248,9 @@ class EventOperationParamsMapperTest {
 
     EventOperationParams operationParams =
         eventBuilder
-            .attributeFilters(
-                Map.of(
-                    UID.of(TEA_1_UID),
-                    List.of(new QueryFilter(QueryOperator.EQ, "2")),
-                    UID.of(TEA_2_UID),
-                    List.of(new QueryFilter(QueryOperator.LIKE, "foo"))))
+            .filterByAttribute(UID.of(TEA_1_UID), List.of(new QueryFilter(QueryOperator.EQ, "2")))
+            .filterByAttribute(
+                UID.of(TEA_2_UID), List.of(new QueryFilter(QueryOperator.LIKE, "foo")))
             .build();
 
     EventQueryParams queryParams = mapper.map(operationParams, user);
@@ -272,8 +269,7 @@ class EventOperationParamsMapperTest {
   @Test
   void shouldFailWhenAttributeInGivenAttributeFilterDoesNotExist() {
     UID filterName = UID.generate();
-    EventOperationParams operationParams =
-        eventBuilder.attributeFilters(Map.of(filterName, List.of())).build();
+    EventOperationParams operationParams = eventBuilder.filterByAttribute(filterName).build();
 
     when(trackedEntityAttributeService.getTrackedEntityAttribute(filterName.getValue()))
         .thenReturn(null);
@@ -361,14 +357,12 @@ class EventOperationParamsMapperTest {
 
     EventOperationParams operationParams =
         eventBuilder
-            .dataElementFilters(
-                Map.of(
-                    UID.of(DE_1_UID),
-                    List.of(
-                        new QueryFilter(QueryOperator.EQ, "2"),
-                        new QueryFilter(QueryOperator.NNULL)),
-                    UID.of(DE_2_UID),
-                    List.of(new QueryFilter(QueryOperator.LIKE, "foo"))))
+            .filterByDataElement(
+                UID.of(DE_1_UID),
+                List.of(
+                    new QueryFilter(QueryOperator.EQ, "2"), new QueryFilter(QueryOperator.NNULL)))
+            .filterByDataElement(
+                UID.of(DE_2_UID), List.of(new QueryFilter(QueryOperator.LIKE, "foo")))
             .build();
 
     EventQueryParams queryParams = mapper.map(operationParams, user);
@@ -387,8 +381,7 @@ class EventOperationParamsMapperTest {
   @Test
   void shouldFailWhenDataElementInGivenDataElementFilterDoesNotExist() {
     UID filterName = UID.generate();
-    EventOperationParams operationParams =
-        eventBuilder.dataElementFilters(Map.of(filterName, List.of())).build();
+    EventOperationParams operationParams = eventBuilder.filterByDataElement(filterName).build();
 
     when(dataElementService.getDataElement(filterName.getValue())).thenReturn(null);
 

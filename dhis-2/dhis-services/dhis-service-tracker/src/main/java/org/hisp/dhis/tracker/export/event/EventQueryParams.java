@@ -444,7 +444,7 @@ class EventQueryParams {
 
   /** Returns attributes that are only ordered by and not present in any filter. */
   public Set<TrackedEntityAttribute> leftJoinAttributes() {
-    return SetUtils.difference(getOrderAttributes().keySet(), this.attributes.keySet());
+    return SetUtils.union(getOrderAttributes().keySet(), this.attributes.keySet());
   }
 
   public Map<TrackedEntityAttribute, List<QueryFilter>> getAttributes() {

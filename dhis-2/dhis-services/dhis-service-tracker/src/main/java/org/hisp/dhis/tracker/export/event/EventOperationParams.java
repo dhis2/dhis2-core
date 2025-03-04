@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -43,6 +44,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
@@ -125,13 +127,13 @@ public class EventOperationParams {
    */
   private List<Order> order;
 
-  @Builder.Default private Set<UID> events = new HashSet<>();
-
   /** Data element filters per data element UID. */
-  @Builder.Default private Map<UID, List<QueryFilter>> dataElementFilters = new HashMap<>();
+  private final Map<UID, List<QueryFilter>> dataElementFilters;
 
   /** Tracked entity attribute filters per attribute UID. */
-  @Builder.Default private Map<UID, List<QueryFilter>> attributeFilters = new HashMap<>();
+  private final Map<UID, List<QueryFilter>> attributeFilters;
+
+  @Builder.Default private Set<UID> events = new HashSet<>();
 
   private boolean includeDeleted;
 
@@ -150,6 +152,10 @@ public class EventOperationParams {
   public static class EventOperationParamsBuilder {
 
     private final List<Order> order = new ArrayList<>();
+
+    private Map<UID, List<QueryFilter>> dataElementFilters = new HashMap<>();
+
+    private Map<UID, List<QueryFilter>> attributeFilters = new HashMap<>();
 
     // Do not remove this unused method. This hides the order field from the builder which Lombok
     // does not support. The repeated order field and private order method prevent access to order
@@ -206,6 +212,51 @@ public class EventOperationParams {
 
     public EventOperationParamsBuilder trackedEntity(TrackedEntity trackedEntity) {
       this.trackedEntity = UID.of(trackedEntity);
+      return this;
+    }
+
+    // Do not remove this unused method. This hides the data element filters field from the builder
+    // which Lombok
+    // does not support. The repeated field and private method prevent access to
+    // the filter map via the builder.
+    // Filters should be added via the filterByDataElement builder methods.
+    private EventOperationParamsBuilder dataElementFilters(
+        Map<UID, List<QueryFilter>> dataElementFilters) {
+      return this;
+    }
+
+    // Do not remove this unused method. This hides the attribute filters field from the builder
+    // which Lombok
+    // does not support. The repeated field and private method prevent access to the filter map via
+    // the builder.
+    // Filters should be added via the filterByAttribute builder methods.
+    private EventOperationParamsBuilder attributeFilters(
+        Map<UID, List<QueryFilter>> attributeFilters) {
+      return this;
+    }
+
+    public EventOperationParamsBuilder filterByDataElement(
+        @Nonnull UID attribute, @Nonnull List<QueryFilter> queryFilters) {
+      this.dataElementFilters.putIfAbsent(attribute, new ArrayList<>());
+      this.dataElementFilters.get(attribute).addAll(queryFilters);
+      return this;
+    }
+
+    public EventOperationParamsBuilder filterByDataElement(@Nonnull UID dataElement) {
+      this.dataElementFilters.putIfAbsent(
+          dataElement, List.of(new QueryFilter(QueryOperator.NNULL)));
+      return this;
+    }
+
+    public EventOperationParamsBuilder filterByAttribute(
+        @Nonnull UID attribute, @Nonnull List<QueryFilter> queryFilters) {
+      this.attributeFilters.putIfAbsent(attribute, new ArrayList<>());
+      this.attributeFilters.get(attribute).addAll(queryFilters);
+      return this;
+    }
+
+    public EventOperationParamsBuilder filterByAttribute(@Nonnull UID attribute) {
+      this.attributeFilters.putIfAbsent(attribute, List.of(new QueryFilter(QueryOperator.NNULL)));
       return this;
     }
   }

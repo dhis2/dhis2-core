@@ -28,6 +28,7 @@
 package org.hisp.dhis.audit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -90,7 +91,7 @@ class AuditRepositoryTest extends PostgresIntegrationTestBase {
             .data("{}")
             .build();
     long id = auditRepository.save(audit);
-    assertEquals(1, id);
+    assertNotEquals(0, id, "audit should have been saved");
     audit.setId(id);
     auditRepository.delete(audit);
     List<Audit> audits = auditRepository.query(AuditQuery.builder().build());

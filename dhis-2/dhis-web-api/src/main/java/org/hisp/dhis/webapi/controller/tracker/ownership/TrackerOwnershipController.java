@@ -110,7 +110,7 @@ public class TrackerOwnershipController {
   @ResponseBody
   public WebMessage grantTemporaryAccess(
       @RequestParam UID trackedEntity, @RequestParam String reason, @RequestParam UID program)
-      throws BadRequestException, ForbiddenException, NotFoundException {
+      throws ForbiddenException, NotFoundException {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     trackerOwnershipAccessManager.grantTemporaryOwnership(
         trackedEntityService.getTrackedEntity(trackedEntity),

@@ -32,7 +32,6 @@ import static org.hisp.dhis.tracker.imports.sms.SmsImportMapper.map;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.message.MessageSender;
@@ -103,7 +102,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener {
               TrackedEntityParams.FALSE.withIncludeAttributes(true));
     } catch (NotFoundException e) {
       // new TE will be created
-    } catch (ForbiddenException | BadRequestException e) {
+    } catch (ForbiddenException e) {
       // TODO(DHIS2-18003) we need to map tracker import report errors/warnings to an sms
       return SmsResponse.UNKNOWN_ERROR;
     }

@@ -27,29 +27,22 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
-import org.hisp.dhis.tracker.acl.TrackerAccessManager;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,11 +52,7 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
 
   private final TrackedEntityService trackedEntityService;
 
-  private final ProgramService programService;
-
   private final TrackedEntityAttributeService trackedEntityAttributeService;
-
-  private final TrackerAccessManager trackerAccessManager;
 
   private final HibernateTrackedEntityChangeLogStore hibernateTrackedEntityChangeLogStore;
 
@@ -72,8 +61,8 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
   public void addTrackedEntityChangeLog(
       @Nonnull TrackedEntity trackedEntity,
       @Nonnull TrackedEntityAttribute trackedEntityAttribute,
-      @Nullable String previousValue,
-      @Nullable String currentValue,
+      @CheckForNull String previousValue,
+      @CheckForNull String currentValue,
       @Nonnull ChangeLogType changeLogType,
       @Nonnull String username) {
 
@@ -96,28 +85,25 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
     hibernateTrackedEntityChangeLogStore.deleteTrackedEntityChangeLogs(trackedEntity);
   }
 
+  @Nonnull
   @Override
   @Transactional(readOnly = true)
   public Page<TrackedEntityChangeLog> getTrackedEntityChangeLog(
       @Nonnull UID trackedEntityUid,
-      @Nullable UID programUid,
+      @CheckForNull UID programUid,
       @Nonnull TrackedEntityChangeLogOperationParams operationParams,
       @Nonnull PageParams pageParams)
-      throws NotFoundException, ForbiddenException, BadRequestException {
-    TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity(trackedEntityUid);
-    if (trackedEntity == null) {
-      throw new NotFoundException(TrackedEntity.class, trackedEntityUid.getValue());
-    }
+      throws NotFoundException, ForbiddenException {
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            trackedEntityUid, programUid, TrackedEntityParams.FALSE.withIncludeAttributes(true));
 
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    Set<UID> trackedEntityAttributes = Collections.emptySet();
-    if (programUid != null) {
-      Program program = validateProgram(programUid.getValue());
-      validateOwnership(currentUser, trackedEntity, program);
-    } else {
-      validateTrackedEntity(currentUser, trackedEntity);
-      trackedEntityAttributes = validateTrackedEntityAttributes(trackedEntity);
-    }
+    Set<UID> trackedEntityAttributes =
+        trackedEntityAttributeService
+            .getTrackedEntityTypeAttributes(trackedEntity.getTrackedEntityType())
+            .stream()
+            .map(UID::of)
+            .collect(Collectors.toSet());
 
     return hibernateTrackedEntityChangeLogStore.getTrackedEntityChangeLogs(
         trackedEntityUid, programUid, trackedEntityAttributes, operationParams, pageParams);
@@ -132,44 +118,5 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
   @Override
   public Set<Pair<String, Class<?>>> getFilterableFields() {
     return hibernateTrackedEntityChangeLogStore.getFilterableFields();
-  }
-
-  private Program validateProgram(String programUid) throws NotFoundException {
-    Program program = programService.getProgram(programUid);
-    if (program == null) {
-      throw new NotFoundException(Program.class, programUid);
-    }
-
-    return program;
-  }
-
-  private void validateOwnership(
-      UserDetails currentUser, TrackedEntity trackedEntity, Program program)
-      throws NotFoundException {
-    if (!trackerAccessManager
-        .canRead(currentUser, trackedEntity, program, currentUser.isSuper())
-        .isEmpty()) {
-      throw new NotFoundException(TrackedEntity.class, trackedEntity.getUid());
-    }
-  }
-
-  private void validateTrackedEntity(UserDetails currentUser, TrackedEntity trackedEntity)
-      throws NotFoundException {
-    if (!trackerAccessManager.canRead(currentUser, trackedEntity).isEmpty()) {
-      throw new NotFoundException(TrackedEntity.class, trackedEntity.getUid());
-    }
-  }
-
-  private Set<UID> validateTrackedEntityAttributes(TrackedEntity trackedEntity)
-      throws NotFoundException {
-    Set<TrackedEntityAttribute> attributes =
-        trackedEntityAttributeService.getTrackedEntityTypeAttributes(
-            trackedEntity.getTrackedEntityType());
-
-    if (attributes.isEmpty()) {
-      throw new NotFoundException(TrackedEntity.class, trackedEntity.getUid());
-    }
-
-    return attributes.stream().map(UID::of).collect(Collectors.toSet());
   }
 }

@@ -254,9 +254,8 @@ public class TrackedEntityOperationParams {
 
     // Do not remove this unused method. This hides the filters field from the builder which Lombok
     // does not support. The repeated filters field and private filters method prevent access to
-    // order
-    // via the builder.
-    // Order should be added via the filterBy builder methods.
+    // the filter map via the builder.
+    // Filters should be added via the filterBy builder methods.
     private TrackedEntityOperationParamsBuilder filters(Map<UID, List<QueryFilter>> filters) {
       return this;
     }

@@ -28,12 +28,17 @@
 package org.hisp.dhis.webapi.controller.notification;
 
 import static org.hisp.dhis.security.Authorities.ALL;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationParameters;
+import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
 
-import java.util.Date;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.OpenApi.Response.Status;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
@@ -43,14 +48,16 @@ import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.schema.descriptors.ProgramNotificationInstanceSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
@@ -58,10 +65,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Document(
     entity = ProgramNotificationInstance.class,
-    classifiers = {"team:tracker", "purpose:metadata"})
+    classifiers = {"team:tracker", "purpose:data"})
 @Controller
 @RequestMapping("/api/programNotificationInstances")
 @ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@RequiredArgsConstructor
 public class ProgramNotificationInstanceController {
   private final ProgramNotificationInstanceService programNotificationInstanceService;
 
@@ -69,53 +77,71 @@ public class ProgramNotificationInstanceController {
 
   private final EventService eventService;
 
-  public ProgramNotificationInstanceController(
-      ProgramNotificationInstanceService programNotificationInstanceService,
-      EnrollmentService enrollmentService,
-      EventService eventService) {
-    this.programNotificationInstanceService = programNotificationInstanceService;
-    this.enrollmentService = enrollmentService;
-    this.eventService = eventService;
-  }
+  private final IdentifiableObjectManager manager;
 
+  @OpenApi.Response(status = Status.OK, value = Page.class)
   @RequiresAuthority(anyOf = ALL)
   @GetMapping(produces = {"application/json"})
-  public @ResponseBody Page<ProgramNotificationInstance> getScheduledMessage(
-      @RequestParam(required = false) UID enrollment,
-      @RequestParam(required = false) UID event,
-      @RequestParam(required = false) Date scheduledAt,
-      @RequestParam(required = false, defaultValue = "true") boolean paging,
-      @RequestParam(required = false, defaultValue = "1") int page,
-      @RequestParam(required = false, defaultValue = "50") int pageSize)
-      throws ForbiddenException, NotFoundException {
+  public @ResponseBody ResponseEntity<Page<ProgramNotificationInstance>> getScheduledMessage(
+      ProgramNotificationInstanceRequestParams requestParams, HttpServletRequest request)
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    validatePaginationParameters(requestParams);
+
     Event storedEvent = null;
-    if (event != null) {
-      storedEvent = eventService.getEvent(event);
+    if (requestParams.getEvent() != null) {
+      eventService.getEvent(requestParams.getEvent());
+      // TODO(tracker) jdbc-hibernate: check the impact on performance
+      storedEvent = manager.get(Event.class, requestParams.getEvent());
     }
     Enrollment storedEnrollment = null;
-    if (enrollment != null) {
-      storedEnrollment = enrollmentService.getEnrollment(enrollment);
+    if (requestParams.getEnrollment() != null) {
+      enrollmentService.getEnrollment(requestParams.getEnrollment());
+      // TODO(tracker) jdbc-hibernate: check the impact on performance
+      storedEnrollment = manager.get(Enrollment.class, requestParams.getEnrollment());
     }
+
+    if (requestParams.isPaging()) {
+      PageParams pageParams =
+          PageParams.of(
+              requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
+      ProgramNotificationInstanceParam params =
+          ProgramNotificationInstanceParam.builder()
+              .enrollment(storedEnrollment)
+              .event(storedEvent)
+              .scheduledAt(requestParams.getScheduledAt())
+              .paging(true)
+              .page(pageParams.getPage())
+              .pageSize(pageParams.getPageSize())
+              .build();
+      List<ProgramNotificationInstance> instances =
+          programNotificationInstanceService.getProgramNotificationInstancesPage(params);
+      org.hisp.dhis.tracker.Page<ProgramNotificationInstance> page =
+          new org.hisp.dhis.tracker.Page<>(
+              instances,
+              pageParams,
+              () -> programNotificationInstanceService.countProgramNotificationInstances(params));
+
+      return ResponseEntity.ok()
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+              Page.withPager(
+                  ProgramNotificationInstanceSchemaDescriptor.PLURAL,
+                  page,
+                  getRequestURL(request)));
+    }
+
     ProgramNotificationInstanceParam params =
         ProgramNotificationInstanceParam.builder()
             .enrollment(storedEnrollment)
             .event(storedEvent)
-            .page(page)
-            .pageSize(pageSize)
-            .paging(paging)
-            .scheduledAt(scheduledAt)
+            .scheduledAt(requestParams.getScheduledAt())
+            .paging(false)
             .build();
-
     List<ProgramNotificationInstance> instances =
         programNotificationInstanceService.getProgramNotificationInstances(params);
 
-    if (paging) {
-      long total = programNotificationInstanceService.countProgramNotificationInstances(params);
-      return Page.withPager(
-          ProgramNotificationInstanceSchemaDescriptor.PLURAL,
-          org.hisp.dhis.tracker.Page.withTotals(instances, page, pageSize, total));
-    }
-
-    return Page.withoutPager(ProgramNotificationInstanceSchemaDescriptor.PLURAL, instances);
+    return ResponseEntity.ok()
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(Page.withoutPager(ProgramNotificationInstanceSchemaDescriptor.PLURAL, instances));
   }
 }

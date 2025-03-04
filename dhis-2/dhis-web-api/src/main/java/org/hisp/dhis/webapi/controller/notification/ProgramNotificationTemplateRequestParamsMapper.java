@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.notification;
 
-import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationParameters;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationBounds;
 
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -65,6 +65,6 @@ public class ProgramNotificationTemplateRequestParamsMapper {
       throw new ConflictException("`program` and `programStage` cannot be processed together.");
     }
 
-    validatePaginationParameters(requestParams);
+    validatePaginationBounds(requestParams.getPage(), requestParams.getPageSize());
   }
 }

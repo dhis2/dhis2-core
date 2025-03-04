@@ -148,7 +148,21 @@
       "version": {
         "min": 42
       }
+    },
+    {
+      "name": "subExpressionIndicator",
+      "query": "/api/analytics?dimension=dx:KjElpUc6jeX,pe:2021&filter=ou:Rp268JB6Ne4;cDw53Ej8rju;iPcreOldeV9;jjtzkzrmG7s&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "subExpressionIndicatorSingleValue",
+      "query": "/api/analytics?dimension=dx:KjElpUc6jeX&filter=ou:Rp268JB6Ne4;cDw53Ej8rju;jjtzkzrmG7s;iPcreOldeV9&filter=pe:2021&displayProperty=NAME&includeNumDen=false&skipMeta=false&skipData=true&includeMetadataDetails=true",
+      "version": {
+        "min": 42
+      }
     }
+
   ]
 }
-
