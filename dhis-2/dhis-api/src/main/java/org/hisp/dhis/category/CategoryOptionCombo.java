@@ -317,12 +317,9 @@ public class CategoryOptionCombo extends BaseDimensionalItemObject
     for (Category category : categories) {
       List<CategoryOption> options = category.getCategoryOptions();
 
-      optionLoop:
       for (CategoryOption option : categoryOptions) {
         if (options.contains(option)) {
           builder.append(option.getDisplayName()).append(", ");
-
-          continue optionLoop;
         }
       }
     }

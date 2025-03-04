@@ -133,10 +133,14 @@ public class DefaultEventCoordinateService implements EventCoordinateService {
     if (ValueType.COORDINATE != valueType && ValueType.ORGANISATION_UNIT != valueType) {
       throwIllegalQueryEx(errorCode, field);
     }
-    // Append the "_geom" suffix to the field
-    // so that the correct geometry column
-    // is selected
-    return field + OU_GEOMETRY_COL_SUFFIX;
+
+    if (ValueType.ORGANISATION_UNIT == valueType) {
+      // Append the "_geom" suffix to the field
+      // so that the correct geometry column
+      // is selected
+      return field + OU_GEOMETRY_COL_SUFFIX;
+    }
+    return field;
   }
 
   @Override

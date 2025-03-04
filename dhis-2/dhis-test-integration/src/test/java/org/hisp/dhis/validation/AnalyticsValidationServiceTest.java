@@ -51,7 +51,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.MockAnalyticsService;
-import org.hisp.dhis.category.CategoryManager;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -124,8 +123,6 @@ class AnalyticsValidationServiceTest extends PostgresIntegrationTestBase {
   @Autowired private ValidationService validationService;
 
   @Autowired private ValidationRuleService validationRuleService;
-
-  @Autowired private CategoryManager categoryManager;
 
   @Autowired private DataValidationRunner runner;
 
@@ -235,7 +232,7 @@ class AnalyticsValidationServiceTest extends PostgresIntegrationTestBase {
     Event eventB = createEvent(stageA, enrollment, orgUnitA);
     eventB.setOccurredDate(dateApr10);
     manager.save(eventB);
-    categoryManager.addAndPruneAllOptionCombos();
+    categoryService.addAndPruneAllOptionCombos();
     Expression expressionA = new Expression(EXPRESSION_A, "ProgramTrackedEntityAttribute");
     Expression expressionD = new Expression(EXPRESSION_D, "ProgramDataElement");
     Expression expressionI = new Expression(EXPRESSION_I, "ProgramIndicator");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,20 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.category;
+package org.hisp.dhis.webapi.controller.trackedentityfilter;
 
-/**
- * @author Viet Nguyen <viet@dhis2.org>
- */
-public interface CategoryManager {
-  /**
-   * Generates the complete set of category option combos for the given category combo. Removes
-   * obsolete category option combos.
-   *
-   * @param categoryCombo the CategoryCombo.
-   */
-  void addAndPruneOptionCombos(CategoryCombo categoryCombo);
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonObject;
 
-  /** Generates the complete set of category option combos for all category combos. */
-  void addAndPruneAllOptionCombos();
+/** Representation of entity query criteria. */
+public interface JsonEntityQueryCriteria extends JsonObject {
+
+  default JsonArray getDisplayColumnOrder() {
+    return getArray("displayColumnOrder");
+  }
+
+  default JsonArray getAttributeValueFilters() {
+    return getArray("attributeValueFilters");
+  }
 }

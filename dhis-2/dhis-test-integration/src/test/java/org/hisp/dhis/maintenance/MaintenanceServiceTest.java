@@ -239,12 +239,10 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     r.setKey(RelationshipUtils.generateRelationshipKey(r));
     r.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(r));
     manager.save(r);
-    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(trackedEntity)));
+    assertTrue(trackedEntityService.findTrackedEntity(UID.of(trackedEntity)).isPresent());
     assertNotNull(getRelationship(r.getUid()));
     manager.delete(trackedEntity);
-    assertThrows(
-        NotFoundException.class,
-        () -> trackedEntityService.getTrackedEntity(UID.of(trackedEntity)));
+    assertFalse(trackedEntityService.findTrackedEntity(UID.of(trackedEntity)).isPresent());
     manager.delete(r);
     manager.delete(enrollment);
     assertThrows(NotFoundException.class, () -> getRelationship(r.getUid()));
@@ -317,8 +315,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testDeleteSoftDeletedTrackedEntityAProgramMessage()
-      throws ForbiddenException, NotFoundException {
+  void testDeleteSoftDeletedTrackedEntityAProgramMessage() {
     ProgramMessageRecipients programMessageRecipients = new ProgramMessageRecipients();
     programMessageRecipients.setEmailAddresses(Sets.newHashSet("testemail"));
     programMessageRecipients.setPhoneNumbers(Sets.newHashSet("testphone"));
@@ -333,11 +330,9 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
             .build();
     manager.save(trackedEntityB);
     programMessageService.saveProgramMessage(message);
-    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(trackedEntityB)));
+    assertTrue(trackedEntityService.findTrackedEntity(UID.of(trackedEntityB)).isPresent());
     manager.delete(trackedEntityB);
-    assertThrows(
-        NotFoundException.class,
-        () -> trackedEntityService.getTrackedEntity(UID.of(trackedEntityB)));
+    assertFalse(trackedEntityService.findTrackedEntity(UID.of(trackedEntityB)).isPresent());
     assertTrue(trackedEntityExistsIncludingDeleted(trackedEntityB.getUid()));
 
     maintenanceService.deleteSoftDeletedTrackedEntities();
@@ -453,9 +448,8 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   @Disabled("until we can inject dhis.conf property overrides")
   void testAuditEntryForDeletionOfSoftDeletedTrackedEntity() {
     manager.delete(trackedEntityWithAssociations);
-    assertThrows(
-        NotFoundException.class,
-        () -> trackedEntityService.getTrackedEntity(UID.of(trackedEntityWithAssociations)));
+    assertFalse(
+        trackedEntityService.findTrackedEntity(UID.of(trackedEntityWithAssociations)).isPresent());
     assertTrue(trackedEntityExistsIncludingDeleted(trackedEntityWithAssociations.getUid()));
     maintenanceService.deleteSoftDeletedTrackedEntities();
     List<Audit> audits =
