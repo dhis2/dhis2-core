@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiPredicate;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -875,6 +876,7 @@ public class DefaultCategoryService implements CategoryService {
    *     required valid one
    * @return returns an Import Summary if one was provided
    */
+  @CheckForNull
   private ImportSummaries addAndPruneOptionCombo(
       @Nonnull CategoryCombo categoryCombo, ImportSummaries importSummaries) {
     List<CategoryOptionCombo> generatedCocs = categoryCombo.generateOptionCombosList();

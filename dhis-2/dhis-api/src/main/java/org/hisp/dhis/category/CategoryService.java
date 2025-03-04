@@ -546,7 +546,7 @@ public interface CategoryService {
    * obsolete category option combos.
    *
    * @param categoryCombo the CategoryCombo
-   * @return returns an optional ImportSummary
+   * @return returns an ImportSummary
    */
   ImportSummaries addAndPruneOptionCombosWithSummary(CategoryCombo categoryCombo);
 
