@@ -48,6 +48,13 @@
       "version": {
         "min": 42
       }
+    },
+    {
+      "name": "eventsWithDataElementTypeCoordinates",
+      "query": "/api/analytics/events/query/eBAyeGv0exc.json?dimension=ou:ImspTQPwCqd&filter=pe:2022&stage=Zj7UnCAulEk&coordinatesOnly=true&coordinateField=F3ogKBuviRA",
+      "version": {
+        "min": 42
+      }
     }
   ]
 }
