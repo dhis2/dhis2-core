@@ -1,0 +1,179 @@
+/*
+ * Copyright (c) 2004-2025, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.tracker.export.trackedentity;
+
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
+
+import java.io.IOException;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.TestSetup;
+import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+public class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
+  @Autowired private TestSetup testSetup;
+  @Autowired private IdentifiableObjectManager manager;
+  @Autowired private TrackedEntityService trackedEntityService;
+
+  private User importUser;
+  private final TrackedEntityChangeLogOperationParams defaultOperationParams =
+      TrackedEntityChangeLogOperationParams.builder().build();
+  private final PageParams defaultPageParams = PageParams.of(1, 10, false);
+  private TrackedEntityType trackedEntityType;
+  private Program program;
+  private OrganisationUnit organisationUnit;
+
+  @BeforeAll
+  void setUp() throws IOException {
+    testSetup.importMetadata();
+
+    importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
+
+    testSetup.importTrackerData();
+    trackedEntityType = manager.get(TrackedEntityType.class, "ja8NY4PW7Xm");
+    program = manager.get(Program.class, "BFcipDERJnf");
+    organisationUnit = manager.get(OrganisationUnit.class, "h4w96yEMlzO");
+  }
+
+  @BeforeEach
+  void resetLimits() {
+    injectSecurityContextUser(importUser);
+    updateTrackedEntityTypeMaxLimit(trackedEntityType.getUid(), 0);
+    updateProgramMaxLimit(program.getUid(), 0);
+    // TODO How to set the system setting limit?
+  }
+
+  @Test
+  void shouldReturnEntitiesWhenGlobalSearchAndProgramMaxLimitNotReached()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    updateProgramMaxLimit(program.getUid(), 5);
+    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(SELECTED)
+            .organisationUnits(organisationUnit)
+            .program(program)
+            .filterBy(UID.of("dIVt4l5vIOa"))
+            .build();
+
+    assertNotEmpty(trackedEntityService.getTrackedEntities(operationParams));
+  }
+
+  @Disabled
+  @Test
+  void shouldReturnEntitiesWhenGlobalSearchAndTrackedEntityTypeLimitNotReached()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    updateTrackedEntityTypeMaxLimit(trackedEntityType.getUid(), 5);
+    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(SELECTED)
+            .organisationUnits(organisationUnit)
+            .trackedEntityType(trackedEntityType)
+            .filterBy(UID.of("numericAttr"))
+            .build();
+
+    assertNotEmpty(trackedEntityService.getTrackedEntities(operationParams));
+  }
+
+  @Disabled
+  @Test
+  void shouldReturnEntitiesWhenSystemSettingLimitNotReached() {
+    fail();
+  }
+
+  @Test
+  void shouldFailWhenGlobalSearchAndProgramMaxLimitReached() {
+    updateProgramMaxLimit(program.getUid(), 1);
+    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(SELECTED)
+            .organisationUnits(organisationUnit)
+            .program(program)
+            .filterBy(UID.of("dIVt4l5vIOa"))
+            .build();
+
+    Exception exception =
+        Assertions.assertThrows(
+            Exception.class, () -> trackedEntityService.getTrackedEntities(operationParams));
+    assertEquals("maxteicountreached", exception.getMessage());
+  }
+
+  @Disabled
+  @Test
+  void shouldFailWhenGlobalSearchAndTrackedEntityMaxLimitReached() {
+    fail();
+  }
+
+  @Disabled
+  @Test
+  void shouldFailWhenSystemSettingLimitReached() {
+    fail();
+  }
+
+  private void updateTrackedEntityTypeMaxLimit(String tetId, int limit) {
+    TrackedEntityType tet = manager.get(TrackedEntityType.class, tetId);
+    assertNotNull(tet);
+    tet.setMaxTeiCountToReturn(limit);
+    manager.save(tet, false);
+  }
+
+  private void updateProgramMaxLimit(String programId, int limit) {
+    Program program = manager.get(Program.class, programId);
+    assertNotNull(program);
+    program.setMaxTeiCountToReturn(limit);
+    manager.save(program, false);
+  }
+
+  // TODO Test combination of system setting and program/tet limit
+  // TODO Does pagination affect any of these limits?
+}
