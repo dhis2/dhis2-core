@@ -28,9 +28,11 @@
 package org.hisp.dhis.tracker.deduplication;
 
 import static org.hisp.dhis.security.Authorities.ALL;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
@@ -117,30 +119,26 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
   }
 
   @Test
-  void shouldDeleteTrackedEntity() throws NotFoundException, ForbiddenException {
+  void shouldDeleteTrackedEntity() throws NotFoundException {
     TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute('A');
     trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttribute);
     TrackedEntity trackedEntity = createTrackedEntity(trackedEntityAttribute);
-    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(trackedEntity)));
+    assertTrue(trackedEntityService.findTrackedEntity(UID.of(trackedEntity)).isPresent());
     removeTrackedEntity(trackedEntity);
-    assertThrows(
-        NotFoundException.class,
-        () -> trackedEntityService.getTrackedEntity(UID.of(trackedEntity)));
+    assertFalse(trackedEntityService.findTrackedEntity(UID.of(trackedEntity)).isPresent());
   }
 
   @Test
-  void shouldDeleteTeAndAttributeValues() throws NotFoundException, ForbiddenException {
+  void shouldDeleteTeAndAttributeValues() throws NotFoundException {
     TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute('A');
     trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttribute);
     TrackedEntity trackedEntity = createTrackedEntity(trackedEntityAttribute);
     trackedEntity
         .getTrackedEntityAttributeValues()
         .forEach(trackedEntityAttributeValueService::addTrackedEntityAttributeValue);
-    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(trackedEntity)));
+    assertTrue(trackedEntityService.findTrackedEntity(UID.of(trackedEntity)).isPresent());
     removeTrackedEntity(trackedEntity);
-    assertThrows(
-        NotFoundException.class,
-        () -> trackedEntityService.getTrackedEntity(UID.of(trackedEntity)));
+    assertFalse(trackedEntityService.findTrackedEntity(UID.of(trackedEntity)).isPresent());
     assertNull(
         trackedEntityAttributeValueService.getTrackedEntityAttributeValue(
             trackedEntity, trackedEntityAttribute));
@@ -162,10 +160,10 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     manager.save(relationship5);
     manager.flush();
     manager.clear();
-    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(original)));
-    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(duplicate)));
-    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(control1)));
-    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(control2)));
+    assertTrue(trackedEntityService.findTrackedEntity(UID.of(original)).isPresent());
+    assertTrue(trackedEntityService.findTrackedEntity(UID.of(duplicate)).isPresent());
+    assertTrue(trackedEntityService.findTrackedEntity(UID.of(control1)).isPresent());
+    assertTrue(trackedEntityService.findTrackedEntity(UID.of(control2)).isPresent());
 
     removeTrackedEntity(duplicate);
     assertThrows(NotFoundException.class, () -> getRelationship(UID.of(relationship3)));
@@ -173,8 +171,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     assertNotNull(getRelationship(UID.of(relationship1)));
     assertNotNull(getRelationship(UID.of(relationship2)));
     assertNotNull(getRelationship(UID.of(relationship5)));
-    assertThrows(
-        NotFoundException.class, () -> trackedEntityService.getTrackedEntity(UID.of(duplicate)));
+    assertFalse(trackedEntityService.findTrackedEntity(UID.of(duplicate)).isPresent());
   }
 
   @Test
@@ -200,18 +197,17 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     manager.update(duplicate);
     manager.update(control1);
     manager.update(control2);
-    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(original)));
-    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(duplicate)));
-    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(control1)));
-    assertNotNull(trackedEntityService.getTrackedEntity(UID.of(control2)));
+    assertTrue(trackedEntityService.findTrackedEntity(UID.of(original)).isPresent());
+    assertTrue(trackedEntityService.findTrackedEntity(UID.of(duplicate)).isPresent());
+    assertTrue(trackedEntityService.findTrackedEntity(UID.of(control1)).isPresent());
+    assertTrue(trackedEntityService.findTrackedEntity(UID.of(control2)).isPresent());
     removeTrackedEntity(duplicate);
     assertThrows(
         NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollment2)));
     assertNotNull(enrollmentService.getEnrollment(UID.of(enrollment1)));
     assertNotNull(enrollmentService.getEnrollment(UID.of(enrollment3)));
     assertNotNull(enrollmentService.getEnrollment(UID.of(enrollment4)));
-    assertThrows(
-        NotFoundException.class, () -> trackedEntityService.getTrackedEntity(UID.of(duplicate)));
+    assertFalse(trackedEntityService.findTrackedEntity(UID.of(duplicate)).isPresent());
   }
 
   private TrackedEntity createTrackedEntity(TrackedEntityAttribute trackedEntityAttribute) {
