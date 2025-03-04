@@ -46,7 +46,6 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -61,7 +60,6 @@ import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.TrackedEntityAggregate;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -85,10 +83,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private final TrackerAccessManager trackerAccessManager;
 
   private final TrackedEntityAggregate trackedEntityAggregate;
-
-  private final ProgramService programService;
-
-  private final EnrollmentService enrollmentService;
 
   private final RelationshipService relationshipService;
 
@@ -124,7 +118,11 @@ class DefaultTrackedEntityService implements TrackedEntityService {
         getNewTrackedEntity(
             trackedEntityUid, programUid, TrackedEntityParams.FALSE.withIncludeAttributes(true));
 
-    TrackedEntityAttribute attribute = getAttribute(attributeUid, trackedEntity, programUid);
+    TrackedEntityAttribute attribute =
+        getAttribute(
+            trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(
+                CurrentUserUtil.getCurrentUserDetails()),
+            attributeUid);
     if (!attribute.getValueType().isFile()) {
       throw new NotFoundException(
           "Tracked entity attribute " + attributeUid.getValue() + " is not a file (or image).");
@@ -147,38 +145,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     return fileResourceService.getExistingFileResource(fileResourceUid);
-  }
-
-  /**
-   * Tracked entity attributes are fetched from the program if supplied, otherwise from the tracked
-   * entities type. Access is determined through the program sharing and ownership if present. If no
-   * program is supplied, we fall back to tracked entity type ownership and the registering org unit
-   * of the tracked entity.
-   */
-  private TrackedEntityAttribute getAttribute(
-      UID attributeUid, TrackedEntity trackedEntity, @CheckForNull UID programUid)
-      throws NotFoundException {
-
-    if (programUid != null) {
-      Program program = programService.getProgram(programUid.getValue());
-      return getAttribute(attributeUid, program);
-    }
-
-    return getAttribute(attributeUid, trackedEntity.getTrackedEntityType());
-  }
-
-  private TrackedEntityAttribute getAttribute(UID attribute, Program program)
-      throws NotFoundException {
-    Set<TrackedEntityAttribute> attributes =
-        trackedEntityAttributeService.getProgramAttributes(program);
-    return getAttribute(attributes, attribute);
-  }
-
-  private TrackedEntityAttribute getAttribute(UID attribute, TrackedEntityType trackedEntityType)
-      throws NotFoundException {
-    Set<TrackedEntityAttribute> attributes =
-        trackedEntityAttributeService.getTrackedEntityTypeAttributes(trackedEntityType);
-    return getAttribute(attributes, attribute);
   }
 
   private static TrackedEntityAttribute getAttribute(

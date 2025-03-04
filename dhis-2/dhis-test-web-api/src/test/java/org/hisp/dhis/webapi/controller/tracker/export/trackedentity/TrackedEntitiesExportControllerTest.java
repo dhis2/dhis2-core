@@ -1015,13 +1015,13 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
 
     String fileUid = CodeGenerator.generateUid();
 
-    IllegalQueryException illegalQueryException =
+    IllegalQueryException exception =
         assertThrows(
             IllegalQueryException.class,
             () ->
                 addProgramAttributeValue(trackedEntity, program, ValueType.FILE_RESOURCE, fileUid));
 
-    assertStartsWith("FileResource with id '" + fileUid, illegalQueryException.getMessage());
+    assertStartsWith("FileResource with id '" + fileUid, exception.getMessage());
   }
 
   @Test
