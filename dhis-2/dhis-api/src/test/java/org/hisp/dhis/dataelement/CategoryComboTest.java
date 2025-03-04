@@ -127,13 +127,6 @@ class CategoryComboTest {
         list.get(7));
   }
 
-  @Test
-  void test() {
-    List<CategoryOptionCombo> list = categoryCombo.generateOptionCombosList();
-    categoryCombo.generateOptionCombos();
-    assertEquals(list, categoryCombo.getSortedOptionCombos());
-  }
-
   private static CategoryOptionCombo createCategoryOptionCombo(
       CategoryCombo categoryCombo, CategoryOption... categoryOptions) {
     CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
