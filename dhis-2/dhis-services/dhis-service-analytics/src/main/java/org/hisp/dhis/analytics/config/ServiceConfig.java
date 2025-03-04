@@ -41,6 +41,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.AnalyticsSqlBuilderProvider;
 import org.hisp.dhis.db.SqlBuilderProvider;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
+import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -70,6 +71,11 @@ public class ServiceConfig {
   @Bean("postgresSqlBuilder")
   public SqlBuilder postgresSqlBuilder() {
     return new PostgreSqlBuilder();
+  }
+
+  @Bean("postgresAnalyticsSqlBuilder")
+  public AnalyticsSqlBuilder postgresAnalyticsSqlBuilder() {
+    return new PostgreSqlAnalyticsSqlBuilder();
   }
 
   @Bean

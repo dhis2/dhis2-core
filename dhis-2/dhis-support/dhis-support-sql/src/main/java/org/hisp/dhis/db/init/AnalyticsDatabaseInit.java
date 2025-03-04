@@ -90,7 +90,7 @@ public class AnalyticsDatabaseInit {
       jdbcTemplate.setFetchSize(1000);
 
       switch (database) {
-        case POSTGRESQL -> initPostgreSql(jdbcTemplate);
+        case POSTGRESQL -> initPostgreSql();
         case DORIS -> initDoris(jdbcTemplate);
         case CLICKHOUSE -> initClickHouse(jdbcTemplate);
       }
@@ -102,7 +102,7 @@ public class AnalyticsDatabaseInit {
   }
 
   /** Work for initializing a PostgreSQL analytics database. */
-  private void initPostgreSql(JdbcTemplate jdbcTemplate) {
+  private void initPostgreSql() {
     // No work yet
   }
 

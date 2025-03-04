@@ -31,6 +31,7 @@ import javax.sql.DataSource;
 
 /** Factory interface for creating temporary analytics DataSources. */
 public interface AnalyticsDataSourceFactory {
+
   /**
    * Creates a temporary DataSource for analytics database initialization.
    *
@@ -43,8 +44,8 @@ public interface AnalyticsDataSourceFactory {
 
     @Override
     public void close() throws Exception {
-      if (dataSource instanceof AutoCloseable) {
-        ((AutoCloseable) dataSource).close();
+      if (dataSource instanceof AutoCloseable ds) {
+        ds.close();
       }
     }
   }

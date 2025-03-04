@@ -50,7 +50,6 @@ import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.parser.expression.statement.DefaultStatementBuilder;
 import org.hisp.dhis.parser.expression.statement.StatementBuilder;
@@ -63,7 +62,7 @@ public abstract class TimeFieldSqlRenderer {
   protected final StatementBuilder statementBuilder;
 
   protected TimeFieldSqlRenderer(SqlBuilder sqlBuilder) {
-    this.sqlBuilder = new PostgreSqlBuilder();
+    this.sqlBuilder = sqlBuilder;
     this.statementBuilder = new DefaultStatementBuilder(this.sqlBuilder);
   }
 
