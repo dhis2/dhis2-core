@@ -49,7 +49,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
@@ -153,8 +152,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     String sql = getQuery(params, null);
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
-    // checkMaxTrackedEntityCountReached(params, rowSet);
-
     List<TrackedEntityIdentifiers> ids = new ArrayList<>();
     while (rowSet.next()) {
       ids.add(
@@ -190,17 +187,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   private String encodeAndQuote(Collection<String> elements) {
     return getQuotedCommaDelimitedString(elements.stream().map(SqlUtils::escape).toList());
-  }
-
-  // TODO Remove this method?
-  private void checkMaxTrackedEntityCountReached(
-      TrackedEntityQueryParams params, SqlRowSet rowSet) {
-    if (params.getMaxTeLimit() > 0 && rowSet.last()) {
-      if (rowSet.getRow() > params.getMaxTeLimit()) {
-        throw new IllegalQueryException("maxteicountreached");
-      }
-      rowSet.beforeFirst();
-    }
   }
 
   private Long getTrackedEntityCount(TrackedEntityQueryParams params) {

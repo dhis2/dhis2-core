@@ -53,10 +53,12 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.UserDetails;
@@ -86,11 +88,20 @@ class TrackedEntityOperationParamsMapper {
 
   @Nonnull private final ProgramService programService;
 
+  @Nonnull private final SystemSettingsService systemSettingsService;
+
   private final OperationsParamsValidator paramsValidator;
 
   @Transactional(readOnly = true)
   public TrackedEntityQueryParams map(
       TrackedEntityOperationParams operationParams, UserDetails user)
+      throws BadRequestException, ForbiddenException {
+    return map(operationParams, user, null);
+  }
+
+  @Transactional(readOnly = true)
+  public TrackedEntityQueryParams map(
+      TrackedEntityOperationParams operationParams, UserDetails user, PageParams pageParams)
       throws BadRequestException, ForbiddenException {
     Program program = paramsValidator.validateTrackerProgram(operationParams.getProgram(), user);
     ProgramStage programStage = validateProgramStage(operationParams, program);
@@ -113,6 +124,8 @@ class TrackedEntityOperationParamsMapper {
 
     validateTrackedEntityAttributeFilters(
         program, requestedTrackedEntityType, operationParams, orgUnits, params);
+
+    validatePagination(pageParams);
 
     params
         .setEnrolledInTrackerProgram(program)
@@ -271,6 +284,20 @@ class TrackedEntityOperationParamsMapper {
               "Either a program or tracked entity type must be specified");
         }
       }
+    }
+  }
+
+  private void validatePagination(PageParams pageParams) throws BadRequestException {
+    if (pageParams == null) {
+      return;
+    }
+
+    int maxLimit = systemSettingsService.getCurrentSettings().getTrackedEntityMaxLimit();
+    if (pageParams.getPageSize() > maxLimit) {
+      throw new BadRequestException(
+          String.format(
+              "Invalid page size: %d. It must not exceed the system limit of %d.",
+              pageParams.getPageSize(), maxLimit));
     }
   }
 

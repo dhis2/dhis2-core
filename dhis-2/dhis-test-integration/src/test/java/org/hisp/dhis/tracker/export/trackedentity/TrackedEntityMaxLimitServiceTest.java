@@ -230,14 +230,17 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
     updateSystemSettingLimit("1");
     injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
     TrackedEntityOperationParams operationParams = createTrackedEntityTypeOperationParams();
+    PageParams pageParams = PageParams.of(1, 10, false);
 
     Exception exception =
         Assertions.assertThrows(
             BadRequestException.class,
-            () ->
-                trackedEntityService.getTrackedEntities(
-                    operationParams, PageParams.of(1, 10, false)));
-    assertEquals("Page size can't be bigger than system setting limit", exception.getMessage());
+            () -> trackedEntityService.getTrackedEntities(operationParams, pageParams));
+    assertEquals(
+        String.format(
+            "Invalid page size: %d. It must not exceed the system limit of %d.",
+            pageParams.getPageSize(), getCurrentSystemSettingLimit()),
+        exception.getMessage());
   }
 
   private void updateTrackedEntityTypeMaxLimit(String tetId, int limit) {
