@@ -108,9 +108,7 @@ public class GlobalShellFilter extends OncePerRequestFilter {
   }
 
   private void serveGlobalShell(
-      HttpServletRequest request,
-      HttpServletResponse response,
-      String path)
+      HttpServletRequest request, HttpServletResponse response, String path)
       throws IOException, ServletException {
 
     if (APP_IN_GLOBAL_SHELL_PATTERN.matcher(path).matches()) {
@@ -129,23 +127,22 @@ public class GlobalShellFilter extends OncePerRequestFilter {
   }
 
   private void serveGlobalShellResource(
-      HttpServletRequest request,
-      HttpServletResponse response,
-      String resource)
+      HttpServletRequest request, HttpServletResponse response, String resource)
       throws IOException, ServletException {
-    
+
     String globalShellAppName = settingsProvider.getCurrentSettings().getGlobalShellAppName();
 
     String globalShellPath;
-    if (globalShellAppName.isEmpty() || BUNDLED_GLOBAL_SHELL_NAME.equals(globalShellAppName) || !appManager.exists(globalShellAppName)) {
+    if (globalShellAppName.isEmpty()
+        || BUNDLED_GLOBAL_SHELL_NAME.equals(globalShellAppName)
+        || !appManager.exists(globalShellAppName)) {
       globalShellPath = BUNDLED_GLOBAL_SHELL_PATH;
     } else {
       globalShellPath = String.format("/api/apps/%s/%s", globalShellAppName);
     }
-    
+
     RequestDispatcher dispatcher =
-        getServletContext()
-            .getRequestDispatcher(String.join("/", globalShellPath, resource));
+        getServletContext().getRequestDispatcher(String.join("/", globalShellPath, resource));
     dispatcher.forward(request, response);
   }
 

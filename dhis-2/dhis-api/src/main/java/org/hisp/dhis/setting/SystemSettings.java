@@ -715,7 +715,7 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   /**
-   * @return  *
+   * @return *
    */
   default boolean getGlobalShellEnabled() {
     return asBoolean("globalShellEnabled", true);
