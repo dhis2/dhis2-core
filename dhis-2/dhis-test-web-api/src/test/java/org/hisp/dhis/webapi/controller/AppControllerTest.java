@@ -155,6 +155,6 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
         new ClassPathResource("app/test-bundled-app.zip").getFile(), "test-bundled-app.zip");
 
     HttpResponse get = GET("/api/apps/cache-cleaner/index.html");
-    assertTrue(get.location().contains("/dhis-web-cache-cleaner/index.html"));
+    assertEquals("http://localhost/dhis-web-cache-cleaner/index.html", get.location());
   }
 }

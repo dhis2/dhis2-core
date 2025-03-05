@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,47 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db;
+package org.hisp.dhis.test.webapi;
 
-import java.util.Objects;
-import lombok.Getter;
-import org.hisp.dhis.db.model.Database;
-import org.hisp.dhis.db.setting.SqlBuilderSettings;
-import org.hisp.dhis.db.sql.ClickHouseSqlBuilder;
-import org.hisp.dhis.db.sql.DorisSqlBuilder;
-import org.hisp.dhis.db.sql.PostgreSqlBuilder;
-import org.hisp.dhis.db.sql.SqlBuilder;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.stereotype.Service;
+import static org.hisp.dhis.test.webapi.Assertions.assertNoDiff;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
-/** Provider of {@link SqlBuilder} implementations. */
-@Service
-@Getter
-public class SqlBuilderProvider {
-  private final SqlBuilder sqlBuilder;
+import org.junit.jupiter.api.Test;
+import org.opentest4j.AssertionFailedError;
 
-  public SqlBuilderProvider(SqlBuilderSettings config) {
-    Objects.requireNonNull(config);
-    this.sqlBuilder = getSqlBuilder(config);
-  }
+class AssertionsTest {
 
-  /**
-   * Returns the appropriate {@link SqlBuilder} implementation based on the system configuration.
-   *
-   * @param config the {@link DhisConfigurationProvider}.
-   * @return a {@link SqlBuilder}.
-   */
-  private SqlBuilder getSqlBuilder(SqlBuilderSettings config) {
-    Database database = config.getAnalyticsDatabase();
-    String catalog = config.getAnalyticsDatabaseCatalog();
-    String driverFilename = config.getAnalyticsDatabaseDriverFilename();
+  @Test
+  void testAssertNoDiff() {
 
-    Objects.requireNonNull(database);
-
-    return switch (database) {
-      case DORIS -> new DorisSqlBuilder(catalog, driverFilename);
-      case CLICKHOUSE -> new ClickHouseSqlBuilder();
-      default -> new PostgreSqlBuilder();
-    };
+    AssertionFailedError ex =
+        assertThrowsExactly(
+            AssertionFailedError.class,
+            () ->
+                assertNoDiff(
+                    """
+                { "page": 1, "pageSize": 50 }""",
+                    """
+                { "paga": 1, "pageSize": 50 }"""));
+    assertEquals(
+        """
+        JSON has 2 structural differences:
+          ++ $.paga: ? <> 1
+          -- $.page: 1 <> ?
+        [-- missing, ++ unexpected, >> out-of-order, != value-not-equal]
+         ==> expected: <{ "page": 1, "pageSize": 50 }> but was: <{ "paga": 1, "pageSize": 50 }>""",
+        ex.getMessage());
   }
 }
