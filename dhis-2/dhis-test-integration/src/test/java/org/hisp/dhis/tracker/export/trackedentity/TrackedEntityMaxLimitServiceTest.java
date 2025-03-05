@@ -102,7 +102,7 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
 
     Assertions.assertLessOrEqual(
         program.getMaxTeiCountToReturn(),
-        trackedEntityService.getTrackedEntities(operationParams).size());
+        trackedEntityService.findTrackedEntities(operationParams).size());
   }
 
   @Test
@@ -113,7 +113,7 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
 
     Exception exception =
         assertThrows(
-            Exception.class, () -> trackedEntityService.getTrackedEntities(operationParams));
+            Exception.class, () -> trackedEntityService.findTrackedEntities(operationParams));
     assertEquals("maxteicountreached", exception.getMessage());
   }
 
@@ -126,7 +126,7 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
 
     Assertions.assertLessOrEqual(
         trackedEntityType.getMaxTeiCountToReturn(),
-        trackedEntityService.getTrackedEntities(operationParams).size());
+        trackedEntityService.findTrackedEntities(operationParams).size());
   }
 
   @Test
@@ -138,7 +138,7 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
     IllegalQueryException exception =
         assertThrows(
             IllegalQueryException.class,
-            () -> trackedEntityService.getTrackedEntities(operationParams));
+            () -> trackedEntityService.findTrackedEntities(operationParams));
     assertEquals("maxteicountreached", exception.getMessage());
   }
 
@@ -152,7 +152,7 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
     IllegalQueryException exception =
         assertThrows(
             IllegalQueryException.class,
-            () -> trackedEntityService.getTrackedEntities(operationParams, pageParams));
+            () -> trackedEntityService.findTrackedEntities(operationParams, pageParams));
     assertEquals("maxteicountreached", exception.getMessage());
   }
 
@@ -167,7 +167,7 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
 
     assertHasSize(
         pageParams.getPageSize(),
-        trackedEntityService.getTrackedEntities(operationParams, pageParams).getItems());
+        trackedEntityService.findTrackedEntities(operationParams, pageParams).getItems());
   }
 
   @Test
@@ -179,7 +179,7 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
 
     Assertions.assertLessOrEqual(
         getCurrentSystemSettingLimit(),
-        trackedEntityService.getTrackedEntities(operationParams).size());
+        trackedEntityService.findTrackedEntities(operationParams).size());
   }
 
   @Test
@@ -190,7 +190,7 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(regularUser);
 
     assertHasSize(
-        getCurrentSystemSettingLimit(), trackedEntityService.getTrackedEntities(operationParams));
+        getCurrentSystemSettingLimit(), trackedEntityService.findTrackedEntities(operationParams));
   }
 
   @Test
@@ -203,7 +203,7 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(regularUser);
 
     assertHasSize(
-        getCurrentSystemSettingLimit(), trackedEntityService.getTrackedEntities(operationParams));
+        getCurrentSystemSettingLimit(), trackedEntityService.findTrackedEntities(operationParams));
   }
 
   @Test
@@ -216,7 +216,7 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(regularUser);
 
     assertHasSize(
-        getCurrentSystemSettingLimit(), trackedEntityService.getTrackedEntities(operationParams));
+        getCurrentSystemSettingLimit(), trackedEntityService.findTrackedEntities(operationParams));
   }
 
   @Test
@@ -229,7 +229,7 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
 
     assertHasSize(
         pageParams.getPageSize(),
-        trackedEntityService.getTrackedEntities(operationParams, pageParams).getItems());
+        trackedEntityService.findTrackedEntities(operationParams, pageParams).getItems());
   }
 
   @Test
@@ -242,7 +242,7 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
 
     assertHasSize(
         pageParams.getPageSize(),
-        trackedEntityService.getTrackedEntities(operationParams, pageParams).getItems());
+        trackedEntityService.findTrackedEntities(operationParams, pageParams).getItems());
   }
 
   @Test
@@ -256,7 +256,7 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
     Exception exception =
         assertThrows(
             BadRequestException.class,
-            () -> trackedEntityService.getTrackedEntities(operationParams, pageParams));
+            () -> trackedEntityService.findTrackedEntities(operationParams, pageParams));
     assertEquals(
         String.format(
             "Invalid page size: %d. It must not exceed the system limit of KeyTrackedEntityMaxLimit %d.",
