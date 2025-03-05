@@ -153,7 +153,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     String sql = getQuery(params, null);
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
-    checkMaxTrackedEntityCountReached(params, rowSet);
+    // checkMaxTrackedEntityCountReached(params, rowSet);
 
     List<TrackedEntityIdentifiers> ids = new ArrayList<>();
     while (rowSet.next()) {
@@ -174,8 +174,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
     String sql = getQuery(params, pageParams);
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
-
-    checkMaxTrackedEntityCountReached(params, rowSet);
 
     List<TrackedEntityIdentifiers> ids = new ArrayList<>();
     while (rowSet.next()) {
