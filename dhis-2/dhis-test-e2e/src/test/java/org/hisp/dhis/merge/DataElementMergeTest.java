@@ -917,7 +917,15 @@ class DataElementMergeTest extends ApiTest {
                       "categoryOptions": [
                           {
                               "id": "CatOptUID1A"
-                          },
+                          }
+                      ]
+                  },
+                  {
+                      "id": "CategoUID02",
+                      "name": "category 2",
+                      "shortName": "category 2",
+                      "dataDimensionType": "DISAGGREGATION",
+                      "categoryOptions": [
                           {
                               "id": "CatOptUID1B"
                           }
@@ -952,6 +960,9 @@ class DataElementMergeTest extends ApiTest {
                       "categories": [
                           {
                               "id": "CategoUID01"
+                          },
+                          {
+                              "id": "CategoUID02"
                           }
                       ]
                   }

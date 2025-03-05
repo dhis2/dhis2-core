@@ -42,7 +42,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryManager;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionComboStore;
@@ -139,7 +138,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataApprovalAuditStore dataApprovalAuditStore;
   @Autowired private DataApprovalStore dataApprovalStore;
   @Autowired private EventStore eventStore;
-  @Autowired private CategoryManager categoryManager;
   @Autowired private IndicatorService indicatorService;
   @Autowired private DbmsManager dbmsManager;
   @Autowired private ExpressionService expressionService;
@@ -377,7 +375,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   private void assertCocCountAfterAutoGenerate(int expectedCocCount) {
     entityManager.flush();
     entityManager.clear();
-    categoryManager.addAndPruneAllOptionCombos();
+    categoryService.addAndPruneAllOptionCombos();
     List<CategoryOptionCombo> allCategoryOptionCombos =
         categoryService.getAllCategoryOptionCombos();
     assertEquals(expectedCocCount, allCategoryOptionCombos.size());
