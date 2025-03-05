@@ -50,12 +50,13 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
 class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
 
-  public EventTimeFieldSqlRenderer(SqlBuilder sqlBuilder) {
+  public EventTimeFieldSqlRenderer(@Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder) {
     super(sqlBuilder);
   }
 

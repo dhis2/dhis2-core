@@ -144,7 +144,7 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
     List<Enrollment> enrollments;
     try {
       Page<Enrollment> enrollmentPage =
-          enrollmentService.getEnrollments(
+          enrollmentService.findEnrollments(
               EnrollmentOperationParams.builder()
                   .trackedEntity(trackedEntity)
                   .program(smsCommand.getProgram())
@@ -213,7 +213,7 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
             param -> {
               try {
                 Page<TrackedEntity> page =
-                    trackedEntityService.getTrackedEntities(param, new PageParams(1, 2, false));
+                    trackedEntityService.findTrackedEntities(param, new PageParams(1, 2, false));
                 trackedEntities.addAll(page.getItems());
               } catch (BadRequestException | ForbiddenException | NotFoundException e) {
                 // TODO(tracker) Find a better error message for these exceptions

@@ -140,8 +140,8 @@ class DeduplicationHelperTest extends TestBase {
     when(aclService.canDataWrite(currentUserDetails, relationshipType)).thenReturn(true);
     when(aclService.canDataWrite(currentUserDetails, enrollment.getProgram())).thenReturn(true);
 
-    when(relationshipService.getRelationships(relationshipUids)).thenReturn(getRelationships());
-    when(enrollmentService.getEnrollments(enrollmentUids)).thenReturn(getEnrollments());
+    when(relationshipService.findRelationships(relationshipUids)).thenReturn(getRelationships());
+    when(enrollmentService.findEnrollments(enrollmentUids)).thenReturn(getEnrollments());
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnitA)).thenReturn(true);
     when(organisationUnitService.isInUserHierarchyCached(user, organisationUnitB)).thenReturn(true);
   }

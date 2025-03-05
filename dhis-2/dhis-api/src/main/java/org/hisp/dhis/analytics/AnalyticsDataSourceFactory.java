@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.parser.expression.operator;
+package org.hisp.dhis.analytics;
 
-import org.hisp.dhis.antlr.operator.AntlrOperatorCompareGreaterThan;
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ExpressionItem;
-import org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+import javax.sql.DataSource;
 
-/**
- * Compare operator: greater than
- *
- * @author Jim Grace
- */
-public class OperatorCompareGreaterThan extends AntlrOperatorCompareGreaterThan
-    implements ExpressionItem {
-  @Override
-  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
-    return visitor.sqlNumericVisit(ctx.expr(0)) + " > " + visitor.sqlNumericVisit(ctx.expr(1));
+/** Factory interface for creating temporary analytics DataSources. */
+public interface AnalyticsDataSourceFactory {
+
+  /**
+   * Creates a temporary DataSource for analytics database initialization.
+   *
+   * @return A wrapper containing the DataSource that should be closed after use
+   */
+  TemporaryDataSourceWrapper createTemporaryAnalyticsDataSource();
+
+  /** Wrapper class that holds a DataSource and provides proper cleanup */
+  record TemporaryDataSourceWrapper(DataSource dataSource) implements AutoCloseable {
+
+    @Override
+    public void close() throws Exception {
+      if (dataSource instanceof AutoCloseable ds) {
+        ds.close();
+      }
+    }
   }
 }

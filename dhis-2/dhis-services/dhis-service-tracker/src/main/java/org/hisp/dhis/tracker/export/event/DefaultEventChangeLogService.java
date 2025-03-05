@@ -44,7 +44,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.Page;
@@ -65,7 +64,7 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
   @Transactional(readOnly = true)
   public Page<EventChangeLog> getEventChangeLog(
       UID event, EventChangeLogOperationParams operationParams, PageParams pageParams)
-      throws NotFoundException, ForbiddenException {
+      throws NotFoundException {
     // check existence and access
     eventService.getEvent(event);
 

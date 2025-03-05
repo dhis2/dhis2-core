@@ -165,7 +165,7 @@ class EventsExportController {
       EventOperationParams eventOperationParams =
           eventParamsMapper.map(requestParams, idSchemeParams);
       org.hisp.dhis.tracker.Page<Event> eventsPage =
-          eventService.getEvents(eventOperationParams, pageParams);
+          eventService.findEvents(eventOperationParams, pageParams);
 
       MappingErrors errors = new MappingErrors(idSchemeParams);
       org.hisp.dhis.tracker.Page<org.hisp.dhis.webapi.controller.tracker.view.Event> page =
@@ -285,7 +285,7 @@ class EventsExportController {
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
           List<FieldPath> fields,
       TrackerIdSchemeParams idSchemeParams)
-      throws NotFoundException, ForbiddenException, WebMessageException {
+      throws NotFoundException, WebMessageException {
     EventParams eventParams = eventsMapper.map(fields);
 
     MappingErrors errors = new MappingErrors(idSchemeParams);
@@ -305,7 +305,7 @@ class EventsExportController {
 
     MappingErrors errors = new MappingErrors(idSchemeParams);
     List<org.hisp.dhis.webapi.controller.tracker.view.Event> events =
-        eventService.getEvents(eventOperationParams).stream()
+        eventService.findEvents(eventOperationParams).stream()
             .map(ev -> EVENTS_MAPPER.map(idSchemeParams, errors, ev))
             .toList();
     ensureNoMappingErrors(errors);
@@ -344,7 +344,7 @@ class EventsExportController {
       @OpenApi.Param({UID.class, Event.class}) @PathVariable UID event,
       ChangeLogRequestParams requestParams,
       HttpServletRequest request)
-      throws NotFoundException, BadRequestException, ForbiddenException {
+      throws NotFoundException, BadRequestException {
     EventChangeLogOperationParams operationParams =
         ChangeLogRequestParamsMapper.map(
             eventChangeLogService.getOrderableFields(),

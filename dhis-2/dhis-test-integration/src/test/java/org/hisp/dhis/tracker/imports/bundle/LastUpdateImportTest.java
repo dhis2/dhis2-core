@@ -534,7 +534,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
 
   /**
    * Get with the entity manager because some Store exclude deleted and {@link
-   * TrackedEntityService#getTrackedEntities} use async Spring jdbc Template. So we use the same
+   * TrackedEntityService#findTrackedEntities} use async Spring jdbc Template. So we use the same
    * query for all the entities
    */
   @SuppressWarnings("unchecked")

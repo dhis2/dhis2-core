@@ -265,7 +265,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEquals(SmsMessageStatus.PROCESSED, sms.getStatus()),
         () ->
             assertSmsResponse(submissionId + ":" + SmsResponse.SUCCESS, originator, messageSender));
-    assertDoesNotThrow(() -> enrollmentService.getEnrollment(enrollmentUid));
+    assertTrue(enrollmentService.findEnrollment(enrollmentUid).isPresent());
     Enrollment actual = enrollmentService.getEnrollment(enrollmentUid);
     assertAll(
         "created enrollment",
@@ -444,7 +444,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
                 "Command has been processed successfully", originator, messageSender));
 
     List<Enrollment> enrollments =
-        enrollmentService.getEnrollments(
+        enrollmentService.findEnrollments(
             EnrollmentOperationParams.builder()
                 .program(trackerProgram)
                 .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)

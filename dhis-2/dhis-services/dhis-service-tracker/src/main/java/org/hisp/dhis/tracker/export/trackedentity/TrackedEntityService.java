@@ -92,21 +92,22 @@ public interface TrackedEntityService {
   TrackedEntity getTrackedEntity(@Nonnull UID uid, UID program, @Nonnull TrackedEntityParams params)
       throws NotFoundException, ForbiddenException;
 
-  /** Get all tracked entities matching given params. */
+  /** Find all tracked entities matching given params. */
   @Nonnull
-  List<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams operationParams)
+  List<TrackedEntity> findTrackedEntities(TrackedEntityOperationParams operationParams)
       throws BadRequestException, ForbiddenException, NotFoundException;
 
   /** Get a page of tracked entities matching given params. */
   @Nonnull
-  Page<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams params, PageParams pageParams)
+  Page<TrackedEntity> findTrackedEntities(
+      TrackedEntityOperationParams params, PageParams pageParams)
       throws BadRequestException, ForbiddenException, NotFoundException;
 
   /**
-   * Fields the {@link #getTrackedEntities(TrackedEntityOperationParams)} can order tracked entities
-   * by. Ordering by fields other than these is considered a programmer error. Validation of user
-   * provided field names should occur before calling {@link
-   * #getTrackedEntities(TrackedEntityOperationParams)}.
+   * Fields the {@link #findTrackedEntities(TrackedEntityOperationParams)} can order tracked
+   * entities by. Ordering by fields other than these is considered a programmer error. Validation
+   * of user provided field names should occur before calling {@link
+   * #findTrackedEntities(TrackedEntityOperationParams)}.
    */
   Set<String> getOrderableFields();
 }

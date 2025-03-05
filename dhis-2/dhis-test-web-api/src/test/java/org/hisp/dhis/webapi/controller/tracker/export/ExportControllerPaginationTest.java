@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.test.webapi.Assertions.assertNoDiff;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertPagerLink;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -143,10 +144,10 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
         page.getList("trackedEntities", JsonTrackedEntity.class)
             .toList(JsonTrackedEntity::getTrackedEntity));
 
-    JsonPager pager = page.getPager();
-    assertEquals(1, pager.getPage());
-    assertEquals(50, pager.getPageSize());
-    assertHasNoMember(pager, "total", "pageCount");
+    assertNoDiff(
+        """
+        { "page": 1, "pageSize": 50 }""",
+        page.getPager());
   }
 
   @Test

@@ -29,16 +29,13 @@ package org.hisp.dhis.tracker.deduplication;
 
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -145,7 +142,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
   }
 
   @Test
-  void shouldDeleteRelationShips() throws NotFoundException, ForbiddenException {
+  void shouldDeleteRelationShips() throws NotFoundException {
     RelationshipType relationshipType = createRelationshipType('A');
     relationshipTypeService.addRelationshipType(relationshipType);
     Relationship relationship1 = createTeToTeRelationship(original, control1, relationshipType);
@@ -166,16 +163,16 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     assertTrue(trackedEntityService.findTrackedEntity(UID.of(control2)).isPresent());
 
     removeTrackedEntity(duplicate);
-    assertThrows(NotFoundException.class, () -> getRelationship(UID.of(relationship3)));
-    assertThrows(NotFoundException.class, () -> getRelationship(UID.of(relationship4)));
-    assertNotNull(getRelationship(UID.of(relationship1)));
-    assertNotNull(getRelationship(UID.of(relationship2)));
-    assertNotNull(getRelationship(UID.of(relationship5)));
+    assertFalse(relationshipService.findRelationship(UID.of(relationship3)).isPresent());
+    assertFalse(relationshipService.findRelationship(UID.of(relationship4)).isPresent());
+    assertTrue(relationshipService.findRelationship(UID.of(relationship1)).isPresent());
+    assertTrue(relationshipService.findRelationship(UID.of(relationship2)).isPresent());
+    assertTrue(relationshipService.findRelationship(UID.of(relationship5)).isPresent());
     assertFalse(trackedEntityService.findTrackedEntity(UID.of(duplicate)).isPresent());
   }
 
   @Test
-  void shouldDeleteEnrollments() throws ForbiddenException, NotFoundException {
+  void shouldDeleteEnrollments() throws NotFoundException {
     User user =
         createAndAddUser(
             false, "user", Set.of(organisationUnit), Set.of(organisationUnit), ALL.toString());
@@ -202,11 +199,10 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     assertTrue(trackedEntityService.findTrackedEntity(UID.of(control1)).isPresent());
     assertTrue(trackedEntityService.findTrackedEntity(UID.of(control2)).isPresent());
     removeTrackedEntity(duplicate);
-    assertThrows(
-        NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollment2)));
-    assertNotNull(enrollmentService.getEnrollment(UID.of(enrollment1)));
-    assertNotNull(enrollmentService.getEnrollment(UID.of(enrollment3)));
-    assertNotNull(enrollmentService.getEnrollment(UID.of(enrollment4)));
+    assertFalse(enrollmentService.findEnrollment(UID.of(enrollment2)).isPresent());
+    assertTrue(enrollmentService.findEnrollment(UID.of(enrollment1)).isPresent());
+    assertTrue(enrollmentService.findEnrollment(UID.of(enrollment3)).isPresent());
+    assertTrue(enrollmentService.findEnrollment(UID.of(enrollment4)).isPresent());
     assertFalse(trackedEntityService.findTrackedEntity(UID.of(duplicate)).isPresent());
   }
 
@@ -219,9 +215,5 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
 
   private void removeTrackedEntity(TrackedEntity trackedEntity) throws NotFoundException {
     trackerObjectDeletionService.deleteTrackedEntities(List.of(UID.of(trackedEntity)));
-  }
-
-  private Relationship getRelationship(UID uid) throws ForbiddenException, NotFoundException {
-    return relationshipService.getRelationship(uid);
   }
 }

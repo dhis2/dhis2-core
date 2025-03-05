@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.expression.dataitem;
 
+import static java.lang.String.format;
 import static org.apache.commons.lang3.ObjectUtils.anyNotNull;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
@@ -35,7 +36,6 @@ import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT_OPERAND;
 import static org.hisp.dhis.parser.expression.ParserUtils.castSql;
 import static org.hisp.dhis.parser.expression.ParserUtils.replaceSqlNull;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 import static org.hisp.dhis.subexpression.SubexpressionDimensionItem.getItemColumnName;
 
 import org.hisp.dhis.analytics.DataType;
@@ -43,6 +43,7 @@ import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Expression items DataElement and DataElementOperand
@@ -100,7 +101,7 @@ public class DimItemDataElementAndOperand extends DimensionalItem {
   private boolean isDataElementOperandSyntax(ExprContext ctx) {
     if (ctx.uid0 == null) {
       throw new ParserExceptionWithoutContext(
-          "Data Element or DataElementOperand must have a uid " + ctx.getText());
+          format("Data Element or DataElementOperand must have a UID: %s", ctx.getText()));
     }
 
     return anyNotNull(ctx.uid1, ctx.uid2);
@@ -121,12 +122,12 @@ public class DimItemDataElementAndOperand extends DimensionalItem {
     DataElement dataElement = visitor.getIdObjectManager().get(DataElement.class, deUid);
     if (dataElement == null) {
       throw new ParserExceptionWithoutContext(
-          "Data element " + deUid + " not found during SQL generation.");
+          format("Data element %s not found during SQL generation", deUid));
     }
 
     DataType dataType = fromValueType(dataElement.getValueType());
     if (dataType == BOOLEAN) {
-      if (visitor.getParams().getDataType() == BOOLEAN) {
+      if (BOOLEAN == visitor.getParams().getDataType()) {
         column = castSql(column, BOOLEAN);
       } else {
         dataType = NUMERIC;

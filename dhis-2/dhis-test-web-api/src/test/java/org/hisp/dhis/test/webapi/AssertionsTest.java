@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.parser.expression.operator;
+package org.hisp.dhis.test.webapi;
 
-import org.hisp.dhis.antlr.operator.AntlrOperatorCompareGreaterThan;
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ExpressionItem;
-import org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+import static org.hisp.dhis.test.webapi.Assertions.assertNoDiff;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
-/**
- * Compare operator: greater than
- *
- * @author Jim Grace
- */
-public class OperatorCompareGreaterThan extends AntlrOperatorCompareGreaterThan
-    implements ExpressionItem {
-  @Override
-  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
-    return visitor.sqlNumericVisit(ctx.expr(0)) + " > " + visitor.sqlNumericVisit(ctx.expr(1));
+import org.junit.jupiter.api.Test;
+import org.opentest4j.AssertionFailedError;
+
+class AssertionsTest {
+
+  @Test
+  void testAssertNoDiff() {
+
+    AssertionFailedError ex =
+        assertThrowsExactly(
+            AssertionFailedError.class,
+            () ->
+                assertNoDiff(
+                    """
+                { "page": 1, "pageSize": 50 }""",
+                    """
+                { "paga": 1, "pageSize": 50 }"""));
+    assertEquals(
+        """
+        JSON has 2 structural differences:
+          ++ $.paga: ? <> 1
+          -- $.page: 1 <> ?
+        [-- missing, ++ unexpected, >> out-of-order, != value-not-equal]
+         ==> expected: <{ "page": 1, "pageSize": 50 }> but was: <{ "paga": 1, "pageSize": 50 }>""",
+        ex.getMessage());
   }
 }

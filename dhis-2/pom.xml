@@ -178,7 +178,7 @@
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
     <jsmpp.version>3.0.1</jsmpp.version>
     <json-path.version>2.9.0</json-path.version>
-    <jsoup.version>1.18.3</jsoup.version>
+    <jsoup.version>1.19.1</jsoup.version>
 
     <!-- Div. utils -->
     <guava.version>33.4.0-jre</guava.version>
@@ -1989,7 +1989,7 @@
             <dependency>
               <groupId>com.github.spotbugs</groupId>
               <artifactId>spotbugs</artifactId>
-              <version>4.9.1</version>
+              <version>4.9.2</version>
             </dependency>
           </dependencies>
         </plugin>

@@ -116,7 +116,7 @@ class JdbcEventAnalyticsTableManagerDorisTest {
 
   private static final int OU_NAME_HIERARCHY_COUNT = 1;
 
-  private List<AnalyticsTableColumn> periodColumns =
+  private final List<AnalyticsTableColumn> periodColumns =
       PeriodType.getAvailablePeriodTypes().stream()
           .map(
               pt -> {

@@ -177,7 +177,7 @@ class TrackedEntitiesExportController {
           PageParams.of(
               requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
       org.hisp.dhis.tracker.Page<org.hisp.dhis.trackedentity.TrackedEntity> trackedEntitiesPage =
-          trackedEntityService.getTrackedEntities(operationParams, pageParams);
+          trackedEntityService.findTrackedEntities(operationParams, pageParams);
 
       MappingErrors errors = new MappingErrors(idSchemeParams);
       org.hisp.dhis.tracker.Page<TrackedEntity> page =
@@ -190,7 +190,7 @@ class TrackedEntitiesExportController {
 
     MappingErrors errors = new MappingErrors(idSchemeParams);
     List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).stream()
+        trackedEntityService.findTrackedEntities(operationParams).stream()
             .map(te -> TRACKED_ENTITY_MAPPER.map(idSchemeParams, errors, te))
             .toList();
     ensureNoMappingErrors(errors);
@@ -275,7 +275,7 @@ class TrackedEntitiesExportController {
 
     MappingErrors errors = new MappingErrors(idSchemeParams);
     List<TrackedEntity> result =
-        trackedEntityService.getTrackedEntities(operationParams).stream()
+        trackedEntityService.findTrackedEntities(operationParams).stream()
             .map(te -> TRACKED_ENTITY_MAPPER.map(idSchemeParams, errors, te))
             .toList();
     ensureNoMappingErrors(errors);
