@@ -43,6 +43,7 @@ public interface AppManager {
   static final String ID = AppManager.class.getName();
 
   static final String BUNDLED_APP_PREFIX = "dhis-web-";
+  static final String INSTALLED_APP_PREFIX = "api/apps/";
 
   static final Set<String> BUNDLED_APPS =
       Set.of(
