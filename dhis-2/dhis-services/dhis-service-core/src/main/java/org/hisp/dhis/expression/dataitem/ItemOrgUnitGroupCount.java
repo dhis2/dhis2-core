@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.expression.dataitem;
 
+import static java.lang.String.format;
 import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Expression item OrganisationUnitGroup
@@ -48,7 +49,7 @@ public class ItemOrgUnitGroupCount implements ExpressionItem {
 
     if (orgUnitGroup == null) {
       throw new ParserExceptionWithoutContext(
-          "No organization unit group defined for " + ctx.uid0.getText());
+          format("No organization unit group defined for %s", ctx.uid0.getText()));
     }
 
     visitor.getItemDescriptions().put(ctx.getText(), orgUnitGroup.getDisplayName());
@@ -70,7 +71,7 @@ public class ItemOrgUnitGroupCount implements ExpressionItem {
     if (count == null) // Shouldn't happen for a valid expression.
     {
       throw new ParserExceptionWithoutContext(
-          "Can't find count for organisation unit " + ctx.uid0.getText());
+          format("Cannot find count for organisation unit: %s", ctx.uid0.getText()));
     }
 
     return count.doubleValue();
