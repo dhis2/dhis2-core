@@ -1941,6 +1941,10 @@ public abstract class TestBase {
     indicator.setExpression(expression);
     indicator.setAnalyticsType(analyticsType);
     indicator.setFilter(filter);
+    if (categoryService != null) {
+      indicator.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+      indicator.setAttributeCombo(categoryService.getDefaultCategoryCombo());
+    }
 
     Set<AnalyticsPeriodBoundary> boundaries = new HashSet<>();
     if (analyticsType == AnalyticsType.EVENT) {
@@ -3123,7 +3127,7 @@ public abstract class TestBase {
     categoryService.addCategoryCombo(cc1);
 
     // should generate 4 category option combos ([co1,co3], [co1,co4], [co2,co3], [co2,co4])
-    categoryService.generateOptionCombos(cc1);
+    categoryService.addAndPruneOptionCombos(cc1);
 
     CategoryOptionCombo coc1 = getCocWithOptions(co1.getName(), co3.getName());
     CategoryOptionCombo coc2 = getCocWithOptions(co1.getName(), co4.getName());

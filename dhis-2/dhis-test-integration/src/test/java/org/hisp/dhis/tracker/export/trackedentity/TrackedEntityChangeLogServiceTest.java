@@ -69,18 +69,18 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   private final TrackedEntityChangeLogOperationParams defaultOperationParams =
       TrackedEntityChangeLogOperationParams.builder().build();
-  private final PageParams defaultPageParams = PageParams.of(null, null, false);
+  private final PageParams defaultPageParams = PageParams.of(1, 10, false);
 
   private TrackerObjects trackerObjects;
 
   @BeforeAll
   void setUp() throws IOException {
-    testSetup.setUpMetadata();
+    testSetup.importMetadata();
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    trackerObjects = testSetup.setUpTrackerData();
+    trackerObjects = testSetup.importTrackerData();
   }
 
   @BeforeEach

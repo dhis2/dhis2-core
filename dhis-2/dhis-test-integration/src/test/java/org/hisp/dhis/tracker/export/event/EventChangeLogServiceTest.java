@@ -81,7 +81,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   private final EventChangeLogOperationParams defaultOperationParams =
       EventChangeLogOperationParams.builder().build();
-  private final PageParams defaultPageParams = new PageParams(null, null, false);
+  private final PageParams defaultPageParams = new PageParams(1, 10, false);
 
   private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
@@ -90,12 +90,12 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() throws IOException {
-    testSetup.setUpMetadata();
+    testSetup.importMetadata();
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    trackerObjects = testSetup.setUpTrackerData();
+    trackerObjects = testSetup.importTrackerData();
   }
 
   @BeforeEach

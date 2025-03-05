@@ -314,6 +314,13 @@ public enum ErrorCode {
   E4068("No tracked entity attribute found for attribute: `{0}`"),
   E4069("DashboardItem `{0}` object reference `{1}` with id `{2}` not accessible"),
   E4070("Dashboard `{0}` has a layout with more than 60 columns. `{1}` columns found"),
+  E4071("Program indicator `{0}` category mapping `{1}` not found in program `{2}`"),
+  E4072("Program `{0}` category mapping `{1}` category `{2}` not found"),
+  E4073("Program `{0}` category `{1}` mapping `{2}` option `{3}` not found"),
+  E4074("Program indicator `{0}` `{1}` category needs a category mapping"),
+  E4075("Program `{0}` has an invalid category mapping `{1}`"),
+  E4076("Program `{0}` has duplicate category mapping `{1}`"),
+  E4077("Program `{0}` category `{1}` has duplicate category mapping name `{2}`"),
 
   /* SQL views */
   E4300("SQL query is null"),
@@ -475,6 +482,7 @@ public enum ErrorCode {
   E7147("Query failed because of a missing column: `{0}`"),
   E7148("Could not create CTE SQL query, unexpected error: `{0}`"),
   E7149("Invalid measure filter operator: `{0}`"),
+  E7150("No periods found for subexpression query"),
   /* Analytics outliers */
 
   E7180(

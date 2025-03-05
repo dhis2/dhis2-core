@@ -40,7 +40,6 @@ import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.MockAnalyticsService;
-import org.hisp.dhis.category.CategoryManager;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -114,8 +113,6 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataValueService dataValueService;
 
   @Autowired private AnalyticsService analyticsService;
-
-  @Autowired private CategoryManager categoryManager;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -263,7 +260,7 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
     eventB.setOccurredDate(dateApr10);
     eventB.setAttributeOptionCombo(defaultCombo);
     manager.save(eventB);
-    categoryManager.addAndPruneAllOptionCombos();
+    categoryService.addAndPruneAllOptionCombos();
     Expression expressionA = new Expression(EXPRESSION_A, "ProgramTrackedEntityAttribute");
     Expression expressionD = new Expression(EXPRESSION_D, "ProgramDataElement");
     Expression expressionI = new Expression(EXPRESSION_I, "ProgramIndicators");

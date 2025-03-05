@@ -43,7 +43,6 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOption;
@@ -106,12 +105,12 @@ class EventExporterTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() throws IOException {
-    testSetup.setUpMetadata();
+    testSetup.importMetadata();
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    testSetup.setUpTrackerData();
+    testSetup.importTrackerData();
     orgUnit = get(OrganisationUnit.class, "h4w96yEMlzO");
     programStage = get(ProgramStage.class, "NpsdDv6kKSO");
     program = programStage.getProgram();
@@ -346,8 +345,8 @@ class EventExporterTest extends PostgresIntegrationTestBase {
         operationParamsBuilder
             .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
             .programStage(programStage)
-            .dataElementFilters(
-                Map.of(UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%val%"))))
+            .filterByDataElement(
+                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%val%")))
             .build();
 
     List<String> events = getEvents(params);
@@ -367,8 +366,8 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
             .programStage(programStage)
             .enrollmentStatus(EnrollmentStatus.ACTIVE)
-            .dataElementFilters(
-                Map.of(UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%val%"))))
+            .filterByDataElement(
+                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%val%")))
             .build();
 
     List<String> events = getEvents(params);
@@ -386,8 +385,8 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
             .programStage(programStage)
             .programType(ProgramType.WITH_REGISTRATION)
-            .dataElementFilters(
-                Map.of(UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%val%"))))
+            .filterByDataElement(
+                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%val%")))
             .build();
 
     List<String> events = getEvents(params);
@@ -404,10 +403,8 @@ class EventExporterTest extends PostgresIntegrationTestBase {
         operationParamsBuilder
             .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
             .programStage(programStage)
-            .dataElementFilters(
-                Map.of(
-                    UID.of(dataElement),
-                    List.of(new QueryFilter(QueryOperator.LIKE, "%value00001%"))))
+            .filterByDataElement(
+                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%value00001%")))
             .build();
 
     List<String> events = getEvents(params);
@@ -424,10 +421,9 @@ class EventExporterTest extends PostgresIntegrationTestBase {
         operationParamsBuilder
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStage(programStage)
-            .dataElementFilters(
-                Map.of(
-                    UID.of(dataElement),
-                    List.of(new QueryFilter(QueryOperator.IN, "value00001;value00002"))))
+            .filterByDataElement(
+                UID.of(dataElement),
+                List.of(new QueryFilter(QueryOperator.IN, "value00001;value00002")))
             .build();
 
     List<String> events = getEvents(params);
@@ -447,9 +443,8 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .program(program)
             .attributeCategoryCombo(UID.of("bjDvmb4bfuf"))
             .attributeCategoryOptions(Set.of(UID.of("xYerKDKCefk")))
-            .dataElementFilters(
-                Map.of(
-                    UID.of(dataElement), List.of(new QueryFilter(QueryOperator.EQ, "value00001"))))
+            .filterByDataElement(
+                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.EQ, "value00001")))
             .build();
 
     List<String> events = getEvents(params);
@@ -505,9 +500,8 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .program(program)
             .attributeCategoryCombo(UID.of("bjDvmb4bfuf"))
             .attributeCategoryOptions(Set.of(UID.of("xYerKDKCefk")))
-            .dataElementFilters(
-                Map.of(
-                    UID.of(dataElement), List.of(new QueryFilter(QueryOperator.EQ, "value00002"))))
+            .filterByDataElement(
+                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.EQ, "value00002")))
             .build();
 
     List<String> events = getEvents(params);
@@ -523,8 +517,8 @@ class EventExporterTest extends PostgresIntegrationTestBase {
         operationParamsBuilder
             .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
             .programStage(programStage)
-            .dataElementFilters(
-                Map.of(UID.of(dataElement), List.of(new QueryFilter(QueryOperator.EQ, "option1"))))
+            .filterByDataElement(
+                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.EQ, "option1")))
             .build();
 
     List<String> events = getEvents(params);
@@ -540,10 +534,8 @@ class EventExporterTest extends PostgresIntegrationTestBase {
         operationParamsBuilder
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStage(programStage)
-            .dataElementFilters(
-                Map.of(
-                    UID.of(dataElement),
-                    List.of(new QueryFilter(QueryOperator.IN, "option1;option2"))))
+            .filterByDataElement(
+                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.IN, "option1;option2")))
             .build();
 
     List<String> events = getEvents(params);
@@ -559,8 +551,8 @@ class EventExporterTest extends PostgresIntegrationTestBase {
         operationParamsBuilder
             .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
             .programStage(programStage)
-            .dataElementFilters(
-                Map.of(UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%opt%"))))
+            .filterByDataElement(
+                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%opt%")))
             .build();
 
     List<String> events = getEvents(params);
@@ -576,12 +568,11 @@ class EventExporterTest extends PostgresIntegrationTestBase {
         operationParamsBuilder
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStage(programStage)
-            .dataElementFilters(
-                Map.of(
-                    UID.of(dataElement),
-                    List.of(
-                        new QueryFilter(QueryOperator.LT, "77"),
-                        new QueryFilter(QueryOperator.GT, "8"))))
+            .filterByDataElement(
+                UID.of(dataElement),
+                List.of(
+                    new QueryFilter(QueryOperator.LT, "77"),
+                    new QueryFilter(QueryOperator.GT, "8")))
             .build();
 
     List<String> events = getEvents(params);
@@ -595,12 +586,10 @@ class EventExporterTest extends PostgresIntegrationTestBase {
     EventOperationParams params =
         EventOperationParams.builder()
             .eventParams(EventParams.FALSE)
-            .dataElementFilters(
-                Map.of(
-                    UID.of("GieVkTxp4HH"),
-                    List.of(new QueryFilter(QueryOperator.NNULL)),
-                    UID.of("GieVkTxp4HG"),
-                    List.of(new QueryFilter(QueryOperator.NNULL))))
+            .filterByDataElement(
+                UID.of("GieVkTxp4HH"), List.of(new QueryFilter(QueryOperator.NNULL)))
+            .filterByDataElement(
+                UID.of("GieVkTxp4HG"), List.of(new QueryFilter(QueryOperator.NNULL)))
             .build();
 
     List<String> events = getEvents(params);
@@ -616,8 +605,8 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStage(programStage)
             .eventParams(EventParams.FALSE)
-            .dataElementFilters(
-                Map.of(UID.of("DATAEL00002"), List.of(new QueryFilter(QueryOperator.NULL))))
+            .filterByDataElement(
+                UID.of("DATAEL00002"), List.of(new QueryFilter(QueryOperator.NULL)))
             .build();
 
     List<String> events = getEvents(params);
@@ -633,12 +622,11 @@ class EventExporterTest extends PostgresIntegrationTestBase {
         operationParamsBuilder
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStage(programStage)
-            .dataElementFilters(
-                Map.of(
-                    UID.of(dataElement),
-                    List.of(
-                        new QueryFilter(QueryOperator.IN, "option2"),
-                        new QueryFilter(QueryOperator.NNULL))))
+            .filterByDataElement(
+                UID.of(dataElement),
+                List.of(
+                    new QueryFilter(QueryOperator.IN, "option2"),
+                    new QueryFilter(QueryOperator.NNULL)))
             .build();
 
     List<String> events = getEvents(params);
@@ -654,12 +642,9 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStage(programStage)
             .eventParams(EventParams.FALSE)
-            .dataElementFilters(
-                Map.of(
-                    UID.of("DATAEL00002"),
-                    List.of(
-                        new QueryFilter(QueryOperator.NNULL),
-                        new QueryFilter(QueryOperator.NNULL))))
+            .filterByDataElement(
+                UID.of("DATAEL00002"),
+                List.of(new QueryFilter(QueryOperator.NNULL), new QueryFilter(QueryOperator.NNULL)))
             .build();
 
     List<String> events = getEvents(params);
@@ -844,14 +829,10 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void
-      shouldFilterOutEventsWithATrackedEntityWithoutThatAttributeWhenFilterAttributeHasNoQueryFilter()
-          throws ForbiddenException, BadRequestException {
+  void shouldOnlyIncludeEventsWithGivenAttributeWhenFilterAttributeHasNoQueryFilter()
+      throws ForbiddenException, BadRequestException {
     EventOperationParams params =
-        operationParamsBuilder
-            .orgUnit(orgUnit)
-            .attributeFilters(Map.of(UID.of("notUpdated0"), List.of()))
-            .build();
+        operationParamsBuilder.orgUnit(orgUnit).filterByAttribute(UID.of("notUpdated0")).build();
 
     List<String> trackedEntities =
         eventService.getEvents(params).stream()
@@ -866,12 +847,11 @@ class EventExporterTest extends PostgresIntegrationTestBase {
     EventOperationParams params =
         operationParamsBuilder
             .orgUnit(orgUnit)
-            .attributeFilters(
-                Map.of(
-                    UID.of("numericAttr"),
-                    List.of(
-                        new QueryFilter(QueryOperator.LT, "77"),
-                        new QueryFilter(QueryOperator.GT, "8"))))
+            .filterByAttribute(
+                UID.of("numericAttr"),
+                List.of(
+                    new QueryFilter(QueryOperator.LT, "77"),
+                    new QueryFilter(QueryOperator.GT, "8")))
             .build();
 
     List<String> trackedEntities =
@@ -887,10 +867,8 @@ class EventExporterTest extends PostgresIntegrationTestBase {
     EventOperationParams params =
         operationParamsBuilder
             .orgUnit(orgUnit)
-            .attributeFilters(
-                Map.of(
-                    UID.of("toUpdate000"),
-                    List.of(new QueryFilter(QueryOperator.EQ, "summer day"))))
+            .filterByAttribute(
+                UID.of("toUpdate000"), List.of(new QueryFilter(QueryOperator.EQ, "summer day")))
             .build();
 
     List<String> trackedEntities =
@@ -907,12 +885,10 @@ class EventExporterTest extends PostgresIntegrationTestBase {
     EventOperationParams params =
         operationParamsBuilder
             .orgUnit(orgUnit)
-            .attributeFilters(
-                Map.of(
-                    UID.of("toUpdate000"),
-                    List.of(new QueryFilter(QueryOperator.EQ, "rainy day")),
-                    UID.of("notUpdated0"),
-                    List.of(new QueryFilter(QueryOperator.EQ, "winter day"))))
+            .filterByAttribute(
+                UID.of("toUpdate000"), List.of(new QueryFilter(QueryOperator.EQ, "rainy day")))
+            .filterByAttribute(
+                UID.of("notUpdated0"), List.of(new QueryFilter(QueryOperator.EQ, "winter day")))
             .build();
 
     List<String> trackedEntities =
@@ -929,12 +905,11 @@ class EventExporterTest extends PostgresIntegrationTestBase {
     EventOperationParams params =
         operationParamsBuilder
             .orgUnit(orgUnit)
-            .attributeFilters(
-                Map.of(
-                    UID.of("toUpdate000"),
-                    List.of(
-                        new QueryFilter(QueryOperator.LIKE, "day"),
-                        new QueryFilter(QueryOperator.LIKE, "in"))))
+            .filterByAttribute(
+                UID.of("toUpdate000"),
+                List.of(
+                    new QueryFilter(QueryOperator.LIKE, "day"),
+                    new QueryFilter(QueryOperator.LIKE, "in")))
             .build();
 
     List<String> trackedEntities =
@@ -943,6 +918,73 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .toList();
 
     assertContainsOnly(List.of("dUE514NMOlo"), trackedEntities);
+  }
+
+  @Test
+  void shouldFilterByEventsContainingGivenAttributeValueWhenCombiningTwoUnaryOperators()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        EventOperationParams.builder()
+            .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
+            .programStage(programStage)
+            .eventParams(EventParams.FALSE)
+            .filterByAttribute(
+                UID.of("dIVt4l5vIOa"),
+                List.of(new QueryFilter(QueryOperator.NNULL), new QueryFilter(QueryOperator.NNULL)))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("pTzf9KYMk72"), events);
+  }
+
+  @Test
+  void shouldFilterByEventsContainingGivenAttributeValueWhenCombiningUnaryAndBinaryOperators()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        EventOperationParams.builder()
+            .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
+            .programStage(programStage)
+            .eventParams(EventParams.FALSE)
+            .filterByAttribute(
+                UID.of("toUpdate000"),
+                List.of(
+                    new QueryFilter(QueryOperator.NNULL),
+                    new QueryFilter(QueryOperator.EQ, "rainy day")))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldFilterByEventsNotContainingGivenAttributeValueWhenFilteringByNullValues()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        EventOperationParams.builder()
+            .eventParams(EventParams.FALSE)
+            .filterByAttribute(UID.of("toDelete000"), List.of(new QueryFilter(QueryOperator.NULL)))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("H0PbzJY8bJG"), events);
+  }
+
+  @Test
+  void shouldFilterByEventsContainingGivenAttributeValueWhenFilteringByNonNullValues()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        EventOperationParams.builder()
+            .programStage(programStage)
+            .eventParams(EventParams.FALSE)
+            .filterByAttribute(UID.of("dIVt4l5vIOa"), List.of(new QueryFilter(QueryOperator.NNULL)))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("pTzf9KYMk72"), events);
   }
 
   @Test

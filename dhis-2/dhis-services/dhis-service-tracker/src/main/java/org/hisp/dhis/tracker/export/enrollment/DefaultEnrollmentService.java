@@ -33,6 +33,7 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -81,14 +82,24 @@ class DefaultEnrollmentService implements EnrollmentService {
 
   @Nonnull
   @Override
-  public Enrollment getEnrollment(@Nonnull UID uid) throws ForbiddenException, NotFoundException {
+  public Optional<Enrollment> findEnrollment(@Nonnull UID uid) {
+    try {
+      return Optional.of(getEnrollment(uid));
+    } catch (NotFoundException e) {
+      return Optional.empty();
+    }
+  }
+
+  @Nonnull
+  @Override
+  public Enrollment getEnrollment(@Nonnull UID uid) throws NotFoundException {
     return getEnrollment(uid, EnrollmentParams.FALSE);
   }
 
   @Nonnull
   @Override
   public Enrollment getEnrollment(@Nonnull UID uid, @Nonnull EnrollmentParams params)
-      throws NotFoundException, ForbiddenException {
+      throws NotFoundException {
     Page<Enrollment> enrollments;
     try {
       EnrollmentOperationParams operationParams =
@@ -97,7 +108,7 @@ class DefaultEnrollmentService implements EnrollmentService {
               .enrollmentParams(params)
               .build();
       enrollments = getEnrollments(operationParams, PageParams.single());
-    } catch (BadRequestException e) {
+    } catch (BadRequestException | ForbiddenException e) {
       throw new IllegalArgumentException(
           "this must be a bug in how the EnrollmentOperationParams are built");
     }
@@ -182,7 +193,6 @@ class DefaultEnrollmentService implements EnrollmentService {
       boolean includeDeleted,
       @Nonnull UserDetails user) {
     Enrollment result = new Enrollment();
-    result.setId(enrollment.getId());
     result.setUid(enrollment.getUid());
 
     if (enrollment.getTrackedEntity() != null) {

@@ -239,12 +239,10 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     r.setKey(RelationshipUtils.generateRelationshipKey(r));
     r.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(r));
     manager.save(r);
-    assertNotNull(trackedEntityService.getNewTrackedEntity(UID.of(trackedEntity)));
+    assertTrue(trackedEntityService.findTrackedEntity(UID.of(trackedEntity)).isPresent());
     assertNotNull(getRelationship(r.getUid()));
     manager.delete(trackedEntity);
-    assertThrows(
-        NotFoundException.class,
-        () -> trackedEntityService.getNewTrackedEntity(UID.of(trackedEntity)));
+    assertFalse(trackedEntityService.findTrackedEntity(UID.of(trackedEntity)).isPresent());
     manager.delete(r);
     manager.delete(enrollment);
     assertThrows(NotFoundException.class, () -> getRelationship(r.getUid()));
@@ -260,7 +258,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testDeleteSoftDeletedEnrollmentWithAProgramMessage()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     ProgramMessageRecipients programMessageRecipients = new ProgramMessageRecipients();
     programMessageRecipients.setEmailAddresses(Sets.newHashSet("testemail"));
     programMessageRecipients.setPhoneNumbers(Sets.newHashSet("testphone"));
@@ -276,11 +274,10 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
             .build();
     manager.save(enrollment);
     programMessageService.saveProgramMessage(message);
-    assertNotNull(enrollmentService.getEnrollment(UID.of(enrollment)));
+    assertTrue(enrollmentService.findEnrollment(UID.of(enrollment)).isPresent());
 
     manager.delete(enrollment);
-    assertThrows(
-        NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollment)));
+    assertFalse(enrollmentService.findEnrollment(UID.of(enrollment)).isPresent());
     assertTrue(enrollmentExistsIncludingDeleted(enrollment));
 
     maintenanceService.deleteSoftDeletedEnrollments();
@@ -289,8 +286,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testDeleteSoftDeletedEventsWithAProgramMessage()
-      throws ForbiddenException, NotFoundException {
+  void testDeleteSoftDeletedEventsWithAProgramMessage() {
     ProgramMessageRecipients programMessageRecipients = new ProgramMessageRecipients();
     programMessageRecipients.setEmailAddresses(Sets.newHashSet("testemail"));
     programMessageRecipients.setPhoneNumbers(Sets.newHashSet("testphone"));
@@ -306,9 +302,9 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     manager.save(event);
     UID idA = UID.of(event);
     programMessageService.saveProgramMessage(message);
-    assertNotNull(getEvent(idA));
+    assertTrue(eventService.findEvent(idA).isPresent());
     manager.delete(event);
-    assertThrows(NotFoundException.class, () -> getEvent(idA));
+    assertFalse(eventService.findEvent(idA).isPresent());
     assertTrue(eventExistsIncludingDeleted(event.getUid()));
 
     maintenanceService.deleteSoftDeletedEvents();
@@ -317,8 +313,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testDeleteSoftDeletedTrackedEntityAProgramMessage()
-      throws ForbiddenException, NotFoundException {
+  void testDeleteSoftDeletedTrackedEntityAProgramMessage() {
     ProgramMessageRecipients programMessageRecipients = new ProgramMessageRecipients();
     programMessageRecipients.setEmailAddresses(Sets.newHashSet("testemail"));
     programMessageRecipients.setPhoneNumbers(Sets.newHashSet("testphone"));
@@ -333,11 +328,9 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
             .build();
     manager.save(trackedEntityB);
     programMessageService.saveProgramMessage(message);
-    assertNotNull(trackedEntityService.getNewTrackedEntity(UID.of(trackedEntityB)));
+    assertTrue(trackedEntityService.findTrackedEntity(UID.of(trackedEntityB)).isPresent());
     manager.delete(trackedEntityB);
-    assertThrows(
-        NotFoundException.class,
-        () -> trackedEntityService.getNewTrackedEntity(UID.of(trackedEntityB)));
+    assertFalse(trackedEntityService.findTrackedEntity(UID.of(trackedEntityB)).isPresent());
     assertTrue(trackedEntityExistsIncludingDeleted(trackedEntityB.getUid()));
 
     maintenanceService.deleteSoftDeletedTrackedEntities();
@@ -347,7 +340,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testDeleteSoftDeletedEnrollmentLinkedToAnEventDataValueChangeLog()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, BadRequestException {
     DataElement dataElement = createDataElement('A');
     dataElementService.addDataElement(dataElement);
     Event eventA = new Event(enrollment, program.getProgramStageByStage(1));
@@ -359,10 +352,9 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     eventChangeLogService.addEventChangeLog(
         eventA, dataElement, "", "value", UPDATE, getCurrentUsername());
     manager.save(enrollment);
-    assertNotNull(enrollmentService.getEnrollment(UID.of(enrollment)));
+    assertTrue(enrollmentService.findEnrollment(UID.of(enrollment)).isPresent());
     manager.delete(enrollment);
-    assertThrows(
-        NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollment)));
+    assertFalse(enrollmentService.findEnrollment(UID.of(enrollment)).isPresent());
     assertTrue(enrollmentExistsIncludingDeleted(enrollment));
 
     maintenanceService.deleteSoftDeletedEnrollments();
@@ -398,10 +390,10 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     r.setKey(RelationshipUtils.generateRelationshipKey(r));
     r.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(r));
     manager.save(r);
-    assertNotNull(getEvent(idA));
+    assertTrue(eventService.findEvent(idA).isPresent());
     assertNotNull(getRelationship(r.getUid()));
     manager.delete(eventA);
-    assertThrows(NotFoundException.class, () -> getEvent(idA));
+    assertFalse(eventService.findEvent(idA).isPresent());
     manager.delete(r);
     assertThrows(NotFoundException.class, () -> getRelationship(r.getUid()));
     assertTrue(eventExistsIncludingDeleted(eventA.getUid()));
@@ -433,11 +425,10 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     r.setKey(RelationshipUtils.generateRelationshipKey(r));
     r.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(r));
     manager.save(r);
-    assertNotNull(enrollmentService.getEnrollment(UID.of(enrollment)));
+    assertTrue(enrollmentService.findEnrollment(UID.of(enrollment)).isPresent());
     assertNotNull(getRelationship(r.getUid()));
     manager.delete(enrollment);
-    assertThrows(
-        NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollment)));
+    assertFalse(enrollmentService.findEnrollment(UID.of(enrollment)).isPresent());
     manager.delete(r);
     assertThrows(NotFoundException.class, () -> getRelationship(r.getUid()));
     assertTrue(enrollmentExistsIncludingDeleted(enrollment));
@@ -453,9 +444,8 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   @Disabled("until we can inject dhis.conf property overrides")
   void testAuditEntryForDeletionOfSoftDeletedTrackedEntity() {
     manager.delete(trackedEntityWithAssociations);
-    assertThrows(
-        NotFoundException.class,
-        () -> trackedEntityService.getNewTrackedEntity(UID.of(trackedEntityWithAssociations)));
+    assertFalse(
+        trackedEntityService.findTrackedEntity(UID.of(trackedEntityWithAssociations)).isPresent());
     assertTrue(trackedEntityExistsIncludingDeleted(trackedEntityWithAssociations.getUid()));
     maintenanceService.deleteSoftDeletedTrackedEntities();
     List<Audit> audits =
@@ -493,10 +483,6 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
 
     maintenanceService.deleteSoftDeletedRelationships();
     assertFalse(relationshipExistsIncludingDeleted(relationship.getUid()));
-  }
-
-  private Event getEvent(UID uid) throws ForbiddenException, NotFoundException {
-    return eventService.getEvent(uid);
   }
 
   private Relationship getRelationship(String uid) throws ForbiddenException, NotFoundException {

@@ -134,7 +134,7 @@ class EnrollmentsExportController {
       @OpenApi.Param({UID.class, org.hisp.dhis.program.Enrollment.class}) @PathVariable UID uid,
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
           List<FieldPath> fields)
-      throws NotFoundException, ForbiddenException {
+      throws NotFoundException {
     EnrollmentParams enrollmentParams = fieldsMapper.map(fields);
 
     Enrollment enrollment =

@@ -80,7 +80,7 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
 
   private User importUser;
 
-  private final PageParams defaultPageParams = PageParams.of(null, null, false);
+  private final PageParams defaultPageParams = PageParams.of(1, 10, false);
 
   private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
@@ -88,12 +88,12 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() throws IOException {
-    testSetup.setUpMetadata();
+    testSetup.importMetadata();
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    trackerObjects = testSetup.setUpTrackerData();
+    trackerObjects = testSetup.importTrackerData();
   }
 
   private static Stream<Arguments> provideDateAndUsernameOrderParams() {

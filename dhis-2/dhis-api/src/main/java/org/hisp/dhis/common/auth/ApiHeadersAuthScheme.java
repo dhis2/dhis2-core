@@ -35,13 +35,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.springframework.context.ApplicationContext;
 
 @Getter
 @Setter
 @Accessors(chain = true)
+@Builder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ApiHeadersAuthScheme implements AuthScheme {
   public static final String API_HEADERS_TYPE = "api-headers";
 
@@ -49,7 +57,10 @@ public class ApiHeadersAuthScheme implements AuthScheme {
   private Map<String, String> headers = new HashMap<>();
 
   @Override
-  public void apply(Map<String, List<String>> headers, Map<String, List<String>> queryParams) {
+  public void apply(
+      ApplicationContext applicationContext,
+      Map<String, List<String>> headers,
+      Map<String, List<String>> queryParams) {
     for (Map.Entry<String, String> header : this.headers.entrySet()) {
       headers.computeIfAbsent(header.getKey(), v -> new LinkedList<>()).add(header.getValue());
     }
@@ -61,7 +72,7 @@ public class ApiHeadersAuthScheme implements AuthScheme {
         headers.entrySet().stream()
             .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), encryptFunc.apply(e.getValue())))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    return copy(encryptedHeaders);
+    return this.toBuilder().headers(encryptedHeaders).build();
   }
 
   @Override
@@ -70,18 +81,12 @@ public class ApiHeadersAuthScheme implements AuthScheme {
         headers.entrySet().stream()
             .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), decryptFunc.apply(e.getValue())))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    return copy(decryptedHeaders);
+
+    return this.toBuilder().headers(decryptedHeaders).build();
   }
 
   @Override
   public String getType() {
     return API_HEADERS_TYPE;
-  }
-
-  protected ApiHeadersAuthScheme copy(Map<String, String> headers) {
-    ApiHeadersAuthScheme apiHeadersAuth = new ApiHeadersAuthScheme();
-    apiHeadersAuth.setHeaders(headers);
-
-    return apiHeadersAuth;
   }
 }

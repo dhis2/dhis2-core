@@ -86,16 +86,10 @@ public class TrackedEntityAggregate {
 
   @Nonnull private final CacheProvider cacheProvider;
 
-  private Cache<Set<TrackedEntityAttribute>> teAttributesCache;
-
-  private Cache<Map<Program, Set<TrackedEntityAttribute>>> programTeAttributesCache;
-
   private Cache<Context> securityCache;
 
   @PostConstruct
   protected void init() {
-    teAttributesCache = cacheProvider.createTeAttributesCache();
-    programTeAttributesCache = cacheProvider.createProgramTeAttributesCache();
     securityCache = cacheProvider.createSecurityCache();
   }
 
@@ -198,19 +192,11 @@ public class TrackedEntityAggregate {
                             filterAttributes(
                                 attributes.get(uid),
                                 ownedTeis.get(uid),
-                                teAttributesCache.get(
-                                    "ALL_ATTRIBUTES",
-                                    s ->
-                                        trackedEntityAttributeService
-                                            .getTrackedEntityAttributesByTrackedEntityTypes()),
-                                programTeAttributesCache.get(
-                                    "ATTRIBUTES_BY_PROGRAM",
-                                    s ->
-                                        trackedEntityAttributeService
-                                            .getTrackedEntityAttributesByProgram()),
+                                trackedEntityAttributeService
+                                    .getTrackedEntityAttributesByTrackedEntityTypes(),
+                                trackedEntityAttributeService.getTrackedEntityAttributesByProgram(),
                                 ctx));
-                        te.setEnrollments(
-                            filterEnrollments(enrollments.get(uid), ownedTeis.get(uid), ctx));
+                        te.setEnrollments(new HashSet<>(enrollments.get(uid)));
                         te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
                         return te;
                       })
@@ -218,23 +204,6 @@ public class TrackedEntityAggregate {
             },
             getPool())
         .join();
-  }
-
-  /** Filter enrollments based on ownership and super user status. */
-  private Set<Enrollment> filterEnrollments(
-      Collection<Enrollment> enrollments, Collection<String> programs, Context ctx) {
-    Set<Enrollment> enrollmentList = new HashSet<>();
-
-    if (enrollments.isEmpty()) {
-      return enrollmentList;
-    }
-
-    enrollmentList.addAll(
-        enrollments.stream()
-            .filter(e -> (programs.contains(e.getProgram().getUid()) || ctx.isSuperUser()))
-            .toList());
-
-    return enrollmentList;
   }
 
   /** Filter attributes based on queryParams, ownership and superuser status */
@@ -254,13 +223,11 @@ public class TrackedEntityAggregate {
             .map(BaseIdentifiableObject::getUid)
             .collect(Collectors.toSet());
 
-    for (Map.Entry<Program, Set<TrackedEntityAttribute>> entry : teaByProgram.entrySet()) {
-      if (programs.contains(entry.getKey().getUid()) || ctx.isSuperUser()) {
-        allowedAttributeUids.addAll(
-            entry.getValue().stream()
-                .map(BaseIdentifiableObject::getUid)
-                .collect(Collectors.toSet()));
-      }
+    if (ctx.getQueryParams().hasEnrolledInTrackerProgram()) {
+      allowedAttributeUids.addAll(
+          teaByProgram.get(ctx.getQueryParams().getEnrolledInTrackerProgram()).stream()
+              .map(BaseIdentifiableObject::getUid)
+              .collect(Collectors.toSet()));
     }
 
     return attributes.stream()

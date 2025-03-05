@@ -25,20 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.category;
+package org.hisp.dhis.feedback;
 
-/**
- * @author Viet Nguyen <viet@dhis2.org>
- */
-public interface CategoryManager {
-  /**
-   * Generates the complete set of category option combos for the given category combo. Removes
-   * obsolete category option combos.
-   *
-   * @param categoryCombo the CategoryCombo.
-   */
-  void addAndPruneOptionCombos(CategoryCombo categoryCombo);
+import static org.hisp.dhis.common.OpenApi.Response.Status.BAD_GATEWAY;
 
-  /** Generates the complete set of category option combos for all category combos. */
-  void addAndPruneAllOptionCombos();
+import lombok.Getter;
+import lombok.experimental.Accessors;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.webmessage.WebResponse;
+
+@Getter
+@Accessors(chain = true)
+@OpenApi.Response(status = BAD_GATEWAY, value = WebResponse.class)
+public final class BadGatewayException extends Exception {
+  public BadGatewayException(String message) {
+    super(message);
+  }
 }
