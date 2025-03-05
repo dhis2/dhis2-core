@@ -105,7 +105,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
       DimensionService dimensionService,
       I18nManager i18nManager,
       CacheProvider cacheProvider,
-      SqlBuilder sqlBuilder) {
+      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder) {
     checkNotNull(programIndicatorStore);
     checkNotNull(programIndicatorGroupStore);
     checkNotNull(programStageService);
@@ -114,7 +114,6 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
     checkNotNull(dimensionService);
     checkNotNull(i18nManager);
     checkNotNull(cacheProvider);
-    checkNotNull(sqlBuilder);
 
     this.programIndicatorStore = programIndicatorStore;
     this.programIndicatorGroupStore = programIndicatorGroupStore;

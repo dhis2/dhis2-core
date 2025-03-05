@@ -85,6 +85,7 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.Timer;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 /** Service responsible for querying events. */
@@ -104,7 +105,7 @@ public class EventQueryService {
 
   private final SchemeIdHandler schemeIdHandler;
 
-  private final SqlBuilder sqlBuilder;
+  private final @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder;
 
   /**
    * Returns a list of events matching the given query.
