@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.export.relationship;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -101,15 +102,25 @@ public class DefaultRelationshipService implements RelationshipService {
     return relationships.withFilteredItems(map(relationships.getItems()));
   }
 
+  @Nonnull
   @Override
-  public Relationship getRelationship(@Nonnull UID uid)
-      throws ForbiddenException, NotFoundException {
+  public Optional<Relationship> findRelationship(@Nonnull UID uid) {
+    try {
+      return Optional.of(getRelationship(uid));
+    } catch (NotFoundException e) {
+      return Optional.empty();
+    }
+  }
+
+  @Nonnull
+  @Override
+  public Relationship getRelationship(@Nonnull UID uid) throws NotFoundException {
     Page<Relationship> relationships;
     try {
       relationships =
           getRelationships(
               RelationshipOperationParams.builder(Set.of(uid)).build(), PageParams.single());
-    } catch (BadRequestException e) {
+    } catch (BadRequestException | ForbiddenException e) {
       throw new IllegalArgumentException(
           "this must be a bug in how the RelationshipOperationParams are built");
     }
@@ -121,6 +132,7 @@ public class DefaultRelationshipService implements RelationshipService {
     return relationships.getItems().get(0);
   }
 
+  @Nonnull
   @Override
   public List<Relationship> getRelationships(@Nonnull Set<UID> uids)
       throws ForbiddenException, NotFoundException {
@@ -136,6 +148,7 @@ public class DefaultRelationshipService implements RelationshipService {
     }
   }
 
+  @Nonnull
   @Override
   public List<Relationship> getRelationshipsByRelationshipKeys(
       List<RelationshipKey> relationshipKeys) {
