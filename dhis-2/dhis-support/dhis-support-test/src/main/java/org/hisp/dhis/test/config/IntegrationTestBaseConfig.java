@@ -33,6 +33,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.ldap.authentication.LdapAuthenticator;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 
@@ -74,8 +76,8 @@ public class IntegrationTestBaseConfig {
     return (dirContextOperations, s) -> null;
   }
 
-  //  @Bean
-  //  public PasswordEncoder encoder() {
-  //    return new BCryptPasswordEncoder();
-  //  }
+  @Bean
+  public PasswordEncoder encoder() {
+    return new BCryptPasswordEncoder();
+  }
 }
