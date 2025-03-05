@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.export.relationship;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
@@ -55,6 +56,15 @@ public interface RelationshipService {
   @Nonnull
   Page<Relationship> getRelationships(RelationshipOperationParams params, PageParams pageParams)
       throws ForbiddenException, NotFoundException, BadRequestException;
+
+  /**
+   * Get a relationship matching given {@code UID} under the privileges of the currently
+   * authenticated user. Returns an {@link Optional} indicating whether the relationship was found.
+   *
+   * @return an {@link Optional} containing the relationship if found, or an empty {@link Optional}
+   *     if not
+   */
+  Optional<Relationship> findRelationship(UID uid);
 
   /**
    * Get a relationship matching given {@code UID} under the privileges of the currently
