@@ -32,7 +32,6 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventService;
@@ -63,8 +62,7 @@ public class DefaultNoteService implements NoteService {
 
   @Transactional
   @Override
-  public void addNoteForEvent(Note note, UID event)
-      throws ForbiddenException, NotFoundException, BadRequestException {
+  public void addNoteForEvent(Note note, UID event) throws NotFoundException, BadRequestException {
     // Check event existence and access
     eventService.getEvent(event);
     validateNote(note);
