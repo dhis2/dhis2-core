@@ -131,18 +131,16 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       throws IOException, ServletException {
 
     String globalShellAppName = settingsProvider.getCurrentSettings().getGlobalShellAppName();
+    App globalShellApp = appManager.getApp(globalShellAppName);
 
-    String globalShellPath;
-    if (globalShellAppName.isEmpty()
-        || BUNDLED_GLOBAL_SHELL_NAME.equals(globalShellAppName)
-        || !appManager.exists(globalShellAppName)) {
-      globalShellPath = BUNDLED_GLOBAL_SHELL_PATH;
-    } else {
-      globalShellPath = String.format("/api/apps/%s/%s", globalShellAppName);
+    String globalShellPath = BUNDLED_GLOBAL_SHELL_PATH;
+    if (globalShellApp != null) {
+      globalShellPath = globalShellApp.getBasePath();
     }
+    globalShellPath = String.format("/%s/%s", globalShellPath, resource).replaceAll("/+", "/");
 
     RequestDispatcher dispatcher =
-        getServletContext().getRequestDispatcher(String.join("/", globalShellPath, resource));
+        getServletContext().getRequestDispatcher(globalShellPath);
     dispatcher.forward(request, response);
   }
 
