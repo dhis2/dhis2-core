@@ -128,11 +128,7 @@ public class MetadataOrgUnitMergeHandler {
   public void mergeUsers(OrgUnitMergeRequest request) {
     List<User> dataCaptureUsers =
         userService.getUsersWithOrgUnits(
-            UserOrgUnitProperty.ORG_UNITS,
-            UID.of(
-                request.getSources().stream()
-                    .map(BaseIdentifiableObject::getUid)
-                    .collect(Collectors.toSet())));
+            UserOrgUnitProperty.ORG_UNITS, UID.of(request.getSources().stream()));
 
     dataCaptureUsers.forEach(
         u -> {
@@ -142,11 +138,7 @@ public class MetadataOrgUnitMergeHandler {
 
     List<User> dataViewUsers =
         userService.getUsersWithOrgUnits(
-            UserOrgUnitProperty.DATA_VIEW_ORG_UNITS,
-            UID.of(
-                request.getSources().stream()
-                    .map(BaseIdentifiableObject::getUid)
-                    .collect(Collectors.toSet())));
+            UserOrgUnitProperty.DATA_VIEW_ORG_UNITS, UID.of(request.getSources().stream()));
 
     dataViewUsers.forEach(
         u -> {
@@ -156,11 +148,7 @@ public class MetadataOrgUnitMergeHandler {
 
     List<User> teiSearchOrgUnits =
         userService.getUsersWithOrgUnits(
-            UserOrgUnitProperty.TEI_SEARCH_ORG_UNITS,
-            UID.of(
-                request.getSources().stream()
-                    .map(BaseIdentifiableObject::getUid)
-                    .collect(Collectors.toSet())));
+            UserOrgUnitProperty.TEI_SEARCH_ORG_UNITS, UID.of(request.getSources().stream()));
 
     teiSearchOrgUnits.forEach(
         u -> {
