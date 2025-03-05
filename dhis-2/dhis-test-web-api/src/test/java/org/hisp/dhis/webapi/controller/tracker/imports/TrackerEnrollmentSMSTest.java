@@ -444,7 +444,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
                 "Command has been processed successfully", originator, messageSender));
 
     List<Enrollment> enrollments =
-        enrollmentService.getEnrollments(
+        enrollmentService.findEnrollments(
             EnrollmentOperationParams.builder()
                 .program(trackerProgram)
                 .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)

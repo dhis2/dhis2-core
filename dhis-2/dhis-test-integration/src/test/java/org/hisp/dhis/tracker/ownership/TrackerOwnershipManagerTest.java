@@ -618,7 +618,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
 
   private List<String> getTrackedEntities(TrackedEntityOperationParams params)
       throws ForbiddenException, BadRequestException, NotFoundException {
-    return uids(trackedEntityService.getTrackedEntities(params));
+    return uids(trackedEntityService.findTrackedEntities(params));
   }
 
   private static Program createProgram(AccessLevel accessLevel) {

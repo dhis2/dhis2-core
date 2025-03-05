@@ -142,7 +142,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .enrollments(Set.of(UID.of("TvctPPhpD8z")))
             .build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertEquals(
         get(Event.class, "D9PbzJY8bJM").getAssignedUser(), events.get(0).getAssignedUser());
@@ -156,7 +156,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .eventParams(EventParams.TRUE)
             .build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertContainsOnly(List.of("pTzf9KYMk72"), uids(events));
     List<Relationship> relationships =
@@ -172,7 +172,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
     EventOperationParams params =
         operationParamsBuilder.events(Set.of(UID.of("pTzf9KYMk72"))).build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertContainsOnly(List.of("pTzf9KYMk72"), uids(events));
     assertNotes(pTzf9KYMk72.getNotes(), events.get(0).getNotes());
@@ -312,7 +312,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .events(Set.of(UID.of("pTzf9KYMk72")))
             .build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     Event event = events.get(0);
 
@@ -462,7 +462,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .attributeCategoryOptions(UID.of("xwZ2u3WyQR0", "M58XdOfhiJ7"))
             .build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertContainsOnly(List.of("kWjSezkXHVp", "OTmjvJDn0Fu"), uids(events));
     List<Executable> executables =
@@ -661,7 +661,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .build();
 
     List<String> enrollments =
-        eventService.getEvents(params).stream()
+        eventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .toList();
 
@@ -677,7 +677,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .build();
 
     List<String> enrollments =
-        eventService.getEvents(params).stream()
+        eventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .toList();
 
@@ -693,7 +693,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .build();
 
     List<String> enrollments =
-        eventService.getEvents(params).stream()
+        eventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .toList();
 
@@ -709,7 +709,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .build();
 
     List<String> enrollments =
-        eventService.getEvents(params).stream()
+        eventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .toList();
 
@@ -725,7 +725,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .build();
 
     List<String> enrollments =
-        eventService.getEvents(params).stream()
+        eventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .toList();
 
@@ -741,7 +741,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .build();
 
     List<String> enrollments =
-        eventService.getEvents(params).stream()
+        eventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .toList();
 
@@ -757,7 +757,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .build();
 
     List<String> enrollments =
-        eventService.getEvents(params).stream()
+        eventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .toList();
 
@@ -773,7 +773,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .build();
 
     List<String> enrollments =
-        eventService.getEvents(params).stream()
+        eventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .toList();
 
@@ -789,7 +789,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .build();
 
     List<String> enrollments =
-        eventService.getEvents(params).stream()
+        eventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .toList();
 
@@ -805,7 +805,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .build();
 
     List<String> enrollments =
-        eventService.getEvents(params).stream()
+        eventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .toList();
 
@@ -821,7 +821,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .build();
 
     List<String> enrollments =
-        eventService.getEvents(params).stream()
+        eventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .toList();
 
@@ -835,7 +835,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
         operationParamsBuilder.orgUnit(orgUnit).filterByAttribute(UID.of("notUpdated0")).build();
 
     List<String> trackedEntities =
-        eventService.getEvents(params).stream()
+        eventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getTrackedEntity().getUid())
             .toList();
 
@@ -855,7 +855,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .build();
 
     List<String> trackedEntities =
-        eventService.getEvents(params).stream()
+        eventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getTrackedEntity().getUid())
             .toList();
 
@@ -872,7 +872,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .build();
 
     List<String> trackedEntities =
-        eventService.getEvents(params).stream()
+        eventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getTrackedEntity().getUid())
             .toList();
 
@@ -892,7 +892,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .build();
 
     List<String> trackedEntities =
-        eventService.getEvents(params).stream()
+        eventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getTrackedEntity().getUid())
             .toList();
 
@@ -913,7 +913,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .build();
 
     List<String> trackedEntities =
-        eventService.getEvents(params).stream()
+        eventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getTrackedEntity().getUid())
             .toList();
 
@@ -996,7 +996,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .build();
 
     List<String> enrollments =
-        eventService.getEvents(params).stream()
+        eventService.findEvents(params).stream()
             .map(event -> event.getEnrollment().getUid())
             .toList();
 
@@ -1063,7 +1063,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
 
   private List<String> getEvents(EventOperationParams params)
       throws ForbiddenException, BadRequestException {
-    return uids(eventService.getEvents(params));
+    return uids(eventService.findEvents(params));
   }
 
   private static List<String> uids(List<? extends BaseIdentifiableObject> identifiableObject) {

@@ -89,10 +89,10 @@ public interface EventService {
       throws NotFoundException;
 
   /**
-   * Get all events matching given params under the privileges of the currently authenticated user.
+   * Find all events matching given params under the privileges of the currently authenticated user.
    */
   @Nonnull
-  List<Event> getEvents(@Nonnull EventOperationParams params)
+  List<Event> findEvents(@Nonnull EventOperationParams params)
       throws BadRequestException, ForbiddenException;
 
   /**
@@ -100,14 +100,15 @@ public interface EventService {
    * user.
    */
   @Nonnull
-  Page<Event> getEvents(@Nonnull EventOperationParams params, @Nonnull PageParams pageParams)
+  Page<Event> findEvents(@Nonnull EventOperationParams params, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException;
 
   /**
-   * Fields the {@link #getEvents(EventOperationParams)} and {@link #getEvents(EventOperationParams,
-   * PageParams)} can order events by. Ordering by fields other than these is considered a
-   * programmer error. Validation of user provided field names should occur before calling {@link
-   * #getEvents(EventOperationParams)} or {@link #getEvents(EventOperationParams, PageParams)}.
+   * Fields the {@link #findEvents(EventOperationParams)} and {@link
+   * #findEvents(EventOperationParams, PageParams)} can order events by. Ordering by fields other
+   * than these is considered a programmer error. Validation of user provided field names should
+   * occur before calling {@link #findEvents(EventOperationParams)} or {@link
+   * #findEvents(EventOperationParams, PageParams)}.
    */
   Set<String> getOrderableFields();
 }
