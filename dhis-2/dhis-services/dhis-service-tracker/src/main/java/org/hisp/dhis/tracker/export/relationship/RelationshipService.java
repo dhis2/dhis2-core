@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.export.relationship;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
@@ -43,30 +44,44 @@ import org.hisp.dhis.tracker.TrackerType;
 
 public interface RelationshipService {
 
-  /** Get all relationship items matching given params. */
-  Set<RelationshipItem> getRelationshipItems(
+  /** Find all relationship items matching given params. */
+  @Nonnull
+  Set<RelationshipItem> findRelationshipItems(
       TrackerType trackerType, UID uid, boolean includeDeleted);
 
-  /** Get all relationships matching given params. */
-  List<Relationship> getRelationships(RelationshipOperationParams params)
+  /** Find all relationships matching given params. */
+  @Nonnull
+  List<Relationship> findRelationships(RelationshipOperationParams params)
       throws ForbiddenException, NotFoundException, BadRequestException;
 
   /** Get a page of relationships matching given params. */
   @Nonnull
-  Page<Relationship> getRelationships(RelationshipOperationParams params, PageParams pageParams)
+  Page<Relationship> findRelationships(RelationshipOperationParams params, PageParams pageParams)
       throws ForbiddenException, NotFoundException, BadRequestException;
+
+  /**
+   * Get a relationship matching given {@code UID} under the privileges of the currently
+   * authenticated user. Returns an {@link Optional} indicating whether the relationship was found.
+   *
+   * @return an {@link Optional} containing the relationship if found, or an empty {@link Optional}
+   *     if not
+   */
+  @Nonnull
+  Optional<Relationship> findRelationship(UID uid);
 
   /**
    * Get a relationship matching given {@code UID} under the privileges of the currently
    * authenticated user.
    */
+  @Nonnull
   Relationship getRelationship(UID uid) throws ForbiddenException, NotFoundException;
 
   /**
-   * Get relationships matching given {@code UID}s under the privileges of the currently
+   * Find relationships matching given {@code UID}s under the privileges of the currently
    * authenticated user.
    */
-  List<Relationship> getRelationships(@Nonnull Set<UID> uids)
+  @Nonnull
+  List<Relationship> findRelationships(@Nonnull Set<UID> uids)
       throws ForbiddenException, NotFoundException;
 
   /**
@@ -77,10 +92,10 @@ public interface RelationshipService {
   List<Relationship> getRelationshipsByRelationshipKeys(List<RelationshipKey> relationshipKeys);
 
   /**
-   * Fields the {@link #getRelationships(RelationshipOperationParams)} can order relationships by.
+   * Fields the {@link #findRelationships(RelationshipOperationParams)} can order relationships by.
    * Ordering by fields other than these is considered a programmer error. Validation of user
    * provided field names should occur before calling {@link
-   * #getRelationships(RelationshipOperationParams)}.
+   * #findRelationships(RelationshipOperationParams)}.
    */
   Set<String> getOrderableFields();
 }

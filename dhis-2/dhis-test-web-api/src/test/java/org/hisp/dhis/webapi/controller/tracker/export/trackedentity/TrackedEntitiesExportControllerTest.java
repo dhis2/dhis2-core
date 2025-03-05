@@ -44,7 +44,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -54,7 +53,6 @@ import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ConflictException;
@@ -1016,16 +1014,21 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   void getAttributeValuesFileByAttributeAndProgramIfFileIsNotFound() {
     TrackedEntity trackedEntity = trackedEntity();
     enroll(trackedEntity, program, orgUnit);
-
-    String fileUid = CodeGenerator.generateUid();
-
-    IllegalQueryException exception =
-        assertThrows(
-            IllegalQueryException.class,
-            () ->
-                addProgramAttributeValue(trackedEntity, program, ValueType.FILE_RESOURCE, fileUid));
-
-    assertStartsWith("FileResource with id '" + fileUid, exception.getMessage());
+    FileResource file = createFileResource('B', "file content".getBytes());
+    manager.save(file, false);
+    TrackedEntityAttribute tea =
+        addProgramAttributeValue(trackedEntity, program, ValueType.FILE_RESOURCE, file.getUid());
+    manager.delete(file);
+    this.switchContextToUser(user);
+    assertStartsWith(
+        "FileResource with id " + file.getUid(),
+        GET(
+                "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
+                trackedEntity.getUid(),
+                tea.getUid(),
+                program.getUid())
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
   }
 
   @Test

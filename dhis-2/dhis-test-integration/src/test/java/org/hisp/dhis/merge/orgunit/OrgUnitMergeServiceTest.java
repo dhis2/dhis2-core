@@ -34,6 +34,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataset.DataSet;
@@ -45,17 +49,16 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.junit.jupiter.api.BeforeAll;
+import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-@TestInstance(Lifecycle.PER_CLASS)
 @Transactional
 class OrgUnitMergeServiceTest extends PostgresIntegrationTestBase {
 
@@ -73,7 +76,7 @@ class OrgUnitMergeServiceTest extends PostgresIntegrationTestBase {
 
   private OrganisationUnit ouC;
 
-  @BeforeAll
+  @BeforeEach
   void setUp() {
     ptA = periodService.getPeriodTypeByClass(MonthlyPeriodType.class);
     ouA = createOrganisationUnit('A');
@@ -143,5 +146,87 @@ class OrgUnitMergeServiceTest extends PostgresIntegrationTestBase {
     assertNull(idObjectManager.get(OrganisationUnit.class, ouA.getUid()));
     assertNull(idObjectManager.get(OrganisationUnit.class, ouB.getUid()));
     assertNotNull(idObjectManager.get(OrganisationUnit.class, ouC.getUid()));
+  }
+
+  @Test
+  @DisplayName("OrgUnit merge has correct users for new merged org unit")
+  void orgUnitMergeCorrectUsersTest() {
+    // given multiple users
+    // each of which have different kinds of access to the source org units
+    Set<OrganisationUnit> sources = new HashSet<>(Arrays.asList(ouA, ouB));
+
+    User userWithNoOrgUnits = createAndAddUser("user1");
+
+    User userDataCaptureOrgUnits = createAndAddUser("user2");
+    userDataCaptureOrgUnits.setOrganisationUnits(sources);
+
+    User userDataViewOrgUnits = createAndAddUser("user3");
+    userDataViewOrgUnits.setDataViewOrganisationUnits(sources);
+
+    User userTeiSearchOrgUnits = createAndAddUser("user4");
+    userTeiSearchOrgUnits.setTeiSearchOrganisationUnits(sources);
+
+    User userAllOrgUnits = createAndAddUser("user5");
+    userAllOrgUnits.setOrganisationUnits(sources);
+    userAllOrgUnits.setDataViewOrganisationUnits(sources);
+    userAllOrgUnits.setTeiSearchOrganisationUnits(sources);
+
+    idObjectManager.save(
+        List.of(
+            userWithNoOrgUnits,
+            userAllOrgUnits,
+            userDataCaptureOrgUnits,
+            userDataViewOrgUnits,
+            userTeiSearchOrgUnits));
+
+    assertUserHasExpectedOrgUnits(userAllOrgUnits, 2, 2, 2);
+    assertUserHasExpectedOrgUnits(userWithNoOrgUnits, 0, 0, 0);
+    assertUserHasExpectedOrgUnits(userDataCaptureOrgUnits, 2, 0, 0);
+    assertUserHasExpectedOrgUnits(userDataViewOrgUnits, 0, 2, 0);
+    assertUserHasExpectedOrgUnits(userTeiSearchOrgUnits, 0, 0, 2);
+
+    OrgUnitMergeRequest request =
+        new OrgUnitMergeRequest.Builder()
+            .addSources(Set.of(ouA, ouB))
+            .withTarget(ouC)
+            .withDeleteSources(true)
+            .build();
+
+    // when
+    service.merge(request);
+
+    // then all users should have the appropriate access for the merged org units
+    assertUserHasExpectedOrgUnits(userAllOrgUnits, 1, 1, 1);
+    assertUserHasExpectedOrgUnits(userWithNoOrgUnits, 0, 0, 0);
+    assertUserHasExpectedOrgUnits(userDataCaptureOrgUnits, 1, 0, 0);
+    assertUserHasExpectedOrgUnits(userDataViewOrgUnits, 0, 1, 0);
+    assertUserHasExpectedOrgUnits(userTeiSearchOrgUnits, 0, 0, 1);
+
+    assertUserOnlyHasMergedOrgUnit(userAllOrgUnits.getOrganisationUnits());
+    assertUserOnlyHasMergedOrgUnit(userAllOrgUnits.getDataViewOrganisationUnits());
+    assertUserOnlyHasMergedOrgUnit(userAllOrgUnits.getTeiSearchOrganisationUnits());
+    assertUserOnlyHasMergedOrgUnit(userDataCaptureOrgUnits.getTeiSearchOrganisationUnits());
+    assertUserOnlyHasMergedOrgUnit(userDataViewOrgUnits.getTeiSearchOrganisationUnits());
+    assertUserOnlyHasMergedOrgUnit(userTeiSearchOrgUnits.getTeiSearchOrganisationUnits());
+  }
+
+  private void assertUserOnlyHasMergedOrgUnit(Set<OrganisationUnit> orgUnits) {
+    assertTrue(orgUnits.stream().allMatch(ou -> ou.equals(ouC)));
+  }
+
+  private void assertUserHasExpectedOrgUnits(
+      User user, int orgUnits, int dataViewOrgUnits, int teiSearchOrgUnits) {
+    assertEquals(
+        orgUnits,
+        user.getOrganisationUnits().size(),
+        "user should have %s org units".formatted(orgUnits));
+    assertEquals(
+        dataViewOrgUnits,
+        user.getDataViewOrganisationUnits().size(),
+        "user should have %s data view org units".formatted(dataViewOrgUnits));
+    assertEquals(
+        teiSearchOrgUnits,
+        user.getTeiSearchOrganisationUnits().size(),
+        "user should have %s tei search org units".formatted(teiSearchOrgUnits));
   }
 }

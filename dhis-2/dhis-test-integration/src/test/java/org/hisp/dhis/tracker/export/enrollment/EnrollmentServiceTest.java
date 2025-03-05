@@ -422,7 +422,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
             .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
             .build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(params);
 
     assertNotNull(enrollments);
     assertContainsOnly(
@@ -440,7 +440,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder().program(programA).orgUnitMode(ACCESSIBLE).build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(params);
 
     assertNotNull(enrollments);
     assertContainsOnly(
@@ -458,7 +458,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder().orgUnitMode(CAPTURE).build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(params);
 
     assertNotNull(enrollments);
     assertContainsOnly(
@@ -480,7 +480,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
             .orgUnitMode(ACCESSIBLE)
             .build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(params);
 
     assertNotNull(enrollments);
     assertContainsOnly(List.of(enrollmentA.getUid()), uids(enrollments));
@@ -499,7 +499,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
             .trackedEntity(trackedEntityA)
             .build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(params);
 
     assertNotNull(enrollments);
     assertContainsOnly(List.of(enrollmentA.getUid()), uids(enrollments));
@@ -517,7 +517,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
             .lastUpdated(oneHourBeforeLastUpdated)
             .build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
 
     assertContainsOnly(List.of(enrollmentA), enrollments);
   }
@@ -534,7 +534,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
             .lastUpdated(oneHourAfterLastUpdated)
             .build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
 
     assertIsEmpty(enrollments);
   }
@@ -553,7 +553,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
             .programStartDate(oneHourBeforeEnrollmentDate)
             .build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
 
     assertContainsOnly(List.of(enrollmentA), enrollments);
   }
@@ -572,7 +572,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
             .programStartDate(oneHourAfterEnrollmentDate)
             .build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
 
     assertIsEmpty(enrollments);
   }
@@ -591,7 +591,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
             .programEndDate(oneHourAfterEnrollmentDate)
             .build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
 
     assertContainsOnly(List.of(enrollmentA), enrollments);
   }
@@ -610,7 +610,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
             .programEndDate(oneHourBeforeEnrollmentDate)
             .build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
 
     assertIsEmpty(enrollments);
   }
@@ -623,7 +623,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(ALL).build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
     assertContainsOnly(
         List.of(enrollmentA.getUid(), enrollmentChildA.getUid(), enrollmentGrandchildA.getUid()),
         uids(enrollments));
@@ -636,7 +636,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     ForbiddenException exception =
         assertThrows(
-            ForbiddenException.class, () -> enrollmentService.getEnrollments(operationParams));
+            ForbiddenException.class, () -> enrollmentService.findEnrollments(operationParams));
     assertEquals(
         "User is not authorized to query across all organisation units", exception.getMessage());
   }
@@ -650,7 +650,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     ForbiddenException exception =
         assertThrows(
-            ForbiddenException.class, () -> enrollmentService.getEnrollments(operationParams));
+            ForbiddenException.class, () -> enrollmentService.findEnrollments(operationParams));
     assertEquals(
         String.format("Organisation unit is not part of the search scope: %s", orgUnitA.getUid()),
         exception.getMessage());
@@ -664,7 +664,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(ALL).build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
     assertContainsOnly(
         List.of(enrollmentA, enrollmentB, enrollmentChildA, enrollmentGrandchildA), enrollments);
   }
@@ -676,7 +676,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnits(orgUnitA).orgUnitMode(DESCENDANTS).build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
     assertContainsOnly(
         List.of(enrollmentA.getUid(), enrollmentChildA.getUid(), enrollmentGrandchildA.getUid()),
         uids(enrollments));
@@ -689,7 +689,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnits(orgUnitA).orgUnitMode(CHILDREN).build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
     assertContainsOnly(List.of(enrollmentA.getUid(), enrollmentChildA.getUid()), uids(enrollments));
   }
 
@@ -700,7 +700,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnits(orgUnitChildA).orgUnitMode(CHILDREN).build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
     assertContainsOnly(
         List.of(enrollmentChildA.getUid(), enrollmentGrandchildA.getUid()), uids(enrollments));
   }
@@ -716,7 +716,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
             .orgUnitMode(CHILDREN)
             .build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
     assertContainsOnly(
         List.of(enrollmentA.getUid(), enrollmentChildA.getUid(), enrollmentGrandchildA.getUid()),
         uids(enrollments));
@@ -731,7 +731,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     injectSecurityContextUser(authorizedUser);
     List<Enrollment> enrollments =
-        enrollmentService.getEnrollments(UID.of(enrollmentA, enrollmentB));
+        enrollmentService.findEnrollments(UID.of(enrollmentA, enrollmentB));
     assertIsEmpty(enrollments);
   }
 

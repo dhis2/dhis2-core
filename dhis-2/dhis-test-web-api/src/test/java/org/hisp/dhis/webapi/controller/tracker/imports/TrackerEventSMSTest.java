@@ -653,7 +653,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
                 "Command has been processed successfully", originator, smsMessageSender));
 
     List<Event> events =
-        eventService.getEvents(
+        eventService.findEvents(
             EventOperationParams.builder()
                 .program(eventProgram)
                 .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
@@ -720,7 +720,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
                 "Command has been processed successfully", originator, smsMessageSender));
 
     List<Enrollment> enrollments =
-        enrollmentService.getEnrollments(
+        enrollmentService.findEnrollments(
             EnrollmentOperationParams.builder()
                 .trackedEntity(trackedEntity)
                 .program(trackerProgram)
@@ -736,7 +736,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEquals(EnrollmentStatus.ACTIVE, actualEnrollment.getStatus()));
 
     List<Event> events =
-        eventService.getEvents(
+        eventService.findEvents(
             EventOperationParams.builder()
                 .trackedEntity(trackedEntity)
                 .program(trackerProgram)
@@ -806,7 +806,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
                 "Command has been processed successfully", originator, smsMessageSender));
 
     List<Event> events =
-        eventService.getEvents(
+        eventService.findEvents(
             EventOperationParams.builder()
                 .trackedEntity(trackedEntity)
                 .program(trackerProgram)

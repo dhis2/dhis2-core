@@ -74,7 +74,7 @@ class EnrollmentAggregate {
                     .program(ctx.getQueryParams().getEnrolledInTrackerProgram())
                     .build();
             try {
-              result.putAll(id.uid(), enrollmentService.getEnrollments(params));
+              result.putAll(id.uid(), enrollmentService.findEnrollments(params));
             } catch (BadRequestException e) {
               throw new IllegalArgumentException(
                   "this must be a bug in how the EnrollmentOperationParams are built");

@@ -213,7 +213,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
     try {
       events =
           eventService
-              .getEvents(
+              .findEvents(
                   EventOperationParams.builder()
                       .eventParams(EventParams.TRUE)
                       .orgUnitMode(ACCESSIBLE)
