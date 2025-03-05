@@ -480,7 +480,7 @@ public class DefaultExpressionService implements ExpressionService {
   public String getExpressionDescription(
       String expression, ParseType parseType, DataType dataType) {
     if (isEmpty(expression)) {
-      return "";
+      return StringUtils.EMPTY;
     }
 
     Map<String, String> itemDescriptions =
@@ -717,7 +717,7 @@ public class DefaultExpressionService implements ExpressionService {
     return IdentifiableObjectUtils.getIdMap(objects, IdScheme.UID);
   }
 
-  /** Creates a new {@see CommonExpressionVisitor} */
+  /** Creates a new {@link CommonExpressionVisitor} */
   private CommonExpressionVisitor newVisitor(
       ExpressionItemMethod itemMethod, ExpressionParams params) {
     ExpressionState initialParsingState =

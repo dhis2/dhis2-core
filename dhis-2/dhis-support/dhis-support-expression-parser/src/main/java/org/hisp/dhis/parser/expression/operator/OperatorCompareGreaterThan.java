@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.parser.expression.operator;
 
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-
 import org.hisp.dhis.antlr.operator.AntlrOperatorCompareGreaterThan;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Compare operator: greater than
@@ -40,7 +39,6 @@ import org.hisp.dhis.parser.expression.ExpressionItem;
  */
 public class OperatorCompareGreaterThan extends AntlrOperatorCompareGreaterThan
     implements ExpressionItem {
-
   @Override
   public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
     return visitor.sqlNumericVisit(ctx.expr(0)) + " > " + visitor.sqlNumericVisit(ctx.expr(1));
