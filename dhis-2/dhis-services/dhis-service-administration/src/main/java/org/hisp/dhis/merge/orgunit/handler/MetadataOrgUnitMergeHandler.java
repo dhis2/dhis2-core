@@ -33,7 +33,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
