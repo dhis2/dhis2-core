@@ -40,6 +40,7 @@ import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.springframework.stereotype.Component;
@@ -52,7 +53,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @RequiredArgsConstructor
 @Component
 public class GlobalShellFilter extends OncePerRequestFilter {
-
+  public static final String BUNDLED_GLOBAL_SHELL_NAME = "global-shell";
+  public static final String BUNDLED_GLOBAL_SHELL_PATH = "dhis-web-" + BUNDLED_GLOBAL_SHELL_NAME;
   public static final String GLOBAL_SHELL_PATH_PREFIX = "/apps/";
 
   private static final Pattern LEGACY_APP_PATH_PATTERN =
@@ -70,8 +72,8 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       @Nonnull HttpServletResponse response,
       @Nonnull FilterChain chain)
       throws IOException, ServletException {
-    String globalShellAppName = settingsProvider.getCurrentSettings().getGlobalShellAppName();
-    if (globalShellAppName.isEmpty() || !appManager.exists(globalShellAppName)) {
+    boolean globalShellEnabled = settingsProvider.getCurrentSettings().getGlobalShellEnabled();
+    if (!globalShellEnabled) {
       chain.doFilter(request, response);
       return;
     }
@@ -82,7 +84,7 @@ public class GlobalShellFilter extends OncePerRequestFilter {
     }
 
     if (path.startsWith(GLOBAL_SHELL_PATH_PREFIX)) {
-      serveGlobalShell(request, response, globalShellAppName, path);
+      serveGlobalShell(request, response, path);
       return;
     }
 
@@ -97,7 +99,15 @@ public class GlobalShellFilter extends OncePerRequestFilter {
     boolean matchesPattern = m.find();
     boolean isIndexPath = path.endsWith("/") || path.endsWith("/index.html");
     boolean hasRedirectFalse = queryString != null && queryString.contains("redirect=false");
-    if (matchesPattern && isIndexPath && !hasRedirectFalse) {
+
+    // Referer header is set by the browser when the request is made from a service worker
+    // TODO: Enforce that apps must use the path 'service-worker.js' for service worker
+    //       registration perhaps by checking the 'Service-Worker' request header, see
+    //       https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Service-Worker
+    String referer = request.getHeader("Referer");
+    boolean sentFromServiceWorker = referer != null && referer.endsWith("service-worker.js");
+
+    if (matchesPattern && isIndexPath && !hasRedirectFalse && !sentFromServiceWorker) {
       String appName = m.group(1);
       response.sendRedirect(request.getContextPath() + GLOBAL_SHELL_PATH_PREFIX + appName);
       log.debug("Redirecting to global shell");
@@ -107,10 +117,7 @@ public class GlobalShellFilter extends OncePerRequestFilter {
   }
 
   private void serveGlobalShell(
-      HttpServletRequest request,
-      HttpServletResponse response,
-      String globalShellAppName,
-      String path)
+      HttpServletRequest request, HttpServletResponse response, String path)
       throws IOException, ServletException {
 
     if (APP_IN_GLOBAL_SHELL_PATTERN.matcher(path).matches()) {
@@ -120,23 +127,28 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       }
       // Return index.html for all index.html or directory root requests
       log.debug("Serving global shell");
-      serveGlobalShellResource(request, response, globalShellAppName, "index.html");
+      serveGlobalShellResource(request, response, "index.html");
     } else {
       // Serve global app shell resources
       serveGlobalShellResource(
-          request, response, globalShellAppName, path.substring(GLOBAL_SHELL_PATH_PREFIX.length()));
+          request, response, path.substring(GLOBAL_SHELL_PATH_PREFIX.length()));
     }
   }
 
   private void serveGlobalShellResource(
-      HttpServletRequest request,
-      HttpServletResponse response,
-      String globalShellAppName,
-      String resource)
+      HttpServletRequest request, HttpServletResponse response, String resource)
       throws IOException, ServletException {
-    RequestDispatcher dispatcher =
-        getServletContext()
-            .getRequestDispatcher(String.format("/api/apps/%s/%s", globalShellAppName, resource));
+
+    String globalShellAppName = settingsProvider.getCurrentSettings().getGlobalShellAppName();
+    App globalShellApp = appManager.getApp(globalShellAppName);
+
+    String globalShellPath = BUNDLED_GLOBAL_SHELL_PATH;
+    if (globalShellApp != null) {
+      globalShellPath = globalShellApp.getBasePath();
+    }
+    globalShellPath = String.format("/%s/%s", globalShellPath, resource).replaceAll("/+", "/");
+
+    RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(globalShellPath);
     dispatcher.forward(request, response);
   }
 
