@@ -372,7 +372,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     if (!isCountQuery) {
       fromSubQuery
           .append(getQueryOrderBy(params, true))
-          .append(getFromSubQueryLimitAndOffset(params, pageParams));
+          .append(getFromSubQueryLimitAndOffset(pageParams));
     }
 
     return fromSubQuery.append(") ").append(MAIN_QUERY_ALIAS).append(" ").toString();
@@ -995,47 +995,22 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   /**
-   * Generates the LIMIT and OFFSET part of the sub-query. The limit is decided by several factors:
-   * 1. maxtelimit in a TET or Program 2. PageSize and Offset 3. No paging
-   * (TRACKER_TRACKED_ENTITY_QUERY_LIMIT will apply in this case)
+   * Generates the LIMIT and OFFSET part of the sub-query. The limit is decided by the page size,
+   * page offset and the system setting KeyTrackedEntityMaxLimit.
    *
-   * <p>If maxtelimit is not 0, it means this is the hard limit of the number of results. In the
-   * case where there exists more results than maxtelimit, we should return an error to the user
-   * (This prevents snooping outside the users capture scope to some degree). 0 means no maxtelimit,
-   * or it's not applicable.
-   *
-   * <p>If we have maxtelimit and paging on, we set the limit to maxtelimit.
-   *
-   * <p>If we don't have maxtelimit, and paging on, we set normal paging parameters
-   *
-   * <p>If neither maxtelimit nor paging is set, we have no limit set by the user, so system will
-   * set the limit to TRACKED_ENTITY_MAX_LIMIT which can be configured in system settings.
+   * <p>If the page parameters are not null, we use the page size and its offset. The validation in
+   * {@link TrackedEntityOperationParamsMapper} guarantees that if the page parameters are set, the
+   * page size will always be smaller than the system limit.
    *
    * <p>The limit is set in the sub-query, so the latter joins have fewer rows to consider.
    *
-   * @return a SQL LIMIT and OFFSET clause, or empty string if no LIMIT can be deducted.
+   * @return a SQL LIMIT and OFFSET clause, or empty string if no LIMIT can be determined.
    */
-  private String getFromSubQueryLimitAndOffset(
-      TrackedEntityQueryParams params, PageParams pageParams) {
+  private String getFromSubQueryLimitAndOffset(PageParams pageParams) {
     StringBuilder limitOffset = new StringBuilder();
-    int limit = params.getMaxTeLimit();
-    int teQueryLimit = settingsProvider.getCurrentSettings().getTrackedEntityMaxLimit();
+    int systemTeLimit = settingsProvider.getCurrentSettings().getTrackedEntityMaxLimit();
 
-    // TODO This is wrong, the "limit" should not affect how and when "teQueryLimit" is used, they
-    // are independent from each other
-    // TODO Do we need to apply pageParams.getPageSize here? If it's specified, is it not already
-    // done somewhere else in the query?
-    if (limit == 0 && pageParams == null) {
-      if (teQueryLimit > 0) {
-        return limitOffset
-            .append(LIMIT)
-            .append(SPACE)
-            .append(teQueryLimit)
-            .append(SPACE)
-            .toString();
-      }
-      return limitOffset.toString();
-    } else if (limit == 0) {
+    if (pageParams != null) {
       return limitOffset
           .append(LIMIT)
           .append(SPACE)
@@ -1046,28 +1021,10 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           .append(pageParams.getOffset())
           .append(SPACE)
           .toString();
-    } else if (pageParams != null) {
-      return limitOffset
-          .append(LIMIT)
-          .append(SPACE)
-          .append(
-              Math.min(
-                  limit + 1,
-                  pageParams.getPageSize() + 1)) // get extra TE to determine if there is a nextPage
-          .append(SPACE)
-          .append(OFFSET)
-          .append(SPACE)
-          .append(pageParams.getOffset())
-          .append(SPACE)
-          .toString();
-    } else {
-      return limitOffset
-          .append(LIMIT)
-          .append(SPACE)
-          .append(limit + 1) // We add +1, since we use this limit to
-          // restrict a user to search to wide.
-          .append(SPACE)
-          .toString();
+    } else if (systemTeLimit != 0) {
+      return limitOffset.append(LIMIT).append(SPACE).append(systemTeLimit).append(SPACE).toString();
     }
+
+    return limitOffset.toString();
   }
 }
