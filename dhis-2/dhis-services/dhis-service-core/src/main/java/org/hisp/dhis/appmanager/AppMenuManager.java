@@ -49,8 +49,6 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class AppMenuManager {
-  private static final Set<String> MENU_MODULE_EXCLUSIONS = Set.of("dhis-web-user-profile");
-
   private final I18nManager i18nManager;
 
   private final LocaleManager localeManager;
@@ -70,7 +68,7 @@ public class AppMenuManager {
       module.setDisplayName(displayName);
       module.setIcon("../icons/" + key + ".png");
 
-      if (!MENU_MODULE_EXCLUSIONS.contains(key)) menuModules.add(module);
+      menuModules.add(module);
     }
 
     currentLocale = localeManager.getCurrentLocale();

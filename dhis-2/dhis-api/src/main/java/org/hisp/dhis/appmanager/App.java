@@ -52,8 +52,6 @@ public class App implements Serializable {
 
   public static final String SEE_APP_AUTHORITY_PREFIX = "M_";
 
-  public static final String INSTALLED_APP_PATH = "api/apps/";
-
   /** Required. */
   private String version;
 
@@ -117,10 +115,9 @@ public class App implements Serializable {
    * @param contextPath the context path of this instance.
    */
   public void init(String contextPath) {
-    String appPathPrefix = isBundled() ? AppManager.BUNDLED_APP_PREFIX : INSTALLED_APP_PATH;
+    String appPathPrefix = isBundled() ? AppManager.BUNDLED_APP_PREFIX : AppManager.INSTALLED_APP_PREFIX;
 
-    this.basePath =
-        ("/" + String.join("/", appPathPrefix, getUrlFriendlyName())).replaceAll("/+", "/");
+    this.basePath = ("/" + appPathPrefix + getUrlFriendlyName()).replaceAll("/+", "/");
     this.baseUrl = contextPath + basePath;
 
     if (contextPath != null && name != null && launchPath != null) {
