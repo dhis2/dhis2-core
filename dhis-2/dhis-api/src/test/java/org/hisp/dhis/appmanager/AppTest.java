@@ -87,7 +87,7 @@ class AppTest {
 
   @Test
   void testGetBaseUrl() {
-    assertEquals("http://localhost/api/apps/Test-App", app.getBaseUrl());
+    assertEquals("https://example.com/api/apps/Test-App", app.getBaseUrl());
   }
 
   // TODO: Complete test for skipped optional properties
