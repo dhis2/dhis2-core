@@ -76,8 +76,8 @@ public class IntegrationTestBaseConfig {
     return (dirContextOperations, s) -> null;
   }
 
-  @Bean
-  public PasswordEncoder encoder() {
-    return new BCryptPasswordEncoder();
-  }
+//  @Bean
+//  public PasswordEncoder encoder() {
+//    return new BCryptPasswordEncoder();
+//  }
 }
