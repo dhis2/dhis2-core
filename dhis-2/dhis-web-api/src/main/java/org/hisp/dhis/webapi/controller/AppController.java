@@ -123,6 +123,7 @@ public class AppController {
   }
 
   private List<WebModule> getAccessibleAppMenu(String contextPath) {
+    // these are the bundle modules
     List<WebModule> modules = appMenuManager.getAccessibleWebModules();
 
     List<App> apps =
@@ -132,6 +133,7 @@ public class AppController {
                     app.getAppType() == AppType.APP && app.hasAppEntrypoint() && !app.isBundled())
             .collect(Collectors.toList());
 
+    // map installed apps to the WebModule object
     modules.addAll(apps.stream().map(WebModule::getModule).collect(Collectors.toList()));
 
     return modules;

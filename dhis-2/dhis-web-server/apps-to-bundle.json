@@ -1,5 +1,5 @@
 [
-  "https://github.com/d2-ci/aggregate-data-entry-app",
+  "https://github.com/kabaros/aggregate-data-entry-app#with-shortcuts",
   "https://github.com/d2-ci/approval-app",
   "https://github.com/d2-ci/app-management-app",
   "https://github.com/d2-ci/cache-cleaner-app",
@@ -13,7 +13,7 @@
   "https://github.com/d2-ci/event-charts-app",
   "https://github.com/d2-ci/import-export-app",
   "https://github.com/d2-ci/interpretation-app",
-  "https://github.com/d2-ci/maintenance-app",
+  "https://github.com/kabaros/maintenance-app",
   "https://github.com/d2-ci/maps-app",
   "https://github.com/d2-ci/menu-management-app",
   "https://github.com/d2-ci/messaging-app",
