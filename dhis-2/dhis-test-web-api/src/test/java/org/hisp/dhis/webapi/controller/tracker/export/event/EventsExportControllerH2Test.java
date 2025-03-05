@@ -107,7 +107,7 @@ class EventsExportControllerH2Test extends H2ControllerIntegrationTestBase {
       String url, String expectedContentType, String expectedAttachment, String encoding)
       throws ForbiddenException, BadRequestException {
 
-    when(eventService.getEvents(any())).thenReturn(List.of());
+    when(eventService.findEvents(any())).thenReturn(List.of());
 
     HttpResponse res = GET(url);
     assertEquals(HttpStatus.OK, res.status());

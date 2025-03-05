@@ -107,7 +107,7 @@ class DefaultEnrollmentService implements EnrollmentService {
               .enrollments(Set.of(uid))
               .enrollmentParams(params)
               .build();
-      enrollments = getEnrollments(operationParams, PageParams.single());
+      enrollments = findEnrollments(operationParams, PageParams.single());
     } catch (BadRequestException | ForbiddenException e) {
       throw new IllegalArgumentException(
           "this must be a bug in how the EnrollmentOperationParams are built");
@@ -122,13 +122,13 @@ class DefaultEnrollmentService implements EnrollmentService {
 
   @Nonnull
   @Override
-  public List<Enrollment> getEnrollments(@Nonnull Set<UID> uids) throws ForbiddenException {
+  public List<Enrollment> findEnrollments(@Nonnull Set<UID> uids) throws ForbiddenException {
     if (uids.isEmpty()) {
       return List.of();
     }
 
     try {
-      return getEnrollments(EnrollmentOperationParams.builder().enrollments(uids).build());
+      return findEnrollments(EnrollmentOperationParams.builder().enrollments(uids).build());
     } catch (BadRequestException e) {
       throw new IllegalArgumentException(
           "this must be a bug in how the EnrollmentOperationParams are built");
@@ -137,11 +137,11 @@ class DefaultEnrollmentService implements EnrollmentService {
 
   @Nonnull
   @Override
-  public List<Enrollment> getEnrollments(@Nonnull EnrollmentOperationParams params)
+  public List<Enrollment> findEnrollments(@Nonnull EnrollmentOperationParams params)
       throws ForbiddenException, BadRequestException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params, getCurrentUserDetails());
 
-    return getEnrollments(
+    return findEnrollments(
         new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),
         params.getEnrollmentParams(),
         params.isIncludeDeleted(),
@@ -150,14 +150,14 @@ class DefaultEnrollmentService implements EnrollmentService {
 
   @Nonnull
   @Override
-  public Page<Enrollment> getEnrollments(
+  public Page<Enrollment> findEnrollments(
       @Nonnull EnrollmentOperationParams params, PageParams pageParams)
       throws ForbiddenException, BadRequestException {
     EnrollmentQueryParams queryParams = paramsMapper.map(params, getCurrentUserDetails());
 
     Page<Enrollment> enrollmentsPage = enrollmentStore.getEnrollments(queryParams, pageParams);
     List<Enrollment> enrollments =
-        getEnrollments(
+        findEnrollments(
             enrollmentsPage.getItems(),
             params.getEnrollmentParams(),
             params.isIncludeDeleted(),
@@ -174,7 +174,7 @@ class DefaultEnrollmentService implements EnrollmentService {
             .includeDeleted(includeDeleted)
             .build();
     try {
-      return Set.copyOf(eventService.getEvents(eventOperationParams));
+      return Set.copyOf(eventService.findEvents(eventOperationParams));
     } catch (BadRequestException e) {
       throw new IllegalArgumentException(
           "this must be a bug in how the EventOperationParams are built");
@@ -227,7 +227,7 @@ class DefaultEnrollmentService implements EnrollmentService {
     }
     if (params.isIncludeRelationships()) {
       result.setRelationshipItems(
-          relationshipService.getRelationshipItems(
+          relationshipService.findRelationshipItems(
               TrackerType.ENROLLMENT, UID.of(result), includeDeleted));
     }
     if (params.isIncludeAttributes()) {
@@ -256,7 +256,7 @@ class DefaultEnrollmentService implements EnrollmentService {
     return attributeValues;
   }
 
-  private List<Enrollment> getEnrollments(
+  private List<Enrollment> findEnrollments(
       Iterable<Enrollment> enrollments,
       EnrollmentParams params,
       boolean includeDeleted,

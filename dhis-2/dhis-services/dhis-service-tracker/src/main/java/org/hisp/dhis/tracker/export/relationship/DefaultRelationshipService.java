@@ -61,9 +61,10 @@ public class DefaultRelationshipService implements RelationshipService {
   private final HibernateRelationshipStore relationshipStore;
   private final RelationshipOperationParamsMapper mapper;
 
-  // TODO(DHIS2-18883) Pass fields params as a parameter
+  // TODO(DHIS2-19137) Pass fields params as a parameter
+  @Nonnull
   @Override
-  public Set<RelationshipItem> getRelationshipItems(
+  public Set<RelationshipItem> findRelationshipItems(
       TrackerType trackerType, UID uid, boolean includeDeleted) {
     List<RelationshipItem> relationshipItems =
         switch (trackerType) {
@@ -84,8 +85,9 @@ public class DefaultRelationshipService implements RelationshipService {
         .collect(Collectors.toSet());
   }
 
+  @Nonnull
   @Override
-  public List<Relationship> getRelationships(@Nonnull RelationshipOperationParams params)
+  public List<Relationship> findRelationships(@Nonnull RelationshipOperationParams params)
       throws ForbiddenException, NotFoundException, BadRequestException {
     RelationshipQueryParams queryParams = mapper.map(params);
 
@@ -94,7 +96,7 @@ public class DefaultRelationshipService implements RelationshipService {
 
   @Nonnull
   @Override
-  public Page<Relationship> getRelationships(
+  public Page<Relationship> findRelationships(
       @Nonnull RelationshipOperationParams params, @Nonnull PageParams pageParams)
       throws ForbiddenException, NotFoundException, BadRequestException {
     RelationshipQueryParams queryParams = mapper.map(params);
@@ -118,7 +120,7 @@ public class DefaultRelationshipService implements RelationshipService {
     Page<Relationship> relationships;
     try {
       relationships =
-          getRelationships(
+          findRelationships(
               RelationshipOperationParams.builder(Set.of(uid)).build(), PageParams.single());
     } catch (BadRequestException | ForbiddenException e) {
       throw new IllegalArgumentException(
@@ -134,14 +136,14 @@ public class DefaultRelationshipService implements RelationshipService {
 
   @Nonnull
   @Override
-  public List<Relationship> getRelationships(@Nonnull Set<UID> uids)
+  public List<Relationship> findRelationships(@Nonnull Set<UID> uids)
       throws ForbiddenException, NotFoundException {
     if (uids.isEmpty()) {
       return List.of();
     }
 
     try {
-      return getRelationships(RelationshipOperationParams.builder(uids).build());
+      return findRelationships(RelationshipOperationParams.builder(uids).build());
     } catch (BadRequestException e) {
       throw new IllegalArgumentException(
           "this must be a bug in how the RelationshipOperationParams are built");

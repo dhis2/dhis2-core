@@ -110,7 +110,7 @@ class RelationshipsExportController {
           PageParams.of(
               requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
       org.hisp.dhis.tracker.Page<org.hisp.dhis.relationship.Relationship> relationshipsPage =
-          relationshipService.getRelationships(operationParams, pageParams);
+          relationshipService.findRelationships(operationParams, pageParams);
 
       org.hisp.dhis.tracker.Page<Relationship> page =
           relationshipsPage.withMappedItems(RELATIONSHIP_MAPPER::map);
@@ -119,7 +119,7 @@ class RelationshipsExportController {
     }
 
     List<Relationship> relationships =
-        relationshipService.getRelationships(operationParams).stream()
+        relationshipService.findRelationships(operationParams).stream()
             .map(RELATIONSHIP_MAPPER::map)
             .toList();
 

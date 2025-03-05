@@ -112,7 +112,7 @@ class EnrollmentsExportController {
           PageParams.of(
               requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
       org.hisp.dhis.tracker.Page<org.hisp.dhis.program.Enrollment> enrollmentsPage =
-          enrollmentService.getEnrollments(operationParams, pageParams);
+          enrollmentService.findEnrollments(operationParams, pageParams);
 
       org.hisp.dhis.tracker.Page<Enrollment> page =
           enrollmentsPage.withMappedItems(ENROLLMENT_MAPPER::map);
@@ -121,7 +121,7 @@ class EnrollmentsExportController {
     }
 
     List<Enrollment> enrollments =
-        enrollmentService.getEnrollments(operationParams).stream()
+        enrollmentService.findEnrollments(operationParams).stream()
             .map(ENROLLMENT_MAPPER::map)
             .toList();
 
