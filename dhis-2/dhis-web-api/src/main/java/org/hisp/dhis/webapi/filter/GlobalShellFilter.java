@@ -139,8 +139,7 @@ public class GlobalShellFilter extends OncePerRequestFilter {
     }
     globalShellPath = String.format("/%s/%s", globalShellPath, resource).replaceAll("/+", "/");
 
-    RequestDispatcher dispatcher =
-        getServletContext().getRequestDispatcher(globalShellPath);
+    RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(globalShellPath);
     dispatcher.forward(request, response);
   }
 
