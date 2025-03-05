@@ -51,6 +51,6 @@ public class DefaultTableReplicationService implements TableReplicationService {
 
   @Override
   public void replicateTrackedEntityAttributeValue() {
-    store.replicateAnalyticsDatabaseTable(TABLE_TRACKED_ENTIY_ATTRIBUTE_VALUE);
+    store.replicateAnalyticsDatabaseTables(List.of(TABLE_TRACKED_ENTIY_ATTRIBUTE_VALUE));
   }
 }
