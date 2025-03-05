@@ -99,7 +99,15 @@ public class GlobalShellFilter extends OncePerRequestFilter {
     boolean matchesPattern = m.find();
     boolean isIndexPath = path.endsWith("/") || path.endsWith("/index.html");
     boolean hasRedirectFalse = queryString != null && queryString.contains("redirect=false");
-    if (matchesPattern && isIndexPath && !hasRedirectFalse) {
+
+    // Referer header is set by the browser when the request is made from a service worker
+    // TODO: Enforce that apps must use the path 'service-worker.js' for service worker
+    //       registration perhaps by checking the 'Service-Worker' request header, see
+    //       https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Service-Worker
+    String referer = request.getHeader("Referer");
+    boolean sentFromServiceWorker = referer != null && referer.endsWith("service-worker.js");
+
+    if (matchesPattern && isIndexPath && !hasRedirectFalse && !sentFromServiceWorker) {
       String appName = m.group(1);
       response.sendRedirect(request.getContextPath() + GLOBAL_SHELL_PATH_PREFIX + appName);
       log.debug("Redirecting to global shell");
