@@ -103,6 +103,8 @@ class TrackedEntityOperationParamsMapper {
   public TrackedEntityQueryParams map(
       TrackedEntityOperationParams operationParams, UserDetails user, PageParams pageParams)
       throws BadRequestException, ForbiddenException {
+    validatePagination(pageParams);
+
     Program program = paramsValidator.validateTrackerProgram(operationParams.getProgram(), user);
     ProgramStage programStage = validateProgramStage(operationParams, program);
 
@@ -124,8 +126,6 @@ class TrackedEntityOperationParamsMapper {
 
     validateTrackedEntityAttributeFilters(
         program, requestedTrackedEntityType, operationParams, orgUnits, params);
-
-    validatePagination(pageParams);
 
     params
         .setEnrolledInTrackerProgram(program)
@@ -152,7 +152,7 @@ class TrackedEntityOperationParamsMapper {
         .setIncludeDeleted(operationParams.isIncludeDeleted())
         .setPotentialDuplicate(operationParams.getPotentialDuplicate());
 
-    validateGlobalSearchParameters(params, user);
+    validateSearchOutsideCaptureScopeParameters(params, user);
 
     return params;
   }
@@ -293,17 +293,17 @@ class TrackedEntityOperationParamsMapper {
     }
 
     int maxLimit = systemSettingsService.getCurrentSettings().getTrackedEntityMaxLimit();
-    if (pageParams.getPageSize() > maxLimit) {
+    if (maxLimit > 0 && pageParams.getPageSize() > maxLimit) {
       throw new BadRequestException(
           String.format(
-              "Invalid page size: %d. It must not exceed the system limit of %d.",
+              "Invalid page size: %d. It must not exceed the system limit of KeyTrackedEntityMaxLimit %d.",
               pageParams.getPageSize(), maxLimit));
     }
   }
 
-  private void validateGlobalSearchParameters(TrackedEntityQueryParams params, UserDetails user)
-      throws IllegalQueryException {
-    if (!isLocalSearch(params, user)) {
+  private void validateSearchOutsideCaptureScopeParameters(
+      TrackedEntityQueryParams params, UserDetails user) throws IllegalQueryException {
+    if (!isSearchInCaptureScope(params, user)) {
 
       if (params.hasFilters()) {
         List<UID> searchableAttributeIds = getSearchableAttributeIds(params);
@@ -387,7 +387,7 @@ class TrackedEntityOperationParamsMapper {
     return maxTeLimit;
   }
 
-  private boolean isLocalSearch(TrackedEntityQueryParams params, UserDetails user) {
+  private boolean isSearchInCaptureScope(TrackedEntityQueryParams params, UserDetails user) {
     // If the organization unit selection mode is set to CAPTURE, then it's a local search.
     if (OrganisationUnitSelectionMode.CAPTURE == params.getOrgUnitMode()) {
       return true;

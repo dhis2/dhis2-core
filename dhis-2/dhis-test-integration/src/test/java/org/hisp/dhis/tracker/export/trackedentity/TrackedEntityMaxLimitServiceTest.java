@@ -29,9 +29,9 @@ package org.hisp.dhis.tracker.export.trackedentity;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
-import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.util.Map;
@@ -45,12 +45,12 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.test.utils.Assertions;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -66,6 +66,7 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
   @Autowired private SystemSettingsService systemSettingsService;
 
   private User importUser;
+  private User regularUser;
   private TrackedEntityType trackedEntityType;
   private Program program;
   private OrganisationUnit organisationUnit;
@@ -74,6 +75,7 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
   void setUp() throws IOException {
     testSetup.importMetadata();
 
+    regularUser = userService.getUser("FIgVWzUCkpw");
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
@@ -86,77 +88,82 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
   @AfterEach
   void resetLimits() throws NotFoundException, BadRequestException {
     injectSecurityContextUser(importUser);
-    updateTrackedEntityTypeMaxLimit(trackedEntityType.getUid(), 0);
-    updateProgramMaxLimit(program.getUid(), 0);
-    updateSystemSettingLimit("0");
+    updateTrackedEntityTypeMaxLimit(0);
+    updateProgramMaxLimit(0);
+    updateSystemSettingLimit(50000);
   }
 
   @Test
-  void shouldReturnEntitiesWhenGlobalSearchAndProgramMaxLimitNotReached()
+  void shouldReturnEntitiesWhenSearchOutsideCaptureScopeAndProgramMaxLimitNotReached()
       throws ForbiddenException, BadRequestException, NotFoundException {
-    updateProgramMaxLimit(program.getUid(), 5);
-    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
+    Program program = updateProgramMaxLimit(5);
     TrackedEntityOperationParams operationParams = createProgramOperationParams();
+    injectSecurityContextUser(regularUser);
 
-    assertNotEmpty(trackedEntityService.getTrackedEntities(operationParams));
+    Assertions.assertLessOrEqual(
+        program.getMaxTeiCountToReturn(),
+        trackedEntityService.getTrackedEntities(operationParams).size());
   }
 
   @Test
-  void shouldFailWhenGlobalSearchAndProgramMaxLimitReached() {
-    updateProgramMaxLimit(program.getUid(), 1);
-    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
+  void shouldFailWhenSearchOutsideCaptureScopeAndProgramMaxLimitReached() {
+    updateProgramMaxLimit(1);
     TrackedEntityOperationParams operationParams = createProgramOperationParams();
+    injectSecurityContextUser(regularUser);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             Exception.class, () -> trackedEntityService.getTrackedEntities(operationParams));
     assertEquals("maxteicountreached", exception.getMessage());
   }
 
   @Test
-  void shouldReturnEntitiesWhenGlobalSearchAndTETLimitNotReached()
+  void shouldReturnEntitiesWhenSearchOutsideCaptureScopeAndTETLimitNotReached()
       throws ForbiddenException, BadRequestException, NotFoundException {
-    updateTrackedEntityTypeMaxLimit(trackedEntityType.getUid(), 5);
-    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
+    TrackedEntityType trackedEntityType = updateTrackedEntityTypeMaxLimit(5);
     TrackedEntityOperationParams operationParams = createTrackedEntityTypeOperationParams();
+    injectSecurityContextUser(regularUser);
 
-    assertNotEmpty(trackedEntityService.getTrackedEntities(operationParams));
+    Assertions.assertLessOrEqual(
+        trackedEntityType.getMaxTeiCountToReturn(),
+        trackedEntityService.getTrackedEntities(operationParams).size());
   }
 
   @Test
-  void shouldFailWhenGlobalSearchAndTETMaxLimitReached() {
-    updateTrackedEntityTypeMaxLimit(trackedEntityType.getUid(), 1);
-    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
+  void shouldFailWhenSearchOutsideCaptureScopeAndTETMaxLimitReached() {
+    updateTrackedEntityTypeMaxLimit(1);
     TrackedEntityOperationParams operationParams = createTrackedEntityTypeOperationParams();
+    injectSecurityContextUser(regularUser);
 
     IllegalQueryException exception =
-        Assertions.assertThrows(
+        assertThrows(
             IllegalQueryException.class,
             () -> trackedEntityService.getTrackedEntities(operationParams));
     assertEquals("maxteicountreached", exception.getMessage());
   }
 
   @Test
-  void shouldFailWhenGlobalSearchAndTETMaxLimitReachedAndPageSizeSmallerThanLimit() {
-    updateTrackedEntityTypeMaxLimit(trackedEntityType.getUid(), 2);
-    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
+  void shouldFailWhenSearchOutsideCaptureScopeAndTETMaxLimitReachedAndPageSizeSmallerThanLimit() {
+    updateTrackedEntityTypeMaxLimit(2);
     TrackedEntityOperationParams operationParams = createTrackedEntityTypeOperationParams();
     PageParams pageParams = PageParams.of(1, 1, false);
+    injectSecurityContextUser(regularUser);
 
     IllegalQueryException exception =
-        Assertions.assertThrows(
+        assertThrows(
             IllegalQueryException.class,
             () -> trackedEntityService.getTrackedEntities(operationParams, pageParams));
     assertEquals("maxteicountreached", exception.getMessage());
   }
 
   @Test
-  void shouldReturnEntitiesWhenGlobalSearchAndTETLimitNotReachedAndPageSizeSmallerThanLimit()
-      throws ForbiddenException, BadRequestException, NotFoundException {
-    updateTrackedEntityTypeMaxLimit(trackedEntityType.getUid(), 10);
-    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
+  void
+      shouldReturnEntitiesWhenSearchOutsideCaptureScopeAndTETLimitNotReachedAndPageSizeSmallerThanLimit()
+          throws ForbiddenException, BadRequestException, NotFoundException {
+    updateTrackedEntityTypeMaxLimit(10);
     TrackedEntityOperationParams operationParams = createTrackedEntityTypeOperationParams();
     PageParams pageParams = PageParams.of(1, 1, false);
+    injectSecurityContextUser(regularUser);
 
     assertHasSize(
         pageParams.getPageSize(),
@@ -166,19 +173,21 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnEntitiesWhenSystemSettingLimitNotReached()
       throws NotFoundException, BadRequestException, ForbiddenException {
-    updateSystemSettingLimit("10");
-    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
+    updateSystemSettingLimit(10);
     TrackedEntityOperationParams operationParams = createTrackedEntityTypeOperationParams();
+    injectSecurityContextUser(regularUser);
 
-    assertNotEmpty(trackedEntityService.getTrackedEntities(operationParams));
+    Assertions.assertLessOrEqual(
+        getCurrentSystemSettingLimit(),
+        trackedEntityService.getTrackedEntities(operationParams).size());
   }
 
   @Test
   void shouldLimitResultsWhenSystemSettingLimitReached()
       throws NotFoundException, BadRequestException, ForbiddenException {
-    updateSystemSettingLimit("1");
-    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
+    updateSystemSettingLimit(1);
     TrackedEntityOperationParams operationParams = createTrackedEntityTypeOperationParams();
+    injectSecurityContextUser(regularUser);
 
     assertHasSize(
         getCurrentSystemSettingLimit(), trackedEntityService.getTrackedEntities(operationParams));
@@ -186,26 +195,25 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void
-      shouldLimitResultsWhenGlobalSearchAndSystemLimitSmallerThanProgramLimitAndProgramLimitNotReached()
+      shouldLimitResultsWhenSearchOutsideCaptureScopeAndSystemLimitSmallerThanProgramLimitAndProgramLimitNotReached()
           throws NotFoundException, BadRequestException, ForbiddenException {
-    updateSystemSettingLimit("1");
-    updateProgramMaxLimit(program.getUid(), 2);
-    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
+    updateSystemSettingLimit(1);
+    updateProgramMaxLimit(5);
     TrackedEntityOperationParams operationParams = createProgramOperationParams();
+    injectSecurityContextUser(regularUser);
 
     assertHasSize(
         getCurrentSystemSettingLimit(), trackedEntityService.getTrackedEntities(operationParams));
   }
 
   @Test
-  void shouldLimitResultsWhenGlobalSearchAndSystemLimitSmallerThanTETLimitAndTETLimitNotReached()
-      throws NotFoundException, BadRequestException, ForbiddenException {
-    updateSystemSettingLimit("1");
-    // TODO When this works as expected, change the limit to 2, so it makes more sense with the test
-    // above
-    updateTrackedEntityTypeMaxLimit(trackedEntityType.getUid(), 4);
-    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
+  void
+      shouldLimitResultsWhenSearchOutsideCaptureScopeAndSystemLimitSmallerThanTETLimitAndTETLimitNotReached()
+          throws NotFoundException, BadRequestException, ForbiddenException {
+    updateSystemSettingLimit(1);
+    updateTrackedEntityTypeMaxLimit(5);
     TrackedEntityOperationParams operationParams = createTrackedEntityTypeOperationParams();
+    injectSecurityContextUser(regularUser);
 
     assertHasSize(
         getCurrentSystemSettingLimit(), trackedEntityService.getTrackedEntities(operationParams));
@@ -214,10 +222,23 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnPaginatedResultsWhenPageSizeSmallerThanSystemSettingLimit()
       throws NotFoundException, BadRequestException, ForbiddenException {
-    updateSystemSettingLimit("10");
-    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
+    updateSystemSettingLimit(10);
     TrackedEntityOperationParams operationParams = createTrackedEntityTypeOperationParams();
     PageParams pageParams = PageParams.of(1, 1, false);
+    injectSecurityContextUser(regularUser);
+
+    assertHasSize(
+        pageParams.getPageSize(),
+        trackedEntityService.getTrackedEntities(operationParams, pageParams).getItems());
+  }
+
+  @Test
+  void shouldReturnPaginatedResultsWhenPageSizeSpecifiedAndSystemSettingIsZero()
+      throws NotFoundException, BadRequestException, ForbiddenException {
+    updateSystemSettingLimit(0);
+    TrackedEntityOperationParams operationParams = createTrackedEntityTypeOperationParams();
+    PageParams pageParams = PageParams.of(1, 1, false);
+    injectSecurityContextUser(regularUser);
 
     assertHasSize(
         pageParams.getPageSize(),
@@ -227,39 +248,40 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldFailWhenPageSizeIsBiggerThanSystemSettingLimit()
       throws NotFoundException, BadRequestException {
-    updateSystemSettingLimit("1");
-    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
+    updateSystemSettingLimit(1);
     TrackedEntityOperationParams operationParams = createTrackedEntityTypeOperationParams();
     PageParams pageParams = PageParams.of(1, 10, false);
+    injectSecurityContextUser(regularUser);
 
     Exception exception =
-        Assertions.assertThrows(
+        assertThrows(
             BadRequestException.class,
             () -> trackedEntityService.getTrackedEntities(operationParams, pageParams));
     assertEquals(
         String.format(
-            "Invalid page size: %d. It must not exceed the system limit of %d.",
+            "Invalid page size: %d. It must not exceed the system limit of KeyTrackedEntityMaxLimit %d.",
             pageParams.getPageSize(), getCurrentSystemSettingLimit()),
         exception.getMessage());
   }
 
-  private void updateTrackedEntityTypeMaxLimit(String tetId, int limit) {
-    TrackedEntityType tet = manager.get(TrackedEntityType.class, tetId);
+  private TrackedEntityType updateTrackedEntityTypeMaxLimit(int limit) {
+    TrackedEntityType tet = manager.get(TrackedEntityType.class, trackedEntityType.getId());
     assertNotNull(tet);
     tet.setMaxTeiCountToReturn(limit);
-    manager.save(tet, false);
+    manager.update(tet);
+    return tet;
   }
 
-  private void updateProgramMaxLimit(String programId, int limit) {
-    Program program = manager.get(Program.class, programId);
-    assertNotNull(program);
-    program.setMaxTeiCountToReturn(limit);
-    manager.save(program, false);
+  private Program updateProgramMaxLimit(int limit) {
+    Program p = manager.get(Program.class, program.getId());
+    assertNotNull(p);
+    p.setMaxTeiCountToReturn(limit);
+    manager.update(p);
+    return p;
   }
 
-  private void updateSystemSettingLimit(String value)
-      throws NotFoundException, BadRequestException {
-    systemSettingsService.putAll(Map.of("KeyTrackedEntityMaxLimit", value));
+  private void updateSystemSettingLimit(int value) throws NotFoundException, BadRequestException {
+    systemSettingsService.putAll(Map.of("KeyTrackedEntityMaxLimit", String.valueOf(value)));
     systemSettingsService.clearCurrentSettings();
   }
 
