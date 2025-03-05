@@ -49,9 +49,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +83,7 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
     organisationUnit = manager.get(OrganisationUnit.class, "h4w96yEMlzO");
   }
 
-  @BeforeEach
+  @AfterEach
   void resetLimits() throws NotFoundException, BadRequestException {
     injectSecurityContextUser(importUser);
     updateTrackedEntityTypeMaxLimit(trackedEntityType.getUid(), 0);
