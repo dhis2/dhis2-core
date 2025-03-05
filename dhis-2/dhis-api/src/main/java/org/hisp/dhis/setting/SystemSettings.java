@@ -711,7 +711,14 @@ public non-sealed interface SystemSettings extends Settings {
    *     or if the app does not exist *
    */
   default String getGlobalShellAppName() {
-    return asString("globalShellAppName", "global-app-shell");
+    return asString("globalShellAppName", "global-shell");
+  }
+
+  /**
+   * @return  *
+   */
+  default boolean getGlobalShellEnabled() {
+    return asBoolean("globalShellEnabled", true);
   }
 
   /**

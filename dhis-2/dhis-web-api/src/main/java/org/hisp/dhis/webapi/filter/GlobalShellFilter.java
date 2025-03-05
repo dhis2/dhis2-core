@@ -52,7 +52,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @RequiredArgsConstructor
 @Component
 public class GlobalShellFilter extends OncePerRequestFilter {
-
+  public static final String BUNDLED_GLOBAL_SHELL_NAME = "global-shell";
+  public static final String BUNDLED_GLOBAL_SHELL_PATH = "dhis-web-" + BUNDLED_GLOBAL_SHELL_NAME;
   public static final String GLOBAL_SHELL_PATH_PREFIX = "/apps/";
 
   private static final Pattern LEGACY_APP_PATH_PATTERN =
@@ -70,8 +71,8 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       @Nonnull HttpServletResponse response,
       @Nonnull FilterChain chain)
       throws IOException, ServletException {
-    String globalShellAppName = settingsProvider.getCurrentSettings().getGlobalShellAppName();
-    if (globalShellAppName.isEmpty() || !appManager.exists(globalShellAppName)) {
+    boolean globalShellEnabled = settingsProvider.getCurrentSettings().getGlobalShellEnabled();
+    if (!globalShellEnabled) {
       chain.doFilter(request, response);
       return;
     }
@@ -82,7 +83,7 @@ public class GlobalShellFilter extends OncePerRequestFilter {
     }
 
     if (path.startsWith(GLOBAL_SHELL_PATH_PREFIX)) {
-      serveGlobalShell(request, response, globalShellAppName, path);
+      serveGlobalShell(request, response, path);
       return;
     }
 
@@ -109,7 +110,6 @@ public class GlobalShellFilter extends OncePerRequestFilter {
   private void serveGlobalShell(
       HttpServletRequest request,
       HttpServletResponse response,
-      String globalShellAppName,
       String path)
       throws IOException, ServletException {
 
@@ -120,23 +120,32 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       }
       // Return index.html for all index.html or directory root requests
       log.debug("Serving global shell");
-      serveGlobalShellResource(request, response, globalShellAppName, "index.html");
+      serveGlobalShellResource(request, response, "index.html");
     } else {
       // Serve global app shell resources
       serveGlobalShellResource(
-          request, response, globalShellAppName, path.substring(GLOBAL_SHELL_PATH_PREFIX.length()));
+          request, response, path.substring(GLOBAL_SHELL_PATH_PREFIX.length()));
     }
   }
 
   private void serveGlobalShellResource(
       HttpServletRequest request,
       HttpServletResponse response,
-      String globalShellAppName,
       String resource)
       throws IOException, ServletException {
+    
+    String globalShellAppName = settingsProvider.getCurrentSettings().getGlobalShellAppName();
+
+    String globalShellPath;
+    if (globalShellAppName.isEmpty() || BUNDLED_GLOBAL_SHELL_NAME.equals(globalShellAppName) || !appManager.exists(globalShellAppName)) {
+      globalShellPath = BUNDLED_GLOBAL_SHELL_PATH;
+    } else {
+      globalShellPath = String.format("/api/apps/%s/%s", globalShellAppName);
+    }
+    
     RequestDispatcher dispatcher =
         getServletContext()
-            .getRequestDispatcher(String.format("/api/apps/%s/%s", globalShellAppName, resource));
+            .getRequestDispatcher(String.join("/", globalShellPath, resource));
     dispatcher.forward(request, response);
   }
 
