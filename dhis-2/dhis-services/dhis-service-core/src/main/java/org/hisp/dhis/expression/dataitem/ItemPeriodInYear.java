@@ -56,7 +56,7 @@ public class ItemPeriodInYear extends ItemPeriodBase {
         || periodType instanceof BiMonthlyPeriodType) {
       return monthOrBiMonthOfYear(period);
     } else if (periodType.getFrequencyOrder() >= YearlyPeriodType.FREQUENCY_ORDER) {
-      return 1.0;
+      return 1d;
     }
 
     return trailingDigits(period);

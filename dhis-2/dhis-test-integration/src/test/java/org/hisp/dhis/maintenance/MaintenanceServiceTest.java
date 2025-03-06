@@ -507,6 +507,6 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
             .includeDeleted(true)
             .build();
 
-    return !enrollmentService.getEnrollments(params).isEmpty();
+    return !enrollmentService.findEnrollments(params).isEmpty();
   }
 }
