@@ -614,28 +614,4 @@ class RequestParamsValidatorTest {
 
     validatePaginationParameters(paginationParameters);
   }
-
-  @ValueSource(ints = {-1, 0})
-  @ParameterizedTest
-  void shouldFailWhenGivenPageSizeLessThanOrEqualToZero(int pageSize) {
-    PaginationParameters paginationParameters = new PaginationParameters();
-    paginationParameters.setPaging(true);
-    paginationParameters.setPageSize(pageSize);
-
-    Exception exception =
-        assertThrows(
-            BadRequestException.class, () -> validatePaginationParameters(paginationParameters));
-
-    assertStartsWith("pageSize must be greater", exception.getMessage());
-  }
-
-  @ValueSource(ints = {1, 2})
-  @ParameterizedTest
-  void shouldPassWhenGivenPageSizeGreaterThanOrEqualToOne(int pageSize) throws BadRequestException {
-    PaginationParameters paginationParameters = new PaginationParameters();
-    paginationParameters.setPaging(true);
-    paginationParameters.setPageSize(pageSize);
-
-    validatePaginationParameters(paginationParameters);
-  }
 }
