@@ -84,19 +84,19 @@ public class OpenApiRenderer {
        --percent-op-bg-aside: 10%;
        --p-op-bg: 15%;
        --color-delete: tomato;
-       --color-patch: mediumorchid;
-       --color-post: seagreen;
-       --color-put: darkcyan;
+       --color-patch: orchid;
+       --color-post: lightskyblue;
+       --color-put: sienna;
        --color-options: rosybrown;
-       --color-get: steelblue;
+       --color-get: #147cd7;
        --color-trace: palevioletred;
        --color-head: thistle;
        --color-dep: khaki;
-       --color-schema: slategray;
+       --color-schema: #4E4F4E;
        --color-tooltip: #444;
        --color-tooltiptext: #eee;
        --color-tooltipborder: lightgray;
-       --color-target: black;
+       --color-target: #2A303A;
        --width-nav: 360px;
    }
   html {
@@ -112,7 +112,7 @@ public class OpenApiRenderer {
     font-size: 16px;
     text-rendering: optimizespeed;
   }
-  nav h1 { margin: 0.5rem; color: rgb(33, 41, 52); font-size: 110%; text-align: left; }
+  nav h1 { font-size: 110%; text-align: right; }
   h2 { display: inline; font-size: 110%; font-weight: normal; text-transform: capitalize; }
   h3 { font-size: 105%; display: inline-block; text-transform: capitalize; font-weight: normal; min-width: 21rem; margin: 0; }
 
@@ -124,8 +124,9 @@ public class OpenApiRenderer {
   a[title="permalink"] { position: absolute;  right: 1em; display: inline-block; width: 24px; height: 24px;
     text-align: center; vertical-align: middle; border-radius: 50%; line-height: 24px; color: dimgray; margin-top: -0.125rem; }
   a:not([href]) { color: blue; cursor: pointer; }
-  #hotkeys a { color: black; display: block; margin-top: 2px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; font-size: 75%; }
-  #hotkeys a:visited { color: black; }
+  #hotkeys a { color: #eee; display: block; margin-top: 2px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; font-size: 75%; }
+  #hotkeys a:visited { color: #eee; }
+  button, input { font-family: inherit; }
 
   pre { background-color: floralwhite; color: #222; margin-right: 2em; padding: 0.5rem; }
   pre, code { font-family: "Noto Sans Mono", "Liberation Mono", monospace; }
@@ -157,12 +158,11 @@ public class OpenApiRenderer {
       height: 60px;
       box-sizing: border-box;
       padding: 10px;
-      text-align: center;
-      background-color: snow;
-      background-image: url('/../favicon.ico');
+      text-align: right;
+      background-image: url(data:image/png;base64,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);
       background-repeat: no-repeat;
       padding-left: 60px;
-      background-position: 5px 5px;
+      background-position: 10px 10px;
   }
   nav {
         position: fixed;
@@ -171,6 +171,9 @@ public class OpenApiRenderer {
         display: inline-block;
         padding-right: 1rem;
         box-sizing: border-box;
+        background-color: #4E4F4E;
+        color: #ddd;
+        min-height: 100%;
   }
   #scope div { display: inline-grid; grid-template-columns: 4fr 6fr 1fr 1fr; padding: 0.25em 0.5em; }
   #scope select { max-width: 140px; }
@@ -178,7 +181,7 @@ public class OpenApiRenderer {
   #scope input { margin-left: 0.5em; }
 
   body > section { margin-left: var(--width-nav); position: relative; }
-  body > section > header { margin-left: 1rem; }
+  body > section > header { padding-left: 4rem; padding-bottom: 0.5rem; border-bottom: 7px solid #4E4F4E; color: #666; }
   body > section > header > h1 { margin-top: 0; padding-top: 1em; }
   body > section > details { margin-top: 10px; }
   body > section > details > summary { padding: 0.5em 1em; }
@@ -193,7 +196,7 @@ public class OpenApiRenderer {
     padding: 0.5rem 0 0 0.5rem;
   }
   body > nav > details > summary {
-      background-color: #147cd7;
+      background-color: #2A303A;
       color: snow;
       margin-left: -1rem;
       padding-left: 1rem;
@@ -203,6 +206,9 @@ public class OpenApiRenderer {
       content: '⊕';
       float: left;
       margin-left: calc(-1rem - 10px);
+  }
+  body > section details.op:not(.button) > summary:before, body > section details.schema:not(.button) > summary:before {
+      margin-left: calc(-1rem - 20px);
   }
   body > section details > summary:last-child:before { content: ''; }
 
@@ -218,10 +224,11 @@ public class OpenApiRenderer {
       list-style-type: none;
       cursor: pointer;
   }
+  details.op, details.schema { margin-bottom: 1rem;  border-style: solid; border-width: 1px; border-left-width: 7px; border-radius: 2px; }
   details.op[open], details.schema[open] { padding-bottom: 1rem; }
-  details.op > summary, details.schema > summary { padding: 0.5rem; }
+  details.op > summary, details.schema > summary { padding: 0.5rem; margin-top: 0; }
   details > header { padding: 0.5rem 1rem; font-size: 95%; }
-  details > aside { padding: 0.5rem 1rem; margin-bottom: 1em; }
+  details > aside { padding: 0.5rem 1rem; margin-bottom: 0.5rem; }
 
   /* colors and emphasis effects */
   code.http { display: inline-block; padding: 0 0.5em; font-weight: bold; }
@@ -232,21 +239,21 @@ public class OpenApiRenderer {
   code.http.content .on { color: black; }
   code.http.method { width: 4rem; text-align: right; color: dimgray; }
   .desc code { background: color-mix(in srgb, snow 70%, transparent); padding: 0.125em 0.25em; }
-  code.property { padding: 0.25em 0.5em; background: color-mix(in srgb, powderblue 70%, transparent); }
-  code.property.secondary, code.property.secondary ~ code.type { background: color-mix(in srgb, lemonchiffon 70%, transparent); }
-  code.url, .desc code.keyword { padding: 0.25em 0.5em; background-color: snow; }
-  code.url.path { font-weight: bold; }
-  code.url em, code.url.secondary, code.url.secondary + code.type { color: darkslateblue; font-style: normal; font-weight: normal; background: color-mix(in srgb, snow 70%, transparent); }
+  code.property { padding: 0.25em 0.5em; background-color:  #eee; }
+  code.property.secondary, code.property.secondary ~ code.type { background-color: #f6f6f6; }
+  code.url, .desc code.keyword { padding: 0.25em 0.5em; background-color: #eee; }
+  code.url.path { font-weight: bold; border-radius: 4px; }
+  code.url em, code.url.secondary, code.url.secondary + code.type { color: darkslateblue; font-style: normal; font-weight: normal; background-color: #f6f6f6; }
   code.url small { color: gray; }
   code.tag { color: dimgray; margin-left: 2em; }
-  code.tag > span + span { color: darkblue; padding: 0.25em; background: color-mix(in srgb, lemonchiffon 65%, transparent); }
+  code.tag > span + span { color: darkblue; padding: 0.25em; background-color: #eee; }
   code.tag.columns { display: inline-block; padding-left: 100px; }
   code.tag.columns > span:first-of-type { margin-left: -100px; padding-right: 1em; }
   code.secondary ~ code.type { color: darkslateblue; padding: 0.25em 0.5em; }
   code.url.secondary + code.url.secondary { padding-left: 0; }
   code.request, code.response { padding: 0.25em 0.5em; color: dimgray; font-weight: bold; }
-  code.mime { background-color: ivory; font-style: italic; padding: 0.25em 0.5em; }
-  code.mime.secondary, code.mime.secondary + code.type { background: color-mix(in srgb, ivory 70%, transparent); }
+  code.mime { background-color: #ddd; font-style: italic; padding: 0.25em 0.5em; }
+  code.mime.secondary, code.mime.secondary + code.type { background-color: #f0f0f0; }
 
   code.status { padding: 0.25em 0.5em; font-weight: bold; }
   code.status2xx { background: color-mix(in srgb, seagreen 70%, transparent); color: snow; }
@@ -260,15 +267,15 @@ public class OpenApiRenderer {
   .op:not([open]) code.url small > span { font-size: 2px; }
   .op:not([open]) code.url small:hover > span { font-size: inherit; }
 
-  .GET > summary, button.GET, code.GET { background: color-mix(in srgb, var(--color-get) var(--percent-op-bg-summary), transparent); }
-  .POST > summary, button.POST, code.POST { background: color-mix(in srgb, var(--color-post) var(--percent-op-bg-summary), transparent); }
-  .PUT > summary, button.PUT, code.PUT { background: color-mix(in srgb, var(--color-put) var(--percent-op-bg-summary), transparent); }
-  .PATCH > summary, button.PATCH, code.PATCH { background: color-mix(in srgb, var(--color-patch) var(--percent-op-bg-summary), transparent); }
-  .DELETE > summary, button.DELETE, code.DELETE { background: color-mix(in srgb, var(--color-delete) var(--percent-op-bg-summary), transparent); }
-  .OPTIONS > summary, code.OPTIONS { background: color-mix(in srgb, var(--color-options) var(--percent-op-bg-summary), transparent); }
-  .HEAD > summary, code.HEAD { background: color-mix(in srgb, var(--color-head) var(--percent-op-bg-summary), transparent); }
-  .TRACE > summary, code.TRACE { background: color-mix(in srgb, var(--color-trace) var(--percent-op-bg-summary), transparent); }
-  .schema > summary { background: color-mix(in srgb, var(--color-schema) var(--percent-op-bg-summary), transparent); }
+  .GET, button.GET, code.GET { border-color: var(--color-get); }
+  .POST, button.POST, code.POST { border-color: var(--color-post); }
+  .PUT, button.PUT, code.PUT { border-color: var(--color-put); }
+  .PATCH, button.PATCH, code.PATCH { border-color: var(--color-patch); }
+  .DELETE, button.DELETE, code.DELETE { border-color: var(--color-delete); }
+  .OPTIONS, code.OPTIONS { border-color: var(--color-options); }
+  .HEAD, code.HEAD { border-color: var(--color-head); }
+  .TRACE, code.TRACE { border-color: var(--color-trace); }
+  .schema { border-color: var(--color-schema); }
 
 
   /* target highlighting */
@@ -284,12 +291,12 @@ public class OpenApiRenderer {
     animation: spin 2s linear 0s infinite reverse; font-weight: bold; }
 
   /* operation background colors */
-  details[open].GET { background: color-mix(in srgb, var(--color-get) var(--p-op-bg), transparent); }
-  details[open].POST { background: color-mix(in srgb, var(--color-post) var(--p-op-bg), transparent); }
-  details[open].PUT { background: color-mix(in srgb, var(--color-put) var(--p-op-bg), transparent); }
-  details[open].PATCH { background: color-mix(in srgb, var(--color-patch) var(--p-op-bg), transparent); }
-  details[open].DELETE { background: color-mix(in srgb, var(--color-delete) var(--p-op-bg), transparent); }
-  details[open].schema { background: color-mix(in srgb, var(--color-schema) var(--p-op-bg), transparent); }
+  details.GET > summary .http.method { color: var(--color-get); }
+  details.POST > summary .http.method { color: var(--color-post); }
+  details.PUT > summary .http.method { color: var(--color-put); }
+  details.PATCH > summary .http.method { color: var(--color-patch); }
+  details.DELETE > summary .http.method { color: var(--color-delete); }
+  details.schema > summary .http.method { color: var(--color-schema); }
 
   details[open].GET > aside { background: color-mix(in srgb, var(--color-get) var(--percent-op-bg-aside), transparent); }
   details[open].POST > aside { background: color-mix(in srgb, var(--color-post) var(--percent-op-bg-aside), transparent); }
@@ -325,6 +332,7 @@ public class OpenApiRenderer {
   nav button {
       border: none;
       background-color: transparent;
+      color: #eee;
       font-weight: bold;
       border-left: 4px solid transparent;
       cursor: pointer;
@@ -658,7 +666,7 @@ public class OpenApiRenderer {
   }
 
   private void renderMenuHeader() {
-    appendTag("header", () -> appendTag("h1", api.info().title() + " " + api.info().version()));
+    appendTag("header", () -> appendTag("h1", api.info().version()));
   }
 
   private void renderMenuScope() {
@@ -716,7 +724,7 @@ public class OpenApiRenderer {
                 for (int statusCode : new int[] {200, 201, 202, 204}) {
                   renderToggleButton(
                       statusCode + " " + statusCodeName(statusCode),
-                      "status status2xx status" + statusCode,
+                      "",
                       "status" + statusCode + "-",
                       true);
                 }
