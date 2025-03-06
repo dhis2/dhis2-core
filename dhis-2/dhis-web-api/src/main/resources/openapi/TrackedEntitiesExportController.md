@@ -103,7 +103,8 @@ the registration organisation unit for the tracked entity would be used to deter
 
 Get tracked entities with tracked entity attributes and enrollment data from the specified tracker
 program. The ownership of the given `program` will be used to determine access to the tracked
-entities. Only tracked entities with an enrollment into the `program` will be returned.
+entities. Only tracked entities with an enrollment into the `program` will be returned. Required 
+if neither `trackedEntityType` nor `trackedEntities` are specified.
 
 ### `*.parameter.TrackedEntityRequestParams.enrollmentStatus`
 
@@ -170,7 +171,8 @@ in the response.
 
 ### `*.parameter.TrackedEntityRequestParams.trackedEntityType`
 
-Get tracked entities with the given tracked entity type. Required if no `program` is specified.
+Get tracked entities with the given tracked entity type. Required if neither `program` nor 
+`trackedEntities` are specified.
 
 ### `*.parameter.TrackedEntityRequestParams.trackedEntities`
 
