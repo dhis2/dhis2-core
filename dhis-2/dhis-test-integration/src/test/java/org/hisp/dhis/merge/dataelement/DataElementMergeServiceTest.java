@@ -73,7 +73,6 @@ import org.hisp.dhis.eventvisualization.EventVisualizationStore;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.indicator.Indicator;
@@ -2541,8 +2540,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName(
       "EventChangeLogs with references to source DataElements are not changed or deleted when sources not deleted")
-  void eventChangeLogMergeTest()
-      throws ConflictException, ForbiddenException, NotFoundException, BadRequestException {
+  void eventChangeLogMergeTest() throws ConflictException, NotFoundException, BadRequestException {
     // given
     TrackedEntityType trackedEntityType = createTrackedEntityType('O');
     identifiableObjectManager.save(trackedEntityType);
@@ -2598,7 +2596,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   @DisplayName(
       "TrackedEntityChangeLogs with references to source DataElements are deleted when sources are deleted")
   void trackedEntityChangeLogMergeDeletedTest()
-      throws ConflictException, ForbiddenException, NotFoundException, BadRequestException {
+      throws ConflictException, NotFoundException, BadRequestException {
     // given
     TrackedEntityType trackedEntityType = createTrackedEntityType('O');
     identifiableObjectManager.save(trackedEntityType);
