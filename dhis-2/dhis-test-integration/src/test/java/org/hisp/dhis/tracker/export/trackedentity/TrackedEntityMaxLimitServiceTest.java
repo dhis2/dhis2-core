@@ -143,7 +143,8 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldFailWhenSearchOutsideCaptureScopeAndTETMaxLimitReachedAndPageSizeSmallerThanLimit() {
+  void shouldFailWhenSearchOutsideCaptureScopeAndTETMaxLimitReachedAndPageSizeSmallerThanLimit()
+      throws BadRequestException {
     updateTrackedEntityTypeMaxLimit(2);
     TrackedEntityOperationParams operationParams = createTrackedEntityTypeOperationParams();
     PageParams pageParams = PageParams.of(1, 1, false);

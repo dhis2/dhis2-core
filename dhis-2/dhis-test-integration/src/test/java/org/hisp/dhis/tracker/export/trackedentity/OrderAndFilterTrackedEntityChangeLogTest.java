@@ -73,9 +73,12 @@ class OrderAndFilterTrackedEntityChangeLogTest extends PostgresIntegrationTestBa
 
   private User importUser;
 
-  private final PageParams defaultPageParams = PageParams.of(1, 10, false);
-
+  private final PageParams defaultPageParams;
   private TrackerObjects trackerObjects;
+
+  OrderAndFilterTrackedEntityChangeLogTest() throws BadRequestException {
+    defaultPageParams = PageParams.of(1, 10, false);
+  }
 
   @BeforeAll
   void setUp() throws IOException {

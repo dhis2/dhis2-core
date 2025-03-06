@@ -33,17 +33,19 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 import java.util.Map;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.tracker.PageParams;
 import org.junit.jupiter.api.Test;
 
 class PageTest {
   @Test
-  void shouldNotSetNoPageLinksIfThereAreNone() {
+  void shouldNotSetNoPageLinksIfThereAreNone() throws BadRequestException {
     List<String> fruits = List.of("apple", "banana", "cherry");
-    PageParams pageParams = new PageParams(1, 3, false);
+    PageParams pageParams = PageParams.of(1, 3, false);
     org.hisp.dhis.tracker.Page<String> exportPage =
         new org.hisp.dhis.tracker.Page<>(fruits, pageParams);
 
@@ -65,9 +67,9 @@ class PageTest {
   }
 
   @Test
-  void shouldSetPrevPage() {
+  void shouldSetPrevPage() throws BadRequestException {
     List<String> fruits = List.of("apple", "banana", "cherry");
-    PageParams pageParams = new PageParams(2, 3, false);
+    PageParams pageParams = PageParams.of(2, 3, false);
     org.hisp.dhis.tracker.Page<String> exportPage =
         new org.hisp.dhis.tracker.Page<>(fruits, pageParams);
 
@@ -94,9 +96,9 @@ class PageTest {
   }
 
   @Test
-  void shouldSetNextPage() {
+  void shouldSetNextPage() throws BadRequestException {
     List<String> fruits = List.of("apple", "banana", "cherry", "mango");
-    PageParams pageParams = new PageParams(1, 3, false);
+    PageParams pageParams = PageParams.of(1, 3, false);
     org.hisp.dhis.tracker.Page<String> exportPage =
         new org.hisp.dhis.tracker.Page<>(fruits, pageParams);
 
@@ -120,6 +122,21 @@ class PageTest {
         3,
         "http://localhost/organisationUnits",
         "fields=displayName");
+  }
+
+  @Test
+  void shouldFailWhenPageIsNotNullAndSmallerThanOne() {
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> PageParams.of(0, 1, false));
+    assertEquals("page must be greater than or equal to 1 if specified", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenPageSizeIsNotNullAndSmallerThanOne() {
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> PageParams.of(1, 0, false));
+    assertEquals(
+        "pageSize must be greater than or equal to 1 if specified", exception.getMessage());
   }
 
   private static void assertPagerLink(
