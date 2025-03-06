@@ -83,7 +83,7 @@ public class AuthorizationServerConfig {
         .exceptionHandling(
             (exceptions) ->
                 exceptions.defaultAuthenticationEntryPointFor(
-                    new LoginUrlAuthenticationEntryPoint("/XXX.html"),
+                    new LoginUrlAuthenticationEntryPoint("/dhis-web-login/"),
                     new MediaTypeRequestMatcher(MediaType.TEXT_HTML)));
 
     return http.build();

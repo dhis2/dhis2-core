@@ -53,6 +53,24 @@ public class CreateOAuthClient extends AbstractStartupRoutine {
       return;
     }
 
+//    RegisteredClient localClient =
+//        RegisteredClient.withId(CodeGenerator.generateUid())
+//            .clientId("dhis2-client")
+//            .clientSecret("$2a$12$FtWBAB.hWkR3SSul7.HWROr8/aEuUEjywnB86wrYz0HtHh4iam6/G")
+//            .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
+//            .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+//            .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+//            .redirectUri("http://localhost:9090/oauth2/code/dhis2-client")
+//            .postLogoutRedirectUri("http://127.0.0.1:8080/")
+//            .scope(OidcScopes.OPENID)
+//            .scope(OidcScopes.PROFILE)
+//            .scope(OidcScopes.EMAIL)
+//            .scope(StandardClaimNames.EMAIL)
+//            .scope(StandardClaimNames.EMAIL_VERIFIED)
+//            .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
+//            .build();
+//    clientRepository.save(localClient, new SystemUser());
+
     RegisteredClient oidcClient =
         RegisteredClient.withId(CodeGenerator.generateUid())
             .clientId("dhis2-client")
@@ -60,8 +78,7 @@ public class CreateOAuthClient extends AbstractStartupRoutine {
             .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
             .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
             .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-            .redirectUri("http://localhost:9090/oauth2/code/dhis2-client")
-            //            .redirectUri("http://localhost:8080/oauth2/code/xxx")
+            .redirectUri("http://localhost:9090/oauth2/code/xxx")
             .postLogoutRedirectUri("http://127.0.0.1:8080/")
             .scope(OidcScopes.OPENID)
             .scope(OidcScopes.PROFILE)
@@ -70,7 +87,6 @@ public class CreateOAuthClient extends AbstractStartupRoutine {
             .scope(StandardClaimNames.EMAIL_VERIFIED)
             .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
             .build();
-
     clientRepository.save(oidcClient, new SystemUser());
   }
 }
