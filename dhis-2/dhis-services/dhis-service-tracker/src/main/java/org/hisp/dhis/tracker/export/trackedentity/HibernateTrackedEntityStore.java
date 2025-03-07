@@ -201,7 +201,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     return jdbcTemplate.queryForObject(sql, Long.class);
   }
 
-  public int getTrackedEntityCountWithMaxTrackedEntityLimit(TrackedEntityQueryParams params) {
+  public int getTrackedEntityCountWithMaxLimit(TrackedEntityQueryParams params) {
     // A TE which is not enrolled can only be accessed by a user that is able to enroll it into a
     // tracker program. Return an empty result if there are no tracker programs or the user does
     // not have access to one.
@@ -303,7 +303,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         + getQuerySelect(params)
         + "FROM "
         + getFromSubQuery(params, true, null)
-        + (params.getMaxTeLimit() > 0 ? getLimitClause(params.getMaxTeLimit() + 1) : "")
+        + getLimitClause(params.getMaxTeLimit() + 1)
         + " ) tecount";
   }
 

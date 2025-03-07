@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
@@ -172,6 +173,50 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldNotApplyLimitsWhenSearchOutsideOfCaptureScopeIfOnlyTrackedEntitiesSpecified()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    updateProgramMaxLimit(1);
+    updateTrackedEntityTypeMaxLimit(1);
+    Set<UID> trackedEntities = Set.of(UID.of("dUE514NMOlo"), UID.of("QS6w44flWAf"));
+    TrackedEntityOperationParams operationParams =
+        createTrackedEntitiesOperationParams(trackedEntities);
+    injectSecurityContextUser(regularUser);
+
+    assertHasSize(
+        trackedEntities.size(), trackedEntityService.findTrackedEntities(operationParams));
+  }
+
+  @Test
+  void shouldFailWhenSearchOutsideOfCaptureScopeIfProgramAndTrackedEntitiesSpecified() {
+    updateProgramMaxLimit(1);
+    Set<UID> trackedEntities = Set.of(UID.of("dUE514NMOlo"), UID.of("QS6w44flWAf"));
+    TrackedEntityOperationParams operationParams =
+        createProgramAndTrackedEntitiesOperationParams(trackedEntities);
+    injectSecurityContextUser(regularUser);
+
+    IllegalQueryException exception =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> trackedEntityService.findTrackedEntities(operationParams));
+    assertEquals("maxteicountreached", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenSearchOutsideOfCaptureScopeIfTETAndTrackedEntitiesSpecified() {
+    updateTrackedEntityTypeMaxLimit(1);
+    Set<UID> trackedEntities = Set.of(UID.of("dUE514NMOlo"), UID.of("QS6w44flWAf"));
+    TrackedEntityOperationParams operationParams =
+        createTrackedEntityTypeAndTrackedEntitiesOperationParams(trackedEntities);
+    injectSecurityContextUser(regularUser);
+
+    IllegalQueryException exception =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> trackedEntityService.findTrackedEntities(operationParams));
+    assertEquals("maxteicountreached", exception.getMessage());
+  }
+
+  @Test
   void shouldReturnEntitiesWhenSystemSettingLimitNotReached()
       throws NotFoundException, BadRequestException, ForbiddenException {
     updateSystemSettingLimit(10);
@@ -305,6 +350,35 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
         .organisationUnits(organisationUnit)
         .program(program)
         .filterBy(UID.of("dIVt4l5vIOa"))
+        .build();
+  }
+
+  private TrackedEntityOperationParams createTrackedEntitiesOperationParams(
+      Set<UID> trackedEntities) {
+    return TrackedEntityOperationParams.builder()
+        .orgUnitMode(SELECTED)
+        .organisationUnits(organisationUnit)
+        .trackedEntities(trackedEntities)
+        .build();
+  }
+
+  private TrackedEntityOperationParams createProgramAndTrackedEntitiesOperationParams(
+      Set<UID> trackedEntities) {
+    return TrackedEntityOperationParams.builder()
+        .orgUnitMode(SELECTED)
+        .organisationUnits(organisationUnit)
+        .program(program)
+        .trackedEntities(trackedEntities)
+        .build();
+  }
+
+  private TrackedEntityOperationParams createTrackedEntityTypeAndTrackedEntitiesOperationParams(
+      Set<UID> trackedEntities) {
+    return TrackedEntityOperationParams.builder()
+        .orgUnitMode(SELECTED)
+        .organisationUnits(organisationUnit)
+        .trackedEntityType(trackedEntityType)
+        .trackedEntities(trackedEntities)
         .build();
   }
 }
