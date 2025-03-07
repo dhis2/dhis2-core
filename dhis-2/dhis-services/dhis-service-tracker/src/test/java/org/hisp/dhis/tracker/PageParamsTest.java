@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.junit.jupiter.api.Test;
 
-public class PageParamsTest {
+class PageParamsTest {
   @Test
   void shouldWorkWhenPageAndPageSizeBiggerThanZero() throws BadRequestException {
     PageParams pageParams = PageParams.of(1, 1, false);
