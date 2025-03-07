@@ -188,10 +188,7 @@ class DefaultEnrollmentService implements EnrollmentService {
   }
 
   private Enrollment getEnrollment(
-      @Nonnull Enrollment enrollment,
-      @Nonnull EnrollmentParams params,
-      boolean includeDeleted,
-      @Nonnull UserDetails user) {
+      @Nonnull Enrollment enrollment, @Nonnull EnrollmentParams params, boolean includeDeleted) {
     Enrollment result = new Enrollment();
     result.setUid(enrollment.getUid());
 
@@ -233,17 +230,16 @@ class DefaultEnrollmentService implements EnrollmentService {
     if (params.isIncludeAttributes()) {
       result
           .getTrackedEntity()
-          .setTrackedEntityAttributeValues(getTrackedEntityAttributeValues(user, enrollment));
+          .setTrackedEntityAttributeValues(getTrackedEntityAttributeValues(enrollment));
     }
 
     return result;
   }
 
-  private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
-      UserDetails userDetails, Enrollment enrollment) {
+  private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(Enrollment enrollment) {
     Set<TrackedEntityAttribute> readableAttributes =
         trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(
-            userDetails, List.of(enrollment.getProgram()), null);
+            List.of(enrollment.getProgram()), null);
     Set<TrackedEntityAttributeValue> attributeValues = new LinkedHashSet<>();
 
     for (TrackedEntityAttributeValue trackedEntityAttributeValue :
@@ -270,7 +266,7 @@ class DefaultEnrollmentService implements EnrollmentService {
               || trackerOwnershipAccessManager.hasAccess(
                   currentUser, enrollment.getTrackedEntity(), enrollment.getProgram()))
           && trackerAccessManager.canRead(currentUser, enrollment, orgUnitMode == ALL).isEmpty()) {
-        enrollmentList.add(getEnrollment(enrollment, params, includeDeleted, currentUser));
+        enrollmentList.add(getEnrollment(enrollment, params, includeDeleted));
       }
     }
 

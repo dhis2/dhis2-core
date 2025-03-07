@@ -38,6 +38,7 @@ import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -51,6 +52,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultTrackedEntityChangeLogService implements TrackedEntityChangeLogService {
 
   private final TrackedEntityService trackedEntityService;
+
+  private final ProgramService programService;
 
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
@@ -99,10 +102,8 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
             trackedEntityUid, programUid, TrackedEntityParams.FALSE.withIncludeAttributes(true));
 
     Set<UID> trackedEntityAttributes =
-        trackedEntityAttributeService
-            .getTrackedEntityTypeAttributes(trackedEntity.getTrackedEntityType())
-            .stream()
-            .map(UID::of)
+        trackedEntity.getTrackedEntityAttributeValues().stream()
+            .map(teav -> UID.of(teav.getAttribute().getUid()))
             .collect(Collectors.toSet());
 
     return hibernateTrackedEntityChangeLogStore.getTrackedEntityChangeLogs(
