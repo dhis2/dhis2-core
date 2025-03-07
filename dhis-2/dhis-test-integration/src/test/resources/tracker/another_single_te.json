@@ -1,0 +1,26 @@
+{
+  "trackedEntities": [
+    {
+      "trackedEntity": "Fr9h5ps74jF",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "ja8NY4PW7Xm"
+      },
+      "createdAtClient": "2020-02-20T10:09:21.844",
+      "updatedAtClient": "2020-02-20T11:09:21.844",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "h4w96yEMlzO"
+      },
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false,
+      "relationships": [],
+      "attributes": [],
+      "enrollments": []
+    }
+  ],
+  "enrollments": [],
+  "events": [],
+  "relationships": []
+}
