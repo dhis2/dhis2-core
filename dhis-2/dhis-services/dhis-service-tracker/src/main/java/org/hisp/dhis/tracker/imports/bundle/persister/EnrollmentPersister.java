@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -168,8 +169,8 @@ public class EnrollmentPersister
   }
 
   @Override
-  protected String getUpdatedTrackedEntity(Enrollment entity) {
-    return entity.getTrackedEntity().getUid();
+  protected Set<UID> getUpdatedTrackedEntity(Enrollment entity) {
+    return Set.of(UID.of(entity.getTrackedEntity()));
   }
 
   @Override

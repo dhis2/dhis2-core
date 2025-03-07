@@ -34,7 +34,6 @@ import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -48,6 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
@@ -105,8 +105,6 @@ public abstract class AbstractTrackerPersister<
     //
     List<T> dtos = getByType(getType(), bundle);
 
-    Set<String> updatedTrackedEntities = new HashSet<>();
-
     for (T trackerDto : dtos) {
 
       Entity objectReport = new Entity(getType(), trackerDto.getUid());
@@ -142,6 +140,7 @@ public abstract class AbstractTrackerPersister<
           typeReport.addEntity(objectReport);
           updateAttributes(
               entityManager, bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser());
+          bundle.addUpdatedTrackedEntities(getUpdatedTrackedEntity(convertedDto));
         } else {
           if (trackerDto.getTrackerType() == TrackerType.RELATIONSHIP) {
             typeReport.getStats().incIgnored();
@@ -159,8 +158,7 @@ public abstract class AbstractTrackerPersister<
             entityManager.merge(convertedDto);
             typeReport.getStats().incUpdated();
             typeReport.addEntity(objectReport);
-            Optional.ofNullable(getUpdatedTrackedEntity(convertedDto))
-                .ifPresent(updatedTrackedEntities::add);
+            bundle.addUpdatedTrackedEntities(getUpdatedTrackedEntity(convertedDto));
           }
         }
 
@@ -176,8 +174,6 @@ public abstract class AbstractTrackerPersister<
         if (FlushMode.OBJECT == bundle.getFlushMode()) {
           entityManager.flush();
         }
-
-        bundle.setUpdatedTrackedEntities(updatedTrackedEntities);
       } catch (Exception e) {
         final String msg =
             "A Tracker Entity of type '"
@@ -211,7 +207,7 @@ public abstract class AbstractTrackerPersister<
   // // // // // // // //
 
   /** Get Tracked Entity for enrollments or events that have been updated */
-  protected abstract String getUpdatedTrackedEntity(V entity);
+  protected abstract Set<UID> getUpdatedTrackedEntity(V entity);
 
   /** Clones the event properties that may potentially be change logged */
   protected abstract V cloneEntityProperties(TrackerPreheat preheat, T trackerDto);
