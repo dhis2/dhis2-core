@@ -4,8 +4,7 @@ env:
   MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
 
 on:
-  pull_request:
-    types: [opened, labeled, synchronize]
+  workflow_dispatch:  # Only manual trigger, no automatic triggers
   schedule:
     - cron: "16 1 * * *" # Run at 01:16 AM
 concurrency:
