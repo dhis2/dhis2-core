@@ -31,7 +31,6 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateOperationParams;
-import org.hisp.dhis.tracker.PageParams;
 import org.springframework.stereotype.Component;
 
 /**
@@ -68,6 +67,16 @@ public class ProgramNotificationTemplateRequestParamsMapper {
   }
 
   private void validatePaginationBounds(Integer page, Integer pageSize) throws BadRequestException {
-    PageParams.of(page, pageSize, false);
+    if (lessThan(page, 1)) {
+      throw new BadRequestException("page must be greater than or equal to 1 if specified");
+    }
+
+    if (lessThan(pageSize, 1)) {
+      throw new BadRequestException("pageSize must be greater than or equal to 1 if specified");
+    }
+  }
+
+  private static boolean lessThan(Integer a, int b) {
+    return a != null && a < b;
   }
 }

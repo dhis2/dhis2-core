@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker;
 
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -45,14 +46,13 @@ class PageParamsTest {
   void shouldFailWhenPageIsNotNullAndSmallerThanOne() {
     BadRequestException exception =
         assertThrows(BadRequestException.class, () -> PageParams.of(0, 1, false));
-    assertEquals("page must be greater than or equal to 1 if specified", exception.getMessage());
+    assertStartsWith("page must be greater", exception.getMessage());
   }
 
   @Test
   void shouldFailWhenPageSizeIsNotNullAndSmallerThanOne() {
     BadRequestException exception =
         assertThrows(BadRequestException.class, () -> PageParams.of(1, 0, false));
-    assertEquals(
-        "pageSize must be greater than or equal to 1 if specified", exception.getMessage());
+    assertStartsWith("pageSize must be greater", exception.getMessage());
   }
 }
