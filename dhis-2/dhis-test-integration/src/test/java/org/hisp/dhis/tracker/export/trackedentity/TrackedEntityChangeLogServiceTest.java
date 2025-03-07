@@ -69,9 +69,13 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   private final TrackedEntityChangeLogOperationParams defaultOperationParams =
       TrackedEntityChangeLogOperationParams.builder().build();
-  private final PageParams defaultPageParams = PageParams.of(1, 10, false);
+  private final PageParams defaultPageParams;
 
   private TrackerObjects trackerObjects;
+
+  TrackedEntityChangeLogServiceTest() throws BadRequestException {
+    defaultPageParams = PageParams.of(1, 10, false);
+  }
 
   @BeforeAll
   void setUp() throws IOException {

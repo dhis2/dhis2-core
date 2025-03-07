@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.util.List;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.Page;
@@ -209,7 +210,7 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldGetPaginatedPotentialDuplicatesGivenNonDefaultPageSize()
-      throws PotentialDuplicateConflictException {
+      throws PotentialDuplicateConflictException, BadRequestException {
     PotentialDuplicate potentialDuplicate1 =
         new PotentialDuplicate(trackedEntityAOriginal, trackedEntityADuplicate);
     PotentialDuplicate potentialDuplicate2 =
@@ -227,7 +228,7 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     Page<UID> firstPage =
         deduplicationService
-            .getPotentialDuplicates(criteria, new PageParams(1, 2, false))
+            .getPotentialDuplicates(criteria, PageParams.of(1, 2, false))
             .withMappedItems(PotentialDuplicate::getOriginal);
 
     assertEquals(
@@ -237,7 +238,7 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     Page<UID> secondPage =
         deduplicationService
-            .getPotentialDuplicates(criteria, new PageParams(2, 2, false))
+            .getPotentialDuplicates(criteria, PageParams.of(2, 2, false))
             .withMappedItems(PotentialDuplicate::getOriginal);
 
     assertEquals(
@@ -247,7 +248,7 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     Page<UID> thirdPage =
         deduplicationService
-            .getPotentialDuplicates(criteria, new PageParams(3, 3, false))
+            .getPotentialDuplicates(criteria, PageParams.of(3, 3, false))
             .withMappedItems(PotentialDuplicate::getOriginal);
 
     assertEquals(new Page<>(List.of(), 3, 3, null, 2, null), thirdPage, "past the last page");

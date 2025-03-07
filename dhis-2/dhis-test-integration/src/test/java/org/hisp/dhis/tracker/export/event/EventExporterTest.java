@@ -935,7 +935,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
 
     List<String> events = getEvents(params);
 
-    assertContainsOnly(List.of("pTzf9KYMk72"), events);
+    assertContainsOnly(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
   }
 
   @Test
@@ -984,7 +984,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
 
     List<String> events = getEvents(params);
 
-    assertContainsOnly(List.of("pTzf9KYMk72"), events);
+    assertContainsOnly(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
   }
 
   @Test

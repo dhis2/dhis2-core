@@ -151,7 +151,7 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
                   .enrollmentStatus(EnrollmentStatus.ACTIVE)
                   .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
                   .build(),
-              new PageParams(1, 2, false));
+              PageParams.of(1, 2, false));
       enrollments = emptyIfNull(enrollmentPage.getItems());
     } catch (BadRequestException | ForbiddenException e) {
       // TODO(tracker) Find a better error message for these exceptions
@@ -213,7 +213,7 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
             param -> {
               try {
                 Page<TrackedEntity> page =
-                    trackedEntityService.findTrackedEntities(param, new PageParams(1, 2, false));
+                    trackedEntityService.findTrackedEntities(param, PageParams.of(1, 2, false));
                 trackedEntities.addAll(page.getItems());
               } catch (BadRequestException | ForbiddenException | NotFoundException e) {
                 // TODO(tracker) Find a better error message for these exceptions
