@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import static java.util.Collections.emptyList;
+
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
@@ -38,6 +41,8 @@ import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -51,6 +56,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultTrackedEntityChangeLogService implements TrackedEntityChangeLogService {
 
   private final TrackedEntityService trackedEntityService;
+
+  private final ProgramService programService;
 
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
@@ -97,10 +104,14 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
     TrackedEntity trackedEntity =
         trackedEntityService.getTrackedEntity(
             trackedEntityUid, programUid, TrackedEntityParams.FALSE.withIncludeAttributes(true));
+    Program program =
+        (programUid != null) ? programService.getProgram(programUid.getValue()) : null;
 
     Set<UID> trackedEntityAttributes =
         trackedEntityAttributeService
-            .getTrackedEntityTypeAttributes(trackedEntity.getTrackedEntityType())
+            .getAllUserReadableTrackedEntityAttributes(
+                program != null ? List.of(program) : emptyList(),
+                List.of(trackedEntity.getTrackedEntityType()))
             .stream()
             .map(UID::of)
             .collect(Collectors.toSet());

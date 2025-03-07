@@ -238,33 +238,22 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
 
   @Override
   @Transactional(readOnly = true)
-  public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(
-      UserDetails userDetails) {
-    List<Program> programs = programService.getAllPrograms();
-    List<TrackedEntityType> trackedEntityTypes = trackedEntityTypeService.getAllTrackedEntityType();
-
-    return getAllUserReadableTrackedEntityAttributes(userDetails, programs, trackedEntityTypes);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public Set<TrackedEntityAttribute> getProgramAttributes(Program program) {
-    return getAllUserReadableTrackedEntityAttributes(
-        CurrentUserUtil.getCurrentUserDetails(), List.of(program), List.of());
+    return getAllUserReadableTrackedEntityAttributes(List.of(program), List.of());
   }
 
   @Override
   @Transactional(readOnly = true)
   public Set<TrackedEntityAttribute> getTrackedEntityTypeAttributes(
       TrackedEntityType trackedEntityType) {
-    return getAllUserReadableTrackedEntityAttributes(
-        CurrentUserUtil.getCurrentUserDetails(), List.of(), List.of(trackedEntityType));
+    return getAllUserReadableTrackedEntityAttributes(List.of(), List.of(trackedEntityType));
   }
 
   @Override
   @Transactional(readOnly = true)
   public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(
-      UserDetails userDetails, List<Program> programs, List<TrackedEntityType> trackedEntityTypes) {
+      List<Program> programs, List<TrackedEntityType> trackedEntityTypes) {
+    UserDetails userDetails = CurrentUserUtil.getCurrentUserDetails();
     Set<TrackedEntityAttribute> attributes = new HashSet<>();
 
     if (programs != null && !programs.isEmpty()) {
