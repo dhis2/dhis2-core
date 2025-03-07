@@ -120,7 +120,7 @@ public class RelationshipPersister
   }
 
   @Override
-  protected Set<UID> getUpdatedTrackedEntity(org.hisp.dhis.relationship.Relationship entity) {
+  protected Set<UID> getUpdatedTrackedEntities(org.hisp.dhis.relationship.Relationship entity) {
     Set<UID> uids = new HashSet<>();
 
     Optional.ofNullable(entity.getFrom().getTrackedEntity()).map(UID::of).ifPresent(uids::add);

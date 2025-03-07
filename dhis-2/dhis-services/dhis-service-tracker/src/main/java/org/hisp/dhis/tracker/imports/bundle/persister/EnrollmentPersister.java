@@ -169,7 +169,7 @@ public class EnrollmentPersister
   }
 
   @Override
-  protected Set<UID> getUpdatedTrackedEntity(Enrollment entity) {
+  protected Set<UID> getUpdatedTrackedEntities(Enrollment entity) {
     return Set.of(UID.of(entity.getTrackedEntity()));
   }
 

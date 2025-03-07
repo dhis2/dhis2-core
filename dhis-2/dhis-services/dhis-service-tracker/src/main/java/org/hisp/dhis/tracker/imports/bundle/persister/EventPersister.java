@@ -282,7 +282,7 @@ public class EventPersister
   }
 
   @Override
-  protected Set<UID> getUpdatedTrackedEntity(Event entity) {
+  protected Set<UID> getUpdatedTrackedEntities(Event entity) {
     return Stream.of(entity.getEnrollment())
         .filter(e -> e.getTrackedEntity() != null)
         .map(e -> UID.of(e.getTrackedEntity()))

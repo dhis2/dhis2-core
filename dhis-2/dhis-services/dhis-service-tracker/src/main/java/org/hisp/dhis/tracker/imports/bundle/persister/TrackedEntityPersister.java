@@ -112,7 +112,7 @@ public class TrackedEntityPersister
   }
 
   @Override
-  protected Set<UID> getUpdatedTrackedEntity(TrackedEntity entity) {
+  protected Set<UID> getUpdatedTrackedEntities(TrackedEntity entity) {
     return Set.of(); // We don't need to keep track, TE has already been updated
   }
 
