@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.programrule.engine;
 
 import static org.hisp.dhis.programrule.ProgramRuleActionType.ASSIGN;
+import static org.hisp.dhis.programrule.ProgramRuleActionType.CREATEEVENT;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.ERRORONCOMPLETE;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.SCHEDULEMESSAGE;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.SENDMESSAGE;
@@ -175,6 +176,11 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                   getAssignedParameter(pra),
                   ATTRIBUTE_TYPE,
                   getAttributeType(pra).name()));
+      case CREATEEVENT ->
+          new RuleAction(
+              pra.getData(),
+              CREATEEVENT.name(),
+              createValues(CONTENT, pra.getContent(), FIELD, pra.getProgramStage().getUid()));
       case SHOWWARNING ->
           new RuleAction(
               pra.getData(),
