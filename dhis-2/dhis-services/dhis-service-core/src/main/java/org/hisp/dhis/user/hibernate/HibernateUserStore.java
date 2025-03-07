@@ -65,6 +65,7 @@ import org.hibernate.annotations.QueryHints;
 import org.hibernate.query.Query;
 import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -620,13 +621,13 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   }
 
   @Override
-  public List<User> getUsersWithOrgUnit(
-      @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull String uid) {
+  public List<User> getUsersWithOrgUnits(
+      @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull Set<UID> uids) {
     return getQuery(
             String.format(
-                "select distinct u from User u left join fetch u.%s ous where ous.uid = :uid ",
+                "select distinct u from User u left join fetch u.%s ous where ous.uid in :uids ",
                 orgUnitProperty.getValue()))
-        .setParameter("uid", uid)
+        .setParameter("uids", UID.toValueList(uids))
         .getResultList();
   }
 }
