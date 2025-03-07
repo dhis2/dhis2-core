@@ -70,7 +70,6 @@ class DefaultTrackerProgramRuleServiceTest extends DhisConvenienceTest {
   private RuleEngineConverterService<Event, org.hisp.dhis.program.ProgramStageInstance>
       eventTrackerConverterService;
 
-
   @Mock private EventService eventService;
 
   @Mock private ProgramStageInstanceService programStageInstanceService;
@@ -83,7 +82,7 @@ class DefaultTrackerProgramRuleServiceTest extends DhisConvenienceTest {
 
   private final Program trackerProgram = createProgram('T');
 
-  private final Program eventProgram = createProgramWithoutRegistration('E');;
+  private final Program eventProgram = createProgramWithoutRegistration('E');
 
   @BeforeEach
   void setUp() {
