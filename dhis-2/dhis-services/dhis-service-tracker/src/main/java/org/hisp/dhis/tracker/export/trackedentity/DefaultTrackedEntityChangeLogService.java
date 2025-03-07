@@ -27,10 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import static java.util.Collections.emptyList;
-
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
@@ -41,7 +38,6 @@ import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -104,16 +100,10 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
     TrackedEntity trackedEntity =
         trackedEntityService.getTrackedEntity(
             trackedEntityUid, programUid, TrackedEntityParams.FALSE.withIncludeAttributes(true));
-    Program program =
-        (programUid != null) ? programService.getProgram(programUid.getValue()) : null;
 
     Set<UID> trackedEntityAttributes =
-        trackedEntityAttributeService
-            .getAllUserReadableTrackedEntityAttributes(
-                program != null ? List.of(program) : emptyList(),
-                List.of(trackedEntity.getTrackedEntityType()))
-            .stream()
-            .map(UID::of)
+        trackedEntity.getTrackedEntityAttributeValues().stream()
+            .map(teav -> UID.of(teav.getAttribute().getUid()))
             .collect(Collectors.toSet());
 
     return hibernateTrackedEntityChangeLogStore.getTrackedEntityChangeLogs(
