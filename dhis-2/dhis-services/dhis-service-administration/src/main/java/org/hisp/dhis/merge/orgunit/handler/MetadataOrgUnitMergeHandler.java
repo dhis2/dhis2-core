@@ -153,7 +153,9 @@ public class MetadataOrgUnitMergeHandler {
 
     List<User> teiSearchOrgUnits =
         userService.getUsersWithOrgUnits(
-            UserOrgUnitProperty.TEI_SEARCH_ORG_UNITS, request.getSources().stream() .map(BaseIdentifiableObject::getUid)
+            UserOrgUnitProperty.TEI_SEARCH_ORG_UNITS,
+            request.getSources().stream()
+                .map(BaseIdentifiableObject::getUid)
                 .collect(Collectors.toSet()));
 
     teiSearchOrgUnits.forEach(
