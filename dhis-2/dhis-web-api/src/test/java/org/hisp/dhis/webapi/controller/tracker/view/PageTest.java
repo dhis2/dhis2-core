@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 import java.util.Map;
@@ -122,21 +121,6 @@ class PageTest {
         3,
         "http://localhost/organisationUnits",
         "fields=displayName");
-  }
-
-  @Test
-  void shouldFailWhenPageIsNotNullAndSmallerThanOne() {
-    BadRequestException exception =
-        assertThrows(BadRequestException.class, () -> PageParams.of(0, 1, false));
-    assertEquals("page must be greater than or equal to 1 if specified", exception.getMessage());
-  }
-
-  @Test
-  void shouldFailWhenPageSizeIsNotNullAndSmallerThanOne() {
-    BadRequestException exception =
-        assertThrows(BadRequestException.class, () -> PageParams.of(1, 0, false));
-    assertEquals(
-        "pageSize must be greater than or equal to 1 if specified", exception.getMessage());
   }
 
   private static void assertPagerLink(
