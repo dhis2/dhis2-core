@@ -56,14 +56,7 @@ public class PageParams {
   /** Indicates whether to fetch the total number of items. */
   final boolean pageTotal;
 
-  private PageParams(Integer page, Integer pageSize, boolean pageTotal) {
-    this.page = Objects.requireNonNullElse(page, DEFAULT_PAGE);
-    this.pageSize = Objects.requireNonNullElse(pageSize, DEFAULT_PAGE_SIZE);
-    this.pageTotal = pageTotal;
-  }
-
-  public static PageParams of(Integer page, Integer pageSize, boolean pageTotal)
-      throws BadRequestException {
+  private PageParams(Integer page, Integer pageSize, boolean pageTotal) throws BadRequestException {
     if (page != null && page < 1) {
       throw new BadRequestException("page must be greater than or equal to 1 if specified");
     }
@@ -71,6 +64,14 @@ public class PageParams {
     if (pageSize != null && pageSize < 1) {
       throw new BadRequestException("pageSize must be greater than or equal to 1 if specified");
     }
+
+    this.page = Objects.requireNonNullElse(page, DEFAULT_PAGE);
+    this.pageSize = Objects.requireNonNullElse(pageSize, DEFAULT_PAGE_SIZE);
+    this.pageTotal = pageTotal;
+  }
+
+  public static PageParams of(Integer page, Integer pageSize, boolean pageTotal)
+      throws BadRequestException {
     return new PageParams(page, pageSize, pageTotal);
   }
 
