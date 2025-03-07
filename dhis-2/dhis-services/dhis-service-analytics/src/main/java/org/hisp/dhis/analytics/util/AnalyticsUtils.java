@@ -60,6 +60,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -75,7 +76,6 @@ import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DataDimensionItemType;
 import org.hisp.dhis.common.DataDimensionalItemObject;
@@ -107,6 +107,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.FinancialPeriodType;
@@ -783,7 +784,6 @@ public final class AnalyticsUtils {
    *
    * @param params the {@link DataQueryParams}.
    * @param grid the {@link Grid}.
-   * @return
    */
   public static Map<String, MetadataItem> getDimensionMetadataItemMap(
       DataQueryParams params, Grid grid) {
@@ -796,6 +796,8 @@ public final class AnalyticsUtils {
     boolean includeMetadataDetails = params.isIncludeMetadataDetails();
 
     List<OrganisationUnit> organisationUnitList = new ArrayList<>();
+
+    Map<ProgramWithOptionSet, Set<Option>> optionSetMap = new HashMap<>();
 
     for (DimensionalObject dimension : dimensions) {
       for (DimensionalItemObject item : dimension.getItems()) {
@@ -834,20 +836,25 @@ public final class AnalyticsUtils {
 
         if (DimensionItemType.PROGRAM_DATA_ELEMENT_OPTION == item.getDimensionItemType()
             && item instanceof ProgramDataElementOptionDimensionItem dimensionItem) {
-          addOptionSetToMap(
-              dimensionItem.getOptionSet(),
-              map,
-              dimensionItem.getDataElement(),
-              includeMetadataDetails);
+          if (dimensionItem.getProgram() != null
+              && dimensionItem.getOptionSet() != null
+              && dimensionItem.getOption() != null) {
+            ProgramWithOptionSet key =
+                new ProgramWithOptionSet(dimensionItem.getProgram(), dimensionItem.getOptionSet());
+            optionSetMap.computeIfAbsent(key, k -> new HashSet<>()).add(dimensionItem.getOption());
+          }
         }
 
         if (DimensionItemType.PROGRAM_ATTRIBUTE_OPTION == item.getDimensionItemType()
             && item instanceof ProgramTrackedEntityAttributeOptionDimensionItem dimensionItem) {
-          addOptionSetToMap(
-              dimensionItem.getOption().getOptionSet(),
-              map,
-              dimensionItem.getAttribute(),
-              includeMetadataDetails);
+          if (dimensionItem.getProgram() != null
+              && dimensionItem.getOption() != null
+              && dimensionItem.getOption().getOptionSet() != null) {
+            ProgramWithOptionSet key =
+                new ProgramWithOptionSet(
+                    dimensionItem.getProgram(), dimensionItem.getOption().getOptionSet());
+            optionSetMap.computeIfAbsent(key, k -> new HashSet<>()).add(dimensionItem.getOption());
+          }
         }
       }
 
@@ -909,31 +916,22 @@ public final class AnalyticsUtils {
       }
     }
 
-    return map;
-  }
+    optionSetMap.forEach(
+        (key, options) -> {
+          Program prg = key.program();
+          OptionSet optionSet = key.optionSet();
 
-  /**
-   * Adds the given {@link OptionSet} data into the given map, respecting the internal business
-   * rules.
-   *
-   * @param optionSet the {@link OptionSet} to add.
-   * @param map the source map where to add the given {@link OptionSet}.
-   * @param element the {@link BaseDimensionalItemObject} associated with the {@link OptionSet}.
-   * @param includeDetails include {@link OptionSet} details or not.
-   */
-  private static void addOptionSetToMap(
-      OptionSet optionSet,
-      Map<String, MetadataItem> map,
-      BaseDimensionalItemObject element,
-      boolean includeDetails) {
-    if (optionSet != null) {
-      map.put(
-          element.getUid() + DIMENSION_IDENTIFIER_SEP + optionSet.getUid(),
-          includeDetails
-              ? new MetadataItem(
-                  optionSet.getName(), optionSet, new LinkedHashSet<>(optionSet.getOptions()))
-              : new MetadataItem(optionSet.getName()));
-    }
+          String metadataKey = prg.getUid() + DIMENSION_IDENTIFIER_SEP + optionSet.getUid();
+          MetadataItem metadataItem =
+              includeMetadataDetails
+                  ? new MetadataItem(
+                      optionSet.getName(), optionSet.getUid(), new LinkedHashSet<>(options))
+                  : new MetadataItem(optionSet.getName());
+
+          map.put(metadataKey, metadataItem);
+        });
+
+    return map;
   }
 
   /**
@@ -1247,5 +1245,26 @@ public final class AnalyticsUtils {
         Pattern.compile(Pattern.quote(startToken) + "(.*?)" + Pattern.quote(endToken));
     Matcher matcher = pattern.matcher(original);
     return matcher.replaceAll(startToken + replacement + endToken);
+  }
+
+  private record ProgramWithOptionSet(Program program, OptionSet optionSet) {
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      ProgramWithOptionSet that = (ProgramWithOptionSet) o;
+      return Objects.equals(
+              program != null ? program.getUid() : null,
+              that.program != null ? that.program.getUid() : null)
+          && Objects.equals(
+              optionSet != null ? optionSet.getUid() : null,
+              that.optionSet != null ? that.optionSet.getUid() : null);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(
+          program != null ? program.getUid() : null, optionSet != null ? optionSet.getUid() : null);
+    }
   }
 }
