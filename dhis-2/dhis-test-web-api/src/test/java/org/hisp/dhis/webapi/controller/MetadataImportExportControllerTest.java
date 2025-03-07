@@ -257,8 +257,8 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
         GET("/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d").content();
 
     assertEquals(2, response.getObject("options").size());
-    assertEquals(0, response.getNumber("options[0].sortOrder").intValue());
-    assertEquals(1, response.getNumber("options[1].sortOrder").intValue());
+    assertEquals(1, response.getNumber("options[0].sortOrder").intValue());
+    assertEquals(2, response.getNumber("options[1].sortOrder").intValue());
     assertEquals("Uh4HvjK6zg3", response.getString("options[0].id").string());
     assertEquals("BQMei56UBl6", response.getString("options[1].id").string());
   }
@@ -309,11 +309,11 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
         GET("/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d").content();
 
     assertEquals(2, response.getObject("options").size());
-    assertEquals(0, response.getNumber("options[0].sortOrder").intValue());
+    assertEquals(1, response.getNumber("options[0].sortOrder").intValue());
     assertEquals("BQMei56UBl6", response.getString("options[0].id").string());
     assertNotNull(response.get("options[1].sortOrder"));
     assertEquals("Uh4HvjK6zg3", response.getString("options[1].id").string());
-    assertEquals(1, response.getNumber("options[1].sortOrder").intValue());
+    assertEquals(2, response.getNumber("options[1].sortOrder").intValue());
 
     POST(
             "/metadata",
