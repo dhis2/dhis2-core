@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataset.DataSet;
@@ -41,7 +42,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserQueryParams;
+import org.hisp.dhis.user.UserOrgUnitProperty;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 
@@ -125,10 +126,11 @@ public class MetadataOrgUnitMergeHandler {
 
   public void mergeUsers(OrgUnitMergeRequest request) {
     List<User> dataCaptureUsers =
-        userService.getUsers(
-            new UserQueryParams()
-                .setCanSeeOwnRoles(true)
-                .setOrganisationUnits(request.getSources()));
+        userService.getUsersWithOrgUnits(
+            UserOrgUnitProperty.ORG_UNITS,
+            request.getSources().stream()
+                .map(BaseIdentifiableObject::getUid)
+                .collect(Collectors.toSet()));
 
     dataCaptureUsers.forEach(
         u -> {
@@ -137,10 +139,11 @@ public class MetadataOrgUnitMergeHandler {
         });
 
     List<User> dataViewUsers =
-        userService.getUsers(
-            new UserQueryParams()
-                .setCanSeeOwnRoles(true)
-                .setDataViewOrganisationUnits(request.getSources()));
+        userService.getUsersWithOrgUnits(
+            UserOrgUnitProperty.DATA_VIEW_ORG_UNITS,
+            request.getSources().stream()
+                .map(BaseIdentifiableObject::getUid)
+                .collect(Collectors.toSet()));
 
     dataViewUsers.forEach(
         u -> {
@@ -149,10 +152,9 @@ public class MetadataOrgUnitMergeHandler {
         });
 
     List<User> teiSearchOrgUnits =
-        userService.getUsers(
-            new UserQueryParams()
-                .setCanSeeOwnRoles(true)
-                .setTeiSearchOrganisationUnits(request.getSources()));
+        userService.getUsersWithOrgUnits(
+            UserOrgUnitProperty.TEI_SEARCH_ORG_UNITS, request.getSources().stream() .map(BaseIdentifiableObject::getUid)
+                .collect(Collectors.toSet()));
 
     teiSearchOrgUnits.forEach(
         u -> {
