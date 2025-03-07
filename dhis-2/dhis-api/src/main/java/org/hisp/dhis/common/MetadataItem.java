@@ -158,6 +158,23 @@ public class MetadataItem implements Serializable {
     }
   }
 
+  public MetadataItem(String name, String optionSetUid, Set<Option> options) {
+    if (optionSetUid != null) {
+      this.name = name;
+      this.uid = optionSetUid;
+      if (isNotEmpty(options)) {
+        this.options =
+            options.stream()
+                .map(
+                    option ->
+                        Map.of(
+                            "uid", option.getUid(),
+                            "code", option.getCode()))
+                .toList();
+      }
+    }
+  }
+
   public MetadataItem(String name, ProgramStage programStage) {
     this.name = name;
 
