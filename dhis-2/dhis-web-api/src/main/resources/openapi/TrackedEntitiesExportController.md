@@ -292,7 +292,9 @@ NOTE: This query parameter has no effect on a CSV response!
 `<filter1>[,<filter2>...]`
 
 Get tracked entities matching the given filters attributes. A filter is a colon separated
-attribute UID with optional operator and value pairs. We differentiate between two types of
+attribute UID with optional operator and value pairs. 
+
+We differentiate between two types of
 operators: unary and binary. Unary operators don't require a value, while binary operators do.
 - Unary: `filterAttributes=H9IlTX2X6SL:null`
 - Binary: `filterAttributes=H9IlTX2X6SL:sw:A`
@@ -306,25 +308,23 @@ program (if the program is without registration) or the program stage (if the pr
 registration).
 
 Valid binary operators are:
-- `EQ` - equal to
-- `IEQ` - equal to
-- `GE` - greater than or equal to
-- `GT` - greater than
-- `LE` - less than or equal to
-- `LT` - less than
-- `NE` - not equal to
-- `NEQ` - not equal to
-- `NIEQ` - not equal to
-- `IN` - equal to one of the multiple values separated by semicolon ";"
-- `ILIKE` - is like (case-insensitive)
-- `LIKE` - like (free text match)
-- `NILIKE` - not like
-- `NLIKE` - not like
-- `SW` - starts with
-- `EW` - ends with
-- `NULL` - has no value
-- `!NULL` - has a value
+- `eq` - equal to
+- `ieq` - equal to
+- `ge` - greater than or equal to
+- `gt` - greater than
+- `le` - less than or equal to
+- `lt` - less than
+- `ne` - not equal to
+- `neq` - not equal to
+- `nieq` - not equal to
+- `in` - equal to one of the multiple values separated by semicolon ";"
+- `ilike` - is like (case-insensitive)
+- `like` - like (free text match)
+- `nilike` - not like
+- `nlike` - not like
+- `sw` - starts with
+- `ew` - ends with
 
 Valid unary operators are:
-- `NULL` - has no value
-- `!NULL` - has a value
+- `null` - has no value
+- `!null` - has a value
