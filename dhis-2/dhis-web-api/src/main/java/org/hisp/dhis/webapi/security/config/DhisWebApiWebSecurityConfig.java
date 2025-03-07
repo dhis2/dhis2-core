@@ -343,7 +343,16 @@ public class DhisWebApiWebSecurityConfig {
                   .hasAnyAuthority("ALL", "M_dhis-web-aggregate-data-entry")
 
                   /////////////////////////////////////////////////////////////////////////////////////////////////
-
+                  .requestMatchers(new AntPathRequestMatcher("/oauth2/authorize"))
+                  .permitAll()
+                  .requestMatchers(new AntPathRequestMatcher("/oauth2/token"))
+                  .permitAll()
+                  .requestMatchers(new AntPathRequestMatcher("/login"))
+                  .permitAll()
+                  .requestMatchers(new AntPathRequestMatcher("/loginAction"))
+                  .permitAll()
+                  .requestMatchers(new AntPathRequestMatcher("/XXX.html"))
+                  .permitAll()
                   .requestMatchers(new AntPathRequestMatcher("/dhis-web-login/**"))
                   .permitAll()
                   .requestMatchers(new AntPathRequestMatcher("/login.html"))
@@ -448,6 +457,12 @@ public class DhisWebApiWebSecurityConfig {
               }
             });
 
+    http.formLogin(
+        form ->
+            form.authenticationDetailsSource(twoFactorWebAuthenticationDetailsSource)
+                .loginPage("/XXX.html")
+                .loginProcessingUrl("/login"));
+
     /// OIDC /////////
     http.oauth2Login(
             oauth2 ->
@@ -524,8 +539,7 @@ public class DhisWebApiWebSecurityConfig {
   }
 
   /**
-   * Enable either deprecated OAuth2 authorization filter or the new JWT OIDC token filter. They are
-   * mutually exclusive and can not both be added to the chain at the same time.
+   * Enable JWT OIDC token filter.
    *
    * @param http HttpSecurity config
    */

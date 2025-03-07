@@ -45,6 +45,12 @@ public class ForwardedIpAwareWebAuthenticationDetails extends WebAuthenticationD
         ObjectUtils.firstNonNull(request.getHeader(HEADER_FORWARDED_FOR), request.getRemoteAddr());
   }
 
+  public ForwardedIpAwareWebAuthenticationDetails(
+      String remoteAddress, String sessionId, String ip) {
+    super(remoteAddress, sessionId);
+    this.ip = ip;
+  }
+
   public String getIp() {
     return ip;
   }
