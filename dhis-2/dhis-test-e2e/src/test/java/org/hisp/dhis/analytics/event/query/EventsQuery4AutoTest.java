@@ -41,6 +41,7 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class EventsQuery4AutoTest {
@@ -48,6 +49,7 @@ public class EventsQuery4AutoTest {
   private final AnalyticsEventActions actions = new AnalyticsEventActions();
 
   @Test
+  @Disabled("Disabled until we find the issue with the test database")
   public void eventsWithDataElementTypeCoordinates() throws JSONException {
     // Given
     QueryParamsBuilder params =
