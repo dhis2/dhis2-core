@@ -1008,7 +1008,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    */
   private String getFromSubQueryLimitAndOffset(PageParams pageParams) {
     StringBuilder limitOffset = new StringBuilder();
-    int systemTeLimit = settingsProvider.getCurrentSettings().getTrackedEntityMaxLimit();
+    int systemMaxPageSize = settingsProvider.getCurrentSettings().getTrackedEntityMaxLimit();
 
     if (pageParams != null) {
       return limitOffset
@@ -1021,8 +1021,13 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           .append(pageParams.getOffset())
           .append(SPACE)
           .toString();
-    } else if (systemTeLimit > 0) {
-      return limitOffset.append(LIMIT).append(SPACE).append(systemTeLimit).append(SPACE).toString();
+    } else if (systemMaxPageSize > 0) {
+      return limitOffset
+          .append(LIMIT)
+          .append(SPACE)
+          .append(systemMaxPageSize)
+          .append(SPACE)
+          .toString();
     }
 
     return limitOffset.toString();

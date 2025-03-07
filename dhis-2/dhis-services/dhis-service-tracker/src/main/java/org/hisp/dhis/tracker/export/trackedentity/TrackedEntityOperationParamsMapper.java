@@ -304,19 +304,18 @@ class TrackedEntityOperationParamsMapper {
   private void validateSearchOutsideCaptureScopeParameters(
       TrackedEntityQueryParams params, UserDetails user) throws IllegalQueryException {
     if (!isSearchInCaptureScope(params, user)) {
-
       if (params.hasFilters()) {
         List<UID> searchableAttributeIds = getSearchableAttributeIds(params);
         validateSearchableAttributes(params, searchableAttributeIds);
       }
 
       int maxTeLimit = getMaxTeLimit(params);
+      params.setMaxTeLimit(maxTeLimit);
       if (maxTeLimit > 0
           && trackedEntityStore.getTrackedEntityCountWithMaxTrackedEntityLimit(params)
               > maxTeLimit) {
         throw new IllegalQueryException("maxteicountreached");
       }
-      params.setMaxTeLimit(maxTeLimit);
     }
   }
 
