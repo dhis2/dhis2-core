@@ -60,6 +60,7 @@ public interface AppManager {
           "datastore",
           "event-reports",
           "event-visualizer",
+          "global-shell",
           "import-export",
           "interpretation",
           "login",
