@@ -50,6 +50,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -152,6 +153,8 @@ class OrgUnitMergeServiceTest extends IntegrationTestBase {
   void orgUnitMergeCorrectUsersTest() {
     // given multiple users
     // each of which have different kinds of access to the source org units
+    User mergeUser = createAndAddUser("mergeUser", ouA, "ALL");
+    injectSecurityContext(UserDetails.fromUser(mergeUser));
     Set<OrganisationUnit> sources = new HashSet<>(Arrays.asList(ouD, ouE));
 
     User userWithNoOrgUnits = createAndAddUser("user1");
