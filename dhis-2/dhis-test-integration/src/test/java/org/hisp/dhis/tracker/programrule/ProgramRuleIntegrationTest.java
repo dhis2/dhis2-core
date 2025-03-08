@@ -92,7 +92,7 @@ class ProgramRuleIntegrationTest extends TrackerTest {
 
   private DataElement dataElement2;
 
-  private DataElement dataElement6;
+  private DataElement dataElement3;
 
   @Override
   public void initTest() throws IOException {
@@ -103,7 +103,7 @@ class ProgramRuleIntegrationTest extends TrackerTest {
         bundle.getPreheat().get(PreheatIdentifier.UID, Program.class, "BFcipDERJne");
     dataElement1 = bundle.getPreheat().get(PreheatIdentifier.UID, DataElement.class, "DATAEL00001");
     dataElement2 = bundle.getPreheat().get(PreheatIdentifier.UID, DataElement.class, "DATAEL00002");
-    dataElement6 = bundle.getPreheat().get(PreheatIdentifier.UID, DataElement.class, "DATAEL00006");
+    dataElement3 = bundle.getPreheat().get(PreheatIdentifier.UID, DataElement.class, "DATAEL00006");
     programStageOnInsert =
         bundle.getPreheat().get(PreheatIdentifier.UID, ProgramStage.class, "NpsdDv6kKSO");
 
@@ -111,7 +111,7 @@ class ProgramRuleIntegrationTest extends TrackerTest {
         createProgramRuleVariableWithDataElement('A', programWithRegistration, dataElement2);
 
     ProgramRuleVariable programRuleVariableDE6 =
-        createProgramRuleVariableWithDataElement('D', programWithRegistration, dataElement6);
+        createProgramRuleVariableWithDataElement('D', programWithRegistration, dataElement3);
     programRuleVariableDE6.setName("integer_prv_de6");
 
     programRuleVariableService.addProgramRuleVariable(programRuleVariable);
@@ -275,7 +275,8 @@ class ProgramRuleIntegrationTest extends TrackerTest {
   }
 
   @Test
-  void shouldImportEventWithWarningsWhenPayloadEventDataIsPrioritized() throws IOException {
+  void shouldImportEventWithNotificationActionWhenPayloadEventDataIsPrioritized()
+      throws IOException {
     storeNotificationProgramRule(
         'I',
         programWithRegistration,
