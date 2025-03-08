@@ -171,7 +171,7 @@ public class DefaultTrackerProgramRuleService implements TrackerProgramRuleServi
               List<ProgramStageInstance> programStageInstances =
                   eventTrackerConverterService.fromForRuleEngine(
                       bundle.getPreheat(), entry.getValue());
-              if (enrollment == null) {
+              if (enrollment == null || enrollment.getProgram().isWithoutRegistration()) {
                 return programRuleEngine
                     .evaluateProgramEvents(
                         Sets.newHashSet(programStageInstances),
