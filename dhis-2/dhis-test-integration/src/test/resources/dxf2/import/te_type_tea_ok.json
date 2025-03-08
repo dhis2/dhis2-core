@@ -446,6 +446,7 @@
       },
       "translations": [],
       "name": "Person1",
+      "shortName": "Person1",
       "sharing": {
         "public": "rw------",
         "external": false,
