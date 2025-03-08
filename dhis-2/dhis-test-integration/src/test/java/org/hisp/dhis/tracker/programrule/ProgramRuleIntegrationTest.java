@@ -32,6 +32,8 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hisp.dhis.programrule.ProgramRuleActionType.SHOWERROR;
+import static org.hisp.dhis.tracker.Assertions.assertHasNoNotificationSideEffects;
+import static org.hisp.dhis.tracker.Assertions.assertHasNotificationSideEffects;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1300;
@@ -68,6 +70,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class ProgramRuleIntegrationTest extends TrackerTest {
+  private static final String TEMPLATE_UID = "D9PbzJY8bNH";
+
   @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private ProgramRuleService programRuleService;
@@ -78,43 +82,57 @@ class ProgramRuleIntegrationTest extends TrackerTest {
 
   @Autowired private ConstantService constantService;
 
-  private Program program;
+  private Program programWithRegistration;
 
   private Program programWithoutRegistration;
+
+  private ProgramStage programStageOnInsert;
 
   private DataElement dataElement1;
 
   private DataElement dataElement2;
 
+  private DataElement dataElement6;
+
   @Override
   public void initTest() throws IOException {
     ObjectBundle bundle = setUpMetadata("tracker/simple_metadata.json");
-    program = bundle.getPreheat().get(PreheatIdentifier.UID, Program.class, "BFcipDERJnf");
+    programWithRegistration =
+        bundle.getPreheat().get(PreheatIdentifier.UID, Program.class, "BFcipDERJnf");
     programWithoutRegistration =
         bundle.getPreheat().get(PreheatIdentifier.UID, Program.class, "BFcipDERJne");
     dataElement1 = bundle.getPreheat().get(PreheatIdentifier.UID, DataElement.class, "DATAEL00001");
     dataElement2 = bundle.getPreheat().get(PreheatIdentifier.UID, DataElement.class, "DATAEL00002");
-    ProgramStage programStage =
+    dataElement6 = bundle.getPreheat().get(PreheatIdentifier.UID, DataElement.class, "DATAEL00006");
+    programStageOnInsert =
         bundle.getPreheat().get(PreheatIdentifier.UID, ProgramStage.class, "NpsdDv6kKSO");
+
     ProgramRuleVariable programRuleVariable =
-        createProgramRuleVariableWithDataElement('A', program, dataElement2);
+        createProgramRuleVariableWithDataElement('A', programWithRegistration, dataElement2);
+
+    ProgramRuleVariable programRuleVariableDE6 =
+        createProgramRuleVariableWithDataElement('D', programWithRegistration, dataElement6);
+    programRuleVariableDE6.setName("integer_prv_de6");
+
     programRuleVariableService.addProgramRuleVariable(programRuleVariable);
-    ProgramRule programRuleA = createProgramRule('A', program);
+    programRuleVariableService.addProgramRuleVariable(programRuleVariableDE6);
+
+    ProgramRule programRuleA = createProgramRule('A', programWithRegistration);
     programRuleA.setUid("ProgramRule");
     programRuleService.addProgramRule(programRuleA);
-    ProgramRule errorProgramRule = createProgramRule('E', program);
+    ProgramRule errorProgramRule = createProgramRule('E', programWithRegistration);
     errorProgramRule.setCondition("ERROR");
     errorProgramRule.setUid("ProgramRulE");
     programRuleService.addProgramRule(errorProgramRule);
-    ProgramRule programRuleC = createProgramRule('C', program);
+    ProgramRule programRuleC = createProgramRule('C', programWithRegistration);
     programRuleC.setUid("ProgramRulC");
     programRuleC.setCondition(
         "d2:daysBetween('2019-01-28', d2:lastEventDate('ProgramRuleVariableA')) < 5");
     programRuleService.addProgramRule(programRuleC);
     ProgramRule programRuleWithoutRegistration = createProgramRule('W', programWithoutRegistration);
     programRuleService.addProgramRule(programRuleWithoutRegistration);
-    ProgramRule programRuleB = createProgramRule('B', program);
-    programRuleB.setProgramStage(programStage);
+    ProgramRule programRuleB = createProgramRule('B', programWithRegistration);
+    programRuleB.setProgramStage(programStageOnInsert);
     programRuleService.addProgramRule(programRuleB);
     ProgramRuleAction programRuleActionShowWarning = createProgramRuleAction('A', programRuleA);
     programRuleActionShowWarning.setProgramRuleActionType(ProgramRuleActionType.SHOWWARNING);
@@ -257,6 +275,27 @@ class ProgramRuleIntegrationTest extends TrackerTest {
   }
 
   @Test
+  void shouldImportEventWithWarningsWhenPayloadEventDataIsPrioritized() throws IOException {
+    storeNotificationProgramRule(
+        'I',
+        programWithRegistration,
+        programStageOnInsert,
+        TEMPLATE_UID,
+        "#{integer_prv_de6} > 10");
+    TrackerImportReport report =
+        trackerImportService.importTracker(
+            fromJson("tracker/programrule/tei_enrollment_with_event_and_no_datavalues.json"));
+    assertHasNoNotificationSideEffects(report);
+
+    TrackerImportParams importParams =
+        fromJson("tracker/programrule/event_updated_datavalues.json");
+    importParams.setImportStrategy(TrackerImportStrategy.UPDATE);
+    report = trackerImportService.importTracker(importParams);
+
+    assertHasNotificationSideEffects(report);
+  }
+
+  @Test
   void shouldNotImportProgramEventWhenAnErrorIsTriggeredBasedOnConditionEvaluatingAConstant()
       throws IOException {
     conditionWithConstantEvaluatesToTrue();
@@ -300,5 +339,24 @@ class ProgramRuleIntegrationTest extends TrackerTest {
     constant.setName("Gravity");
     constant.setShortName("Gravity");
     return constant;
+  }
+
+  private void storeNotificationProgramRule(
+      char uniqueCharacter,
+      Program program,
+      ProgramStage programStage,
+      String notification,
+      String condition) {
+    ProgramRule programRule = createProgramRule(uniqueCharacter, program);
+    programRule.setProgramStage(programStage);
+    programRule.setCondition(condition);
+
+    programRuleService.addProgramRule(programRule);
+    ProgramRuleAction sendMessageProgramRuleAction =
+        createProgramRuleAction(programRule, ProgramRuleActionType.SENDMESSAGE, null, null);
+    sendMessageProgramRuleAction.setTemplateUid(notification);
+    programRuleActionService.addProgramRuleAction(sendMessageProgramRuleAction);
+    programRule.getProgramRuleActions().add(sendMessageProgramRuleAction);
+    programRuleService.updateProgramRule(programRule);
   }
 }
