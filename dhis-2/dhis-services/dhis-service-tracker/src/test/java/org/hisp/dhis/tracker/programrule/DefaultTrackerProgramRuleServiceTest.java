@@ -121,6 +121,9 @@ class DefaultTrackerProgramRuleServiceTest extends DhisConvenienceTest {
     when(trackerBundle.getPreheat()).thenReturn(preheat);
     when(eventTrackerConverterService.fromForRuleEngine(any(TrackerPreheat.class), anyList()))
         .thenReturn(programStageInstances);
+    when(eventTrackerConverterService.fromForRuleEngine(
+            any(TrackerPreheat.class), any(Event.class)))
+        .thenReturn(programStageInstances.get(0));
     when(programRuleEngine.evaluateEnrollmentAndEvents(
             any(ProgramInstance.class), anySet(), anyList()))
         .thenReturn(Collections.emptyList());
