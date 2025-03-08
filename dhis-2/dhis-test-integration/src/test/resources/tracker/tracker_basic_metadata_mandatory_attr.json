@@ -1451,6 +1451,7 @@
       },
       "translations": [],
       "name": "Person",
+      "shortName": "Person",
       "sharing": {
         "public": "rw------",
         "external": false,

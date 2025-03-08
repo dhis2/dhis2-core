@@ -2021,6 +2021,7 @@
       "maxTeiCountToReturn": 0,
       "minAttributesRequiredToSearch": 1,
       "name": "Person",
+      "shortName": "Person",
       "sharing": {
         "public": "rwrw----"
       },

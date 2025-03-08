@@ -158,6 +158,7 @@
       "created": "2020-04-17T14:38:36.004",
       "lastUpdated": "2020-04-17T15:12:38.464",
       "name": "Tracked Entity Type A",
+      "shortName": "TrackedEntityTypeA",
       "id": "YDzXLdCvV4h",
       "maxTeiCountToReturn": 0,
       "allowAuditLog": false,

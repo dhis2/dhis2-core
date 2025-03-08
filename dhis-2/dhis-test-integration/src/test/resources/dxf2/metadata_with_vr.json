@@ -79,6 +79,7 @@
   "trackedEntityTypes": [
     {
       "name": "Person",
+      "shortName": "Person",
       "id": "uh6tOHZTlG0",
       "attributeValues": [],
       "description": "Person",
