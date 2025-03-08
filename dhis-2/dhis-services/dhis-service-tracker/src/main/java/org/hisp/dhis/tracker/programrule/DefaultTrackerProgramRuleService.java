@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.programrule;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -202,24 +203,36 @@ public class DefaultTrackerProgramRuleService implements TrackerProgramRuleServi
     return bundle.getPreheat().getEnrollment(enrollmentUid);
   }
 
-  private Set<ProgramStageInstance> getEventsFromEnrollment(
-      String enrollmentUid, TrackerBundle bundle) {
-    EventQueryParams eventQueryParams = new EventQueryParams();
-    eventQueryParams.setProgramInstances(Set.of(enrollmentUid));
-    List<org.hisp.dhis.dxf2.events.event.Event> events =
-        eventService.getEvents(eventQueryParams).getEvents();
+    private Set<ProgramStageInstance> getEventsFromEnrollment(
+            String enrollmentUid, TrackerBundle bundle) {
 
-    Stream<ProgramStageInstance> programStageInstances =
-        events.stream().map(e -> programStageInstanceService.getProgramStageInstance(e.getUid()));
+        // Fetch events linked to the enrollment from the database
+        EventQueryParams eventQueryParams = new EventQueryParams();
+        eventQueryParams.setProgramInstances(Set.of(enrollmentUid));
+        List<org.hisp.dhis.dxf2.events.event.Event> dbEvents =
+                eventService.getEvents(eventQueryParams).getEvents();
 
-    // All events in the payload that are linked to enrollment
-    Stream<ProgramStageInstance> bundleEvents =
-        bundle.getEvents().stream()
-            .filter(e -> e.getEnrollment().equals(enrollmentUid))
-            .map(
-                event ->
-                    eventTrackerConverterService.fromForRuleEngine(bundle.getPreheat(), event));
+        // Convert DB events to ProgramStageInstances
+        Map<String, ProgramStageInstance> dbProgramStageInstances =
+                dbEvents.stream()
+                        .collect(
+                                Collectors.toMap(
+                                        org.hisp.dhis.dxf2.events.event.Event::getUid,
+                                        e -> programStageInstanceService.getProgramStageInstance(e.getUid())));
 
-    return Stream.concat(programStageInstances, bundleEvents).collect(Collectors.toSet());
-  }
+        // Fetch events from the payload for the given enrollment
+        Map<String, ProgramStageInstance> payloadProgramStageInstances =
+                bundle.getEvents().stream()
+                        .filter(event -> event.getEnrollment().equals(enrollmentUid))
+                        .collect(
+                                Collectors.toMap(
+                                        Event::getUid,
+                                        event -> eventTrackerConverterService.fromForRuleEngine(bundle.getPreheat(), event)));
+
+        // Merge payload events (prioritized) with DB events
+        dbProgramStageInstances.putAll(payloadProgramStageInstances);
+
+        // Return a Set of unique ProgramStageInstances
+        return new HashSet<>(dbProgramStageInstances.values());
+    }
 }
