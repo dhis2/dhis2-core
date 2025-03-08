@@ -226,7 +226,7 @@ public class DefaultTrackerProgramRuleService implements TrackerProgramRuleServi
             .filter(event -> event.getEnrollment().equals(enrollmentUid))
             .collect(
                 Collectors.toMap(
-                    Event::getUid,
+                    Event::getEvent,
                     event ->
                         eventTrackerConverterService.fromForRuleEngine(
                             bundle.getPreheat(), event)));
