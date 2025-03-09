@@ -2122,6 +2122,7 @@
       "maxTeiCountToReturn": 0,
       "minAttributesRequiredToSearch": 1,
       "name": "Unused tracked entity type",
+      "shortName": "Unused tracked entity type",
       "sharing": {
         "public": "rwrw----"
       },
