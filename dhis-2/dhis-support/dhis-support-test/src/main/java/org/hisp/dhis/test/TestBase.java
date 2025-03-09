@@ -2170,6 +2170,7 @@ public abstract class TestBase {
     TrackedEntityType trackedEntityType = new TrackedEntityType();
     trackedEntityType.setAutoFields();
     trackedEntityType.setName("TrackedEntityType" + uniqueChar);
+    trackedEntityType.setShortName("TrackedEntityTypeShort" + uniqueChar);
     trackedEntityType.setDescription("TrackedEntityType" + uniqueChar + " description");
 
     return trackedEntityType;
