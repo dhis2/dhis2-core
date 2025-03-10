@@ -29,6 +29,7 @@ package org.hisp.dhis.program;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static java.lang.String.format;
+import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_DATA_ELEMENT_OPTION;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
@@ -42,9 +43,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.Objects;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.AggregationType;
@@ -143,24 +141,15 @@ public class ProgramDataElementOptionDimensionItem extends BaseDimensionalItemOb
 
   @Override
   public String getDimensionItem() {
-    return Stream.of(
-            Optional.ofNullable(program).map(BaseIdentifiableObject::getUid),
-            Optional.ofNullable(dataElement).map(BaseIdentifiableObject::getUid),
-            Optional.ofNullable(option).map(BaseIdentifiableObject::getUid))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .collect(Collectors.joining(COMPOSITE_DIM_OBJECT_PLAIN_SEP));
+    return joinWith(
+        COMPOSITE_DIM_OBJECT_PLAIN_SEP, program.getUid(), dataElement.getUid(), option.getUid());
   }
 
   @Override
   public String getDimensionItem(IdScheme idScheme) {
-    return Stream.of(
-            Optional.ofNullable(program).map(p -> p.getPropertyValue(idScheme)),
-            Optional.ofNullable(dataElement).map(de -> de.getPropertyValue(idScheme)),
-            Optional.ofNullable(option).map(o -> o.getPropertyValue(idScheme)))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .collect(Collectors.joining(COMPOSITE_DIM_OBJECT_PLAIN_SEP));
+    return program.getPropertyValue(idScheme)
+        + COMPOSITE_DIM_OBJECT_PLAIN_SEP
+        + dataElement.getPropertyValue(idScheme);
   }
 
   @Override
