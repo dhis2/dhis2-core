@@ -166,42 +166,6 @@ public class AnalyticsCache {
     queryCache.put(key, getGridClone(grid), ttlInSeconds);
   }
 
-  /**
-   * Adds a grid to the cache only if the key is not already present.
-   *
-   * @param params The data query parameters
-   * @param grid The grid to store in the cache
-   * @return true if the grid was added, false if the key already existed
-   */
-  public boolean putIfAbsent(DataQueryParams params, Grid grid) {
-    if (analyticsCacheSettings.isProgressiveCachingEnabled()) {
-      // Uses the progressive TTL
-      return putIfAbsent(
-          params.getKey(),
-          grid,
-          analyticsCacheSettings.progressiveExpirationTimeOrDefault(params.getLatestEndDate()));
-    } else {
-      // Respects the fixed (predefined) caching TTL
-      return putIfAbsent(
-          params.getKey(), grid, analyticsCacheSettings.fixedExpirationTimeOrDefault());
-    }
-  }
-
-  /** Version of putIfAbsent that takes explicit TTL */
-  public boolean putIfAbsent(String key, Grid grid, long ttlInSeconds) {
-    // First check if key already exists
-    Optional<Grid> existing = get(key);
-
-    // If key already exists, don't add and return false
-    if (existing.isPresent()) {
-      return false;
-    }
-
-    // Key doesn't exist, add it with the specified TTL
-    put(key, grid, ttlInSeconds);
-    return true;
-  }
-
   /** Clears the current cache by removing all existing entries. */
   public void invalidateAll() {
     queryCache.invalidateAll();
