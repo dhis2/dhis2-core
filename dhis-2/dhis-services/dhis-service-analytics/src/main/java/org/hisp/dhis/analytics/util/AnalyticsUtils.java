@@ -76,6 +76,7 @@ import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DataDimensionItemType;
 import org.hisp.dhis.common.DataDimensionalItemObject;
@@ -797,7 +798,7 @@ public final class AnalyticsUtils {
 
     List<OrganisationUnit> organisationUnitList = new ArrayList<>();
 
-    Map<ProgramWithOptionSet, Set<Option>> optionSetMap = new HashMap<>();
+    Map<ElementWithOptionSet, Set<Option>> optionSetMap = new HashMap<>();
 
     for (DimensionalObject dimension : dimensions) {
       for (DimensionalItemObject item : dimension.getItems()) {
@@ -839,8 +840,9 @@ public final class AnalyticsUtils {
           if (dimensionItem.getProgram() != null
               && dimensionItem.getOptionSet() != null
               && dimensionItem.getOption() != null) {
-            ProgramWithOptionSet key =
-                new ProgramWithOptionSet(dimensionItem.getProgram(), dimensionItem.getOptionSet());
+            ElementWithOptionSet key =
+                new ElementWithOptionSet(
+                    dimensionItem.getDataElement(), dimensionItem.getOptionSet());
             optionSetMap.computeIfAbsent(key, k -> new HashSet<>()).add(dimensionItem.getOption());
           }
         }
@@ -850,9 +852,9 @@ public final class AnalyticsUtils {
           if (dimensionItem.getProgram() != null
               && dimensionItem.getOption() != null
               && dimensionItem.getOption().getOptionSet() != null) {
-            ProgramWithOptionSet key =
-                new ProgramWithOptionSet(
-                    dimensionItem.getProgram(), dimensionItem.getOption().getOptionSet());
+            ElementWithOptionSet key =
+                new ElementWithOptionSet(
+                    dimensionItem.getAttribute(), dimensionItem.getOption().getOptionSet());
             optionSetMap.computeIfAbsent(key, k -> new HashSet<>()).add(dimensionItem.getOption());
           }
         }
@@ -918,7 +920,7 @@ public final class AnalyticsUtils {
 
     optionSetMap.forEach(
         (key, options) -> {
-          Program prg = key.program();
+          BaseIdentifiableObject prg = key.bio();
           OptionSet optionSet = key.optionSet();
 
           String metadataKey = prg.getUid() + DIMENSION_IDENTIFIER_SEP + optionSet.getUid();
@@ -1247,15 +1249,14 @@ public final class AnalyticsUtils {
     return matcher.replaceAll(startToken + replacement + endToken);
   }
 
-  private record ProgramWithOptionSet(Program program, OptionSet optionSet) {
+  private record ElementWithOptionSet(BaseIdentifiableObject bio, OptionSet optionSet) {
     @Override
     public boolean equals(Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
-      ProgramWithOptionSet that = (ProgramWithOptionSet) o;
+      ElementWithOptionSet that = (ElementWithOptionSet) o;
       return Objects.equals(
-              program != null ? program.getUid() : null,
-              that.program != null ? that.program.getUid() : null)
+              bio != null ? bio.getUid() : null, that.bio != null ? that.bio.getUid() : null)
           && Objects.equals(
               optionSet != null ? optionSet.getUid() : null,
               that.optionSet != null ? that.optionSet.getUid() : null);
@@ -1264,7 +1265,7 @@ public final class AnalyticsUtils {
     @Override
     public int hashCode() {
       return Objects.hash(
-          program != null ? program.getUid() : null, optionSet != null ? optionSet.getUid() : null);
+          bio != null ? bio.getUid() : null, optionSet != null ? optionSet.getUid() : null);
     }
   }
 }
