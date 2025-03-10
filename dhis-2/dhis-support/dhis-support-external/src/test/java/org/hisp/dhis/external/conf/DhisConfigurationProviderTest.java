@@ -122,4 +122,13 @@ class DhisConfigurationProviderTest {
     // then it should be true
     assertTrue(urlIsAllowed);
   }
+
+  @Test
+  @DisplayName("server base url is populated on startup")
+  void serverBaseUrlSetTest() {
+    String serverBaseUrl = configProvider.getServerBaseUrl();
+
+    assertNotNull(serverBaseUrl);
+    assertEquals("localhost:8080", serverBaseUrl);
+  }
 }
