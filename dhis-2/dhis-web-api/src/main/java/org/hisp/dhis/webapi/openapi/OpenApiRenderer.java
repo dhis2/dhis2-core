@@ -191,7 +191,7 @@ public class OpenApiRenderer {
 
   body > section details {
     margin-left: 2rem;
-  } 
+  }
   body > nav details {
     padding: 0.5rem 0 0 0.5rem;
   }
@@ -327,7 +327,9 @@ public class OpenApiRenderer {
   #body[request-] .op > summary > code.request + code.type,
   #body[response-] .op > summary > code.response,
   #body[response-] .op > summary > code.response + code.type,
-  #body[content-] .op > summary > code.http.content { display: none; }
+  #body[content-] .op > summary > code.http.content:first-of-type,
+  #body[content-] .op > summary > code.http.content:not(:first-of-type) span:not(:first-child) { display: none; }
+  #body[content-] .op > summary > code.http.content { display: inline-block; }
 
   nav button {
       border: none;
@@ -644,7 +646,7 @@ public class OpenApiRenderer {
               });
           appendTag(
               "body",
-              Map.of("id", "body"),
+              Map.of("id", "body", "content-", ""),
               () -> {
                 renderPageMenu();
                 renderPageHeader();
