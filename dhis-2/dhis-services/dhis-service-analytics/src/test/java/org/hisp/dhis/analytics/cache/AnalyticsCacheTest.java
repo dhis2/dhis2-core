@@ -241,12 +241,10 @@ class AnalyticsCacheTest {
     when(settingsService.getCurrentSettings()).thenReturn(systemSettings);
     when(systemSettings.getAnalyticsCacheTtlMode()).thenReturn(AnalyticsCacheTtlMode.FIXED);
 
-    // Create parameters for three levels of calls using mocks
     DataQueryParams level1Params = mock(DataQueryParams.class);
     DataQueryParams level2Params = mock(DataQueryParams.class);
     DataQueryParams level3Params = mock(DataQueryParams.class);
 
-    // Set up keys
     String level1Key = "level1Key";
     String level2Key = "level2Key";
     String level3Key = "level3Key";
@@ -254,9 +252,6 @@ class AnalyticsCacheTest {
     when(level1Params.getKey()).thenReturn(level1Key);
     when(level2Params.getKey()).thenReturn(level2Key);
     when(level3Params.getKey()).thenReturn(level3Key);
-
-    // Add debug output to understand the current state
-    System.out.println("Starting multipleLevelsOfNesting test");
 
     // Level 3 function (innermost)
     Function<DataQueryParams, Grid> level3Function =
@@ -341,9 +336,7 @@ class AnalyticsCacheTest {
       // Expected
     }
 
-    // Now make another call that should succeed
-    // After cleanup, this should be treated
-    // as a top-level call and be added to the cache
+    // Now make another call -> should succeed
     DataQueryParams newParams =
         DataQueryParams.newBuilder()
             .withDataElements(List.of(new DataElement("newElement")))
@@ -357,7 +350,7 @@ class AnalyticsCacheTest {
           return grid;
         });
 
-    // Verify this grid was cached (i.e., nested call flag was reset)
+    // Verify this grid was cached
     assertTrue(
         analyticsCache.get(newParams.getKey()).isPresent(),
         "New grid should be cached because nested call flag was properly reset");
