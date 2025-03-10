@@ -33,6 +33,8 @@ import jakarta.servlet.MultipartConfigElement;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletRegistration;
 import jakarta.servlet.SessionTrackingMode;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.EnumSet;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -57,6 +59,19 @@ import org.springframework.web.servlet.DispatcherServlet;
 public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
   @Override
   public void onStartup(ServletContext context) {
+    try {
+      log.warn("TEST: getHostName {}", InetAddress.getLocalHost().getHostName());
+      log.warn("TEST: getHostAddress {}", InetAddress.getLocalHost().getHostAddress());
+      log.warn("TEST: getAddress {}", InetAddress.getLocalHost().getAddress());
+      log.warn("TEST: getLoopbackAddress {}", InetAddress.getLoopbackAddress());
+      log.warn("TEST: getCanonicalHostName {}", InetAddress.getLocalHost().getCanonicalHostName());
+    } catch (UnknownHostException e) {
+      throw new RuntimeException(e);
+    }
+    log.warn("TEST: getServletContextName {}", context.getServletContextName());
+    log.warn("TEST: getContextPath {}", context.getContextPath());
+    log.warn("TEST: getServerInfo {}", context.getServerInfo());
+    log.warn("TEST: getVirtualServerName {}", context.getVirtualServerName());
     context.getSessionCookieConfig().setName("JSESSIONID");
     context.getSessionCookieConfig().setHttpOnly(true);
 
