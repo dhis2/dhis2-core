@@ -47,11 +47,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class AnalyticsCache {
   private final AnalyticsCacheSettings analyticsCacheSettings;
-
-  private Cache<Grid> queryCache;
+  private final Cache<Grid> queryCache;
+  // Track nested call chain
+  private static final ThreadLocal<Integer> nestingLevel = ThreadLocal.withInitial(() -> 0);
 
   /**
-   * Default constructor. Note that a default expiration time is set, as as the TTL will always be
+   * Default constructor. Note that a default expiration time is set, as the TTL will always be
    * overwritten during cache put operations.
    */
   public AnalyticsCache(
@@ -68,28 +69,66 @@ public class AnalyticsCache {
   }
 
   /**
-   * This method tries to retrieve, from the cache, the Grid related to the given DataQueryParams.
-   * If the Grid is not found in the cache, the Grid will be fetched by the function provided. In
-   * this case, the fetched Grid will be cached, so the next consumers can hit the cache only.
+   * Retrieves a Grid from the cache or computes it if not available, with special handling for
+   * nested calls.
    *
-   * <p>f The TTL of the cached object will be set accordingly to the cache settings available at
-   * {@link org.hisp.dhis.analytics.cache.AnalyticsCacheSettings}.
+   * <p>This method first checks if the Grid for the given DataQueryParams is already in the cache.
+   * If found, it returns a clone of the cached Grid. If not found, it computes the Grid using the
+   * provided function and caches the result, but only if this is a top-level call (not a nested
+   * call within another getOrFetch operation).
    *
-   * @param params the current DataQueryParams.
-   * @param function that fetches a grid based on the given DataQueryParams.
-   * @return the cached or fetched Grid.
+   * <p>The nested call detection prevents duplicate cache entries when one Grid computation
+   * triggers another Grid computation with different parameters. Only the top-level call's result
+   * is cached, while nested calls compute their results without caching them.
+   *
+   * <p>The TTL of the cached object is determined according to the configuration in {@link
+   * org.hisp.dhis.analytics.cache.AnalyticsCacheSettings}, which supports both fixed and
+   * progressive expiration strategies.
+   *
+   * <p>This method is thread-safe.
+   *
+   * @param params The DataQueryParams used as the cache key and computation input
+   * @param function A function that computes a Grid based on the provided DataQueryParams
+   * @return A clone of the Grid, either from cache or newly computed
    */
   public Grid getOrFetch(DataQueryParams params, Function<DataQueryParams, Grid> function) {
-    Optional<Grid> cachedGrid = get(params.getKey());
+    String key = params.getKey();
 
+    // First check if it's already cached
+    Optional<Grid> cachedGrid = get(key);
     if (cachedGrid.isPresent()) {
       return getGridClone(cachedGrid.get());
-    } else {
+    }
+
+    // Get current nesting level and increment
+    int currentLevel = nestingLevel.get();
+    nestingLevel.set(currentLevel + 1);
+
+    try {
+      // Compute the grid
       Grid grid = function.apply(params);
 
-      put(params, grid);
+      // Only add to cache if this is the top level call (level was 0)
+      if (currentLevel == 0) {
+        if (analyticsCacheSettings.isProgressiveCachingEnabled()) {
+          put(
+              params.getKey(),
+              grid,
+              analyticsCacheSettings.progressiveExpirationTimeOrDefault(params.getLatestEndDate()));
+        } else {
+          put(params.getKey(), grid, analyticsCacheSettings.fixedExpirationTimeOrDefault());
+        }
+      }
 
       return getGridClone(grid);
+    } finally {
+      // Restore previous nesting level
+      nestingLevel.set(currentLevel);
+
+      // Clean up ThreadLocal
+      if (currentLevel == 0) {
+        nestingLevel.remove();
+      }
     }
   }
 
@@ -125,6 +164,42 @@ public class AnalyticsCache {
    */
   public void put(String key, Grid grid, long ttlInSeconds) {
     queryCache.put(key, getGridClone(grid), ttlInSeconds);
+  }
+
+  /**
+   * Adds a grid to the cache only if the key is not already present.
+   *
+   * @param params The data query parameters
+   * @param grid The grid to store in the cache
+   * @return true if the grid was added, false if the key already existed
+   */
+  public boolean putIfAbsent(DataQueryParams params, Grid grid) {
+    if (analyticsCacheSettings.isProgressiveCachingEnabled()) {
+      // Uses the progressive TTL
+      return putIfAbsent(
+          params.getKey(),
+          grid,
+          analyticsCacheSettings.progressiveExpirationTimeOrDefault(params.getLatestEndDate()));
+    } else {
+      // Respects the fixed (predefined) caching TTL
+      return putIfAbsent(
+          params.getKey(), grid, analyticsCacheSettings.fixedExpirationTimeOrDefault());
+    }
+  }
+
+  /** Version of putIfAbsent that takes explicit TTL */
+  public boolean putIfAbsent(String key, Grid grid, long ttlInSeconds) {
+    // First check if key already exists
+    Optional<Grid> existing = get(key);
+
+    // If key already exists, don't add and return false
+    if (existing.isPresent()) {
+      return false;
+    }
+
+    // Key doesn't exist, add it with the specified TTL
+    put(key, grid, ttlInSeconds);
+    return true;
   }
 
   /** Clears the current cache by removing all existing entries. */

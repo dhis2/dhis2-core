@@ -134,14 +134,20 @@ public class ProgramDataElementDimensionItem extends BaseDimensionalItemObject
 
   @Override
   public String getDimensionItem() {
-    return program.getUid() + COMPOSITE_DIM_OBJECT_PLAIN_SEP + dataElement.getUid();
+    return program.getUid()
+        + COMPOSITE_DIM_OBJECT_PLAIN_SEP
+        + dataElement.getUid()
+        + COMPOSITE_DIM_OBJECT_PLAIN_SEP
+        + getOptionSet().getUid();
   }
 
   @Override
   public String getDimensionItem(IdScheme idScheme) {
     return program.getPropertyValue(idScheme)
         + COMPOSITE_DIM_OBJECT_PLAIN_SEP
-        + dataElement.getPropertyValue(idScheme);
+        + dataElement.getPropertyValue(idScheme)
+        + COMPOSITE_DIM_OBJECT_PLAIN_SEP
+        + getOptionSet().getPropertyValue(idScheme);
   }
 
   @Override

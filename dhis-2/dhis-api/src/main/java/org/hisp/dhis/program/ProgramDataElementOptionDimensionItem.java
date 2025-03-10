@@ -149,7 +149,9 @@ public class ProgramDataElementOptionDimensionItem extends BaseDimensionalItemOb
   public String getDimensionItem(IdScheme idScheme) {
     return program.getPropertyValue(idScheme)
         + COMPOSITE_DIM_OBJECT_PLAIN_SEP
-        + dataElement.getPropertyValue(idScheme);
+        + dataElement.getPropertyValue(idScheme)
+        + COMPOSITE_DIM_OBJECT_PLAIN_SEP
+        + option.getPropertyValue(idScheme);
   }
 
   @Override
