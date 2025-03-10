@@ -95,12 +95,26 @@ public class GlobalShellFilter extends OncePerRequestFilter {
     Matcher m = LEGACY_APP_PATH_PATTERN.matcher(path);
 
     boolean matchesPattern = m.find();
+    if (!matchesPattern) {
+      return false;
+    }
+
+    String appName = m.group(1);
+
+    // Only redirect index.html or directory root requests
     boolean isIndexPath = path.endsWith("/") || path.endsWith("/index.html");
+
+    // Skip redirect if explicitly requested with ?redirect=false
     boolean hasRedirectFalse = queryString != null && queryString.contains("redirect=false");
-    if (matchesPattern && isIndexPath && !hasRedirectFalse) {
-      String appName = m.group(1);
-      response.sendRedirect(request.getContextPath() + GLOBAL_SHELL_PATH_PREFIX + appName);
-      log.debug("Redirecting to global shell");
+
+    // Only redirect browser navigation requests
+    String secFetchMode = request.getHeader("Sec-Fetch-Mode");
+    boolean isNavigationRequest = secFetchMode != null && secFetchMode.equals("navigate");
+
+    if (isIndexPath && isNavigationRequest && !hasRedirectFalse) {
+      String targetPath = request.getContextPath() + GLOBAL_SHELL_PATH_PREFIX + appName;
+      response.sendRedirect(targetPath);
+      log.debug("Redirecting to global shell {}", targetPath);
       return true;
     }
     return false;
@@ -119,9 +133,10 @@ public class GlobalShellFilter extends OncePerRequestFilter {
         return;
       }
       // Return index.html for all index.html or directory root requests
-      log.debug("Serving global shell");
+      log.debug("Serving global shell index.  Original path: {}", path);
       serveGlobalShellResource(request, response, globalShellAppName, "index.html");
     } else {
+      log.debug("Serving global shell resource. Path {}", path);
       // Serve global app shell resources
       serveGlobalShellResource(
           request, response, globalShellAppName, path.substring(GLOBAL_SHELL_PATH_PREFIX.length()));
