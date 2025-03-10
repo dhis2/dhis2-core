@@ -89,42 +89,6 @@ public class AuthorizationServerConfig {
     return http.build();
   }
 
-  //  @Bean
-  //  @Order(2)
-  //  public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-  //        http.authorizeHttpRequests((authorize) -> authorize.anyRequest().authenticated())
-  //            // Form login handles the redirect to the login page from the
-  //            // authorization server filter chain
-  //            .formLogin(Customizer.withDefaults());
-
-  //    http.formLogin(formLogin -> formLogin
-  //        .authenticationDetailsSource(twoFactorWebAuthenticationDetailsSource)
-  //        .loginPage("/XXX.html")
-  //        .usernameParameter("j_username")
-  //        .passwordParameter("j_password")
-  //        .loginProcessingUrl("/loginAction")
-  //        .defaultSuccessUrl("/dhis-web-dashboard", true)
-  //        .failureUrl("/index.html?error=true")
-  //    );
-  //
-  ////    http.authorizeHttpRequests(
-  ////            (authorize) ->
-  ////                authorize.requestMatchers(new AntPathRequestMatcher("/login")).permitAll())
-  //
-  //        // Form login handles the redirect to the login page from the
-  //        // authorization server filter chain
-  //        //    http
-  //        http.formLogin(
-  //            form -> form.authenticationDetailsSource(twoFactorWebAuthenticationDetailsSource)
-  //                .loginPage("/XXX.html")
-  //                .loginProcessingUrl("/login")
-  //        );
-  //
-  //    //        .logout(logout -> logout.logoutUrl("/dhis-web-commons-security/logout.action"));
-  //
-  //    return http.build();
-  //  }
-
   @Bean
   public OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer(UserService userService) {
     return (context) -> {
@@ -137,56 +101,13 @@ public class AuthorizationServerConfig {
         claims.claim("email", email);
       }
 
-      //      if (OidcParameterNames.ID_TOKEN.equals(context.getTokenType().getValue())) {
-      //        // Load the user info (this should include the email if available)
-      //        //        OidcUserInfo userInfo =
-      // userService.loadUser(context.getPrincipal().getName());
-      //        // Merge all user info claims into the ID token claims
-      //        //        context.getClaims().claims((claims) ->
-      // claims.putAll(userInfo.getClaims()));
-      //
-      //        String username = context.getPrincipal().getName();
-      //        User user = userService.getUserByUsername(username);
-      //
-      //        context.getClaims().claim("email", user.getEmail());
-      //      }
-
       if (OidcParameterNames.ID_TOKEN.equals(context.getTokenType().getValue())) {
-        // Load the user info (this should include the email if available)
-        //        OidcUserInfo userInfo = userService.loadUser(context.getPrincipal().getName());
-        // Merge all user info claims into the ID token claims
-        //        context.getClaims().claims((claims) -> claims.putAll(userInfo.getClaims()));
-
         String username = context.getPrincipal().getName();
         User user = userService.getUserByUsername(username);
-
         context.getClaims().claim("email", user.getEmail());
       }
     };
   }
-
-  //  @Bean
-  //  public RegisteredClientRepository registeredClientRepository() {
-  //    RegisteredClient oidcClient =
-  //        RegisteredClient.withId(UUID.randomUUID().toString())
-  //            .clientId("dhis2-client")
-  //            .clientSecret("$2a$12$FtWBAB.hWkR3SSul7.HWROr8/aEuUEjywnB86wrYz0HtHh4iam6/G")
-  //            .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
-  //            .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-  //            .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-  //            //            .redirectUri("http://localhost:9090/oauth2/code/dhis2-client")
-  //            .redirectUri("http://localhost:8080/oauth2/code/xxx")
-  //            .postLogoutRedirectUri("http://127.0.0.1:8080/")
-  //            .scope(OidcScopes.OPENID)
-  //            .scope(OidcScopes.PROFILE)
-  //            .scope(OidcScopes.EMAIL)
-  //            .scope(StandardClaimNames.EMAIL)
-  //            .scope(StandardClaimNames.EMAIL_VERIFIED)
-  //            .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
-  //            .build();
-  //
-  //    return new InMemoryRegisteredClientRepository(oidcClient);
-  //  }
 
   @Bean
   public JWKSource<SecurityContext> jwkSource() {
