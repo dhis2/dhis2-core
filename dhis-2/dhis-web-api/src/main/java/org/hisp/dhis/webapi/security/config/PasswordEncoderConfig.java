@@ -29,12 +29,14 @@ package org.hisp.dhis.webapi.security.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Profile("!test")
 @Configuration
 public class PasswordEncoderConfig {
   @Bean

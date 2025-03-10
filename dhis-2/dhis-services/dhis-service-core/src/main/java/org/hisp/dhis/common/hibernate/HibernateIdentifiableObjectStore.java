@@ -190,6 +190,28 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     getSession().update(object);
   }
 
+  @Override
+  public void merge(@Nonnull T object, @Nonnull UserDetails userDetails) {
+    checkNotNull(object);
+    checkNotNull(userDetails);
+
+    String username = userDetails.getUsername();
+
+    setFields(object, userDetails);
+
+    if (object.getSharing().getOwner() == null) {
+      object.getSharing().setOwner(userDetails.getUid());
+    }
+
+    if (!isUpdateAllowed(object, userDetails)) {
+      AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_UPDATE_DENIED);
+      throw new AccessDeniedException(String.valueOf(object));
+    }
+
+    AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_UPDATE);
+    getSession().merge(object);
+  }
+
   private void setFields(T object, UserDetails userDetails) {
     checkNotNull(object);
     checkNotNull(userDetails);
