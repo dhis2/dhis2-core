@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.lang3.StringUtils.substringAfter;
+import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.SEPARATOR;
@@ -157,7 +158,7 @@ public class OrganisationUnitResolver {
     if (dimensionUid.startsWith(KEY_LEVEL)) {
       OrganisationUnitLevel level =
           idObjectManager.getObject(
-              OrganisationUnitLevel.class, idScheme, substringAfter(dimensionUid, SEPARATOR));
+              OrganisationUnitLevel.class, idScheme, substringAfterLast(dimensionUid, SEPARATOR));
 
       BaseDimensionalItemObject dim = new BaseDimensionalItemObject();
       dim.setUid(level.getUid());
