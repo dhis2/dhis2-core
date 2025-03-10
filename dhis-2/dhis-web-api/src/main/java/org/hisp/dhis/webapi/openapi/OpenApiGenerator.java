@@ -224,8 +224,8 @@ public class OpenApiGenerator extends JsonGenerator {
         () -> {
           addTrueMember("deprecated", endpoint.getDeprecated());
           if (xProperties()) {
-            addStringMember("x-module", endpoint.getIn().getModule());
-            addStringMember("x-class", endpoint.getIn().getSource().getName());
+            if (endpoint.getSource() != null)
+              addStringMember("x-class", endpoint.getSource().getDeclaringClass().getName());
             addStringMember("x-maturity", getMaturityTag(endpoint.getMaturity()));
             addStringMember("x-since", getSinceVersion(endpoint.getSince()));
             addStringMember("x-group", endpoint.getGroup());

@@ -232,14 +232,7 @@ public interface OpenApiObject extends JsonObject {
     }
 
     /**
-     * @return the maven module (path)
-     */
-    default String x_module() {
-      return getString("x-module").string();
-    }
-
-    /**
-     * @return the Java class name of the controller containing the operation
+     * @return the Java class name of the controller declaring the operation
      */
     default String x_class() {
       return getString("x-class").string();

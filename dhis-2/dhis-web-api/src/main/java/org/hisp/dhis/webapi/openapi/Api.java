@@ -207,7 +207,6 @@ public class Api {
     @ToString.Exclude @EqualsAndHashCode.Include Class<?> entityType;
 
     String name;
-    String module;
     Map<String, String> classifiers = new TreeMap<>();
     List<String> paths = new ArrayList<>();
     List<Endpoint> endpoints = new ArrayList<>();

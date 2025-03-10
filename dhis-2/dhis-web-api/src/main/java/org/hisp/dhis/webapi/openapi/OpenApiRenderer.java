@@ -237,7 +237,8 @@ public class OpenApiRenderer {
   code.http.content { margin-top: -2px; color: #aaa; display: inline-grid; grid-template-columns: 1fr 1fr 1fr; vertical-align: top; text-align: center; }
   code.http.content > span { font-size: 70%; font-weight: normal; padding: 0 0.25em; margin: 1px; }
   code.http.content > span.status4xx { background: color-mix(in srgb, tomato 75%, transparent); color: snow; }
-  code.http.content > span.status2xx { background: color-mix(in srgb, seagreen 75%, transparent); color: snow; }
+  code.http.content > span.status2xx { color: black; }
+  body:not([content-]) code.http.content > span.status2xx { background: color-mix(in srgb, seagreen 75%, transparent); color: snow; }
   code.http.content .on { color: black; }
   code.http.method { width: 4rem; text-align: right; color: dimgray; }
   .desc code { background: color-mix(in srgb, snow 70%, transparent); padding: 0.125em 0.25em; }
@@ -940,10 +941,13 @@ public class OpenApiRenderer {
           appendSummary(id, op.summary(), () -> renderOperationSummary(op));
           renderBoxToolbar(
               () -> {
-                String url =
-                    "https://github.com/dhis2/dhis2-core/blob/master/dhis-2/%s/src/main/java/%s.java"
-                        .formatted(op.x_module(), op.x_class().replace('.', '/'));
-                appendTag("a", Map.of("href", url, "target", "_blank", "class", "gh"), "GH");
+                String declaringClass = op.x_class();
+                if (declaringClass != null) {
+                  String url =
+                      "https://github.com/dhis2/dhis2-core/blob/master/dhis-2/dhis-web-api/src/main/java/%s.java"
+                          .formatted(declaringClass.replace('.', '/'));
+                  appendTag("a", Map.of("href", url, "target", "_blank", "class", "gh"), "GH");
+                }
               });
           appendTag("header", markdownToHTML(op.description(), op.parameterNames()));
           renderLabelledValue("operationId", op.operationId());
