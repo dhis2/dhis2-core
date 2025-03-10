@@ -2714,6 +2714,7 @@
       },
       "translations": [],
       "name": "PersonYYY",
+      "shortName": "PersonYYY",
       "sharing": {
         "public": "rw------",
         "external": false,
