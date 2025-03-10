@@ -263,6 +263,7 @@
       "maxTeiCountToReturn": 0,
       "minAttributesRequiredToSearch": 1,
       "name": "Person",
+      "shortName": "Person",
       "style": {
         "icon": "man_positive"
       },
@@ -445,6 +446,7 @@
       },
       "translations": [],
       "name": "Person1",
+      "shortName": "Person1",
       "sharing": {
         "public": "rw------",
         "external": false,

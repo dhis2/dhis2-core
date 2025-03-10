@@ -21,6 +21,8 @@
 
     <property name="formName" type="text" />
 
+    <property name="shortName" not-null="true"/>
+
     <property name="style" type="jbObjectStyle" column="style" />
 
     <property name="minAttributesRequiredToSearch" />

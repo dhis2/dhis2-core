@@ -323,6 +323,7 @@
       "created": "2020-02-10T09:09:22.093",
       "lastUpdated": "2020-02-10T09:12:52.068",
       "name": "Person",
+      "shortName": "Person",
       "id": "KrYIdvLxkMb",
       "maxTeiCountToReturn": 0,
       "allowAuditLog": false,

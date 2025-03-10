@@ -15,6 +15,7 @@
             "maxTeiCountToReturn": 0,
             "minAttributesRequiredToSearch": 1,
             "name": "Person",
+            "shortName": "Person",
             "style": {
                 "icon": "man_positive"
             },

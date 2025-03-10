@@ -92,6 +92,7 @@
       "description": "Person",
       "id": "MCPQUTHX1Ze",
       "name": "Person",
+      "shortName": "Person",
       "lastUpdated": "2016-04-06T17:00:00.000+0000"
     }
   ],

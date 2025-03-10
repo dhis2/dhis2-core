@@ -4,6 +4,7 @@
       "created": "2020-05-31T08:59:52.758",
       "lastUpdated": "2020-05-31T11:41:22.419",
       "name": "Person",
+      "shortName": "Person",
       "id": "ja8NY4PW7Xm",
       "description": "person",
       "maxTeiCountToReturn": 0,

@@ -2021,6 +2021,7 @@
       "maxTeiCountToReturn": 0,
       "minAttributesRequiredToSearch": 1,
       "name": "Person",
+      "shortName": "Person",
       "sharing": {
         "public": "rwrw----"
       },
@@ -2102,6 +2103,7 @@
       "maxTeiCountToReturn": 0,
       "minAttributesRequiredToSearch": 1,
       "name": "Inaccessible person",
+      "shortName": "Inaccessible person",
       "sharing": {
         "public": "--------"
       },
@@ -2121,6 +2123,7 @@
       "maxTeiCountToReturn": 0,
       "minAttributesRequiredToSearch": 1,
       "name": "Unused tracked entity type",
+      "shortName": "Unused tracked entity type",
       "sharing": {
         "public": "rwrw----"
       },

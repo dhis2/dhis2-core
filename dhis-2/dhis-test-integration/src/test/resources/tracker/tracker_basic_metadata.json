@@ -2599,6 +2599,7 @@
           "favorites": [],
           "translations": [],
           "name": "Person Address",
+          "shortName": "Person",
           "displayInList": false,
           "trackedEntityType": {
             "id": "bPJ0FMtcnEh"
@@ -2657,6 +2658,7 @@
       },
       "translations": [],
       "name": "Person",
+      "shortName": "Person",
       "sharing": {
         "public": "rw------",
         "external": false,
@@ -2712,6 +2714,7 @@
       },
       "translations": [],
       "name": "PersonYYY",
+      "shortName": "PersonYYY",
       "sharing": {
         "public": "rw------",
         "external": false,

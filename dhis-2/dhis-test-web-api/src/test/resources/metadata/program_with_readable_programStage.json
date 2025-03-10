@@ -143,6 +143,7 @@
   [
     {
       "name": "Person",
+      "shortName": "Person",
       "sharing":
       {
         "owner": "M5zQapPyTZI",

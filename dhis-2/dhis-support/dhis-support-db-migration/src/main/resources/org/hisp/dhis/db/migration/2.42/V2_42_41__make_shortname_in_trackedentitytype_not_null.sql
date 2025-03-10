@@ -1,0 +1,1 @@
+ALTER TABLE trackedentitytype ALTER COLUMN shortname SET not null;
