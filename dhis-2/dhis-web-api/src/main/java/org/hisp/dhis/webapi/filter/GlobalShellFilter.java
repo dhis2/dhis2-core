@@ -73,7 +73,8 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       throws IOException, ServletException {
     String globalShellAppName = settingsProvider.getCurrentSettings().getGlobalShellAppName();
     if (globalShellAppName.isEmpty() || !appManager.exists(globalShellAppName)) {
-      boolean redirected = redirectDisabledGlobalShell(request, response, getContextRelativePath(request));
+      boolean redirected =
+          redirectDisabledGlobalShell(request, response, getContextRelativePath(request));
       if (!redirected) {
         chain.doFilter(request, response);
       }
@@ -93,10 +94,10 @@ public class GlobalShellFilter extends OncePerRequestFilter {
     chain.doFilter(request, response);
   }
 
-  private boolean redirectDisabledGlobalShell(HttpServletRequest request, HttpServletResponse response, String path)
-      throws IOException {
+  private boolean redirectDisabledGlobalShell(
+      HttpServletRequest request, HttpServletResponse response, String path) throws IOException {
     Matcher m = APP_IN_GLOBAL_SHELL_PATTERN.matcher(path);
-    
+
     if (m.matches()) {
       String appName = m.group(1);
       App app = appManager.getApp(appName);
@@ -107,7 +108,8 @@ public class GlobalShellFilter extends OncePerRequestFilter {
         targetPath = app.getLaunchUrl();
       } else if (AppManager.BUNDLED_APPS.contains(appName)) {
         log.debug("Bundled app {} found", appName);
-        targetPath = String.join("/", request.getContextPath(), AppManager.BUNDLED_APP_PREFIX + appName);
+        targetPath =
+            String.join("/", request.getContextPath(), AppManager.BUNDLED_APP_PREFIX + appName);
       } else {
         log.debug("App {} not found", appName);
         targetPath = request.getContextPath() + "/";
