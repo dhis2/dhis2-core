@@ -103,7 +103,7 @@
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
     <!-- Spring -->
-    <spring.version>6.1.17</spring.version>
+    <spring.version>6.2.3</spring.version>
     <spring-session-core.version>3.4.2</spring-session-core.version>
     <spring-data-redis.version>2.7.18</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.4</spring-session-data-redis.version>
@@ -127,7 +127,7 @@
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.10.1</datasource-proxy.version>
     <mysql-connector-j.version>9.2.0</mysql-connector-j.version>
-    <clickhouse-jdbc.version>0.8.0</clickhouse-jdbc.version>
+    <clickhouse-jdbc.version>0.8.2</clickhouse-jdbc.version>
 
     <!-- Servlet -->
     <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
@@ -228,7 +228,7 @@
 
     <!-- Maven plugin versions -->
     <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
-    <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+    <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
     <maven-exec-plugin.version>3.5.0</maven-exec-plugin.version>
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
     <maven-failsafe-plugin.version>3.5.2</maven-failsafe-plugin.version>
@@ -247,7 +247,7 @@
     <jai-imageio.version>1.1.1</jai-imageio.version>
     <gson.version>2.12.1</gson.version>
     <semver4j.version>3.1.0</semver4j.version>
-    <opentelemetry.version>2.13.1</opentelemetry.version>
+    <opentelemetry.version>2.13.3</opentelemetry.version>
   </properties>
 
   <dependencyManagement>

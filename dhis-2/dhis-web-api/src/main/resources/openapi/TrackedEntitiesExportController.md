@@ -291,31 +291,40 @@ NOTE: This query parameter has no effect on a CSV response!
 
 `<filter1>[,<filter2>...]`
 
-Get tracked entities matching given filters on attributes. A filter is a colon separated attribute
-UID with optional operator and value pairs. Example: `filter=H9IlTX2X6SL:sw:A` with operator starts
-with `sw` followed by a value. Special characters like `+` need to be percent-encoded so `%2B`
-instead of `+`. Characters such as `:` (colon) or `,` (comma), as part of the filter value, need to
-be escaped by `/` (slash). Likewise, `/` needs to be escaped. Multiple operator/value pairs for the
-same attribute as `filter=AuPLng5hLbE:gt:438901703:lt:448901704` are allowed. Repeating the same
-attribute UID is not allowed. A user needs metadata read access to the attribute and data read
-access to the program (if the program is without registration) or the program stage (if the program
-is with registration).
+Get tracked entities matching the given filters attributes. A filter is a colon separated
+attribute UID with optional operator and value pairs. 
 
-Valid operators are:
+We differentiate between two types of
+operators: unary and binary. Unary operators don't require a value, while binary operators do.
+- Unary: `filterAttributes=H9IlTX2X6SL:null`
+- Binary: `filterAttributes=H9IlTX2X6SL:sw:A`
 
-- `EQ` - equal to
-- `IEQ` - equal to
-- `GE` - greater than or equal to
-- `GT` - greater than
-- `LE` - less than or equal to
-- `LT` - less than
-- `NE` - not equal to
-- `NEQ` - not equal to
-- `NIEQ` - not equal to
-- `IN` - equal to one of the multiple values separated by semicolon ";"
-- `ILIKE` - is like (case-insensitive)
-- `LIKE` - like (free text match)
-- `NILIKE` - not like
-- `NLIKE` - not like
-- `SW` - starts with
-- `EW` - ends with
+Special characters like `+` must be percent-encoded (`%2B` instead of `+`). Characters like `:` and
+`,` in filter values must be escaped with `/`. Likewise, `/` needs to be escaped.
+Multiple operators are allowed for the same attribute, e.g.,
+`filter=AuPLng5hLbE:gt:438901703:lt:448901704`. Operators and values are
+case-insensitive. A user needs metadata read access to the attribute and data read access to the
+program (if the program is without registration) or the program stage (if the program is with
+registration).
+
+Valid binary operators are:
+- `eq` - equal to
+- `ieq` - equal to
+- `ge` - greater than or equal to
+- `gt` - greater than
+- `le` - less than or equal to
+- `lt` - less than
+- `ne` - not equal to
+- `neq` - not equal to
+- `nieq` - not equal to
+- `in` - equal to one of the multiple values separated by semicolon ";"
+- `ilike` - is like (case-insensitive)
+- `like` - like (free text match)
+- `nilike` - not like
+- `nlike` - not like
+- `sw` - starts with
+- `ew` - ends with
+
+Valid unary operators are:
+- `null` - has no value
+- `!null` - has a value
