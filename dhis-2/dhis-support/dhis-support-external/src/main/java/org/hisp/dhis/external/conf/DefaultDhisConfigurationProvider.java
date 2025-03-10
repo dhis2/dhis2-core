@@ -107,7 +107,8 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
     // ---------------------------------------------------------------------
     String serverBaseUrl = this.properties.getProperty(ConfigurationKey.SERVER_BASE_URL.getKey());
     if (serverBaseUrl == null)
-      throw new IllegalStateException("server.base.url value is required on startup");
+      throw new IllegalStateException(
+          "dhis.conf config `server.base.url` requires a value on startup");
 
     // ---------------------------------------------------------------------
     // Load Google JSON authentication file into properties bundle
