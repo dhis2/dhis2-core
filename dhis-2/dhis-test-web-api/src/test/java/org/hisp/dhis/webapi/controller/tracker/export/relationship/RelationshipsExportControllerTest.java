@@ -237,6 +237,20 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
+  void shouldGetNoRelationshipsByEventWhenRelationshipTypeIsUnidirectionalAndEventIsOnToEnd() {
+    RelationshipType relationshipType =
+        manager.get(RelationshipType.class, relationship1.getRelationshipType().getIdentifier());
+    relationshipType.setBidirectional(false);
+    manager.update(relationshipType);
+    JsonList<JsonRelationship> jsonRelationships =
+        GET("/tracker/relationships?event={uid}", relationship1To.getUid())
+            .content(HttpStatus.OK)
+            .getList("relationships", JsonRelationship.class);
+
+    assertIsEmpty(jsonRelationships.stream().toList());
+  }
+
+  @Test
   void shouldGetRelationshipsByEventWithAllFields() {
     JsonList<JsonRelationship> jsonRelationships =
         GET("/tracker/relationships?event={uid}&fields=*", relationship1To.getUid())
@@ -340,6 +354,21 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
     assertHasOnlyMembers(jsonRelationship, "relationship", "relationshipType", "from", "to");
     assertHasOnlyUid(relationship2From.getUid(), "trackedEntity", jsonRelationship.getFrom());
     assertHasOnlyUid(relationship2To.getUid(), "enrollment", jsonRelationship.getTo());
+  }
+
+  @Test
+  void
+      shouldGetNoRelationshipsByEnrollmentWhenRelationshipTypeIsUnidirectionalAndEnrollmentIsOnToEnd() {
+    RelationshipType relationshipType =
+        manager.get(RelationshipType.class, relationship2.getRelationshipType().getIdentifier());
+    relationshipType.setBidirectional(false);
+    manager.update(relationshipType);
+    JsonList<JsonRelationship> jsonRelationships =
+        GET("/tracker/relationships?enrollment=" + relationship2To.getUid())
+            .content(HttpStatus.OK)
+            .getList("relationships", JsonRelationship.class);
+
+    assertIsEmpty(jsonRelationships.stream().toList());
   }
 
   @Test
@@ -476,6 +505,30 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
         jsonRelationship, "relationship", "relationshipType", "createdAtClient", "from", "to");
     assertHasOnlyUid(relationship1From.getUid(), "trackedEntity", jsonRelationship.getFrom());
     assertHasOnlyUid(relationship1To.getUid(), "event", jsonRelationship.getTo());
+  }
+
+  @Test
+  void
+      shouldGetNoRelationshipsByTrackedEntityWhenRelationshipTypeIsUnidirectionalAndTrackedEntityIsOnToEnd() {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "m1575931405");
+    relationshipType.setBidirectional(false);
+    manager.update(relationshipType);
+
+    assertEquals(
+        "QesgJkTyTCk",
+        manager
+            .get(org.hisp.dhis.relationship.Relationship.class, "N8800829a58")
+            .getTo()
+            .getTrackedEntity()
+            .getUid(),
+        "test expects relationship to have 'to' tracked entity with uid `QesgJkTyTCk`");
+
+    JsonList<JsonRelationship> jsonRelationships =
+        GET("/tracker/relationships?trackedEntity={trackedEntity}", "QesgJkTyTCk")
+            .content(HttpStatus.OK)
+            .getList("relationships", JsonRelationship.class);
+
+    assertIsEmpty(jsonRelationships.stream().toList());
   }
 
   @Test

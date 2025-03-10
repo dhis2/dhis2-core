@@ -1820,6 +1820,7 @@
     },
     {
       "id": "TV9oB9LT3sh",
+      "bidirectional": true,
       "created": "2020-11-20T09:06:23.348",
       "displayFromToName": "Parent Of",
       "displayName": "TA Parent to Child",
@@ -1848,6 +1849,7 @@
     },
     {
       "id": "m1575931405",
+      "bidirectional": true,
       "displayFromToName": "Parent Of",
       "displayName": "Parent to Child",
       "fromConstraint": {
