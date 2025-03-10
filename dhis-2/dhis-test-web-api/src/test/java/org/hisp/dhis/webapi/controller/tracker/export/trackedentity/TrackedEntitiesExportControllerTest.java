@@ -345,6 +345,47 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   }
 
   @Test
+  void
+      shouldGetTrackedEntityWithNoRelationshipsWhenTrackedEntityIsOnToEndOfAUnidirectionalRelationship() {
+    TrackedEntity to = get(TrackedEntity.class, "QesgJkTyTCk");
+    assertHasSize(
+        1, to.getRelationshipItems(), "test expects a tracked entity with one relationship");
+
+    JsonList<JsonRelationship> rels =
+        GET("/tracker/trackedEntities?trackedEntities={id}&fields=relationships", to.getUid())
+            .content(HttpStatus.OK)
+            .getList("trackedEntities", JsonTrackedEntity.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    assertIsEmpty(rels.stream().toList());
+  }
+
+  @Test
+  void
+      shouldGetNoRelationshipsByTrackedEntityWhenRelationshipTypeIsUnidirectionalAndTrackedEntityIsOnToEnd() {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "m1575931405");
+    relationshipType.setBidirectional(false);
+    manager.update(relationshipType);
+
+    assertEquals(
+        "QesgJkTyTCk",
+        manager
+            .get(org.hisp.dhis.relationship.Relationship.class, "N8800829a58")
+            .getTo()
+            .getTrackedEntity()
+            .getUid(),
+        "test expects relationship to have 'to' tracked entity with uid `QesgJkTyTCk`");
+
+    JsonList<JsonRelationship> jsonRelationships =
+        GET("/tracker/relationships?trackedEntity={trackedEntity}", "QesgJkTyTCk")
+            .content(HttpStatus.OK)
+            .getList("relationships", JsonRelationship.class);
+
+    assertIsEmpty(jsonRelationships.stream().toList());
+  }
+
+  @Test
   void getTrackedEntityByIdWithFieldsRelationships() {
     TrackedEntity from = get(TrackedEntity.class, "mHWCacsGYYn");
     assertHasSize(

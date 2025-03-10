@@ -313,6 +313,29 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
+  void shouldGetEventWithNoRelationshipsWhenEventIsOnToEndOfAUnidirectionalRelationship() {
+    TrackedEntity from = trackedEntity();
+    Event to = event(enrollment(from));
+    Relationship relationship = relationship(from, to);
+
+    RelationshipType relationshipType =
+        manager.get(RelationshipType.class, relationship.getRelationshipType().getUid());
+    relationshipType.setBidirectional(false);
+    manager.update(relationshipType);
+
+    switchContextToUser(user);
+
+    JsonList<JsonRelationship> relationships =
+        GET("/tracker/events/?events={id}&fields=relationships&includeDeleted=true", to.getUid())
+            .content(HttpStatus.OK)
+            .getList("events", JsonEvent.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    assertIsEmpty(relationships.stream().toList());
+  }
+
+  @Test
   void getEventByIdWithFieldsRelationships() {
     TrackedEntity to = trackedEntity();
     Event from = event(enrollment(to));
@@ -1008,7 +1031,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     return r;
   }
 
-  private void relationship(TrackedEntity from, Event to) {
+  private Relationship relationship(TrackedEntity from, Event to) {
     Relationship r = new Relationship();
 
     RelationshipItem fromItem = new RelationshipItem();
@@ -1033,6 +1056,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     r.setAutoFields();
     r.getSharing().setOwner(owner);
     manager.save(r, false);
+    return r;
   }
 
   private Note note(String uid, String value, String storedBy) {
