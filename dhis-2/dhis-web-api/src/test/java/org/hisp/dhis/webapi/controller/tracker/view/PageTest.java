@@ -36,14 +36,15 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
 import java.util.Map;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.tracker.PageParams;
 import org.junit.jupiter.api.Test;
 
 class PageTest {
   @Test
-  void shouldNotSetNoPageLinksIfThereAreNone() {
+  void shouldNotSetNoPageLinksIfThereAreNone() throws BadRequestException {
     List<String> fruits = List.of("apple", "banana", "cherry");
-    PageParams pageParams = new PageParams(1, 3, false);
+    PageParams pageParams = PageParams.of(1, 3, false);
     org.hisp.dhis.tracker.Page<String> exportPage =
         new org.hisp.dhis.tracker.Page<>(fruits, pageParams);
 
@@ -65,9 +66,9 @@ class PageTest {
   }
 
   @Test
-  void shouldSetPrevPage() {
+  void shouldSetPrevPage() throws BadRequestException {
     List<String> fruits = List.of("apple", "banana", "cherry");
-    PageParams pageParams = new PageParams(2, 3, false);
+    PageParams pageParams = PageParams.of(2, 3, false);
     org.hisp.dhis.tracker.Page<String> exportPage =
         new org.hisp.dhis.tracker.Page<>(fruits, pageParams);
 
@@ -94,9 +95,9 @@ class PageTest {
   }
 
   @Test
-  void shouldSetNextPage() {
+  void shouldSetNextPage() throws BadRequestException {
     List<String> fruits = List.of("apple", "banana", "cherry", "mango");
-    PageParams pageParams = new PageParams(1, 3, false);
+    PageParams pageParams = PageParams.of(1, 3, false);
     org.hisp.dhis.tracker.Page<String> exportPage =
         new org.hisp.dhis.tracker.Page<>(fruits, pageParams);
 

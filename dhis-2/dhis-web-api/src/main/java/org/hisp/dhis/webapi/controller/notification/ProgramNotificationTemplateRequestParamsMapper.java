@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.notification;
 
-import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationBounds;
-
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
@@ -66,5 +64,19 @@ public class ProgramNotificationTemplateRequestParamsMapper {
     }
 
     validatePaginationBounds(requestParams.getPage(), requestParams.getPageSize());
+  }
+
+  private void validatePaginationBounds(Integer page, Integer pageSize) throws BadRequestException {
+    if (lessThan(page, 1)) {
+      throw new BadRequestException("page must be greater than or equal to 1 if specified");
+    }
+
+    if (lessThan(pageSize, 1)) {
+      throw new BadRequestException("pageSize must be greater than or equal to 1 if specified");
+    }
+  }
+
+  private static boolean lessThan(Integer a, int b) {
+    return a != null && a < b;
   }
 }
