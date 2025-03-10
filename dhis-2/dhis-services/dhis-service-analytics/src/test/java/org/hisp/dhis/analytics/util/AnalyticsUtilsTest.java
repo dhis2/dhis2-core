@@ -827,7 +827,7 @@ class AnalyticsUtilsTest extends TestBase {
             .build();
 
     Map<String, MetadataItem> result = AnalyticsUtils.getDimensionMetadataItemMap(params);
-    String key = "%s.%s".formatted(program.getUid(), optionSet.getUid());
+    String key = "%s.%s".formatted(dataElement.getUid(), optionSet.getUid());
 
     assertNotNull(result);
     assertEquals("OptionSetB", result.get(key).getName());
@@ -881,7 +881,7 @@ class AnalyticsUtilsTest extends TestBase {
             .build();
 
     Map<String, MetadataItem> result = AnalyticsUtils.getDimensionMetadataItemMap(params);
-    String key = "%s.%s".formatted(program.getUid(), optionSet.getUid());
+    String key = "%s.%s".formatted(tea.getUid(), optionSet.getUid());
     assertNotNull(result);
     assertEquals("OptionSetB", result.get(key).getName());
     assertEquals(1, result.get(key).getOptions().size());
