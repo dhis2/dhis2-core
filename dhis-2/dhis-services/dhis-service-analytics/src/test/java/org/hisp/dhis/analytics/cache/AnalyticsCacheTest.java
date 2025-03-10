@@ -392,14 +392,14 @@ class AnalyticsCacheTest {
           grid.addHeader(new GridHeader("Thread1Header"));
 
           // Nested call
-          Grid nestedGrid =
-              analyticsCache.getOrFetch(
-                  thread1NestedParams,
-                  nestedParams -> {
-                    Grid ng = new ListGrid();
-                    ng.addHeader(new GridHeader("Thread1NestedHeader"));
-                    return ng;
-                  });
+
+          analyticsCache.getOrFetch(
+              thread1NestedParams,
+              nestedParams -> {
+                Grid ng = new ListGrid();
+                ng.addHeader(new GridHeader("Thread1NestedHeader"));
+                return ng;
+              });
 
           return grid;
         };
