@@ -2103,6 +2103,7 @@
       "maxTeiCountToReturn": 0,
       "minAttributesRequiredToSearch": 1,
       "name": "Inaccessible person",
+      "shortName": "Inaccessible person",
       "sharing": {
         "public": "--------"
       },
