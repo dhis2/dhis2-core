@@ -231,6 +231,20 @@ public interface OpenApiObject extends JsonObject {
       return getMap("x-classifiers", JsonString.class).toMap(JsonString::string);
     }
 
+    /**
+     * @return the maven module (path)
+     */
+    default String x_module() {
+      return getString("x-module").string();
+    }
+
+    /**
+     * @return the Java class name of the controller containing the operation
+     */
+    default String x_class() {
+      return getString("x-class").string();
+    }
+
     default String x_entity() {
       return x_classifiers().get("entity");
     }

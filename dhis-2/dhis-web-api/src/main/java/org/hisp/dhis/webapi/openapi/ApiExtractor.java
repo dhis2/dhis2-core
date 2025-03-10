@@ -159,7 +159,8 @@ final class ApiExtractor {
             n -> !n.isEmpty(),
             () -> source.getSimpleName().replace("Controller", ""));
     Class<?> entityClass = OpenApiAnnotations.getEntityType(source);
-    Api.Controller controller = new Api.Controller(api, source, entityClass, name);
+    String module = extractControllerModule(source);
+    Api.Controller controller = new Api.Controller(api, source, entityClass, name, module);
     Map<String, String> classifiers = controller.getClassifiers();
     classifiers.putAll(OpenApiAnnotations.getClassifiers(source));
 
@@ -174,6 +175,13 @@ final class ApiExtractor {
         .forEach(endpoint -> controller.getEndpoints().add(endpoint));
 
     return controller;
+  }
+
+  private static String extractControllerModule(Class<?> source) {
+    String module = source.getProtectionDomain().getCodeSource().getLocation().toString();
+    int end = module.indexOf("/target/classes");
+    int start = module.lastIndexOf('/', end - 1);
+    return module.substring(start + 1, end);
   }
 
   private static Stream<Method> methodsIn(Class<?> source) {
