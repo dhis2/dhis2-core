@@ -32,7 +32,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.imports.preheat.mappers.CopyMapper;

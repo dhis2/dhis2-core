@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.tracker.trackedentityattributevalue;
 
+import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
-import javax.persistence.EntityManager;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.query.Query;
 import org.hisp.dhis.hibernate.HibernateGenericStore;

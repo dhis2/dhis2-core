@@ -35,6 +35,8 @@ import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.query.planner.QueryPlan;
 import org.hisp.dhis.query.planner.QueryPlanner;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -46,62 +48,41 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component
 public class DefaultQueryService implements QueryService {
-  private static final Junction.Type DEFAULT_JUNCTION_TYPE = Junction.Type.AND;
 
   private final QueryParser queryParser;
-
   private final QueryPlanner queryPlanner;
+  private final SchemaService schemaService;
 
-  private final JpaCriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine;
-
-  private final InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine;
+  private final JpaCriteriaQueryEngine dbQueryEngine;
+  private final InMemoryQueryEngine memoryQueryEngine;
 
   @Override
-  public List<? extends IdentifiableObject> query(Query query) {
+  public <T extends IdentifiableObject> List<T> query(Query<T> query) {
     return queryObjects(query);
   }
 
   @Override
-  @SuppressWarnings({"unchecked", "rawtypes"})
-  public List<? extends IdentifiableObject> query(Query query, ResultTransformer transformer) {
-    List<? extends IdentifiableObject> objects = queryObjects(query);
+  public long count(Query<?> query) {
+    Query<?> count = Query.copyOf(query);
 
-    if (transformer != null) {
-      return transformer.transform(objects);
-    }
+    count.clearOrders();
+    count.setFirstResult(0);
+    count.setMaxResults(Integer.MAX_VALUE);
 
-    return objects;
+    return countObjects(count);
   }
 
   @Override
-  public long count(Query query) {
-    Query cloned = Query.from(query);
+  public <T extends IdentifiableObject> Query<T> getQueryFromUrl(
+      Class<T> type, GetObjectListParams params) throws QueryParserException {
+    List<String> filters = params.getFilters();
+    if (filters == null) filters = List.of();
+    Query<T> query = queryParser.parse(type, filters, params.getRootJunction());
 
-    cloned.clearOrders();
-    cloned.setFirstResult(0);
-    cloned.setMaxResults(Integer.MAX_VALUE);
+    Schema schema = schemaService.getDynamicSchema(type);
+    query.addOrders(QueryUtils.convertOrderStrings(params.getOrders(), schema));
 
-    return countObjects(cloned);
-  }
-
-  @Override
-  public Query getQueryFromUrl(
-      Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination)
-      throws QueryParserException {
-    return getQueryFromUrl(klass, filters, orders, pagination, DEFAULT_JUNCTION_TYPE);
-  }
-
-  @Override
-  public Query getQueryFromUrl(
-      Class<?> klass,
-      List<String> filters,
-      List<Order> orders,
-      Pagination pagination,
-      Junction.Type rootJunction)
-      throws QueryParserException {
-    Query query = queryParser.parse(klass, filters, rootJunction);
-    query.addOrders(orders);
-
+    Pagination pagination = params.getPagination();
     if (pagination.hasPagination()) {
       query.setFirstResult(pagination.getFirstResult());
       query.setMaxResults(pagination.getSize());
@@ -110,72 +91,52 @@ public class DefaultQueryService implements QueryService {
     return query;
   }
 
-  @Override
-  public Query getQueryFromUrl(Class<?> klass, List<String> filters, List<Order> orders)
-      throws QueryParserException {
-    return getQueryFromUrl(klass, filters, orders, new Pagination(), DEFAULT_JUNCTION_TYPE);
-  }
-
   // ---------------------------------------------------------------------------------------------
   // Helper methods
   // ---------------------------------------------------------------------------------------------
 
-  private long countObjects(Query query) {
+  private <T extends IdentifiableObject> long countObjects(Query<T> query) {
     List<? extends IdentifiableObject> objects;
-    QueryPlan queryPlan = queryPlanner.planQuery(query);
-    Query pQuery = queryPlan.getPersistedQuery();
-    Query npQuery = queryPlan.getNonPersistedQuery();
-    if (!npQuery.isEmpty()) {
-      npQuery.setObjects(criteriaQueryEngine.query(pQuery));
-      objects = inMemoryQueryEngine.query(npQuery);
+    QueryPlan<T> plan = queryPlanner.planQuery(query);
+    Query<T> dbQuery = plan.dbQuery();
+    Query<T> memoryQuery = plan.memoryQuery();
+    if (!memoryQuery.isEmpty()) {
+      memoryQuery.setObjects(dbQueryEngine.query(dbQuery));
+      objects = memoryQueryEngine.query(memoryQuery);
       return objects.size();
     }
-    return criteriaQueryEngine.count(pQuery);
+    return dbQueryEngine.count(dbQuery);
   }
 
-  private List<? extends IdentifiableObject> queryObjects(Query query) {
-    List<? extends IdentifiableObject> objects = query.getObjects();
+  private <T extends IdentifiableObject> List<T> queryObjects(Query<T> query) {
+    List<T> objects = query.getObjects();
 
     if (objects != null) {
-      objects = inMemoryQueryEngine.query(query.setObjects(objects));
-      clearDefaults(query.getSchema().getKlass(), objects, query.getDefaults());
-
+      objects = memoryQueryEngine.query(query.setObjects(objects));
+      removeDefaultObject(query.getObjectType(), objects, query.getDefaults());
       return objects;
     }
 
-    QueryPlan queryPlan = queryPlanner.planQuery(query);
+    QueryPlan<T> queryPlan = queryPlanner.planQuery(query);
+    Query<T> dbQuery = queryPlan.dbQuery();
+    Query<T> memoryQuery = queryPlan.memoryQuery();
 
-    Query pQuery = queryPlan.getPersistedQuery();
-    Query npQuery = queryPlan.getNonPersistedQuery();
+    objects = dbQueryEngine.query(dbQuery);
 
-    objects = criteriaQueryEngine.query(pQuery);
-
-    if (!npQuery.isEmpty()) {
-      if (log.isDebugEnabled()) {
-        log.debug(
-            "Doing in-memory for "
-                + npQuery.getCriterions().size()
-                + " criterions and "
-                + npQuery.getOrders().size()
-                + " orders.");
-      }
-
-      npQuery.setObjects(objects);
-
-      objects = inMemoryQueryEngine.query(npQuery);
+    if (!memoryQuery.isEmpty()) {
+      memoryQuery.setObjects(objects);
+      objects = memoryQueryEngine.query(memoryQuery);
     }
 
-    clearDefaults(query.getSchema().getKlass(), objects, query.getDefaults());
-
+    removeDefaultObject(query.getObjectType(), objects, query.getDefaults());
     return objects;
   }
 
-  private void clearDefaults(
+  private void removeDefaultObject(
       Class<?> klass, List<? extends IdentifiableObject> objects, Defaults defaults) {
     if (Defaults.INCLUDE == defaults || !Preheat.isDefaultClass(klass)) {
       return;
     }
-
     objects.removeIf(object -> "default".equals(object.getName()));
   }
 }

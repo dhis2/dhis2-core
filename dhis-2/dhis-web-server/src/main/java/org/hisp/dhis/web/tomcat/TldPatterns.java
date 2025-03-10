@@ -97,7 +97,6 @@ final class TldPatterns {
     skipPatterns.add("jaxen-*.jar");
     skipPatterns.add("jaxws-rt-*.jar");
     skipPatterns.add("jdom-*.jar");
-    skipPatterns.add("jetty-*.jar");
     skipPatterns.add("jmx-tools.jar");
     skipPatterns.add("jmx.jar");
     skipPatterns.add("jsp-api.jar");

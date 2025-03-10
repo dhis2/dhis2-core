@@ -30,18 +30,19 @@ package org.hisp.dhis.webapi.controller;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.servlet.http.HttpServletRequest;
 import lombok.Value;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.common.HashUtils;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -61,6 +62,7 @@ import org.springframework.web.servlet.view.RedirectView;
  */
 @RequestMapping("/api/query")
 @Controller
+@OpenApi.Document(classifiers = {"team:extensibility", "purpose:support"})
 public class QueryController {
 
   private static final String ALIAS_ROOT = "/api/query/alias";
@@ -137,7 +139,7 @@ public class QueryController {
       throw new BadRequestException("Target url exceeds maximum length");
     }
 
-    String alias = CodecUtils.sha1Hex(target);
+    String alias = HashUtils.hashSHA1(target.getBytes());
     aliasCache.put(alias, target);
 
     String contextPath = HttpServletRequestPaths.getContextPath(request);

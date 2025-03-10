@@ -48,8 +48,8 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -72,7 +72,7 @@ public class DefaultSystemService implements SystemService, InitializingBean {
   private final ConfigurationService configurationService;
   private final DhisConfigurationProvider dhisConfig;
   private final CalendarService calendarService;
-  private final SystemSettingManager settings;
+  private final SystemSettingsProvider settingsProvider;
 
   /** Variable holding fixed system info state. */
   private SystemInfo systemInfo = null;
@@ -101,11 +101,12 @@ public class DefaultSystemService implements SystemService, InitializingBean {
   public SystemInfo getSystemInfo() {
     if (systemInfo == null) return null;
 
+    SystemSettings settings = settingsProvider.getCurrentSettings();
+
     TimeZone tz = Calendar.getInstance().getTimeZone();
-    Date lastAnalyticsTableSuccess =
-        settings.getDateSetting(SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE);
+    Date lastAnalyticsTableSuccess = settings.getLastSuccessfulAnalyticsTablesUpdate();
     Date lastAnalyticsTablePartitionSuccess =
-        settings.getDateSetting(SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE);
+        settings.getLastSuccessfulLatestAnalyticsPartitionUpdate();
 
     Date now = new Date();
 
@@ -118,25 +119,21 @@ public class DefaultSystemService implements SystemService, InitializingBean {
         .serverTimeZoneDisplayName(tz.getDisplayName())
         .lastAnalyticsTableSuccess(lastAnalyticsTableSuccess)
         .intervalSinceLastAnalyticsTableSuccess(getPrettyInterval(lastAnalyticsTableSuccess, now))
-        .lastAnalyticsTableRuntime(
-            settings.getStringSetting(SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME))
+        .lastAnalyticsTableRuntime(settings.getLastSuccessfulAnalyticsTablesRuntime())
         .lastAnalyticsTablePartitionSuccess(lastAnalyticsTablePartitionSuccess)
         .intervalSinceLastAnalyticsTablePartitionSuccess(
             getPrettyInterval(lastAnalyticsTablePartitionSuccess, now))
         .lastAnalyticsTablePartitionRuntime(
-            settings.getStringSetting(
-                SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_RUNTIME))
-        .lastSystemMonitoringSuccess(
-            settings.getDateSetting(SettingKey.LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH))
-        .systemName(settings.getStringSetting(SettingKey.APPLICATION_TITLE))
+            settings.getLastSuccessfulLatestAnalyticsPartitionRuntime())
+        .lastSystemMonitoringSuccess(settings.getLastSuccessfulSystemMonitoringPush())
+        .systemName(settings.getApplicationTitle())
         .instanceBaseUrl(dhisConfig.getServerBaseUrl())
-        .emailConfigured(settings.emailConfigured())
-        .isMetadataVersionEnabled(settings.getBooleanSetting(SettingKey.METADATAVERSION_ENABLED))
-        .systemMetadataVersion(settings.getStringSetting(SettingKey.SYSTEM_METADATA_VERSION))
+        .emailConfigured(settings.isEmailConfigured())
+        .isMetadataVersionEnabled(settings.getVersionEnabled())
+        .systemMetadataVersion(settings.getSystemMetadataVersion())
         .lastMetadataVersionSyncAttempt(
             getLastMetadataVersionSyncAttempt(
-                settings.getDateSetting(SettingKey.LAST_SUCCESSFUL_METADATA_SYNC),
-                settings.getDateSetting(SettingKey.METADATA_LAST_FAILED_TIME)))
+                settings.getLastMetaDataSyncSuccess(), settings.getMetadataLastFailedTime()))
         .build();
   }
 
@@ -223,14 +220,6 @@ public class DefaultSystemService implements SystemService, InitializingBean {
 
   private Date getLastMetadataVersionSyncAttempt(
       Date lastSuccessfulMetadataSyncTime, Date lastFailedMetadataSyncTime) {
-    if (lastSuccessfulMetadataSyncTime == null && lastFailedMetadataSyncTime == null) {
-      return null;
-    }
-    if (lastSuccessfulMetadataSyncTime == null || lastFailedMetadataSyncTime == null) {
-      return (lastFailedMetadataSyncTime != null
-          ? lastFailedMetadataSyncTime
-          : lastSuccessfulMetadataSyncTime);
-    }
     return (lastSuccessfulMetadataSyncTime.compareTo(lastFailedMetadataSyncTime) < 0)
         ? lastFailedMetadataSyncTime
         : lastSuccessfulMetadataSyncTime;

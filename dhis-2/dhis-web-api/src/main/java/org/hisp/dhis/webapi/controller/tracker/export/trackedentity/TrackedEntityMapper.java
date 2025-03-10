@@ -31,13 +31,17 @@ import static java.util.Map.entry;
 
 import java.util.Map;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
+import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
+import org.hisp.dhis.webapi.controller.tracker.export.MetadataMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.ProgramOwnerMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.UserMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.enrollment.EnrollmentMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.relationship.RelationshipMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.UIDMapper;
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -46,12 +50,13 @@ import org.mapstruct.Mapping;
       AttributeMapper.class,
       EnrollmentMapper.class,
       InstantMapper.class,
+      UIDMapper.class,
       ProgramOwnerMapper.class,
       RelationshipMapper.class,
-      UserMapper.class
+      UserMapper.class,
+      MetadataMapper.class
     })
-interface TrackedEntityMapper
-    extends ViewMapper<TrackedEntity, org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> {
+interface TrackedEntityMapper {
 
   /**
    * Tracked entities can be ordered by given fields which correspond to fields on {@link
@@ -68,16 +73,21 @@ interface TrackedEntityMapper
           entry("inactive", "inactive"));
 
   @Mapping(target = "trackedEntity", source = "uid")
-  @Mapping(target = "trackedEntityType", source = "trackedEntityType.uid")
+  @Mapping(target = "trackedEntityType", source = "trackedEntityType")
   @Mapping(target = "createdAt", source = "created")
   @Mapping(target = "createdAtClient", source = "createdAtClient")
   @Mapping(target = "updatedAt", source = "lastUpdated")
   @Mapping(target = "updatedAtClient", source = "lastUpdatedAtClient")
-  @Mapping(target = "orgUnit", source = "organisationUnit.uid")
+  @Mapping(target = "orgUnit", source = "organisationUnit")
   @Mapping(target = "createdBy", source = "createdByUserInfo")
   @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
   @Mapping(target = "relationships", source = "relationshipItems")
-  @Mapping(target = "attributes", source = "trackedEntityAttributeValues")
-  @Override
-  org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity from(TrackedEntity trackedEntity);
+  @Mapping(
+      target = "attributes",
+      source = "trackedEntityAttributeValues",
+      qualifiedByName = "mapWithIdScheme")
+  org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity map(
+      @Context TrackerIdSchemeParams idSchemeParams,
+      @Context MappingErrors errors,
+      TrackedEntity trackedEntity);
 }

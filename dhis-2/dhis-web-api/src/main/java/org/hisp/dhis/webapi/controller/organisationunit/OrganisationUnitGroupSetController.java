@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.organisationunit;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,5 +39,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @Controller
 @RequestMapping("/api/organisationUnitGroupSets")
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class OrganisationUnitGroupSetController
-    extends AbstractCrudController<OrganisationUnitGroupSet> {}
+    extends AbstractCrudController<OrganisationUnitGroupSet, GetObjectListParams> {}

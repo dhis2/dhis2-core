@@ -32,6 +32,7 @@ import static org.hisp.dhis.system.util.SqlUtils.appendRandom;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -52,6 +53,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.WeeklyAbstractPeriodType;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
 
 /**
@@ -86,6 +88,7 @@ public class PeriodResourceTable implements ResourceTable {
             new Column("enddate", DataType.DATE, Nullable.NOT_NULL),
             new Column("periodtypeid", DataType.INTEGER, Nullable.NOT_NULL),
             new Column("periodtypename", DataType.VARCHAR_50, Nullable.NOT_NULL),
+            new Column("monthstartdate", DataType.DATE, Nullable.NOT_NULL),
             new Column("year", DataType.INTEGER, Nullable.NOT_NULL));
 
     for (PeriodType periodType : PeriodType.PERIOD_TYPES) {
@@ -131,8 +134,9 @@ public class PeriodResourceTable implements ResourceTable {
     for (Period period : periods) {
       if (period != null && period.isValid()) {
         final String isoDate = period.getIsoDate();
-        final int year = resolveYearFromPeriod(period);
         final PeriodType periodType = period.getPeriodType();
+        final Date monthStartDate = DateUtils.dateTruncMonth(period.getStartDate());
+        final int year = resolveYearFromPeriod(period);
 
         if (!uniqueIsoDates.add(isoDate)) {
           // Protect against duplicates produced by calendars
@@ -150,6 +154,7 @@ public class PeriodResourceTable implements ResourceTable {
         values.add(period.getEndDate());
         values.add(periodType.getId());
         values.add(periodType.getName());
+        values.add(monthStartDate);
         values.add(year);
 
         for (Period pe : PeriodType.getPeriodTypePeriods(period, calendar)) {

@@ -27,45 +27,30 @@
  */
 package org.hisp.dhis.i18n.ui.locale;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import javax.annotation.CheckForNull;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManagerException;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Torgeir Lorange Ostby
  */
 @Component("org.hisp.dhis.i18n.locale.LocaleManager")
+@RequiredArgsConstructor
 public class UserSettingLocaleManager implements LocaleManager {
-  // -------------------------------------------------------------------------
-  // Dependencies
-  // -------------------------------------------------------------------------
 
-  private final UserSettingService userSettingService;
-
+  private final UserSettingsService userSettingsService;
   private final ResourceBundleManager resourceBundleManager;
-
-  public UserSettingLocaleManager(
-      UserSettingService userSettingService, ResourceBundleManager resourceBundleManager) {
-    checkNotNull(userSettingService);
-    checkNotNull(resourceBundleManager);
-
-    this.userSettingService = userSettingService;
-    this.resourceBundleManager = resourceBundleManager;
-  }
-
-  // -------------------------------------------------------------------------
-  // LocaleManager implementation
-  // -------------------------------------------------------------------------
 
   @Override
   public Locale getCurrentLocale() {
@@ -84,7 +69,12 @@ public class UserSettingLocaleManager implements LocaleManager {
 
   @Override
   public void setCurrentLocale(Locale locale) {
-    userSettingService.saveUserSetting(UserSettingKey.UI_LOCALE, locale);
+    try {
+      userSettingsService.put("keyUiLocale", locale);
+    } catch (NotFoundException | BadRequestException ex) {
+      // this should never happen as this key-value combination is valid
+      throw new IllegalArgumentException(ex);
+    }
   }
 
   @Override
@@ -102,7 +92,7 @@ public class UserSettingLocaleManager implements LocaleManager {
 
   @CheckForNull
   public Locale getUserSelectedLocale() {
-    return (Locale) userSettingService.getUserSetting(UserSettingKey.UI_LOCALE);
+    return UserSettings.getCurrentSettings().getUserUiLocale();
   }
 
   @Override

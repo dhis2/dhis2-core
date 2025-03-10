@@ -28,33 +28,32 @@
 package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.jupiter.api.Test;
 
-/** Unit tests for {@link OrganisationUnitStructureResourceTable}. */
 class OrganisationUnitStructureResourceTableTest {
-
   @Test
   void testCreateBatchObjectsWhenLevelsAreSame() {
-    // Given
     int maxOrgUnitLevels = 3;
     int currentLevel = 3;
 
-    OrganisationUnit root = createOrganisationUnit("ouR");
+    OrganisationUnit root = createOrganisationUnit('A');
     root.setPath("/p1");
 
-    OrganisationUnit ou1 = createOrganisationUnit("ou1", root);
+    OrganisationUnit ou1 = createOrganisationUnit('B', root);
     ou1.setPath("/p1/p2");
 
-    OrganisationUnit ou2 = createOrganisationUnit("ou2", ou1);
+    OrganisationUnit ou2 = createOrganisationUnit('C', ou1);
     ou2.setHierarchyLevel(currentLevel);
     ou2.setPath("/p1/p2/ou2");
 
-    OrganisationUnit ou3 = createOrganisationUnit("ou3", ou1);
+    OrganisationUnit ou3 = createOrganisationUnit('D', ou1);
     ou3.setHierarchyLevel(currentLevel);
     ou3.setPath("/p1/p2/ou3");
 
@@ -65,20 +64,18 @@ class OrganisationUnitStructureResourceTableTest {
     OrganisationUnitStructureResourceTable resourceTable =
         new OrganisationUnitStructureResourceTable(null, maxOrgUnitLevels, null);
 
-    // Then
     assertDoesNotThrow(() -> resourceTable.createBatchObjects(organisationUnits, currentLevel));
   }
 
   @Test
   void testCreateBatchObjectsWhenHierarchyLevelIsLowerThanMaxLevel() {
-    // Given
     int maxOrgUnitLevels = 3;
     int currentLevel = 2;
 
-    OrganisationUnit root = createOrganisationUnit("ouR");
+    OrganisationUnit root = createOrganisationUnit('A');
     root.setPath("/p1");
 
-    OrganisationUnit ou1 = createOrganisationUnit("ou1", root);
+    OrganisationUnit ou1 = createOrganisationUnit('B', root);
     ou1.setPath("/p1/p2");
 
     List<OrganisationUnit> organisationUnits = new ArrayList<>();
@@ -87,20 +84,18 @@ class OrganisationUnitStructureResourceTableTest {
     OrganisationUnitStructureResourceTable resourceTable =
         new OrganisationUnitStructureResourceTable(null, maxOrgUnitLevels, null);
 
-    // Then
     assertDoesNotThrow(() -> resourceTable.createBatchObjects(organisationUnits, currentLevel));
   }
 
   @Test
   void testCreateBatchObjectsWhenCurrentLevelIsLargerThanMaxLevel() {
-    // Given
     int maxOrgUnitLevels = 2;
     int currentLevel = 3;
 
-    OrganisationUnit root = createOrganisationUnit("ouR");
+    OrganisationUnit root = createOrganisationUnit('A');
     root.setPath("/p1");
 
-    OrganisationUnit ou1 = createOrganisationUnit("ou1", root);
+    OrganisationUnit ou1 = createOrganisationUnit('B', root);
     ou1.setPath("/p1/p2");
     ou1.setUid("uid-123");
 
@@ -110,7 +105,6 @@ class OrganisationUnitStructureResourceTableTest {
     OrganisationUnitStructureResourceTable resourceTable =
         new OrganisationUnitStructureResourceTable(null, maxOrgUnitLevels, null);
 
-    // Then
     Exception ex =
         assertThrows(
             IllegalStateException.class,
@@ -123,14 +117,13 @@ class OrganisationUnitStructureResourceTableTest {
 
   @Test
   void testCreateBatchObjectsWhenCurrentLevelHasNoParent() {
-    // Given
     int maxOrgUnitLevels = 2;
     int currentLevel = 3;
 
-    OrganisationUnit root = createOrganisationUnit("ouR");
+    OrganisationUnit root = createOrganisationUnit('A');
     root.setPath("/p1");
 
-    OrganisationUnit ou1 = createOrganisationUnit("ou1");
+    OrganisationUnit ou1 = createOrganisationUnit('B');
     ou1.setPath("/p1/p2");
     ou1.setUid("uid-123");
 
@@ -140,7 +133,6 @@ class OrganisationUnitStructureResourceTableTest {
     OrganisationUnitStructureResourceTable resourceTable =
         new OrganisationUnitStructureResourceTable(null, maxOrgUnitLevels, null);
 
-    // Then
     Exception ex =
         assertThrows(
             IllegalStateException.class,

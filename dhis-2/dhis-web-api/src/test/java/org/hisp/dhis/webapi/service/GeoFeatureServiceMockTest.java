@@ -34,11 +34,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.geotools.geojson.geom.GeometryJSON;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.data.DefaultDataQueryService;
@@ -92,7 +92,7 @@ class GeoFeatureServiceMockTest {
     User user = rnd.nextObject(User.class);
     UserDetails details =
         UserDetails.createUserDetails(
-            user, true, true, new HashSet<>(), new HashSet<>(), new HashSet<>(), null);
+            user, true, true, new HashSet<>(), new HashSet<>(), new HashSet<>());
     injectUserInSecurityContext(details);
 
     DataQueryParams params =
@@ -129,7 +129,7 @@ class GeoFeatureServiceMockTest {
     User user = rnd.nextObject(User.class);
     UserDetails details =
         UserDetails.createUserDetails(
-            user, true, true, new HashSet<>(), new HashSet<>(), new HashSet<>(), null);
+            user, true, true, new HashSet<>(), new HashSet<>(), new HashSet<>());
 
     injectUserInSecurityContext(details);
     DataQueryParams params =

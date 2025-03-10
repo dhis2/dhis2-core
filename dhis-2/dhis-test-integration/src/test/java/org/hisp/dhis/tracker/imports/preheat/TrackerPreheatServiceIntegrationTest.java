@@ -35,6 +35,7 @@ import java.util.Map;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -43,13 +44,12 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,9 +58,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class TrackerPreheatServiceIntegrationTest extends PostgresIntegrationTestBase {
 
-  private final String TET_UID = "TET12345678";
+  private static final String TET_UID = "TET12345678";
 
-  private final String ATTRIBUTE_UID = "ATTR1234567";
+  private static final String ATTRIBUTE_UID = "ATTR1234567";
 
   @Autowired private TrackerPreheatService trackerPreheatService;
 
@@ -72,15 +72,12 @@ class TrackerPreheatServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private AttributeService attributeService;
 
-  private User currentUser;
-
   private Program program;
 
   private String programAttribute;
 
   @BeforeEach
   void setUp() {
-    currentUser = getAdminUser();
     // Set up placeholder OU; We add Code for testing idScheme.
     OrganisationUnit orgUnit = createOrganisationUnit('A');
     orgUnit.setCode("OUA");
@@ -109,14 +106,16 @@ class TrackerPreheatServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testPreheatWithDifferentIdSchemes() {
     TrackedEntity teA =
         TrackedEntity.builder()
+            .trackedEntity(UID.generate())
             .orgUnit(MetadataIdentifier.ofCode("OUA"))
             .trackedEntityType(MetadataIdentifier.ofUid(TET_UID))
             .build();
     Enrollment enrollmentA =
         Enrollment.builder()
+            .enrollment(UID.generate())
             .orgUnit(MetadataIdentifier.ofCode("OUA"))
             .program(MetadataIdentifier.ofAttribute(ATTRIBUTE_UID, programAttribute))
-            .trackedEntity("TE123456789")
+            .trackedEntity(UID.of("TE123456789"))
             .build();
 
     TrackerObjects trackerObjects =
@@ -132,8 +131,7 @@ class TrackerPreheatServiceIntegrationTest extends PostgresIntegrationTestBase {
             .programIdScheme(TrackerIdSchemeParam.ofAttribute(ATTRIBUTE_UID))
             .build();
 
-    TrackerPreheat preheat =
-        trackerPreheatService.preheat(trackerObjects, idSchemeParams, currentUser);
+    TrackerPreheat preheat = trackerPreheatService.preheat(trackerObjects, idSchemeParams);
 
     assertNotNull(preheat);
     // asserting on specific fields instead of plain assertEquals since

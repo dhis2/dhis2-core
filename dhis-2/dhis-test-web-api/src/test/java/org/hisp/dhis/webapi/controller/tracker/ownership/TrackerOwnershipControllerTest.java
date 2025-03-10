@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.ownership;
 
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,6 +55,8 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
 
   private String pId;
 
+  private User regularUser;
+
   @BeforeEach
   void setUp() {
     orgUnitAUid =
@@ -72,11 +74,37 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
 
     OrganisationUnit orgUnitA = manager.get(OrganisationUnit.class, orgUnitAUid);
     OrganisationUnit orgUnitB = manager.get(OrganisationUnit.class, orgUnitBUid);
-    User user =
-        createAndAddUser(true, "user", Set.of(orgUnitA, orgUnitB), Set.of(orgUnitA, orgUnitB));
-    injectSecurityContextUser(user);
+    regularUser =
+        createAndAddUser(
+            false, "regular-user", Set.of(orgUnitA, orgUnitB), Set.of(orgUnitA, orgUnitB));
+    User superuser =
+        createAndAddUser(true, "superuser", Set.of(orgUnitA, orgUnitB), Set.of(orgUnitA, orgUnitB));
+    injectSecurityContextUser(superuser);
 
-    String tetId = assertStatus(HttpStatus.CREATED, POST("/trackedEntityTypes/", "{'name': 'A'}"));
+    String tetId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/trackedEntityTypes/",
+                "{'name': 'A', 'sharing':{'external':false,'public':'rwrw----'}}"));
+
+    pId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                """
+                                {
+                                  'name':'P1',
+                                  'shortName':'P1',
+                                  'programType':'WITH_REGISTRATION',
+                                  'accessLevel':'PROTECTED',
+                                  'trackedEntityType': {'id': '%s'},
+                                  'organisationUnits': [{'id':'%s'},{'id':'%s'}],
+                                  'sharing':{'external':false,'public':'rwrw----'}
+                                }
+                                """
+                    .formatted(tetId, orgUnitAUid, orgUnitBUid)));
 
     teUid = CodeGenerator.generateUid();
     assertStatus(
@@ -89,42 +117,20 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
                {
                  "trackedEntity": "%s",
                  "trackedEntityType": "%s",
-                 "orgUnit": "%s"
+                 "orgUnit": "%s",
+                 "enrollments": [
+                  {
+                    "orgUnit": "%s",
+                    "program": "%s",
+                    "occurredAt": "2025-02-26",
+                    "enrolledAt": "2025-02-26"
+                  }
+                 ]
                }
              ]
             }
             """
-                .formatted(teUid, tetId, orgUnitAUid)));
-
-    pId =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/programs/",
-                """
-                    {
-                      'name':'P1',
-                      'shortName':'P1',
-                      'programType':'WITHOUT_REGISTRATION',
-                      'organisationUnits': [{'id':'%s'},{'id':'%s'}]
-                    }
-                    """
-                    .formatted(orgUnitAUid, orgUnitBUid)));
-  }
-
-  @Test
-  void shouldUpdateTrackerProgramOwnerWhenUsingDeprecateTrackedEntityInstanceParam() {
-    assertWebMessage(
-        "OK",
-        200,
-        "OK",
-        "Ownership transferred",
-        PUT(
-                "/tracker/ownership/transfer?trackedEntityInstance={tei}&program={prog}&ou={ou}",
-                teUid,
-                pId,
-                orgUnitAUid)
-            .content(HttpStatus.OK));
+                .formatted(teUid, tetId, orgUnitAUid, orgUnitAUid, pId)));
   }
 
   @Test
@@ -135,7 +141,7 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
         "OK",
         "Ownership transferred",
         PUT(
-                "/tracker/ownership/transfer?trackedEntity={tei}&program={prog}&ou={ou}",
+                "/tracker/ownership/transfer?trackedEntity={te}&program={prog}&orgUnit={orgUnit}",
                 teUid,
                 pId,
                 orgUnitBUid)
@@ -143,74 +149,60 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
   }
 
   @Test
-  void shouldFailToUpdateWhenGivenTrackedEntityAndTrackedEntityInstanceParameters() {
-    assertEquals(
-        "Only one parameter of 'trackedEntityInstance' and 'trackedEntity' must be specified. "
-            + "Prefer 'trackedEntity' as 'trackedEntityInstance' will be removed.",
+  void
+      shouldUpdateTrackerProgramOwnerAndBeAccessibleFromTransferredOrgUnitUsingDeprecatedParameter() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Ownership transferred",
         PUT(
-                "/tracker/ownership/transfer?trackedEntity={tei}&"
-                    + "trackedEntityInstance={tei}&program={prog}&ou={ou}",
-                teUid,
+                "/tracker/ownership/transfer?trackedEntity={te}&program={prog}&ou={ou}",
                 teUid,
                 pId,
-                orgUnitAUid)
+                orgUnitBUid)
+            .content(HttpStatus.OK));
+  }
+
+  @Test
+  void shouldFailToTransferIfGivenDeprecatedAndNewOrgUnitParameter() {
+    assertStartsWith(
+        "Only one parameter of 'ou'",
+        PUT(
+                "/tracker/ownership/transfer?trackedEntity={te}&program={prog}&ou={ou}&orgUnit={orgUnit}",
+                teUid,
+                pId,
+                orgUnitBUid,
+                orgUnitBUid)
             .error(HttpStatus.BAD_REQUEST)
             .getMessage());
   }
 
   @Test
-  void shouldFailToUpdateWhenNoTrackedEntityOrTrackedEntityInstanceParametersArePresent() {
-    assertEquals(
-        "Required request parameter 'trackedEntity' is not present",
+  void shouldFailToUpdateWhenNoTrackedEntityIsPresent() {
+    assertStartsWith(
+        "Required parameter 'trackedEntity'",
         PUT("/tracker/ownership/transfer?program={prog}&ou={ou}", pId, orgUnitAUid)
             .error(HttpStatus.BAD_REQUEST)
             .getMessage());
   }
 
   @Test
-  void shouldOverrideOwnershipAccessWhenUsingDeprecateTrackedEntityInstanceParam() {
+  void shouldGrantTemporaryAccess() {
+    injectSecurityContextUser(regularUser);
     assertWebMessage(
         "OK",
         200,
         "OK",
         "Temporary Ownership granted",
-        POST(
-                "/tracker/ownership/override?trackedEntityInstance={tei}&program={prog}&reason=42",
-                teUid,
-                pId)
+        POST("/tracker/ownership/override?trackedEntity={te}&program={prog}&reason=42", teUid, pId)
             .content(HttpStatus.OK));
   }
 
   @Test
-  void shouldOverrideOwnershipAccess() {
-    assertWebMessage(
-        "OK",
-        200,
-        "OK",
-        "Temporary Ownership granted",
-        POST("/tracker/ownership/override?trackedEntity={tei}&program={prog}&reason=42", teUid, pId)
-            .content(HttpStatus.OK));
-  }
-
-  @Test
-  void shouldFailToOverrideWhenGivenTrackedEntityAndTrackedEntityInstanceParameters() {
-    assertEquals(
-        "Only one parameter of 'trackedEntityInstance' and 'trackedEntity' must be specified. "
-            + "Prefer 'trackedEntity' as 'trackedEntityInstance' will be removed.",
-        POST(
-                "/tracker/ownership/override?trackedEntity={tei}&"
-                    + "trackedEntityInstance={tei}&program={prog}&&reason=42",
-                teUid,
-                teUid,
-                pId)
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
-  }
-
-  @Test
-  void shouldFailToOverrideWhenNoTrackedEntityOrTrackedEntityInstanceParametersArePresent() {
-    assertEquals(
-        "Required request parameter 'trackedEntity' is not present",
+  void shouldFailToOverrideWhenNoTrackedEntityIsGiven() {
+    assertStartsWith(
+        "Required parameter 'trackedEntity'",
         POST("/tracker/ownership/override?program=" + pId + "&reason=42")
             .error(HttpStatus.BAD_REQUEST)
             .getMessage());

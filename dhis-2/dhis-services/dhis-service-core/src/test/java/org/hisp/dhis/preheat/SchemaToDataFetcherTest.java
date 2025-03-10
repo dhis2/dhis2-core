@@ -40,11 +40,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
+import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
-import javax.persistence.EntityManager;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObject;

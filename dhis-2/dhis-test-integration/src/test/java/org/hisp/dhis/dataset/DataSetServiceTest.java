@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
@@ -92,6 +93,8 @@ class DataSetServiceTest extends PostgresIntegrationTestBase {
 
   private OrganisationUnit unitF;
 
+  private CategoryCombo categoryCombo;
+
   private CategoryOptionCombo attributeOptionCombo;
 
   private User superUser;
@@ -133,6 +136,7 @@ class DataSetServiceTest extends PostgresIntegrationTestBase {
     organisationUnitService.addOrganisationUnit(unitD);
     organisationUnitService.addOrganisationUnit(unitE);
     organisationUnitService.addOrganisationUnit(unitF);
+    categoryCombo = categoryService.getDefaultCategoryCombo();
     attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
     superUser =
@@ -154,7 +158,8 @@ class DataSetServiceTest extends PostgresIntegrationTestBase {
     DataApprovalLevel level = new DataApprovalLevel("Level A", unit.getLevel(), null);
     levelService.addDataApprovalLevel(level);
     DataApprovalWorkflow workflow =
-        new DataApprovalWorkflow("Workflow A", period.getPeriodType(), newHashSet(level));
+        new DataApprovalWorkflow(
+            "Workflow A", period.getPeriodType(), categoryCombo, newHashSet(level));
     dataApprovalService.addWorkflow(workflow);
     dataSet.assignWorkflow(workflow);
     dataSet.addOrganisationUnit(unit);

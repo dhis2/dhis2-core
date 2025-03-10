@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.trackedentity.hibernate;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.trackedentity.ApiTrackedEntityAuditStore;
 import org.hisp.dhis.trackedentity.TrackedEntityAudit;

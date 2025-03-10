@@ -354,8 +354,8 @@ public class ApiIntegrator {
           .put(schemaType, input);
     }
     input.getDirection().setValue(Api.Schema.Direction.IN);
-    output
-        .getProperties()
+    output.getProperties().stream()
+        .filter(Api.Property::isInput)
         .forEach(p -> input.getProperties().add(p.withType(generateInputReferenceSchema(p))));
     return input;
   }

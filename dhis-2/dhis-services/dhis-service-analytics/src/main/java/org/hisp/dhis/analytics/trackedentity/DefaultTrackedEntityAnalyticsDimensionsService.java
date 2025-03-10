@@ -35,7 +35,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
@@ -51,11 +50,11 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 class DefaultTrackedEntityAnalyticsDimensionsService
     implements TrackedEntityAnalyticsDimensionsService {
-  @Nonnull private final TrackedEntityTypeService trackedEntityTypeService;
+  private final TrackedEntityTypeService trackedEntityTypeService;
 
-  @Nonnull private final EnrollmentAnalyticsDimensionsService enrollmentAnalyticsDimensionsService;
+  private final ProgramService programService;
 
-  @Nonnull private final ProgramService programService;
+  private final EnrollmentAnalyticsDimensionsService enrollmentAnalyticsDimensionsService;
 
   @Override
   public List<PrefixedDimension> getQueryDimensionsByTrackedEntityTypeId(
@@ -72,7 +71,7 @@ class DefaultTrackedEntityAnalyticsDimensionsService
         programs = programService.getPrograms(programUids).stream();
       }
 
-      // Dimensions by programs defined on the given tracked entity type.
+      // Dimensions by programs defined on the given tracked entity type
       return programs
           .filter(program -> isDefinedOnTrackedEntityType(program, trackedEntityTypeId))
           .map(

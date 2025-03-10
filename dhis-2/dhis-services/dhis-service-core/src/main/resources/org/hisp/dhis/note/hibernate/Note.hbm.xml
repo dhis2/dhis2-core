@@ -11,7 +11,13 @@
     <id name="id" column="noteid">
       <generator class="native" />
     </id>
-    &identifiableProperties;
+
+    <property name="uid" column="uid" unique="true" not-null="true" />
+
+    <property name="created" type="timestamp" not-null="true" update="false" />
+
+    <many-to-one name="lastUpdatedBy" class="org.hisp.dhis.user.User"
+                 column="lastupdatedby" foreign-key="fk_lastupdateby_userid" />
 
     <property name="noteText" column="notetext" type="text" />
 

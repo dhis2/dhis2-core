@@ -29,39 +29,100 @@ package org.hisp.dhis.tracker.export.relationship;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.Order;
 
 @Getter
-@Builder(toBuilder = true)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@ToString
 public class RelationshipOperationParams {
-  private TrackerType type;
+  private final TrackerType type;
 
-  private String identifier;
+  private final UID identifier;
 
-  private List<Order> order;
+  private final Set<UID> relationships;
+
+  private final List<Order> order;
+
+  public static RelationshipOperationParamsBuilder builder(@Nonnull Set<UID> relationships) {
+    if (relationships.isEmpty()) {
+      throw new IllegalArgumentException("relationships must not be empty");
+    }
+    return new RelationshipOperationParamsBuilder().relationships(relationships);
+  }
+
+  public static RelationshipOperationParamsBuilder builder(@Nonnull Event event) {
+    return new RelationshipOperationParamsBuilder()
+        .identifier(UID.of(event))
+        .type(TrackerType.EVENT);
+  }
+
+  public static RelationshipOperationParamsBuilder builder(@Nonnull Enrollment enrollment) {
+    return new RelationshipOperationParamsBuilder()
+        .identifier(UID.of(enrollment))
+        .type(TrackerType.ENROLLMENT);
+  }
+
+  public static RelationshipOperationParamsBuilder builder(@Nonnull TrackedEntity trackedEntity) {
+    return new RelationshipOperationParamsBuilder()
+        .identifier(UID.of(trackedEntity))
+        .type(TrackerType.TRACKED_ENTITY);
+  }
+
+  public static RelationshipOperationParamsBuilder builder(
+      @Nonnull TrackerType type, @Nonnull UID identifier) {
+    return new RelationshipOperationParamsBuilder().identifier(identifier).type(type);
+  }
 
   public static class RelationshipOperationParamsBuilder {
 
     private final List<Order> order = new ArrayList<>();
+    private TrackerType type;
+    private UID identifier;
+    private Set<UID> relationships;
+    private boolean includeDeleted;
 
-    // Do not remove this unused method. This hides the order field from the builder which Lombok
-    // does not support. The repeated order field and private order method prevent access to order
-    // via the builder.
-    // Order should be added via the orderBy builder methods.
-    private RelationshipOperationParamsBuilder order(List<Order> order) {
-      return this;
-    }
+    RelationshipOperationParamsBuilder() {}
 
     public RelationshipOperationParamsBuilder orderBy(String field, SortDirection direction) {
       this.order.add(new Order(field, direction));
       return this;
+    }
+
+    private RelationshipOperationParamsBuilder identifier(UID uid) {
+      this.identifier = uid;
+      return this;
+    }
+
+    private RelationshipOperationParamsBuilder type(TrackerType type) {
+      this.type = type;
+      return this;
+    }
+
+    private RelationshipOperationParamsBuilder relationships(Set<UID> relationships) {
+      this.relationships = relationships;
+      return this;
+    }
+
+    public RelationshipOperationParamsBuilder includeDeleted(boolean includeDeleted) {
+      this.includeDeleted = includeDeleted;
+      return this;
+    }
+
+    public RelationshipOperationParams build() {
+      return new RelationshipOperationParams(
+          this.type, this.identifier, this.relationships, this.order, this.includeDeleted);
     }
   }
 

@@ -32,6 +32,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -118,8 +119,8 @@ public class Seq<T> implements Validator<T> {
     WrappingReporter wrappedReporter = new WrappingReporter(reporter);
 
     for (Validator<T> validator : validators) {
-      if ((input instanceof TrackerDto
-              && !validator.needsToRun(bundle.getStrategy((TrackerDto) input)))
+      if ((input instanceof TrackerDto trackerDto
+              && !validator.needsToRun(bundle.getStrategy(trackerDto)))
           || (!(input instanceof TrackerDto)
               && !validator.needsToRun(bundle.getImportStrategy()))) {
         continue;
@@ -228,7 +229,7 @@ public class Seq<T> implements Validator<T> {
     }
 
     @Override
-    public boolean isInvalid(TrackerType trackerType, String uid) {
+    public boolean isInvalid(TrackerType trackerType, UID uid) {
       return original.isInvalid(trackerType, uid);
     }
   }

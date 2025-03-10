@@ -235,8 +235,8 @@ public class Attribute extends BaseNameableObject implements MetadataObject {
     return objectTypes.contains(type);
   }
 
-  private void setAttribute(ObjectType type, Boolean isAttribute) {
-    if (isAttribute != null && isAttribute) {
+  private void setAttribute(ObjectType type, boolean isAttribute) {
+    if (isAttribute) {
       objectTypes.add(type);
     } else {
       objectTypes.remove(type);
@@ -305,7 +305,7 @@ public class Attribute extends BaseNameableObject implements MetadataObject {
     return isAttribute(ObjectType.DATA_ELEMENT_GROUP);
   }
 
-  public void setDataElementGroupAttribute(Boolean dataElementGroupAttribute) {
+  public void setDataElementGroupAttribute(boolean dataElementGroupAttribute) {
     setAttribute(ObjectType.DATA_ELEMENT_GROUP, dataElementGroupAttribute);
   }
 
@@ -327,7 +327,7 @@ public class Attribute extends BaseNameableObject implements MetadataObject {
     return isAttribute(ObjectType.INDICATOR_GROUP);
   }
 
-  public void setIndicatorGroupAttribute(Boolean indicatorGroupAttribute) {
+  public void setIndicatorGroupAttribute(boolean indicatorGroupAttribute) {
     setAttribute(ObjectType.INDICATOR_GROUP, indicatorGroupAttribute);
   }
 
@@ -338,7 +338,7 @@ public class Attribute extends BaseNameableObject implements MetadataObject {
     return isAttribute(ObjectType.DATA_SET);
   }
 
-  public void setDataSetAttribute(Boolean dataSetAttribute) {
+  public void setDataSetAttribute(boolean dataSetAttribute) {
     setAttribute(ObjectType.DATA_SET, dataSetAttribute);
   }
 
@@ -360,7 +360,7 @@ public class Attribute extends BaseNameableObject implements MetadataObject {
     return isAttribute(ObjectType.ORGANISATION_UNIT_GROUP);
   }
 
-  public void setOrganisationUnitGroupAttribute(Boolean organisationUnitGroupAttribute) {
+  public void setOrganisationUnitGroupAttribute(boolean organisationUnitGroupAttribute) {
     setAttribute(ObjectType.ORGANISATION_UNIT_GROUP, organisationUnitGroupAttribute);
   }
 
@@ -371,7 +371,7 @@ public class Attribute extends BaseNameableObject implements MetadataObject {
     return isAttribute(ObjectType.ORGANISATION_UNIT_GROUP_SET);
   }
 
-  public void setOrganisationUnitGroupSetAttribute(Boolean organisationUnitGroupSetAttribute) {
+  public void setOrganisationUnitGroupSetAttribute(boolean organisationUnitGroupSetAttribute) {
     setAttribute(ObjectType.ORGANISATION_UNIT_GROUP_SET, organisationUnitGroupSetAttribute);
   }
 
@@ -393,7 +393,7 @@ public class Attribute extends BaseNameableObject implements MetadataObject {
     return isAttribute(ObjectType.USER_GROUP);
   }
 
-  public void setUserGroupAttribute(Boolean userGroupAttribute) {
+  public void setUserGroupAttribute(boolean userGroupAttribute) {
     setAttribute(ObjectType.USER_GROUP, userGroupAttribute);
   }
 

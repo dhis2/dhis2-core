@@ -36,11 +36,10 @@ import com.google.common.base.Defaults;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
 import com.google.gson.internal.Primitives;
+import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -51,7 +50,6 @@ import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
@@ -258,7 +256,22 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
       return null;
     }
 
-    return store.getByUid(uid);
+    return CurrentUserUtil.getCurrentUserDetails().isSuper()
+        ? store.getByUidNoAcl(uid)
+        : store.getByUid(uid);
+  }
+
+  @CheckForNull
+  @Override
+  @Transactional(readOnly = true)
+  public <T extends IdentifiableObject> T get(@Nonnull Class<T> type, @Nonnull UID uid) {
+    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
+
+    if (store == null) {
+      return null;
+    }
+
+    return store.getByUid(uid.getValue());
   }
 
   @Nonnull
@@ -394,34 +407,6 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     }
 
     return object;
-  }
-
-  @Nonnull
-  @Override
-  @Transactional(readOnly = true)
-  public <T extends IdentifiableObject> List<T> filter(
-      @Nonnull Class<T> type, @Nonnull String query) {
-    Set<T> uniqueObjects = new HashSet<>();
-
-    T uidObject = get(type, query);
-
-    if (uidObject != null) {
-      uniqueObjects.add(uidObject);
-    }
-
-    T codeObject = getByCode(type, query);
-
-    if (codeObject != null) {
-      uniqueObjects.add(codeObject);
-    }
-
-    uniqueObjects.addAll(getLikeName(type, query, false));
-
-    List<T> objects = new ArrayList<>(uniqueObjects);
-
-    Collections.sort(objects);
-
-    return objects;
   }
 
   @Nonnull

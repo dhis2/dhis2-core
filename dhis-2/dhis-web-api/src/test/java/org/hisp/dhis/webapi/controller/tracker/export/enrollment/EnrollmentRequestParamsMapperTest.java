@@ -68,15 +68,15 @@ import org.mockito.quality.Strictness;
 @ExtendWith(MockitoExtension.class)
 class EnrollmentRequestParamsMapperTest {
 
-  private static final String ORG_UNIT_1_UID = "lW0T2U7gZUi";
+  private static final UID ORG_UNIT_1_UID = UID.of("lW0T2U7gZUi");
 
-  private static final String ORG_UNIT_2_UID = "TK4KA0IIWqa";
+  private static final UID ORG_UNIT_2_UID = UID.of("TK4KA0IIWqa");
 
-  private static final String PROGRAM_UID = "XhBYIraw7sv";
+  private static final UID PROGRAM_UID = UID.of("XhBYIraw7sv");
 
-  private static final String TRACKED_ENTITY_TYPE_UID = "Dp8baZYrLtr";
+  private static final UID TRACKED_ENTITY_TYPE_UID = UID.of("Dp8baZYrLtr");
 
-  private static final String TRACKED_ENTITY_UID = "DGbr8GHG4li";
+  private static final UID TRACKED_ENTITY_UID = UID.of("DGbr8GHG4li");
 
   @Mock private EnrollmentFieldsParamMapper fieldsParamMapper;
 
@@ -97,25 +97,14 @@ class EnrollmentRequestParamsMapperTest {
   }
 
   @Test
-  void testMappingOrgUnit() throws BadRequestException {
-    EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
-    enrollmentRequestParams.setOrgUnit(ORG_UNIT_1_UID + ";" + ORG_UNIT_2_UID);
-    enrollmentRequestParams.setProgram(UID.of(PROGRAM_UID));
-
-    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
-
-    assertContainsOnly(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID), params.getOrgUnitUids());
-  }
-
-  @Test
   void testMappingOrgUnits() throws BadRequestException {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
-    enrollmentRequestParams.setOrgUnits(Set.of(UID.of(ORG_UNIT_1_UID), UID.of(ORG_UNIT_2_UID)));
-    enrollmentRequestParams.setProgram(UID.of(PROGRAM_UID));
+    enrollmentRequestParams.setOrgUnits(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID));
+    enrollmentRequestParams.setProgram(PROGRAM_UID);
 
     EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
-    assertContainsOnly(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID), params.getOrgUnitUids());
+    assertContainsOnly(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID), params.getOrgUnits());
   }
 
   @Test
@@ -126,28 +115,6 @@ class EnrollmentRequestParamsMapperTest {
     EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
     assertEquals(OrganisationUnitSelectionMode.CAPTURE, params.getOrgUnitMode());
-  }
-
-  @Test
-  void shouldMapOrgUnitModeGivenOuModeParam() throws BadRequestException {
-    EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
-    enrollmentRequestParams.setOuMode(OrganisationUnitSelectionMode.CAPTURE);
-
-    EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
-
-    assertEquals(OrganisationUnitSelectionMode.CAPTURE, params.getOrgUnitMode());
-  }
-
-  @Test
-  void shouldThrowIfDeprecatedAndNewOrgUnitModeParameterIsSet() {
-    EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
-    enrollmentRequestParams.setOuMode(OrganisationUnitSelectionMode.SELECTED);
-    enrollmentRequestParams.setOrgUnitMode(OrganisationUnitSelectionMode.SELECTED);
-
-    BadRequestException exception =
-        assertThrows(BadRequestException.class, () -> mapper.map(enrollmentRequestParams));
-
-    assertStartsWith("Only one parameter of 'ouMode' and 'orgUnitMode'", exception.getMessage());
   }
 
   @Test
@@ -165,31 +132,31 @@ class EnrollmentRequestParamsMapperTest {
   @Test
   void testMappingProgram() throws BadRequestException {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
-    enrollmentRequestParams.setProgram(UID.of(PROGRAM_UID));
+    enrollmentRequestParams.setProgram(PROGRAM_UID);
 
     EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
-    assertEquals(PROGRAM_UID, params.getProgramUid());
+    assertEquals(PROGRAM_UID, params.getProgram());
   }
 
   @Test
   void testMappingTrackedEntityType() throws BadRequestException {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
-    enrollmentRequestParams.setTrackedEntityType(UID.of(TRACKED_ENTITY_TYPE_UID));
+    enrollmentRequestParams.setTrackedEntityType(TRACKED_ENTITY_TYPE_UID);
 
     EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
-    assertEquals(TRACKED_ENTITY_TYPE_UID, params.getTrackedEntityTypeUid());
+    assertEquals(TRACKED_ENTITY_TYPE_UID, params.getTrackedEntityType());
   }
 
   @Test
   void testMappingTrackedEntity() throws BadRequestException {
     EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
-    enrollmentRequestParams.setTrackedEntity(UID.of(TRACKED_ENTITY_UID));
+    enrollmentRequestParams.setTrackedEntity(TRACKED_ENTITY_UID);
 
     EnrollmentOperationParams params = mapper.map(enrollmentRequestParams);
 
-    assertEquals(TRACKED_ENTITY_UID, params.getTrackedEntityUid());
+    assertEquals(TRACKED_ENTITY_UID, params.getTrackedEntity());
   }
 
   @Test

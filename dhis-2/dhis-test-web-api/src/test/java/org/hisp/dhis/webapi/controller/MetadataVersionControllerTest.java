@@ -39,7 +39,9 @@ import org.hisp.dhis.test.webapi.json.domain.JsonMetadataVersion;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class MetadataVersionControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test

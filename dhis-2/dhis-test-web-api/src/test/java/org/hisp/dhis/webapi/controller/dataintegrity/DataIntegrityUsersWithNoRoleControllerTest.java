@@ -84,7 +84,6 @@ class DataIntegrityUsersWithNoRoleControllerTest extends AbstractDataIntegrityIn
 
   @Test
   void testDoNotFlagUsersWithRoles() {
-
     assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, CHECK_NAME, true);
   }
 }

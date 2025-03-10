@@ -64,8 +64,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.report.ReportService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.JRExportUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.util.DateUtils;
@@ -108,11 +107,7 @@ public class DefaultReportService implements ReportService {
 
   private final DataSource dataSource;
 
-  private final SystemSettingManager systemSettingManager;
-
-  // -------------------------------------------------------------------------
-  // ReportService implementation
-  // -------------------------------------------------------------------------
+  private final SystemSettingsProvider settingsProvider;
 
   @Override
   @Transactional(readOnly = true)
@@ -170,8 +165,7 @@ public class DefaultReportService implements ReportService {
       {
         if (report.hasRelativePeriods()) {
           AnalyticsFinancialYearStartKey financialYearStart =
-              systemSettingManager.getSystemSetting(
-                  SettingKey.ANALYTICS_FINANCIAL_YEAR_START, AnalyticsFinancialYearStartKey.class);
+              settingsProvider.getCurrentSettings().getAnalyticsFinancialYearStart();
 
           List<Period> relativePeriods =
               report.getRelatives().getRelativePeriods(reportDate, null, false, financialYearStart);
@@ -243,8 +237,7 @@ public class DefaultReportService implements ReportService {
 
     if (report != null && report.hasRelativePeriods()) {
       AnalyticsFinancialYearStartKey financialYearStart =
-          systemSettingManager.getSystemSetting(
-              SettingKey.ANALYTICS_FINANCIAL_YEAR_START, AnalyticsFinancialYearStartKey.class);
+          settingsProvider.getCurrentSettings().getAnalyticsFinancialYearStart();
 
       if (calendar.isIso8601()) {
         for (Period period :

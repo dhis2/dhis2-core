@@ -44,6 +44,26 @@ public class HashUtils {
   }
 
   /**
+   * Calculates a MD5 hash for the given input string.
+   *
+   * @param bytes the input string.
+   * @return the hash.
+   */
+  public static String hashMD5(@Nonnull byte[] bytes) {
+    return Hashing.md5().hashBytes(bytes).toString();
+  }
+
+  /**
+   * Calculates a SHA1 hash for the given input string.
+   *
+   * @param bytes the input string.
+   * @return the hash.
+   */
+  public static String hashSHA1(@Nonnull byte[] bytes) {
+    return Hashing.sha1().hashBytes(bytes).toString();
+  }
+
+  /**
    * Calculates a SHA256 hash for the given input string.
    *
    * @param bytes the input string.

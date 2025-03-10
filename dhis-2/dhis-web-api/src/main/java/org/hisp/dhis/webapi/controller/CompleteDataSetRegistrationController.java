@@ -36,13 +36,13 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -63,17 +63,14 @@ import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.JobSchedulerService;
+import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.CompleteDataSetRegQueryParams;
 import org.springframework.http.HttpStatus;
@@ -91,7 +88,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Halvdan Hoem Grelland <halvdan@dhis2.org>
  */
-@OpenApi.Document(domain = DataValue.class)
+@OpenApi.Document(
+    entity = DataValue.class,
+    classifiers = {"team:platform", "purpose:data"})
 @Controller
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequestMapping("/api/completeDataSetRegistrations")
@@ -110,10 +109,7 @@ public class CompleteDataSetRegistrationController {
 
   private final CompleteDataSetRegistrationExchangeService registrationExchangeService;
 
-  private final JobConfigurationService jobConfigurationService;
-  private final JobSchedulerService jobSchedulerService;
-
-  private final UserService userService;
+  private final JobExecutionService jobExecutionService;
 
   // -------------------------------------------------------------------------
   // GET
@@ -147,7 +143,7 @@ public class CompleteDataSetRegistrationController {
   @ResponseBody
   public WebMessage postCompleteRegistrationsXml(
       ImportOptions importOptions, HttpServletRequest request)
-      throws IOException, ConflictException, NotFoundException {
+      throws IOException, ConflictException {
     if (importOptions.isAsync()) {
       return asyncImport(importOptions, APPLICATION_XML, request);
     }
@@ -155,14 +151,14 @@ public class CompleteDataSetRegistrationController {
         registrationExchangeService.saveCompleteDataSetRegistrationsXml(
             request.getInputStream(), importOptions);
     summary.setImportOptions(importOptions);
-    return importSummary(summary).withPlainResponseBefore(DhisApiVersion.V38);
+    return importSummary(summary);
   }
 
   @PostMapping(consumes = CONTENT_TYPE_JSON, produces = CONTENT_TYPE_JSON)
   @ResponseBody
   public WebMessage postCompleteRegistrationsJson(
       ImportOptions importOptions, HttpServletRequest request)
-      throws IOException, ConflictException, NotFoundException {
+      throws IOException, ConflictException {
     if (importOptions.isAsync()) {
       return asyncImport(importOptions, APPLICATION_JSON, request);
     }
@@ -170,7 +166,7 @@ public class CompleteDataSetRegistrationController {
         registrationExchangeService.saveCompleteDataSetRegistrationsJson(
             request.getInputStream(), importOptions);
     summary.setImportOptions(importOptions);
-    return importSummary(summary).withPlainResponseBefore(DhisApiVersion.V38);
+    return importSummary(summary);
   }
 
   // -------------------------------------------------------------------------
@@ -258,14 +254,13 @@ public class CompleteDataSetRegistrationController {
 
   private WebMessage asyncImport(
       ImportOptions importOptions, MimeType mimeType, HttpServletRequest request)
-      throws IOException, ConflictException, NotFoundException {
+      throws IOException, ConflictException {
 
     JobConfiguration jobConfig = new JobConfiguration(COMPLETE_DATA_SET_REGISTRATION_IMPORT);
 
     jobConfig.setJobParameters(importOptions);
     jobConfig.setExecutedBy(CurrentUserUtil.getCurrentUserDetails().getUid());
-    jobSchedulerService.executeNow(
-        jobConfigurationService.create(jobConfig, mimeType, request.getInputStream()));
+    jobExecutionService.executeOnceNow(jobConfig, mimeType, request.getInputStream());
 
     return jobConfigurationReport(jobConfig);
   }

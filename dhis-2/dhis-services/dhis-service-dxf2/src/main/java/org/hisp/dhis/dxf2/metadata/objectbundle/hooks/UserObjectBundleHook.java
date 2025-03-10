@@ -40,19 +40,23 @@ import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -71,7 +75,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
 
   private final AclService aclService;
 
-  private final UserSettingService userSettingService;
+  private final UserSettingsService userSettingsService;
 
   private final DhisConfigurationProvider dhisConfig;
 
@@ -129,6 +133,15 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
           new ErrorReport(User.class, ErrorCode.E4027, user.getWhatsApp(), "whatsApp")
               .setErrorProperty("whatsApp"));
     }
+
+    if (existingUser != null
+        && existingUser.getTwoFactorType() != null
+        && existingUser.getTwoFactorType().equals(TwoFactorType.EMAIL_ENABLED)
+        && existingUser.isEmailVerified()
+        && user.getEmail() != null
+        && !existingUser.getVerifiedEmail().equals(user.getEmail())) {
+      addReports.accept(new ErrorReport(User.class, ErrorCode.E3052).setErrorProperty("email"));
+    }
   }
 
   @Override
@@ -157,7 +170,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
 
     preheatService.connectReferences(user, bundle.getPreheat(), bundle.getPreheatIdentifier());
     getSession().update(user);
-    userSettingService.saveUserSettings(user.getSettings(), user);
+    updateUserSettings(user);
   }
 
   @Override
@@ -202,10 +215,10 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
       getSession().update(persistedUser);
     }
 
-    userSettingService.saveUserSettings(persistedUser.getSettings(), persistedUser);
+    updateUserSettings(persistedUser);
 
     if (Boolean.TRUE.equals(invalidateSessions)) {
-      userService.invalidateUserSessions(persistedUser.getUid());
+      userService.invalidateUserSessions(persistedUser.getUsername());
     }
 
     bundle.removeExtras(persistedUser, PRE_UPDATE_USER_KEY);
@@ -290,6 +303,18 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
                   roles.add(persistedRole);
                 }
               });
+    }
+  }
+
+  private void updateUserSettings(User user) {
+    Map<String, String> settings = user.getSettings();
+    if (settings == null) return;
+    try {
+      userSettingsService.putAll(settings, user.getUsername());
+    } catch (NotFoundException | ConflictException | BadRequestException ex) {
+      // this should never happen as this key-value combination should be valid and the user does
+      // exist
+      throw new IllegalArgumentException(ex);
     }
   }
 }

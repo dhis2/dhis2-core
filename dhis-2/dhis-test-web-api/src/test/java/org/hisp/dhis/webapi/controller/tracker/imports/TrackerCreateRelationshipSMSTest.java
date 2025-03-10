@@ -28,26 +28,26 @@
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.assertSmsResponse;
 import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.encodeSms;
+import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.getSms;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
@@ -65,8 +65,6 @@ import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.smscompression.SmsCompressionException;
 import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.models.RelationshipSmsSubmission;
-import org.hisp.dhis.test.message.FakeMessageSender;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -78,11 +76,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests tracker SMS to create a relationship implemented via {@link
  * org.hisp.dhis.tracker.imports.sms.RelationshipSMSListener}.
  */
+@Transactional
 class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
@@ -92,7 +92,7 @@ class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTest
 
   @Autowired private IncomingSmsService incomingSmsService;
 
-  @Autowired private FakeMessageSender messageSender;
+  @Autowired private MessageSender smsMessageSender;
 
   private CategoryOptionCombo coc;
 
@@ -112,6 +112,8 @@ class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTest
 
   @BeforeEach
   void setUp() {
+    smsMessageSender.clearMessages();
+
     coc = categoryService.getDefaultCategoryOptionCombo();
 
     orgUnit = createOrganisationUnit('A');
@@ -154,7 +156,7 @@ class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTest
 
   @AfterEach
   void afterEach() {
-    messageSender.clearMessages();
+    smsMessageSender.clearMessages();
   }
 
   @Test
@@ -188,22 +190,20 @@ class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTest
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
 
-    IncomingSms sms = getSms(response);
-    String expectedText = submissionId + ":" + SmsResponse.SUCCESS;
-    OutboundMessage expectedMessage = new OutboundMessage(null, expectedText, Set.of(originator));
+    IncomingSms sms = getSms(incomingSmsService, response);
+    assertSmsResponse(submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender);
     assertAll(
         () -> assertEquals(SmsMessageStatus.PROCESSED, sms.getStatus()),
         () -> assertTrue(sms.isParsed()),
         () -> assertEquals(originator, sms.getOriginator()),
         () -> assertEquals(user, sms.getCreatedBy()),
         () -> {
-          Relationship relationship = relationshipService.getRelationship(relationshipUid);
+          Relationship relationship = relationshipService.getRelationship(UID.of(relationshipUid));
           assertAll(
               () -> assertEquals(relationshipUid, relationship.getUid()),
               () -> assertEquals(event1, relationship.getFrom().getEvent()),
               () -> assertEquals(event2, relationship.getTo().getEvent()));
-        },
-        () -> assertContainsOnly(List.of(expectedMessage), messageSender.getAllMessages()));
+        });
   }
 
   @Test
@@ -241,24 +241,13 @@ class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTest
             .content(HttpStatus.OK)
             .as(JsonWebMessage.class);
 
-    IncomingSms sms = getSms(response);
-    String expectedText = submissionId + ":" + SmsResponse.UNKNOWN_ERROR;
-    OutboundMessage expectedMessage = new OutboundMessage(null, expectedText, Set.of(originator));
+    IncomingSms sms = getSms(incomingSmsService, response);
+    assertSmsResponse(submissionId + ":" + SmsResponse.UNKNOWN_ERROR, originator, smsMessageSender);
     assertAll(
         () -> assertEquals(SmsMessageStatus.FAILED, sms.getStatus()),
         () -> assertTrue(sms.isParsed()),
         () -> assertEquals(originator, sms.getOriginator()),
-        () -> assertEquals(user, sms.getCreatedBy()),
-        () -> assertContainsOnly(List.of(expectedMessage), messageSender.getAllMessages()));
-  }
-
-  private IncomingSms getSms(JsonWebMessage response) {
-    assertStartsWith("Received SMS: ", response.getMessage());
-
-    String smsUid = response.getMessage().replaceFirst("^Received SMS: ", "");
-    IncomingSms sms = incomingSmsService.get(smsUid);
-    assertNotNull(sms, "failed to find SMS in DB with UID " + smsUid);
-    return sms;
+        () -> assertEquals(user, sms.getCreatedBy()));
   }
 
   private TrackedEntityType trackedEntityTypeAccessible() {
@@ -281,8 +270,7 @@ class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTest
 
   private TrackedEntity trackedEntity(
       OrganisationUnit orgUnit, TrackedEntityType trackedEntityType) {
-    TrackedEntity te = createTrackedEntity(orgUnit);
-    te.setTrackedEntityType(trackedEntityType);
+    TrackedEntity te = createTrackedEntity(orgUnit, trackedEntityType);
     te.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     te.getSharing().setOwner(user);
     return te;

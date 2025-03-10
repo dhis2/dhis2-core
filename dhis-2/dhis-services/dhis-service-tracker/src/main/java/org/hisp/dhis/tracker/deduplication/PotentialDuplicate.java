@@ -31,22 +31,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
-import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.common.UID;
 
 public class PotentialDuplicate extends BaseIdentifiableObject {
   /**
    * original represents the UID of a TrackedEntity. original is required. original is a potential
    * duplicate of duplicate.
    */
-  private String original;
+  private UID original;
 
   /**
    * duplicate represents the UID of a TrackedEntity. duplicate is required. duplicate is a
    * potential duplicate of original.
    */
-  private String duplicate;
+  private UID duplicate;
 
   protected String lastUpdatedByUserName;
 
@@ -60,32 +58,28 @@ public class PotentialDuplicate extends BaseIdentifiableObject {
 
   public PotentialDuplicate() {}
 
-  public PotentialDuplicate(String original, String duplicate) {
+  public PotentialDuplicate(UID original, UID duplicate) {
     this.original = original;
     this.duplicate = duplicate;
   }
 
   @JsonProperty
   @JacksonXmlProperty
-  @Property(value = PropertyType.IDENTIFIER, required = Property.Value.TRUE)
-  @PropertyRange(min = 11, max = 11)
-  public String getOriginal() {
+  public UID getOriginal() {
     return original;
   }
 
-  public void setOriginal(String original) {
+  public void setOriginal(UID original) {
     this.original = original;
   }
 
   @JsonProperty
   @JacksonXmlProperty
-  @Property(value = PropertyType.IDENTIFIER, required = Property.Value.FALSE)
-  @PropertyRange(min = 11, max = 11)
-  public String getDuplicate() {
+  public UID getDuplicate() {
     return duplicate;
   }
 
-  public void setDuplicate(String duplicate) {
+  public void setDuplicate(UID duplicate) {
     this.duplicate = duplicate;
   }
 

@@ -41,6 +41,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -59,8 +60,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultJobSchedulerService implements JobSchedulerService {
 
-  private final JobConfigurationStore jobConfigurationStore;
   private final JobRunner jobRunner;
+  private final JobConfigurationStore jobConfigurationStore;
   private final ObjectMapper jsonMapper;
 
   @Override
@@ -76,11 +77,16 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
     return jobId != null && requestCancel(jobId);
   }
 
+  /**
+   * Note that the TX is opened on the store level for {@code tryExecuteNow} so that state changes
+   * to the job are already visible to other threads even when called from within this method as
+   * done in case of continuous execution.
+   */
   @Override
-  @Transactional
+  @NonTransactional
   public void executeNow(@Nonnull String jobId) throws NotFoundException, ConflictException {
     if (!jobConfigurationStore.tryExecuteNow(jobId)) {
-      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
+      JobConfiguration job = jobConfigurationStore.getByUidNoAcl(jobId);
       if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
       if (job.getJobStatus() == JobStatus.RUNNING)
         throw new ConflictException("Job is already running.");
@@ -89,12 +95,12 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
       throw new ConflictException("Failed to transition job into ONCE_ASAP state.");
     }
     if (!jobRunner.isScheduling()) {
-      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
+      JobConfiguration job = jobConfigurationStore.getByUidNoAcl(jobId);
       if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
       // run "execute now" request directly when scheduling is not active (tests)
       jobRunner.runDueJob(job);
     } else {
-      JobConfiguration job = jobConfigurationStore.getByUid(jobId);
+      JobConfiguration job = jobConfigurationStore.getByUidNoAcl(jobId);
       if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
       if (job.getJobType().isUsingContinuousExecution()) {
         jobRunner.runIfDue(job);
@@ -110,7 +116,7 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
     if (!currentUser.isAuthorized(F_PERFORM_MAINTENANCE))
       throw new ForbiddenException(JobConfiguration.class, jobId.getValue());
     if (!jobConfigurationStore.tryRevertNow(jobId.getValue())) {
-      JobConfiguration job = jobConfigurationStore.getByUid(jobId.getValue());
+      JobConfiguration job = jobConfigurationStore.getByUidNoAcl(jobId.getValue());
       if (job == null) throw new NotFoundException(JobConfiguration.class, jobId.getValue());
       if (job.getJobStatus() != JobStatus.RUNNING)
         throw new ConflictException("Job is not running");

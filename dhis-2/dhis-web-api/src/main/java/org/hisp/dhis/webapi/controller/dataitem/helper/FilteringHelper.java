@@ -44,11 +44,15 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.apache.commons.lang3.StringUtils.wrap;
 import static org.hisp.dhis.common.ValueType.fromString;
 import static org.hisp.dhis.common.ValueType.getAggregatables;
+import static org.hisp.dhis.dataitem.query.QueryableDataItem.PROGRAM_ATTRIBUTE_OPTION;
+import static org.hisp.dhis.dataitem.query.QueryableDataItem.PROGRAM_DATA_ELEMENT_OPTION;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_SHORT_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.IDENTIFIABLE_TOKEN_COMPARISON;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.OPTION_ID;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.OPTION_SET_ID;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.PROGRAM_ID;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.ROOT_JUNCTION;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.SHORT_NAME;
@@ -59,8 +63,6 @@ import static org.hisp.dhis.dataitem.query.shared.StatementUtil.addIlikeReplacin
 import static org.hisp.dhis.feedback.ErrorCode.E2014;
 import static org.hisp.dhis.feedback.ErrorCode.E2016;
 import static org.hisp.dhis.query.operators.TokenUtils.getTokens;
-import static org.hisp.dhis.user.UserSettingKey.DB_LOCALE;
-import static org.hisp.dhis.user.UserSettingKey.UI_LOCALE;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_IN;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DISPLAY_NAME_ILIKE;
@@ -68,6 +70,9 @@ import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DISPLA
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.IDENTIFIABLE_TOKEN;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.ID_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.NAME_ILIKE;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.OPTION_SET_ID_EQUAL;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.PROGRAM_ATTRIBUTE_ID_EQUAL;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.PROGRAM_DATA_ELEMENT_ID_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.PROGRAM_ID_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.SHORT_NAME_ILIKE;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.VALUE_TYPE_EQUAL;
@@ -81,16 +86,16 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.NoArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataitem.query.QueryableDataItem;
 import org.hisp.dhis.feedback.ErrorMessage;
-import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.dataitem.Filter;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -103,6 +108,9 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  */
 @NoArgsConstructor(access = PRIVATE)
 public class FilteringHelper {
+
+  public static final String DIM_SEPARATOR = "\\.";
+
   /**
    * This method will return the respective BaseDimensionalItemObject class from the filter
    * provided.
@@ -127,6 +135,34 @@ public class FilteringHelper {
         }
       } else {
         throw new IllegalQueryException(new ErrorMessage(E2014, filter));
+      }
+    }
+
+    return dataItemsEntity;
+  }
+
+  /**
+   * This method will return the respective BaseDimensionalItemObject classes from the filters
+   * provided.
+   *
+   * @param filters should contain one element in the format of
+   *     "dimensionItemType:in:[INDICATOR,DATA_SET,...]", where INDICATOR and DATA_SET represents
+   *     the BaseDimensionalItemObject. The valid types are found at {@link
+   *     org.hisp.dhis.common.DataDimensionItemType}
+   * @return the respective classes associated with the given IN filter
+   * @throws IllegalQueryException if the filter points to a non-supported class/entity
+   */
+  public static Set<Class<? extends BaseIdentifiableObject>> extractEntitiesFromInFilter(
+      Set<String> filters) {
+    Set<Class<? extends BaseIdentifiableObject>> dataItemsEntity = new HashSet<>();
+
+    if (CollectionUtils.isNotEmpty(filters)) {
+      for (String filter : filters) {
+        if (contains(filter, DIMENSION_TYPE_IN.getCombination())) {
+          dataItemsEntity.addAll(extractEntitiesFromInFilter(filter));
+        } else if (contains(filter, DIMENSION_TYPE_EQUAL.getCombination())) {
+          dataItemsEntity.add(extractEntityFromEqualFilter(filter));
+        }
       }
     }
 
@@ -252,9 +288,7 @@ public class FilteringHelper {
    */
   public static void setFilteringParams(
       Set<String> filters, WebOptions options, MapSqlParameterSource paramsMap, User currentUser) {
-    Locale currentLocale =
-        ObjectUtils.defaultIfNull(
-            CurrentUserUtil.getUserSetting(DB_LOCALE), CurrentUserUtil.getUserSetting(UI_LOCALE));
+    Locale currentLocale = UserSettings.getCurrentSettings().evalUserLocale();
 
     if (currentLocale != null && isNotBlank(currentLocale.getLanguage())) {
       paramsMap.addValue(LOCALE, trimToEmpty(currentLocale.getLanguage()));
@@ -273,7 +307,13 @@ public class FilteringHelper {
     addIlikeComparatorIfNotEmpty(paramsMap, DISPLAY_SHORT_NAME, ilikeDisplayShortName);
 
     String equalId = extractValueFromFilter(filters, ID_EQUAL, true);
-    addIfNotBlank(paramsMap, UID, equalId);
+    if (isDoubleComposedId(equalId)) {
+      handleDoubleComposedDimensionIdFilter(equalId, paramsMap);
+    } else if (isTripleComposedId(equalId)) {
+      handleTripleComposedDimensionIdFilter(equalId, paramsMap);
+    } else {
+      addIfNotBlank(paramsMap, UID, equalId);
+    }
 
     String rootJunction = options.getRootJunction().name();
     addIfNotBlank(paramsMap, ROOT_JUNCTION, rootJunction);
@@ -303,6 +343,25 @@ public class FilteringHelper {
     String programId = extractValueFromFilter(filters, PROGRAM_ID_EQUAL, true);
     addIfNotBlank(paramsMap, PROGRAM_ID, programId);
 
+    Set<Class<? extends BaseIdentifiableObject>> entities = extractEntitiesFromInFilter(filters);
+
+    // Add program id/item filtering from program data element option, if present.
+    if (entities.contains(PROGRAM_DATA_ELEMENT_OPTION.getEntity())) {
+      String programDataElementId =
+          extractValueFromFilter(filters, PROGRAM_DATA_ELEMENT_ID_EQUAL, true);
+      handleDoubleComposedDimensionIdFilter(programDataElementId, paramsMap);
+    }
+
+    // Add program id/item filtering from program attribute, if present.
+    if (entities.contains(PROGRAM_ATTRIBUTE_OPTION.getEntity())) {
+      String programAttributeId = extractValueFromFilter(filters, PROGRAM_ATTRIBUTE_ID_EQUAL, true);
+      handleDoubleComposedDimensionIdFilter(programAttributeId, paramsMap);
+    }
+
+    // Add optionSet id filtering id, if present.
+    String optionSetId = extractValueFromFilter(filters, OPTION_SET_ID_EQUAL, true);
+    addIfNotBlank(paramsMap, OPTION_SET_ID, optionSetId);
+
     // Add user group filtering, when present.
     if (currentUser != null && CollectionUtils.isNotEmpty(currentUser.getGroups())) {
       Set<String> userGroupUids =
@@ -311,6 +370,72 @@ public class FilteringHelper {
               .map(group -> trimToEmpty(group.getUid()))
               .collect(toSet());
       paramsMap.addValue(USER_GROUP_UIDS, "{" + join(",", userGroupUids) + "}");
+    }
+  }
+
+  /**
+   * Simply checks if the given id has the format "uid1.uid2" (which means double composed).
+   *
+   * @param id the id representation.
+   * @return true, if double composed. False, otherwise.
+   */
+  private static boolean isDoubleComposedId(@Nonnull String id) {
+    String[] composedIds = id.split(DIM_SEPARATOR);
+
+    return composedIds.length == 2;
+  }
+
+  /**
+   * Simply checks if the given id has the format "uid1.uid2.uid3" (which means triple composed).
+   *
+   * @param id the id representation.
+   * @return true, if triple composed. False, otherwise.
+   */
+  private static boolean isTripleComposedId(@Nonnull String id) {
+    String[] composedIds = id.split(DIM_SEPARATOR);
+
+    return composedIds.length == 3;
+  }
+
+  /**
+   * Handles the given double composed id, adding the correct parameters into the given params map.
+   * If the id is not double composed, nothing happens.
+   *
+   * @param composedId the id representation.
+   * @param paramsMap the {@link MapSqlParameterSource}.
+   */
+  private static void handleDoubleComposedDimensionIdFilter(
+      @Nonnull String composedId, @Nonnull MapSqlParameterSource paramsMap) {
+    String[] composedIds = composedId.split(DIM_SEPARATOR);
+
+    if (composedIds.length == 2) {
+      String programId = composedIds[0];
+      String elementId = composedIds[1];
+
+      addIfNotBlank(paramsMap, PROGRAM_ID, programId);
+      addIfNotBlank(paramsMap, UID, elementId);
+    }
+  }
+
+  /**
+   * Handles the given triple composed id, adding the correct parameters into the given params map.
+   * If the id is not triple composed, nothing happens.
+   *
+   * @param composedId the id representation.
+   * @param paramsMap the {@link MapSqlParameterSource}.
+   */
+  private static void handleTripleComposedDimensionIdFilter(
+      String composedId, MapSqlParameterSource paramsMap) {
+    String[] composedIds = composedId.split(DIM_SEPARATOR);
+
+    if (composedIds.length == 3) {
+      String programId = composedIds[0];
+      String elementId = composedIds[1];
+      String optionId = composedIds[2];
+
+      addIfNotBlank(paramsMap, PROGRAM_ID, programId);
+      addIfNotBlank(paramsMap, UID, elementId);
+      addIfNotBlank(paramsMap, OPTION_ID, optionId);
     }
   }
 

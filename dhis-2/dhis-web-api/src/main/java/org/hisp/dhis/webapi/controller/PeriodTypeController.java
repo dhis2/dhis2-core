@@ -52,7 +52,9 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Document(domain = Period.class)
+@OpenApi.Document(
+    entity = Period.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @RestController
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequestMapping("/api/periodTypes")

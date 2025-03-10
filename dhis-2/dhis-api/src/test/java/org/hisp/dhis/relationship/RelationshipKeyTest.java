@@ -29,6 +29,7 @@ package org.hisp.dhis.relationship;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.common.UID;
 import org.junit.jupiter.api.Test;
 
 class RelationshipKeyTest {
@@ -39,8 +40,12 @@ class RelationshipKeyTest {
     RelationshipKey key =
         RelationshipKey.of(
             "dDrh5UyCyvQ",
-            RelationshipKey.RelationshipItemKey.builder().trackedEntity("Ea0rRdBPAIp").build(),
-            RelationshipKey.RelationshipItemKey.builder().trackedEntity("G1afLIEKt8A").build());
+            RelationshipKey.RelationshipItemKey.builder()
+                .trackedEntity(UID.of("Ea0rRdBPAIp"))
+                .build(),
+            RelationshipKey.RelationshipItemKey.builder()
+                .trackedEntity(UID.of("G1afLIEKt8A"))
+                .build());
 
     assertEquals("dDrh5UyCyvQ_Ea0rRdBPAIp_G1afLIEKt8A", key.asString());
   }
@@ -51,8 +56,12 @@ class RelationshipKeyTest {
     RelationshipKey key =
         RelationshipKey.of(
             "dDrh5UyCyvQ",
-            RelationshipKey.RelationshipItemKey.builder().trackedEntity("Ea0rRdBPAIp").build(),
-            RelationshipKey.RelationshipItemKey.builder().enrollment("G1afLIEKt8A").build());
+            RelationshipKey.RelationshipItemKey.builder()
+                .trackedEntity(UID.of("Ea0rRdBPAIp"))
+                .build(),
+            RelationshipKey.RelationshipItemKey.builder()
+                .enrollment(UID.of("G1afLIEKt8A"))
+                .build());
 
     assertEquals("dDrh5UyCyvQ_Ea0rRdBPAIp_G1afLIEKt8A", key.asString());
   }
@@ -63,8 +72,10 @@ class RelationshipKeyTest {
     RelationshipKey key =
         RelationshipKey.of(
             "dDrh5UyCyvQ",
-            RelationshipKey.RelationshipItemKey.builder().trackedEntity("Ea0rRdBPAIp").build(),
-            RelationshipKey.RelationshipItemKey.builder().event("G1afLIEKt8A").build());
+            RelationshipKey.RelationshipItemKey.builder()
+                .trackedEntity(UID.of("Ea0rRdBPAIp"))
+                .build(),
+            RelationshipKey.RelationshipItemKey.builder().event(UID.of("G1afLIEKt8A")).build());
 
     assertEquals("dDrh5UyCyvQ_Ea0rRdBPAIp_G1afLIEKt8A", key.asString());
   }

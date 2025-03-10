@@ -61,12 +61,6 @@ public enum ConfigurationKey {
   SYSTEM_SQL_VIEW_WRITE_ENABLED("system.sql_view_write_enabled", Constants.OFF, false),
 
   /**
-   * Disable server-side program rule execution, can be 'on', 'off'. <br>
-   * (default: on)
-   */
-  SYSTEM_PROGRAM_RULE_SERVER_EXECUTION("system.program_rule.server_execution", Constants.ON, false),
-
-  /**
    * Set the maximum size for the cache instance to be built. If set to 0, no caching will take
    * place. Cannot be a negative value. (default: 0).
    */
@@ -90,18 +84,17 @@ public enum ConfigurationKey {
   /** Analytics database platform. */
   ANALYTICS_DATABASE("analytics.database", "POSTGRESQL", false),
 
-  /** Analytics database JDBC catalog name. */
+  /** Analytics database JDBC catalog name. Applies to Apache Doris. */
   ANALYTICS_DATABASE_CATALOG("analytics.database.catalog", "pg_dhis", false),
 
-  /** Analytics database JDBC driver filename. */
+  /** Analytics database JDBC driver filename. Applies to Apache Doris. */
   ANALYTICS_DATABASE_DRIVER_FILENAME("analytics.database.driver_filename", "postgresql.jar", false),
 
   /** JDBC driver class. */
   CONNECTION_DRIVER_CLASS("connection.driver_class", "org.postgresql.Driver", false),
 
   /** Analytics JDBC driver class. */
-  ANALYTICS_CONNECTION_DRIVER_CLASS(
-      "analytics.connection.driver_class", "org.postgresql.Driver", false),
+  ANALYTICS_CONNECTION_DRIVER_CLASS("analytics.connection.driver_class", "", false),
 
   /** Database connection URL. */
   CONNECTION_URL("connection.url", "", false),
@@ -118,6 +111,15 @@ public enum ConfigurationKey {
   /** Database password (sensitive). */
   CONNECTION_PASSWORD("connection.password", "", true),
 
+  /** Database host (hostname or IP). Applies to ClickHouse. */
+  CONNECTION_HOST("connection.host", "", false),
+
+  /** Database port number. Applies to ClickHouse. */
+  CONNECTION_PORT("connection.port", "5432", false),
+
+  /** Database port number. Applies to ClickHouse. */
+  CONNECTION_DATABASE("connection.database", "", false),
+
   /** Analytics Database password (sensitive). */
   ANALYTICS_CONNECTION_PASSWORD("analytics.connection.password", "", true),
 
@@ -126,13 +128,6 @@ public enum ConfigurationKey {
 
   /** Sets 'hibernate.cache.use_query_cache'. (default: true) */
   USE_QUERY_CACHE("hibernate.cache.use_query_cache", "true", false),
-
-  /**
-   * Sets 'hibernate.hbm2ddl.auto' (default: validate). This can be overridden by the same property
-   * loaded by any class implementing {@link DhisConfigurationProvider} like {@link
-   * DefaultDhisConfigurationProvider} from dhis.conf at runtime
-   */
-  CONNECTION_SCHEMA("connection.schema", "validate", false),
 
   /** Max size of connection pool (default: 80). */
   CONNECTION_POOL_MAX_SIZE("connection.pool.max_size", "80", false),
@@ -336,6 +331,7 @@ public enum ConfigurationKey {
   /** Datacenter location (not required). */
   FILESTORE_LOCATION("filestore.location", "", false),
 
+  /** URL where the S3 compatible API can be accessed (only for provider 's3') */
   FILESTORE_ENDPOINT("filestore.endpoint", "", false),
 
   /** Public identity / username. */
@@ -344,11 +340,15 @@ public enum ConfigurationKey {
   /** Secret key / password (sensitive). */
   FILESTORE_SECRET("filestore.secret", "", true),
 
+  /** The Google service account client id. */
   GOOGLE_SERVICE_ACCOUNT_CLIENT_ID("google.service.account.client.id", "", false),
 
+  /**
+   * Maximum number of retries (if any of the steps fail) for the metadata sync task. (default: 3)
+   */
   META_DATA_SYNC_RETRY("metadata.sync.retry", "3", false),
 
-  /** Sets up {@see RetryTemplate} retry frequency. */
+  /** Sets up {@see RetryTemplate} retry frequency. (default: 30000) */
   META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC(
       "metadata.sync.retry.time.frequency.millisec", "30000", false),
 
@@ -373,7 +373,7 @@ public enum ConfigurationKey {
   /** Redis port to use for cache. (default: 6379) */
   REDIS_PORT("redis.port", "6379", false),
 
-  /** Redis password to use for cache. */
+  /** Redis password to use for cache. (sensitive) */
   REDIS_PASSWORD("redis.password", "", true),
 
   /** Use SSL for connecting to redis. (default: false) */
@@ -392,6 +392,9 @@ public enum ConfigurationKey {
    * (default: false).
    */
   FLYWAY_REPAIR_BEFORE_MIGRATION("flyway.repair_before_migration", Constants.OFF, false),
+
+  /** Whether to skip Flyway migration on startup. (default: false). */
+  FLYWAY_SKIP_MIGRATION("flyway.skip_migration", Constants.OFF, false),
 
   PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT("tracker.temporary.ownership.timeout", "3", false),
 
@@ -423,10 +426,16 @@ public enum ConfigurationKey {
   /** Artemis port to use for connection (only relevant for NATIVE mode). (default: 25672) */
   ARTEMIS_PORT("artemis.port", "25672"),
 
-  /** Artemis username to use for connection (only relevant for NATIVE mode). (default: guest) */
+  /**
+   * Artemis username to use for connection (only relevant for NATIVE mode). (default: guest)
+   * (sensitive)
+   */
   ARTEMIS_USERNAME("artemis.username", "guest", true),
 
-  /** Artemis password to use for connection (only relevant for NATIVE mode). (default: guest) */
+  /**
+   * Artemis password to use for connection (only relevant for NATIVE mode). (default: guest)
+   * (sensitive)
+   */
   ARTEMIS_PASSWORD("artemis.password", "guest", true),
 
   /**
@@ -550,22 +559,22 @@ public enum ConfigurationKey {
 
   /**
    * Google IdP specific parameters. Provider client ID: This is the identifier that the IdP
-   * assigned to your application.
+   * assigned to your application. (sensitive)
    */
   OIDC_PROVIDER_GOOGLE_CLIENT_ID("oidc.provider.google.client_id", "", true),
 
   /**
    * Google IdP specific parameters. Provider client secret: This value is a secret and should be
-   * kept secure.
+   * kept secure. (sensitive)
    */
   OIDC_PROVIDER_GOOGLE_CLIENT_SECRET("oidc.provider.google.client_secret", "", true),
 
-  /** Google IdP specific parameters. Mapping claim: *Optional. (default: email). */
+  /** Google IdP specific parameters. Mapping claim: *Optional. (default: email). (sensitive) */
   OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM("oidc.provider.google.mapping_claim", "email", true),
 
   /**
-   * Google IdP specific parameters. Redirect URL: DHIS 2 instance URL, do not end with a slash,
-   * <br>
+   * Google IdP specific parameters. Redirect URL: DHIS 2 instance URL, do not end with a slash.
+   * (sensitive) <br>
    * e.g. https://dhis2.org/demo.
    */
   OIDC_PROVIDER_GOOGLE_REDIRECT_URI("oidc.provider.google.redirect_url", "", true),
@@ -616,6 +625,9 @@ public enum ConfigurationKey {
   /** Database datasource pool type. Supported pool types are: c3p0 (default), hikari, unpooled */
   DB_POOL_TYPE("db.pool.type", "c3p0", false),
 
+  /**
+   * @TODO
+   */
   ACTIVE_READ_REPLICAS("active.read.replicas", "0", false),
 
   /**
@@ -647,10 +659,10 @@ public enum ConfigurationKey {
   /** Redis based cache invalidation feature. Enable or disable. */
   REDIS_CACHE_INVALIDATION_ENABLED("redis.cache.invalidation.enabled", Constants.OFF, false),
 
-  /** Content Security Policy feature. Enable or disable the feature. */
+  /** Content Security Policy feature. Enable or disable the feature. (sensitive) */
   CSP_ENABLED("csp.enabled", Constants.ON, true),
 
-  /** CSP upgrade insecure connections. Enable or disable the feature. */
+  /** CSP upgrade insecure connections. Enable or disable the feature. (sensitive) */
   CSP_UPGRADE_INSECURE_ENABLED("csp.upgrade.insecure.enabled", Constants.OFF, true),
 
   /** CSP default header value/string. Enable or disable the feature. */
@@ -662,17 +674,53 @@ public enum ConfigurationKey {
   /** Linked accounts via OpenID mapping. Enable or disable the feature. */
   LINKED_ACCOUNTS_ENABLED("linked_accounts.enabled", Constants.OFF, false),
 
+  /**
+   * @TODO
+   */
   LINKED_ACCOUNTS_RELOGIN_URL("linked_accounts.relogin_url", "", false),
+
+  LINKED_ACCOUNTS_LOGOUT_URL("linked_accounts.logout_url", "", false),
+
+  /** User impersonation, also known as user switching. */
   SWITCH_USER_FEATURE_ENABLED("switch_user_feature.enabled", Constants.OFF, false),
+
+  /** The list of IP address from which you will be calling the user impersonation feature. */
   SWITCH_USER_ALLOW_LISTED_IPS(
       "switch_user_allow_listed_ips", "localhost,127.0.0.1,[0:0:0:0:0:0:0:1]", false),
 
-  MAX_FILE_UPLOAD_SIZE_BYTES("max.file_upload_size", Integer.toString(10_000_000), false);
+  /** Maximun size for files uploaded as fileResources. */
+  MAX_FILE_UPLOAD_SIZE_BYTES("max.file_upload_size", Integer.toString(10_000_000), false),
+
+  /** CSRF feature. Enable or disable the feature. (sensitive) */
+  CSRF_ENABLED("http.security.csrf.enabled", Constants.OFF, true),
+
+  /** The maximum number of category options in a single category */
+  METADATA_CATEGORIES_MAX_OPTIONS("metadata.categories.max_options", "31", false),
+  /** The maximum number of categories per category combo */
+  METADATA_CATEGORIES_MAX_PER_COMBO("metadata.categories.max_per_combo", "5", false),
+  /**
+   * The maximum number of possible category combination. This is computed by multiplying the number
+   * of options in each category in a category combo with each other.
+   */
+  METADATA_CATEGORIES_MAX_COMBINATIONS("metadata.categories.max_combinations", "500", false),
+
+  /** Enable email-based 2FA authentication. (default: false) */
+  EMAIL_2FA_ENABLED("login.security.email_2fa.enabled", Constants.OFF, false),
+
+  /** Enable TOTP-based 2FA authentication. (default: true) */
+  TOTP_2FA_ENABLED("login.security.totp_2fa.enabled", Constants.ON, false),
+
+  SESSION_COOKIE_SAME_SITE("session.cookie.samesite", "Lax", false);
 
   private final String key;
 
   private final String defaultValue;
 
+  /**
+   * Confidential means that the system setting will be encrypted and not visible through the API.
+   * The system setting will be used internally in the backend, but cannot be used by web apps and
+   * clients.
+   */
   private final boolean confidential;
 
   private final String[] aliases;

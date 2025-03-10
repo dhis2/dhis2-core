@@ -34,13 +34,13 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Locale;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.Value;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -63,8 +63,7 @@ import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.webapi.CsvBuilder;
 import org.hisp.dhis.webapi.JsonBuilder;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -224,7 +223,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     Locale translationLocale =
         !params.getLocale().isEmpty()
             ? Locale.forLanguageTag(params.getLocale())
-            : CurrentUserUtil.getUserSetting(UserSettingKey.DB_LOCALE);
+            : UserSettings.getCurrentSettings().getUserDbLocale();
     return GistQuery.builder()
         .elementType(elementType)
         .autoType(params.getAuto(autoDefault))

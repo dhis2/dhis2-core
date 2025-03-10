@@ -34,9 +34,9 @@ import static org.hisp.dhis.security.Authorities.F_MINMAX_DATAELEMENT_ADD;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 import com.google.common.collect.Lists;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Objects;
-import javax.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -70,7 +70,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@OpenApi.Document(domain = DataElement.class)
+@OpenApi.Document(
+    entity = DataElement.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/minMaxDataElements")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

@@ -28,8 +28,8 @@
 package org.hisp.dhis.webapi.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.InputStream;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.i18n.I18n;
@@ -47,7 +47,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Document(domain = I18n.class)
+@OpenApi.Document(
+    entity = I18n.class,
+    classifiers = {"team:platform", "purpose:support"})
 @Controller
 @RequestMapping("/api/i18n")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +27,30 @@
  */
 package org.hisp.dhis.test.config;
 
+import static org.hisp.dhis.config.HibernateConfig.getAdditionalProperties;
+import static org.hisp.dhis.config.HibernateConfig.loadResources;
+
+import jakarta.persistence.EntityManagerFactory;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
+import java.util.Properties;
 import javax.sql.DataSource;
+import org.hibernate.cfg.AvailableSettings;
+import org.hibernate.jpa.HibernatePersistenceProvider;
+import org.hibernate.tool.schema.Action;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
-import org.hisp.dhis.datasource.model.PoolConfig;
+import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.test.h2.H2SqlFunction;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 
 /** Use this Spring configuration for tests relying on the H2 in-memory DB. */
 @Configuration
@@ -56,6 +67,29 @@ public class H2TestConfig {
     return new NoOpFlyway();
   }
 
+  // NOTE: this must stay in sync with HibernateConfig.entityManagerFactory apart from the
+  // HB2DDL_AUTO override, only then do we also test the actual EntityManagerFactory
+  @Bean
+  @DependsOn({"flyway"})
+  public EntityManagerFactory entityManagerFactory(
+      DhisConfigurationProvider dhisConfig, @Qualifier("actualDataSource") DataSource dataSource) {
+    HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
+    adapter.setDatabasePlatform(dhisConfig.getProperty(ConfigurationKey.CONNECTION_DIALECT));
+    LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
+    factory.setJpaVendorAdapter(adapter);
+    factory.setPersistenceUnitName("dhis");
+    factory.setPersistenceProviderClass(HibernatePersistenceProvider.class);
+    factory.setDataSource(dataSource);
+    factory.setPackagesToScan("org.hisp.dhis");
+    factory.setMappingResources(loadResources());
+    Properties jpaProperties = getAdditionalProperties(dhisConfig);
+    // let hibernate create the DB schema for H2 tests as no flyway migrations are run
+    jpaProperties.put(AvailableSettings.HBM2DDL_AUTO, Action.UPDATE.getExternalHbm2ddlName());
+    factory.setJpaProperties(jpaProperties);
+    factory.afterPropertiesSet();
+    return factory.getObject();
+  }
+
   @Bean(name = {"namedParameterJdbcTemplate", "analyticsNamedParameterJdbcTemplate"})
   @Primary
   public NamedParameterJdbcTemplate namedParameterJdbcTemplate(
@@ -64,12 +98,11 @@ public class H2TestConfig {
   }
 
   @Bean(name = {"dataSource", "analyticsDataSource"})
-  @Primary
   public DataSource actualDataSource(DhisConfigurationProvider config)
       throws SQLException, PropertyVetoException {
     String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
-    PoolConfig.PoolConfigBuilder builder = PoolConfig.builder();
+    DbPoolConfig.DbPoolConfigBuilder builder = DbPoolConfig.builder();
     builder.dhisConfig(config);
     builder.dbPoolType(dbPoolType);
 

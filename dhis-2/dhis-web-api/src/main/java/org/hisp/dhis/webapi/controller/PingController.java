@@ -29,12 +29,14 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.springframework.http.HttpStatus.OK;
 
+import org.hisp.dhis.common.OpenApi;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @Controller
+@OpenApi.Document(classifiers = {"team:platform", "purpose:support"})
 public class PingController {
   @GetMapping("/api/ping")
   @ResponseStatus(OK)

@@ -51,8 +51,8 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.SystemUser;
@@ -60,8 +60,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 import org.springframework.scheduling.annotation.Async;
@@ -93,11 +92,11 @@ public class DefaultMessageService implements MessageService {
 
   private final ConfigurationService configurationService;
 
-  private final UserSettingService userSettingService;
+  private final UserSettingsService userSettingsService;
 
   private final I18nManager i18nManager;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   private final List<MessageSender> messageSenders;
 
@@ -229,7 +228,7 @@ public class DefaultMessageService implements MessageService {
   @Async
   @Transactional
   public void asyncSendSystemErrorNotification(@Nonnull String subject, @Nonnull Throwable t) {
-    String title = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
+    String title = settingsProvider.getCurrentSettings().getApplicationTitle();
     String baseUrl = configurationProvider.getServerBaseUrl();
 
     String text =
@@ -503,13 +502,12 @@ public class DefaultMessageService implements MessageService {
       return StringUtils.EMPTY;
     }
 
-    Locale locale =
-        (Locale)
-            userSettingService.getUserSetting(
-                UserSettingKey.UI_LOCALE,
-                conversation.getCreatedBy() == null
-                    ? null
-                    : conversation.getCreatedBy().getUsername());
+    UserSettings settings =
+        conversation.getCreatedBy() == null
+            ? UserSettings.getCurrentSettings()
+            : userSettingsService.getUserSettings(conversation.getCreatedBy().getUsername(), true);
+
+    Locale locale = settings.getUserUiLocale();
 
     locale = ObjectUtils.firstNonNull(locale, LocaleManager.DEFAULT_LOCALE);
 

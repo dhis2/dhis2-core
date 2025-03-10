@@ -33,8 +33,8 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -61,7 +61,7 @@ public class DefaultEmailService implements EmailService {
 
   private final UserService userService;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   // -------------------------------------------------------------------------
   // EmailService implementation
@@ -69,7 +69,7 @@ public class DefaultEmailService implements EmailService {
 
   @Override
   public boolean emailConfigured() {
-    return systemSettingManager.emailConfigured();
+    return settingsProvider.getCurrentSettings().isEmailConfigured();
   }
 
   @Override
@@ -85,7 +85,7 @@ public class DefaultEmailService implements EmailService {
 
   @Override
   public OutboundMessageResponse sendTestEmail() {
-    String instanceName = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
+    String instanceName = settingsProvider.getCurrentSettings().getApplicationTitle();
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
@@ -100,8 +100,9 @@ public class DefaultEmailService implements EmailService {
   public OutboundMessageResponse sendSystemEmail(Email email) {
     OutboundMessageResponse response = new OutboundMessageResponse();
 
-    String recipient = systemSettingManager.getStringSetting(SettingKey.SYSTEM_NOTIFICATIONS_EMAIL);
-    String appTitle = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
+    SystemSettings settings = settingsProvider.getCurrentSettings();
+    String recipient = settings.getSystemNotificationsEmail();
+    String appTitle = settings.getApplicationTitle();
 
     if (recipient == null || !ValidationUtils.emailIsValid(recipient)) {
       response.setOk(false);

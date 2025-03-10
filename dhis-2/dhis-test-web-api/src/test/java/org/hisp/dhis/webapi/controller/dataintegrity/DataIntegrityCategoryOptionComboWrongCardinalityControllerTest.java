@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 
-import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -46,26 +46,6 @@ class DataIntegrityCategoryOptionComboWrongCardinalityControllerTest
   private final String detailsIdType = "categoryOptionCombos";
 
   private String categoryColor;
-
-  private String testCatCombo;
-
-  @Test
-  void setTestCatCombosWrongCardinalityExists() {
-
-    setupTest();
-    assertStatus(
-        HttpStatus.OK,
-        PUT(
-            "/categoryCombos/" + testCatCombo + "?mergeMode=REPLACE",
-            "{ 'name' : 'Taste and color', "
-                + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
-                + "{'id' : '"
-                + categoryColor
-                + "'} ]} "));
-
-    assertHasDataIntegrityIssues(
-        detailsIdType, check, 33, testCatCombo, "Taste and color", null, true);
-  }
 
   @Test
   void setTestCatCombosWrongCardinalityDoesNotExist() {
@@ -104,17 +84,16 @@ class DataIntegrityCategoryOptionComboWrongCardinalityControllerTest
                     + categoryOptionSour
                     + "'} ] }"));
 
-    testCatCombo =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/categoryCombos",
-                "{ 'name' : 'Taste and color', "
-                    + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
-                    + "{'id' : '"
-                    + categoryColor
-                    + "'} , {'id' : '"
-                    + categoryTaste
-                    + "'}]} "));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/categoryCombos",
+            "{ 'name' : 'Taste and color', "
+                + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
+                + "{'id' : '"
+                + categoryColor
+                + "'} , {'id' : '"
+                + categoryTaste
+                + "'}]} "));
   }
 }

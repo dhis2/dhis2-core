@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.hisp.dhis.analytics.table.AbstractEventJdbcTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
@@ -69,11 +69,11 @@ public class DefaultEventCoordinateService implements EventCoordinateService {
   public static final List<String> COL_NAME_PROGRAM_NO_REGISTRATION_GEOMETRY_LIST =
       List.of(COL_NAME_EVENT_GEOMETRY, COL_NAME_ENROLLMENT_GEOMETRY, COL_NAME_OU_GEOMETRY);
 
-  @Nonnull private final ProgramService programService;
+  private final ProgramService programService;
 
-  @Nonnull private final DataElementService dataElementService;
+  private final DataElementService dataElementService;
 
-  @Nonnull private final TrackedEntityAttributeService attributeService;
+  private final TrackedEntityAttributeService attributeService;
 
   @Override
   public boolean isFallbackCoordinateFieldValid(boolean isRegistration, String coordinateField) {
@@ -115,38 +115,42 @@ public class DefaultEventCoordinateService implements EventCoordinateService {
       }
 
       fallbackCoordinateFields.add(fallbackCoordinateField);
-    } else {
-      if (defaultCoordinateFallback) {
-        List<String> items =
-            new ArrayList<>(
-                pr.isRegistration()
-                    ? COL_NAME_GEOMETRY_LIST
-                    : COL_NAME_PROGRAM_NO_REGISTRATION_GEOMETRY_LIST);
+    } else if (defaultCoordinateFallback) {
+      List<String> items =
+          new ArrayList<>(
+              pr.isRegistration()
+                  ? COL_NAME_GEOMETRY_LIST
+                  : COL_NAME_PROGRAM_NO_REGISTRATION_GEOMETRY_LIST);
 
-        fallbackCoordinateFields.addAll(items);
-      }
+      fallbackCoordinateFields.addAll(items);
     }
 
     return fallbackCoordinateFields;
   }
 
   @Override
-  public String getCoordinateField(ValueType valueType, String field, ErrorCode errorCode) {
+  public String validateCoordinateField(ValueType valueType, String field, ErrorCode errorCode) {
     if (ValueType.COORDINATE != valueType && ValueType.ORGANISATION_UNIT != valueType) {
       throwIllegalQueryEx(errorCode, field);
     }
 
+    if (ValueType.ORGANISATION_UNIT == valueType) {
+      // Append the "_geom" suffix to the field
+      // so that the correct geometry column
+      // is selected
+      return field + OU_GEOMETRY_COL_SUFFIX;
+    }
     return field;
   }
 
   @Override
-  public String getCoordinateField(String program, String coordinateField, ErrorCode errorCode) {
+  public String validateCoordinateField(String program, String field, ErrorCode errorCode) {
     Program pr = programService.getProgram(program);
 
-    if (COL_NAME_TRACKED_ENTITY_GEOMETRY.equals(coordinateField) && !pr.isRegistration()) {
-      throwIllegalQueryEx(errorCode, coordinateField);
+    if (COL_NAME_TRACKED_ENTITY_GEOMETRY.equals(field) && !pr.isRegistration()) {
+      throwIllegalQueryEx(errorCode, field);
     }
 
-    return coordinateField;
+    return field;
   }
 }

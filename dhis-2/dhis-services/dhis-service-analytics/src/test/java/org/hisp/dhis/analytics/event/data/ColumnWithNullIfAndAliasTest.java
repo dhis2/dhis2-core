@@ -38,12 +38,9 @@ class ColumnWithNullIfAndAliasTest {
 
   @Test
   void testAsSqlReturnsRightInstance() {
-    // given
-    // when
     ColumnAndAlias columnAndAlias =
         ColumnWithNullIfAndAlias.ofColumnWithNullIfAndAlias(COLUMN, ALIAS);
 
-    // then
     assertEquals(COLUMN, columnAndAlias.getColumn());
 
     assertEquals(ALIAS, columnAndAlias.getAlias());
@@ -51,12 +48,9 @@ class ColumnWithNullIfAndAliasTest {
 
   @Test
   void testAsSqlReturnsRightSqlSnippetWhenCalled() {
-    // given
-    // when
     ColumnAndAlias columnAndAlias =
         ColumnWithNullIfAndAlias.ofColumnWithNullIfAndAlias(COLUMN, ALIAS);
 
-    // then
     assertEquals("nullif(" + COLUMN + ",'') as \"" + ALIAS + "\"", columnAndAlias.asSql());
   }
 }

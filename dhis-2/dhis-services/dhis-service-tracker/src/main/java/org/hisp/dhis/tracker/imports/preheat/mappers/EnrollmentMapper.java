@@ -50,6 +50,8 @@ public interface EnrollmentMapper extends PreheatMapper<Enrollment> {
   @Mapping(target = "uid")
   @Mapping(target = "code")
   @Mapping(target = "user")
+  @Mapping(target = "completedBy")
+  @Mapping(target = "completedDate")
   @Mapping(target = "program", qualifiedByName = "program")
   @Mapping(target = "trackedEntity")
   @Mapping(target = "organisationUnit")

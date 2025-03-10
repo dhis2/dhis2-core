@@ -160,6 +160,8 @@ public class DateUtils {
 
   private static final long MS_PER_S = 1000;
 
+  public static final long SECONDS_PER_DAY = 86400;
+
   private static final Pattern DURATION_PATTERN = Pattern.compile("^(\\d+)(d|h|m|s)$");
 
   private static final Map<String, ChronoUnit> TEMPORAL_MAP =
@@ -279,6 +281,18 @@ public class DateUtils {
    */
   public static Date getDate(int year, int month, int dayOfMonth, int hourOfDay, int minuteOfHour) {
     return new DateTime(year, month, dayOfMonth, hourOfDay, minuteOfHour).toDate();
+  }
+
+  /**
+   * Creates a {@link Date} representing the given year, month and day.
+   *
+   * @param year the year.
+   * @param month the month, from 1.
+   * @param dayOfMonth the day of the month, from 1.
+   * @return a {@link Date}.
+   */
+  public static Date getDate(int year, int month, int dayOfMonth) {
+    return new DateTime(year, month, dayOfMonth, 0, 0).toDate();
   }
 
   /**
@@ -637,11 +651,11 @@ public class DateUtils {
    * @param date the date.
    * @param days the number of days to add.
    */
-  public static Date addDays(Date date, int days) {
-    Calendar cal = Calendar.getInstance();
-    cal.setTime(date);
-    cal.add(Calendar.DATE, days);
-    return cal.getTime();
+  public static Date addDays(Date date, double days) {
+    final long millisPerDay = SECONDS_PER_DAY * 1000;
+    long currentTimeInMillis = date.getTime();
+    long additionalMillis = (long) (days * millisPerDay);
+    return new Date(currentTimeInMillis + additionalMillis);
   }
 
   /**
@@ -796,19 +810,29 @@ public class DateUtils {
    * UTC time zone.
    *
    * @param time the LocalDateTime.
-   * @return a Date.
+   * @return a {@link Date}.
    */
   public static Date getDate(LocalDateTime time) {
     Instant instant = time.toInstant(ZoneOffset.UTC);
-
     return Date.from(instant);
+  }
+
+  /**
+   * Truncates the given date to the first day of the month.
+   *
+   * @param date the date to truncate.
+   * @return a {@link Date}.
+   */
+  public static Date dateTruncMonth(Date date) {
+    LocalDate localDate = new LocalDate(date);
+    return localDate.withDayOfMonth(1).toDate();
   }
 
   /**
    * Return the current date minus the duration specified by the given string.
    *
    * @param duration the duration string.
-   * @return a Date.
+   * @return a {@link Date}.
    */
   public static Date nowMinusDuration(String duration) {
     Duration dr = DateUtils.getDuration(duration);

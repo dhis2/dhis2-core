@@ -46,7 +46,9 @@ import org.hisp.dhis.scheduling.JobProgress.Progress;
 public interface JobSchedulerService {
 
   /**
-   * Attempts to switch the {@link JobConfiguration#getSchedulingType()} to {@link
+   * Ad-hoc execution of existing jobs.
+   *
+   * <p>Attempts to switch the {@link JobConfiguration#getSchedulingType()} to {@link
    * SchedulingType#ONCE_ASAP} for the given job.
    *
    * <p>A job with a {@link JobConfiguration#getCronExpression()} switches back to {@link

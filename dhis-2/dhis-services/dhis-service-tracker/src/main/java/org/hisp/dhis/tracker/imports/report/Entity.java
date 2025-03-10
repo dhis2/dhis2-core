@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.TrackerType;
 
 /**
@@ -41,7 +42,7 @@ import org.hisp.dhis.tracker.TrackerType;
 public class Entity {
   @JsonProperty private final TrackerType trackerType;
 
-  @JsonProperty private String uid;
+  @JsonProperty private UID uid;
 
   private List<Error> errorReports = new ArrayList<>();
 
@@ -49,7 +50,7 @@ public class Entity {
     this.trackerType = trackerType;
   }
 
-  public Entity(TrackerType trackerType, String uid) {
+  public Entity(TrackerType trackerType, UID uid) {
     this.trackerType = trackerType;
     this.uid = uid;
   }
@@ -57,7 +58,7 @@ public class Entity {
   @JsonCreator
   public Entity(
       @JsonProperty("trackerType") TrackerType trackerType,
-      @JsonProperty("uid") String uid,
+      @JsonProperty("uid") UID uid,
       @JsonProperty("errorReports") List<Error> errorReports) {
     this.trackerType = trackerType;
     this.uid = uid;

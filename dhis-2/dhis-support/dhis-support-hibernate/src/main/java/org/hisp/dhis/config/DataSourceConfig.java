@@ -46,7 +46,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
-import org.hisp.dhis.datasource.model.PoolConfig;
+import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
@@ -90,18 +90,18 @@ public class DataSourceConfig {
   }
 
   @Primary
-  @Bean
-  public DataSource dataSource(DhisConfigurationProvider config, DataSource actualDataSource) {
-    return createLoggingDataSource(config, actualDataSource);
+  @Bean("actualDataSource")
+  public DataSource dataSource(DhisConfigurationProvider config) {
+    return createLoggingDataSource(config, actualDataSource(config));
   }
 
-  @Bean
-  public DataSource actualDataSource(DhisConfigurationProvider config) {
+  private DataSource actualDataSource(DhisConfigurationProvider config) {
     String jdbcUrl = config.getProperty(ConfigurationKey.CONNECTION_URL);
     String username = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
     String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
-    PoolConfig poolConfig = PoolConfig.builder().dhisConfig(config).dbPoolType(dbPoolType).build();
+    DbPoolConfig poolConfig =
+        DbPoolConfig.builder().dhisConfig(config).dbPoolType(dbPoolType).build();
 
     try {
       return DatabasePoolUtils.createDbPool(poolConfig);
@@ -188,16 +188,7 @@ public class DataSourceConfig {
         StackTraceElement nextElement = stackTrace[i - 1];
         String methodName1 = nextElement.getMethodName();
         String className1 = nextElement.getClassName();
-
-        log.info(
-            "JDBC: "
-                + className
-                + "#"
-                + methodName
-                + " ---- \n ----"
-                + className1
-                + "#"
-                + methodName1);
+        log.info("JDBC: {}#{} - \n - {}#{}", className, methodName, className1, methodName1);
         break;
       }
     }

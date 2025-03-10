@@ -27,29 +27,30 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
-import static org.hisp.dhis.test.web.WebClientUtils.objectReference;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.test.webapi.json.domain.JsonOrganisationUnit;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.organisationunit.OrganisationUnit} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class OrganisationUnitControllerTest extends H2ControllerIntegrationTestBase {
   private String ou0, ou1, ou21, ou22;
 
@@ -190,6 +191,11 @@ class OrganisationUnitControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void testGetParents_Root() {
+    assertListOfOrganisationUnits(GET("/organisationUnits/{id}/parents", ou0).content());
+  }
+
+  @Test
   void testGetQuery() {
     assertListOfOrganisationUnits(GET("/organisationUnits?query=L21").content(), "L21");
     assertListOfOrganisationUnits(
@@ -224,6 +230,7 @@ class OrganisationUnitControllerTest extends H2ControllerIntegrationTestBase {
 
   private void assertListOfOrganisationUnits(JsonObject response, String... names) {
     assertContainsOnly(List.of(names), toOrganisationUnitNames(response));
+    assertEquals(names.length, response.getObject("pager").getNumber("total").intValue());
   }
 
   private List<String> toOrganisationUnitNames(JsonObject response) {
@@ -259,7 +266,9 @@ class OrganisationUnitControllerTest extends H2ControllerIntegrationTestBase {
                 + "', 'shortName':'"
                 + name
                 + "', 'openingDate':'2021', 'parent': "
-                + objectReference(parentId)
+                + "{'id':'"
+                + parentId
+                + "'}"
                 + " }"));
   }
 }

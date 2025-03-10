@@ -48,7 +48,7 @@ import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
 import org.apache.commons.math3.exception.MathRuntimeException;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.hisp.dhis.analytics.AnalyticsService;
-import org.hisp.dhis.analytics.event.EventAnalyticsService;
+import org.hisp.dhis.analytics.event.data.EventAggregateService;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AnalyticsType;
 import org.hisp.dhis.common.DimensionalObject;
@@ -165,7 +165,7 @@ public class DefaultChartService implements ChartService {
 
   private final AnalyticsService analyticsService;
 
-  private final EventAnalyticsService eventAnalyticsService;
+  private final EventAggregateService eventAggregationService;
 
   // -------------------------------------------------------------------------
   // ChartService implementation
@@ -726,13 +726,13 @@ public class DefaultChartService implements ChartService {
       valueMap = analyticsService.getAggregatedDataValueMapping(plotData.getVisualization());
     } else {
       if (plotData.getEventChart() != null) {
-        Grid grid = eventAnalyticsService.getAggregatedEventData(plotData.getEventChart());
+        Grid grid = eventAggregationService.getAggregatedData(plotData.getEventChart());
 
         plotData.getEventChart().setDataItemGrid(grid);
 
         valueMap = GridUtils.getMetaValueMapping(grid, (grid.getWidth() - 1));
       } else {
-        Grid grid = eventAnalyticsService.getAggregatedEventData(plotData.getEventVisualization());
+        Grid grid = eventAggregationService.getAggregatedData(plotData.getEventVisualization());
 
         plotData.getEventVisualization().setDataItemGrid(grid);
 

@@ -49,7 +49,6 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryGroups;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
-import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.category.CategoryCombo;
@@ -61,9 +60,9 @@ import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.joda.time.DateTime;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -72,14 +71,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class QueryPlannerGroupByAggregationTypeTest {
-  private QueryPlanner subject;
-
   @Mock private PartitionManager partitionManager;
 
-  @BeforeEach
-  public void setUp() {
-    subject = new DefaultQueryPlanner(partitionManager);
-  }
+  @InjectMocks private DefaultQueryPlanner subject;
 
   @Test
   void verifyMultipleDataElementIsAggregatedWithTwoQueryGroupWhenDataTypeIsDifferent() {

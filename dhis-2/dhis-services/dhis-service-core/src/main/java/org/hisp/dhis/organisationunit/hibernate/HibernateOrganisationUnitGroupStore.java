@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.organisationunit.hibernate;
 
+import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Set;
-import javax.persistence.EntityManager;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;

@@ -28,7 +28,7 @@
 package org.hisp.dhis.trackedentity;
 
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.audit.AuditOperationType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,13 +45,13 @@ public class DefaultApiTrackedEntityAuditService implements ApiTrackedEntityAudi
   @Async
   @Transactional
   public void addTrackedEntityAudit(
-      TrackedEntity trackedEntity, String username, ChangeLogType changeLogType) {
+      TrackedEntity trackedEntity, String username, AuditOperationType auditOperationType) {
     if (username != null
         && trackedEntity != null
         && trackedEntity.getTrackedEntityType() != null
         && trackedEntity.getTrackedEntityType().isAllowAuditLog()) {
       TrackedEntityAudit trackedEntityAudit =
-          new TrackedEntityAudit(trackedEntity.getUid(), username, changeLogType);
+          new TrackedEntityAudit(trackedEntity.getUid(), username, auditOperationType);
       apiTrackedEntityAuditStore.addTrackedEntityAudit(trackedEntityAudit);
     }
   }

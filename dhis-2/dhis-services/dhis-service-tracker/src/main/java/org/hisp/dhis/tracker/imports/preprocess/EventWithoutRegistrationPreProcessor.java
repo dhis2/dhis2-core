@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.tracker.imports.preprocess;
 
+import static java.util.Objects.nonNull;
+
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -45,7 +48,7 @@ public class EventWithoutRegistrationPreProcessor implements BundlePreProcessor 
   @Override
   public void process(TrackerBundle bundle) {
     for (Event event : bundle.getEvents()) {
-      if (event.getProgramStage().isNotBlank()) {
+      if (nonNull(event.getProgramStage()) && event.getProgramStage().isNotBlank()) {
         ProgramStage programStage = bundle.getPreheat().getProgramStage(event.getProgramStage());
 
         if (programStage != null) {
@@ -84,7 +87,7 @@ public class EventWithoutRegistrationPreProcessor implements BundlePreProcessor 
     Enrollment enrollment = bundle.getPreheat().getEnrollmentsWithoutRegistration(uid);
 
     if (enrollment != null) {
-      event.setEnrollment(enrollment.getUid());
+      event.setEnrollment(UID.of(enrollment));
     }
   }
 }

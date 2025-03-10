@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.test.web.WebClient.Body;
-import static org.hisp.dhis.test.web.WebClient.ContentType;
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpClientAdapter.Body;
+import static org.hisp.dhis.http.HttpClientAdapter.ContentType;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -37,11 +37,11 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.metadata.MetadataProposalStatus;
 import org.hisp.dhis.metadata.MetadataProposalTarget;
 import org.hisp.dhis.metadata.MetadataProposalType;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonOrganisationUnit;
@@ -52,12 +52,14 @@ import org.hisp.dhis.webapi.controller.metadata.MetadataWorkflowController;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link MetadataWorkflowController}.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class MetadataWorkflowControllerTest extends H2ControllerIntegrationTestBase {
 
   private String defaultTargetId;

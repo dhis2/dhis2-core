@@ -33,6 +33,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -50,16 +51,28 @@ public class TrackedEntityRowCallbackHandler implements RowCallbackHandler {
     this.items = new LinkedHashMap<>();
   }
 
-  private TrackedEntity getTei(ResultSet rs) throws SQLException {
-
+  private TrackedEntity getTrackedEntity(ResultSet rs) throws SQLException {
     TrackedEntity te = new TrackedEntity();
     te.setUid(rs.getString(TrackedEntityQuery.getColumnName(COLUMNS.UID)));
     TrackedEntityType trackedEntityType = new TrackedEntityType();
+    trackedEntityType.setId(rs.getLong(TrackedEntityQuery.getColumnName(COLUMNS.TYPE_ID)));
     trackedEntityType.setUid(rs.getString(TrackedEntityQuery.getColumnName(COLUMNS.TYPE_UID)));
+    trackedEntityType.setCode(rs.getString(TrackedEntityQuery.getColumnName(COLUMNS.TYPE_CODE)));
+    trackedEntityType.setName(rs.getString(TrackedEntityQuery.getColumnName(COLUMNS.TYPE_NAME)));
+    trackedEntityType.setAttributeValues(
+        AttributeValues.of(
+            rs.getString(TrackedEntityQuery.getColumnName(COLUMNS.TYPE_ATTRIBUTE_VALUES))));
+    trackedEntityType.setAllowAuditLog(
+        rs.getBoolean(TrackedEntityQuery.getColumnName(COLUMNS.TYPE_ALLOW_AUDITLOG)));
     te.setTrackedEntityType(trackedEntityType);
 
     OrganisationUnit orgUnit = new OrganisationUnit();
     orgUnit.setUid(rs.getString(TrackedEntityQuery.getColumnName(COLUMNS.ORGUNIT_UID)));
+    orgUnit.setCode(rs.getString(TrackedEntityQuery.getColumnName(COLUMNS.ORGUNIT_CODE)));
+    orgUnit.setName(rs.getString(TrackedEntityQuery.getColumnName(COLUMNS.ORGUNIT_NAME)));
+    orgUnit.setAttributeValues(
+        AttributeValues.of(
+            rs.getString(TrackedEntityQuery.getColumnName(COLUMNS.ORGUNIT_ATTRIBUTE_VALUES))));
     te.setOrganisationUnit(orgUnit);
 
     te.setCreated(rs.getTimestamp(TrackedEntityQuery.getColumnName(COLUMNS.CREATED)));
@@ -85,7 +98,7 @@ public class TrackedEntityRowCallbackHandler implements RowCallbackHandler {
 
   @Override
   public void processRow(ResultSet rs) throws SQLException {
-    this.items.put(rs.getString("te_uid"), getTei(rs));
+    this.items.put(rs.getString("te_uid"), getTrackedEntity(rs));
   }
 
   public Map<String, TrackedEntity> getItems() {

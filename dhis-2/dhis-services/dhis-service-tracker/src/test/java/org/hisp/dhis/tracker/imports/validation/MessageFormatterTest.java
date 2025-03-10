@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.imports.validation;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,6 +42,7 @@ import java.util.Map;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -48,8 +50,8 @@ import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -103,7 +105,7 @@ class MessageFormatterTest {
     relationshipType.setUid("WTTYiPQDqh1");
     Program program = new Program("friendship");
     ProgramStage programStage = new ProgramStage("meet", program);
-    OrganisationUnit orgUnit = new OrganisationUnit();
+    OrganisationUnit orgUnit = createOrganisationUnit('A');
     orgUnit.setAttributeValues(attributeValues("HpSAvRWtdDR", "sunshine"));
     DataElement dataElement = new DataElement();
     dataElement.setAttributeValues(attributeValues("m0GpPuMUfFW", "ice"));
@@ -166,7 +168,7 @@ class MessageFormatterTest {
   void formatArgumentsShouldTurnTrackedEntityIntoArguments() {
     List<String> args =
         MessageFormatter.formatArguments(
-            idSchemes, TrackedEntity.builder().trackedEntity("zwccdzhk5zc").build());
+            idSchemes, TrackedEntity.builder().trackedEntity(UID.of("zwccdzhk5zc")).build());
 
     assertContainsOnly(List.of("zwccdzhk5zc"), args);
   }
@@ -175,7 +177,7 @@ class MessageFormatterTest {
   void formatArgumentsShouldTurnEnrollmentIntoArguments() {
     List<String> args =
         MessageFormatter.formatArguments(
-            idSchemes, Enrollment.builder().enrollment("zwccdzhk5zc").build());
+            idSchemes, Enrollment.builder().enrollment(UID.of("zwccdzhk5zc")).build());
 
     assertContainsOnly(List.of("zwccdzhk5zc"), args);
   }
@@ -183,7 +185,15 @@ class MessageFormatterTest {
   @Test
   void formatArgumentsShouldTurnEventIntoArguments() {
     List<String> args =
-        MessageFormatter.formatArguments(idSchemes, Event.builder().event("zwccdzhk5zc").build());
+        MessageFormatter.formatArguments(
+            idSchemes, Event.builder().event(UID.of("zwccdzhk5zc")).build());
+
+    assertContainsOnly(List.of("zwccdzhk5zc"), args);
+  }
+
+  @Test
+  void formatArgumentsShouldTurnUIDIntoArguments() {
+    List<String> args = MessageFormatter.formatArguments(idSchemes, UID.of("zwccdzhk5zc"));
 
     assertContainsOnly(List.of("zwccdzhk5zc"), args);
   }

@@ -29,9 +29,9 @@ package org.hisp.dhis.scheduling;
 
 import static java.lang.Math.max;
 import static java.util.stream.Collectors.toSet;
-import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
-import com.vladmihalcea.hibernate.type.array.StringArrayType;
+import io.hypersistence.utils.hibernate.type.array.StringArrayType;
+import jakarta.persistence.EntityManager;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -39,7 +39,6 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
@@ -269,8 +268,13 @@ public class HibernateJobConfigurationStore
         Object::toString);
   }
 
+  /**
+   * Note that the transaction boundary has been set here instead of the service to avoid over
+   * complicating the "executeNow" service method which needs this change to be completed and
+   * visible at the end of this method.
+   */
   @Override
-  @Transactional(propagation = REQUIRES_NEW)
+  @Transactional
   public boolean tryExecuteNow(@Nonnull String jobId) {
     String sql =
         """
@@ -510,13 +514,13 @@ public class HibernateJobConfigurationStore
             else schedulingtype end
         where jobstatus = 'RUNNING'
         and uid = :id
+        and now() > jobconfiguration.lastalive + interval '1 minute'
       """;
     return nativeSynchronizedQuery(sql).setParameter("id", jobId).executeUpdate() > 0;
   }
 
   private static String getSingleResultOrNull(NativeQuery<?> query) {
-    List<?> res = query.list();
-    return res == null || res.isEmpty() ? null : (String) res.get(0);
+    return (String) query.getResultStream().findFirst().orElse(null);
   }
 
   @SuppressWarnings("unchecked")

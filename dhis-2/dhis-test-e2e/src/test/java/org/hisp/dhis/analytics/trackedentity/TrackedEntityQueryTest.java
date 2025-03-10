@@ -267,8 +267,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "oi3PMIGYJH8",
             "2014-07-23 12:45:49.787",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -286,8 +286,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "mYyHxkNAOr2",
             "2014-09-23 20:01:44.961",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -305,8 +305,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "SBjuNw0Xtkn",
             "2014-10-01 12:27:37.837",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -320,18 +320,18 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
   }
 
   @Test
-  void queryWithProgramAndPagination() {
+  void queryWithProgramAndPagination() throws JSONException {
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
-            .add("program=IpHINAT79UW")
-            .add("lastUpdated=LAST_10_YEARS")
-            .add("pageSize=10")
-            .add("totalPages=true")
             .add("asc=lastupdated")
+            .add("lastUpdated=LAST_10_YEARS")
+            .add(
+                "headers=trackedentity,lastupdated,createdbydisplayname,lastupdatedbydisplayname,geometry,longitude,latitude,ouname,oucode,ounamehierarchy,w75KJ2mc4zz,zDhUuAYrxNC,cejWyOfXge6,lZGmxYbs97q")
+            .add("totalPages=true")
+            .add("pageSize=10")
+            .add("program=IpHINAT79UW")
             .add("relativePeriodDate=2022-09-27");
-
-    params = withDefaultHeaders(params);
 
     // When
     ApiResponse response =
@@ -343,26 +343,17 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .statusCode(200)
         .body("headers", hasSize(equalTo(14)))
         .body("rows", hasSize(equalTo(10)))
-        .body("metaData.pager.page", equalTo(1))
-        .body("metaData.pager.pageSize", equalTo(10))
-        .body("metaData.pager", not(hasKey("isLastPage")))
-        .body("metaData.pager.total", equalTo(19023))
-        .body("metaData.pager.pageCount", equalTo(1903))
-        .body("metaData.items.ImspTQPwCqd.name", equalTo(null))
-        .body("metaData.items.lZGmxYbs97q.name", equalTo("Unique ID"))
-        .body("metaData.items.zDhUuAYrxNC.name", equalTo("Last name"))
-        .body("metaData.items.ou.name", equalTo(null))
-        .body("metaData.dimensions", hasKey("lZGmxYbs97q"))
-        .body("metaData.dimensions", hasKey("zDhUuAYrxNC"))
-        .body("metaData.dimensions", hasKey("pe"))
-        .body("metaData.dimensions", hasKey("w75KJ2mc4zz"))
-        .body("metaData.dimensions", hasKey("cejWyOfXge6"))
-        .body("metaData.dimensions", not(hasKey("ou")))
         .body("height", equalTo(10))
         .body("width", equalTo(14))
         .body("headerWidth", equalTo(14));
 
-    // Validate headers
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"total\":19029,\"pageSize\":10,\"pageCount\":1903},\"items\":{\"lZGmxYbs97q\":{\"name\":\"Unique ID\"},\"zDhUuAYrxNC\":{\"name\":\"Last name\"},\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"w75KJ2mc4zz\":{\"name\":\"First name\"},\"2012\":{\"name\":\"2012\"},\"2021\":{\"name\":\"2021\"},\"2020\":{\"name\":\"2020\"},\"cejWyOfXge6\":{\"name\":\"Gender\"},\"2019\":{\"name\":\"2019\"},\"2018\":{\"name\":\"2018\"},\"2017\":{\"name\":\"2017\"},\"LAST_10_YEARS\":{\"name\":\"Last 10 years\"},\"2016\":{\"name\":\"2016\"},\"2015\":{\"name\":\"2015\"},\"pe\":{\"name\":\"Period\"},\"2014\":{\"name\":\"2014\"},\"2013\":{\"name\":\"2013\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"pC3N9N77UmT\":{\"uid\":\"pC3N9N77UmT\",\"name\":\"Gender\",\"options\":[{\"uid\":\"rBvjJYbMCVx\",\"code\":\"Male\"},{\"uid\":\"Mnp3oXrpAbK\",\"code\":\"Female\"}]},\"ouname\":{\"name\":\"Organisation Unit Name\",\"dimensionType\":\"ORGANISATION_UNIT\"}},\"dimensions\":{\"lZGmxYbs97q\":[],\"zDhUuAYrxNC\":[],\"pe\":[\"2012\",\"2013\",\"2014\",\"2015\",\"2016\",\"2017\",\"2018\",\"2019\",\"2020\",\"2021\"],\"w75KJ2mc4zz\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
     validateHeader(
         response, 0, "trackedentity", "Tracked entity", "TEXT", "java.lang.String", false, true);
     validateHeader(
@@ -410,15 +401,15 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     validateHeader(
         response, 13, "lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true);
 
-    // Validate the first three rows, as samples.
+    // Assert rows.
     validateRow(
         response,
         0,
         List.of(
             "oi3PMIGYJH8",
             "2014-07-23 12:45:49.787",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -429,15 +420,14 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Jackson",
             "Female",
             ""));
-
     validateRow(
         response,
         1,
         List.of(
             "mYyHxkNAOr2",
             "2014-09-23 20:01:44.961",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -448,15 +438,14 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Thomson",
             "Female",
             ""));
-
     validateRow(
         response,
         2,
         List.of(
             "SBjuNw0Xtkn",
             "2014-10-01 12:27:37.837",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -466,6 +455,132 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Tom",
             "Johson",
             "",
+            ""));
+    validateRow(
+        response,
+        3,
+        List.of(
+            "AivS67mcmKY",
+            "2014-11-15 17:48:49.114",
+            ",  ()",
+            ",  ()",
+            "",
+            "",
+            "",
+            "Ngelehun CHC",
+            "OU_559",
+            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "Sophia",
+            "Jackson",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        4,
+        List.of(
+            "cBoQxg16B6R",
+            "2014-11-15 17:56:30.892",
+            ",  ()",
+            ",  ()",
+            "",
+            "",
+            "",
+            "Ngelehun CHC",
+            "OU_559",
+            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "Emma",
+            "Thompson",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        5,
+        List.of(
+            "SHnmavBQu72",
+            "2014-11-15 18:00:47.824",
+            ",  ()",
+            ",  ()",
+            "",
+            "",
+            "",
+            "Ngelehun CHC",
+            "OU_559",
+            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "Olvia",
+            "Watts",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        6,
+        List.of(
+            "PgkxEogQBnX",
+            "2014-11-15 19:12:23.235",
+            ",  ()",
+            ",  ()",
+            "",
+            "",
+            "",
+            "Ngelehun CHC",
+            "OU_559",
+            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "Lily",
+            "Matthews",
+            "Female",
+            ""));
+    validateRow(
+        response,
+        7,
+        List.of(
+            "FcA5liuWG0x",
+            "2014-11-15 19:51:08.162",
+            ",  ()",
+            ",  ()",
+            "",
+            "",
+            "",
+            "Ngelehun CHC",
+            "OU_559",
+            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "Noah",
+            "Thompson",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        8,
+        List.of(
+            "nRcbpL1q9KL",
+            "2014-11-15 21:19:09.35",
+            ",  ()",
+            ",  ()",
+            "",
+            "",
+            "",
+            "Ngelehun CHC",
+            "OU_559",
+            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "James",
+            "Dunn",
+            "Male",
+            ""));
+    validateRow(
+        response,
+        9,
+        List.of(
+            "UtDZmrX5lSd",
+            "2014-11-15 21:20:06.375",
+            ",  ()",
+            ",  ()",
+            "",
+            "",
+            "",
+            "Ngelehun CHC",
+            "OU_559",
+            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
+            "Tim",
+            "Johnson",
+            "Male",
             ""));
   }
 
@@ -877,8 +992,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "NYKMYcUHzSt",
             "2015-08-07 15:47:24.377",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -896,8 +1011,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "sM7XmpfgKFb",
             "2015-08-07 15:47:24.033",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -915,8 +1030,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "vFSQneulDLz",
             "2015-08-07 15:47:22.383",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -968,8 +1083,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "giN9xZLKzOT",
             "2015-08-07 15:47:29.243",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -987,8 +1102,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "iP8ISoPBLaA",
             "2015-08-07 15:47:29.146",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -1006,8 +1121,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "GZrFV0JMmSV",
             "2015-08-07 15:47:28.657",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -1060,8 +1175,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "giN9xZLKzOT",
             "2015-08-07 15:47:29.243",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -1079,8 +1194,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "iP8ISoPBLaA",
             "2015-08-07 15:47:29.146",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -1098,8 +1213,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "GZrFV0JMmSV",
             "2015-08-07 15:47:28.657",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -1151,8 +1266,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "FZUETGg4CqK",
             "2015-08-07 15:47:29.256",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -1170,8 +1285,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "giN9xZLKzOT",
             "2015-08-07 15:47:29.243",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -1189,8 +1304,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "BQuVMcT4dcI",
             "2015-08-07 15:47:29.152",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -1237,9 +1352,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "NYKMYcUHzSt",
             "2015-08-07 15:47:24.377",
-            "",
+            ",  ()",
             "2015-08-07 15:47:24.376",
-            "",
+            ",  ()",
             "",
             "",
             "",
@@ -1259,9 +1374,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "sM7XmpfgKFb",
             "2015-08-07 15:47:24.033",
-            "",
+            ",  ()",
             "2015-08-07 15:47:24.032",
-            "",
+            ",  ()",
             "",
             "",
             "",
@@ -1281,9 +1396,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "vFSQneulDLz",
             "2015-08-07 15:47:22.383",
-            "",
+            ",  ()",
             "2015-08-07 15:47:22.383",
-            "",
+            ",  ()",
             "",
             "",
             "",
@@ -1332,9 +1447,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "NYKMYcUHzSt",
             "2015-08-07 15:47:24.377",
-            "",
+            ",  ()",
             "2015-08-07 15:47:24.376",
-            "",
+            ",  ()",
             "",
             "",
             "",
@@ -1354,9 +1469,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "sM7XmpfgKFb",
             "2015-08-07 15:47:24.033",
-            "",
+            ",  ()",
             "2015-08-07 15:47:24.032",
-            "",
+            ",  ()",
             "",
             "",
             "",
@@ -1376,9 +1491,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "vFSQneulDLz",
             "2015-08-07 15:47:22.383",
-            "",
+            ",  ()",
             "2015-08-07 15:47:22.383",
-            "",
+            ",  ()",
             "",
             "",
             "",
@@ -1433,8 +1548,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "EaOyKGOIGRp",
             "2016-08-03 23:47:14.517",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -1452,8 +1567,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "lSxhGlVaTvy",
             "2016-04-21 16:01:20.435",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -1471,8 +1586,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "xgrOXoHRoZC",
             "2015-08-06 21:20:52.781",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -1486,16 +1601,16 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
   }
 
   @Test
-  public void queryWithProgramAndFilterByEnrollmentDate() {
+  public void queryWithProgramAndFilterByEnrollmentDate() throws JSONException {
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
-            .add("program=IpHINAT79UW")
+            .add(
+                "headers=trackedentity,lastupdated,createdbydisplayname,lastupdatedbydisplayname,geometry,longitude,latitude,ouname,oucode,ounamehierarchy,w75KJ2mc4zz,zDhUuAYrxNC,cejWyOfXge6,lZGmxYbs97q")
             .add("enrollmentDate=IpHINAT79UW.LAST_5_YEARS")
+            .add("program=IpHINAT79UW")
             .add("desc=lastupdated")
             .add("relativePeriodDate=2023-09-27");
-
-    params = withDefaultHeaders(params);
 
     // When
     ApiResponse response =
@@ -1507,34 +1622,73 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .statusCode(200)
         .body("headers", hasSize(equalTo(14)))
         .body("rows", hasSize(equalTo(50)))
-        .body("metaData.dimensions", not(hasKey("ou")))
-        .body("metaData.dimensions", hasKey("pe"))
-        .body("metaData.dimensions.pe", hasSize(equalTo(5)))
-        .body("metaData.dimensions.pe", hasItem("2018"))
-        .body("metaData.dimensions.pe", hasItem("2019"))
-        .body("metaData.dimensions.pe", hasItem("2020"))
-        .body("metaData.dimensions.pe", hasItem("2021"))
-        .body("metaData.dimensions.pe", hasItem("2022"))
-        .body("metaData.items.pe.name", equalTo("Period"))
-        .body("metaData.items.2018.name", equalTo("2018"))
-        .body("metaData.items.2019.name", equalTo("2019"))
-        .body("metaData.items.2020.name", equalTo("2020"))
-        .body("metaData.items.2021.name", equalTo("2021"))
-        .body("metaData.items.2022.name", equalTo("2022"))
-        .body("metaData.items.LAST_5_YEARS.name", equalTo("Last 5 years"))
         .body("height", equalTo(50))
         .body("width", equalTo(14))
         .body("headerWidth", equalTo(14));
 
-    // Validate the first three rows, as samples.
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":false},\"items\":{\"lZGmxYbs97q\":{\"name\":\"Unique ID\"},\"zDhUuAYrxNC\":{\"name\":\"Last name\"},\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"w75KJ2mc4zz\":{\"name\":\"First name\"},\"2022\":{\"name\":\"2022\"},\"2021\":{\"name\":\"2021\"},\"2020\":{\"name\":\"2020\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"},\"cejWyOfXge6\":{\"name\":\"Gender\"},\"2019\":{\"name\":\"2019\"},\"2018\":{\"name\":\"2018\"},\"pe\":{\"name\":\"Period\"},\"IpHINAT79UW.pe\":{\"name\":\"Period\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"pC3N9N77UmT\":{\"uid\":\"pC3N9N77UmT\",\"name\":\"Gender\",\"options\":[{\"uid\":\"rBvjJYbMCVx\",\"code\":\"Male\"},{\"uid\":\"Mnp3oXrpAbK\",\"code\":\"Female\"}]},\"ouname\":{\"name\":\"Organisation Unit Name\",\"dimensionType\":\"ORGANISATION_UNIT\"}},\"dimensions\":{\"lZGmxYbs97q\":[],\"zDhUuAYrxNC\":[],\"pe\":[\"2018\",\"2019\",\"2020\",\"2021\",\"2022\"],\"w75KJ2mc4zz\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
+    validateHeader(
+        response, 0, "trackedentity", "Tracked entity", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response,
+        1,
+        "lastupdated",
+        "Last updated",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeader(
+        response, 2, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response,
+        3,
+        "lastupdatedbydisplayname",
+        "Last updated by",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeader(response, 4, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response, 5, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
+    validateHeader(response, 6, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
+    validateHeader(
+        response, 7, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response, 8, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response,
+        9,
+        "ounamehierarchy",
+        "Organisation unit hierarchy",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeader(
+        response, 10, "w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response, 11, "zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 12, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response, 13, "lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true);
+
+    // Assert only first three rows, as samples.
     validateRow(
         response,
         0,
         List.of(
             "PQfMcpmXeFE",
             "2016-08-03 23:49:43.309",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -1545,15 +1699,14 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Kelly",
             "Male",
             ""));
-
     validateRow(
         response,
         1,
         List.of(
             "EaOyKGOIGRp",
             "2016-08-03 23:47:14.517",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -1564,15 +1717,14 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "Jones",
             "Female",
             ""));
-
     validateRow(
         response,
         2,
         List.of(
             "lSxhGlVaTvy",
             "2016-04-21 16:01:20.435",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -1633,8 +1785,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "vOxUH373fy5",
             "2017-05-26 11:46:22.372",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -1652,8 +1804,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "lkuI9OgwfOc",
             "2017-01-20 10:41:45.624",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -1671,8 +1823,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "pybd813kIWx",
             "2017-01-20 10:40:31.913",
-            "",
-            "",
+            ",  ()",
+            ",  ()",
             "",
             "",
             "",
@@ -1727,9 +1879,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "SBjuNw0Xtkn",
             "2014-10-01 12:27:37.837",
-            "",
+            ",  ()",
             "2014-10-01 12:27:35.417",
-            "",
+            ",  ()",
             "",
             "",
             "",
@@ -1745,15 +1897,15 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
   }
 
   @Test
-  public void queryWithProgramAndEnrollmentDateAndNegativeEnrollmentOffset() {
+  public void queryWithProgramAndEnrollmentDateAndNegativeEnrollmentOffset() throws JSONException {
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
-            .add("program=IpHINAT79UW")
+            .add("headers=ouname,w75KJ2mc4zz,zDhUuAYrxNC")
             .add("enrollmentDate=IpHINAT79UW[1].LAST_YEAR")
+            .add("program=IpHINAT79UW")
             .add("desc=lastupdated")
-            .add("relativePeriodDate=2023-04-03")
-            .add("headers=ouname,w75KJ2mc4zz,zDhUuAYrxNC");
+            .add("relativePeriodDate=2023-04-03");
 
     // When
     ApiResponse response =
@@ -1769,7 +1921,13 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .body("width", equalTo(3))
         .body("headerWidth", equalTo(3));
 
-    // Validate headers
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":50,\"isLastPage\":false},\"items\":{\"lZGmxYbs97q\":{\"name\":\"Unique ID\"},\"zDhUuAYrxNC\":{\"name\":\"Last name\"},\"pe\":{\"name\":\"Period\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"IpHINAT79UW.pe\":{\"name\":\"Period\"},\"w75KJ2mc4zz\":{\"name\":\"First name\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"2022\":{\"name\":\"2022\"},\"LAST_YEAR\":{\"name\":\"Last year\"},\"cejWyOfXge6\":{\"name\":\"Gender\"},\"ouname\":{\"name\":\"Organisation Unit Name\",\"dimensionType\":\"ORGANISATION_UNIT\"}},\"dimensions\":{\"lZGmxYbs97q\":[],\"zDhUuAYrxNC\":[],\"pe\":[\"2022\"],\"w75KJ2mc4zz\":[],\"cejWyOfXge6\":[\"rBvjJYbMCVx\",\"Mnp3oXrpAbK\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
     validateHeader(
         response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
     validateHeader(
@@ -1777,11 +1935,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     validateHeader(
         response, 2, "zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true);
 
-    // Validate the first three rows, as samples.
+    // Assert first three rows, as samples.
     validateRow(response, 0, List.of("Ngelehun CHC", "John", "Kelly"));
-
     validateRow(response, 1, List.of("Ngelehun CHC", "Anna", "Jones"));
-
     validateRow(response, 2, List.of("Masoko MCHP", "Diane", "Bryant"));
   }
 
@@ -1917,9 +2073,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "acCGrc3qlji",
             "2015-08-06 21:12:36.226",
-            "",
+            ",  ()",
             "2015-08-06 21:12:36.226",
-            "",
+            ",  ()",
             "",
             "",
             "",
@@ -1939,9 +2095,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "yG1PQX6xCkK",
             "2015-08-07 15:47:23.061",
-            "",
+            ",  ()",
             "2015-08-07 15:47:23.06",
-            "",
+            ",  ()",
             "",
             "",
             "",
@@ -1961,9 +2117,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "cr0DjId1xhO",
             "2015-08-06 21:20:47.468",
-            "",
+            ",  ()",
             "2015-08-06 21:20:47.467",
-            "",
+            ",  ()",
             "",
             "",
             "",
@@ -2018,9 +2174,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "acCGrc3qlji",
             "2015-08-06 21:12:36.226",
-            "",
+            ",  ()",
             "2015-08-06 21:12:36.226",
-            "",
+            ",  ()",
             "",
             "",
             "",
@@ -2040,9 +2196,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "yG1PQX6xCkK",
             "2015-08-07 15:47:23.061",
-            "",
+            ",  ()",
             "2015-08-07 15:47:23.06",
-            "",
+            ",  ()",
             "",
             "",
             "",
@@ -2062,9 +2218,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "cr0DjId1xhO",
             "2015-08-06 21:20:47.468",
-            "",
+            ",  ()",
             "2015-08-06 21:20:47.467",
-            "",
+            ",  ()",
             "",
             "",
             "",
@@ -2118,9 +2274,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "F8yKM85NbxW",
             "2019-08-21 13:31:33.41",
-            "",
+            ",  ()",
             "2019-08-21 13:25:38.022",
-            "",
+            ",  ()",
             "",
             "POINT(-11.7896 8.2593)",
             "-11.7896",
@@ -2146,9 +2302,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "DsSlC54GNXy",
             "2019-08-21 13:31:27.995",
-            "",
+            ",  ()",
             "2019-08-21 13:25:29.756",
-            "",
+            ",  ()",
             "",
             "POINT(-11.773 8.3201)",
             "-11.773",
@@ -2174,9 +2330,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "AuAWm61eD0X",
             "2019-08-21 13:31:09.399",
-            "",
+            ",  ()",
             "2019-08-21 13:24:59.811",
-            "",
+            ",  ()",
             "",
             "POINT(-11.7809 8.3373)",
             "-11.7809",
@@ -2236,9 +2392,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "F8yKM85NbxW",
             "2019-08-21 13:31:33.41",
-            "",
+            ",  ()",
             "2019-08-21 13:25:38.022",
-            "",
+            ",  ()",
             "",
             "POINT(-11.7896 8.2593)",
             "-11.7896",
@@ -2264,9 +2420,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "DsSlC54GNXy",
             "2019-08-21 13:31:27.995",
-            "",
+            ",  ()",
             "2019-08-21 13:25:29.756",
-            "",
+            ",  ()",
             "",
             "POINT(-11.773 8.3201)",
             "-11.773",
@@ -2292,9 +2448,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "AuAWm61eD0X",
             "2019-08-21 13:31:09.399",
-            "",
+            ",  ()",
             "2019-08-21 13:24:59.811",
-            "",
+            ",  ()",
             "",
             "POINT(-11.7809 8.3373)",
             "-11.7809",
@@ -2357,9 +2513,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "YiKaRIm5IUj",
             "2015-08-06 21:20:52.78",
-            "",
+            ",  ()",
             "2015-08-06 21:20:52.78",
-            "",
+            ",  ()",
             "",
             "",
             "",
@@ -2380,9 +2536,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "ApUIfbrXE0G",
             "2015-08-06 21:20:52.777",
-            "",
+            ",  ()",
             "2015-08-06 21:20:52.777",
-            "",
+            ",  ()",
             "",
             "",
             "",
@@ -2403,9 +2559,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "NiuDa8jIu4J",
             "2015-08-06 21:20:52.776",
-            "",
+            ",  ()",
             "2015-08-06 21:20:52.776",
-            "",
+            ",  ()",
             "",
             "",
             "",
@@ -2463,9 +2619,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "YiKaRIm5IUj",
             "2015-08-06 21:20:52.78",
-            "",
+            ",  ()",
             "2015-08-06 21:20:52.78",
-            "",
+            ",  ()",
             "",
             "",
             "",
@@ -2486,9 +2642,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "ApUIfbrXE0G",
             "2015-08-06 21:20:52.777",
-            "",
+            ",  ()",
             "2015-08-06 21:20:52.777",
-            "",
+            ",  ()",
             "",
             "",
             "",
@@ -2509,9 +2665,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "NiuDa8jIu4J",
             "2015-08-06 21:20:52.776",
-            "",
+            ",  ()",
             "2015-08-06 21:20:52.776",
-            "",
+            ",  ()",
             "",
             "",
             "",
@@ -2567,9 +2723,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "vOxUH373fy5",
             "2017-05-26 11:46:22.372",
-            "",
+            ",  ()",
             "2017-01-20 10:44:02.77",
-            "",
+            ",  ()",
             "",
             "",
             "",
@@ -2624,9 +2780,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "vOxUH373fy5",
             "2017-05-26 11:46:22.372",
-            "",
+            ",  ()",
             "2017-01-20 10:44:02.77",
-            "",
+            ",  ()",
             "",
             "",
             "",
@@ -2681,9 +2837,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         List.of(
             "vOxUH373fy5",
             "2017-05-26 11:46:22.372",
-            "",
+            ",  ()",
             "2017-01-20 10:44:02.77",
-            "",
+            ",  ()",
             "",
             "",
             "",

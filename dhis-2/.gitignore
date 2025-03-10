@@ -33,7 +33,6 @@
 /dhis-web-portal/target/
 /dhis-web-server/target/
 /dhis-web-reporting/target/
-/dhis-web-embedded-jetty/target/
 
 # Datasource local storage ignored files
 /.idea/dataSources/
@@ -55,3 +54,6 @@ http-client.private.env.json
 
 # VS Code
 .vscode/
+
+# optinal integration test file, should not be committed
+/dhis-support/dhis-support-test/src/main/resources/db/init-db.sql

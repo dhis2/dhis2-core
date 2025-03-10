@@ -44,7 +44,7 @@ import static org.hisp.dhis.db.model.DataType.TEXT;
 import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.Table.STAGING_TABLE_SUFFIX;
 import static org.hisp.dhis.db.model.constraint.Nullable.NULL;
-import static org.hisp.dhis.period.PeriodDataProvider.DataSource.DATABASE;
+import static org.hisp.dhis.period.PeriodDataProvider.PeriodSource.DATABASE;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.test.TestBase.createCategory;
 import static org.hisp.dhis.test.TestBase.createCategoryCombo;
@@ -56,7 +56,6 @@ import static org.hisp.dhis.test.TestBase.createTrackedEntityAttribute;
 import static org.hisp.dhis.test.TestBase.getDate;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -70,10 +69,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
@@ -86,7 +83,6 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
@@ -95,15 +91,14 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
+import org.hisp.dhis.period.PeriodDataProvider.PeriodSource;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.database.DatabaseInfo;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
@@ -111,8 +106,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -127,9 +124,9 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Mock private CategoryService categoryService;
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsProvider settingsProvider;
 
-  @Mock private DatabaseInfoProvider databaseInfoProvider;
+  @Mock private SystemSettings settings;
 
   @Mock private JdbcTemplate jdbcTemplate;
 
@@ -139,17 +136,15 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Mock private AnalyticsTableSettings analyticsTableSettings;
 
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
-  private JdbcEventAnalyticsTableManager subject;
+  @InjectMocks private JdbcEventAnalyticsTableManager subject;
 
   private Date today;
 
   private static final Date START_TIME = new DateTime(2019, 8, 1, 0, 0).toDate();
 
   private static final String TABLE_PREFIX = "analytics_event_";
-
-  private static final String FROM_CLAUSE = "from event where eventid=ev.eventid";
 
   private static final String DATE_CLAUSE =
       "CASE WHEN 'SCHEDULE' = ev.status THEN ev.scheduleddate ELSE ev.occurreddate END";
@@ -175,23 +170,8 @@ class JdbcEventAnalyticsTableManagerTest {
   public void setUp() {
     today = Date.from(LocalDate.of(2019, 7, 6).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
-    when(databaseInfoProvider.getDatabaseInfo()).thenReturn(DatabaseInfo.builder().build());
-    subject =
-        new JdbcEventAnalyticsTableManager(
-            idObjectManager,
-            organisationUnitService,
-            categoryService,
-            systemSettingManager,
-            mock(DataApprovalLevelService.class),
-            resourceTableService,
-            mock(AnalyticsTableHookService.class),
-            mock(PartitionManager.class),
-            databaseInfoProvider,
-            jdbcTemplate,
-            analyticsTableSettings,
-            periodDataProvider,
-            sqlBuilder);
-    assertThat(subject.getAnalyticsTableType(), is(AnalyticsTableType.EVENT));
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(settings.getLastSuccessfulResourceTablesUpdate()).thenReturn(new Date(0L));
   }
 
   @Test
@@ -212,18 +192,16 @@ class JdbcEventAnalyticsTableManagerTest {
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withStartTime(startTime)
-            .withLatestPartition()
-            .withSkipPrograms(skipPrograms)
-            .build();
+            .startTime(startTime)
+            .skipPrograms(skipPrograms)
+            .build()
+            .withLatestPartition();
 
     List<Map<String, Object>> queryResp = new ArrayList<>();
     queryResp.add(Map.of("dataelementid", 1));
 
-    when(systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE))
-        .thenReturn(lastFullTableUpdate);
-    when(systemSettingManager.getDateSetting(
-            SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE))
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(lastFullTableUpdate);
+    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
         .thenReturn(lastLatestPartitionUpdate);
     when(jdbcTemplate.queryForList(Mockito.anyString())).thenReturn(queryResp);
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(programs);
@@ -264,8 +242,7 @@ class JdbcEventAnalyticsTableManagerTest {
     addCategoryCombo(program, categoryCombo);
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
-    when(periodDataProvider.getAvailableYears(DATABASE))
-        .thenReturn(List.of(2018, 2019, now().getYear()));
+    mockPeriodYears(List.of(2018, 2019, now().getYear()));
 
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
 
@@ -275,9 +252,9 @@ class JdbcEventAnalyticsTableManagerTest {
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears(2)
-            .withStartTime(START_TIME)
-            .withToday(today)
+            .lastYears(2)
+            .startTime(START_TIME)
+            .today(today)
             .build();
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
@@ -289,7 +266,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .withName(TABLE_PREFIX + program.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
         .withMainName(TABLE_PREFIX + program.getUid().toLowerCase())
         .withColumnSize(57 + OU_NAME_HIERARCHY_COUNT)
-        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
         .addColumns(periodColumns)
         .addColumn(
             categoryA.getUid(),
@@ -309,8 +286,7 @@ class JdbcEventAnalyticsTableManagerTest {
   void verifyClientSideTimestampsColumns() {
     Program program = createProgram('A');
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
-    when(periodDataProvider.getAvailableYears(DATABASE))
-        .thenReturn(List.of(2018, 2019, now().getYear()));
+    mockPeriodYears(List.of(2018, 2019, now().getYear()));
 
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
 
@@ -320,9 +296,9 @@ class JdbcEventAnalyticsTableManagerTest {
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears(2)
-            .withStartTime(START_TIME)
-            .withToday(today)
+            .lastYears(2)
+            .startTime(START_TIME)
+            .today(today)
             .build();
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
@@ -335,18 +311,22 @@ class JdbcEventAnalyticsTableManagerTest {
     assertThat(
         lastUpdated.getSelectExpression(),
         is(
-            "case when ev.lastupdatedatclient is not null then ev.lastupdatedatclient else ev.lastupdated end"));
+            """
+            case when ev.lastupdatedatclient is not null \
+            then ev.lastupdatedatclient else ev.lastupdated end"""));
     assertThat(
         created.getSelectExpression(),
-        is("case when ev.createdatclient is not null then ev.createdatclient else ev.created end"));
+        is(
+            """
+            case when ev.createdatclient is not null \
+            then ev.createdatclient else ev.created end"""));
   }
 
   @Test
   void verifyAnalyticsEventTableHasDefaultPartition() {
     Program program = createProgram('A');
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
-    when(periodDataProvider.getAvailableYears(DATABASE))
-        .thenReturn(List.of(2021, 2022, 2023, 2024, 2025));
+    mockPeriodYears(List.of(2021, 2022, 2023, 2024, 2025));
 
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
 
@@ -356,9 +336,9 @@ class JdbcEventAnalyticsTableManagerTest {
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears(2)
-            .withStartTime(START_TIME)
-            .withToday(today)
+            .lastYears(2)
+            .startTime(START_TIME)
+            .today(today)
             .build();
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
@@ -377,8 +357,6 @@ class JdbcEventAnalyticsTableManagerTest {
 
   @Test
   void verifyGetTableWithDataElements() {
-    when(databaseInfoProvider.getDatabaseInfo())
-        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
     Program program = createProgram('A');
 
     DataElement d1 = createDataElement('Z', ValueType.TEXT, AggregationType.SUM);
@@ -395,60 +373,48 @@ class JdbcEventAnalyticsTableManagerTest {
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
 
-    String aliasD1 = "(select eventdatavalues #>> '{%s, value}' " + FROM_CLAUSE + " ) as \"%s\"";
+    String aliasD1 = "eventdatavalues #>> '{%s, value}' as \"%s\"";
     String aliasD2 =
-        "(select cast(eventdatavalues #>> '{%s, value}' as double precision) "
-            + FROM_CLAUSE
-            + "  and eventdatavalues #>> '{%s,value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
+        """
+        case when eventdatavalues #>> '{deabcdefghP, value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$' \
+        then cast(eventdatavalues #>> '{deabcdefghP, value}' as double precision) end as "deabcdefghP\"""";
     String aliasD3 =
-        "(select case when eventdatavalues #>> '{%s, value}' = 'true' then 1 when eventdatavalues #>> '{%s, value}' = 'false' then 0 else null end "
-            + FROM_CLAUSE
-            + " ) as \"%s\"";
+        """
+        case when eventdatavalues #>> '{deabcdefghY, value}' = 'true' then 1 \
+        when eventdatavalues #>> '{deabcdefghY, value}' = 'false' then 0 else null end as "deabcdefghY\"""";
     String aliasD4 =
-        "(select cast(eventdatavalues #>> '{%s, value}' as timestamp) "
-            + FROM_CLAUSE
-            + "  and eventdatavalues #>> '{%s,value}' ~* '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$') as \"%s\"";
+        """
+        case when eventdatavalues #>> '{deabcdefghW, value}' ~* '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$' \
+        then cast(eventdatavalues #>> '{deabcdefghW, value}' as timestamp) end as "deabcdefghW\"""";
     String aliasD5 =
-        "(select ou.uid from organisationunit ou where ou.uid = "
-            + "(select eventdatavalues #>> '{"
-            + d5.getUid()
-            + ", value}' "
-            + FROM_CLAUSE
-            + " )) as \""
-            + d5.getUid()
-            + "\"";
+        "eventdatavalues #>> '{" + d5.getUid() + ", value}' as \"" + d5.getUid() + "\"";
     String aliasD6 =
-        "(select cast(eventdatavalues #>> '{%s, value}' as bigint) "
-            + FROM_CLAUSE
-            + "  and eventdatavalues #>> '{%s,value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
+        """
+        case when eventdatavalues #>> '{deabcdefghH, value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$' \
+        then cast(eventdatavalues #>> '{deabcdefghH, value}' as bigint) end as "deabcdefghH\"""";
     String aliasD7 =
-        "(select ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (eventdatavalues #>> '{%s, value}') || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}') from event where eventid=ev.eventid ) as \"%s\"";
+        """
+        ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (eventdatavalues #>> '{deabcdefghU, value}') || ', "crs":{"type":"name", "properties":{"name":"EPSG:4326"}}}') as "deabcdefghU\"""";
     String aliasD5_geo =
-        "(select ou.geometry from organisationunit ou where ou.uid = (select eventdatavalues #>> '{"
+        "(select ou.geometry from \"organisationunit\" ou where ou.uid = eventdatavalues #>> '{"
             + d5.getUid()
-            + ", value}' "
-            + FROM_CLAUSE
-            + " )) as \""
+            + ", value}') as \""
             + d5.getUid()
             + "\"";
     String aliasD5_name =
-        "(select ou.name from organisationunit ou where ou.uid = (select eventdatavalues #>> '{"
+        "(select ou.name from \"organisationunit\" ou where ou.uid = eventdatavalues #>> '{"
             + d5.getUid()
-            + ", value}' "
-            + FROM_CLAUSE
-            + " )) as \""
+            + ", value}') as \""
             + d5.getUid()
             + "\"";
-
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears(2)
-            .withStartTime(START_TIME)
-            .withToday(today)
+            .lastYears(2)
+            .startTime(START_TIME)
+            .today(today)
             .build();
 
-    when(periodDataProvider.getAvailableYears(DATABASE))
-        .thenReturn(List.of(2018, 2019, now().getYear()));
+    mockPeriodYears(List.of(2018, 2019, now().getYear()));
 
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
 
@@ -501,26 +467,16 @@ class JdbcEventAnalyticsTableManagerTest {
             GEOMETRY_POINT,
             toSelectExpression(aliasD7, d7.getUid())) // ValueType.COORDINATES
         // element d5 also creates a Geo column
-        .addColumn(
-            d5.getUid() + "_geom",
-            GEOMETRY,
-            toSelectExpression(aliasD5_geo, d5.getUid()),
-            IndexType.GIST)
+        .addColumn(d5.getUid() + "_geom", GEOMETRY, aliasD5_geo, IndexType.GIST)
         // element d5 also creates a Name column
-        .addColumn(
-            d5.getUid() + "_name",
-            TEXT,
-            toSelectExpression(aliasD5_name, d5.getUid() + "_name"),
-            Skip.SKIP)
-        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
+        .addColumn(d5.getUid() + "_name", TEXT, aliasD5_name, Skip.SKIP)
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
         .build()
         .verify();
   }
 
   @Test
   void verifyGetTableWithTrackedEntityAttribute() {
-    when(databaseInfoProvider.getDatabaseInfo())
-        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
     Program program = createProgram('A');
 
     TrackedEntityAttribute tea1 = rnd.nextObject(TrackedEntityAttribute.class);
@@ -538,21 +494,31 @@ class JdbcEventAnalyticsTableManagerTest {
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
 
-    String aliasD1 = "(select eventdatavalues #>> '{%s, value}' " + FROM_CLAUSE + " ) as \"%s\"";
-    String aliasTea1 =
-        "(select %s from organisationunit ou where ou.uid = (select value from "
-            + "trackedentityattributevalue where trackedentityid=en.trackedentityid and "
-            + "trackedentityattributeid=%d)) as \"%s\"";
+    String aliasD1 =
+        """
+        eventdatavalues #>> '{deabcdefghZ, value}' as "deabcdefghZ\"""";
+    String aliasTeaUid = "%s.value";
+
+    String ouGeometryQuery =
+        String.format(
+            """
+            (select ou.geometry from "organisationunit" ou where ou.uid = %1$s.value) as %1$s""",
+            quote(tea1.getUid()));
+
+    String ouNameQuery =
+        String.format(
+            """
+            (select ou.name from "organisationunit" ou where ou.uid = %1$s.value) as %1$s""",
+            quote(tea1.getUid()));
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears(2)
-            .withStartTime(START_TIME)
-            .withToday(today)
+            .lastYears(2)
+            .startTime(START_TIME)
+            .today(today)
             .build();
 
-    when(periodDataProvider.getAvailableYears(DATABASE))
-        .thenReturn(List.of(2018, 2019, now().getYear()));
+    mockPeriodYears(List.of(2018, 2019, now().getYear()));
 
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
 
@@ -570,25 +536,13 @@ class JdbcEventAnalyticsTableManagerTest {
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(59 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .addColumn(
-            d1.getUid(),
-            TEXT,
-            toSelectExpression(aliasD1, d1.getUid()),
-            Skip.SKIP) // ValueType.TEXT
-        .addColumn(
-            tea1.getUid(), TEXT, String.format(aliasTea1, "ou.uid", tea1.getId(), tea1.getUid()))
-        // Second Geometry column created from the OU column above
-        .addColumn(
-            tea1.getUid() + "_geom",
-            GEOMETRY,
-            String.format(aliasTea1, "ou.geometry", tea1.getId(), tea1.getUid()),
-            IndexType.GIST)
-        .addColumn(
-            tea1.getUid() + "_name",
-            TEXT,
-            String.format(aliasTea1, "ou.name", tea1.getId(), tea1.getUid()),
-            Skip.SKIP)
-        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
+        .addColumn(d1.getUid(), TEXT, toSelectExpression(aliasD1, d1.getUid()), Skip.SKIP)
+        .addColumn(tea1.getUid(), TEXT, String.format(aliasTeaUid, quote(tea1.getUid())))
+        // Org unit geometry column
+        .addColumn(tea1.getUid() + "_geom", GEOMETRY, ouGeometryQuery, IndexType.GIST)
+        // Org unit name column
+        .addColumn(tea1.getUid() + "_name", TEXT, ouNameQuery, Skip.SKIP)
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
         .build()
         .verify();
   }
@@ -596,8 +550,6 @@ class JdbcEventAnalyticsTableManagerTest {
   @Test
   void verifyDataElementTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(databaseInfoProvider.getDatabaseInfo())
-        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
     Program programA = createProgram('A');
 
     DataElement d5 = createDataElement('G', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
@@ -610,13 +562,12 @@ class JdbcEventAnalyticsTableManagerTest {
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears(2)
-            .withStartTime(START_TIME)
-            .withToday(today)
+            .lastYears(2)
+            .startTime(START_TIME)
+            .today(today)
             .build();
 
-    when(periodDataProvider.getAvailableYears(DATABASE))
-        .thenReturn(List.of(2018, 2019, now().getYear()));
+    mockPeriodYears(List.of(2018, 2019, now().getYear()));
 
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
 
@@ -631,24 +582,26 @@ class JdbcEventAnalyticsTableManagerTest {
     subject.populateTable(params, partition);
     verify(jdbcTemplate).execute(sql.capture());
 
-    String ouQuery =
-        "(select ou.%s from organisationunit ou where ou.uid = "
-            + "(select eventdatavalues #>> '{"
-            + d5.getUid()
-            + ", value}' from event where "
-            + "eventid=ev.eventid )) as \""
-            + d5.getUid()
-            + "\"";
+    String ouUidQuery =
+        String.format(
+            """
+            eventdatavalues #>> '{%s, value}' as %s""",
+            d5.getUid(), quote(d5.getUid()));
 
-    assertThat(sql.getValue(), containsString(String.format(ouQuery, "uid")));
-    assertThat(sql.getValue(), containsString(String.format(ouQuery, "name")));
+    String ouNameQuery =
+        String.format(
+            """
+            (select ou.name from "organisationunit" ou where ou.uid = \
+            eventdatavalues #>> '{%s, value}') as %s""",
+            d5.getUid(), quote(d5.getUid()));
+
+    assertThat(sql.getValue(), containsString(ouUidQuery));
+    assertThat(sql.getValue(), containsString(ouNameQuery));
   }
 
   @Test
   void verifyTeiTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(databaseInfoProvider.getDatabaseInfo())
-        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
     Program programA = createProgram('A');
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);
@@ -660,16 +613,15 @@ class JdbcEventAnalyticsTableManagerTest {
     programA.setProgramAttributes(List.of(programTrackedEntityAttribute));
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(programA));
-    when(periodDataProvider.getAvailableYears(DATABASE))
-        .thenReturn(List.of(2018, 2019, now().getYear()));
+    mockPeriodYears(List.of(2018, 2019, now().getYear()));
 
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears(2)
-            .withStartTime(START_TIME)
-            .withToday(today)
+            .lastYears(2)
+            .startTime(START_TIME)
+            .today(today)
             .build();
 
     when(jdbcTemplate.queryForList(
@@ -683,22 +635,28 @@ class JdbcEventAnalyticsTableManagerTest {
     subject.populateTable(params, partition);
     verify(jdbcTemplate).execute(sql.capture());
 
-    String ouQuery =
-        "(select ou.%s from organisationunit ou where ou.uid = "
-            + "(select value from trackedentityattributevalue where trackedentityid=en.trackedentityid and "
-            + "trackedentityattributeid=9999)) as \""
-            + tea.getUid()
-            + "\"";
+    String ouUidQuery = String.format("%s.value", quote(tea.getUid()));
 
-    assertThat(sql.getValue(), containsString(String.format(ouQuery, "uid")));
-    assertThat(sql.getValue(), containsString(String.format(ouQuery, "name")));
+    String ouGeometryQuery =
+        String.format(
+            """
+            (select ou.geometry from "organisationunit" ou where ou.uid = %1$s.value) as %1$s""",
+            quote(tea.getUid()));
+
+    String ouNameQuery =
+        String.format(
+            """
+            (select ou.name from "organisationunit" ou where ou.uid = %1$s.value) as %1$s""",
+            quote(tea.getUid()));
+
+    assertThat(sql.getValue(), containsString(ouUidQuery));
+    assertThat(sql.getValue(), containsString(ouGeometryQuery));
+    assertThat(sql.getValue(), containsString(ouNameQuery));
   }
 
   @Test
   void verifyOrgUnitOwnershipJoinsWhenPopulatingEventAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(databaseInfoProvider.getDatabaseInfo())
-        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
     Program programA = createProgram('A');
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);
@@ -710,16 +668,15 @@ class JdbcEventAnalyticsTableManagerTest {
     programA.setProgramAttributes(List.of(programTrackedEntityAttribute));
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(programA));
-    when(periodDataProvider.getAvailableYears(DATABASE))
-        .thenReturn(List.of(2018, 2019, now().getYear()));
+    mockPeriodYears(List.of(2018, 2019, now().getYear()));
 
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears(2)
-            .withStartTime(START_TIME)
-            .withToday(today)
+            .lastYears(2)
+            .startTime(START_TIME)
+            .today(today)
             .build();
 
     when(jdbcTemplate.queryForList(
@@ -735,9 +692,9 @@ class JdbcEventAnalyticsTableManagerTest {
     verify(jdbcTemplate).execute(sql.capture());
 
     String ouEnrollmentLeftJoin =
-        "left join organisationunit enrollmentou on en.organisationunitid=enrollmentou.organisationunitid";
+        "left join \"organisationunit\" enrollmentou on en.organisationunitid=enrollmentou.organisationunitid";
     String ouRegistrationLeftJoin =
-        "left join organisationunit registrationou on te.organisationunitid=registrationou.organisationunitid";
+        "left join \"organisationunit\" registrationou on te.organisationunitid=registrationou.organisationunitid";
 
     assertThat(sql.getValue(), containsString(ouEnrollmentLeftJoin));
     assertThat(sql.getValue(), containsString(ouRegistrationLeftJoin));
@@ -749,8 +706,7 @@ class JdbcEventAnalyticsTableManagerTest {
     Program programA = rnd.nextObject(Program.class);
     programA.setId(0);
 
-    when(periodDataProvider.getAvailableYears(DATABASE))
-        .thenReturn(List.of(2018, 2019, now().getYear()));
+    mockPeriodYears(List.of(2018, 2019, now().getYear()));
 
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
     int startYear = availableDataYears.get(0);
@@ -763,7 +719,7 @@ class JdbcEventAnalyticsTableManagerTest {
             "select temp.supportedyear from (select distinct extract(year from "
                 + DATE_CLAUSE
                 + ") as supportedyear "
-                + "from event ev inner join enrollment en on ev.enrollmentid = en.enrollmentid "
+                + "from \"event\" ev inner join \"enrollment\" en on ev.enrollmentid = en.enrollmentid "
                 + "where ev.lastupdated <= '2019-08-01T00:00:00' and en.programid = 0 and ("
                 + DATE_CLAUSE
                 + ") is not null "
@@ -778,7 +734,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .thenReturn(List.of(2018, 2019));
 
     AnalyticsTableUpdateParams params =
-        AnalyticsTableUpdateParams.newBuilder().withStartTime(START_TIME).build();
+        AnalyticsTableUpdateParams.newBuilder().startTime(START_TIME).build();
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
 
@@ -789,13 +745,13 @@ class JdbcEventAnalyticsTableManagerTest {
         .withMainName(TABLE_PREFIX + programA.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(
-            JdbcEventAnalyticsTableManager.FIXED_COLS.size()
+            EventAnalyticsColumn.getColumns(sqlBuilder).size()
                 + PeriodType.getAvailablePeriodTypes().size()
                 + ouLevels.size()
                 + (programA.isRegistration() ? 1 : 0)
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
         .addColumn(("uidlevel" + ouLevels.get(0).getLevel()), col -> match(ouLevels.get(0), col))
         .addColumn(("uidlevel" + ouLevels.get(1).getLevel()), col -> match(ouLevels.get(1), col))
         .build()
@@ -812,13 +768,12 @@ class JdbcEventAnalyticsTableManagerTest {
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(programA));
     when(idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class))
         .thenReturn(ouGroupSet);
-    when(periodDataProvider.getAvailableYears(DATABASE))
-        .thenReturn(List.of(2018, 2019, now().getYear()));
+    mockPeriodYears(List.of(2018, 2019, now().getYear()));
 
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
 
     AnalyticsTableUpdateParams params =
-        AnalyticsTableUpdateParams.newBuilder().withStartTime(START_TIME).build();
+        AnalyticsTableUpdateParams.newBuilder().startTime(START_TIME).build();
     when(jdbcTemplate.queryForList(
             getYearQueryForCurrentYear(programA, false, availableDataYears), Integer.class))
         .thenReturn(List.of(2018, 2019));
@@ -832,13 +787,13 @@ class JdbcEventAnalyticsTableManagerTest {
         .withMainName(TABLE_PREFIX + programA.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(
-            JdbcEventAnalyticsTableManager.FIXED_COLS.size()
+            EventAnalyticsColumn.getColumns(sqlBuilder).size()
                 + PeriodType.getAvailablePeriodTypes().size()
                 + ouGroupSet.size()
                 + (programA.isRegistration() ? 1 : 0)
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
         .addColumn(ouGroupSet.get(0).getUid(), col -> match(ouGroupSet.get(0), col))
         .addColumn(ouGroupSet.get(1).getUid(), col -> match(ouGroupSet.get(1), col))
         .build()
@@ -853,8 +808,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(programA));
     when(categoryService.getAttributeCategoryOptionGroupSetsNoAcl()).thenReturn(cogs);
-    when(periodDataProvider.getAvailableYears(DATABASE))
-        .thenReturn(List.of(2018, 2019, now().getYear()));
+    mockPeriodYears(List.of(2018, 2019, now().getYear()));
 
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
 
@@ -863,7 +817,7 @@ class JdbcEventAnalyticsTableManagerTest {
         .thenReturn(List.of(2018, 2019));
 
     AnalyticsTableUpdateParams params =
-        AnalyticsTableUpdateParams.newBuilder().withStartTime(START_TIME).build();
+        AnalyticsTableUpdateParams.newBuilder().startTime(START_TIME).build();
 
     List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
 
@@ -874,13 +828,13 @@ class JdbcEventAnalyticsTableManagerTest {
         .withMainName(TABLE_PREFIX + programA.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
         .withColumnSize(
-            JdbcEventAnalyticsTableManager.FIXED_COLS.size()
+            EventAnalyticsColumn.getColumns(sqlBuilder).size()
                 + PeriodType.getAvailablePeriodTypes().size()
                 + cogs.size()
                 + (programA.isRegistration() ? 1 : 0)
                 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
-        .withDefaultColumns(JdbcEventAnalyticsTableManager.FIXED_COLS)
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
         .addColumn(cogs.get(0).getUid(), col -> match(cogs.get(0), col))
         .addColumn(cogs.get(1).getUid(), col -> match(cogs.get(1), col))
         .build()
@@ -919,8 +873,6 @@ class JdbcEventAnalyticsTableManagerTest {
   @Test
   void verifyTeaTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable() {
     ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
-    when(databaseInfoProvider.getDatabaseInfo())
-        .thenReturn(DatabaseInfo.builder().spatialSupport(true).build());
     Program programA = createProgram('A');
 
     TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);
@@ -931,21 +883,19 @@ class JdbcEventAnalyticsTableManagerTest {
 
     programA.setProgramAttributes(List.of(programTrackedEntityAttribute));
 
-    when(periodDataProvider.getAvailableYears(DATABASE))
-        .thenReturn(List.of(2018, 2019, now().getYear()));
+    when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(programA));
+    mockPeriodYears(List.of(2018, 2019, now().getYear()));
 
     List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
     int startYear = availableDataYears.get(0);
     int latestYear = availableDataYears.get(availableDataYears.size() - 1);
 
-    when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(programA));
-
     when(jdbcTemplate.queryForList(
             "select temp.supportedyear from (select distinct extract(year from "
                 + DATE_CLAUSE
                 + ") as supportedyear "
-                + "from event ev "
-                + "inner join enrollment en on ev.enrollmentid = en.enrollmentid "
+                + "from \"event\" ev "
+                + "inner join \"enrollment\" en on ev.enrollmentid = en.enrollmentid "
                 + "where ev.lastupdated <= '2019-08-01T00:00:00' and en.programid = 0 "
                 + "and ("
                 + DATE_CLAUSE
@@ -964,9 +914,9 @@ class JdbcEventAnalyticsTableManagerTest {
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears(2)
-            .withStartTime(START_TIME)
-            .withToday(today)
+            .lastYears(2)
+            .startTime(START_TIME)
+            .today(today)
             .build();
 
     List<AnalyticsTable> analyticsTables = subject.getAnalyticsTables(params);
@@ -977,14 +927,23 @@ class JdbcEventAnalyticsTableManagerTest {
 
     verify(jdbcTemplate).execute(sql.capture());
 
-    String ouQuery =
-        """
-        (select ou.%s from organisationunit ou where ou.uid = \
-        (select value from trackedentityattributevalue where trackedentityid=en.trackedentityid and \
-        trackedentityattributeid=9999)) as %s""";
+    String ouUidQuery = String.format("%s.value", quote(tea.getUid()));
 
-    assertThat(sql.getValue(), containsString(String.format(ouQuery, "uid", quote(tea.getUid()))));
-    assertThat(sql.getValue(), containsString(String.format(ouQuery, "name", quote(tea.getUid()))));
+    String ouGeometryQuery =
+        String.format(
+            """
+            (select ou.geometry from "organisationunit" ou where ou.uid = %1$s.value) as %1$s""",
+            quote(tea.getUid()));
+
+    String ouNameQuery =
+        String.format(
+            """
+            (select ou.name from "organisationunit" ou where ou.uid = %1$s.value) as %1$s""",
+            quote(tea.getUid()));
+
+    assertThat(sql.getValue(), containsString(ouUidQuery));
+    assertThat(sql.getValue(), containsString(ouGeometryQuery));
+    assertThat(sql.getValue(), containsString(ouNameQuery));
   }
 
   private String toSelectExpression(String template, String uid) {
@@ -1005,8 +964,8 @@ class JdbcEventAnalyticsTableManagerTest {
             + "extract(year from "
             + DATE_CLAUSE
             + ") as supportedyear "
-            + "from event ev "
-            + "inner join enrollment en on ev.enrollmentid = en.enrollmentid "
+            + "from \"event\" ev "
+            + "inner join \"enrollment\" en on ev.enrollmentid = en.enrollmentid "
             + "where ev.lastupdated <= '2019-08-01T00:00:00' "
             + "and en.programid = "
             + program.getId()
@@ -1027,5 +986,10 @@ class JdbcEventAnalyticsTableManagerTest {
             + latestYear;
 
     return sql;
+  }
+
+  private void mockPeriodYears(List<Integer> years) {
+    when(analyticsTableSettings.getPeriodSource()).thenReturn(PeriodSource.DATABASE);
+    when(periodDataProvider.getAvailableYears(DATABASE)).thenReturn(years);
   }
 }

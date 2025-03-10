@@ -32,10 +32,12 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdScheme.UID;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
@@ -69,13 +71,15 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.user.UserSettingsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -101,14 +105,6 @@ class DataQueryServiceDimensionItemKeywordTest {
               OrganisationUnit.class,
               Set.of("geometry", "parent", "groups", "children")));
 
-  private DimensionalObjectProducer dimensionalObjectProducer;
-
-  private RequestBuilder rb;
-
-  private OrganisationUnit rootOu;
-
-  private DefaultDataQueryService target;
-
   @Mock private IdentifiableObjectManager idObjectManager;
 
   @Mock private OrganisationUnitService organisationUnitService;
@@ -117,9 +113,9 @@ class DataQueryServiceDimensionItemKeywordTest {
 
   @Mock private AnalyticsSecurityManager securityManager;
 
-  @Mock private UserSettingService userSettingService;
+  @Mock private UserSettingsService userSettingsService;
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsService settingsService;
 
   @Mock private AclService aclService;
 
@@ -127,26 +123,27 @@ class DataQueryServiceDimensionItemKeywordTest {
 
   @Mock private I18n i18n;
 
+  @InjectMocks private DimensionalObjectProvider dimensionalObjectProducer;
+
+  private DefaultDataQueryService target;
+
+  private RequestBuilder rb;
+
+  private OrganisationUnit rootOu;
+
   @BeforeEach
   public void setUp() {
-    dimensionalObjectProducer =
-        new DimensionalObjectProducer(
-            idObjectManager,
-            organisationUnitService,
-            systemSettingManager,
-            i18nManager,
-            dimensionService,
-            aclService);
+    lenient().when(settingsService.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
+
     target =
-        new DefaultDataQueryService(
-            dimensionalObjectProducer, idObjectManager, securityManager, userSettingService);
+        new DefaultDataQueryService(dimensionalObjectProducer, idObjectManager, securityManager);
 
     rb = new RequestBuilder();
 
-    Mockito.lenient().when(i18nManager.getI18n()).thenReturn(i18n);
-    Mockito.lenient().when(i18n.getString("LAST_12_MONTHS")).thenReturn("Last 12 months");
+    lenient().when(i18nManager.getI18n()).thenReturn(i18n);
+    lenient().when(i18n.getString("LAST_12_MONTHS")).thenReturn("Last 12 months");
 
-    rootOu = new OrganisationUnit("Sierra Leone");
+    rootOu = createOrganisationUnit('A');
     rootOu.setUid(CodeGenerator.generateUid());
     rootOu.setCode("OU_525");
   }
@@ -168,7 +165,7 @@ class DataQueryServiceDimensionItemKeywordTest {
         .thenReturn(getOrgUnitLevel(2, "level2UID", "District", null));
     when(organisationUnitService.getOrganisationUnitLevelByLevelOrUid("2")).thenReturn(2);
     when(organisationUnitService.getOrganisationUnitsAtLevels(Mockito.anyList(), Mockito.anyList()))
-        .thenReturn(Lists.newArrayList(new OrganisationUnit(), new OrganisationUnit()));
+        .thenReturn(Lists.newArrayList(createOrganisationUnit('A'), createOrganisationUnit('B')));
 
     rb.addOuFilter("LEVEL-2;ImspTQPwCqd");
     rb.addDimension(concatenateUuid(DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3));
@@ -203,7 +200,7 @@ class DataQueryServiceDimensionItemKeywordTest {
     when(organisationUnitService.getOrganisationUnitLevelByLevelOrUid("3")).thenReturn(3);
     when(organisationUnitService.getOrganisationUnitLevelByLevelOrUid("2")).thenReturn(2);
     when(organisationUnitService.getOrganisationUnitsAtLevels(Mockito.anyList(), Mockito.anyList()))
-        .thenReturn(Lists.newArrayList(new OrganisationUnit(), new OrganisationUnit()));
+        .thenReturn(Lists.newArrayList(createOrganisationUnit('A'), createOrganisationUnit('B')));
 
     rb.addOuFilter("LEVEL-2;LEVEL-3;ImspTQPwCqd");
     rb.addDimension(concatenateUuid(DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3));
@@ -244,9 +241,9 @@ class DataQueryServiceDimensionItemKeywordTest {
     when(idObjectManager.getObject(IndicatorGroup.class, UID, INDICATOR_GROUP_UID))
         .thenReturn(indicatorGroup);
     when(idObjectManager.getObject(OrganisationUnit.class, UID, "goRUwCHPg1M"))
-        .thenReturn(new OrganisationUnit("aaa"));
+        .thenReturn(createOrganisationUnit('A'));
     when(idObjectManager.getObject(OrganisationUnit.class, UID, "fdc6uOvgoji"))
-        .thenReturn(new OrganisationUnit("bbb"));
+        .thenReturn(createOrganisationUnit('B'));
 
     rb.addOuFilter("goRUwCHPg1M;fdc6uOvgoji");
     rb.addDimension("IN_GROUP-" + INDICATOR_GROUP_UID + ";cYeuwXTCPkU;Jtf34kNZhz");
@@ -347,7 +344,8 @@ class DataQueryServiceDimensionItemKeywordTest {
     assertNull(keywords.getKeyword("level2UID").getMetadataItem().getCode());
 
     assertNotNull(keywords.getKeyword(rootOu.getUid()));
-    assertEquals("Sierra Leone", keywords.getKeyword(rootOu.getUid()).getMetadataItem().getName());
+    assertEquals(
+        "OrganisationUnitA", keywords.getKeyword(rootOu.getUid()).getMetadataItem().getName());
     assertEquals(
         rootOu.getCode(), keywords.getKeyword(rootOu.getUid()).getMetadataItem().getCode());
   }
@@ -407,7 +405,8 @@ class DataQueryServiceDimensionItemKeywordTest {
         groupOu.getCode(), keywords.getKeyword(groupOu.getUid()).getMetadataItem().getCode());
 
     assertNotNull(keywords.getKeyword(rootOu.getUid()));
-    assertEquals("Sierra Leone", keywords.getKeyword(rootOu.getUid()).getMetadataItem().getName());
+    assertEquals(
+        "OrganisationUnitA", keywords.getKeyword(rootOu.getUid()).getMetadataItem().getName());
     assertEquals(
         rootOu.getCode(), keywords.getKeyword(rootOu.getUid()).getMetadataItem().getCode());
   }
@@ -636,7 +635,7 @@ class DataQueryServiceDimensionItemKeywordTest {
     when(idObjectManager.getObject(OrganisationUnit.class, UID, this.rootOu.getUid()))
         .thenReturn(rootOu);
     when(organisationUnitService.getOrganisationUnits(Mockito.anyList(), Mockito.anyList()))
-        .thenReturn(Lists.newArrayList(new OrganisationUnit(), new OrganisationUnit()));
+        .thenReturn(Lists.newArrayList(createOrganisationUnit('A'), createOrganisationUnit('B')));
   }
 
   private void assertOrgUnitGroup(String ouGroupUID, DimensionalObject dimension) {
@@ -648,7 +647,8 @@ class DataQueryServiceDimensionItemKeywordTest {
     assertEquals("CODE_001", keywords.getKeyword(ouGroupUID).getMetadataItem().getCode());
 
     assertNotNull(keywords.getKeyword(rootOu.getUid()));
-    assertEquals("Sierra Leone", keywords.getKeyword(rootOu.getUid()).getMetadataItem().getName());
+    assertEquals(
+        "OrganisationUnitA", keywords.getKeyword(rootOu.getUid()).getMetadataItem().getName());
     assertEquals(
         rootOu.getCode(), keywords.getKeyword(rootOu.getUid()).getMetadataItem().getCode());
   }

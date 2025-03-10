@@ -50,12 +50,12 @@ public final class AnalyticsPeriodCriteriaUtils {
    *
    * @param criteria {@link EventsAnalyticsQueryCriteria} query criteria.
    * @param periodDataProvider {@link EventsAnalyticsQueryCriteria} period data provider.
-   * @param dataSource {@link PeriodDataProvider.DataSource} source of data.
+   * @param dataSource {@link PeriodDataProvider.PeriodSource} source of data.
    */
   public static void defineDefaultPeriodForCriteria(
       EnrollmentAnalyticsQueryCriteria criteria,
       PeriodDataProvider periodDataProvider,
-      PeriodDataProvider.DataSource dataSource) {
+      PeriodDataProvider.PeriodSource dataSource) {
     List<Integer> availableYears = periodDataProvider.getAvailableYears(dataSource);
 
     if (PeriodCriteriaUtils.hasPeriod(criteria)) {

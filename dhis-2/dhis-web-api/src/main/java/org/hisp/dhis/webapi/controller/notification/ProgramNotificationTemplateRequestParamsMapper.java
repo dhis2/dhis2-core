@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.notification;
 
-import java.util.Objects;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationBounds;
+
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.program.notification.NotificationPagingParam;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateOperationParams;
 import org.springframework.stereotype.Component;
 
@@ -46,28 +46,17 @@ public class ProgramNotificationTemplateRequestParamsMapper {
       throws ConflictException, BadRequestException {
     validateRequestParams(requestParams);
 
-    boolean isPaged = determinePaging(requestParams);
-
     return ProgramNotificationTemplateOperationParams.builder()
         .program(requestParams.getProgram())
         .programStage(requestParams.getProgramStage())
-        .skipPaging(!isPaged)
-        .paged(isPaged)
-        .page(
-            isPaged
-                ? Objects.requireNonNullElse(
-                    requestParams.getPage(), NotificationPagingParam.DEFAULT_PAGE)
-                : null)
-        .pageSize(
-            isPaged
-                ? Objects.requireNonNullElse(
-                    requestParams.getPageSize(), NotificationPagingParam.DEFAULT_PAGE_SIZE)
-                : null)
+        .paged(requestParams.isPaging())
+        .page(requestParams.getPage())
+        .pageSize(requestParams.getPageSize())
         .build();
   }
 
   private void validateRequestParams(ProgramNotificationTemplateRequestParams requestParams)
-      throws ConflictException {
+      throws ConflictException, BadRequestException {
     if (requestParams.getProgram() == null && requestParams.getProgramStage() == null) {
       throw new ConflictException("`program` or `programStage` must be specified.");
     }
@@ -75,20 +64,7 @@ public class ProgramNotificationTemplateRequestParamsMapper {
     if (requestParams.getProgram() != null && requestParams.getProgramStage() != null) {
       throw new ConflictException("`program` and `programStage` cannot be processed together.");
     }
-  }
 
-  private boolean determinePaging(ProgramNotificationTemplateRequestParams requestParams) {
-    Boolean paging = requestParams.getPaging();
-    Boolean skipPaging = requestParams.getSkipPaging();
-
-    if (paging != null) {
-      return Boolean.TRUE.equals(paging);
-    }
-
-    if (skipPaging != null) {
-      return Boolean.FALSE.equals(skipPaging);
-    }
-
-    return true;
+    validatePaginationBounds(requestParams.getPage(), requestParams.getPageSize());
   }
 }

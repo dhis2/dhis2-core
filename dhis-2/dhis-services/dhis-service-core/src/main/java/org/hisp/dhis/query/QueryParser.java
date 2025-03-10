@@ -28,6 +28,8 @@
 package org.hisp.dhis.query;
 
 import java.util.List;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 
@@ -42,16 +44,18 @@ public interface QueryParser {
    *
    * <p>The general syntax is "propertyName:operatorName:<Value to check against if needed>"
    *
-   * @param klass Class type to query for
+   * @param objectType Class type to query for
    * @param filters List of filters to add to Query
    * @param rootJunction Root junction to use (defaults to AND)
    * @return Query instance based on Schema of klass and filters list
    * @throws QueryParserException
    */
-  Query parse(Class<?> klass, List<String> filters, Junction.Type rootJunction)
+  <T extends IdentifiableObject> Query<T> parse(
+      Class<T> objectType, @Nonnull List<String> filters, Junction.Type rootJunction)
       throws QueryParserException;
 
-  Query parse(Class<?> klass, List<String> filters) throws QueryParserException;
+  <T extends IdentifiableObject> Query<T> parse(Class<T> objectType, @Nonnull List<String> filters)
+      throws QueryParserException;
 
   Property getProperty(Schema schema, String path) throws QueryParserException;
 }

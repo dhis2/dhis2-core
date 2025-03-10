@@ -29,8 +29,8 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
@@ -38,6 +38,7 @@ import org.hisp.dhis.dashboard.DashboardItemShape;
 import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,10 +52,13 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Document(domain = Dashboard.class)
+@OpenApi.Document(
+    entity = Dashboard.class,
+    classifiers = {"team:analytics", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/dashboardItems")
-public class DashboardItemController extends AbstractCrudController<DashboardItem> {
+public class DashboardItemController
+    extends AbstractCrudController<DashboardItem, GetObjectListParams> {
   // TODO this controller class is only needed for the pre 2.30 old dashboard
   // app and should be removed
 

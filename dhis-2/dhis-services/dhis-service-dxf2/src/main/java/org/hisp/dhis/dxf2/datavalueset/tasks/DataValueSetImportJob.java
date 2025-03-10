@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dxf2.datavalueset.tasks;
 
+import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
+
 import java.io.IOException;
 import java.io.InputStream;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +44,8 @@ import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.system.notification.NotificationLevel;
+import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -54,6 +58,7 @@ public class DataValueSetImportJob implements Job {
   private final FileResourceService fileResourceService;
   private final DataValueSetService dataValueSetService;
   private final AdxDataService adxDataService;
+  private final Notifier notifier;
 
   @Override
   public JobType getJobType() {
@@ -72,30 +77,29 @@ public class DataValueSetImportJob implements Job {
     try (InputStream input =
         progress.runStage(() -> fileResourceService.getFileResourceContent(data))) {
       String contentType = data.getContentType();
-      progress.startingStage("Importing data...");
+      boolean unknownFormat = false;
       ImportSummary summary =
           switch (contentType) {
             case "application/json" ->
-                progress.runStage(
-                    () -> dataValueSetService.importDataValueSetJson(input, options, jobId));
+                dataValueSetService.importDataValueSetJson(input, options, progress);
             case "application/csv" ->
-                progress.runStage(
-                    () -> dataValueSetService.importDataValueSetCsv(input, options, jobId));
+                dataValueSetService.importDataValueSetCsv(input, options, progress);
             case "application/pdf" ->
-                progress.runStage(
-                    () -> dataValueSetService.importDataValueSetPdf(input, options, jobId));
-            case "application/adx+xml" ->
-                progress.runStage(() -> adxDataService.saveDataValueSet(input, options, jobId));
+                dataValueSetService.importDataValueSetPdf(input, options, progress);
             case "application/xml" ->
-                progress.runStage(
-                    () -> dataValueSetService.importDataValueSetXml(input, options, jobId));
+                dataValueSetService.importDataValueSetXml(input, options, progress);
+            case "application/adx+xml" -> adxDataService.saveDataValueSet(input, options, progress);
             default -> {
-              progress.failedStage("Unknown format: {}", contentType);
+              unknownFormat = true;
               yield null;
             }
           };
       if (summary == null) {
-        progress.failedProcess("Import failed, no summary available");
+        String error =
+            unknownFormat
+                ? "Unknown format: " + contentType
+                : "Import failed, no summary available";
+        progress.failedProcess(error);
         return;
       }
 
@@ -112,6 +116,9 @@ public class DataValueSetImportJob implements Job {
           count.getUpdated(),
           count.getDeleted(),
           count.getIgnored());
+
+      NotificationLevel level = options == null ? INFO : options.getNotificationLevel(INFO);
+      notifier.addJobSummary(jobId, level, summary, ImportSummary.class);
     } catch (IOException ex) {
       progress.failedProcess(ex);
     }

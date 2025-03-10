@@ -29,12 +29,13 @@ package org.hisp.dhis.tracker.deduplication;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.UID;
 
 @Data
 @Builder
@@ -42,9 +43,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MergeObject {
-  @Builder.Default @JsonProperty private List<String> trackedEntityAttributes = new ArrayList<>();
+  @Builder.Default @JsonProperty private Set<UID> trackedEntityAttributes = new HashSet<>();
 
-  @Builder.Default @JsonProperty private List<String> relationships = new ArrayList<>();
+  @Builder.Default @JsonProperty private Set<UID> relationships = new HashSet<>();
 
-  @Builder.Default @JsonProperty private List<String> enrollments = new ArrayList<>();
+  @Builder.Default @JsonProperty private Set<UID> enrollments = new HashSet<>();
 }

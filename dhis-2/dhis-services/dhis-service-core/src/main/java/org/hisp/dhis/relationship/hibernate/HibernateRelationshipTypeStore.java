@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.relationship.hibernate;
 
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeStore;

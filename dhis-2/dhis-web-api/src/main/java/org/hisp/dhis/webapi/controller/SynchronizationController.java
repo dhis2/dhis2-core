@@ -43,7 +43,6 @@ import org.hisp.dhis.dxf2.sync.SynchronizationManager;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -56,7 +55,9 @@ import org.springframework.web.client.RestTemplate;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Document(domain = Server.class)
+@OpenApi.Document(
+    entity = Server.class,
+    classifiers = {"team:platform", "purpose:support"})
 @Controller
 @RequestMapping("/api/synchronization")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -90,7 +91,8 @@ public class SynchronizationController {
     String urlTrimmed = url.trim();
     if (configProvider.remoteServerIsInAllowedList(urlTrimmed)) {
       return synchronizationManager.executeMetadataPull(urlTrimmed);
-    } else throw new ConflictException("Provided URL is not in the remote servers allowed list");
+    }
+    throw new ConflictException("Provided URL is not in the remote servers allowed list");
   }
 
   @GetMapping(value = "/availability", produces = APPLICATION_JSON_VALUE)
@@ -101,6 +103,7 @@ public class SynchronizationController {
   @GetMapping(value = "/metadataRepo", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody String getMetadataRepoIndex() {
     return restTemplate.getForObject(
-        SettingKey.METADATA_REPO_URL.getDefaultValue().toString(), String.class);
+        "https://raw.githubusercontent.com/dhis2/dhis2-metadata-repo/master/repo/221/index.json",
+        String.class);
   }
 }

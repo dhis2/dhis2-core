@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1068;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1069;
@@ -35,11 +36,10 @@ import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidatio
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -58,7 +58,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class MetaValidatorTest {
   private static final String ORG_UNIT_UID = "OrgUnitUid";
 
-  private static final String TRACKED_ENTITY_UID = "TrackedEntityUid";
+  private static final UID TRACKED_ENTITY_UID = UID.generate();
 
   private static final String PROGRAM_UID = "ProgramUid";
 
@@ -84,7 +84,7 @@ class MetaValidatorTest {
   void verifyEnrollmentValidationSuccess() {
     Enrollment enrollment = validEnrollment();
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
-        .thenReturn(new OrganisationUnit());
+        .thenReturn(createOrganisationUnit('A'));
     when(preheat.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(new TrackedEntity());
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(new Program());
 
@@ -99,7 +99,7 @@ class MetaValidatorTest {
     when(bundle.findTrackedEntityByUid(TRACKED_ENTITY_UID))
         .thenReturn(Optional.of(new org.hisp.dhis.tracker.imports.domain.TrackedEntity()));
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
-        .thenReturn(new OrganisationUnit());
+        .thenReturn(createOrganisationUnit('A'));
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(new Program());
 
     validator.validate(reporter, bundle, enrollment);
@@ -122,7 +122,7 @@ class MetaValidatorTest {
   void verifyEnrollmentValidationFailsWhenTrackedEntityIsNotPresentInDbOrPayload() {
     Enrollment enrollment = validEnrollment();
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
-        .thenReturn(new OrganisationUnit());
+        .thenReturn(createOrganisationUnit('A'));
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(new Program());
 
     validator.validate(reporter, bundle, enrollment);
@@ -134,7 +134,7 @@ class MetaValidatorTest {
   void verifyEnrollmentValidationFailsWhenProgramIsNotPresentInDb() {
     Enrollment enrollment = validEnrollment();
     when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
-        .thenReturn(new OrganisationUnit());
+        .thenReturn(createOrganisationUnit('A'));
     when(preheat.getTrackedEntity(TRACKED_ENTITY_UID)).thenReturn(new TrackedEntity());
 
     validator.validate(reporter, bundle, enrollment);
@@ -144,7 +144,7 @@ class MetaValidatorTest {
 
   private Enrollment validEnrollment() {
     return Enrollment.builder()
-        .enrollment(CodeGenerator.generateUid())
+        .enrollment(UID.generate())
         .trackedEntity(TRACKED_ENTITY_UID)
         .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID))
         .program(MetadataIdentifier.ofUid(PROGRAM_UID))

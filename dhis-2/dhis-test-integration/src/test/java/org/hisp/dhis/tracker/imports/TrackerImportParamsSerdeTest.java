@@ -32,17 +32,24 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.io.IOException;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundleMode;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Luciano Fiandesio
  */
-class TrackerImportParamsSerdeTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class TrackerImportParamsSerdeTest extends PostgresIntegrationTestBase {
 
   @Autowired private RenderService renderService;
 
@@ -64,22 +71,22 @@ class TrackerImportParamsSerdeTest extends TrackerTest {
             .build();
     String json = renderService.toJsonAsString(trackerImportParams);
     JSONAssert.assertEquals(
-        ""
-            + "{\"importMode\":\"COMMIT\","
-            + "\"idSchemes\":{\"dataElementIdScheme\":{\"idScheme\":\"UID\"},"
-            + "\"orgUnitIdScheme\":{\"idScheme\":\"UID\"},"
-            + "\"programIdScheme\":{\"idScheme\":\"ATTRIBUTE\",\"attributeUid\":\"aaaa\"},"
-            + "\"programStageIdScheme\":{\"idScheme\":\"UID\"},"
-            + "\"idScheme\":{\"idScheme\":\"CODE\"},"
-            + "\"categoryOptionComboIdScheme\":{\"idScheme\":\"UID\"},"
-            + "\"categoryOptionIdScheme\":{\"idScheme\":\"UID\"}},"
-            + "\"importStrategy\":\"DELETE\","
-            + "\"atomicMode\":\"OBJECT\","
-            + "\"flushMode\":\"OBJECT\","
-            + "\"validationMode\":\"SKIP\","
-            + "\"skipPatternValidation\":false,"
-            + "\"skipSideEffects\":false,"
-            + "\"skipRuleEngine\":true}",
+        """
+        {"importMode":"COMMIT",\
+        "idSchemes":{"dataElementIdScheme":{"idScheme":"CODE"},\
+        "orgUnitIdScheme":{"idScheme":"CODE"},\
+        "programIdScheme":{"idScheme":"ATTRIBUTE","attributeUid":"aaaa"},\
+        "programStageIdScheme":{"idScheme":"CODE"},\
+        "idScheme":{"idScheme":"CODE"},\
+        "categoryOptionComboIdScheme":{"idScheme":"CODE"},\
+        "categoryOptionIdScheme":{"idScheme":"CODE"}},\
+        "importStrategy":"DELETE",\
+        "atomicMode":"OBJECT",\
+        "flushMode":"OBJECT",\
+        "validationMode":"SKIP",\
+        "skipPatternValidation":false,\
+        "skipSideEffects":false,\
+        "skipRuleEngine":true}""",
         json,
         JSONCompareMode.LENIENT);
   }
@@ -87,22 +94,22 @@ class TrackerImportParamsSerdeTest extends TrackerTest {
   @Test
   void testJsonDeserialization() throws IOException {
     final String json =
-        ""
-            + "{\"importMode\":\"COMMIT\","
-            + "\"idSchemes\":{\"dataElementIdScheme\":{\"idScheme\":\"UID\"},"
-            + "\"orgUnitIdScheme\":{\"idScheme\":\"UID\"},"
-            + "\"programIdScheme\":{\"idScheme\":\"ATTRIBUTE\",\"attributeUid\":\"aaaa\"},"
-            + "\"programStageIdScheme\":{\"idScheme\":\"UID\"},"
-            + "\"idScheme\":{\"idScheme\":\"CODE\"},"
-            + "\"categoryOptionComboIdScheme\":{\"idScheme\":\"UID\"},"
-            + "\"categoryOptionIdScheme\":{\"idScheme\":\"UID\"}},"
-            + "\"importStrategy\":\"DELETE\","
-            + "\"atomicMode\":\"OBJECT\","
-            + "\"flushMode\":\"OBJECT\","
-            + "\"validationMode\":\"SKIP\","
-            + "\"skipPatternValidation\":true,"
-            + "\"skipSideEffects\":true,"
-            + "\"skipRuleEngine\":true}";
+        """
+        {"importMode":"COMMIT",\
+        "idSchemes":{"dataElementIdScheme":{"idScheme":"UID"},\
+        "orgUnitIdScheme":{"idScheme":"UID"},\
+        "programIdScheme":{"idScheme":"ATTRIBUTE","attributeUid":"aaaa"},\
+        "programStageIdScheme":{"idScheme":"UID"},\
+        "idScheme":{"idScheme":"CODE"},\
+        "categoryOptionComboIdScheme":{"idScheme":"UID"},\
+        "categoryOptionIdScheme":{"idScheme":"UID"}},\
+        "importStrategy":"DELETE",\
+        "atomicMode":"OBJECT",\
+        "flushMode":"OBJECT",\
+        "validationMode":"SKIP",\
+        "skipPatternValidation":true,\
+        "skipSideEffects":true,\
+        "skipRuleEngine":true}""";
 
     final TrackerImportParams trackerImportParams =
         renderService.fromJson(json, TrackerImportParams.class);

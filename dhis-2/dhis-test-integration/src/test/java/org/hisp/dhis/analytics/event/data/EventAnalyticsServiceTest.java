@@ -75,8 +75,6 @@ import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.OrgUnitField;
-import org.hisp.dhis.analytics.event.EnrollmentAnalyticsService;
-import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -128,6 +126,7 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -142,10 +141,13 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @TestInstance(Lifecycle.PER_CLASS)
 @Transactional
+@Order(1) // must run before other tests in analytics package (for some unknown reason)
 class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
-  @Autowired private EventAnalyticsService eventTarget;
+  @Autowired private EventQueryService eventQueryTarget;
 
-  @Autowired private EnrollmentAnalyticsService enrollmentTarget;
+  @Autowired private EventAggregateService eventAggregateService;
+
+  @Autowired private EnrollmentQueryService enrollmentQueryTarget;
 
   @Autowired private List<AnalyticsTableService> analyticsTableServices;
 
@@ -409,9 +411,8 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     manager.save(trackedEntityType);
 
     // Tracked Entity Instances (Registrations)
-    TrackedEntity teiA = createTrackedEntity(ouD);
+    TrackedEntity teiA = createTrackedEntity(ouD, trackedEntityType);
     teiA.setUid("trackEntInA");
-    teiA.setTrackedEntityType(trackedEntityType);
     manager.save(teiA);
 
     // Tracked Entity Attribute Values
@@ -571,7 +572,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
 
     // Generate resource tables and analytics tables
     analyticsTableGenerator.generateAnalyticsTables(
-        AnalyticsTableUpdateParams.newBuilder().withStartTime(oneSecondFromNow).build(),
+        AnalyticsTableUpdateParams.newBuilder().startTime(oneSecondFromNow).build(),
         JobProgress.noop());
   }
 
@@ -630,7 +631,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
             .build();
 
     // Then
-    assertDoesNotThrow(() -> eventTarget.getAggregatedEventData(events_2017_params));
+    assertDoesNotThrow(() -> eventAggregateService.getAggregatedData(events_2017_params));
   }
 
   @Test
@@ -672,7 +673,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     Throwable exception =
         assertThrows(
             IllegalQueryException.class,
-            () -> eventTarget.getAggregatedEventData(events_2017_params));
+            () -> eventAggregateService.getAggregatedData(events_2017_params));
 
     assertThat(
         exception.getMessage(),
@@ -684,7 +685,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   void testEnrollmentWithCategoryDimensionRestriction() {
     injectSecurityContextUser(userA);
     EventQueryParams params = getEnrollmentQueryBuilderA().build();
-    Grid grid = enrollmentTarget.getEnrollments(params);
+    Grid grid = enrollmentQueryTarget.getEnrollments(params);
 
     assertGridContains(
         // Headers
@@ -704,7 +705,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     EventQueryParams params =
         getAggregatedQueryBuilderA().withOrgUnitField(new OrgUnitField("REGISTRATION")).build();
 
-    Grid grid = eventTarget.getAggregatedEventData(params);
+    Grid grid = eventAggregateService.getAggregatedData(params);
 
     assertGridContains(
         // Headers
@@ -722,7 +723,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     EventQueryParams params =
         getAggregatedQueryBuilderA().withOrgUnitField(new OrgUnitField("ENROLLMENT")).build();
 
-    Grid grid = eventTarget.getAggregatedEventData(params);
+    Grid grid = eventAggregateService.getAggregatedData(params);
 
     assertGridContains(
         // Headers
@@ -740,7 +741,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     EventQueryParams params =
         getAggregatedQueryBuilderA().withOrgUnitField(new OrgUnitField("OWNER_AT_START")).build();
 
-    Grid grid = eventTarget.getAggregatedEventData(params);
+    Grid grid = eventAggregateService.getAggregatedData(params);
 
     assertGridContains(
         // Headers
@@ -758,7 +759,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     EventQueryParams params =
         getAggregatedQueryBuilderA().withOrgUnitField(new OrgUnitField("OWNER_AT_END")).build();
 
-    Grid grid = eventTarget.getAggregatedEventData(params);
+    Grid grid = eventAggregateService.getAggregatedData(params);
 
     assertGridContains(
         // Headers
@@ -775,7 +776,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   void testGetAggregatedEventDataWithDefaultEventOrgUnit() {
     EventQueryParams params = getAggregatedQueryBuilderA().build();
 
-    Grid grid = eventTarget.getAggregatedEventData(params);
+    Grid grid = eventAggregateService.getAggregatedData(params);
 
     assertGridContains(
         // Headers
@@ -793,7 +794,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     EventQueryParams params =
         getAggregatedQueryBuilderA().withOrgUnitField(new OrgUnitField(deU.getUid())).build();
 
-    Grid grid = eventTarget.getAggregatedEventData(params);
+    Grid grid = eventAggregateService.getAggregatedData(params);
 
     assertGridContains(
         // Headers
@@ -815,7 +816,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     EventQueryParams params =
         getEventQueryBuilderA().withOrgUnitField(new OrgUnitField("REGISTRATION")).build();
 
-    Grid grid = eventTarget.getEvents(params);
+    Grid grid = eventQueryTarget.getEvents(params);
 
     assertGridContains(
         // Headers
@@ -833,7 +834,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     EventQueryParams params =
         getEventQueryBuilderA().withOrgUnitField(new OrgUnitField("ENROLLMENT")).build();
 
-    Grid grid = eventTarget.getEvents(params);
+    Grid grid = eventQueryTarget.getEvents(params);
 
     assertGridContains(
         // Headers
@@ -851,7 +852,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     EventQueryParams params =
         getEventQueryBuilderA().withOrgUnitField(new OrgUnitField("OWNER_AT_START")).build();
 
-    Grid grid = eventTarget.getEvents(params);
+    Grid grid = eventQueryTarget.getEvents(params);
 
     // Note that owner at start does not change with each event because
     // there is no monthly aggregation.
@@ -871,7 +872,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     EventQueryParams params =
         getEventQueryBuilderA().withOrgUnitField(new OrgUnitField("OWNER_AT_END")).build();
 
-    Grid grid = eventTarget.getEvents(params);
+    Grid grid = eventQueryTarget.getEvents(params);
 
     // Note that owner at end does not change with each event because
     // there is no monthly aggregation.
@@ -890,7 +891,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   void testGetEventsWithDefaultEventOrgUnit() {
     EventQueryParams params = getEventQueryBuilderA().build();
 
-    Grid grid = eventTarget.getEvents(params);
+    Grid grid = eventQueryTarget.getEvents(params);
 
     assertGridContains(
         // Headers
@@ -908,7 +909,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     EventQueryParams params =
         getEventQueryBuilderA().withOrgUnitField(new OrgUnitField(deU.getUid())).build();
 
-    Grid grid = eventTarget.getEvents(params);
+    Grid grid = eventQueryTarget.getEvents(params);
 
     assertGridContains(
         // Headers
@@ -930,7 +931,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     EventQueryParams params =
         getEnrollmentQueryBuilderA().withOrgUnitField(new OrgUnitField("REGISTRATION")).build();
 
-    Grid grid = enrollmentTarget.getEnrollments(params);
+    Grid grid = enrollmentQueryTarget.getEnrollments(params);
 
     assertGridContains(
         // Headers
@@ -946,7 +947,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     EventQueryParams params =
         getEnrollmentQueryBuilderA().withOrgUnitField(new OrgUnitField("ENROLLMENT")).build();
 
-    Grid grid = enrollmentTarget.getEnrollments(params);
+    Grid grid = enrollmentQueryTarget.getEnrollments(params);
 
     assertGridContains(
         // Headers
@@ -963,7 +964,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     EventQueryParams params =
         getEnrollmentQueryBuilderA().withOrgUnitField(new OrgUnitField("OWNER_AT_START")).build();
 
-    Grid grid = enrollmentTarget.getEnrollments(params);
+    Grid grid = enrollmentQueryTarget.getEnrollments(params);
 
     assertGridContains(
         // Headers
@@ -983,7 +984,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     EventQueryParams params =
         getEnrollmentQueryBuilderA().withOrgUnitField(new OrgUnitField("OWNER_AT_END")).build();
 
-    Grid grid = enrollmentTarget.getEnrollments(params);
+    Grid grid = enrollmentQueryTarget.getEnrollments(params);
 
     assertGridContains(
         // Headers
@@ -998,7 +999,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   void testGetEnrollmentsWithDefaultEnrollmentOrgUnit() {
     EventQueryParams params = getEnrollmentQueryBuilderA().build();
 
-    Grid grid = enrollmentTarget.getEnrollments(params);
+    Grid grid = enrollmentQueryTarget.getEnrollments(params);
 
     assertGridContains(
         // Headers
@@ -1014,7 +1015,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     EventQueryParams params =
         getEnrollmentQueryBuilderA().withOrgUnitField(new OrgUnitField(atU.getUid())).build();
 
-    Grid grid = enrollmentTarget.getEnrollments(params);
+    Grid grid = enrollmentQueryTarget.getEnrollments(params);
 
     assertGridContains(
         // Headers
@@ -1042,7 +1043,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
             .withOrganisationUnits(level3Ous)
             .build();
 
-    Grid grid = eventTarget.getAggregatedEventData(params);
+    Grid grid = eventAggregateService.getAggregatedData(params);
 
     assertGridContains(
         // Headers
@@ -1068,7 +1069,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
             .withOrganisationUnits(level3Ous)
             .build();
 
-    Grid grid = eventTarget.getAggregatedEventData(params);
+    Grid grid = eventAggregateService.getAggregatedData(params);
 
     assertGridContains(
         // Headers
@@ -1094,7 +1095,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
             .withOrganisationUnits(level3Ous)
             .build();
 
-    Grid grid = eventTarget.getAggregatedEventData(params);
+    Grid grid = eventAggregateService.getAggregatedData(params);
 
     assertGridContains(
         // Headers
@@ -1125,7 +1126,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
             .withOrganisationUnits(level3Ous)
             .build();
 
-    Grid grid = eventTarget.getAggregatedEventData(params);
+    Grid grid = eventAggregateService.getAggregatedData(params);
 
     assertGridContains(
         // Headers
@@ -1156,7 +1157,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
             .withOrganisationUnits(level3Ous)
             .build();
 
-    Grid grid = eventTarget.getAggregatedEventData(params);
+    Grid grid = eventAggregateService.getAggregatedData(params);
 
     assertGridContains(
         // Headers
@@ -1440,7 +1441,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
             .withOrganisationUnits(List.of(ouA, ouI, ouJ))
             .build();
 
-    return eventTarget.getAggregatedEventData(params);
+    return eventAggregateService.getAggregatedData(params);
   }
 
   /** Creates program indicator for program A with orgUnitField. */

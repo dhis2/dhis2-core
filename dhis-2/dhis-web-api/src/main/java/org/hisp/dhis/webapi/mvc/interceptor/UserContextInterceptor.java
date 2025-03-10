@@ -27,69 +27,46 @@
  */
 package org.hisp.dhis.webapi.mvc.interceptor;
 
-import static org.hisp.dhis.user.UserSettingKey.DB_LOCALE;
-
-import java.util.Locale;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import lombok.AllArgsConstructor;
-import org.hisp.dhis.dxf2.common.TranslateParams;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.util.Map;
+import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.setting.ThreadUserSettings;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserSettingService;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.ModelAndView;
 
 /**
- * This interceptor is ONLY responsible for setting the current user and its related settings into
- * the current request cycle/thread. The intention is to leave it as simple as possible. Any
- * business rules, if needed, should be evaluated outside (in another interceptor or filter).
- *
- * @author maikel arabori
+ * If a translation request parameters are set the {@link UserSettings#getUserDbLocale()} is
+ * overridden for the current request by replacing the {@link UserSettings} with a modified copy.
  */
-@AllArgsConstructor
-public class UserContextInterceptor extends HandlerInterceptorAdapter implements InitializingBean {
-  private static UserContextInterceptor instance;
-
-  private static final String PARAM_TRANSLATE = "translate";
-
-  private static final String PARAM_LOCALE = "locale";
-
-  private final UserSettingService userSettingService;
-
-  public static UserContextInterceptor get() {
-    return instance;
-  }
-
-  @Override
-  public void afterPropertiesSet() {
-    instance = this;
-  }
+@RequiredArgsConstructor
+public class UserContextInterceptor implements HandlerInterceptor {
 
   @Override
   public boolean preHandle(
-      final HttpServletRequest request, final HttpServletResponse response, final Object handler) {
-    String parameter = request.getParameter(PARAM_TRANSLATE);
-    boolean translate = !"false".equals(parameter);
-
-    String locale = request.getParameter(PARAM_LOCALE);
-
-    if (CurrentUserUtil.hasCurrentUser()) {
-      String username = CurrentUserUtil.getCurrentUsername();
-      if (username != null) {
-        final Locale dbLocale =
-            getLocaleWithDefault(new TranslateParams(translate, locale), username);
-        CurrentUserUtil.setUserSetting(DB_LOCALE, dbLocale);
-      }
-    }
-
+      final HttpServletRequest request,
+      @Nonnull final HttpServletResponse response,
+      @Nonnull final Object handler) {
+    ThreadUserSettings.clear();
+    // Note: if there is no override happening the settings are initialized on access
+    if (!"true".equals(request.getParameter("translate"))) return true;
+    String locale = request.getParameter("locale");
+    if (locale == null || locale.isEmpty()) return true;
+    if (!CurrentUserUtil.hasCurrentUser()) return true;
+    ThreadUserSettings.put(Map.of("keyDbLocale", locale));
     return true;
   }
 
-  private Locale getLocaleWithDefault(
-      final TranslateParams translateParams, final String username) {
-    return translateParams.isTranslate()
-        ? translateParams.getLocaleWithDefault(
-            (Locale) userSettingService.getUserSetting(DB_LOCALE, username))
-        : null;
+  @Override
+  public void postHandle(
+      @Nonnull HttpServletRequest request,
+      @Nonnull HttpServletResponse response,
+      @Nonnull Object handler,
+      ModelAndView modelAndView) {
+    // cleanup: unset for the thread
+    ThreadUserSettings.clear();
   }
 }

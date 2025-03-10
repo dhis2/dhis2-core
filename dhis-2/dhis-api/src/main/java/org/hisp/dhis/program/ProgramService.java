@@ -40,8 +40,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
  * @author Abyot Asalefew
  */
 public interface ProgramService {
-  String ID = ProgramService.class.getName();
-
   /**
    * Adds an {@link Program}
    *

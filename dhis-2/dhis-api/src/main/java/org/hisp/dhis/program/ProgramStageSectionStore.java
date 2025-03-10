@@ -35,6 +35,5 @@ import org.hisp.dhis.dataelement.DataElement;
  * @author Chau Thu Tran
  */
 public interface ProgramStageSectionStore extends IdentifiableObjectStore<ProgramStageSection> {
-
   List<ProgramStageSection> getAllByDataElement(List<DataElement> dataElements);
 }

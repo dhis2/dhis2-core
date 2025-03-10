@@ -59,12 +59,17 @@ public class TrackerImportExportActions extends RestApiActions {
   public void waitUntilJobIsCompleted(String jobId) {
     logger.info(String.format("Waiting until tracker job with id %s is completed", jobId));
 
-    Callable<Boolean> jobIsCompleted =
-        () -> getJob(jobId).validateStatus(200).extractList("completed").contains(true);
+    Callable<Boolean> jobIsCompleted = () -> getJobIsCompleted(jobId);
 
     with().atMost(20, TimeUnit.SECONDS).await().until(jobIsCompleted::call);
 
     logger.info("Tracker job is completed. Message: {}", getJob(jobId).extract("message"));
+  }
+
+  private boolean getJobIsCompleted(String jobId) {
+    ApiResponse job = getJob(jobId);
+    logger.info(job.getAsString());
+    return job.extractList("completed").contains(true);
   }
 
   public TrackerApiResponse postAndGetJobReport(File file) {
@@ -171,23 +176,21 @@ public class TrackerImportExportActions extends RestApiActions {
   public void overrideOwnership(String te, String program, String reason) {
     this.post(
             String.format(
-                "/ownership/override?trackedEntityInstance=%s&program=%s&reason=%s",
-                te, program, reason),
+                "/ownership/override?trackedEntity=%s&program=%s&reason=%s", te, program, reason),
             new JsonObject())
         .validateStatus(200);
   }
 
   public void transferOwnership(String te, String program, String ou) {
     this.update(
-            String.format(
-                "/ownership/transfer?trackedEntityInstance=%s&program=%s&ou=%s", te, program, ou),
+            String.format("/ownership/transfer?trackedEntity=%s&program=%s&ou=%s", te, program, ou),
             new JsonObject())
         .validateStatus(200);
   }
 
   private void saveCreatedData(ApiResponse response) {
     String[] val = {
-      "TRACKED_ENTITY,/trackedEntityInstances",
+      "TRACKED_ENTITY,/trackedEntities",
       "EVENT,/events",
       "ENROLLMENT,/enrollments",
       "RELATIONSHIP,/relationships"

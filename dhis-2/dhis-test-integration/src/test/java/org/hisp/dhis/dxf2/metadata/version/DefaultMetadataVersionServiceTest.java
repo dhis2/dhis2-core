@@ -49,6 +49,7 @@ import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceExcep
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,6 +68,7 @@ class DefaultMetadataVersionServiceTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private MetadataSystemSettingService metadataSystemSettingService;
+  @Autowired private SystemSettingsService systemSettingsService;
 
   @Autowired private DbmsManager dbmsManager;
 
@@ -184,6 +186,7 @@ class DefaultMetadataVersionServiceTest extends PostgresIntegrationTestBase {
     assertEquals("Version_2", versionService.getCurrentVersion().getName());
     assertEquals(VersionType.ATOMIC, versionService.getCurrentVersion().getType());
 
+    systemSettingsService.clearCurrentSettings();
     // testing if correct version name is saved in system setting
     assertEquals("Version_2", metadataSystemSettingService.getSystemMetadataVersion());
 

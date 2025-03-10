@@ -31,7 +31,7 @@ This parameter is inclusive, so results with the exact date and time specified w
 
 ### `*.parameter.EnrollmentRequestParams.enrolledBefore`
 
-Get enrollments enrolled before the given date and time. 
+Get enrollments enrolled before the given date and time.
 This parameter is inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.EnrollmentRequestParams.enrollments`
@@ -39,13 +39,6 @@ This parameter is inclusive, so results with the exact date and time specified w
 `<enrollment1-uid>[,<enrollment2-uid>...]`
 
 Get enrollments with given UID(s).
-
-### `*.parameter.EnrollmentRequestParams.enrollment`
-
-**DEPRECATED as of 2.41:** Use parameter `enrollments` instead where UIDs have to be separated by
-comma!
-
-See `enrollments` for details.
 
 ### `*.parameter.EnrollmentRequestParams.followUp`
 
@@ -71,13 +64,6 @@ Get enrollments owned by given `orgUnits` relative to the `orgUnitMode`.
 - When `orgUnitMode=ALL`, `orgUnitMode=CAPTURE` or `orgUnitMode=ACCESSIBLE` the `orgUnits` parameter
   is not allowed.
 
-### `*.parameter.EnrollmentRequestParams.orgUnit`
-
-**DEPRECATED as of 2.41:** Use parameter `orgUnits` instead where UIDs have to be separated by
-comma!
-
-See `orgUnits` for details.
-
 ### `*.parameter.EnrollmentRequestParams.orgUnitMode`
 
 Get enrollments using given organisation unit selection mode.
@@ -95,15 +81,9 @@ Get enrollments using given organisation unit selection mode.
   will
   be returned.
 
-### `*.parameter.EnrollmentRequestParams.ouMode`
-
-**DEPRECATED as of 2.41:** Use parameter `orgUnitMode` instead.
-
-See `orgUnitMode` for details.
-
 ### `*.parameter.EnrollmentRequestParams.program`
 
-Get enrollments enrolled in the given program.
+Get enrollments enrolled in the given tracker program.
 
 ### `*.parameter.EnrollmentRequestParams.status`
 

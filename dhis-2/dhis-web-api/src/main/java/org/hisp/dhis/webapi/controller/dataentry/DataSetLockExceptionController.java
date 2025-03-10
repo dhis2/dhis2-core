@@ -45,7 +45,9 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Document(domain = LockException.class)
+@OpenApi.Document(
+    entity = LockException.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/dataEntry")

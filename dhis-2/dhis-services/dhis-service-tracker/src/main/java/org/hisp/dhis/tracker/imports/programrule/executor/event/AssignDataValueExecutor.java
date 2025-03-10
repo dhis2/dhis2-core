@@ -36,8 +36,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -52,7 +51,7 @@ import org.hisp.dhis.tracker.imports.validation.ValidationCode;
  */
 @RequiredArgsConstructor
 public class AssignDataValueExecutor implements RuleActionExecutor<Event> {
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   private final UID ruleUid;
 
@@ -69,8 +68,7 @@ public class AssignDataValueExecutor implements RuleActionExecutor<Event> {
 
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
-    Boolean canOverwrite =
-        systemSettingManager.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE);
+    Boolean canOverwrite = settingsProvider.getCurrentSettings().getRuleEngineAssignOverwrite();
 
     DataElement dataElement = bundle.getPreheat().getDataElement(dataElementUid.getValue());
 
@@ -92,7 +90,11 @@ public class AssignDataValueExecutor implements RuleActionExecutor<Event> {
         || isEqual(value, payloadDataValue.getValue(), dataElement.getValueType())) {
       addOrOverwriteDataValue(event, bundle, dataElement, payloadDataValue);
       return Optional.of(
-          warning(ruleUid, ValidationCode.E1308, dataElementUid.getValue(), event.getEvent()));
+          warning(
+              ruleUid,
+              ValidationCode.E1308,
+              dataElementUid.getValue(),
+              event.getEvent().getValue()));
     }
     return Optional.of(error(ruleUid, ValidationCode.E1307, dataElementUid.getValue(), value));
   }
@@ -101,13 +103,21 @@ public class AssignDataValueExecutor implements RuleActionExecutor<Event> {
       DataValue payloadDataValue, Boolean canOverwrite, Event event) {
     if (payloadDataValue == null || payloadDataValue.getValue() == null) {
       return Optional.of(
-          warning(ruleUid, ValidationCode.E1308, dataElementUid.getValue(), event.getEvent()));
+          warning(
+              ruleUid,
+              ValidationCode.E1308,
+              dataElementUid.getValue(),
+              event.getEvent().getValue()));
     }
 
     if (Boolean.TRUE.equals(canOverwrite)) {
       payloadDataValue.setValue(null);
       return Optional.of(
-          warning(ruleUid, ValidationCode.E1308, dataElementUid.getValue(), event.getEvent()));
+          warning(
+              ruleUid,
+              ValidationCode.E1308,
+              dataElementUid.getValue(),
+              event.getEvent().getValue()));
     }
 
     return Optional.of(error(ruleUid, ValidationCode.E1307, dataElementUid.getValue(), ""));

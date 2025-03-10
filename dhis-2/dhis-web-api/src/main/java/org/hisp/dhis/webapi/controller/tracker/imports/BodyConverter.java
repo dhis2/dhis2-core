@@ -31,7 +31,7 @@ import com.fasterxml.jackson.databind.util.StdConverter;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.Note;
@@ -246,8 +246,8 @@ class BodyConverter extends StdConverter<Body, Body> {
    * @param uid the uid to check and update
    * @return a valid uid
    */
-  private String updateReference(String uid) {
-    return StringUtils.isEmpty(uid) ? CodeGenerator.generateUid() : uid;
+  private UID updateReference(UID uid) {
+    return uid == null ? UID.generate() : uid;
   }
 
   /**
@@ -266,9 +266,9 @@ class BodyConverter extends StdConverter<Body, Body> {
    * @param event the event to check and update references for
    * @param enrollment the parent enrollment uid
    */
-  private Event updateEventReferences(Event event, String enrollment) {
+  private Event updateEventReferences(Event event, UID enrollment) {
     event.setEvent(updateReference(event.getEvent()));
-    event.setEnrollment(StringUtils.isEmpty(enrollment) ? null : enrollment);
+    event.setEnrollment(enrollment);
     return event;
   }
 
@@ -278,9 +278,9 @@ class BodyConverter extends StdConverter<Body, Body> {
    * @param enrollment the enrollment to check and update references for
    * @param trackedEntity the parent trackedEntity uid
    */
-  private Enrollment updateEnrollmentReferences(Enrollment enrollment, String trackedEntity) {
+  private Enrollment updateEnrollmentReferences(Enrollment enrollment, UID trackedEntity) {
     enrollment.setEnrollment(updateReference(enrollment.getEnrollment()));
-    enrollment.setTrackedEntity(StringUtils.isEmpty(trackedEntity) ? null : trackedEntity);
+    enrollment.setTrackedEntity(trackedEntity);
     return enrollment;
   }
 

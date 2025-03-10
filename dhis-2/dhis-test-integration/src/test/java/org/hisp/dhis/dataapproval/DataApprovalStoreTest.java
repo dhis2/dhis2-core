@@ -31,10 +31,14 @@ import static com.google.common.collect.Sets.newHashSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
+import java.util.List;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -43,6 +47,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -104,14 +109,21 @@ class DataApprovalStoreTest extends PostgresIntegrationTestBase {
     // ---------------------------------------------------------------------
     // Add supporting data
     // ---------------------------------------------------------------------
+    CategoryCombo categoryCombo = categoryService.getDefaultCategoryCombo();
+    categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
     level1 = new DataApprovalLevel("01", 1, null);
     level2 = new DataApprovalLevel("02", 2, null);
     dataApprovalLevelService.addDataApprovalLevel(level1);
     dataApprovalLevelService.addDataApprovalLevel(level2);
     PeriodType periodType = PeriodType.getPeriodTypeByName("Monthly");
-    workflowA1 = new DataApprovalWorkflow("workflowA1", periodType, newHashSet(level1));
-    workflowA12 = new DataApprovalWorkflow("workflowA12", periodType, newHashSet(level1, level2));
-    workflowB12 = new DataApprovalWorkflow("workflowB12", periodType, newHashSet(level1, level2));
+    workflowA1 =
+        new DataApprovalWorkflow("workflowA1", periodType, categoryCombo, newHashSet(level1));
+    workflowA12 =
+        new DataApprovalWorkflow(
+            "workflowA12", periodType, categoryCombo, newHashSet(level1, level2));
+    workflowB12 =
+        new DataApprovalWorkflow(
+            "workflowB12", periodType, categoryCombo, newHashSet(level1, level2));
     dataApprovalService.addWorkflow(workflowA1);
     dataApprovalService.addWorkflow(workflowA12);
     dataApprovalService.addWorkflow(workflowB12);
@@ -131,7 +143,6 @@ class DataApprovalStoreTest extends PostgresIntegrationTestBase {
     userB = makeUser("B");
     userService.addUser(userA);
     userService.addUser(userB);
-    categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
   }
 
   // -------------------------------------------------------------------------
@@ -242,5 +253,44 @@ class DataApprovalStoreTest extends PostgresIntegrationTestBase {
         dataApprovalStore.getDataApproval(
             level2, workflowB12, periodB, sourceB, categoryOptionCombo);
     assertNull(dataApprovalB);
+  }
+
+  @Test
+  @DisplayName("Retrieving DataApprovals by CategoryOptionCombo returns expected results")
+  void getByCocTest() {
+    // given
+    CategoryOptionCombo coc1 = createCategoryOptionCombo('1');
+    coc1.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+    categoryService.addCategoryOptionCombo(coc1);
+
+    CategoryOptionCombo coc2 = createCategoryOptionCombo('2');
+    coc2.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+    categoryService.addCategoryOptionCombo(coc2);
+
+    CategoryOptionCombo coc3 = createCategoryOptionCombo('3');
+    coc3.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+    categoryService.addCategoryOptionCombo(coc3);
+
+    Date date = new Date();
+    DataApproval dataApprovalA =
+        new DataApproval(level1, workflowA12, periodA, sourceA, coc1, false, date, userA);
+    DataApproval dataApprovalB =
+        new DataApproval(level2, workflowA12, periodA, sourceB, coc2, false, date, userA);
+    DataApproval dataApprovalC =
+        new DataApproval(level1, workflowA12, periodB, sourceA, coc3, false, date, userA);
+
+    dataApprovalStore.addDataApproval(dataApprovalA);
+    dataApprovalStore.addDataApproval(dataApprovalB);
+    dataApprovalStore.addDataApproval(dataApprovalC);
+
+    // when
+    List<DataApproval> allByCoc =
+        dataApprovalStore.getByCategoryOptionCombo(UID.of(coc1.getUid(), coc2.getUid()));
+
+    // then
+    assertEquals(2, allByCoc.size());
+    assertTrue(
+        allByCoc.containsAll(List.of(dataApprovalA, dataApprovalB)),
+        "Retrieved result set should contain both DataApprovals");
   }
 }

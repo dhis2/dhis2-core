@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -37,36 +37,39 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.test.message.FakeMessageSender;
-import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link AccountController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class AccountControllerTest extends PostgresControllerIntegrationTestBase {
-  @Autowired private SystemSettingManager systemSettingManager;
-  @Autowired private FakeMessageSender messageSender;
+
+  @Autowired private SystemSettingsService settingsService;
+  @Autowired private MessageSender emailMessageSender;
 
   @AfterEach
   void afterEach() {
-    messageSender.clearMessages();
+    emailMessageSender.clearMessages();
   }
 
   @Test
   void testRecoverAccount_NotEnabled() {
+    settingsService.put("keyAccountRecovery", false);
     User test = switchToNewUser("test");
     switchToAdminUser();
     clearSecurityContext();
@@ -91,7 +94,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testRecoverAccount_UsernameNotExist() {
-    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, Boolean.TRUE);
+    settingsService.put("keyAccountRecovery", true);
     clearSecurityContext();
     assertWebMessage(
         "Conflict",
@@ -103,7 +106,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testRecoverAccount_NotValidEmail() {
-    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, Boolean.TRUE);
+    settingsService.put("keyAccountRecovery", true);
     clearSecurityContext();
     assertWebMessage(
         "Conflict",
@@ -117,14 +120,14 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void testRecoverAccount_OK() {
     switchToNewUser("test");
-    systemSettingManager.saveSystemSetting(SettingKey.ACCOUNT_RECOVERY, Boolean.TRUE);
+    settingsService.put("keyAccountRecovery", true);
     clearSecurityContext();
     POST("/account/recovery?username=test").content(HttpStatus.OK);
   }
 
   @Test
   void testCreateAccount() {
-    systemSettingManager.saveSystemSetting(SettingKey.SELF_REGISTRATION_NO_RECAPTCHA, Boolean.TRUE);
+    settingsService.put("keySelfRegistrationNoRecaptcha", true);
     assertWebMessage(
         "Bad Request",
         400,
@@ -188,6 +191,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testValidatePasswordGet_PasswordNotValid() {
+    POST("/systemSettings/maxPasswordLength", "72").content(HttpStatus.OK);
     assertMessage(
         "response",
         "error",
@@ -206,6 +210,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testValidatePasswordPost_PasswordNotValid() {
+    POST("/systemSettings/maxPasswordLength", "72").content(HttpStatus.OK);
     assertMessage(
         "response",
         "error",
@@ -232,6 +237,9 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testVerifyEmailWithTokenTwice() {
+    settingsService.put("keyEmailHostName", "mail.example.com");
+    settingsService.put("keyEmailUsername", "mailer");
+
     User user = switchToNewUser("kent");
 
     String emailAddress = user.getEmail();
@@ -240,15 +248,24 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
     String token = extractTokenFromEmailText(emailMessage.getText());
     assertNotNull(token);
 
-    assertStatus(HttpStatus.OK, GET("/account/verifyEmail?token=" + token));
+    HttpResponse success = GET("/account/verifyEmail?token=" + token);
+    assertStatus(HttpStatus.FOUND, success);
+    assertEquals(
+        "http://localhost/dhis-web-login/#/email-verification-success", success.header("Location"));
     user = userService.getUser(user.getId());
     assertTrue(userService.isEmailVerified(user));
 
-    assertStatus(HttpStatus.CONFLICT, GET("/account/verifyEmail?token=" + token));
+    HttpResponse failure = GET("/account/verifyEmail?token=" + token);
+    assertStatus(HttpStatus.FOUND, failure);
+    assertEquals(
+        "http://localhost/dhis-web-login/#/email-verification-failure", failure.header("Location"));
   }
 
   @Test
   void testSendEmailVerification() {
+    settingsService.put("keyEmailHostName", "mail.example.com");
+    settingsService.put("keyEmailUsername", "mailer");
+
     User user = switchToNewUser("clark");
 
     String emailAddress = user.getEmail();
@@ -263,6 +280,9 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void testVerifyEmailWithToken() {
+    settingsService.put("keyEmailHostName", "mail.example.com");
+    settingsService.put("keyEmailUsername", "mailer");
+
     User user = switchToNewUser("lex");
 
     String emailAddress = user.getEmail();
@@ -271,7 +291,10 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
     String token = extractTokenFromEmailText(emailMessage.getText());
     assertValidEmailVerificationToken(token);
 
-    assertStatus(HttpStatus.OK, GET("/account/verifyEmail?token=" + token));
+    HttpResponse success = GET("/account/verifyEmail?token=" + token);
+    assertStatus(HttpStatus.FOUND, success);
+    assertEquals(
+        "http://localhost/dhis-web-login/#/email-verification-success", success.header("Location"));
     user = userService.getUser(user.getId());
     assertTrue(userService.isEmailVerified(user));
   }
@@ -279,12 +302,10 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void testVerifyWithBadToken() {
     switchToNewUser("zod");
-    assertWebMessage(
-        "Conflict",
-        409,
-        "ERROR",
-        "Verification token is invalid",
-        GET("/account/verifyEmail?token=eviltoken").content(HttpStatus.CONFLICT));
+    HttpResponse response = GET("/account/verifyEmail?token=WRONGTOKEN");
+    assertStatus(HttpStatus.FOUND, response);
+    String location = response.header("Location");
+    assertEquals("http://localhost/dhis-web-login/#/email-verification-failure", location);
   }
 
   @Test
@@ -295,7 +316,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
         "Conflict",
         409,
         "ERROR",
-        "Email is not set",
+        "User has no email set",
         POST("/account/sendEmailVerification").content(HttpStatus.CONFLICT));
   }
 
@@ -308,7 +329,7 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
         "Conflict",
         409,
         "ERROR",
-        "Email is already verified",
+        "User has already verified the email address",
         POST("/account/sendEmailVerification").content(HttpStatus.CONFLICT));
   }
 
@@ -326,17 +347,17 @@ class AccountControllerTest extends PostgresControllerIntegrationTestBase {
         "Conflict",
         409,
         "ERROR",
-        "Email is already in use by another account",
+        "The email the user is trying to verify is already verified by another account",
         POST("/account/sendEmailVerification").content(HttpStatus.CONFLICT));
   }
 
   private void assertValidEmailVerificationToken(String token) {
-    User user = userService.getUserByVerificationToken(token);
+    User user = userService.getUserByEmailVerificationToken(token);
     assertNotNull(user);
   }
 
   private OutboundMessage assertMessageSendTo(String email) {
-    List<OutboundMessage> messagesByEmail = messageSender.getMessagesByEmail(email);
+    List<OutboundMessage> messagesByEmail = emailMessageSender.getMessagesByEmail(email);
     assertFalse(messagesByEmail.isEmpty());
     return messagesByEmail.get(0);
   }

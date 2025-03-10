@@ -27,10 +27,8 @@
  */
 package org.hisp.dhis.user;
 
-import java.io.Serializable;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -38,17 +36,20 @@ import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.user.UserDetailsImpl.UserDetailsImplBuilder;
 import org.springframework.security.core.GrantedAuthority;
 
-public interface UserDetails extends org.springframework.security.core.userdetails.UserDetails {
-
-  // TODO MAS: This is a workaround and usually indicated a design flaw, and that we should refactor
-  // to use UserDetails higher up in the layers.
+public interface UserDetails
+    extends org.springframework.security.core.userdetails.UserDetails, UidObject {
 
   /**
    * Create UserDetails from User
+   *
+   * <p>TODO MAS: This is a workaround and usually indicated a design flaw, and that we should
+   * refactor // to use UserDetails higher up in the layers.
    *
    * @param user user to convert
    * @return UserDetails
@@ -61,14 +62,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
       return null;
     }
     return createUserDetails(
-        user,
-        user.isAccountNonLocked(),
-        user.isCredentialsNonExpired(),
-        null,
-        null,
-        null,
-        new HashMap<>(),
-        true);
+        user, user.isAccountNonLocked(), user.isCredentialsNonExpired(), null, null, null, true);
   }
 
   /**
@@ -83,14 +77,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
       return null;
     }
     return createUserDetails(
-        user,
-        user.isAccountNonLocked(),
-        user.isCredentialsNonExpired(),
-        null,
-        null,
-        null,
-        new HashMap<>(),
-        false);
+        user, user.isAccountNonLocked(), user.isCredentialsNonExpired(), null, null, null, false);
   }
 
   @CheckForNull
@@ -100,8 +87,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
       boolean credentialsNonExpired,
       @CheckForNull Set<String> orgUnitUids,
       @CheckForNull Set<String> searchOrgUnitUids,
-      @CheckForNull Set<String> dataViewUnitUids,
-      @CheckForNull Map<String, Serializable> settings) {
+      @CheckForNull Set<String> dataViewUnitUids) {
     return createUserDetails(
         user,
         accountNonLocked,
@@ -109,7 +95,6 @@ public interface UserDetails extends org.springframework.security.core.userdetai
         orgUnitUids,
         searchOrgUnitUids,
         dataViewUnitUids,
-        settings,
         true);
   }
 
@@ -121,7 +106,6 @@ public interface UserDetails extends org.springframework.security.core.userdetai
       @CheckForNull Set<String> orgUnitUids,
       @CheckForNull Set<String> searchOrgUnitUids,
       @CheckForNull Set<String> dataViewUnitUids,
-      @CheckForNull Map<String, Serializable> settings,
       boolean loadOrgUnits) {
 
     if (user == null) {
@@ -132,11 +116,14 @@ public interface UserDetails extends org.springframework.security.core.userdetai
         UserDetailsImpl.builder()
             .id(user.getId())
             .uid(user.getUid())
+            .code(user.getCode())
             .username(user.getUsername())
             .password(user.getPassword())
             .externalAuth(user.isExternalAuth())
             .isTwoFactorEnabled(user.isTwoFactorEnabled())
-            .code(user.getCode())
+            .twoFactorType(user.getTwoFactorType())
+            .secret(user.getSecret())
+            .isEmailVerified(user.isEmailVerified())
             .firstName(user.getFirstName())
             .surname(user.getSurname())
             .enabled(user.isEnabled())
@@ -149,8 +136,7 @@ public interface UserDetails extends org.springframework.security.core.userdetai
                     user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList()))
             .isSuper(user.isSuper())
             .userRoleIds(setOfIds(user.getUserRoles()))
-            .userGroupIds(user.getUid() == null ? Set.of() : setOfIds(user.getGroups()))
-            .userSettings(settings == null ? new HashMap<>() : new HashMap<>(settings));
+            .userGroupIds(user.getUid() == null ? Set.of() : setOfIds(user.getGroups()));
 
     if (loadOrgUnits) {
 
@@ -216,6 +202,9 @@ public interface UserDetails extends org.springframework.security.core.userdetai
 
   boolean isSuper();
 
+  String getSecret();
+
+  @Override
   String getUid();
 
   Long getId();
@@ -253,9 +242,6 @@ public interface UserDetails extends org.springframework.security.core.userdetai
   boolean isAuthorized(@Nonnull Authorities auth);
 
   @Nonnull
-  Map<String, Serializable> getUserSettings();
-
-  @Nonnull
   Set<String> getUserRoleIds();
 
   boolean canModifyUser(User userToModify);
@@ -264,9 +250,21 @@ public interface UserDetails extends org.springframework.security.core.userdetai
 
   boolean isTwoFactorEnabled();
 
+  TwoFactorType getTwoFactorType();
+
+  boolean isEmailVerified();
+
   boolean hasAnyRestrictions(Collection<String> restrictions);
 
   void setId(Long id);
+
+  default boolean canIssueUserRole(UserRole role, boolean canGrantOwnUserRole) {
+    if (role == null) return false;
+    if (isSuper()) return true;
+    if (hasAnyAuthorities(List.of(Authorities.ALL))) return true;
+    if (!canGrantOwnUserRole && getUserRoleIds().contains(role.getUid())) return false;
+    return getAllAuthorities().containsAll(role.getAuthorities());
+  }
 
   default boolean isInUserHierarchy(String orgUnitPath) {
     return isInUserHierarchy(orgUnitPath, getUserOrgUnitIds());

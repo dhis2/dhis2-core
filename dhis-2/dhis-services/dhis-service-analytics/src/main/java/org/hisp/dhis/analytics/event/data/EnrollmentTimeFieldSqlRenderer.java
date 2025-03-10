@@ -42,7 +42,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.TimeField;
@@ -53,14 +52,16 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 @Component
-@RequiredArgsConstructor
 class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
 
-  private final SqlBuilder sqlBuilder;
+  public EnrollmentTimeFieldSqlRenderer(@Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder) {
+    super(sqlBuilder);
+  }
 
   @Getter private final Set<TimeField> allowedTimeFields = Set.of(TimeField.LAST_UPDATED);
 

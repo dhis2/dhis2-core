@@ -36,7 +36,7 @@ import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 /**
  * Common Merge handler for metadata entities. The merge operations here are shared by many merge
@@ -45,7 +45,7 @@ import org.springframework.stereotype.Service;
  *
  * @author david mackessy
  */
-@Service
+@Component
 @RequiredArgsConstructor
 public class CommonMergeHandler {
 

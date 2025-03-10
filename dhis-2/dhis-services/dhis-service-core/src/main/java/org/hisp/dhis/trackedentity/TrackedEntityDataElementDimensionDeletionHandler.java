@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hisp.dhis.legend.LegendSet;

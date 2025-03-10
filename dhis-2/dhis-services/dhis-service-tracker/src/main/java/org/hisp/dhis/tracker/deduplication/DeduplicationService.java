@@ -28,32 +28,41 @@
 package org.hisp.dhis.tracker.deduplication;
 
 import java.util.List;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 
 public interface DeduplicationService {
-  PotentialDuplicate getPotentialDuplicateById(long id);
+  @Nonnull
+  PotentialDuplicate getPotentialDuplicate(@Nonnull UID uid) throws NotFoundException;
 
-  PotentialDuplicate getPotentialDuplicateByUid(String uid);
-
-  int countPotentialDuplicates(PotentialDuplicateCriteria criteria);
-
-  boolean exists(PotentialDuplicate potentialDuplicate) throws PotentialDuplicateConflictException;
-
-  List<PotentialDuplicate> getPotentialDuplicates(PotentialDuplicateCriteria criteria);
-
-  void addPotentialDuplicate(PotentialDuplicate potentialDuplicate)
+  boolean exists(@Nonnull PotentialDuplicate potentialDuplicate)
       throws PotentialDuplicateConflictException;
 
-  void updatePotentialDuplicate(PotentialDuplicate potentialDuplicate);
+  /** Get all potential duplicates matching given criteria. */
+  @Nonnull
+  List<PotentialDuplicate> getPotentialDuplicates(@Nonnull PotentialDuplicateCriteria criteria);
 
-  void autoMerge(DeduplicationMergeParams deduplicationRequest)
+  /** Get a page of duplicates matching given criteria. */
+  @Nonnull
+  Page<PotentialDuplicate> getPotentialDuplicates(
+      @Nonnull PotentialDuplicateCriteria criteria, @Nonnull PageParams pageParams);
+
+  void addPotentialDuplicate(@Nonnull PotentialDuplicate potentialDuplicate)
+      throws PotentialDuplicateConflictException;
+
+  void updatePotentialDuplicate(@Nonnull PotentialDuplicate potentialDuplicate);
+
+  void autoMerge(@Nonnull DeduplicationMergeParams deduplicationRequest)
       throws PotentialDuplicateConflictException,
           PotentialDuplicateForbiddenException,
           ForbiddenException,
           NotFoundException;
 
-  void manualMerge(DeduplicationMergeParams deduplicationRequest)
+  void manualMerge(@Nonnull DeduplicationMergeParams deduplicationRequest)
       throws PotentialDuplicateConflictException,
           PotentialDuplicateForbiddenException,
           ForbiddenException,

@@ -39,6 +39,8 @@ import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.springframework.stereotype.Component;
 
 /**
+ * Job for full analytics table update.
+ *
  * @author Lars Helge Overland
  */
 @Component
@@ -58,13 +60,13 @@ public class AnalyticsTableJob implements Job {
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears(parameters.getLastYears())
-            .withSkipResourceTables(parameters.isSkipResourceTables())
-            .withSkipOutliers(parameters.isSkipOutliers())
-            .withSkipTableTypes(parameters.getSkipTableTypes())
-            .withSkipPrograms(parameters.getSkipPrograms())
-            .withJobId(jobConfiguration)
-            .withStartTime(new Date())
+            .lastYears(parameters.getLastYears())
+            .skipResourceTables(parameters.isSkipResourceTables())
+            .skipOutliers(parameters.isSkipOutliers())
+            .skipTableTypes(parameters.getSkipTableTypes())
+            .skipPrograms(parameters.getSkipPrograms())
+            .jobId(jobConfiguration)
+            .startTime(new Date())
             .build();
 
     analyticsTableGenerator.generateAnalyticsTables(params, progress);

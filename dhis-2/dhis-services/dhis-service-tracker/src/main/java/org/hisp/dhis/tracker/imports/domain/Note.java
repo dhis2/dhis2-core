@@ -29,11 +29,12 @@ package org.hisp.dhis.tracker.imports.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
-import java.time.Instant;
+import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.UID;
 
 /**
  * Notes are text-only objects attached to Events and Enrollments. An Event or Enrollment may have
@@ -46,13 +47,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Note implements Serializable {
-  @JsonProperty private String note;
-
-  @JsonProperty private Instant storedAt;
+  @Nonnull @JsonProperty private UID note;
 
   @JsonProperty private String value;
-
-  @JsonProperty private User createdBy;
 
   @JsonProperty private String storedBy;
 }

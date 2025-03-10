@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.mapstruct.factory.Mappers;
@@ -57,22 +56,16 @@ public class TrackerImportParamsMapper {
 
   private TrackerImportParamsMapper() {}
 
-  public static TrackerImportParams trackerImportParams(
-      String userId, ImportRequestParams request) {
-    TrackerIdSchemeParam defaultIdSchemeParam = request.getIdScheme();
+  public static TrackerImportParams trackerImportParams(ImportRequestParams request) {
     TrackerIdSchemeParams idSchemeParams =
         TrackerIdSchemeParams.builder()
-            .idScheme(defaultIdSchemeParam)
-            .programIdScheme(getIdSchemeParam(request.getProgramIdScheme(), defaultIdSchemeParam))
-            .categoryOptionIdScheme(
-                getIdSchemeParam(request.getCategoryOptionIdScheme(), defaultIdSchemeParam))
-            .dataElementIdScheme(
-                getIdSchemeParam(request.getDataElementIdScheme(), defaultIdSchemeParam))
-            .orgUnitIdScheme(getIdSchemeParam(request.getOrgUnitIdScheme(), defaultIdSchemeParam))
-            .programStageIdScheme(
-                getIdSchemeParam(request.getProgramStageIdScheme(), defaultIdSchemeParam))
-            .categoryOptionComboIdScheme(
-                getIdSchemeParam(request.getCategoryOptionComboIdScheme(), defaultIdSchemeParam))
+            .idScheme(request.getIdScheme())
+            .programIdScheme(request.getProgramIdScheme())
+            .categoryOptionIdScheme(request.getCategoryOptionIdScheme())
+            .dataElementIdScheme(request.getDataElementIdScheme())
+            .orgUnitIdScheme(request.getOrgUnitIdScheme())
+            .programStageIdScheme(request.getProgramStageIdScheme())
+            .categoryOptionComboIdScheme(request.getCategoryOptionComboIdScheme())
             .build();
 
     TrackerImportParams.TrackerImportParamsBuilder paramsBuilder =
@@ -85,13 +78,7 @@ public class TrackerImportParamsMapper {
             .flushMode(request.getFlushMode())
             .skipSideEffects(request.isSkipSideEffects())
             .skipRuleEngine(request.isSkipRuleEngine())
-            .reportMode(request.getReportMode())
-            .userId(userId);
+            .reportMode(request.getReportMode());
     return paramsBuilder.build();
-  }
-
-  private static TrackerIdSchemeParam getIdSchemeParam(
-      TrackerIdSchemeParam idScheme, TrackerIdSchemeParam defaultIdSchemeParam) {
-    return idScheme == null ? defaultIdSchemeParam : idScheme;
   }
 }

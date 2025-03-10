@@ -28,21 +28,23 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.feedback.ErrorCode.E1005;
-import static org.hisp.dhis.test.web.WebClient.Body;
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.hisp.dhis.test.webapi.TestUtils.getMatchingGroupFromPattern;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.file.Path;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonObjectReport;
@@ -58,10 +60,12 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author David Mackessy
  */
+@Transactional
 class ProgramControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private ObjectMapper jsonMapper;
@@ -85,7 +89,7 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
     POST("/trackedEntityAttributes", jsonMapper.writeValueAsString(tea2))
         .content(HttpStatus.CREATED);
 
-    POST("/metadata", Body("program/create_program.json")).content(HttpStatus.OK);
+    POST("/metadata", Path.of("program/create_program.json")).content(HttpStatus.OK);
   }
 
   @Test
@@ -361,5 +365,32 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
     switchToNewUser("test1", "F_PROGRAM_PUBLIC_ADD", "F_PROGRAM_INDICATOR_PUBLIC_ADD");
 
     assertStatus(HttpStatus.NOT_FOUND, POST("/programs/%s/copy".formatted(PROGRAM_UID)));
+  }
+
+  @Test
+  void testDeleteWithMapView() {
+    String mapViewJson =
+        """
+        {
+          "name": "test mapview",
+          "id": "mVIVRd23Jm9",
+          "organisationUnitLevels": [],
+          "maps": [],
+          "layer": "event",
+          "program": {
+            "id": "PrZMWi7rBga"
+          },
+          "programStage": {
+            "id": "PSzMWi7rBga"
+          }
+        }
+        """;
+    POST("/mapViews", mapViewJson).content(HttpStatus.CREATED);
+
+    assertStatus(HttpStatus.OK, DELETE("/programs/%s".formatted(PROGRAM_UID)));
+    assertStatus(HttpStatus.NOT_FOUND, GET("/programs/%s".formatted(PROGRAM_UID)));
+    JsonMixed mapview = GET("/mapViews/mVIVRd23Jm9").content().as(JsonMixed.class);
+    assertFalse(mapview.has("program"));
+    assertFalse(mapview.has("programStage"));
   }
 }

@@ -29,20 +29,19 @@ package org.hisp.dhis.webapi.filter;
 
 import static java.util.regex.Pattern.compile;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.servlet.FilterChain;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.appmanager.AppManager;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -53,7 +52,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @RequiredArgsConstructor
 @Component
 public class GlobalShellFilter extends OncePerRequestFilter {
-  @Autowired AppManager appManager;
 
   public static final String GLOBAL_SHELL_PATH_PREFIX = "/apps/";
 
@@ -63,15 +61,17 @@ public class GlobalShellFilter extends OncePerRequestFilter {
   private static final Pattern APP_IN_GLOBAL_SHELL_PATTERN =
       compile("^" + GLOBAL_SHELL_PATH_PREFIX + "([^/.]+)/?$");
 
-  private final SystemSettingManager systemSettingManager;
+  private final AppManager appManager;
+  private final SystemSettingsProvider settingsProvider;
 
   @Override
   protected void doFilterInternal(
-      HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+      @Nonnull HttpServletRequest request,
+      @Nonnull HttpServletResponse response,
+      @Nonnull FilterChain chain)
       throws IOException, ServletException {
-    String globalShellAppName =
-        systemSettingManager.getStringSetting(SettingKey.GLOBAL_SHELL_APP_NAME);
-    if (globalShellAppName == null || !appManager.exists(globalShellAppName)) {
+    String globalShellAppName = settingsProvider.getCurrentSettings().getGlobalShellAppName();
+    if (globalShellAppName.isEmpty() || !appManager.exists(globalShellAppName)) {
       chain.doFilter(request, response);
       return;
     }

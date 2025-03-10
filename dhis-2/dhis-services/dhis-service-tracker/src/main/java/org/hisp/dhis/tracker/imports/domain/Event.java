@@ -35,10 +35,12 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.tracker.TrackerType;
 import org.locationtech.jts.geom.Geometry;
@@ -51,7 +53,7 @@ import org.locationtech.jts.geom.Geometry;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Event implements TrackerDto, Serializable {
-  @JsonProperty private String event;
+  @Nonnull @JsonProperty private UID event;
 
   @JsonProperty @Builder.Default private EventStatus status = EventStatus.ACTIVE;
 
@@ -59,11 +61,9 @@ public class Event implements TrackerDto, Serializable {
 
   @JsonProperty private MetadataIdentifier programStage;
 
-  @JsonProperty private String enrollment;
+  @JsonProperty private UID enrollment;
 
   @JsonProperty private MetadataIdentifier orgUnit;
-
-  @JsonProperty @Builder.Default private List<Relationship> relationships = new ArrayList<>();
 
   @JsonProperty private Instant occurredAt;
 
@@ -71,13 +71,7 @@ public class Event implements TrackerDto, Serializable {
 
   @JsonProperty private String storedBy;
 
-  @JsonProperty private boolean deleted;
-
-  @JsonProperty private Instant createdAt;
-
   @JsonProperty private Instant createdAtClient;
-
-  @JsonProperty private Instant updatedAt;
 
   @JsonProperty private Instant updatedAtClient;
 
@@ -86,17 +80,11 @@ public class Event implements TrackerDto, Serializable {
   @JsonProperty @Builder.Default
   private Set<MetadataIdentifier> attributeCategoryOptions = new HashSet<>();
 
-  @JsonProperty private String completedBy;
-
   @JsonProperty private Instant completedAt;
 
   @JsonProperty private Geometry geometry;
 
   @JsonProperty private User assignedUser;
-
-  @JsonProperty private User createdBy;
-
-  @JsonProperty private User updatedBy;
 
   @JsonProperty @Builder.Default private Set<DataValue> dataValues = new HashSet<>();
 
@@ -110,7 +98,7 @@ public class Event implements TrackerDto, Serializable {
   }
 
   @Override
-  public String getUid() {
+  public UID getUid() {
     return this.event;
   }
 

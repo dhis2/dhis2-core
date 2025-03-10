@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.indicator.hibernate;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorStore;
@@ -99,5 +99,19 @@ public class HibernateIndicatorStore extends HibernateIdentifiableObjectStore<In
     return getQuery("FROM Indicator i where i.denominator like :search", Indicator.class)
         .setParameter("search", "%" + search + "%")
         .getResultList();
+  }
+
+  @Override
+  public int updateNumeratorDenominatorContaining(String find, String replace) {
+    String sql =
+        """
+        update indicator
+        set numerator = replace(numerator, '%s', '%s'),
+            denominator = replace(denominator, '%s', '%s')
+        where numerator like '%s'
+          or denominator like '%s';
+        """
+            .formatted(find, replace, find, replace, "%" + find + "%", "%" + find + "%");
+    return jdbcTemplate.update(sql);
   }
 }

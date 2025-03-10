@@ -29,17 +29,17 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.json.domain.JsonUserGroup;
 import org.junit.jupiter.api.Test;
 
@@ -192,13 +192,6 @@ class GistFieldsControllerTest extends AbstractGistControllerTest {
     assertTrue(access.getBoolean("read").booleanValue());
     assertTrue(access.getBoolean("update").booleanValue());
     assertTrue(access.getBoolean("delete").booleanValue());
-  }
-
-  @Test
-  void testField_UserNameAutomaticFromTransformation() {
-    JsonArray users = GET("/users/gist?fields=id,name&headless=true").content();
-    assertEquals(
-        "FirstNameuserGist SurnameuserGist", users.getObject(1).getString("name").string());
   }
 
   @Test

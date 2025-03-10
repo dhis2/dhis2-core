@@ -65,6 +65,13 @@ public enum ErrorCode {
       "Option set `{0}` of value type multi-text cannot have option codes with the separator character: `{1}`"),
   E1119("{0} already exists: `{1}`"),
   E1120("Update cannot be applied as it would make existing data values inaccessible"),
+  E1121("Data element `{0}` value type cannot be changed as it has associated data values"),
+
+  E1122("Category option combo {0} cannot be associated with the default category combo"),
+  E1125("Category option combo {0} contains options not associated with category combo {1}"),
+  E1126("Category combo {0} cannot combine more than {1} categories, but had: {2}"),
+  E1127("Category {0} cannot have more than {1} options, but had: {2} "),
+  E1128("Category combo {0} cannot have more than {1} combinations, but requires: {2}"),
 
   /* Org unit merge */
   E1500("At least two source orgs unit must be specified"),
@@ -88,27 +95,21 @@ public enum ErrorCode {
   E1522("User `{0}` is not allowed to move organisation `{1}` unit from parent `{2}`"),
   E1523("User `{0}` is not allowed to move organisation `{1}` unit to parent `{2}`"),
 
-  /* Indicator Type merge */
-  E1530("At least one source indicator type must be specified"),
-  E1531("Target indicator type must be specified"),
-  E1532("Target indicator type cannot be a source indicator type"),
-  E1533("{0} indicator type does not exist: `{1}`"),
+  /* Generic merge errors */
+  E1530("At least one source {0} must be specified"),
+  E1531("Target {0} must be specified"),
+  E1532("Target {0} cannot be a source {1}"),
+  E1533("{0} {1} does not exist: `{2}`"),
+  E1534("dataMergeStrategy field must be specified. With value `DISCARD` or `LAST_UPDATED`"),
 
-  /* Indicator merge */
-  E1540("At least one source indicator must be specified"),
-  E1541("Target indicator must be specified"),
-  E1542("Target indicator cannot be a source indicator"),
-  E1543("{0} indicator does not exist: `{1}`"),
+  /* CategoryOptionCombo merge */
+  E1540(
+      "CategoryOptionCombos must be duplicates (same cat combo, same cat options, different UID) in order to merge"),
 
   /* DataElement merge */
-  E1550("At least one source data element must be specified"),
-  E1551("Target data element must be specified"),
-  E1552("Target data element cannot be a source data element"),
-  E1553("{0} data element does not exist: `{1}`"),
-  E1554("All source ValueTypes must match target ValueType: `{0}`. Other ValueTypes found: `{1}`"),
-  E1555(
+  E1550("All source ValueTypes must match target ValueType: `{0}`. Other ValueTypes found: `{1}`"),
+  E1551(
       "All source DataElementDomains must match target DataElementDomain: `{0}`. Other DataElementDomains found: `{1}`"),
-  E1556("dataMergeStrategy field must be specified. With value `DISCARD` or `LAST_UPDATED`"),
 
   /* Data */
   E2000("Query parameters cannot be null"),
@@ -202,21 +203,32 @@ public enum ErrorCode {
   E3020(
       "You must have permissions to create user, or ability to manage at least one user group for the user"),
   E3021("Not allowed to disable 2FA for current user"),
-  E3022("User has two factor authentication enabled, disable 2FA before you create a new QR code"),
+  E3022("User has 2FA enabled already, disable 2FA before you try to enroll again"),
   E3023("Invalid 2FA code"),
   E3024("Not allowed to disable 2FA"),
   E3025("No current user"),
   E3026("Could not generate QR code"),
   E3027("No currentUser available"),
-  E3028("User must have a secret"),
-  E3029("User must call the /qrCode endpoint first"),
+  E3028("User must have a 2FA secret"),
+  E3029("User must start 2FA enrollment first"),
   E3030(
-      "User cannot update their own user's 2FA settings via this API endpoint, must use /2fa/enable or disable API"),
-  E3031("Two factor authentication is not enabled"),
+      "User cannot update their own user's 2FA settings via this API endpoint, must use /2fa/enable or /2fa/disable API"),
+  E3031("User has not enabled 2FA"),
   E3032("User `{0}` does not have access to user role"),
   E3040("Could not resolve JwsAlgorithm from the JWK. Can not write a valid JWKSet"),
   E3041("User `{0}` is not allowed to change a user having the ALL authority"),
   E3042("Too many failed disable attempts. Please try again later"),
+  E3043(
+      "User does not have a verified email, please verify your email before you try to enable 2FA"),
+  E3044("TOTP 2FA is not enabled"),
+  E3045("Email based 2FA is not enabled"),
+  E3046("TOTP 2FA is not enabled"),
+  E3047("User is not in TOTP 2FA enrollment mode"),
+  E3048("User does not have email 2FA enabled"),
+  E3049("Sending 2FA code with email failed"),
+  E3050("2FA code can not be null or empty"),
+  E3051("2FA code was sent to the user's email"),
+  E3052("Email 2FA is enabled on user, can not change email. Disable 2FA first"),
 
   /* Metadata Validation */
   E4000("Missing required property `{0}`"),
@@ -302,6 +314,13 @@ public enum ErrorCode {
   E4068("No tracked entity attribute found for attribute: `{0}`"),
   E4069("DashboardItem `{0}` object reference `{1}` with id `{2}` not accessible"),
   E4070("Dashboard `{0}` has a layout with more than 60 columns. `{1}` columns found"),
+  E4071("Program indicator `{0}` category mapping `{1}` not found in program `{2}`"),
+  E4072("Program `{0}` category mapping `{1}` category `{2}` not found"),
+  E4073("Program `{0}` category `{1}` mapping `{2}` option `{3}` not found"),
+  E4074("Program indicator `{0}` `{1}` category needs a category mapping"),
+  E4075("Program `{0}` has an invalid category mapping `{1}`"),
+  E4076("Program `{0}` has duplicate category mapping `{1}`"),
+  E4077("Program `{0}` category `{1}` has duplicate category mapping name `{2}`"),
 
   /* SQL views */
   E4300("SQL query is null"),
@@ -392,6 +411,9 @@ public enum ErrorCode {
   E6305(
       "Aggregate data exchange target API must specify either access token or username and password"),
 
+  /*Analytics table hook*/
+  E6400("Analytics table hook `{0}` is a duplicate of `{1}`"),
+
   /* Scheduling */
   E7000("Job of same type already scheduled with cron expression: `{0}`"),
   E7003("Only interval property can be configured for non configurable job type: `{0}`"),
@@ -457,7 +479,10 @@ public enum ErrorCode {
       "Query failed because a referenced table does not exist. Please ensure analytics job was run"),
   E7145("Query failed because of a syntax error"),
   E7146("A {0} date was not specified in periods, dimensions, filters"),
-
+  E7147("Query failed because of a missing column: `{0}`"),
+  E7148("Could not create CTE SQL query, unexpected error: `{0}`"),
+  E7149("Invalid measure filter operator: `{0}`"),
+  E7150("No periods found for subexpression query"),
   /* Analytics outliers */
 
   E7180(
@@ -508,6 +533,7 @@ public enum ErrorCode {
   E7236("Program stage '{0}' is not associated to program '{0}'"),
   E7237("Sorting must have a valid dimension and a direction"),
   E7238("Sorting dimension ‘{0}’ is not a column"),
+  E7239("Invalid operator for 'null' value: `{0}`"),
 
   /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),

@@ -47,7 +47,6 @@ public class RelationshipValidator implements Validator<TrackerBundle> {
         each(
             TrackerBundle::getRelationships,
             seq(
-                new UidValidator(),
                 new ExistenceValidator(),
                 new MandatoryFieldsValidator(),
                 new MetaValidator(),

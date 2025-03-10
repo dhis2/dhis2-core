@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.imports.validation;
 
 import lombok.Value;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.TrackerType;
 
 @Value
@@ -38,7 +39,7 @@ public class Warning implements Validation {
 
   TrackerType type;
 
-  String uid;
+  UID uid;
 
   public ValidationCode getWarningCode() {
     return code;
@@ -64,7 +65,7 @@ public class Warning implements Validation {
   }
 
   @Override
-  public String getUid() {
+  public UID getUid() {
     return uid;
   }
 }

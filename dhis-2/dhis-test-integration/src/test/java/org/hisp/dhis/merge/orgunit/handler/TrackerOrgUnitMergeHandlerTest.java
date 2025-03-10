@@ -30,8 +30,6 @@ package org.hisp.dhis.merge.orgunit.handler;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -41,6 +39,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -58,8 +57,6 @@ class TrackerOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private TrackerOrgUnitMergeHandler mergeHandler;
-
-  @PersistenceContext private EntityManager entityManager;
 
   private ProgramStage psA;
 
@@ -101,9 +98,12 @@ class TrackerOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
     manager.save(ouA);
     manager.save(ouB);
     manager.save(ouC);
-    trackedEntityA = createTrackedEntity('A', ouA);
-    trackedEntityB = createTrackedEntity('B', ouB);
-    trackedEntityC = createTrackedEntity('C', ouC);
+
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    trackedEntityA = createTrackedEntity('A', ouA, trackedEntityType);
+    trackedEntityB = createTrackedEntity('B', ouB, trackedEntityType);
+    trackedEntityC = createTrackedEntity('C', ouC, trackedEntityType);
     manager.save(trackedEntityA);
     manager.save(trackedEntityB);
     manager.save(trackedEntityC);

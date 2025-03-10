@@ -37,12 +37,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -54,34 +57,43 @@ import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair Asghar
  */
-class ReportSummaryDeleteIntegrationTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class ReportSummaryDeleteIntegrationTest extends PostgresIntegrationTestBase {
+  @Autowired private TestSetup testSetup;
 
   @Autowired private TrackerImportService trackerImportService;
+
   @Autowired private DbmsManager dbmsManager;
+
+  @Autowired private IdentifiableObjectManager manager;
 
   private User importUser;
 
   @BeforeAll
   void setUp() throws IOException {
-    setUpMetadata("tracker/tracker_basic_metadata.json");
+    testSetup.importMetadata("tracker/tracker_basic_metadata.json");
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
-
-    TrackerObjects trackerObjects = fromJson("tracker/tracker_basic_data_before_deletion.json");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/tracker_basic_data_before_deletion.json");
     assertEquals(13, trackerObjects.getTrackedEntities().size());
     assertEquals(2, trackerObjects.getEnrollments().size());
     assertEquals(2, trackerObjects.getEvents().size());
     assertEquals(2, trackerObjects.getRelationships().size());
 
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     PersistenceReport persistenceReport = importReport.getPersistenceReport();
 
@@ -89,40 +101,43 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest {
     assertImportedObjects(2, persistenceReport, TrackerType.ENROLLMENT);
     assertImportedObjects(2, persistenceReport, TrackerType.EVENT);
     assertImportedObjects(2, persistenceReport, TrackerType.RELATIONSHIP);
-    assertEquals(6, manager.getAll(Enrollment.class).size());
+    assertEquals(6, getNumberOfEntities(Enrollment.class));
     assertEquals(
         persistenceReport.getTypeReportMap().get(TrackerType.EVENT).getStats().getCreated(),
-        manager.getAll(Event.class).size());
+        getNumberOfEntities(Event.class));
 
     manager.clear();
+  }
+
+  @BeforeEach
+  void setUpUser() {
+    injectSecurityContextUser(importUser);
   }
 
   @Test
   void shouldFailToDeleteNotExistentRelationship() throws IOException {
     TrackerObjects trackerObjects =
-        fromJson("tracker/relationships_existent_and_not_existent_for_deletion.json");
+        testSetup.fromJson("tracker/relationships_existent_and_not_existent_for_deletion.json");
     TrackerImportParams params =
         TrackerImportParams.builder()
-            .userId(importUser.getUid())
             .importStrategy(TrackerImportStrategy.DELETE)
             .atomicMode(AtomicMode.OBJECT)
             .build();
     assertEquals(2, trackerObjects.getRelationships().size());
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
     assertDeletedObjects(1, importReport.getPersistenceReport(), TrackerType.RELATIONSHIP);
     assertHasOnlyErrors(importReport, E4016);
   }
 
   @Test
   void shouldSuccessfullyDeleteRelationships() throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/relationships_basic_data_for_deletion.json");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/relationships_basic_data_for_deletion.json");
     assertEquals(2, trackerObjects.getRelationships().size());
     TrackerImportParams params =
-        TrackerImportParams.builder()
-            .userId(importUser.getUid())
-            .importStrategy(TrackerImportStrategy.DELETE)
-            .build();
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build();
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
     assertNoErrors(importReport);
@@ -132,11 +147,11 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest {
   @Test
   void shouldSuccessfullyDeleteTrackedEntityAndNotAccessibleRelationshipLinkedToIt()
       throws IOException {
+    injectSecurityContextUser(userService.getUser(USER_10));
     TrackerObjects trackerObjects =
-        fromJson("tracker/te_with_inaccessible_relationship_for_deletion.json");
+        testSetup.fromJson("tracker/te_with_inaccessible_relationship_for_deletion.json");
     TrackerImportParams params =
         TrackerImportParams.builder()
-            .userId(USER_10)
             .importStrategy(TrackerImportStrategy.DELETE)
             .atomicMode(AtomicMode.OBJECT)
             .build();
@@ -150,12 +165,11 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest {
 
   @Test
   void testTrackedEntityDeletion() throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/tracked_entity_basic_data_for_deletion.json");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/tracked_entity_basic_data_for_deletion.json");
     TrackerImportParams params =
-        TrackerImportParams.builder()
-            .userId(importUser.getUid())
-            .importStrategy(TrackerImportStrategy.DELETE)
-            .build();
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build();
+
     assertEquals(9, trackerObjects.getTrackedEntities().size());
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -163,60 +177,56 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest {
     assertNoErrors(importReport);
     assertDeletedObjects(9, importReport.getPersistenceReport(), TrackerType.TRACKED_ENTITY);
     // remaining
-    assertEquals(4, manager.getAll(TrackedEntity.class).size());
-    assertEquals(4, manager.getAll(Enrollment.class).size());
-    assertEquals(0, manager.getAll(Event.class).size());
-    assertEquals(0, manager.getAll(Relationship.class).size());
+    assertEquals(4, getNumberOfEntities(TrackedEntity.class));
+    assertEquals(4, getNumberOfEntities(Enrollment.class));
+    assertEquals(0, getNumberOfEntities(Event.class));
+    assertEquals(0, getNumberOfEntities(Relationship.class));
   }
 
   @Test
   void testEnrollmentDeletion() throws IOException {
     dbmsManager.clearSession();
-    assertEquals(2, manager.getAll(Event.class).size());
+    assertEquals(2, getNumberOfEntities(Event.class));
     TrackerImportParams params =
-        TrackerImportParams.builder()
-            .userId(importUser.getUid())
-            .importStrategy(TrackerImportStrategy.DELETE)
-            .build();
-    TrackerObjects trackerObjects = fromJson("tracker/enrollment_basic_data_for_deletion.json");
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build();
+
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/enrollment_basic_data_for_deletion.json");
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertNoErrors(importReport);
     assertDeletedObjects(1, importReport.getPersistenceReport(), TrackerType.ENROLLMENT);
     // remaining
-    assertEquals(5, manager.getAll(Enrollment.class).size());
-    assertEquals(1, manager.getAll(Event.class).size());
-    assertEquals(2, manager.getAll(Relationship.class).size());
+    assertEquals(5, getNumberOfEntities(Enrollment.class));
+    assertEquals(1, getNumberOfEntities(Event.class));
+    assertEquals(2, getNumberOfEntities(Relationship.class));
   }
 
   @Test
   void testEventDeletion() throws IOException {
     TrackerImportParams params =
-        TrackerImportParams.builder()
-            .userId(importUser.getUid())
-            .importStrategy(TrackerImportStrategy.DELETE)
-            .build();
-    TrackerObjects trackerObjects = fromJson("tracker/event_basic_data_for_deletion.json");
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build();
+
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/event_basic_data_for_deletion.json");
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertNoErrors(importReport);
     assertDeletedObjects(1, importReport.getPersistenceReport(), TrackerType.EVENT);
     // remaining
-    assertEquals(1, manager.getAll(Event.class).size());
-    assertEquals(2, manager.getAll(Relationship.class).size());
+    assertEquals(1, getNumberOfEntities(Event.class));
+    assertEquals(2, getNumberOfEntities(Relationship.class));
   }
 
   @Test
   void testNonExistentEnrollment() throws IOException {
     TrackerImportParams params =
-        TrackerImportParams.builder()
-            .userId(importUser.getUid())
-            .importStrategy(TrackerImportStrategy.DELETE)
-            .build();
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build();
+
     TrackerObjects trackerObjects =
-        fromJson("tracker/non_existent_enrollment_basic_data_for_deletion.json");
+        testSetup.fromJson("tracker/non_existent_enrollment_basic_data_for_deletion.json");
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
@@ -226,11 +236,9 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest {
   @Test
   void testDeleteMultipleEntities() throws IOException {
     TrackerImportParams params =
-        TrackerImportParams.builder()
-            .userId(importUser.getUid())
-            .importStrategy(TrackerImportStrategy.DELETE)
-            .build();
-    TrackerObjects trackerObjects = fromJson("tracker/tracker_data_for_deletion.json");
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build();
+
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/tracker_data_for_deletion.json");
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
@@ -259,5 +267,9 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest {
     assertEquals(
         expected,
         persistenceReport.getTypeReportMap().get(trackedEntityType).getEntityReport().size());
+  }
+
+  private long getNumberOfEntities(Class<? extends SoftDeletableObject> clazz) {
+    return manager.getAll(clazz).stream().filter(o -> !o.isDeleted()).count();
   }
 }

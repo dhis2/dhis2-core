@@ -30,11 +30,12 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
-import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
@@ -44,6 +45,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +62,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @Slf4j
 @RequestMapping("/api/documents")
-public class DocumentController extends AbstractCrudController<Document> {
+@OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
+public class DocumentController extends AbstractCrudController<Document, GetObjectListParams> {
 
   @Autowired private DocumentService documentService;
 

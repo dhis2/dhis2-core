@@ -31,13 +31,17 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -56,72 +60,67 @@ public class DefaultDeduplicationService implements DeduplicationService {
 
   private final UserService userService;
 
+  @Nonnull
   @Override
   @Transactional(readOnly = true)
-  public PotentialDuplicate getPotentialDuplicateById(long id) {
-    return potentialDuplicateStore.get(id);
+  public PotentialDuplicate getPotentialDuplicate(@Nonnull UID uid) throws NotFoundException {
+    PotentialDuplicate potentialDuplicate = potentialDuplicateStore.getByUid(uid.getValue());
+    if (potentialDuplicate == null) {
+      throw new NotFoundException(PotentialDuplicate.class, uid);
+    }
+    return potentialDuplicate;
   }
 
   @Override
   @Transactional(readOnly = true)
-  public PotentialDuplicate getPotentialDuplicateByUid(String uid) {
-    return potentialDuplicateStore.getByUid(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean exists(PotentialDuplicate potentialDuplicate)
+  public boolean exists(@Nonnull PotentialDuplicate potentialDuplicate)
       throws PotentialDuplicateConflictException {
     return potentialDuplicateStore.exists(potentialDuplicate);
   }
 
+  @Nonnull
   @Override
   @Transactional(readOnly = true)
-  public List<PotentialDuplicate> getPotentialDuplicates(PotentialDuplicateCriteria criteria) {
+  public List<PotentialDuplicate> getPotentialDuplicates(
+      @Nonnull PotentialDuplicateCriteria criteria) {
     return potentialDuplicateStore.getPotentialDuplicates(criteria);
   }
 
+  @Nonnull
   @Override
-  @Transactional(readOnly = true)
-  public int countPotentialDuplicates(PotentialDuplicateCriteria criteria) {
-    return potentialDuplicateStore.getCountPotentialDuplicates(criteria);
+  public Page<PotentialDuplicate> getPotentialDuplicates(
+      @Nonnull PotentialDuplicateCriteria criteria, @Nonnull PageParams pageParams) {
+    return potentialDuplicateStore.getPotentialDuplicates(criteria, pageParams);
   }
 
   @Override
   @Transactional
-  public void updatePotentialDuplicate(PotentialDuplicate potentialDuplicate) {
+  public void updatePotentialDuplicate(@Nonnull PotentialDuplicate potentialDuplicate) {
     setPotentialDuplicateUserNameInfo(potentialDuplicate);
     potentialDuplicateStore.update(potentialDuplicate);
   }
 
   @Override
   @Transactional
-  public void autoMerge(DeduplicationMergeParams params)
+  public void autoMerge(@Nonnull DeduplicationMergeParams params)
       throws PotentialDuplicateConflictException,
           PotentialDuplicateForbiddenException,
           ForbiddenException,
           NotFoundException {
-    String autoMergeConflicts =
-        getAutoMergeConflictErrors(params.getOriginal(), params.getDuplicate());
-
-    if (autoMergeConflicts != null) {
-      throw new PotentialDuplicateConflictException(
-          "PotentialDuplicate can not be merged automatically: " + autoMergeConflicts);
-    }
+    validateCanBeAutoMerged(params);
 
     params.setMergeObject(
         deduplicationHelper.generateMergeObject(params.getOriginal(), params.getDuplicate()));
-
     merge(params);
   }
 
   @Override
   @Transactional
-  public void manualMerge(DeduplicationMergeParams deduplicationMergeParams)
-      throws PotentialDuplicateConflictException,
-          PotentialDuplicateForbiddenException,
+  public void manualMerge(@Nonnull DeduplicationMergeParams deduplicationMergeParams)
+      throws PotentialDuplicateForbiddenException,
           ForbiddenException,
-          NotFoundException {
+          NotFoundException,
+          PotentialDuplicateConflictException {
     String invalidReference =
         deduplicationHelper.getInvalidReferenceErrors(deduplicationMergeParams);
     if (invalidReference != null) {
@@ -131,17 +130,25 @@ public class DefaultDeduplicationService implements DeduplicationService {
     merge(deduplicationMergeParams);
   }
 
-  private String getAutoMergeConflictErrors(TrackedEntity original, TrackedEntity duplicate) {
+  private void validateCanBeAutoMerged(DeduplicationMergeParams params)
+      throws PotentialDuplicateConflictException {
+    TrackedEntity original = params.getOriginal();
+    TrackedEntity duplicate = params.getDuplicate();
+
+    String prefix = "PotentialDuplicate cannot be merged automatically: ";
     if (!original.getTrackedEntityType().equals(duplicate.getTrackedEntityType())) {
-      return "Entities have different Tracked Entity Types.";
+      throw new PotentialDuplicateConflictException(
+          prefix + "Entities have different Tracked Entity Types.");
     }
 
     if (original.isDeleted() || duplicate.isDeleted()) {
-      return "One or both entities have already been marked as deleted.";
+      throw new PotentialDuplicateConflictException(
+          prefix + "One or both entities have already been marked as deleted.");
     }
 
     if (haveSameEnrollment(original.getEnrollments(), duplicate.getEnrollments())) {
-      return "Both entities enrolled in the same program.";
+      throw new PotentialDuplicateConflictException(
+          prefix + "Both entities enrolled in the same program.");
     }
 
     Set<TrackedEntityAttributeValue> trackedEntityAttributeValueA =
@@ -150,10 +157,9 @@ public class DefaultDeduplicationService implements DeduplicationService {
         duplicate.getTrackedEntityAttributeValues();
 
     if (sameAttributesAreEquals(trackedEntityAttributeValueA, trackedEntityAttributeValueB)) {
-      return "Entities have conflicting values for the same attributes.";
+      throw new PotentialDuplicateConflictException(
+          prefix + "Entities have conflicting values for the same attributes.");
     }
-
-    return null;
   }
 
   private void merge(DeduplicationMergeParams params)
@@ -173,11 +179,11 @@ public class DefaultDeduplicationService implements DeduplicationService {
     potentialDuplicateStore.moveRelationships(original, duplicate, mergeObject.getRelationships());
     potentialDuplicateStore.moveEnrollments(original, duplicate, mergeObject.getEnrollments());
     try {
-      trackerObjectDeletionService.deleteTrackedEntities(List.of(duplicate.getUid()));
+      trackerObjectDeletionService.deleteTrackedEntities(List.of(UID.of(duplicate)));
     } catch (NotFoundException e) {
       throw new RuntimeException("Could not find TrackedEntity: " + duplicate.getUid());
     }
-    updateTeiAndPotentialDuplicate(params, original);
+    updateTeAndPotentialDuplicate(params, original);
     potentialDuplicateStore.auditMerge(params);
   }
 
@@ -199,9 +205,9 @@ public class DefaultDeduplicationService implements DeduplicationService {
     return !originalPrograms.isEmpty();
   }
 
-  private void updateTeiAndPotentialDuplicate(
+  private void updateTeAndPotentialDuplicate(
       DeduplicationMergeParams deduplicationMergeParams, TrackedEntity original) {
-    updateOriginalTei(original);
+    updateOriginalTe(original);
     updatePotentialDuplicateStatus(deduplicationMergeParams.getPotentialDuplicate());
   }
 
@@ -211,7 +217,7 @@ public class DefaultDeduplicationService implements DeduplicationService {
     potentialDuplicateStore.update(potentialDuplicate);
   }
 
-  private void updateOriginalTei(TrackedEntity original) {
+  private void updateOriginalTe(TrackedEntity original) {
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     original.setLastUpdated(new Date());
     original.setLastUpdatedBy(currentUser);
@@ -239,7 +245,7 @@ public class DefaultDeduplicationService implements DeduplicationService {
 
   @Override
   @Transactional
-  public void addPotentialDuplicate(PotentialDuplicate potentialDuplicate)
+  public void addPotentialDuplicate(@Nonnull PotentialDuplicate potentialDuplicate)
       throws PotentialDuplicateConflictException {
     if (potentialDuplicate.getStatus() != DeduplicationStatus.OPEN) {
       throw new PotentialDuplicateConflictException(

@@ -28,10 +28,15 @@
 package org.hisp.dhis.tracker.deduplication;
 
 import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
-import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -41,12 +46,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import java.util.Set;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
@@ -54,6 +54,7 @@ import org.hisp.dhis.artemis.audit.AuditableEntity;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
@@ -64,8 +65,10 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityAttributeValueChangeLog;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityAttributeValueChangeLogStore;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.export.trackedentity.HibernateTrackedEntityChangeLogStore;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationEventPublisher;
@@ -79,7 +82,7 @@ class HibernatePotentialDuplicateStore
     extends HibernateIdentifiableObjectStore<PotentialDuplicate> {
   private final AuditManager auditManager;
 
-  private final TrackedEntityAttributeValueChangeLogStore trackedEntityAttributeValueChangeLogStore;
+  private final HibernateTrackedEntityChangeLogStore hibernateTrackedEntityChangeLogStore;
 
   private final DhisConfigurationProvider config;
 
@@ -89,38 +92,39 @@ class HibernatePotentialDuplicateStore
       ApplicationEventPublisher publisher,
       AclService aclService,
       AuditManager auditManager,
-      TrackedEntityAttributeValueChangeLogStore trackedEntityAttributeValueChangeLogStore,
+      HibernateTrackedEntityChangeLogStore hibernateTrackedEntityChangeLogStore,
       DhisConfigurationProvider config) {
     super(entityManager, jdbcTemplate, publisher, PotentialDuplicate.class, aclService, false);
     this.auditManager = auditManager;
-    this.trackedEntityAttributeValueChangeLogStore = trackedEntityAttributeValueChangeLogStore;
+    this.hibernateTrackedEntityChangeLogStore = hibernateTrackedEntityChangeLogStore;
     this.config = config;
   }
 
-  public int getCountPotentialDuplicates(PotentialDuplicateCriteria query) {
-    CriteriaBuilder cb = getCriteriaBuilder();
-
-    CriteriaQuery<Long> countCriteriaQuery = cb.createQuery(Long.class);
-    Root<PotentialDuplicate> root = countCriteriaQuery.from(PotentialDuplicate.class);
-
-    countCriteriaQuery.select(cb.count(root));
-
-    countCriteriaQuery.where(getQueryPredicates(query, cb, root));
-
-    TypedQuery<Long> relationshipTypedQuery = getSession().createQuery(countCriteriaQuery);
-
-    return relationshipTypedQuery.getSingleResult().intValue();
+  public List<PotentialDuplicate> getPotentialDuplicates(PotentialDuplicateCriteria criteria) {
+    TypedQuery<PotentialDuplicate> query = getQuery(criteria);
+    return query.getResultList();
   }
 
-  public List<PotentialDuplicate> getPotentialDuplicates(PotentialDuplicateCriteria criteria) {
+  public Page<PotentialDuplicate> getPotentialDuplicates(
+      PotentialDuplicateCriteria criteria, PageParams pageParams) {
+    if (pageParams.isPageTotal()) {
+      throw new UnsupportedOperationException("pageTotal is not supported");
+    }
+
+    TypedQuery<PotentialDuplicate> query = getQuery(criteria);
+
+    query.setFirstResult(pageParams.getOffset());
+    query.setMaxResults(
+        pageParams.getPageSize() + 1); // get extra item to determine if there is a nextPage
+
+    return new Page<>(query.getResultList(), pageParams);
+  }
+
+  private TypedQuery<PotentialDuplicate> getQuery(PotentialDuplicateCriteria criteria) {
     CriteriaBuilder cb = getCriteriaBuilder();
-
     CriteriaQuery<PotentialDuplicate> cq = cb.createQuery(PotentialDuplicate.class);
-
     Root<PotentialDuplicate> root = cq.from(PotentialDuplicate.class);
-
     cq.where(getQueryPredicates(criteria, cb, root));
-
     cq.orderBy(
         criteria.getOrder().stream()
             .map(
@@ -129,15 +133,7 @@ class HibernatePotentialDuplicateStore
                         ? cb.asc(root.get(order.getField()))
                         : cb.desc(root.get(order.getField())))
             .toList());
-
-    TypedQuery<PotentialDuplicate> relationshipTypedQuery = getSession().createQuery(cq);
-
-    if (criteria.isPagingRequest()) {
-      relationshipTypedQuery.setFirstResult(criteria.getFirstResult());
-      relationshipTypedQuery.setMaxResults(criteria.getPageSize());
-    }
-
-    return relationshipTypedQuery.getResultList();
+    return entityManager.createQuery(cq);
   }
 
   private Predicate[] getQueryPredicates(
@@ -175,49 +171,53 @@ class HibernatePotentialDuplicateStore
 
     NativeQuery<BigInteger> query =
         nativeSynchronizedQuery(
-            "select count(potentialduplicateid) from potentialduplicate pd "
-                + "where (pd.original = :original and pd.duplicate = :duplicate) or (pd.original = :duplicate and pd.duplicate = :original)");
+            """
+            select count(potentialduplicateid) from potentialduplicate pd where (pd.original =\
+             :original and pd.duplicate = :duplicate) or (pd.original = :duplicate and\
+             pd.duplicate = :original)""");
 
-    query.setParameter("original", potentialDuplicate.getOriginal());
-    query.setParameter("duplicate", potentialDuplicate.getDuplicate());
+    query.setParameter("original", potentialDuplicate.getOriginal().getValue());
+    query.setParameter("duplicate", potentialDuplicate.getDuplicate().getValue());
 
     return query.getSingleResult().intValue() != 0;
   }
 
   public void moveTrackedEntityAttributeValues(
-      TrackedEntity original, TrackedEntity duplicate, List<String> trackedEntityAttributes) {
+      TrackedEntity original, TrackedEntity duplicate, Set<UID> trackedEntityAttributes) {
     // Collect existing teav from original for the tea list
     Map<String, TrackedEntityAttributeValue> originalAttributeValueMap = new HashMap<>();
     original
         .getTrackedEntityAttributeValues()
         .forEach(
             oav -> {
-              if (trackedEntityAttributes.contains(oav.getAttribute().getUid())) {
+              if (trackedEntityAttributes.contains(UID.of(oav.getAttribute()))) {
                 originalAttributeValueMap.put(oav.getAttribute().getUid(), oav);
               }
             });
 
     duplicate.getTrackedEntityAttributeValues().stream()
-        .filter(av -> trackedEntityAttributes.contains(av.getAttribute().getUid()))
+        .filter(av -> trackedEntityAttributes.contains(UID.of(av.getAttribute())))
         .forEach(
-            av -> {
+            dav -> {
+              String previousValue = null;
               TrackedEntityAttributeValue updatedTeav;
               ChangeLogType changeLogType;
-              if (originalAttributeValueMap.containsKey(av.getAttribute().getUid())) {
+              if (originalAttributeValueMap.containsKey(dav.getAttribute().getUid())) {
                 // Teav exists in original, overwrite the value
-                updatedTeav = originalAttributeValueMap.get(av.getAttribute().getUid());
-                updatedTeav.setValue(av.getValue());
+                updatedTeav = originalAttributeValueMap.get(dav.getAttribute().getUid());
+                previousValue = updatedTeav.getPlainValue();
+                updatedTeav.setValue(dav.getPlainValue());
                 changeLogType = UPDATE;
               } else {
                 // teav does not exist in original, so create new and attach
                 // it to original
                 updatedTeav = new TrackedEntityAttributeValue();
-                updatedTeav.setAttribute(av.getAttribute());
+                updatedTeav.setAttribute(dav.getAttribute());
                 updatedTeav.setTrackedEntity(original);
-                updatedTeav.setValue(av.getValue());
+                updatedTeav.setValue(dav.getPlainValue());
                 changeLogType = CREATE;
               }
-              getSession().delete(av);
+              getSession().delete(dav);
               // We need to flush to make sure the previous teav is
               // deleted.
               // Or else we might end up breaking a
@@ -226,57 +226,59 @@ class HibernatePotentialDuplicateStore
 
               getSession().saveOrUpdate(updatedTeav);
 
-              auditTeav(av, updatedTeav, changeLogType);
+              addTrackedEntityChangeLog(updatedTeav, previousValue, changeLogType);
             });
   }
 
-  private void auditTeav(
-      TrackedEntityAttributeValue av,
+  private void addTrackedEntityChangeLog(
       TrackedEntityAttributeValue createOrUpdateTeav,
+      String previousValue,
       ChangeLogType changeLogType) {
     String currentUsername = CurrentUserUtil.getCurrentUsername();
 
-    TrackedEntityAttributeValueChangeLog deleteTeavAudit =
-        new TrackedEntityAttributeValueChangeLog(av, av.getAuditValue(), currentUsername, DELETE);
-    TrackedEntityAttributeValueChangeLog updatedTeavAudit =
-        new TrackedEntityAttributeValueChangeLog(
-            createOrUpdateTeav, createOrUpdateTeav.getValue(), currentUsername, changeLogType);
+    TrackedEntityChangeLog updatedTrackedEntityChangeLog =
+        new TrackedEntityChangeLog(
+            createOrUpdateTeav.getTrackedEntity(),
+            createOrUpdateTeav.getAttribute(),
+            previousValue,
+            createOrUpdateTeav.getPlainValue(),
+            changeLogType,
+            new Date(),
+            currentUsername);
 
     if (config.isEnabled(CHANGELOG_TRACKER)) {
-      trackedEntityAttributeValueChangeLogStore.addTrackedEntityAttributeValueChangeLog(
-          deleteTeavAudit);
-      trackedEntityAttributeValueChangeLogStore.addTrackedEntityAttributeValueChangeLog(
-          updatedTeavAudit);
+      hibernateTrackedEntityChangeLogStore.addTrackedEntityChangeLog(updatedTrackedEntityChangeLog);
     }
   }
 
   public void moveRelationships(
-      TrackedEntity original, TrackedEntity duplicate, List<String> relationships) {
-    duplicate.getRelationshipItems().stream()
-        .filter(r -> relationships.contains(r.getRelationship().getUid()))
-        .forEach(
-            ri -> {
-              ri.setTrackedEntity(original);
+      TrackedEntity original, TrackedEntity duplicate, Set<UID> relationships) {
+    List<RelationshipItem> duplicateRelationshipItems =
+        duplicate.getRelationshipItems().stream()
+            .filter(r -> relationships.contains(UID.of(r.getRelationship())))
+            .toList();
+    duplicateRelationshipItems.forEach(
+        ri -> {
+          ri.setTrackedEntity(original);
+          original.getRelationshipItems().add(ri);
+          getSession().update(ri);
+        });
 
-              getSession().update(ri);
-            });
+    duplicateRelationshipItems.forEach(duplicate.getRelationshipItems()::remove);
   }
 
   public void moveEnrollments(
-      TrackedEntity original, TrackedEntity duplicate, List<String> enrollments) {
+      TrackedEntity original, TrackedEntity duplicate, Set<UID> enrollments) {
     List<Enrollment> enrollmentList =
         duplicate.getEnrollments().stream()
             .filter(e -> !e.isDeleted())
-            .filter(e -> enrollments.contains(e.getUid()))
+            .filter(e -> enrollments.contains(UID.of(e)))
             .toList();
 
     enrollmentList.forEach(duplicate.getEnrollments()::remove);
 
     User currentUser =
-        CurrentUserUtil.getCurrentUserDetails() == null
-            ? null
-            : entityManager.getReference(
-                User.class, CurrentUserUtil.getCurrentUserDetails().getId());
+        entityManager.getReference(User.class, CurrentUserUtil.getCurrentUserDetails().getId());
 
     enrollmentList.forEach(
         e -> {
@@ -303,7 +305,7 @@ class HibernatePotentialDuplicateStore
             rel ->
                 duplicate.getRelationshipItems().stream()
                     .map(RelationshipItem::getRelationship)
-                    .filter(r -> r.getUid().equals(rel))
+                    .filter(r -> r.getUid().equals(rel.getValue()))
                     .findAny()
                     .ifPresent(
                         relationship ->
@@ -316,7 +318,7 @@ class HibernatePotentialDuplicateStore
                                     .klass(
                                         HibernateProxyUtils.getRealClass(relationship)
                                             .getCanonicalName())
-                                    .uid(rel)
+                                    .uid(rel.getValue())
                                     .auditableEntity(
                                         new AuditableEntity(Relationship.class, relationship))
                                     .build())));

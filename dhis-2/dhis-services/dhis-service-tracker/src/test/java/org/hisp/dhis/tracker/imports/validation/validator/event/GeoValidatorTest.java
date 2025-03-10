@@ -36,10 +36,10 @@ import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidatio
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
-import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -116,7 +116,7 @@ class GeoValidatorTest {
   void testProgramStageWithNullFeatureTypeFailsGeometryValidation() {
     // given
     Event event = new Event();
-    event.setEvent(CodeGenerator.generateUid());
+    event.setEvent(UID.generate());
     event.setProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE));
     event.setGeometry(new GeometryFactory().createPoint());
 
@@ -133,7 +133,7 @@ class GeoValidatorTest {
   void testProgramStageWithFeatureTypeNoneFailsGeometryValidation() {
     // given
     Event event = new Event();
-    event.setEvent(CodeGenerator.generateUid());
+    event.setEvent(UID.generate());
     event.setProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE));
     event.setGeometry(new GeometryFactory().createPoint());
 
@@ -152,7 +152,7 @@ class GeoValidatorTest {
   void testProgramStageWithFeatureTypeDifferentFromGeometryFails() {
     // given
     Event event = new Event();
-    event.setEvent(CodeGenerator.generateUid());
+    event.setEvent(UID.generate());
     event.setProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE));
     event.setGeometry(new GeometryFactory().createPoint());
 

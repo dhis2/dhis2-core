@@ -38,9 +38,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.schema.annotation.Gist;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserSettingKey;
 
 /**
  * Base class for translatable object.
@@ -95,7 +94,7 @@ public class TranslatableObject {
    * @return a translated value.
    */
   protected String getTranslation(String translationKey, String defaultValue) {
-    Locale locale = CurrentUserUtil.getUserSetting(UserSettingKey.DB_LOCALE);
+    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
 
     final String defaultTranslation = defaultValue != null ? defaultValue.trim() : null;
 

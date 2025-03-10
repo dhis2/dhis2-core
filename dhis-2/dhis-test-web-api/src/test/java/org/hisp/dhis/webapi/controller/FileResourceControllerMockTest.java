@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.test.TestBase.injectSecurityContext;
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -65,7 +65,7 @@ class FileResourceControllerMockTest {
 
   @BeforeAll
   static void setup() {
-    injectSecurityContext(new SystemUser());
+    injectSecurityContextNoSettings(new SystemUser());
   }
 
   @Test

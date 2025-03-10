@@ -42,8 +42,7 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
@@ -68,7 +67,7 @@ public class ContinuousAnalyticsTableJob implements Job {
 
   private final AnalyticsTableGenerator analyticsTableGenerator;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsService settingsService;
 
   private final TableInfoReader tableInfoReader;
 
@@ -100,19 +99,19 @@ public class ContinuousAnalyticsTableJob implements Job {
 
       AnalyticsTableUpdateParams params =
           AnalyticsTableUpdateParams.newBuilder()
-              .withLastYears(parameters.getLastYears())
-              .withSkipResourceTables(false)
-              .withSkipOutliers(parameters.getSkipOutliers())
-              .withSkipTableTypes(parameters.getSkipTableTypes())
-              .withJobId(jobConfiguration)
-              .withStartTime(startTime)
+              .lastYears(parameters.getLastYears())
+              .skipResourceTables(false)
+              .skipOutliers(parameters.getSkipOutliers())
+              .skipTableTypes(parameters.getSkipTableTypes())
+              .jobId(jobConfiguration)
+              .startTime(startTime)
               .build();
 
       try {
         analyticsTableGenerator.generateAnalyticsTables(params, progress);
       } finally {
         Date nextUpdate = DateUtils.getNextDate(fullUpdateHourOfDay, startTime);
-        systemSettingManager.saveSystemSetting(SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, nextUpdate);
+        settingsService.put("keyNextAnalyticsTableUpdate", nextUpdate);
         log.info("Next full analytics table update: '{}'", toLongDate(nextUpdate));
       }
     } else {
@@ -120,13 +119,13 @@ public class ContinuousAnalyticsTableJob implements Job {
 
       AnalyticsTableUpdateParams params =
           AnalyticsTableUpdateParams.newBuilder()
-              .withLatestPartition()
-              .withSkipResourceTables(true)
-              .withSkipOutliers(parameters.getSkipOutliers())
-              .withSkipTableTypes(parameters.getSkipTableTypes())
-              .withJobId(jobConfiguration)
-              .withStartTime(startTime)
-              .build();
+              .skipResourceTables(true)
+              .skipOutliers(parameters.getSkipOutliers())
+              .skipTableTypes(parameters.getSkipTableTypes())
+              .jobId(jobConfiguration)
+              .startTime(startTime)
+              .build()
+              .withLatestPartition();
 
       analyticsTableGenerator.generateAnalyticsTables(params, progress);
     }
@@ -144,10 +143,9 @@ public class ContinuousAnalyticsTableJob implements Job {
   boolean runFullUpdate(Date startTime) {
     Objects.requireNonNull(startTime);
 
-    Date nextFullUpdate =
-        systemSettingManager.getSystemSetting(SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, Date.class);
+    Date nextFullUpdate = settingsService.getCurrentSettings().getNextAnalyticsTableUpdate();
 
-    return nextFullUpdate == null || startTime.after(nextFullUpdate);
+    return startTime.after(nextFullUpdate);
   }
 
   private boolean checkJobOutliersConsistency(ContinuousAnalyticsJobParameters parameters) {

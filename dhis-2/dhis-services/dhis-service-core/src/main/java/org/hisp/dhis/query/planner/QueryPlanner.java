@@ -27,20 +27,13 @@
  */
 package org.hisp.dhis.query.planner;
 
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Root;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.query.Query;
-import org.hisp.dhis.schema.Schema;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface QueryPlanner {
-  QueryPlan planQuery(Query query);
 
-  QueryPlan planQuery(Query query, boolean persistedOnly);
-
-  QueryPath getQueryPath(Schema schema, String path);
-
-  Path<?> getQueryPath(Root<?> root, Schema schema, String path);
+  <T extends IdentifiableObject> QueryPlan<T> planQuery(Query<T> query);
 }

@@ -28,26 +28,23 @@
 package org.hisp.dhis.datastatistics.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-import static org.hisp.dhis.setting.SettingKey.COUNT_PASSIVE_DASHBOARD_VIEWS_IN_USAGE_ANALYTICS;
 import static org.hisp.dhis.system.util.SqlUtils.escape;
 import static org.hisp.dhis.util.DateUtils.asSqlDate;
 
+import jakarta.persistence.EntityManager;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import javax.persistence.EntityManager;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.datastatistics.DataStatisticsEvent;
 import org.hisp.dhis.datastatistics.DataStatisticsEventStore;
 import org.hisp.dhis.datastatistics.DataStatisticsEventType;
 import org.hisp.dhis.datastatistics.FavoriteStatistics;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.setting.UserSettings;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
@@ -61,23 +58,18 @@ import org.springframework.util.Assert;
 @Repository("org.hisp.dhis.datastatistics.DataStatisticsEventStore")
 public class HibernateDataStatisticsEventStore extends HibernateGenericStore<DataStatisticsEvent>
     implements DataStatisticsEventStore {
-  private final SystemSettingManager systemSettingManager;
 
-  private final UserSettingService userSettingService;
+  private final SystemSettingsProvider settingsProvider;
 
   public HibernateDataStatisticsEventStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
-      SystemSettingManager systemSettingManager,
-      UserSettingService userSettingService) {
+      SystemSettingsProvider settingsProvider) {
     super(entityManager, jdbcTemplate, publisher, DataStatisticsEvent.class, false);
 
-    checkNotNull(systemSettingManager);
-    checkNotNull(userSettingService);
-
-    this.systemSettingManager = systemSettingManager;
-    this.userSettingService = userSettingService;
+    checkNotNull(settingsProvider);
+    this.settingsProvider = settingsProvider;
   }
 
   @Override
@@ -138,11 +130,7 @@ public class HibernateDataStatisticsEventStore extends HibernateGenericStore<Dat
     Assert.notNull(eventType, "Data statistics event type cannot be null");
     Assert.notNull(sortOrder, "Sort order cannot be null");
 
-    final Locale currentLocale =
-        (Locale)
-            defaultIfNull(
-                userSettingService.getUserSetting(UserSettingKey.DB_LOCALE),
-                userSettingService.getUserSetting(UserSettingKey.UI_LOCALE));
+    Locale currentLocale = UserSettings.getCurrentSettings().evalUserLocale();
 
     String sql =
         "select c.uid, views, (case when value is not null then value else c.name end) as name, c.created"
@@ -202,7 +190,7 @@ public class HibernateDataStatisticsEventStore extends HibernateGenericStore<Dat
             + "from datastatisticsevent dse "
             + "where dse.favoriteuid = ?";
 
-    if (!systemSettingManager.getBoolSetting(COUNT_PASSIVE_DASHBOARD_VIEWS_IN_USAGE_ANALYTICS)) {
+    if (!settingsProvider.getCurrentSettings().getCountPassiveDashboardViewsInUsageAnalytics()) {
       sql +=
           " and dse.eventtype != '" + DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW.name() + "'";
     }

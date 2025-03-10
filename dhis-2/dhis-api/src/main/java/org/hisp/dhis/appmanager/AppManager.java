@@ -43,6 +43,7 @@ public interface AppManager {
   static final String ID = AppManager.class.getName();
 
   static final String BUNDLED_APP_PREFIX = "dhis-web-";
+  static final String INSTALLED_APP_PREFIX = "api/apps/";
 
   static final Set<String> BUNDLED_APPS =
       Set.of(
@@ -198,9 +199,9 @@ public interface AppManager {
    *
    * @param app the app to look up files for
    * @param pageName the page requested
-   * @return the Resource representing the file, or null if no file was found
+   * @return the {@link ResourceResult}
    */
-  Resource getAppResource(App app, String pageName) throws IOException;
+  ResourceResult getAppResource(App app, String pageName) throws IOException;
 
   /**
    * Sets the app status to DELETION_IN_PROGRESS.

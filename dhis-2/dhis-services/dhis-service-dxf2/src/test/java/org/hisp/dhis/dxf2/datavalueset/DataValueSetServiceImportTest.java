@@ -29,12 +29,10 @@ package org.hisp.dhis.dxf2.datavalueset;
 
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createDataSet;
-import static org.hisp.dhis.test.TestBase.injectSecurityContext;
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -44,6 +42,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.util.Map;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.category.CategoryService;
@@ -69,7 +68,8 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.UserService;
@@ -99,7 +99,7 @@ class DataValueSetServiceImportTest {
 
   @Mock private DataValueSetStore dataValueSetStore;
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsProvider settingsProvider;
 
   @Mock private LockExceptionStore lockExceptionStore;
 
@@ -131,8 +131,9 @@ class DataValueSetServiceImportTest {
 
   @Test
   void testImportDataValuesUpdatedSkipNoChange() {
+    when(settingsProvider.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
     SystemUser user = new SystemUser();
-    injectSecurityContext(user);
+    injectSecurityContextNoSettings(user);
 
     Calendar calendar = mock(Calendar.class);
     when(calendarService.getSystemCalendar()).thenReturn(calendar);
@@ -145,10 +146,6 @@ class DataValueSetServiceImportTest {
     DataValueAuditBatchHandler auditBatchHandler = mock(DataValueAuditBatchHandler.class);
     when(batchHandlerFactory.createBatchHandler(DataValueAuditBatchHandler.class))
         .thenReturn(auditBatchHandler);
-
-    when(notifier.clear(any())).thenReturn(notifier);
-    when(notifier.notify(any(), any(), anyString())).thenReturn(notifier);
-    when(notifier.notify(any(), any(), anyString(), anyBoolean())).thenReturn(notifier);
 
     DataSet dataSet = createDataSet('A', new MonthlyPeriodType());
     dataSet.setUid("pBOMPrpg1QX");

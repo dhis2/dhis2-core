@@ -289,7 +289,7 @@ public class SpringDataValueSetStore implements DataValueSetStore {
       sql += "and (";
 
       for (OrganisationUnit parent : params.getOrganisationUnits()) {
-        sql += "ou.path like '" + parent.getPath() + "%' or ";
+        sql += "ou.path like '" + parent.getStoredPath() + "%' or ";
       }
 
       sql = TextUtils.removeLastOr(sql) + ") ";

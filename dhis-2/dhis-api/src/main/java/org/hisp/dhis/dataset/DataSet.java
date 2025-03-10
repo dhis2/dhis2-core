@@ -135,10 +135,10 @@ public class DataSet extends BaseDimensionalItemObject
   private int version;
 
   /** How many days after period is over will this dataSet auto-lock */
-  private int expiryDays;
+  private double expiryDays;
 
   /** Days after period end to qualify for timely data submission */
-  private int timelyDays;
+  private double timelyDays;
 
   /** User group which will receive notifications when data set is marked complete, can be null. */
   private UserGroup notificationRecipients;
@@ -458,8 +458,12 @@ public class DataSet extends BaseDimensionalItemObject
         || user != null && user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
       return false;
     }
+
+    // Adds effectively 1 day to the end date since the date's time portion is set to 00:00.
+    // This means the comparison starts on the day after the end date at midnight.
+    Date dataEntryOpenedDate = addDays(period.getEndDate(), 1);
     Date date = now != null ? now : new Date();
-    return !Period.isDateInTimeFrame(null, addDays(period.getEndDate(), expiryDays), date);
+    return !Period.isDateWithTimeInTimeFrame(null, addDays(dataEntryOpenedDate, expiryDays), date);
   }
 
   /**
@@ -621,21 +625,21 @@ public class DataSet extends BaseDimensionalItemObject
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @PropertyRange(min = Integer.MIN_VALUE)
-  public int getExpiryDays() {
+  public double getExpiryDays() {
     return expiryDays;
   }
 
-  public void setExpiryDays(int expiryDays) {
+  public void setExpiryDays(double expiryDays) {
     this.expiryDays = expiryDays;
   }
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getTimelyDays() {
+  public double getTimelyDays() {
     return timelyDays;
   }
 
-  public void setTimelyDays(int timelyDays) {
+  public void setTimelyDays(double timelyDays) {
     this.timelyDays = timelyDays;
   }
 

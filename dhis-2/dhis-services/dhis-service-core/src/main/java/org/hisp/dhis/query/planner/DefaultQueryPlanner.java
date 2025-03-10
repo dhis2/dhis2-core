@@ -27,30 +27,15 @@
  */
 package org.hisp.dhis.query.planner;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.i18n.locale.LocaleManager;
-import org.hisp.dhis.query.Conjunction;
-import org.hisp.dhis.query.Criterion;
-import org.hisp.dhis.query.Disjunction;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.query.Filter;
 import org.hisp.dhis.query.Junction;
+import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
-import org.hisp.dhis.query.Restriction;
-import org.hisp.dhis.query.operators.TokenOperator;
-import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserSettingKey;
 import org.springframework.stereotype.Component;
 
 /**
@@ -59,253 +44,79 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class DefaultQueryPlanner implements QueryPlanner {
+
   private final SchemaService schemaService;
-  private final SystemSettingManager systemSettingManager;
 
   @Override
-  public QueryPlan planQuery(Query query) {
-    return planQuery(query, false);
-  }
+  public <T extends IdentifiableObject> QueryPlan<T> planQuery(Query<T> query) {
+    autoFill(query);
 
-  @Override
-  public QueryPlan planQuery(Query query, boolean persistedOnly) {
-    // if only one filter, always set to Junction.Type AND
-    Junction.Type junctionType =
-        query.getCriterions().size() <= 1 ? Junction.Type.AND : query.getRootJunctionType();
+    QueryPlan<T> plan = split(query);
+    Query<T> memoryQuery = plan.memoryQuery();
+    Query<T> dbQuery = plan.dbQuery();
 
-    if (Junction.Type.OR == junctionType && !persistedOnly) {
-      return QueryPlan.builder()
-          .persistedQuery(Query.from(query.getSchema()).setPlannedQuery(true))
-          .nonPersistedQuery(Query.from(query).setPlannedQuery(true))
-          .build();
-    }
-
-    Query npQuery =
-        Query.from(query)
-            .setCurrentUserDetails(query.getCurrentUserDetails())
-            .setPlannedQuery(true);
-
-    Query pQuery =
-        getQuery(npQuery, persistedOnly)
-            .setCurrentUserDetails(query.getCurrentUserDetails())
-            .setPlannedQuery(true);
-
-    // if there are any non persisted criterions left, we leave the paging
-    // to the in-memory engine
-    if (!npQuery.isEmpty()) {
-      pQuery.setSkipPaging(true);
+    // if there are any non persisted filters, leave the paging to the in-memory engine
+    if (!memoryQuery.isEmpty()) {
+      dbQuery.setSkipPaging(true);
     } else {
-      pQuery.setFirstResult(npQuery.getFirstResult());
-      pQuery.setMaxResults(npQuery.getMaxResults());
+      dbQuery.setFirstResult(query.getFirstResult());
+      dbQuery.setMaxResults(query.getMaxResults());
     }
 
-    return QueryPlan.builder().persistedQuery(pQuery).nonPersistedQuery(npQuery).build();
+    return plan;
   }
 
-  @Override
-  public QueryPath getQueryPath(Schema schema, String path) {
-    Schema curSchema = schema;
-    Property curProperty = null;
-    boolean persisted = true;
-    List<String> alias = new ArrayList<>();
-    String[] pathComponents = path.split("\\.");
-
-    if (pathComponents.length == 0) {
-      return null;
+  /** Modifies the query based on schema data */
+  private void autoFill(Query<?> query) {
+    Schema schema = schemaService.getDynamicSchema(query.getObjectType());
+    if (query.isDefaultOrders()) {
+      if (schema.hasPersistedProperty("name"))
+        query.addOrder(Order.iasc(schema.getPersistedProperty("name")));
+      if (schema.hasPersistedProperty("id"))
+        query.addOrder(Order.asc(schema.getPersistedProperty("id")));
     }
+    query.setShortNamePersisted(schema.hasPersistedProperty("shortName"));
+  }
 
-    for (int idx = 0; idx < pathComponents.length; idx++) {
-      String name = pathComponents[idx];
-      curProperty = curSchema.getProperty(name);
+  private <T extends IdentifiableObject> QueryPlan<T> split(Query<T> query) {
+    Query<T> memoryQuery = Query.copyOf(query);
+    memoryQuery.getFilters().clear();
+    Query<T> dbQuery = Query.emptyOf(query);
 
-      if (isFilterByAttributeId(curProperty, name)) {
-        // filter by Attribute Uid
-        persisted = false;
-        curProperty = curSchema.getProperty("attributeValues");
-      }
+    for (Filter filter : query.getFilters()) {
+      if (!filter.isVirtual())
+        filter.setPropertyPath(
+            schemaService.getPropertyPath(query.getObjectType(), filter.getPath()));
 
-      if (curProperty == null) {
-        throw new RuntimeException("Invalid path property: " + name);
-      }
-
-      if (!curProperty.isPersisted()) {
-        persisted = false;
-      }
-
-      if ((!curProperty.isSimple() && idx == pathComponents.length - 1)) {
-        return new QueryPath(curProperty, persisted, alias.toArray(new String[] {}));
-      }
-
-      if (curProperty.isCollection()) {
-        curSchema = schemaService.getDynamicSchema(curProperty.getItemKlass());
-        alias.add(curProperty.getFieldName());
-      } else if (!curProperty.isSimple()) {
-        curSchema = schemaService.getDynamicSchema(curProperty.getKlass());
-        alias.add(curProperty.getFieldName());
+      if (isDbFilter(filter)) {
+        dbQuery.add(filter);
       } else {
-        return new QueryPath(curProperty, persisted, alias.toArray(new String[] {}));
+        memoryQuery.add(filter);
       }
     }
-
-    return new QueryPath(curProperty, persisted, alias.toArray(new String[] {}));
-  }
-
-  @Override
-  public Path<?> getQueryPath(Root<?> root, Schema schema, String path) {
-    Schema curSchema = schema;
-    Property curProperty;
-    String[] pathComponents = path.split("\\.");
-
-    Path<?> currentPath = root;
-
-    if (pathComponents.length == 0) {
-      return null;
-    }
-
-    for (int idx = 0; idx < pathComponents.length; idx++) {
-      String name = pathComponents[idx];
-      curProperty = curSchema.getProperty(name);
-
-      if (curProperty == null) {
-        throw new RuntimeException("Invalid path property: " + name);
-      }
-
-      if ((!curProperty.isSimple() && idx == pathComponents.length - 1)) {
-        return root.join(curProperty.getFieldName());
-      }
-
-      if (curProperty.isCollection()) {
-        currentPath = root.join(curProperty.getFieldName());
-        curSchema = schemaService.getDynamicSchema(curProperty.getItemKlass());
-      } else if (!curProperty.isSimple()) {
-        curSchema = schemaService.getDynamicSchema(curProperty.getKlass());
-        currentPath = root.join(curProperty.getFieldName());
-      } else {
-        return currentPath.get(curProperty.getFieldName());
-      }
-    }
-
-    return currentPath;
-  }
-
-  /**
-   * @param query Query
-   * @return Query instance
-   */
-  private Query getQuery(Query query, boolean persistedOnly) {
-    Query pQuery = Query.from(query.getSchema(), query.getRootJunctionType());
-    pQuery.setSkipSharing(query.isSkipSharing());
-    Iterator<Criterion> iterator = query.getCriterions().iterator();
-
-    while (iterator.hasNext()) {
-      Criterion criterion = iterator.next();
-
-      if (criterion instanceof Junction) {
-        Junction junction = handleJunction(pQuery, (Junction) criterion, persistedOnly);
-
-        if (!junction.getCriterions().isEmpty()) {
-          pQuery.getAliases().addAll(junction.getAliases());
-          pQuery.add(junction);
-        }
-
-        if (((Junction) criterion).getCriterions().isEmpty()) {
-          iterator.remove();
-        }
-      } else if (criterion instanceof Restriction) {
-        Restriction restriction = (Restriction) criterion;
-        restriction.setQueryPath(getQueryPath(query.getSchema(), restriction.getPath()));
-
-        if (restriction.getOperator().getClass().isAssignableFrom(TokenOperator.class)) {
-          setQueryPathLocale(restriction);
-        }
-
-        if (restriction.getQueryPath().isPersisted()
-            && !restriction.getQueryPath().haveAlias()
-            && !Attribute.ObjectType.isValidType(restriction.getQueryPath().getPath())) {
-          pQuery
-              .getAliases()
-              .addAll(Arrays.asList(((Restriction) criterion).getQueryPath().getAlias()));
-          pQuery.getCriterions().add(criterion);
-          iterator.remove();
-        }
-      }
+    if (query.getRootJunctionType() == Junction.Type.OR
+        && !memoryQuery.getFilters().isEmpty()
+        && !dbQuery.getFilters().isEmpty()) {
+      // OR with some filters DB some filters in-memory => all must be in-memory
+      dbQuery.getFilters().clear();
+      memoryQuery.getFilters().clear();
+      memoryQuery.getFilters().addAll(query.getFilters());
     }
 
     if (query.ordersPersisted()) {
-      pQuery.addOrders(query.getOrders());
-      query.clearOrders();
+      dbQuery.addOrders(query.getOrders());
+      memoryQuery.clearOrders();
     }
 
-    return pQuery;
+    return new QueryPlan<>(dbQuery, memoryQuery);
   }
 
-  private Junction handleJunction(Query query, Junction queryJunction, boolean persistedOnly) {
-    Iterator<Criterion> iterator = queryJunction.getCriterions().iterator();
-    Junction criteriaJunction =
-        queryJunction instanceof Disjunction
-            ? new Disjunction(query.getSchema())
-            : new Conjunction(query.getSchema());
-
-    while (iterator.hasNext()) {
-      Criterion criterion = iterator.next();
-
-      if (criterion instanceof Junction) {
-        Junction junction = handleJunction(query, (Junction) criterion, persistedOnly);
-
-        if (!junction.getCriterions().isEmpty()) {
-          criteriaJunction.getAliases().addAll(junction.getAliases());
-          criteriaJunction.add(junction);
-        }
-
-        if (((Junction) criterion).getCriterions().isEmpty()) {
-          iterator.remove();
-        }
-      } else if (criterion instanceof Restriction) {
-        Restriction restriction = (Restriction) criterion;
-        restriction.setQueryPath(getQueryPath(query.getSchema(), restriction.getPath()));
-
-        if (restriction.getOperator().getClass().isAssignableFrom(TokenOperator.class)) {
-          setQueryPathLocale(restriction);
-        }
-
-        if (restriction.getQueryPath().isPersisted()
-            && !restriction.getQueryPath().haveAlias(1)
-            && !Attribute.ObjectType.isValidType(restriction.getQueryPath().getPath())) {
-          criteriaJunction
-              .getAliases()
-              .addAll(Arrays.asList(((Restriction) criterion).getQueryPath().getAlias()));
-          criteriaJunction.getCriterions().add(criterion);
-          iterator.remove();
-        } else if (persistedOnly) {
-          throw new RuntimeException(
-              "Path "
-                  + restriction.getQueryPath().getPath()
-                  + " is not fully persisted, unable to build persisted only query plan.");
-        }
-      }
-    }
-
-    return criteriaJunction;
-  }
-
-  private boolean isFilterByAttributeId(Property curProperty, String propertyName) {
-    return curProperty == null && CodeGenerator.isValidUid(propertyName);
-  }
-
-  /**
-   * Set the current locale on the query path. The current locale is the user's selected database
-   * locale if available, otherwise the system setting DB_Locale. If neither is available, the
-   * {@link LocaleManager#DEFAULT_LOCALE} is used.
-   *
-   * @param restriction the {@link Restriction} which contains the query path.
-   */
-  private void setQueryPathLocale(Restriction restriction) {
-    restriction
-        .getQueryPath()
-        .setLocale(
-            CurrentUserUtil.getUserSetting(
-                UserSettingKey.DB_LOCALE,
-                systemSettingManager.getSystemSetting(
-                    SettingKey.DB_LOCALE, LocaleManager.DEFAULT_LOCALE)));
+  private static boolean isDbFilter(Filter filter) {
+    if (filter.isVirtual()) return filter.isIdentifiable() || filter.isQuery();
+    PropertyPath path = filter.getPropertyPath();
+    return path != null
+        && path.isPersisted()
+        && !path.haveAlias()
+        && !Attribute.ObjectType.isValidType(path.getPath());
   }
 }

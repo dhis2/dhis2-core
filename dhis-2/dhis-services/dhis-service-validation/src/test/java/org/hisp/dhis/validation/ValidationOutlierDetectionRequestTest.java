@@ -44,8 +44,8 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.validation.outlierdetection.ValidationOutlierDetectionRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,7 +61,8 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class ValidationOutlierDetectionRequestTest {
 
-  @Mock private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingsProvider settingsProvider;
+  @Mock private SystemSettings settings;
 
   private ValidationOutlierDetectionRequest subject;
 
@@ -81,9 +82,9 @@ class ValidationOutlierDetectionRequestTest {
 
   @BeforeEach
   public void setUp() {
-    subject = new ValidationOutlierDetectionRequest(systemSettingManager);
-    when(systemSettingManager.getSystemSetting(SettingKey.ANALYTICS_MAX_LIMIT, Integer.class))
-        .thenReturn(500);
+    subject = new ValidationOutlierDetectionRequest(settingsProvider);
+    when(settingsProvider.getCurrentSettings()).thenReturn(settings);
+    when(settings.getAnalyticsMaxLimit()).thenReturn(500);
     deA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
     deB = createDataElement('B', ValueType.INTEGER, AggregationType.SUM);
     deC = createDataElement('C', ValueType.NUMBER, AggregationType.SUM);

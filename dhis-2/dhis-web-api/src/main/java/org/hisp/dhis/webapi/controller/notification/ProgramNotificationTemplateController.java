@@ -28,20 +28,23 @@
 package org.hisp.dhis.webapi.controller.notification;
 
 import static org.hisp.dhis.security.Authorities.ALL;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
 
 import java.util.List;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateOperationParams;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
-import org.hisp.dhis.schema.descriptors.ProgramNotificationTemplateSchemaDescriptor;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -53,8 +56,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping("/api/programNotificationTemplates")
 @ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
 public class ProgramNotificationTemplateController
-    extends AbstractCrudController<ProgramNotificationTemplate> {
+    extends AbstractCrudController<ProgramNotificationTemplate, GetObjectListParams> {
   private final ProgramNotificationTemplateService programNotificationTemplateService;
 
   private final ProgramNotificationTemplateRequestParamsMapper requestParamsMapper;
@@ -70,28 +74,32 @@ public class ProgramNotificationTemplateController
   // GET
   // -------------------------------------------------------------------------
 
+  @OpenApi.Response(GetObjectListResponse.class)
   @RequiresAuthority(anyOf = ALL)
   @GetMapping(
       produces = {"application/json"},
       value = "/filter")
-  public @ResponseBody Page<ProgramNotificationTemplate> getProgramNotificationTemplates(
-      ProgramNotificationTemplateRequestParams requestParams)
-      throws ConflictException, BadRequestException {
-    validatePaginationParameters(requestParams);
-
+  public @ResponseBody ResponseEntity<StreamingJsonRoot<ProgramNotificationTemplate>>
+      getProgramNotificationTemplates(ProgramNotificationTemplateRequestParams requestParams)
+          throws ConflictException, BadRequestException {
     ProgramNotificationTemplateOperationParams params = requestParamsMapper.map(requestParams);
 
-    List<ProgramNotificationTemplate> instances =
+    List<ProgramNotificationTemplate> entities =
         programNotificationTemplateService.getProgramNotificationTemplates(params);
 
-    if (params.isPaged()) {
-      long total = programNotificationTemplateService.countProgramNotificationTemplates(params);
-      return Page.withPager(
-          ProgramNotificationTemplateSchemaDescriptor.PLURAL,
-          org.hisp.dhis.tracker.export.Page.withTotals(
-              instances, params.getPage(), params.getPageSize(), total));
+    Pager pager = null;
+    if (params.isPaging()) {
+      long totalCount =
+          programNotificationTemplateService.countProgramNotificationTemplates(params);
+      pager = new Pager(params.getPage(), totalCount, params.getPageSize());
+      linkService.generatePagerLinks(pager, getEntityClass());
     }
 
-    return Page.withoutPager(ProgramNotificationTemplateSchemaDescriptor.PLURAL, instances);
+    return ResponseEntity.ok(
+        new StreamingJsonRoot<>(
+            pager,
+            getSchema().getCollectionName(),
+            FieldFilterParams.of(entities, List.of("*")),
+            false));
   }
 }

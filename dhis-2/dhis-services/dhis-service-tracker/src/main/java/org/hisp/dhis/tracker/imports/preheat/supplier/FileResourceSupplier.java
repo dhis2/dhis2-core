@@ -30,15 +30,14 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -61,13 +60,13 @@ public class FileResourceSupplier extends AbstractPreheatSupplier {
         preheat.getAll(TrackedEntityAttribute.class).stream()
             .filter(at -> at.getValueType().isFile())
             .map(idSchemes::toMetadataIdentifier)
-            .collect(Collectors.toList());
+            .toList();
 
     List<MetadataIdentifier> fileResourceDataElements =
         preheat.getAll(DataElement.class).stream()
             .filter(at -> at.getValueType().isFile())
             .map(idSchemes::toMetadataIdentifier)
-            .collect(Collectors.toList());
+            .toList();
 
     List<String> fileResourceIds = new ArrayList<>();
     trackerObjects

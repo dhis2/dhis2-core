@@ -31,25 +31,28 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Deque;
 import java.util.List;
-import java.util.Optional;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.JobSchedulerService;
+import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
@@ -58,17 +61,20 @@ import org.hisp.dhis.tracker.imports.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.note.NoteService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
-import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.webapi.controller.tracker.view.Note;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.locationtech.jts.io.ParseException;
+import org.mapstruct.factory.Mappers;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -84,7 +90,9 @@ import org.springframework.web.client.HttpStatusCodeException;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Document(domain = TrackedEntity.class)
+@OpenApi.Document(
+    entity = TrackedEntity.class,
+    classifiers = {"team:tracker", "purpose:data"})
 @RestController
 @RequestMapping("/api/tracker")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -98,25 +106,25 @@ public class TrackerImportController {
 
   private final Notifier notifier;
 
-  private final JobSchedulerService jobSchedulerService;
-
-  private final JobConfigurationService jobConfigurationService;
+  private final JobExecutionService jobExecutionService;
 
   private final ObjectMapper jsonMapper;
 
-  private final UserService userService;
+  private final NoteService noteService;
+
+  private final NoteMapper noteMapper = Mappers.getMapper(NoteMapper.class);
 
   @PostMapping(value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public WebMessage asyncPostJsonTracker(
-      HttpServletRequest request, ImportRequestParams importRequestParams, @RequestBody Body body)
-      throws ConflictException, NotFoundException, IOException {
-
-    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    String userUid = currentUserDetails.getUid();
+      HttpServletRequest request,
+      ImportRequestParams importRequestParams,
+      @RequestBody Body body,
+      @CurrentUser UserDetails currentUser)
+      throws ConflictException, IOException {
 
     TrackerImportParams trackerImportParams =
-        TrackerImportParamsMapper.trackerImportParams(userUid, importRequestParams);
+        TrackerImportParamsMapper.trackerImportParams(importRequestParams);
     TrackerObjects trackerObjects =
         TrackerImportParamsMapper.trackerObjects(body, trackerImportParams.getIdSchemes());
 
@@ -124,7 +132,7 @@ public class TrackerImportController {
         trackerImportParams,
         MimeType.valueOf("application/json"),
         trackerObjects,
-        userUid,
+        currentUser.getUid(),
         request);
   }
 
@@ -134,15 +142,14 @@ public class TrackerImportController {
       TrackerObjects trackerObjects,
       String userUid,
       HttpServletRequest request)
-      throws IOException, ConflictException, NotFoundException {
+      throws IOException, ConflictException {
     JobConfiguration config = new JobConfiguration(JobType.TRACKER_IMPORT_JOB);
     config.setExecutedBy(userUid);
     config.setJobParameters(params);
 
     byte[] jsonInput = jsonMapper.writeValueAsBytes(trackerObjects);
 
-    jobSchedulerService.executeNow(
-        jobConfigurationService.create(config, contentType, new ByteArrayInputStream(jsonInput)));
+    jobExecutionService.executeOnceNow(config, contentType, new ByteArrayInputStream(jsonInput));
     String jobId = config.getUid();
     String location = ContextUtils.getRootPath(request) + "/tracker/jobs/" + jobId;
     return ok(TRACKER_JOB_ADDED)
@@ -157,11 +164,7 @@ public class TrackerImportController {
   public ResponseEntity<ImportReport> syncPostJsonTracker(
       ImportRequestParams importRequestParams, @RequestBody Body body) {
 
-    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    String userUid = currentUserDetails.getUid();
-
-    TrackerImportParams params =
-        TrackerImportParamsMapper.trackerImportParams(userUid, importRequestParams);
+    TrackerImportParams params = TrackerImportParamsMapper.trackerImportParams(importRequestParams);
     TrackerObjects trackerObjects =
         TrackerImportParamsMapper.trackerObjects(body, params.getIdSchemes());
     ImportReport importReport =
@@ -184,11 +187,9 @@ public class TrackerImportController {
   public WebMessage asyncPostCsvTracker(
       HttpServletRequest request,
       ImportRequestParams importRequest,
-      @RequestParam(required = false, defaultValue = "true") boolean skipFirst)
-      throws IOException, ParseException, ConflictException, NotFoundException {
-
-    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    String userUid = currentUserDetails.getUid();
+      @RequestParam(required = false, defaultValue = "true") boolean skipFirst,
+      @CurrentUser UserDetails currentUser)
+      throws IOException, ParseException, ConflictException {
 
     InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat(request.getInputStream());
 
@@ -197,13 +198,17 @@ public class TrackerImportController {
     Body body = Body.builder().events(events).build();
 
     TrackerImportParams trackerImportParams =
-        TrackerImportParamsMapper.trackerImportParams(userUid, importRequest);
+        TrackerImportParamsMapper.trackerImportParams(importRequest);
 
     TrackerObjects trackerObjects =
         TrackerImportParamsMapper.trackerObjects(body, trackerImportParams.getIdSchemes());
 
     return startAsyncTracker(
-        trackerImportParams, MimeType.valueOf("application/csv"), trackerObjects, userUid, request);
+        trackerImportParams,
+        MimeType.valueOf("application/csv"),
+        trackerObjects,
+        currentUser.getUid(),
+        request);
   }
 
   @PostMapping(
@@ -217,17 +222,13 @@ public class TrackerImportController {
       @RequestParam(required = false, defaultValue = "true") boolean skipFirst,
       @RequestParam(defaultValue = "errors", required = false) TrackerBundleReportMode reportMode)
       throws IOException, ParseException {
-
-    UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
-    String userUid = currentUserDetails.getUid();
-
     InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat(request.getInputStream());
 
     List<Event> events = csvEventService.read(inputStream, skipFirst);
     Body body = Body.builder().events(events).build();
 
     TrackerImportParams trackerImportParams =
-        TrackerImportParamsMapper.trackerImportParams(userUid, importRequest);
+        TrackerImportParamsMapper.trackerImportParams(importRequest);
     TrackerObjects trackerObjects =
         TrackerImportParamsMapper.trackerObjects(body, trackerImportParams.getIdSchemes());
     ImportReport importReport =
@@ -255,11 +256,34 @@ public class TrackerImportController {
       @PathVariable String uid,
       @RequestParam(defaultValue = "errors", required = false) TrackerBundleReportMode reportMode,
       HttpServletResponse response)
-      throws HttpStatusCodeException, NotFoundException {
+      throws HttpStatusCodeException, NotFoundException, ConflictException {
     setNoStore(response);
 
-    return Optional.ofNullable(notifier.getJobSummaryByJobId(JobType.TRACKER_IMPORT_JOB, uid))
-        .map(report -> trackerImportService.buildImportReport((ImportReport) report, reportMode))
-        .orElseThrow(() -> new NotFoundException("Summary for job " + uid + " does not exist"));
+    JsonValue report = notifier.getJobSummaryByJobId(JobType.TRACKER_IMPORT_JOB, uid);
+    if (report == null) throw new NotFoundException("Summary for job " + uid + " does not exist");
+    try {
+      return trackerImportService.buildImportReport(
+          jsonMapper.readValue(report.toJson(), ImportReport.class), reportMode);
+    } catch (JsonProcessingException e) {
+      throw new ConflictException("Failed to convert the import report: " + report);
+    }
+  }
+
+  @PostMapping(value = "/enrollments/{uid}/note", consumes = APPLICATION_JSON_VALUE)
+  public ResponseEntity<Note> addNoteToEnrollment(@RequestBody Note note, @PathVariable UID uid)
+      throws ForbiddenException, NotFoundException, BadRequestException {
+
+    noteService.addNoteForEnrollment(noteMapper.from(note), uid);
+
+    return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(note);
+  }
+
+  @PostMapping(value = "/events/{uid}/note", consumes = APPLICATION_JSON_VALUE)
+  public ResponseEntity<Note> addNoteToEvent(@RequestBody Note note, @PathVariable UID uid)
+      throws ForbiddenException, NotFoundException, BadRequestException {
+
+    noteService.addNoteForEvent(noteMapper.from(note), uid);
+
+    return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(note);
   }
 }

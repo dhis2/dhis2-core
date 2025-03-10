@@ -39,8 +39,7 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -95,14 +94,14 @@ class DataApprovalPermissionsEvaluator {
    * DataApproval objects.
    *
    * @param userService user service
-   * @param systemSettingManager System setting manager
+   * @param settings current settings
    * @param dataApprovalLevelService Data approval level service
    * @return context for determining user permissions
    */
   public static DataApprovalPermissionsEvaluator makePermissionsEvaluator(
       UserService userService,
       IdentifiableObjectManager idObjectManager,
-      SystemSettingManager systemSettingManager,
+      SystemSettings settings,
       DataApprovalLevelService dataApprovalLevelService) {
     DataApprovalPermissionsEvaluator ev = new DataApprovalPermissionsEvaluator();
 
@@ -111,9 +110,8 @@ class DataApprovalPermissionsEvaluator {
 
     ev.user = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    ev.acceptanceRequiredForApproval =
-        systemSettingManager.getBoolSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL);
-    boolean hideUnapprovedData = systemSettingManager.hideUnapprovedDataInAnalytics();
+    ev.acceptanceRequiredForApproval = settings.getAcceptanceRequiredForApproval();
+    boolean hideUnapprovedData = settings.isHideUnapprovedDataInAnalytics();
 
     ev.authorizedToApprove = ev.user.isAuthorized(F_APPROVE_DATA);
     ev.authorizedToApproveAtLowerLevels = ev.user.isAuthorized(F_APPROVE_DATA_LOWER_LEVELS);

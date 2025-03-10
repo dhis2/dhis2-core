@@ -27,26 +27,29 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.nio.file.Path;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author viet@dhis2.org
  */
+@Transactional
 class BulkPatchSharingControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private ObjectMapper jsonMapper;
@@ -78,7 +81,8 @@ class BulkPatchSharingControllerTest extends H2ControllerIntegrationTestBase {
         POST(
             "/dataElements",
             jsonMapper.writeValueAsString(createDataElement('B', deBId, userCId))));
-    assertStatus(HttpStatus.OK, PATCH("/dataElements/sharing", "patch/bulk_sharing_patch.json"));
+    assertStatus(
+        HttpStatus.OK, PATCH("/dataElements/sharing", Path.of("patch/bulk_sharing_patch.json")));
     JsonIdentifiableObject saveDeA =
         GET("/dataElements/{uid}", deAId).content(HttpStatus.OK).as(JsonIdentifiableObject.class);
     JsonIdentifiableObject saveDeB =
@@ -100,7 +104,8 @@ class BulkPatchSharingControllerTest extends H2ControllerIntegrationTestBase {
     assertStatus(
         HttpStatus.CREATED,
         POST("/dataElements", toJsonString(createDataElement('B', deBId, userCId))));
-    HttpResponse response = PATCH("/dataElements/sharing", "patch/bulk_sharing_patch.json");
+    HttpResponse response =
+        PATCH("/dataElements/sharing", Path.of("patch/bulk_sharing_patch.json"));
     assertEquals(HttpStatus.CONFLICT, response.status());
     assertEquals(
         "Invalid UID `" + deAId + "` for property `dataElement`", getFirstErrorMessage(response));
@@ -128,7 +133,7 @@ class BulkPatchSharingControllerTest extends H2ControllerIntegrationTestBase {
             "/dataElements",
             jsonMapper.writeValueAsString(createDataElement('B', deBId, userCId))));
     HttpResponse response =
-        PATCH("/dataElements/sharing?atomic=true", "patch/bulk_sharing_patch.json");
+        PATCH("/dataElements/sharing?atomic=true", Path.of("patch/bulk_sharing_patch.json"));
     assertEquals(HttpStatus.CONFLICT, response.status());
     assertEquals(
         "Invalid UID `" + deAId + "` for property `dataElement`", getFirstErrorMessage(response));
@@ -155,7 +160,8 @@ class BulkPatchSharingControllerTest extends H2ControllerIntegrationTestBase {
         POST(
             "/dataElements",
             jsonMapper.writeValueAsString(createDataElement('B', deBId, userCId))));
-    assertStatus(HttpStatus.OK, PATCH("/metadata/sharing", "patch/bulk_sharing_patches.json"));
+    assertStatus(
+        HttpStatus.OK, PATCH("/metadata/sharing", Path.of("patch/bulk_sharing_patches.json")));
     JsonIdentifiableObject savedDeA =
         GET("/dataElements/{uid}", deAId).content(HttpStatus.OK).as(JsonIdentifiableObject.class);
     JsonIdentifiableObject savedDeB =
@@ -174,9 +180,9 @@ class BulkPatchSharingControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testApplyPatchesInvalidClass() throws IOException {
+  void testApplyPatchesInvalidClass() {
     HttpResponse response =
-        PATCH("/metadata/sharing", "patch/bulk_sharing_patches_invalid_class.json");
+        PATCH("/metadata/sharing", Path.of("patch/bulk_sharing_patches_invalid_class.json"));
     assertEquals(HttpStatus.CONFLICT, response.status());
     assertEquals(
         "Sharing is not enabled for this object `organisationUnit`",

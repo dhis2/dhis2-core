@@ -27,16 +27,17 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
+import org.hisp.dhis.http.HttpClientAdapter;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegritySummary;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.webapi.controller.DataIntegrityController;
@@ -137,5 +138,34 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityIntegratio
             .content()
             .stringValues()
             .contains("indicator_no_analysis"));
+  }
+
+  @Test
+  void testGetSummaryMetrics() {
+    postSummary("categories-no-options");
+    HttpResponse response =
+        GET("/api/dataIntegrity/metrics", HttpClientAdapter.Accept("text/plain"));
+    assertEquals(HttpStatus.OK, response.status());
+    String content = response.content("text/plain");
+    assertFalse(content.isEmpty(), "Response content should not be empty");
+    assertTrue(
+        content.contains(
+            "# HELP dhis_data_integrity_issues_count_total Data integrity check counts"),
+        "Data integrity check help text is missing");
+    assertTrue(
+        content.contains("# TYPE dhis_data_integrity_issues_count_total gauge"),
+        "Data integrity check type is missing");
+    assertTrue(
+        content.contains(
+            "dhis_data_integrity_issues_count_total{check=\"categories_no_options\",severity=\"WARNING\",object_type=\"categories\"}"),
+        "Data integrity check count is missing");
+    assertTrue(
+        content.contains(
+            "dhis_data_integrity_issues_percentage{check=\"categories_no_options\",severity=\"WARNING\",object_type=\"categories\"}"),
+        "Data integrity check percentage is missing");
+    assertTrue(
+        content.contains(
+            "dhis_data_integrity_check_duration_milliseconds{check=\"categories_no_options\",severity=\"WARNING\",object_type=\"categories\"}"),
+        "Data integrity check duration is missing");
   }
 }

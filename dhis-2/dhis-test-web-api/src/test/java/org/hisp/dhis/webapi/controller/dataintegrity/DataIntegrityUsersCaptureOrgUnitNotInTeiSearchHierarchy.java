@@ -28,14 +28,14 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static java.util.stream.Collectors.toUnmodifiableSet;
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonString;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegrityDetails;
 import org.junit.jupiter.api.Test;
 
@@ -117,9 +117,9 @@ class DataIntegrityUsersCaptureOrgUnitNotInTeiSearchHierarchy
                 + userRoleUid
                 + "'}]}"));
 
-    // Note that there are already two users which exist due to the overall test setup, thus, five
+    // Note that there are already one user which exist due to the overall test setup, thus, 4
     // users in total. Only userB should be flagged.
-    assertHasDataIntegrityIssues(DETAILS_ID_TYPE, CHECK_NAME, 20, userBUid, "janedoe", null, true);
+    assertHasDataIntegrityIssues(DETAILS_ID_TYPE, CHECK_NAME, 25, userBUid, "janedoe", null, true);
 
     JsonDataIntegrityDetails details = getDetails(CHECK_NAME);
     JsonList<JsonDataIntegrityDetails.JsonDataIntegrityIssue> issues = details.getIssues();

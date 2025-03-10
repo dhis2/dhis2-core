@@ -36,14 +36,14 @@ import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -83,6 +83,7 @@ import org.hisp.dhis.jsonpatch.BulkPatchManager;
 import org.hisp.dhis.jsonpatch.BulkPatchParameters;
 import org.hisp.dhis.jsonpatch.JsonPatchManager;
 import org.hisp.dhis.jsonpatch.validator.BulkPatchValidatorFactory;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.MetadataMergeService;
 import org.hisp.dhis.schema.validation.SchemaValidator;
@@ -117,8 +118,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Stable
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
-public abstract class AbstractCrudController<T extends IdentifiableObject>
-    extends AbstractFullReadOnlyController<T> {
+public abstract class AbstractCrudController<
+        T extends IdentifiableObject, P extends GetObjectListParams>
+    extends AbstractFullReadOnlyController<T, P> {
   @Autowired protected SchemaValidator schemaValidator;
 
   @Autowired protected RenderService renderService;
@@ -178,9 +180,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
           IOException,
           JsonPatchException,
           ConflictException {
-    WebOptions options = new WebOptions(rpParameters);
-
-    final T persistedObject = getEntity(pvUid, options);
+    final T persistedObject = getEntity(pvUid);
 
     if (!aclService.canUpdate(currentUser, persistedObject)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
@@ -454,13 +454,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
   @ResponseBody
   public WebMessage replaceTranslations(
       @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @RequestParam Map<String, String> rpParameters,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
       throws NotFoundException, ForbiddenException, IOException {
-    WebOptions options = new WebOptions(rpParameters);
-
-    BaseIdentifiableObject persistedObject = (BaseIdentifiableObject) getEntity(pvUid, options);
+    BaseIdentifiableObject persistedObject = (BaseIdentifiableObject) getEntity(pvUid);
 
     if (!aclService.canUpdate(currentUser, persistedObject)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object.");

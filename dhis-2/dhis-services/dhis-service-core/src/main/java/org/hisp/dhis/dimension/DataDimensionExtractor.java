@@ -52,10 +52,14 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramDataElementOptionDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeOptionDimensionItem;
 import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
@@ -231,6 +235,26 @@ public class DataDimensionExtractor {
   }
 
   /**
+   * Returns a {@link DataElement}.
+   *
+   * @param idScheme the identifier scheme.
+   * @param dataElementId the data element identifier.
+   * @param optionSetId the option set identifier.
+   */
+  @Transactional(readOnly = true)
+  public DataElement getOptionSetDataElementDimensionItem(
+      IdScheme idScheme, String dataElementId, String optionSetId) {
+    DataElement dataElement = idObjectManager.getObject(DataElement.class, idScheme, dataElementId);
+    OptionSet optionSet = idObjectManager.getObject(OptionSet.class, idScheme, optionSetId);
+
+    if (dataElement == null || optionSet == null) {
+      return null;
+    }
+
+    return dataElement;
+  }
+
+  /**
    * Returns a {@link ProgramTrackedEntityAttributeDimensionItem}.
    *
    * @param idScheme the identifier scheme.
@@ -252,6 +276,28 @@ public class DataDimensionExtractor {
   }
 
   /**
+   * Returns a {@link ProgramTrackedEntityAttributeDimensionItem}.
+   *
+   * @param idScheme the identifier scheme.
+   * @param programId the program identifier.
+   * @param attributeId the attribute identifier.
+   */
+  @Transactional(readOnly = true)
+  public ProgramTrackedEntityAttributeOptionDimensionItem getProgramAttributeOptionDimensionItem(
+      IdScheme idScheme, String programId, String attributeId, String optionId) {
+    Program program = idObjectManager.getObject(Program.class, idScheme, programId);
+    TrackedEntityAttribute attribute =
+        idObjectManager.getObject(TrackedEntityAttribute.class, idScheme, attributeId);
+    Option option = idObjectManager.getObject(Option.class, idScheme, optionId);
+
+    if (program == null || attribute == null || option == null) {
+      return null;
+    }
+
+    return new ProgramTrackedEntityAttributeOptionDimensionItem(program, attribute, option);
+  }
+
+  /**
    * Returns a {@link ProgramDataElementDimensionItem}.
    *
    * @param idScheme the identifier scheme.
@@ -269,6 +315,28 @@ public class DataDimensionExtractor {
     }
 
     return new ProgramDataElementDimensionItem(program, dataElement);
+  }
+
+  /**
+   * Returns a {@link ProgramDataElementDimensionItem}.
+   *
+   * @param idScheme the identifier scheme.
+   * @param programId the program identifier.
+   * @param dataElementId the data element identifier.
+   * @param optionId the option identifier.
+   */
+  @Transactional(readOnly = true)
+  public ProgramDataElementOptionDimensionItem getProgramDataElementOptionDimensionItem(
+      IdScheme idScheme, String programId, String dataElementId, String optionId) {
+    Program program = idObjectManager.getObject(Program.class, idScheme, programId);
+    DataElement dataElement = idObjectManager.getObject(DataElement.class, idScheme, dataElementId);
+    Option option = idObjectManager.getObject(Option.class, idScheme, optionId);
+
+    if (program == null || dataElement == null || option == null) {
+      return null;
+    }
+
+    return new ProgramDataElementOptionDimensionItem(program, dataElement, option);
   }
 
   private DimensionalItemObject getDimensionalItemObject(

@@ -32,7 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 
 public interface DomainMapper<T, R> {
   R from(T from, TrackerIdSchemeParams idSchemeParams);

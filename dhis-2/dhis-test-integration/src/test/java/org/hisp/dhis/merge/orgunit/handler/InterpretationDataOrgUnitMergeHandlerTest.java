@@ -29,8 +29,6 @@ package org.hisp.dhis.merge.orgunit.handler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationService;
@@ -60,8 +58,6 @@ class InterpretationDataOrgUnitMergeHandlerTest extends PostgresIntegrationTestB
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private DataOrgUnitMergeHandler mergeHandler;
-
-  @PersistenceContext private EntityManager entityManager;
 
   private OrganisationUnit ouA;
 

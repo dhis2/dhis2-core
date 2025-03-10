@@ -68,8 +68,7 @@ public class CurrentUserHandlerMethodArgumentResolver implements HandlerMethodAr
       MethodParameter parameter,
       ModelAndViewContainer mavContainer,
       NativeWebRequest webRequest,
-      WebDataBinderFactory binderFactory)
-      throws Exception {
+      WebDataBinderFactory binderFactory) {
 
     Class<?> type = parameter.getParameterType();
 

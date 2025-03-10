@@ -27,17 +27,18 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.test.web.WebClient.Body;
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpClientAdapter.Body;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Test for the Gist API that need a real database because they use DB functions that are not
@@ -45,6 +46,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
+@Transactional
 class GistPostgresControllerTest extends PostgresControllerIntegrationTestBase {
   private String orgUnitId;
 

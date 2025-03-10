@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.metadata;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.springframework.stereotype.Repository;
@@ -49,7 +49,9 @@ public class HibernateMetadataProposalStore implements MetadataProposalStore {
     return getSession()
         .createQuery("from MetadataProposal p where p.uid = :uid", MetadataProposal.class)
         .setParameter("uid", uid)
-        .getSingleResult();
+        .getResultStream()
+        .findFirst()
+        .orElse(null);
   }
 
   @Override

@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.ownership;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateMandatoryDeprecatedUidParameter;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateMandatoryDeprecatedUidParameter;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import org.hisp.dhis.common.DhisApiVersion;
@@ -60,7 +60,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-@OpenApi.Document(domain = Program.class)
+@OpenApi.Document(
+    entity = Program.class,
+    classifiers = {"team:tracker", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/tracker/ownership")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -86,40 +88,33 @@ public class TrackerOwnershipController {
   @PutMapping(value = "/transfer", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public WebMessage updateTrackerProgramOwner(
-      @Deprecated(since = "2.41") @RequestParam(required = false) UID trackedEntityInstance,
-      @RequestParam(required = false) UID trackedEntity,
-      @RequestParam String program,
-      @RequestParam String ou)
+      @RequestParam UID trackedEntity,
+      @RequestParam UID program,
+      @Deprecated(
+              since = "2.42",
+              forRemoval = true) // TODO(tracker) remove `ou` parameter in favor of `orgUnit` in v43
+          @RequestParam(required = false)
+          UID ou,
+      @RequestParam(required = false) UID orgUnit)
       throws BadRequestException, ForbiddenException, NotFoundException {
-    UID trackedEntityUid =
-        validateMandatoryDeprecatedUidParameter(
-            "trackedEntityInstance", trackedEntityInstance, "trackedEntity", trackedEntity);
+    UID orgUnitUid = validateMandatoryDeprecatedUidParameter("ou", ou, "orgUnit", orgUnit);
 
     trackerOwnershipAccessManager.transferOwnership(
-        trackedEntityService.getTrackedEntity(
-            trackedEntityUid.getValue(), null, TrackedEntityParams.FALSE, false),
-        programService.getProgram(program),
-        organisationUnitService.getOrganisationUnit(ou));
+        trackedEntityService.getTrackedEntity(trackedEntity, program, TrackedEntityParams.FALSE),
+        programService.getProgram(program.getValue()),
+        organisationUnitService.getOrganisationUnit(orgUnitUid.getValue()));
     return ok("Ownership transferred");
   }
 
   @PostMapping(value = "/override", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
-  public WebMessage overrideOwnershipAccess(
-      @Deprecated(since = "2.41") @RequestParam(required = false) UID trackedEntityInstance,
-      @RequestParam(required = false) UID trackedEntity,
-      @RequestParam String reason,
-      @RequestParam String program)
-      throws BadRequestException, ForbiddenException, NotFoundException {
-    UID trackedEntityUid =
-        validateMandatoryDeprecatedUidParameter(
-            "trackedEntityInstance", trackedEntityInstance, "trackedEntity", trackedEntity);
-
+  public WebMessage grantTemporaryAccess(
+      @RequestParam UID trackedEntity, @RequestParam String reason, @RequestParam UID program)
+      throws ForbiddenException, NotFoundException {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
     trackerOwnershipAccessManager.grantTemporaryOwnership(
-        trackedEntityService.getTrackedEntity(
-            trackedEntityUid.getValue(), null, TrackedEntityParams.FALSE, false),
-        programService.getProgram(program),
+        trackedEntityService.getTrackedEntity(trackedEntity),
+        programService.getProgram(program.getValue()),
         currentUser,
         reason);
 

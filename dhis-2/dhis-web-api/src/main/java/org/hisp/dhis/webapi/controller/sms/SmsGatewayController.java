@@ -32,9 +32,9 @@ import static org.hisp.dhis.security.Authorities.F_MOBILE_SENDSMS;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
@@ -68,7 +68,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /** Zubair <rajazubair.asghar@gmail.com> */
-@OpenApi.Document(domain = SmsGateway.class)
+@OpenApi.Document(
+    entity = SmsGateway.class,
+    classifiers = {"team:tracker", "purpose:metadata"})
 @RestController
 @RequestMapping("/api/gateways")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

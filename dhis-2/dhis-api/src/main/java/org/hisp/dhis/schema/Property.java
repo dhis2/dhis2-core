@@ -38,10 +38,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import lombok.Getter;
+import lombok.Setter;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
+import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.springframework.core.Ordered;
 
@@ -54,56 +57,56 @@ public class Property implements Ordered, Klass {
   private Class<?> klass;
 
   /** Normalized type of this property */
-  private PropertyType propertyType;
+  @Setter private PropertyType propertyType;
 
   /** If this property is a collection, this is the class of the items inside the collection. */
-  private Class<?> itemKlass;
+  @Setter private Class<?> itemKlass;
 
   /**
    * If this property is a collection, this is the normalized type of the items inside the
    * collection.
    */
-  private PropertyType itemPropertyType;
+  @Setter private PropertyType itemPropertyType;
 
   /** Direct link to getter for this property. */
-  private Method getterMethod;
+  @Getter @Setter private Method getterMethod;
 
   /** Direct link to setter for this property. */
-  private Method setterMethod;
+  @Getter @Setter private Method setterMethod;
 
   /**
    * Name for this property, if this class is a collection, it is the name of the items -inside- the
    * collection and not the collection wrapper itself.
    */
-  private String name;
+  @Setter private String name;
 
   /** Name for actual field, used to persistence operations and getting setter/getter. */
-  private String fieldName;
+  @Setter private String fieldName;
 
   /**
    * Is this property persisted somewhere. This property will be used to create criteria queries on
    * demand (default: false)
    */
-  private boolean persisted;
+  @Setter private boolean persisted;
 
   /** Name of collection wrapper. */
-  private String collectionName;
+  @Setter private String collectionName;
 
   /** If this Property is a collection, should it be wrapped with collectionName? */
-  private Boolean collectionWrapping;
+  @Setter private Boolean collectionWrapping;
 
   /**
    * Description if provided, will be fetched from @Description annotation.
    *
    * @see org.hisp.dhis.common.annotation.Description
    */
-  private String description;
+  @Setter private String description;
 
   /** Namespace used for this property. */
-  private String namespace;
+  @Setter private String namespace;
 
   /** Usually only used for XML. Is this property considered an attribute. */
-  private boolean attribute;
+  @Setter private boolean attribute;
 
   /**
    * This property is true if the type pointed to does not export any properties itself, it is then
@@ -111,120 +114,121 @@ public class Property implements Ordered, Klass {
    * type of the collection, e.g. List<String> would set simple to be true, but List<DataElement>
    * would set it to false.
    */
-  private boolean simple;
+  @Setter private boolean simple;
 
   /**
    * This property is true if the type of this property is a sub-class of Collection.
    *
    * @see java.util.Collection
    */
-  private boolean collection;
+  @Setter private boolean collection;
 
   /**
    * This property is true if collection=true and klass points to a implementation with a stable
    * order (i.e. List).
    */
-  private boolean ordered;
+  @Setter private boolean ordered;
 
   /**
    * If this property is a complex object or a collection, is this property considered the owner of
    * that relationship (important for imports etc).
    */
-  private boolean owner;
+  @Setter private boolean owner;
 
   /**
    * Is this class a sub-class of IdentifiableObject
    *
    * @see org.hisp.dhis.common.IdentifiableObject
    */
-  private boolean identifiableObject;
+  @Setter private boolean identifiableObject;
 
   /**
    * Is this class a sub-class of NameableObject
    *
    * @see org.hisp.dhis.common.NameableObject
    */
-  private boolean nameableObject;
+  @Setter private boolean nameableObject;
 
   /** Does this class implement {@link EmbeddedObject} ? */
-  private boolean embeddedObject;
+  @Setter private boolean embeddedObject;
 
   /** Does this class implement {@link EmbeddedObject} ? */
-  private boolean analyticalObject;
+  @Setter private boolean analyticalObject;
 
   /** Can this property be read. */
-  private boolean readable;
+  @Setter private boolean readable;
 
   /** Can this property be written to. */
-  private boolean writable;
+  @Setter private boolean writable;
 
   /** Are the values for this property required to be unique? */
-  private boolean unique;
+  @Setter private boolean unique;
 
   /** Nullability of this property. */
-  private boolean required;
+  @Setter private boolean required;
 
   /** Maximum length/size/value of this property. */
-  private Integer length;
+  @Setter private Integer length;
 
   /** Minimum size/length of this property. */
-  private Double max;
+  @Setter private Double max;
 
   /** Minimum size/length of this property. */
-  private Double min;
+  @Setter private Double min;
 
   /** Cascading used when doing CRUD operations. */
-  private String cascade;
+  @Setter private String cascade;
 
   /** Is property many-to-many. */
-  private boolean manyToMany;
+  @Setter private boolean manyToMany;
 
   /** Is property one-to-one. */
-  private boolean oneToOne;
+  @Setter private boolean oneToOne;
 
   /** Is property many-to-one. */
-  private boolean manyToOne;
+  @Setter private boolean manyToOne;
 
   /** Is property one-to-many. */
-  private boolean oneToMany;
+  @Setter private boolean oneToMany;
 
   /** The hibernate role of the owning side. */
-  private String owningRole;
+  @Setter private String owningRole;
 
   /** The hibernate role of the inverse side (if many-to-many). */
-  private String inverseRole;
+  @Setter private String inverseRole;
 
   /** If property type is enum, this is the list of valid options. */
-  private List<String> constants;
+  @Setter private List<String> constants;
 
   /** Used by LinkService to link to the Schema describing this type (if reference). */
-  private String href;
+  @Setter private String href;
 
   /** Points to relative Web-API endpoint (if exposed). */
-  private String relativeApiEndpoint;
+  @Setter private String relativeApiEndpoint;
 
   /** Used by LinkService to link to the API endpoint containing this type. */
-  private String apiEndpoint;
+  @Setter private String apiEndpoint;
 
   /** PropertyTransformer to apply to this property before and field filtering is applied. */
-  private Class<? extends PropertyTransformer> propertyTransformer;
+  @Getter @Setter private Class<? extends PropertyTransformer> propertyTransformer;
 
   /** Default value of the Property */
   private Object defaultValue;
 
-  private boolean translatable;
+  @Setter private boolean translatable;
 
-  private String translationKey;
+  @Setter private String translationKey;
 
   /**
    * The translation key use for retrieving I18n translation of this property's name. The key
    * follows snake_case naming convention.
    */
-  private String i18nTranslationKey;
+  @Setter private String i18nTranslationKey;
 
   private GistPreferences gistPreferences = GistPreferences.DEFAULT;
 
   /** All annotations present on this property (either through field or method) */
+  @Getter @Setter
   private Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
   public Property() {}
@@ -259,18 +263,10 @@ public class Property implements Ordered, Klass {
     return propertyType;
   }
 
-  public void setPropertyType(PropertyType propertyType) {
-    this.propertyType = propertyType;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Class<?> getItemKlass() {
     return itemKlass;
-  }
-
-  public void setItemKlass(Class<?> itemKlass) {
-    this.itemKlass = itemKlass;
   }
 
   @JsonProperty
@@ -279,34 +275,10 @@ public class Property implements Ordered, Klass {
     return itemPropertyType;
   }
 
-  public void setItemPropertyType(PropertyType itemPropertyType) {
-    this.itemPropertyType = itemPropertyType;
-  }
-
-  public Method getGetterMethod() {
-    return getterMethod;
-  }
-
-  public void setGetterMethod(Method getterMethod) {
-    this.getterMethod = getterMethod;
-  }
-
-  public Method getSetterMethod() {
-    return setterMethod;
-  }
-
-  public void setSetterMethod(Method setterMethod) {
-    this.setterMethod = setterMethod;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getName() {
     return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
   }
 
   @JsonProperty
@@ -315,18 +287,10 @@ public class Property implements Ordered, Klass {
     return fieldName;
   }
 
-  public void setFieldName(String fieldName) {
-    this.fieldName = fieldName;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isPersisted() {
     return persisted;
-  }
-
-  public void setPersisted(boolean persisted) {
-    this.persisted = persisted;
   }
 
   @JsonProperty
@@ -335,18 +299,10 @@ public class Property implements Ordered, Klass {
     return collectionName != null ? collectionName : (isCollection() ? name : null);
   }
 
-  public void setCollectionName(String collectionName) {
-    this.collectionName = collectionName;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Boolean isCollectionWrapping() {
     return collectionWrapping;
-  }
-
-  public void setCollectionWrapping(Boolean collectionWrapping) {
-    this.collectionWrapping = collectionWrapping;
   }
 
   @JsonProperty
@@ -355,18 +311,10 @@ public class Property implements Ordered, Klass {
     return description;
   }
 
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getNamespace() {
     return namespace;
-  }
-
-  public void setNamespace(String namespace) {
-    this.namespace = namespace;
   }
 
   @JsonProperty
@@ -375,18 +323,10 @@ public class Property implements Ordered, Klass {
     return attribute;
   }
 
-  public void setAttribute(boolean attribute) {
-    this.attribute = attribute;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isSimple() {
     return simple;
-  }
-
-  public void setSimple(boolean simple) {
-    this.simple = simple;
   }
 
   @JsonProperty
@@ -395,8 +335,13 @@ public class Property implements Ordered, Klass {
     return collection;
   }
 
-  public void setCollection(boolean collection) {
-    this.collection = collection;
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isSortable() {
+    Sortable sortable = getterMethod == null ? null : getterMethod.getAnnotation(Sortable.class);
+    return sortable != null
+        ? sortable.value() && (!sortable.whenPersisted() || isPersisted())
+        : !isCollection() && isSimple() && isPersisted();
   }
 
   @JsonProperty
@@ -405,18 +350,10 @@ public class Property implements Ordered, Klass {
     return ordered;
   }
 
-  public void setOrdered(boolean ordered) {
-    this.ordered = ordered;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isOwner() {
     return owner;
-  }
-
-  public void setOwner(boolean owner) {
-    this.owner = owner;
   }
 
   @JsonProperty
@@ -425,18 +362,10 @@ public class Property implements Ordered, Klass {
     return identifiableObject;
   }
 
-  public void setIdentifiableObject(boolean identifiableObject) {
-    this.identifiableObject = identifiableObject;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isNameableObject() {
     return nameableObject;
-  }
-
-  public void setNameableObject(boolean nameableObject) {
-    this.nameableObject = nameableObject;
   }
 
   @JsonProperty
@@ -445,18 +374,10 @@ public class Property implements Ordered, Klass {
     return embeddedObject;
   }
 
-  public void setEmbeddedObject(boolean embeddedObject) {
-    this.embeddedObject = embeddedObject;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isAnalyticalObject() {
     return analyticalObject;
-  }
-
-  public void setAnalyticalObject(boolean analyticalObject) {
-    this.analyticalObject = analyticalObject;
   }
 
   @JsonProperty
@@ -465,18 +386,10 @@ public class Property implements Ordered, Klass {
     return readable;
   }
 
-  public void setReadable(boolean readable) {
-    this.readable = readable;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isWritable() {
     return writable;
-  }
-
-  public void setWritable(boolean writable) {
-    this.writable = writable;
   }
 
   @JsonProperty
@@ -485,18 +398,10 @@ public class Property implements Ordered, Klass {
     return unique;
   }
 
-  public void setUnique(boolean unique) {
-    this.unique = unique;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isRequired() {
     return required;
-  }
-
-  public void setRequired(boolean required) {
-    this.required = required;
   }
 
   @JsonProperty
@@ -505,18 +410,10 @@ public class Property implements Ordered, Klass {
     return length;
   }
 
-  public void setLength(Integer length) {
-    this.length = length;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Double getMax() {
     return max;
-  }
-
-  public void setMax(Double max) {
-    this.max = max;
   }
 
   @JsonProperty
@@ -525,18 +422,10 @@ public class Property implements Ordered, Klass {
     return min;
   }
 
-  public void setMin(Double min) {
-    this.min = min;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getCascade() {
     return cascade;
-  }
-
-  public void setCascade(String cascade) {
-    this.cascade = cascade;
   }
 
   @JsonProperty
@@ -545,18 +434,10 @@ public class Property implements Ordered, Klass {
     return manyToMany;
   }
 
-  public void setManyToMany(boolean manyToMany) {
-    this.manyToMany = manyToMany;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isOneToOne() {
     return oneToOne;
-  }
-
-  public void setOneToOne(boolean oneToOne) {
-    this.oneToOne = oneToOne;
   }
 
   @JsonProperty
@@ -565,18 +446,10 @@ public class Property implements Ordered, Klass {
     return manyToOne;
   }
 
-  public void setManyToOne(boolean manyToOne) {
-    this.manyToOne = manyToOne;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isOneToMany() {
     return oneToMany;
-  }
-
-  public void setOneToMany(boolean oneToMany) {
-    this.oneToMany = oneToMany;
   }
 
   @JsonProperty
@@ -585,18 +458,10 @@ public class Property implements Ordered, Klass {
     return owningRole;
   }
 
-  public void setOwningRole(String owningRole) {
-    this.owningRole = owningRole;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getInverseRole() {
     return inverseRole;
-  }
-
-  public void setInverseRole(String inverseRole) {
-    this.inverseRole = inverseRole;
   }
 
   @JsonProperty
@@ -605,18 +470,10 @@ public class Property implements Ordered, Klass {
     return this.translationKey;
   }
 
-  public void setTranslationKey(String translationKey) {
-    this.translationKey = translationKey;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getI18nTranslationKey() {
     return i18nTranslationKey;
-  }
-
-  public void setI18nTranslationKey(String i18nTranslationKey) {
-    this.i18nTranslationKey = i18nTranslationKey;
   }
 
   @JsonProperty
@@ -626,18 +483,10 @@ public class Property implements Ordered, Klass {
     return constants;
   }
 
-  public void setConstants(List<String> constants) {
-    this.constants = constants;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getHref() {
     return href;
-  }
-
-  public void setHref(String href) {
-    this.href = href;
   }
 
   @JsonProperty
@@ -646,32 +495,16 @@ public class Property implements Ordered, Klass {
     return relativeApiEndpoint;
   }
 
-  public void setRelativeApiEndpoint(String relativeApiEndpoint) {
-    this.relativeApiEndpoint = relativeApiEndpoint;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getApiEndpoint() {
     return apiEndpoint;
   }
 
-  public void setApiEndpoint(String apiEndpoint) {
-    this.apiEndpoint = apiEndpoint;
-  }
-
   @JsonProperty("propertyTransformer")
   @JacksonXmlProperty(localName = "propertyTransformer", namespace = DxfNamespaces.DXF_2_0)
   public boolean hasPropertyTransformer() {
     return propertyTransformer != null;
-  }
-
-  public Class<? extends PropertyTransformer> getPropertyTransformer() {
-    return propertyTransformer;
-  }
-
-  public void setPropertyTransformer(Class<? extends PropertyTransformer> propertyTransformer) {
-    this.propertyTransformer = propertyTransformer;
   }
 
   @JsonProperty
@@ -695,10 +528,6 @@ public class Property implements Ordered, Klass {
     return this.translatable;
   }
 
-  public void setTranslatable(boolean translatable) {
-    this.translatable = translatable;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public GistPreferences getGistPreferences() {
@@ -707,14 +536,6 @@ public class Property implements Ordered, Klass {
 
   public void setGistPreferences(GistPreferences gistPreferences) {
     this.gistPreferences = gistPreferences == null ? GistPreferences.DEFAULT : gistPreferences;
-  }
-
-  public Map<Class<? extends Annotation>, Annotation> getAnnotations() {
-    return annotations;
-  }
-
-  public void setAnnotations(Map<Class<? extends Annotation>, Annotation> annotations) {
-    this.annotations = annotations;
   }
 
   @SuppressWarnings("unchecked")

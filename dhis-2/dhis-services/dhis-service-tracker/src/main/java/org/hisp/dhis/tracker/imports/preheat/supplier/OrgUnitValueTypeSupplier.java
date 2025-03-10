@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -39,8 +38,8 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -64,13 +63,13 @@ public class OrgUnitValueTypeSupplier extends AbstractPreheatSupplier {
         preheat.getAll(TrackedEntityAttribute.class).stream()
             .filter(at -> at.getValueType() == ValueType.ORGANISATION_UNIT)
             .map(idSchemes::toMetadataIdentifier)
-            .collect(Collectors.toList());
+            .toList();
 
     List<MetadataIdentifier> orgUnitDataElements =
         preheat.getAll(DataElement.class).stream()
             .filter(de -> de.getValueType() == ValueType.ORGANISATION_UNIT)
             .map(idSchemes::toMetadataIdentifier)
-            .collect(Collectors.toList());
+            .toList();
 
     List<String> orgUnitIds = new ArrayList<>();
     trackerObjects

@@ -49,15 +49,13 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.resourcetable.ResourceTableService;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -77,17 +75,18 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
               .selectExpression("oug.uid")
               .build());
 
+  private static final List<String> SORT_KEY = List.of("oug");
+
   public JdbcOrgUnitTargetTableManager(
       IdentifiableObjectManager idObjectManager,
       OrganisationUnitService organisationUnitService,
       CategoryService categoryService,
-      SystemSettingManager systemSettingManager,
+      SystemSettingsProvider settingsProvider,
       DataApprovalLevelService dataApprovalLevelService,
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      DatabaseInfoProvider databaseInfoProvider,
-      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
+      @Qualifier("analyticsReadOnlyJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
@@ -95,12 +94,11 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
         idObjectManager,
         organisationUnitService,
         categoryService,
-        systemSettingManager,
+        settingsProvider,
         dataApprovalLevelService,
         resourceTableService,
         tableHookService,
         partitionManager,
-        databaseInfoProvider,
         jdbcTemplate,
         analyticsTableSettings,
         periodDataProvider,
@@ -118,7 +116,7 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
     Logged logged = analyticsTableSettings.getTableLogged();
     return params.isLatestUpdate()
         ? List.of()
-        : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns(), logged));
+        : List.of(new AnalyticsTable(getAnalyticsTableType(), getColumns(), SORT_KEY, logged));
   }
 
   @Override
@@ -135,28 +133,21 @@ public class JdbcOrgUnitTargetTableManager extends AbstractJdbcTableManager {
   public void populateTable(AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
     String tableName = partition.getName();
 
-    String sql = replace("insert into ${tableName} (", Map.of("tableName", tableName));
-
     List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
 
-    for (AnalyticsTableColumn col : columns) {
-      sql += quote(col.getName()) + ",";
-    }
-
-    sql = TextUtils.removeLastComma(sql) + ") select ";
-
-    for (AnalyticsTableColumn col : columns) {
-      sql += col.getSelectExpression() + ",";
-    }
-
-    sql = TextUtils.removeLastComma(sql) + " ";
+    String sql = replace("insert into ${tableName} (", Map.of("tableName", quote(tableName)));
+    sql += toCommaSeparated(columns, col -> quote(col.getName()));
+    sql += ") select ";
+    sql += toCommaSeparated(columns, AnalyticsTableColumn::getSelectExpression);
+    sql += " ";
 
     sql +=
-        """
-        from orgunitgroupmembers ougm
-        inner join orgunitgroup oug on ougm.orgunitgroupid=oug.orgunitgroupid
-        left join analytics_rs_orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid
-        left join analytics_rs_organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid""";
+        qualifyVariables(
+            """
+            from ${orgunitgroupmembers} ougm \
+            inner join ${orgunitgroup} oug on ougm.orgunitgroupid=oug.orgunitgroupid \
+            left join analytics_rs_orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid \
+            left join analytics_rs_organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid""");
 
     invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }

@@ -30,9 +30,9 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.security.Authorities.M_DHIS_WEB_APP_MANAGEMENT;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.net.URISyntaxException;
 import java.util.UUID;
-import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.apphub.AppHubService;
 import org.hisp.dhis.appmanager.App;
@@ -56,7 +56,9 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Zubair Asghar
  */
-@OpenApi.Document(domain = App.class)
+@OpenApi.Document(
+    entity = App.class,
+    classifiers = {"team:extensibility", "purpose:support"})
 @RestController
 @RequestMapping("/api/appHub")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

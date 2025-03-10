@@ -33,6 +33,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundleMode;
 
 /**
@@ -43,9 +44,6 @@ import org.hisp.dhis.tracker.imports.bundle.TrackerBundleMode;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TrackerImportParams implements JobParameters {
-  /** User uid to use for import job. */
-  @JsonProperty private String userId;
-
   /** Should import be imported or just validated. */
   @JsonProperty @Builder.Default
   private final TrackerBundleMode importMode = TrackerBundleMode.COMMIT;

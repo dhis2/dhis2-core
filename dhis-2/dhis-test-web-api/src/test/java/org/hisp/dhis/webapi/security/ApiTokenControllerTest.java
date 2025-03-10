@@ -27,30 +27,32 @@
  */
 package org.hisp.dhis.webapi.security;
 
-import static org.hisp.dhis.test.web.WebClient.Body;
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpClientAdapter.Body;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.hisp.dhis.http.HttpAssertions;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
-import org.hisp.dhis.test.web.HttpStatus;
-import org.hisp.dhis.test.web.WebClientUtils;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonApiToken;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Transactional
 class ApiTokenControllerTest extends H2ControllerIntegrationTestBase {
 
   public static final String USER_A_USERNAME = "userA";
@@ -266,7 +268,7 @@ class ApiTokenControllerTest extends H2ControllerIntegrationTestBase {
     if (HttpStatus.CREATED != actualStatus) {
       assertEquals(HttpStatus.CREATED, actualStatus, "Actual response is not CREATED");
     }
-    WebClientUtils.assertValidLocation(okResponse);
+    HttpAssertions.assertValidLocation(okResponse);
     JsonObject report = okResponse.contentUnchecked().getObject("response");
     if (report.exists()) {
       return report;

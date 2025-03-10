@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.Test;
 
@@ -56,6 +56,6 @@ class DataIntegrityUserRolesNoUsers extends AbstractDataIntegrityIntegrationTest
     JsonDataIntegritySummary summary = getSummary(CHECK_NAME);
     assertEquals(1, summary.getCount());
     assertHasDataIntegrityIssues(
-        DETAILS_ID_TYPE, CHECK_NAME, 33, userRoleUid, "Test role", null, true);
+        DETAILS_ID_TYPE, CHECK_NAME, 50, userRoleUid, "Test role", null, true);
   }
 }

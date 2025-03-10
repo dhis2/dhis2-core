@@ -29,12 +29,10 @@ package org.hisp.dhis.tracker.imports.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
-import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.ValueType;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -46,17 +44,7 @@ import org.hisp.dhis.common.ValueType;
 public class Attribute implements Serializable {
   @JsonProperty private MetadataIdentifier attribute;
 
-  @JsonProperty private String code;
-
-  @JsonProperty private String displayName;
-
-  @JsonProperty private Instant createdAt;
-
-  @JsonProperty private Instant updatedAt;
-
   @JsonProperty private String storedBy;
-
-  @JsonProperty private ValueType valueType;
 
   @JsonProperty private String value;
 }

@@ -43,10 +43,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -68,11 +68,17 @@ public class TrackedEntityQueryParams {
    */
   private Set<OrganisationUnit> orgUnits = new HashSet<>();
 
-  /** Program for which instances in the response must be enrolled in. */
-  private Program program;
+  /**
+   * Tracker program the tracked entity must be enrolled in. This should not be set when {@link
+   * #accessibleTrackerPrograms} is set. The user must have data read access to this program.
+   */
+  private Program enrolledInTrackerProgram;
 
-  /** Programs to fetch. */
-  private List<Program> programs = List.of();
+  /**
+   * Tracker programs the user has data read access to. This should not be set when {@link
+   * #enrolledInTrackerProgram} is set.
+   */
+  private List<Program> accessibleTrackerPrograms = List.of();
 
   /** Status of a tracked entities enrollment into a given program. */
   private EnrollmentStatus enrollmentStatus;
@@ -113,7 +119,7 @@ public class TrackedEntityQueryParams {
   private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
   /** Set of te uids to explicitly select. */
-  private Set<String> trackedEntityUids = new HashSet<>();
+  private Set<UID> trackedEntities = new HashSet<>();
 
   /** ProgramStage to be used in conjunction with eventstatus. */
   private ProgramStage programStage;
@@ -148,7 +154,7 @@ public class TrackedEntityQueryParams {
   public TrackedEntityQueryParams() {}
 
   public boolean hasTrackedEntities() {
-    return CollectionUtils.isNotEmpty(this.trackedEntityUids);
+    return CollectionUtils.isNotEmpty(this.trackedEntities);
   }
 
   public boolean hasFilterForEvents() {
@@ -157,10 +163,8 @@ public class TrackedEntityQueryParams {
   }
 
   /** Returns a list of attributes and filters combined. */
-  public Set<String> getFilterIds() {
-    return filters.keySet().stream()
-        .map(BaseIdentifiableObject::getUid)
-        .collect(Collectors.toSet());
+  public Set<UID> getFilterIds() {
+    return filters.keySet().stream().map(UID::of).collect(Collectors.toSet());
   }
 
   /** Indicates whether these parameters specify any filters. */
@@ -174,8 +178,8 @@ public class TrackedEntityQueryParams {
   }
 
   /** Indicates whether these parameters specify a program. */
-  public boolean hasProgram() {
-    return program != null;
+  public boolean hasEnrolledInTrackerProgram() {
+    return enrolledInTrackerProgram != null;
   }
 
   /** Indicates whether these parameters specify an enrollment status. */
@@ -289,7 +293,7 @@ public class TrackedEntityQueryParams {
 
   /** Returns attributes that are only ordered by and not present in any filter. */
   public Set<TrackedEntityAttribute> getLeftJoinAttributes() {
-    return SetUtils.difference(getOrderAttributes(), filters.keySet());
+    return SetUtils.union(getOrderAttributes(), filters.keySet());
   }
 
   public Map<TrackedEntityAttribute, List<QueryFilter>> getFilters() {
@@ -310,21 +314,22 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public Program getProgram() {
-    return program;
+  public Program getEnrolledInTrackerProgram() {
+    return enrolledInTrackerProgram;
   }
 
-  public TrackedEntityQueryParams setProgram(Program program) {
-    this.program = program;
+  public TrackedEntityQueryParams setEnrolledInTrackerProgram(Program enrolledInTrackerProgram) {
+    this.enrolledInTrackerProgram = enrolledInTrackerProgram;
     return this;
   }
 
-  public List<Program> getPrograms() {
-    return programs;
+  public List<Program> getAccessibleTrackerPrograms() {
+    return accessibleTrackerPrograms;
   }
 
-  public TrackedEntityQueryParams setPrograms(List<Program> programs) {
-    this.programs = programs;
+  public TrackedEntityQueryParams setAccessibleTrackerPrograms(
+      List<Program> accessibleTrackerPrograms) {
+    this.accessibleTrackerPrograms = accessibleTrackerPrograms;
     return this;
   }
 
@@ -504,18 +509,9 @@ public class TrackedEntityQueryParams {
    * Filter the given tracked entity attribute {@code tea} using the specified {@link QueryFilter}
    * that consist of an operator and a value.
    */
-  public TrackedEntityQueryParams filterBy(TrackedEntityAttribute tea, QueryFilter filter) {
+  public TrackedEntityQueryParams filterBy(TrackedEntityAttribute tea, List<QueryFilter> filter) {
     this.filters.putIfAbsent(tea, new ArrayList<>());
-    this.filters.get(tea).add(filter);
-    return this;
-  }
-
-  /**
-   * Filter out any tracked entity that have no value for the given tracked entity attribute {@code
-   * tea}.
-   */
-  public TrackedEntityQueryParams filterBy(TrackedEntityAttribute tea) {
-    this.filters.putIfAbsent(tea, new ArrayList<>());
+    this.filters.get(tea).addAll(filter);
     return this;
   }
 
@@ -546,12 +542,12 @@ public class TrackedEntityQueryParams {
         .collect(Collectors.toSet());
   }
 
-  public Set<String> getTrackedEntityUids() {
-    return trackedEntityUids;
+  public Set<UID> getTrackedEntities() {
+    return trackedEntities;
   }
 
-  public TrackedEntityQueryParams setTrackedEntityUids(Set<String> trackedEntityUids) {
-    this.trackedEntityUids = trackedEntityUids;
+  public TrackedEntityQueryParams setTrackedEntities(Set<UID> trackedEntities) {
+    this.trackedEntities = trackedEntities;
     return this;
   }
 

@@ -192,6 +192,8 @@ public enum JobType {
   }
 
   /**
+   * @implNote since 2.42 all jobs forward to the {@code Notifier} but those not included here use
+   *     {@link org.hisp.dhis.system.notification.NotificationLevel#ERROR}.
    * @return true, if {@link JobProgress} events should be forwarded to the {@link
    *     org.eclipse.emf.common.notify.Notifier} API, otherwise false
    */
@@ -241,7 +243,8 @@ public enum JobType {
         || this == TRACKER_IMPORT_JOB
         || this == DATA_INTEGRITY
         || this == DATA_INTEGRITY_DETAILS
-        || this == SMS_INBOUND_PROCESSING;
+        || this == SMS_INBOUND_PROCESSING
+        || this == GEOJSON_IMPORT;
   }
 
   public boolean hasJobParameters() {

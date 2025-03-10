@@ -30,6 +30,12 @@ package org.hisp.dhis.common.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.query.JpaQueryUtils.generateHqlQueryForSharingCheck;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -38,12 +44,6 @@ import java.util.Set;
 import java.util.function.Function;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.common.AuditLogUtil;
@@ -202,7 +202,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     if (userDetails.getId() != 0L && !(userDetails instanceof SystemUser)) {
 
       // See: https://www.baeldung.com/jpa-entity-manager-get-reference
-      User user = entityManager.getReference(User.class, userDetails.getId());
+      User user = entityManager.find(User.class, userDetails.getId());
       object.setLastUpdatedBy(user);
 
       if (object.getCreatedBy() == null) {
@@ -660,7 +660,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     query.orderBy(builder.desc(root.get("lastUpdated")));
 
-    TypedQuery<Date> typedQuery = getSession().createQuery(query);
+    TypedQuery<Date> typedQuery = entityManager.createQuery(query);
 
     typedQuery.setMaxResults(1);
 
@@ -772,7 +772,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     query.select(root.get("uid"));
     query.where(builder.lessThan(root.get("created"), date));
 
-    TypedQuery<String> typedQuery = getSession().createQuery(query);
+    TypedQuery<String> typedQuery = entityManager.createQuery(query);
     typedQuery.setHint(JpaQueryUtils.HIBERNATE_CACHEABLE_HINT, true);
 
     return typedQuery.getResultList();
@@ -916,7 +916,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
       return false;
     }
     query.where(builder.or(predicates.toArray(new Predicate[0])));
-    return !getSession().createQuery(query).setMaxResults(1).getResultList().isEmpty();
+    return !entityManager.createQuery(query).setMaxResults(1).getResultList().isEmpty();
   }
 
   /**

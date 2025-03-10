@@ -46,8 +46,8 @@ import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.merge.MergeParams;
-import org.hisp.dhis.merge.MergeProcessor;
-import org.hisp.dhis.merge.MergeType;
+import org.hisp.dhis.merge.MergeService;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
@@ -65,14 +65,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/api/indicators")
-public class IndicatorController extends AbstractCrudController<Indicator> {
+public class IndicatorController extends AbstractCrudController<Indicator, GetObjectListParams> {
   private final ExpressionService expressionService;
 
   private final ExpressionResolverCollection resolvers;
 
   private final I18nManager i18nManager;
 
-  private final MergeProcessor indicatorMergeProcessor;
+  private final MergeService indicatorMergeService;
 
   @PostMapping(value = "/expression/description", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
@@ -102,9 +102,8 @@ public class IndicatorController extends AbstractCrudController<Indicator> {
   public @ResponseBody WebMessage mergeIndicators(@RequestBody MergeParams params)
       throws ConflictException {
     log.info("Indicator merge received");
-    params.setMergeType(MergeType.INDICATOR);
 
-    MergeReport report = indicatorMergeProcessor.processMerge(params);
+    MergeReport report = indicatorMergeService.processMerge(params);
 
     log.info("Indicator merge processed with report: {}", report);
     return WebMessageUtils.mergeReport(report);

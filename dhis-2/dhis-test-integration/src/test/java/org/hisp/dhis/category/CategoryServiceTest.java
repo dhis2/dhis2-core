@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.category;
 
+import static org.hisp.dhis.dxf2.importsummary.ImportStatus.SUCCESS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -41,6 +42,8 @@ import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -75,11 +78,7 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
 
-  @Autowired private CategoryStore categoryStore;
-
   @Autowired private IdentifiableObjectManager idObjectManager;
-
-  @Autowired private CategoryManager categoryManager;
 
   @BeforeEach
   void setUp() {
@@ -161,22 +160,6 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetAll() {
-    categoryA = createCategory('A');
-    categoryB = createCategory('B');
-    categoryC = createCategory('C');
-    categoryService.addCategory(categoryA);
-    categoryService.addCategory(categoryB);
-    categoryService.addCategory(categoryC);
-    List<Category> categories = categoryService.getAllDataElementCategories();
-    // Including default
-    assertEquals(4, categories.size());
-    assertTrue(categories.contains(categoryA));
-    assertTrue(categories.contains(categoryB));
-    assertTrue(categories.contains(categoryC));
-  }
-
-  @Test
   void testAddGetCategoryGroup() {
     CategoryOptionGroup groupA = createCategoryOptionGroup('A');
     CategoryOptionGroup groupB = createCategoryOptionGroup('B');
@@ -225,13 +208,8 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetOperands() {
-    categoryA = createCategory('A', categoryOptionA, categoryOptionB);
-    categoryB = createCategory('B', categoryOptionC);
-    categoryService.addCategory(categoryA);
-    categoryService.addCategory(categoryB);
-    ccA = createCategoryCombo('A', categoryA, categoryB);
-    categoryService.addCategoryCombo(ccA);
-    categoryService.generateOptionCombos(ccA);
+    setupCategoryCombo();
+    categoryService.addAndPruneOptionCombos(ccA);
     List<CategoryOptionCombo> optionCombos = Lists.newArrayList(ccA.getOptionCombos());
     deA = createDataElement('A', ccA);
     deB = createDataElement('B', ccA);
@@ -247,13 +225,8 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetOperandsWithTotals() {
-    categoryA = createCategory('A', categoryOptionA, categoryOptionB);
-    categoryB = createCategory('B', categoryOptionC);
-    categoryService.addCategory(categoryA);
-    categoryService.addCategory(categoryB);
-    ccA = createCategoryCombo('A', categoryA, categoryB);
-    categoryService.addCategoryCombo(ccA);
-    categoryService.generateOptionCombos(ccA);
+    setupCategoryCombo();
+    categoryService.addAndPruneOptionCombos(ccA);
     List<CategoryOptionCombo> optionCombos = Lists.newArrayList(ccA.getOptionCombos());
     deA = createDataElement('A', ccA);
     deB = createDataElement('B', ccA);
@@ -272,12 +245,7 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetDisaggregationCategoryCombos() {
-    categoryA = createCategory('A', categoryOptionA, categoryOptionB);
-    categoryB = createCategory('B', categoryOptionC);
-    categoryService.addCategory(categoryA);
-    categoryService.addCategory(categoryB);
-    ccA = createCategoryCombo('A', categoryA, categoryB);
-    categoryService.addCategoryCombo(ccA);
+    setupCategoryCombo();
     assertEquals(1, categoryService.getDisaggregationCategoryCombos().size());
   }
 
@@ -305,33 +273,126 @@ class CategoryServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetDisaggregationCategories() {
-    categoryA = createCategory('A', categoryOptionA, categoryOptionB, categoryOptionC);
-    categoryA.setDataDimensionType(DataDimensionType.DISAGGREGATION);
-    categoryService.addCategory(categoryA);
-    // Default Category is created so count should be equal 2
-    assertEquals(2, categoryService.getDisaggregationCategories().size());
-    assertEquals(1, categoryStore.getCategories(DataDimensionType.DISAGGREGATION, true).size());
-    assertEquals(
-        1, categoryStore.getCategoriesNoAcl(DataDimensionType.DISAGGREGATION, true).size());
+  void testAddAndPruneAllCategoryCombos() {
+    setupCategoryCombo();
+    categoryService.addAndPruneAllOptionCombos();
+
+    assertEquals(3, categoryService.getAllCategoryOptionCombos().size());
+
+    CategoryOption categoryOption = categoryService.getCategoryOption(categoryOptionB.getUid());
+    categoryOption.setName("UpdateOption");
+    categoryService.updateCategoryOption(categoryOption);
+    entityManager.flush();
+    entityManager.clear();
+
+    categoryService.addAndPruneAllOptionCombos();
+
+    List<CategoryOptionCombo> cocs = categoryService.getAllCategoryOptionCombos();
+    assertEquals(3, cocs.size());
+    assertTrue(cocs.stream().anyMatch(coc -> coc.getName().contains("UpdateOption")));
   }
 
   @Test
-  void testAddAndPruneAllCategoryCombos() {
+  void addAndPruneCategoryCombo() {
+    setupCategoryCombo();
+
+    categoryService.addAndPruneOptionCombos(ccA);
+    assertEquals(3, categoryService.getAllCategoryOptionCombos().size());
+
+    CategoryOption categoryOption = categoryService.getCategoryOption(categoryOptionB.getUid());
+    categoryOption.setName("UpdateOption");
+    categoryService.updateCategoryOption(categoryOption);
+    entityManager.flush();
+    entityManager.clear();
+
+    categoryService.addAndPruneOptionCombos(ccA);
+
+    List<CategoryOptionCombo> cocs = categoryService.getAllCategoryOptionCombos();
+    assertEquals(3, cocs.size());
+    assertTrue(cocs.stream().anyMatch(coc -> coc.getName().contains("UpdateOption")));
+  }
+
+  @Test
+  void addAndPruneCategoryComboWithSummary() {
+    setupCategoryCombo();
+
+    ImportSummaries importSummary = categoryService.addAndPruneOptionCombosWithSummary(ccA);
+    assertEquals(2, importSummary.getImported());
+    assertEquals(SUCCESS, importSummary.getStatus());
+    assertTrue(
+        importSummary.getImportSummaries().stream()
+            .map(ImportSummary::getDescription)
+            .allMatch(desc -> desc.contains(ccA.getName())));
+
+    assertEquals(3, categoryService.getAllCategoryOptionCombos().size());
+
+    CategoryOption categoryOption = categoryService.getCategoryOption(categoryOptionB.getUid());
+    categoryOption.setName("UpdateOption");
+    categoryService.updateCategoryOption(categoryOption);
+    entityManager.flush();
+    entityManager.clear();
+
+    ImportSummaries updateSummary = categoryService.addAndPruneOptionCombosWithSummary(ccA);
+
+    assertEquals(1, updateSummary.getUpdated());
+    assertEquals(SUCCESS, updateSummary.getStatus());
+    assertTrue(
+        updateSummary.getImportSummaries().stream()
+            .map(ImportSummary::getDescription)
+            .allMatch(desc -> desc.contains("Update category option combo")));
+
+    List<CategoryOptionCombo> cocs = categoryService.getAllCategoryOptionCombos();
+    assertEquals(3, cocs.size());
+    assertTrue(cocs.stream().anyMatch(coc -> coc.getName().contains("UpdateOption")));
+  }
+
+  @Test
+  void addAndPruneCategoryComboWithSummaryDelete() {
+    setupCategoryCombo();
+
+    ImportSummaries importSummary = categoryService.addAndPruneOptionCombosWithSummary(ccA);
+    assertEquals(2, importSummary.getImported());
+    assertEquals(SUCCESS, importSummary.getStatus());
+    assertTrue(
+        importSummary.getImportSummaries().stream()
+            .map(ImportSummary::getDescription)
+            .allMatch(desc -> desc.contains(ccA.getName())));
+
+    assertEquals(3, categoryService.getAllCategoryOptionCombos().size());
+
+    // remove option from category
+    categoryA.removeCategoryOption(categoryOptionA);
+    entityManager.flush();
+    entityManager.clear();
+
+    // trigger update
+    ImportSummaries updateSummary = categoryService.addAndPruneOptionCombosWithSummary(ccA);
+    assertEquals(1, updateSummary.getDeleted());
+    assertEquals(SUCCESS, updateSummary.getStatus());
+    assertTrue(
+        updateSummary.getImportSummaries().stream()
+            .map(ImportSummary::getDescription)
+            .allMatch(desc -> desc.contains("Deleted obsolete category option combo")));
+
+    List<CategoryOptionCombo> cocs = categoryService.getAllCategoryOptionCombos();
+    assertEquals(2, cocs.size());
+  }
+
+  @Test
+  void test() {
+    setupCategoryCombo();
+    List<CategoryOptionCombo> list = ccA.generateOptionCombosList();
+    categoryService.addAndPruneOptionCombos(ccA);
+    assertEquals(list, ccA.getSortedOptionCombos());
+  }
+
+  private void setupCategoryCombo() {
     categoryA = createCategory('A', categoryOptionA, categoryOptionB);
     categoryB = createCategory('B', categoryOptionC);
     categoryService.addCategory(categoryA);
     categoryService.addCategory(categoryB);
+
     ccA = createCategoryCombo('A', categoryA, categoryB);
     categoryService.addCategoryCombo(ccA);
-    categoryManager.addAndPruneAllOptionCombos();
-    assertEquals(3, categoryService.getAllCategoryOptionCombos().size());
-    CategoryOption categoryOption = categoryService.getCategoryOption(categoryOptionB.getUid());
-    categoryOption.setName("UpdateOption");
-    categoryService.updateCategoryOption(categoryOption);
-    categoryManager.addAndPruneAllOptionCombos();
-    List<CategoryOptionCombo> cocs = categoryService.getAllCategoryOptionCombos();
-    assertEquals(3, cocs.size());
-    assertTrue(cocs.stream().anyMatch(coc -> coc.getName().contains("UpdateOption")));
   }
 }

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.system.util;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -35,10 +34,7 @@ import java.util.Base64;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -58,7 +54,6 @@ import org.hisp.dhis.user.User;
  */
 @Slf4j
 public class SmsUtils {
-  private static final int MAX_CHAR = 160;
 
   private static final String COMMAND_PATTERN = "([A-Za-z])\\w+";
 
@@ -96,36 +91,18 @@ public class SmsUtils {
 
   public static byte[] getBytes(IncomingSms sms) {
     try {
-      byte[] bytes = Base64.getDecoder().decode(sms.getText());
-      return bytes;
+      return Base64.getDecoder().decode(sms.getText());
     } catch (IllegalArgumentException e) {
       return null;
     }
   }
 
-  public static Map<String, Set<OrganisationUnit>> getOrganisationUnitsByPhoneNumber(
-      String sender, Collection<User> users) {
-    Map<String, Set<OrganisationUnit>> userOrgUnitMap = new HashMap<>();
-
-    for (User u : users) {
-      if (u.getOrganisationUnits() != null) {
-        userOrgUnitMap.put(u.getUid(), u.getOrganisationUnits());
-      }
-    }
-
-    return userOrgUnitMap;
-  }
-
   public static String encode(String value) {
-    if (!StringUtils.isBlank(value)) {
-      try {
-        return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
-      } catch (UnsupportedEncodingException e) {
-        log.error("SMS text encoding failed: ", e);
-      }
+    if (StringUtils.isBlank(value)) {
+      return value;
     }
 
-    return value;
+    return URLEncoder.encode(value, StandardCharsets.UTF_8);
   }
 
   public static Date lookForDate(String message) {
@@ -165,77 +142,11 @@ public class SmsUtils {
     return date;
   }
 
-  public static User getUser(String sender, SMSCommand smsCommand, List<User> userList) {
-    OrganisationUnit orgunit = null;
-    User user = null;
-
-    for (User u : userList) {
-      OrganisationUnit ou = u.getOrganisationUnit();
-
-      if (ou != null) {
-        if (orgunit == null) {
-          orgunit = ou;
-        } else if (orgunit.getId() == ou.getId()) {
-        } else {
-          throw new SMSParserException(
-              StringUtils.defaultIfBlank(
-                  smsCommand.getMoreThanOneOrgUnitMessage(),
-                  SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE));
-        }
-      }
-
-      user = u;
-    }
-
-    if (user == null) {
-      throw new SMSParserException(
-          "User is not associated with any orgunit. Please contact your supervisor.");
-    }
-
-    return user;
-  }
-
-  public static List<String> splitLongUnicodeString(String message, List<String> result) {
-    String firstTempString = null;
-    String secondTempString = null;
-    int indexToCut = 0;
-
-    firstTempString = message.substring(0, MAX_CHAR);
-
-    indexToCut = firstTempString.lastIndexOf(" ");
-
-    firstTempString = firstTempString.substring(0, indexToCut);
-
-    result.add(firstTempString);
-
-    secondTempString = message.substring(indexToCut + 1, message.length());
-
-    if (secondTempString.length() <= MAX_CHAR) {
-      result.add(secondTempString);
-      return result;
-    } else {
-      return splitLongUnicodeString(secondTempString, result);
-    }
-  }
-
   public static Set<String> getRecipientsPhoneNumber(Collection<User> users) {
     return users.parallelStream()
         .filter(u -> u.getPhoneNumber() != null && !u.getPhoneNumber().isEmpty())
-        .map(u -> u.getPhoneNumber())
+        .map(User::getPhoneNumber)
         .collect(Collectors.toSet());
-  }
-
-  public static Set<String> getRecipientsEmail(Collection<User> users) {
-    Set<String> recipients = new HashSet<>();
-
-    for (User user : users) {
-      String email = user.getEmail();
-
-      if (StringUtils.trimToNull(email) != null) {
-        recipients.add(email);
-      }
-    }
-    return recipients;
   }
 
   public static OrganisationUnit selectOrganisationUnit(
@@ -278,9 +189,9 @@ public class SmsUtils {
     }
 
     if (number.startsWith("00")) {
-      number = number.substring(2, number.length());
+      number = number.substring(2);
     } else if (number.startsWith("+")) {
-      number = number.substring(1, number.length());
+      number = number.substring(1);
     }
 
     return number;

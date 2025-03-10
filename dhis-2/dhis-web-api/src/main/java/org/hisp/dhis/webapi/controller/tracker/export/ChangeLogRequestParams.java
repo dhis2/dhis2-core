@@ -35,20 +35,63 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.tracker.FieldsRequestParam;
+import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
 
 @OpenApi.Shared(name = "ChangeLogRequestParams")
 @OpenApi.Property
 @Data
 @NoArgsConstructor
-public class ChangeLogRequestParams implements FieldsRequestParam {
+public class ChangeLogRequestParams implements PageRequestParams, FieldsRequestParam {
 
   private static final String DEFAULT_FIELDS_PARAM = "change,createdAt,createdBy,type";
 
-  private int page = 1;
+  @OpenApi.Description(
+      """
+Get the given page.
+""")
+  @OpenApi.Property(defaultValue = "1")
+  private Integer page;
 
-  private int pageSize = 50;
+  @OpenApi.Description(
+      """
+Get given number of items per page.
+""")
+  @OpenApi.Property(defaultValue = "50")
+  private Integer pageSize;
 
+  /** Parameter {@code totalPages} is not supported. */
+  @OpenApi.Ignore
+  @Override
+  public boolean isTotalPages() {
+    return false;
+  }
+
+  /** Parameter {@code paging} is not supported. Requests are always paginated. */
+  @OpenApi.Ignore
+  @Override
+  public boolean isPaging() {
+    return true;
+  }
+
+  @OpenApi.Description(
+      """
+Get only the given fields in the JSON response. This query parameter allows you to remove
+unnecessary fields from the JSON response and in some cases decrease the response time. Refer to
+[metadata field filter](https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata.html#webapi_metadata_field_filter)
+on how to use it.
+""")
   private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
 
+  @OpenApi.Description(
+      """
+`<propertyName1:sortDirection>[,<propertyName2:sortDirection>...]`
+
+Get items in given order.
+
+Valid `sortDirection`s are `asc` and `desc`. `sortDirection` is case-insensitive.
+""")
   private List<OrderCriteria> order = new ArrayList<>();
+
+  private String filter;
 }

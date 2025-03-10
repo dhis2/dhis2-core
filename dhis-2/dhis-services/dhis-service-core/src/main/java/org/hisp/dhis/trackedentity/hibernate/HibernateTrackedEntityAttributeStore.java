@@ -28,14 +28,15 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
 import com.google.common.collect.Sets;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
@@ -92,10 +93,13 @@ public class HibernateTrackedEntityAttributeStore
   @Override
   @SuppressWarnings({"unchecked", "rawtypes"})
   public Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes() {
-    Query query =
-        getSession().createQuery("select trackedEntityTypeAttributes from TrackedEntityType");
+    TypedQuery<TrackedEntityTypeAttribute> query =
+        entityManager.createQuery(
+            "select distinct tea from TrackedEntityType tet inner join tet.trackedEntityTypeAttributes tea",
+            TrackedEntityTypeAttribute.class);
 
-    Set<TrackedEntityTypeAttribute> trackedEntityTypeAttributes = new HashSet<>(query.list());
+    Set<TrackedEntityTypeAttribute> trackedEntityTypeAttributes =
+        new HashSet<>(query.getResultList());
 
     return trackedEntityTypeAttributes.stream()
         .map(TrackedEntityTypeAttribute::getTrackedEntityAttribute)
@@ -135,9 +139,12 @@ public class HibernateTrackedEntityAttributeStore
   public Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram() {
     Map<Program, Set<TrackedEntityAttribute>> result = new HashMap<>();
 
-    Query query = getSession().createQuery("select p.programAttributes from Program p");
+    TypedQuery<ProgramTrackedEntityAttribute> query =
+        entityManager.createQuery(
+            "select distinct pa from Program p inner join p.programAttributes pa",
+            ProgramTrackedEntityAttribute.class);
 
-    List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = query.list();
+    List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = query.getResultList();
 
     for (ProgramTrackedEntityAttribute programTrackedEntityAttribute :
         programTrackedEntityAttributes) {

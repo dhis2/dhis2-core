@@ -28,16 +28,12 @@
 package org.hisp.dhis.tracker.export.relationship;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
-import static org.hisp.dhis.tracker.TrackerType.EVENT;
-import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -59,6 +55,7 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.test.utils.RelationshipUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -79,6 +76,8 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private TrackerOwnershipManager trackerOwnershipAccessManager;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   private Date enrollmentDate;
 
@@ -137,16 +136,13 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     inaccessibleTrackedEntityType.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.save(inaccessibleTrackedEntityType, false);
 
-    teA = createTrackedEntity(orgUnitA);
-    teA.setTrackedEntityType(trackedEntityType);
+    teA = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(teA, false);
 
-    teB = createTrackedEntity(orgUnitA);
-    teB.setTrackedEntityType(trackedEntityType);
+    teB = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(teB, false);
 
-    inaccessibleTe = createTrackedEntity(orgUnitA);
-    inaccessibleTe.setTrackedEntityType(inaccessibleTrackedEntityType);
+    inaccessibleTe = createTrackedEntity(orgUnitA, inaccessibleTrackedEntityType);
     manager.save(inaccessibleTe, false);
 
     program = createProgram('A', new HashSet<>(), orgUnitA);
@@ -243,14 +239,12 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     Relationship accessible = relationship(teA, teB);
     relationship(teA, inaccessibleTe, teToInaccessibleTeType);
 
-    RelationshipOperationParams operationParams =
-        RelationshipOperationParams.builder().type(TRACKED_ENTITY).identifier(teA.getUid()).build();
+    RelationshipOperationParams operationParams = RelationshipOperationParams.builder(teA).build();
 
-    List<Relationship> relationships = relationshipService.getRelationships(operationParams);
+    List<Relationship> relationships = relationshipService.findRelationships(operationParams);
 
     assertContainsOnly(
-        List.of(accessible.getUid()),
-        relationships.stream().map(Relationship::getUid).collect(Collectors.toList()));
+        List.of(accessible.getUid()), relationships.stream().map(Relationship::getUid).toList());
   }
 
   @Test
@@ -260,16 +254,12 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     relationship(teB, enrollmentA, teToInaccessibleEnType);
 
     RelationshipOperationParams operationParams =
-        RelationshipOperationParams.builder()
-            .type(ENROLLMENT)
-            .identifier(enrollmentA.getUid())
-            .build();
+        RelationshipOperationParams.builder(enrollmentA).build();
 
-    List<Relationship> relationships = relationshipService.getRelationships(operationParams);
+    List<Relationship> relationships = relationshipService.findRelationships(operationParams);
 
     assertContainsOnly(
-        List.of(accessible.getUid()),
-        relationships.stream().map(Relationship::getUid).collect(Collectors.toList()));
+        List.of(accessible.getUid()), relationships.stream().map(Relationship::getUid).toList());
   }
 
   @Test
@@ -279,13 +269,12 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     relationship(eventA, inaccessibleEvent);
 
     RelationshipOperationParams operationParams =
-        RelationshipOperationParams.builder().type(EVENT).identifier(eventA.getUid()).build();
+        RelationshipOperationParams.builder(eventA).build();
 
-    List<Relationship> relationships = relationshipService.getRelationships(operationParams);
+    List<Relationship> relationships = relationshipService.findRelationships(operationParams);
 
     assertContainsOnly(
-        List.of(accessible.getUid()),
-        relationships.stream().map(Relationship::getUid).collect(Collectors.toList()));
+        List.of(accessible.getUid()), relationships.stream().map(Relationship::getUid).toList());
   }
 
   @Test
@@ -302,19 +291,17 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     program.setOrganisationUnits(Set.of(orgUnitA, orgUnitB));
     manager.save(program, false);
 
-    TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA);
-    trackedEntityFrom.setTrackedEntityType(trackedEntityType);
+    TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(trackedEntityFrom);
 
     manager.save(createEnrollment(program, trackedEntityFrom, orgUnitA));
 
-    trackerOwnershipAccessManager.assignOwnership(
-        trackedEntityFrom, program, orgUnitA, false, true);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityFrom, program, orgUnitA);
 
     trackerOwnershipAccessManager.transferOwnership(trackedEntityFrom, program, orgUnitB);
 
-    TrackedEntity trackedEntityTo = createTrackedEntity(orgUnitA);
-    trackedEntityTo.setTrackedEntityType(trackedEntityType);
+    TrackedEntity trackedEntityTo = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(trackedEntityTo);
 
     relationship(trackedEntityFrom, trackedEntityTo);
@@ -322,14 +309,11 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(user);
 
     RelationshipOperationParams operationParams =
-        RelationshipOperationParams.builder()
-            .type(TRACKED_ENTITY)
-            .identifier(trackedEntityFrom.getUid())
-            .build();
+        RelationshipOperationParams.builder(trackedEntityFrom).build();
 
     assertThrows(
         ForbiddenException.class,
-        () -> relationshipService.getRelationships(operationParams),
+        () -> relationshipService.findRelationships(operationParams),
         "User should not have access to a relationship in case of ownership transfer of a tracked entity");
   }
 
@@ -338,19 +322,16 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, NotFoundException, BadRequestException {
     injectAdminIntoSecurityContext();
 
-    TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA);
-    trackedEntityFrom.setTrackedEntityType(trackedEntityType);
+    TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(trackedEntityFrom);
 
-    TrackedEntity trackedEntityTo = createTrackedEntity(orgUnitA);
-    trackedEntityTo.setTrackedEntityType(trackedEntityType);
+    TrackedEntity trackedEntityTo = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(trackedEntityTo);
 
     Program inaccessibleProgram = protectedProgram('P', trackedEntityType, orgUnitB);
     manager.save(inaccessibleProgram, false);
 
-    TrackedEntity notAccessibleTe = createTrackedEntity(orgUnitB);
-    notAccessibleTe.setTrackedEntityType(trackedEntityType);
+    TrackedEntity notAccessibleTe = createTrackedEntity(orgUnitB, trackedEntityType);
     manager.save(notAccessibleTe);
 
     injectSecurityContextUser(user);
@@ -359,16 +340,12 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     relationship(trackedEntityFrom, notAccessibleTe);
 
     RelationshipOperationParams operationParams =
-        RelationshipOperationParams.builder()
-            .type(TRACKED_ENTITY)
-            .identifier(trackedEntityFrom.getUid())
-            .build();
+        RelationshipOperationParams.builder(trackedEntityFrom).build();
 
-    List<Relationship> relationships = relationshipService.getRelationships(operationParams);
+    List<Relationship> relationships = relationshipService.findRelationships(operationParams);
 
     assertContainsOnly(
-        List.of(accessible.getUid()),
-        relationships.stream().map(Relationship::getUid).collect(Collectors.toList()));
+        List.of(accessible.getUid()), relationships.stream().map(Relationship::getUid).toList());
   }
 
   @Test
@@ -387,12 +364,10 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     program.setProgramStages(Set.of(programStage));
     manager.save(program, false);
 
-    TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA);
-    trackedEntityFrom.setTrackedEntityType(trackedEntityType);
+    TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(trackedEntityFrom);
 
-    TrackedEntity trackedEntityTo = createTrackedEntity(orgUnitA);
-    trackedEntityTo.setTrackedEntityType(trackedEntityType);
+    TrackedEntity trackedEntityTo = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(trackedEntityTo);
 
     relationship(trackedEntityFrom, trackedEntityTo);
@@ -400,14 +375,11 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(user);
 
     RelationshipOperationParams operationParams =
-        RelationshipOperationParams.builder()
-            .type(TRACKED_ENTITY)
-            .identifier(trackedEntityFrom.getUid())
-            .build();
+        RelationshipOperationParams.builder(trackedEntityFrom).build();
 
     assertThrows(
         ForbiddenException.class,
-        () -> relationshipService.getRelationships(operationParams),
+        () -> relationshipService.findRelationships(operationParams),
         "User should not have access to a relationship in case of missing metadata access to at least one program");
   }
 
@@ -426,12 +398,10 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     program.setProgramStages(Set.of(programStage));
     manager.save(program, false);
 
-    TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA);
-    trackedEntityFrom.setTrackedEntityType(trackedEntityType);
+    TrackedEntity trackedEntityFrom = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(trackedEntityFrom);
 
-    TrackedEntity trackedEntityTo = createTrackedEntity(orgUnitA);
-    trackedEntityTo.setTrackedEntityType(trackedEntityType);
+    TrackedEntity trackedEntityTo = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(trackedEntityTo);
 
     relationship(trackedEntityFrom, trackedEntityTo);
@@ -439,14 +409,11 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(user);
 
     RelationshipOperationParams operationParams =
-        RelationshipOperationParams.builder()
-            .type(TRACKED_ENTITY)
-            .identifier(trackedEntityFrom.getUid())
-            .build();
+        RelationshipOperationParams.builder(trackedEntityFrom).build();
 
     assertThrows(
         ForbiddenException.class,
-        () -> relationshipService.getRelationships(operationParams),
+        () -> relationshipService.findRelationships(operationParams),
         "User should not have access to a relationship in case of missing data read access to at least one program");
   }
 

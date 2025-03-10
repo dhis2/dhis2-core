@@ -30,9 +30,9 @@ package org.hisp.dhis.tracker.deduplication;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.google.common.collect.Lists;
-import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -40,6 +40,7 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -85,9 +86,12 @@ class PotentialDuplicateStoreTEAVTest extends PostgresIntegrationTestBase {
   void setUp() {
     OrganisationUnit ou = createOrganisationUnit("OU_A");
     organisationUnitService.addOrganisationUnit(ou);
-    original = createTrackedEntity(ou);
-    duplicate = createTrackedEntity(ou);
-    control = createTrackedEntity(ou);
+
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    original = createTrackedEntity(ou, trackedEntityType);
+    duplicate = createTrackedEntity(ou, trackedEntityType);
+    control = createTrackedEntity(ou, trackedEntityType);
     manager.save(original);
     manager.save(duplicate);
     manager.save(control);
@@ -136,7 +140,7 @@ class PotentialDuplicateStoreTEAVTest extends PostgresIntegrationTestBase {
 
   @Test
   void moveTrackedEntityAttributeValuesSingleTea() {
-    List<String> teas = Lists.newArrayList(trackedEntityAttributeA.getUid());
+    Set<UID> teas = Set.of(UID.of(trackedEntityAttributeA));
     transactionTemplate.execute(
         status -> {
           potentialDuplicateStore.moveTrackedEntityAttributeValues(original, duplicate, teas);
@@ -147,13 +151,13 @@ class PotentialDuplicateStoreTEAVTest extends PostgresIntegrationTestBase {
           // Clear the session so we get new data from the DB for the next
           // queries.
           dbmsManager.clearSession();
-          TrackedEntity _original = manager.get(TrackedEntity.class, original.getUid());
-          TrackedEntity _duplicate = manager.get(TrackedEntity.class, duplicate.getUid());
-          assertNotNull(_original);
-          assertNotNull(_duplicate);
-          assertEquals(3, _original.getTrackedEntityAttributeValues().size());
-          assertEquals(4, _duplicate.getTrackedEntityAttributeValues().size());
-          _original
+          TrackedEntity originalFromDB = manager.get(TrackedEntity.class, original.getUid());
+          TrackedEntity duplicateFromDB = manager.get(TrackedEntity.class, duplicate.getUid());
+          assertNotNull(originalFromDB);
+          assertNotNull(duplicateFromDB);
+          assertEquals(3, originalFromDB.getTrackedEntityAttributeValues().size());
+          assertEquals(4, duplicateFromDB.getTrackedEntityAttributeValues().size());
+          originalFromDB
               .getTrackedEntityAttributeValues()
               .forEach(
                   teav -> {
@@ -163,17 +167,16 @@ class PotentialDuplicateStoreTEAVTest extends PostgresIntegrationTestBase {
                       assertEquals("AttributeA", teav.getValue());
                     }
                   });
-          TrackedEntity _control = manager.get(TrackedEntity.class, control.getUid());
-          assertNotNull(_control);
-          assertEquals(3, _control.getTrackedEntityAttributeValues().size());
+          TrackedEntity controlFromDB = manager.get(TrackedEntity.class, control.getUid());
+          assertNotNull(controlFromDB);
+          assertEquals(3, controlFromDB.getTrackedEntityAttributeValues().size());
           return null;
         });
   }
 
   @Test
   void moveTrackedEntityAttributeValuesMultipleTeas() {
-    List<String> teas =
-        Lists.newArrayList(trackedEntityAttributeA.getUid(), trackedEntityAttributeB.getUid());
+    Set<UID> teas = UID.of(trackedEntityAttributeA, trackedEntityAttributeB);
     transactionTemplate.execute(
         status -> {
           potentialDuplicateStore.moveTrackedEntityAttributeValues(original, duplicate, teas);
@@ -184,13 +187,14 @@ class PotentialDuplicateStoreTEAVTest extends PostgresIntegrationTestBase {
           // Clear the session so we get new data from the DB for the next
           // queries.
           dbmsManager.clearSession();
-          TrackedEntity _original = manager.get(TrackedEntity.class, original.getUid());
-          TrackedEntity _duplicate = manager.get(TrackedEntity.class, duplicate.getUid());
-          assertNotNull(_original);
-          assertNotNull(_duplicate);
-          assertEquals(3, _original.getTrackedEntityAttributeValues().size());
-          assertEquals(3, _duplicate.getTrackedEntityAttributeValues().size());
-          _original
+          TrackedEntity originalFromDB = manager.get(TrackedEntity.class, original.getUid());
+          TrackedEntity duplicateoriginalFromDB =
+              manager.get(TrackedEntity.class, duplicate.getUid());
+          assertNotNull(originalFromDB);
+          assertNotNull(duplicateoriginalFromDB);
+          assertEquals(3, originalFromDB.getTrackedEntityAttributeValues().size());
+          assertEquals(3, duplicateoriginalFromDB.getTrackedEntityAttributeValues().size());
+          originalFromDB
               .getTrackedEntityAttributeValues()
               .forEach(
                   teav -> {
@@ -200,17 +204,16 @@ class PotentialDuplicateStoreTEAVTest extends PostgresIntegrationTestBase {
                       assertEquals("AttributeA", teav.getValue());
                     }
                   });
-          TrackedEntity _control = manager.get(TrackedEntity.class, control.getUid());
-          assertNotNull(_control);
-          assertEquals(3, _control.getTrackedEntityAttributeValues().size());
+          TrackedEntity controlFromDB = manager.get(TrackedEntity.class, control.getUid());
+          assertNotNull(controlFromDB);
+          assertEquals(3, controlFromDB.getTrackedEntityAttributeValues().size());
           return null;
         });
   }
 
   @Test
   void moveTrackedEntityAttributeValuesByOverwritingAndCreatingNew() {
-    List<String> teas =
-        Lists.newArrayList(trackedEntityAttributeD.getUid(), trackedEntityAttributeB.getUid());
+    Set<UID> teas = UID.of(trackedEntityAttributeD, trackedEntityAttributeB);
     transactionTemplate.execute(
         status -> {
           potentialDuplicateStore.moveTrackedEntityAttributeValues(original, duplicate, teas);
@@ -221,13 +224,14 @@ class PotentialDuplicateStoreTEAVTest extends PostgresIntegrationTestBase {
           // Clear the session so we get new data from the DB for the next
           // queries.
           dbmsManager.clearSession();
-          TrackedEntity _original = manager.get(TrackedEntity.class, original.getUid());
-          TrackedEntity _duplicate = manager.get(TrackedEntity.class, duplicate.getUid());
-          assertNotNull(_original);
-          assertNotNull(_duplicate);
-          assertEquals(4, _original.getTrackedEntityAttributeValues().size());
-          assertEquals(3, _duplicate.getTrackedEntityAttributeValues().size());
-          _original
+          TrackedEntity originalFromDB = manager.get(TrackedEntity.class, original.getUid());
+          TrackedEntity duplicateoriginalFromDB =
+              manager.get(TrackedEntity.class, duplicate.getUid());
+          assertNotNull(originalFromDB);
+          assertNotNull(duplicateoriginalFromDB);
+          assertEquals(4, originalFromDB.getTrackedEntityAttributeValues().size());
+          assertEquals(3, duplicateoriginalFromDB.getTrackedEntityAttributeValues().size());
+          originalFromDB
               .getTrackedEntityAttributeValues()
               .forEach(
                   teav -> {
@@ -237,9 +241,9 @@ class PotentialDuplicateStoreTEAVTest extends PostgresIntegrationTestBase {
                       assertEquals("AttributeA", teav.getValue());
                     }
                   });
-          TrackedEntity _control = manager.get(TrackedEntity.class, control.getUid());
-          assertNotNull(_control);
-          assertEquals(3, _control.getTrackedEntityAttributeValues().size());
+          TrackedEntity controlFromDB = manager.get(TrackedEntity.class, control.getUid());
+          assertNotNull(controlFromDB);
+          assertEquals(3, controlFromDB.getTrackedEntityAttributeValues().size());
           return null;
         });
   }

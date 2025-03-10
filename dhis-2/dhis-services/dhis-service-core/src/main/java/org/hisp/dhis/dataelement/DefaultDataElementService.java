@@ -29,20 +29,16 @@ package org.hisp.dhis.dataelement;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.period.PeriodType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -140,38 +136,6 @@ public class DefaultDataElementService implements DataElementService {
   @Transactional(readOnly = true)
   public List<DataElement> getAllDataElements() {
     return dataElementStore.getAll();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<DataElement> getAllDataElementsByValueType(ValueType valueType) {
-    return dataElementStore.getDataElementsByValueType(valueType);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<DataElement> getDataElementsByZeroIsSignificant(boolean zeroIsSignificant) {
-    return dataElementStore.getDataElementsByZeroIsSignificant(zeroIsSignificant);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<DataElement> getDataElementsByPeriodType(final PeriodType periodType) {
-    return getAllDataElements().stream()
-        .filter(p -> p.getPeriodType() != null && p.getPeriodType().equals(periodType))
-        .collect(Collectors.toList());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<DataElement> getDataElementsByDomainType(DataElementDomain domainType) {
-    return dataElementStore.getDataElementsByDomainType(domainType);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<DataElement> getDataElementByCategoryCombo(CategoryCombo categoryCombo) {
-    return dataElementStore.getDataElementByCategoryCombo(categoryCombo);
   }
 
   @Override
@@ -294,37 +258,5 @@ public class DefaultDataElementService implements DataElementService {
   @Transactional(readOnly = true)
   public DataElementGroupSet getDataElementGroupSet(String uid) {
     return dataElementGroupSetStore.getByUid(uid);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public DataElementGroupSet getDataElementGroupSetByName(String name) {
-    List<DataElementGroupSet> dataElementGroupSets = dataElementGroupSetStore.getAllEqName(name);
-
-    return !dataElementGroupSets.isEmpty() ? dataElementGroupSets.get(0) : null;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<DataElementGroupSet> getAllDataElementGroupSets() {
-    return dataElementGroupSetStore.getAll();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<DataElement> getByAttributeAndValue(UID attribute, String value) {
-    return dataElementStore.getByAttributeAndValue(attribute, value);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<DataElement> getByAttribute(UID attribute) {
-    return dataElementStore.getByAttribute(attribute);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public DataElement getByUniqueAttributeValue(UID attribute, String value) {
-    return dataElementStore.getByUniqueAttributeValue(attribute, value);
   }
 }

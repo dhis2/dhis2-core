@@ -28,15 +28,18 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.sms.SmsOutboundController} using (mocked) REST
@@ -44,12 +47,19 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
+@Transactional
 class SmsOutboundControllerTest extends H2ControllerIntegrationTestBase {
 
   @Autowired private OutboundSmsService outboundSmsService;
 
   @Test
   void testGetOutboundSMSMessage() {
+    JsonObject list = GET("/sms/outbound").content();
+    assertEquals(0, list.getArray("outboundsmss").size());
+  }
+
+  @Test
+  void testGetOutboundSMSMessage_Forbidden() {
     User guestUser = createUserWithAuth("guestuser", "NONE");
     injectSecurityContextUser(guestUser);
 

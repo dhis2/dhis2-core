@@ -32,6 +32,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionComboStore;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -54,6 +57,7 @@ class SMSCommandStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataElementService dataElementService;
   @Autowired private SMSCommandStore smsCommandStore;
+  @Autowired private CategoryOptionComboStore categoryOptionComboStore;
 
   @Test
   @DisplayName("retrieving SMS Codes by data element returns expected entries")
@@ -81,13 +85,59 @@ class SMSCommandStoreTest extends PostgresIntegrationTestBase {
             .containsAll(List.of(deW.getUid(), deX.getUid(), deY.getUid())));
   }
 
+  @Test
+  @DisplayName("retrieving SMS Codes by cat option combos returns expected entries")
+  void getByCocTest() {
+    // given
+    DataElement deW = createDataElementAndSave('W');
+    DataElement deX = createDataElementAndSave('X');
+    DataElement deY = createDataElementAndSave('Y');
+    DataElement deZ = createDataElementAndSave('Z');
+
+    SMSCode code1 = createSMSCodeAndSave(deW, "code 1");
+    CategoryOptionCombo coc1 = createCategoryOptionCombo('A');
+    coc1.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+    categoryOptionComboStore.save(coc1);
+    code1.setOptionId(coc1);
+
+    SMSCode code2 = createSMSCodeAndSave(deX, "code 2");
+    CategoryOptionCombo coc2 = createCategoryOptionCombo('B');
+    coc2.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+    categoryOptionComboStore.save(coc2);
+    code2.setOptionId(coc2);
+
+    SMSCode code3 = createSMSCodeAndSave(deY, "code 3");
+    CategoryOptionCombo coc3 = createCategoryOptionCombo('C');
+    coc3.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+    categoryOptionComboStore.save(coc3);
+    code3.setOptionId(coc3);
+
+    SMSCode code4 = createSMSCodeAndSave(deZ, "code 4");
+    CategoryOptionCombo coc4 = createCategoryOptionCombo('D');
+    coc4.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+    categoryOptionComboStore.save(coc4);
+    code4.setOptionId(coc4);
+
+    // when
+    List<SMSCode> allByCoc = smsCommandStore.getCodesByCategoryOptionCombo(UID.of(coc1, coc2));
+
+    // then
+    assertEquals(2, allByCoc.size());
+    assertTrue(
+        allByCoc.stream()
+            .map(code -> code.getOptionId().getUid())
+            .toList()
+            .containsAll(List.of(coc1.getUid(), coc2.getUid())),
+        "Codes should contain correct COC UIDs");
+  }
+
   private DataElement createDataElementAndSave(char c) {
     DataElement de = createDataElement(c);
     dataElementService.addDataElement(de);
     return de;
   }
 
-  private void createSMSCodeAndSave(DataElement de, String code) {
+  private SMSCode createSMSCodeAndSave(DataElement de, String code) {
     SMSCode smsCode = new SMSCode();
     smsCode.setCode("Code " + code);
     smsCode.setDataElement(de);
@@ -96,5 +146,6 @@ class SMSCommandStoreTest extends PostgresIntegrationTestBase {
     smsCommand.setCodes(Set.of(smsCode));
     smsCommand.setName("CMD " + code);
     smsCommandStore.save(smsCommand);
+    return smsCode;
   }
 }

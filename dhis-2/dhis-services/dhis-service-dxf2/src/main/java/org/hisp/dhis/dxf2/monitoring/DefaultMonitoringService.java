@@ -35,15 +35,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.util.HttpHeadersBuilder;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
@@ -67,7 +66,7 @@ public class DefaultMonitoringService implements MonitoringService {
 
   private final DhisConfigurationProvider config;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsService settingsService;
 
   private final RestTemplate restTemplate;
 
@@ -138,7 +137,7 @@ public class DefaultMonitoringService implements MonitoringService {
     HttpEntity<SystemInfo> requestEntity = new HttpEntity<>(systemInfo, headersBuilder.build());
 
     ResponseEntity<String> response = null;
-    HttpStatus sc = null;
+    HttpStatusCode sc = null;
 
     try {
       response = restTemplate.postForEntity(target.getUrl(), requestEntity, String.class);
@@ -151,9 +150,8 @@ public class DefaultMonitoringService implements MonitoringService {
       return;
     }
 
-    if (response != null && sc != null && sc.is2xxSuccessful()) {
-      systemSettingManager.saveSystemSetting(
-          SettingKey.LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH, startTime);
+    if (sc.is2xxSuccessful()) {
+      settingsService.put("keyLastSuccessfulSystemMonitoringPush", startTime);
 
       log.debug(String.format("Monitoring request successfully sent, URL: %s", target.getUrl()));
     } else {

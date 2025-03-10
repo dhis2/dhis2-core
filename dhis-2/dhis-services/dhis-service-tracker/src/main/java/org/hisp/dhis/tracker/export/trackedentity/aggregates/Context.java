@@ -51,18 +51,6 @@ class Context {
   /** A list of group ID to which the user belongs */
   List<String> userGroups;
 
-  /** A List of Tracked Entity Types ID to which the user has READ ONLY access */
-  List<Long> trackedEntityTypes;
-
-  /** A List of Programs ID to which the user has READ ONLY access */
-  List<Long> programs;
-
-  /** A List of Program Stages ID to which the user has READ ONLY access */
-  List<Long> programStages;
-
-  /** A List of Relationship ID to which the user has READ ONLY access */
-  List<Long> relationshipTypes;
-
   /** The te params to specify depth of te graph */
   TrackedEntityParams params;
 

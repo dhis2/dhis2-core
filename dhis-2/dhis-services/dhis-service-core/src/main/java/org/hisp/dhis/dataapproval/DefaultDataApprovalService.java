@@ -54,11 +54,9 @@ import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeAcceptedException;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeApprovedException;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeUnacceptedException;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeUnapprovedException;
-import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -82,7 +80,7 @@ public class DefaultDataApprovalService implements DataApprovalService {
 
   private final IdentifiableObjectManager idObjectManager;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   private final UserService userService;
 
@@ -139,8 +137,7 @@ public class DefaultDataApprovalService implements DataApprovalService {
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
-    boolean accepted =
-        !systemSettingManager.getBoolSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL);
+    boolean accepted = !settingsProvider.getCurrentSettings().getAcceptanceRequiredForApproval();
 
     validateAttributeOptionCombos(dataApprovalList);
 
@@ -610,8 +607,8 @@ public class DefaultDataApprovalService implements DataApprovalService {
   }
 
   /**
-   * Makes sure that for any approval we enter into the database, the attributeOptionCombo appears
-   * in the set of optionCombos for at least one of the data sets in the workflow.
+   * Makes sure that for any approval we enter into the database, the attributeOptionCombo belongs
+   * to the workflow's categoryCombo.
    *
    * @param dataApprovalList list of data approvals to test.
    */
@@ -629,10 +626,8 @@ public class DefaultDataApprovalService implements DataApprovalService {
    */
   private void validAttributeOptionCombo(
       CategoryOptionCombo attributeOptionCombo, DataApprovalWorkflow workflow) {
-    for (DataSet ds : workflow.getDataSets()) {
-      if (ds.getCategoryCombo().getOptionCombos().contains(attributeOptionCombo)) {
-        return;
-      }
+    if (workflow.getCategoryCombo().getOptionCombos().contains(attributeOptionCombo)) {
+      return;
     }
 
     log.info(
@@ -821,6 +816,9 @@ public class DefaultDataApprovalService implements DataApprovalService {
   /** Makes a DataApprovalPermissionsEvaluator object for the current user. */
   private DataApprovalPermissionsEvaluator makePermissionsEvaluator() {
     return DataApprovalPermissionsEvaluator.makePermissionsEvaluator(
-        userService, idObjectManager, systemSettingManager, dataApprovalLevelService);
+        userService,
+        idObjectManager,
+        settingsProvider.getCurrentSettings(),
+        dataApprovalLevelService);
   }
 }

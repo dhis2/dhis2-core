@@ -43,6 +43,7 @@ import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnitGroup;
@@ -76,8 +77,10 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -86,6 +89,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -93,6 +97,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -108,6 +113,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private ExecutionPlanStore executionPlanStore;
 
+  @Mock private OrganisationUnitResolver organisationUnitResolver;
+
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   private JdbcEventAnalyticsManager subject;
@@ -115,6 +122,12 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   @Captor private ArgumentCaptor<String> sql;
 
   private static final String TABLE_NAME = "analytics_event";
+
+  @Mock private SystemSettingsService systemSettingsService;
+  @Mock private DhisConfigurationProvider config;
+
+  @Spy
+  private PostgreSqlAnalyticsSqlBuilder analyticsSqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
 
   private static final String DEFAULT_COLUMNS_WITH_REGISTRATION =
       "event,ps,occurreddate,storedby,"
@@ -129,7 +142,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     EventTimeFieldSqlRenderer timeCoordinateSelector = new EventTimeFieldSqlRenderer(sqlBuilder);
     ProgramIndicatorService programIndicatorService = mock(ProgramIndicatorService.class);
     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
-        new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService);
+        new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService, systemSettingsService);
 
     subject =
         new JdbcEventAnalyticsManager(
@@ -138,9 +151,14 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             programIndicatorSubqueryBuilder,
             timeCoordinateSelector,
             executionPlanStore,
-            sqlBuilder);
+            systemSettingsService,
+            config,
+            sqlBuilder,
+            analyticsSqlBuilder,
+            organisationUnitResolver);
 
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
+    when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
   }
 
   @Test
@@ -626,6 +644,34 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
                 + "\" asc nulls last,\""
                 + piB.getUid()
                 + "\""));
+  }
+
+  @Test
+  void verifyGetAggregatedEventQueryWithMeasureCriteria() {
+
+    when(rowSet.getString("fWIAEtYVEGk")).thenReturn("2000");
+
+    mockRowSet();
+
+    Grid resultGrid =
+        subject.getAggregatedEventData(
+            createRequestParamsMeasureCriteria(programStage, ValueType.TEXT), createGrid(), 200000);
+
+    assertThat(resultGrid.getRows(), hasSize(1));
+    assertThat(resultGrid.getRow(0), hasSize(4));
+    assertThat(resultGrid.getRow(0).get(0), is("2000"));
+    assertThat(resultGrid.getRow(0).get(1), is("2017Q1"));
+    assertThat(resultGrid.getRow(0).get(2), is("Sierra Leone"));
+    assertThat(resultGrid.getRow(0).get(3), is(100));
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    // Verify that the Measure criteria is applied to the query
+    assertThat(sql.getValue().trim(), containsString("having"));
+    assertThat(
+        sql.getValue().trim(), containsString("round(count(ax.\"event\")::numeric, 10) > 10.0"));
+    assertThat(
+        sql.getValue().trim(), containsString("round(count(ax.\"event\")::numeric, 10) < 20.0"));
   }
 
   private void verifyFirstOrLastAggregationTypeSubquery(

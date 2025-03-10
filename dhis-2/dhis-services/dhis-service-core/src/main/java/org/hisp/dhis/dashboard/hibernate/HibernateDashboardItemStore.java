@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.dashboard.hibernate;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dashboard.Dashboard;
@@ -67,7 +67,7 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
     Query<Dashboard> query = getTypedQuery("from Dashboard d where :item in elements(d.items)");
     query.setParameter("item", dashboardItem);
 
-    return query.getSingleResult();
+    return getSingleResult(query);
   }
 
   @Override

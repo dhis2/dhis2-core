@@ -27,19 +27,23 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.test.web.WebClient.Body;
-import static org.hisp.dhis.test.web.WebClientUtils.assertStatus;
-import static org.hisp.dhis.test.web.WebClientUtils.substitutePlaceholders;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpClientAdapter.Body;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 abstract class AbstractDataValueControllerTest extends H2ControllerIntegrationTestBase {
   protected String dataElementId;
 
@@ -128,10 +132,15 @@ abstract class AbstractDataValueControllerTest extends H2ControllerIntegrationTe
 
   protected final JsonArray getDataValues(
       String de, String co, String cc, String cp, String pe, String ou) {
-    String url =
-        substitutePlaceholders(
-            "/dataValues?de={de}&co={co}&cc={cc}&cp={cp}&pe={pe}&ou={ou}",
-            new Object[] {de, co, cc, cp, pe, ou});
-    return GET(url.replaceAll("&[a-z]{2}=&", "&").replace("&&", "&")).content();
+    List<String> params = new ArrayList<>();
+    String url = "/dataValues";
+    if (!isEmpty(de)) params.add("de=" + de);
+    if (!isEmpty(co)) params.add("co=" + co);
+    if (!isEmpty(cc)) params.add("cc=" + cc);
+    if (!isEmpty(cp)) params.add("cp=" + cp);
+    if (!isEmpty(pe)) params.add("pe=" + pe);
+    if (!isEmpty(ou)) params.add("ou=" + ou);
+    if (!params.isEmpty()) url += "?" + String.join("&", params);
+    return GET(url).content();
   }
 }

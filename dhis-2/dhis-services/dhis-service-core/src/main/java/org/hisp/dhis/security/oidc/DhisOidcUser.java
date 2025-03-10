@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.security.oidc;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
@@ -111,6 +111,11 @@ public class DhisOidcUser extends DefaultOAuth2User implements UserDetails, Oidc
   @Override
   public boolean isSuper() {
     return user.isSuper();
+  }
+
+  @Override
+  public String getSecret() {
+    return user.getSecret();
   }
 
   @Override
@@ -196,12 +201,6 @@ public class DhisOidcUser extends DefaultOAuth2User implements UserDetails, Oidc
 
   @Nonnull
   @Override
-  public Map<String, Serializable> getUserSettings() {
-    return user.getUserSettings();
-  }
-
-  @Nonnull
-  @Override
   public Set<String> getUserRoleIds() {
     return user.getUserRoleIds();
   }
@@ -219,6 +218,16 @@ public class DhisOidcUser extends DefaultOAuth2User implements UserDetails, Oidc
   @Override
   public boolean isTwoFactorEnabled() {
     return user.isTwoFactorEnabled();
+  }
+
+  @Override
+  public TwoFactorType getTwoFactorType() {
+    return user.getTwoFactorType();
+  }
+
+  @Override
+  public boolean isEmailVerified() {
+    return user.isEmailVerified();
   }
 
   @Override

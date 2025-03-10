@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.category.hibernate;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import java.util.Collection;
 import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryStore;
 import org.hisp.dhis.common.DataDimensionType;
@@ -86,5 +88,19 @@ public class HibernateCategoryStore extends HibernateIdentifiableObjectStore<Cat
         newJpaParameters()
             .addPredicate(root -> builder.equal(root.get("dataDimensionType"), dataDimensionType))
             .addPredicate(root -> builder.equal(root.get("dataDimension"), dataDimension)));
+  }
+
+  @Override
+  public List<Category> getCategoriesByCategoryOption(@Nonnull Collection<String> categoryOptions) {
+    if (categoryOptions.isEmpty()) return List.of();
+    return getQuery(
+            """
+            select distinct c from Category c
+            join c.categoryOptions co
+            where co.uid in :categoryOptions
+            """,
+            Category.class)
+        .setParameter("categoryOptions", categoryOptions)
+        .getResultList();
   }
 }

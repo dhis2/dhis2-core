@@ -27,17 +27,20 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import java.io.IOException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Optional;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.auth.OAuth2ClientCredentialsAuthScheme;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.BadGatewayException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.route.Route;
 import org.hisp.dhis.route.RouteService;
 import org.hisp.dhis.schema.descriptors.RouteSchemaDescriptor;
@@ -46,12 +49,14 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 /**
  * @author Morten Olav Hansen
@@ -60,8 +65,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/routes")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-public class RouteController extends AbstractCrudController<Route> {
+@OpenApi.Document(classifiers = {"team:extensibility", "purpose:metadata"})
+public class RouteController extends AbstractCrudController<Route, GetObjectListParams> {
   private final RouteService routeService;
+
+  private final OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository;
 
   @RequestMapping(
       value = "/{id}/run",
@@ -72,11 +80,11 @@ public class RouteController extends AbstractCrudController<Route> {
         RequestMethod.DELETE,
         RequestMethod.PATCH
       })
-  public ResponseEntity<String> run(
+  public ResponseEntity<StreamingResponseBody> run(
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
-      throws IOException, ForbiddenException, NotFoundException, BadRequestException {
+      throws BadGatewayException, ForbiddenException, NotFoundException {
     return runWithSubpath(id, currentUser, request);
   }
 
@@ -89,26 +97,26 @@ public class RouteController extends AbstractCrudController<Route> {
         RequestMethod.DELETE,
         RequestMethod.PATCH
       })
-  public ResponseEntity<String> runWithSubpath(
+  public ResponseEntity<StreamingResponseBody> runWithSubpath(
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
-      throws IOException, ForbiddenException, NotFoundException, BadRequestException {
+      throws NotFoundException, ForbiddenException, BadGatewayException {
 
-    Route route = routeService.getDecryptedRoute(id);
+    Route route = routeService.getRoute(id);
 
     if (route == null) {
-      throw new NotFoundException(String.format("Route %s not found", id));
+      throw new NotFoundException(String.format("Route not found: '%s'", id));
     }
 
     if (!aclService.canRead(currentUser, route)
         && !currentUser.hasAnyAuthority(route.getAuthorities())) {
-      throw new ForbiddenException("User not authorized");
+      throw new ForbiddenException("User not authorized to execute route");
     }
 
     Optional<String> subPath = getSubPath(request.getPathInfo(), id);
 
-    return routeService.exec(route, currentUser, subPath, request);
+    return routeService.execute(route, currentUser, subPath, request);
   }
 
   private Optional<String> getSubPath(String path, String id) {
@@ -126,16 +134,39 @@ public class RouteController extends AbstractCrudController<Route> {
     return Optional.empty();
   }
 
+  @Override
+  protected void preCreateEntity(Route route) throws ConflictException {
+    validateRoute(route);
+  }
+
+  @Override
+  protected void preUpdateEntity(Route route, Route newRoute) throws ConflictException {
+    validateRoute(newRoute);
+    removeOAuth2AuthorizedClient(route);
+  }
+
+  @Override
+  protected void preDeleteEntity(Route route) {
+    removeOAuth2AuthorizedClient(route);
+  }
+
+  protected void validateRoute(Route route) throws ConflictException {
+    if (route.getResponseTimeoutSeconds() < 1 || route.getResponseTimeoutSeconds() > 60) {
+      throw new ConflictException(
+          "Route response timeout must be greater than 0 seconds and less than or equal to 60 seconds");
+    }
+  }
+
   /**
-   * Disable the Collection API for /api/routes endpoint. This conflicts with sub-path based routes
-   * and is not supported by the Route API (no id object collections).
+   * Disable the collection API for /api/routes endpoint. This conflicts with sub-path based routes
+   * and is not supported by the Route API (no identifiable object collections).
    */
   @Override
   @PostMapping(value = "/addCollectionItem__disabled")
   @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
   public WebMessage addCollectionItem(String pvUid, String pvProperty, String pvItemId)
       throws NotFoundException, ConflictException, ForbiddenException, BadRequestException {
-    throw new NotFoundException("Method Not Allowed");
+    throw new NotFoundException("Method not allowed");
   }
 
   @Override
@@ -144,6 +175,23 @@ public class RouteController extends AbstractCrudController<Route> {
   public WebMessage deleteCollectionItem(
       String pvUid, String pvProperty, String pvItemId, HttpServletResponse response)
       throws NotFoundException, ForbiddenException, ConflictException, BadRequestException {
-    throw new NotFoundException("Method Not Allowed");
+    throw new NotFoundException("Method not allowed");
+  }
+
+  protected void removeOAuth2AuthorizedClient(Route route) {
+    if (route.getAuth() != null
+        && route
+            .getAuth()
+            .getType()
+            .equals(OAuth2ClientCredentialsAuthScheme.OAUTH2_CLIENT_CREDENTIALS_TYPE)) {
+      OAuth2ClientCredentialsAuthScheme oAuth2ClientCredentialsAuthScheme =
+          (OAuth2ClientCredentialsAuthScheme) route.getAuth();
+
+      oAuth2AuthorizedClientRepository.removeAuthorizedClient(
+          oAuth2ClientCredentialsAuthScheme.getRegistrationId(),
+          OAuth2ClientCredentialsAuthScheme.ANONYMOUS_AUTHENTICATION,
+          contextService.getRequest(),
+          null);
+    }
   }
 }

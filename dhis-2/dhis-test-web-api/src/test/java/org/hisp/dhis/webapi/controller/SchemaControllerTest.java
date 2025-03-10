@@ -27,23 +27,32 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Optional;
+import java.util.Set;
+import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.test.web.HttpStatus;
+import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonProperty;
 import org.hisp.dhis.test.webapi.json.domain.JsonSchema;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link SchemaController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
+@Transactional
 class SchemaControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testValidateSchema() {
@@ -111,5 +120,64 @@ class SchemaControllerTest extends H2ControllerIntegrationTestBase {
       assertNull(schema.getSingular());
       assertNull(schema.getPlural());
     }
+  }
+
+  @Test
+  void testAttributeWritable() {
+    JsonSchema schema = GET("/schemas/attribute").content().as(JsonSchema.class);
+    schema
+        .getProperties()
+        .forEach(
+            p -> {
+              if (p.getName().endsWith("Attribute")
+                  && p.getPropertyType() == PropertyType.BOOLEAN) {
+                assertTrue(p.isWritable());
+                assertTrue(p.isPersisted());
+              }
+            });
+  }
+
+  @Test
+  void testUserNameIsPersistedButReadOnly() {
+    JsonSchema user = GET("/schemas/user").content().as(JsonSchema.class);
+    Optional<JsonProperty> maybeName =
+        user.getProperties().stream().filter(p -> "name".equals(p.getName())).findFirst();
+    assertTrue(maybeName.isPresent());
+    JsonProperty name = maybeName.get();
+    assertTrue(name.isPersisted());
+    assertTrue(name.isReadable());
+    assertFalse(name.isWritable());
+    assertFalse(name.isRequired());
+  }
+
+  @Test
+  void testSortableProperties() {
+    JsonSchema de = GET("/schemas/dataElement").content().as(JsonSchema.class);
+    JsonList<JsonProperty> properties = de.getProperties();
+    Set<String> expected =
+        Set.of(
+            "fieldMask",
+            "aggregationType",
+            "code",
+            "domainType",
+            "displayName",
+            "created",
+            "description",
+            "zeroIsSignificant",
+            "displayFormName",
+            "displayShortName",
+            "url",
+            "lastUpdated",
+            "valueType",
+            "formName",
+            "name",
+            "id",
+            "shortName");
+    Set<String> actual =
+        properties.stream()
+            .filter(JsonProperty::isSortable)
+            .map(JsonProperty::getName)
+            .collect(toSet());
+    assertEquals(expected, actual);
   }
 }

@@ -40,7 +40,6 @@ import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.MockAnalyticsService;
-import org.hisp.dhis.category.CategoryManager;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -74,6 +73,7 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
@@ -113,8 +113,6 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataValueService dataValueService;
 
   @Autowired private AnalyticsService analyticsService;
-
-  @Autowired private CategoryManager categoryManager;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -216,7 +214,10 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
     entityAttribute.setAggregationType(AggregationType.COUNT);
     entityAttribute.setUid(TRACKED_ENTITY_ATTRIBUTE_UID);
     entityAttributeService.addTrackedEntityAttribute(entityAttribute);
-    TrackedEntity trackedEntity = createTrackedEntity('A', orgUnitA, entityAttribute);
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    TrackedEntity trackedEntity =
+        createTrackedEntity('A', orgUnitA, entityAttribute, trackedEntityType);
     manager.save(trackedEntity);
     TrackedEntityAttributeValue trackedEntityAttributeValue =
         new TrackedEntityAttributeValue(entityAttribute, trackedEntity);
@@ -259,7 +260,7 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
     eventB.setOccurredDate(dateApr10);
     eventB.setAttributeOptionCombo(defaultCombo);
     manager.save(eventB);
-    categoryManager.addAndPruneAllOptionCombos();
+    categoryService.addAndPruneAllOptionCombos();
     Expression expressionA = new Expression(EXPRESSION_A, "ProgramTrackedEntityAttribute");
     Expression expressionD = new Expression(EXPRESSION_D, "ProgramDataElement");
     Expression expressionI = new Expression(EXPRESSION_I, "ProgramIndicators");

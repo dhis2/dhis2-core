@@ -167,4 +167,29 @@ class CategoryOptionGroupStoreTest extends PostgresIntegrationTestBase {
     assertThrows(
         PropertyValueException.class, () -> categoryService.saveCategoryOptionGroupSet(cogsA));
   }
+
+  @Test
+  @DisplayName(
+      "Should return the expected category option groups when searching by category option")
+  void getByCategoryOptionTest() {
+    CategoryOptionGroup cogA = createCategoryOptionGroup('W', coA);
+    CategoryOptionGroup cogB = createCategoryOptionGroup('X', coB);
+    CategoryOptionGroup cogC = createCategoryOptionGroup('Y', coB, coC);
+    CategoryOptionGroup cogD = createCategoryOptionGroup('Z', coD);
+    categoryOptionGroupStore.save(cogA);
+    categoryOptionGroupStore.save(cogB);
+    categoryOptionGroupStore.save(cogC);
+    categoryOptionGroupStore.save(cogD);
+
+    List<CategoryOptionGroup> cogs =
+        categoryOptionGroupStore.getByCategoryOption(
+            List.of(coA.getUid(), coB.getUid(), coC.getUid()));
+
+    assertEquals(3, cogs.size());
+    assertTrue(
+        cogs.stream()
+            .flatMap(cog -> cog.getMembers().stream())
+            .toList()
+            .containsAll(List.of(coA, coB, coC)));
+  }
 }

@@ -41,14 +41,12 @@ import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
 @Component
 public class SendSmsJob implements Job {
-  @Qualifier("smsMessageSender")
-  private final MessageSender smsSender;
+  private final MessageSender smsMessageSender;
 
   private final OutboundSmsService outboundSmsService;
 
@@ -71,7 +69,9 @@ public class SendSmsJob implements Job {
     OutboundMessageResponse status =
         progress.runStage(
             (OutboundMessageResponse) null,
-            () -> smsSender.sendMessage(sms.getSubject(), sms.getMessage(), sms.getRecipients()));
+            () ->
+                smsMessageSender.sendMessage(
+                    sms.getSubject(), sms.getMessage(), sms.getRecipients()));
 
     sms.setStatus(
         status != null && status.isOk() ? OutboundSmsStatus.SENT : OutboundSmsStatus.FAILED);

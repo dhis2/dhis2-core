@@ -27,13 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertPagerLink;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.google.common.collect.Sets;
 import java.util.List;
+import java.util.Set;
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -42,16 +44,22 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
-import org.hisp.dhis.test.web.HttpStatus;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.JsonPage;
+import org.hisp.dhis.webapi.controller.tracker.JsonPage.JsonPager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class ProgramNotificationInstanceControllerTest extends H2ControllerIntegrationTestBase {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class ProgramNotificationInstanceControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private ProgramNotificationInstanceService programNotificationInstanceService;
 
@@ -67,16 +75,22 @@ class ProgramNotificationInstanceControllerTest extends H2ControllerIntegrationT
 
   @BeforeEach
   void setUp() {
-    OrganisationUnit ouA = createOrganisationUnit('A');
-    manager.save(ouA);
+    OrganisationUnit orgUnit = createOrganisationUnit('A');
+    manager.save(orgUnit);
 
-    Program prA = createProgram('A', Sets.newHashSet(), ouA);
+    User user = createAndAddUser("tester", orgUnit, ALL.name());
+    user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
+    this.userService.updateUser(user);
+
+    Program prA = createProgram('A', Set.of(), orgUnit);
     manager.save(prA);
     ProgramStage psA = createProgramStage('A', prA);
     manager.save(psA);
-    TrackedEntity trackedEntityA = createTrackedEntity('A', ouA);
+    TrackedEntityType trackedEntityType = createTrackedEntityType('O');
+    manager.save(trackedEntityType);
+    TrackedEntity trackedEntityA = createTrackedEntity('A', orgUnit, trackedEntityType);
     manager.save(trackedEntityA);
-    enrollment = createEnrollment(prA, trackedEntityA, ouA);
+    enrollment = createEnrollment(prA, trackedEntityA, orgUnit);
     manager.save(enrollment);
 
     enrollmentNotification1 = new ProgramNotificationInstance();
@@ -89,46 +103,15 @@ class ProgramNotificationInstanceControllerTest extends H2ControllerIntegrationT
     enrollmentNotification2.setEnrollment(enrollment);
     programNotificationInstanceService.save(enrollmentNotification2);
 
-    event = createEvent(psA, enrollment, ouA);
+    event = createEvent(psA, enrollment, orgUnit);
     manager.save(event);
     eventNotification = new ProgramNotificationInstance();
     eventNotification.setName("event A notification");
     eventNotification.setEvent(event);
     programNotificationInstanceService.save(eventNotification);
-  }
+    manager.flush();
 
-  @Test
-  void shouldGetProgramNotificationWhenPassingDeprecatedProgramInstanceParam() {
-    JsonList<JsonIdentifiableObject> list =
-        GET("/programNotificationInstances?programInstance={uid}", enrollment.getUid())
-            .content(HttpStatus.OK)
-            .getList("programNotificationInstances", JsonIdentifiableObject.class);
-
-    assertContainsOnly(
-        List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
-        list.toList(JsonIdentifiableObject::getName));
-  }
-
-  @Test
-  void shouldFailToGetProgramNotificationWhenPassingEnrollmentAndProgramInstanceParams() {
-    assertStartsWith(
-        "Only one parameter of 'programInstance' and 'enrollment'",
-        GET(
-                "/programNotificationInstances?enrollment={uid}&programInstance={uid}",
-                enrollment.getUid(),
-                enrollment.getUid())
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
-  }
-
-  @Test
-  void shouldGetProgramNotificationWhenPassingDeprecatedProgramStageInstanceParam() {
-    JsonList<JsonIdentifiableObject> list =
-        GET("/programNotificationInstances?programStageInstance={uid}", event.getUid())
-            .content(HttpStatus.OK)
-            .getList("programNotificationInstances", JsonIdentifiableObject.class);
-
-    assertEquals(eventNotification.getName(), list.get(0).getName());
+    switchContextToUser(user);
   }
 
   @Test
@@ -139,18 +122,6 @@ class ProgramNotificationInstanceControllerTest extends H2ControllerIntegrationT
             .getList("programNotificationInstances", JsonIdentifiableObject.class);
 
     assertEquals(eventNotification.getName(), list.get(0).getName());
-  }
-
-  @Test
-  void shouldFailToGetProgramNotificationWhenPassingEventAndProgramStageInstanceParams() {
-    assertStartsWith(
-        "Only one parameter of 'programStageInstance' and 'event'",
-        GET(
-                "/programNotificationInstances?event={uid}&programStageInstance={uid}",
-                event.getUid(),
-                event.getUid())
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
   }
 
   @Test
@@ -166,22 +137,18 @@ class ProgramNotificationInstanceControllerTest extends H2ControllerIntegrationT
         List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
         list.toList(JsonIdentifiableObject::getName));
 
-    assertEquals(1, page.getPager().getPage());
-    assertEquals(50, page.getPager().getPageSize());
-    assertEquals(2, page.getPager().getTotal());
-    assertEquals(1, page.getPager().getPageCount());
-
-    // assert deprecated fields
-    assertEquals(1, page.getPage());
-    assertEquals(50, page.getPageSize());
-    assertEquals(2, page.getTotal());
-    assertEquals(1, page.getPageCount());
+    JsonPager pager = page.getPager();
+    assertEquals(1, pager.getPage());
+    assertEquals(50, pager.getPageSize());
+    assertHasNoMember(pager, "total", "pageCount");
   }
 
   @Test
-  void shouldGetPaginatedItemsWithNonDefaults() {
+  void shouldGetFirstPage() {
     JsonPage page =
-        GET("/programNotificationInstances?enrollment={uid}&page=2&pageSize=1", enrollment.getUid())
+        GET(
+                "/programNotificationInstances?enrollment={uid}&page=1&pageSize=1&totalPages=false",
+                enrollment.getUid())
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
@@ -192,16 +159,48 @@ class ProgramNotificationInstanceControllerTest extends H2ControllerIntegrationT
         list.size(),
         () -> String.format("mismatch in number of expected notification(s), got %s", list));
 
-    assertEquals(2, page.getPager().getPage());
+    JsonPager pager = page.getPager();
+    assertEquals(1, pager.getPage());
+    assertEquals(1, page.getPager().getPageSize());
+    assertHasNoMember(pager, "total", "pageCount", "prevPage");
+    assertPagerLink(
+        pager.getNextPage(),
+        2,
+        1,
+        String.format(
+            "http://localhost/api/programNotificationInstances?enrollment=%s",
+            enrollment.getUid()));
+  }
+
+  @Test
+  void shouldGetLastPage() {
+    JsonPage page =
+        GET(
+                "/programNotificationInstances?enrollment={uid}&page=2&pageSize=1&totalPages=true",
+                enrollment.getUid())
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
+
+    JsonList<JsonIdentifiableObject> list =
+        page.getList("programNotificationInstances", JsonIdentifiableObject.class);
+    assertEquals(
+        1,
+        list.size(),
+        () -> String.format("mismatch in number of expected notification(s), got %s", list));
+
+    JsonPager pager = page.getPager();
+    assertEquals(2, pager.getPage());
     assertEquals(1, page.getPager().getPageSize());
     assertEquals(2, page.getPager().getTotal());
     assertEquals(2, page.getPager().getPageCount());
-
-    // assert deprecated fields
-    assertEquals(2, page.getPage());
-    assertEquals(1, page.getPageSize());
-    assertEquals(2, page.getTotal());
-    assertEquals(2, page.getPageCount());
+    assertPagerLink(
+        pager.getPrevPage(),
+        1,
+        1,
+        String.format(
+            "http://localhost/api/programNotificationInstances?enrollment=%s",
+            enrollment.getUid()));
+    assertHasNoMember(pager, "nextPage");
   }
 
   @Test
@@ -217,37 +216,10 @@ class ProgramNotificationInstanceControllerTest extends H2ControllerIntegrationT
         List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
         list.toList(JsonIdentifiableObject::getName));
 
-    assertEquals(1, page.getPager().getPage());
+    JsonPager pager = page.getPager();
+    assertEquals(1, pager.getPage());
     assertEquals(50, page.getPager().getPageSize());
-    assertEquals(2, page.getPager().getTotal());
-    assertEquals(1, page.getPager().getPageCount());
-
-    // assert deprecated fields
-    assertEquals(1, page.getPage());
-    assertEquals(50, page.getPageSize());
-    assertEquals(2, page.getTotal());
-    assertEquals(1, page.getPageCount());
-  }
-
-  @Test
-  void shouldGetNonPaginatedItemsWithSkipPaging() {
-    JsonPage page =
-        GET("/programNotificationInstances?enrollment={uid}&skipPaging=true", enrollment.getUid())
-            .content(HttpStatus.OK)
-            .asA(JsonPage.class);
-
-    JsonList<JsonIdentifiableObject> list =
-        page.getList("programNotificationInstances", JsonIdentifiableObject.class);
-    assertContainsOnly(
-        List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
-        list.toList(JsonIdentifiableObject::getName));
-    assertHasNoMember(page, "pager");
-
-    // assert deprecated fields
-    assertHasNoMember(page, "page");
-    assertHasNoMember(page, "pageSize");
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
+    assertHasNoMember(pager, "total", "pageCount");
   }
 
   @Test
@@ -263,37 +235,5 @@ class ProgramNotificationInstanceControllerTest extends H2ControllerIntegrationT
         List.of(enrollmentNotification1.getName(), enrollmentNotification2.getName()),
         list.toList(JsonIdentifiableObject::getName));
     assertHasNoMember(page, "pager");
-
-    // assert deprecated fields
-    assertHasNoMember(page, "page");
-    assertHasNoMember(page, "pageSize");
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
-  }
-
-  @Test
-  void shouldFailWhenSkipPagingAndPagingAreFalse() {
-    String message =
-        GET(
-                "/programNotificationInstances?enrollment={uid}&paging=false&skipPaging=false",
-                enrollment.getUid())
-            .content(HttpStatus.BAD_REQUEST)
-            .getString("message")
-            .string();
-
-    assertStartsWith("Paging can either be enabled or disabled", message);
-  }
-
-  @Test
-  void shouldFailWhenSkipPagingAndPagingAreTrue() {
-    String message =
-        GET(
-                "/programNotificationInstances?enrollment={uid}&paging=true&skipPaging=true",
-                enrollment.getUid())
-            .content(HttpStatus.BAD_REQUEST)
-            .getString("message")
-            .string();
-
-    assertStartsWith("Paging can either be enabled or disabled", message);
   }
 }

@@ -40,10 +40,12 @@ import java.util.Date;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -113,15 +115,45 @@ public class DefaultIconService implements IconService {
     try {
       FileResource fr = FileResource.ofKey(ICON, key, MEDIA_TYPE_SVG);
       fr.setUid(fileResourceId);
+      Optional<FileResource> existing = fileResourceService.findByStorageKey(fr.getStorageKey());
+      if (existing.isPresent()) fr = existing.get();
       fr.setAssigned(true);
       try (InputStream image = resource.getInputStream()) {
         fileResourceService.syncSaveFileResource(fr, image);
       }
-      return fileResourceId;
+      return fr.getUid();
     } catch (IOException ex) {
       ignoredAfterFailure.add(origin);
       throw new ConflictException("Failed to create default icon resource: " + ex.getMessage());
     }
+  }
+
+  @Override
+  @Transactional
+  public int repairPhantomDefaultIcons() throws ConflictException {
+    int c = 0;
+    List<String> keys =
+        Stream.of(DefaultIcon.values()).flatMap(i -> i.getVariantKeys().stream()).toList();
+    IconQueryParams params = new IconQueryParams();
+    params.setPaging(false);
+    params.setKeys(keys);
+    try {
+      List<Icon> icons = getIcons(params);
+      for (Icon i : icons) {
+        if (!fileResourceContentStore.fileResourceContentExists(
+            i.getFileResource().getStorageKey())) {
+          try (InputStream image = getDefaultIconResource(i.getKey()).getInputStream()) {
+            fileResourceService.syncSaveFileResource(i.getFileResource(), image);
+          }
+          c++;
+        }
+      }
+    } catch (Exception ex) {
+      ConflictException e = new ConflictException("Repair failed");
+      e.initCause(ex);
+      throw e;
+    }
+    return c;
   }
 
   private static Resource getDefaultIconResource(String key) {

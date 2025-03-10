@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Collections;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -60,7 +61,8 @@ class EventWithoutRegistrationPreProcessorTest {
     event.setProgramStage(MetadataIdentifier.ofUid("programStageUid"));
     TrackerBundle bundle = TrackerBundle.builder().events(Collections.singletonList(event)).build();
     Enrollment enrollment = new Enrollment();
-    enrollment.setUid("enrollmentUid");
+    UID enrollmentUid = UID.generate();
+    enrollment.setUid(enrollmentUid.getValue());
     Program program = new Program();
     program.setUid("programUid");
     ProgramStage programStage = new ProgramStage();
@@ -73,7 +75,7 @@ class EventWithoutRegistrationPreProcessorTest {
     // When
     preProcessorToTest.process(bundle);
     // Then
-    assertEquals("enrollmentUid", bundle.getEvents().get(0).getEnrollment());
+    assertEquals(enrollmentUid, bundle.getEvents().get(0).getEnrollment());
   }
 
   @Test

@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexes;
+import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_STAGE;
 import static org.hisp.dhis.util.DateUtils.toLongDate;
@@ -52,8 +53,8 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.Clock;
 
 /**
@@ -70,7 +71,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
 
   private final ResourceTableService resourceTableService;
 
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   private final SqlBuilder sqlBuilder;
 
@@ -81,21 +82,19 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
 
   @Override
   public void create(AnalyticsTableUpdateParams params, JobProgress progress) {
-    int parallelJobs = getParallelJobs();
+    final int parallelJobs = getParallelJobs();
     int tableUpdates = 0;
 
     log.info("Analytics table update parameters: {}", params);
 
     AnalyticsTableType tableType = getAnalyticsTableType();
 
-    Clock clock =
-        new Clock(log)
-            .startClock()
-            .logTime(
-                "Starting update of type: {}, table name: '{}', parallel jobs: {}",
-                tableType,
-                tableType.getTableName(),
-                parallelJobs);
+    Clock clock = new Clock(log).startClock();
+    clock.logTime(
+        "Starting update of type: {}, table name: '{}', parallel jobs: {}",
+        tableType,
+        tableType.getTableName(),
+        parallelJobs);
 
     progress.startingStage("Validating analytics table: {}", tableType);
     boolean validState = tableManager.validState();
@@ -108,10 +107,8 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     List<AnalyticsTable> tables = tableManager.getAnalyticsTables(params);
 
     if (tables.isEmpty()) {
-      clock.logTime(
-          "Table update aborted, no table or partitions to be updated: '{}'",
-          tableType.getTableName());
-      progress.startingStage("Table updates " + tableType);
+      clock.logTime("Table update aborted, nothing to update: '{}'", tableType.getTableName());
+      progress.startingStage("Table update of type: '{}'", tableType);
       progress.completedStage("Table updated aborted, no table or partitions to be updated");
       return;
     }
@@ -123,13 +120,13 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
         params);
     progress.startingStage("Performing pre-create table work");
     progress.runStage(() -> tableManager.preCreateTables(params));
-    clock.logTime("Performed pre-create table work " + tableType);
+    clock.logTime("Performed pre-create table work: '{}'", tableType);
 
-    progress.startingStage("Dropping staging tables (if any) " + tableType, tables.size());
+    progress.startingStage(format("Dropping staging tables: '{}'", tableType), tables.size());
     dropTables(tables, progress);
     clock.logTime("Dropped staging tables");
 
-    progress.startingStage("Creating analytics tables " + tableType, tables.size());
+    progress.startingStage(format("Creating analytics tables: '{}'", tableType), tables.size());
     createTables(tables, progress);
     clock.logTime("Created analytics tables");
 
@@ -137,37 +134,42 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
     int partitionSize = partitions.size();
 
     progress.startingStage(
-        "Populating " + partitionSize + " analytics tables " + tableType, partitionSize);
+        format("Populating {} analytics tables: '{}'", partitionSize, tableType), partitionSize);
     populateTables(params, partitions, progress);
     clock.logTime("Populated analytics tables");
 
-    progress.startingStage("Invoking analytics table hooks " + tableType);
+    progress.startingStage("Invoking analytics table hooks: '{}'", tableType);
     tableUpdates += progress.runStage(0, tableManager::invokeAnalyticsTableSqlHooks);
     clock.logTime("Invoked analytics table hooks");
 
     tableUpdates += applyAggregationLevels(tableType, partitions, progress);
     clock.logTime("Applied aggregation levels");
 
-    List<Index> indexes = getIndexes(partitions);
-    int indexSize = indexes.size();
-
-    progress.startingStage(
-        "Creating " + indexSize + " indexes " + tableType, indexSize, SKIP_ITEM_OUTLIER);
-    createIndexes(indexes, progress);
-    clock.logTime("Created indexes");
+    if (sqlBuilder.requiresIndexesForAnalytics()) {
+      List<Index> indexes = getIndexes(partitions);
+      int indexSize = indexes.size();
+      progress.startingStage(
+          format("Creating {} indexes: '{}'", indexSize, tableType), indexSize, SKIP_ITEM_OUTLIER);
+      createIndexes(indexes, progress);
+      clock.logTime("Created indexes");
+    }
 
     if (tableUpdates > 0 && sqlBuilder.supportsVacuum()) {
-      progress.startingStage("Vacuuming tables " + tableType, partitions.size());
+      progress.startingStage(format("Vacuuming tables: '{}'", tableType), partitions.size());
       vacuumTables(partitions, progress);
       clock.logTime("Tables vacuumed");
     }
 
-    progress.startingStage("Analyzing analytics tables " + tableType, partitions.size());
-    analyzeTables(partitions, progress);
-    clock.logTime("Analyzed tables");
+    if (sqlBuilder.supportsAnalyze()) {
+      progress.startingStage(
+          format("Analyzing analytics tables: '{}'", tableType), partitions.size());
+      analyzeTables(partitions, progress);
+      clock.logTime("Analyzed tables");
+    }
 
     if (params.isLatestUpdate()) {
-      progress.startingStage("Removing updated and deleted data " + tableType, SKIP_STAGE);
+      progress.startingStage(
+          format("Removing updated and deleted data: '{}'", tableType), SKIP_STAGE);
       progress.runStage(() -> tableManager.removeUpdatedData(tables));
       clock.logTime("Removed updated and deleted data");
     }
@@ -264,7 +266,7 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
 
       if (!dataElements.isEmpty()) {
         progress.startingStage(
-            "Applying aggregation level " + level + " " + tableType, tables.size());
+            format("Applying aggregation level {}: '{}'", level, tableType), tables.size());
         progress.runStageInParallel(
             getParallelJobs(),
             tables,
@@ -322,7 +324,8 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
       AnalyticsTableUpdateParams params, List<AnalyticsTable> tables, JobProgress progress) {
     resourceTableService.dropAllSqlViews(progress);
 
-    progress.startingStage("Swapping analytics tables " + getAnalyticsTableType(), tables.size());
+    progress.startingStage(
+        format("Swapping analytics tables: '{}'", getAnalyticsTableType()), tables.size());
     progress.runStage(
         tables, AnalyticsTable::getName, table -> tableManager.swapTable(params, table));
 
@@ -364,23 +367,19 @@ public class DefaultAnalyticsTableService implements AnalyticsTableService {
    * @return the number of parallel jobs to use for processing analytics tables.
    */
   int getParallelJobs() {
-    Integer parallelJobs =
-        systemSettingManager.getIntegerSetting(SettingKey.PARALLEL_JOBS_IN_ANALYTICS_TABLE_EXPORT);
-    Integer databaseCpus = systemSettingManager.getIntegerSetting(SettingKey.DATABASE_SERVER_CPUS);
-    int serverCpus = SystemUtils.getCpuCores();
-
-    if (parallelJobs != null && parallelJobs > 0) {
+    SystemSettings settings = settingsProvider.getCurrentSettings();
+    int parallelJobs = settings.getParallelJobsInAnalyticsTableExport();
+    if (parallelJobs > 0) {
       return parallelJobs;
     }
-
-    if (databaseCpus != null && databaseCpus > 0) {
+    int databaseCpus = settings.getDatabaseServerCpus();
+    if (databaseCpus > 0) {
       return databaseCpus;
     }
-
+    int serverCpus = SystemUtils.getCpuCores();
     if (serverCpus > 2) {
       return serverCpus - 1;
     }
-
     return serverCpus;
   }
 }

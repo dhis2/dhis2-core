@@ -38,15 +38,13 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.predictor.PredictionService;
 import org.hisp.dhis.predictor.PredictionSummary;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.JobSchedulerService;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
@@ -62,7 +60,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Jim Grace
  */
-@OpenApi.Document(domain = Predictor.class)
+@OpenApi.Document(
+    entity = Predictor.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/predictions")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
@@ -70,8 +70,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class PredictionController {
 
   private final PredictionService predictionService;
-  private final JobConfigurationService jobConfigurationService;
-  private final JobSchedulerService jobSchedulerService;
+  private final JobExecutionService jobExecutionService;
 
   @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT})
   @RequiresAuthority(anyOf = F_PREDICTOR_RUN)
@@ -83,7 +82,7 @@ public class PredictionController {
       @RequestParam(value = "predictorGroup", required = false) List<String> predictorGroups,
       @RequestParam(defaultValue = "false", required = false) boolean async,
       @CurrentUser UserDetails currentUser)
-      throws ConflictException, @OpenApi.Ignore NotFoundException {
+      throws ConflictException {
 
     if (async) {
       JobConfiguration config = new JobConfiguration(PREDICTOR);
@@ -97,7 +96,7 @@ public class PredictionController {
       config.setJobParameters(params);
       config.setExecutedBy(currentUser.getUid());
 
-      jobSchedulerService.executeNow(jobConfigurationService.create(config));
+      jobExecutionService.executeOnceNow(config);
 
       return jobConfigurationReport(config);
     }
@@ -105,8 +104,6 @@ public class PredictionController {
         predictionService.predictTask(
             startDate, endDate, predictors, predictorGroups, JobProgress.noop());
 
-    return new WebMessage(Status.OK, HttpStatus.OK)
-        .setResponse(predictionSummary)
-        .withPlainResponseBefore(DhisApiVersion.V38);
+    return new WebMessage(Status.OK, HttpStatus.OK).setResponse(predictionSummary);
   }
 }

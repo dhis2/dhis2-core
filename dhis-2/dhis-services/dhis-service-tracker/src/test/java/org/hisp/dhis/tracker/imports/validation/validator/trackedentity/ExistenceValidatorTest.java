@@ -35,8 +35,9 @@ import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidatio
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -52,11 +53,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 class ExistenceValidatorTest {
-  private static final String SOFT_DELETED_TE_UID = "SoftDeletedTEId";
+  private static final UID SOFT_DELETED_TE_UID = UID.generate();
 
-  private static final String TE_UID = "TEId";
+  private static final UID TE_UID = UID.generate();
 
-  private static final String NOT_PRESENT_TE_UID = "NotPresentTEId";
+  private static final UID NOT_PRESENT_TE_UID = UID.generate();
 
   @Mock private TrackerBundle bundle;
 
@@ -158,14 +159,14 @@ class ExistenceValidatorTest {
 
   private TrackedEntity getSoftDeletedTei() {
     TrackedEntity trackedEntity = new TrackedEntity();
-    trackedEntity.setUid(SOFT_DELETED_TE_UID);
+    trackedEntity.setUid(SOFT_DELETED_TE_UID.getValue());
     trackedEntity.setDeleted(true);
     return trackedEntity;
   }
 
   private TrackedEntity trackedEntity() {
     TrackedEntity trackedEntity = new TrackedEntity();
-    trackedEntity.setUid(TE_UID);
+    trackedEntity.setUid(TE_UID.getValue());
     trackedEntity.setDeleted(false);
     return trackedEntity;
   }

@@ -32,14 +32,14 @@ import static java.util.Arrays.copyOfRange;
 import static java.util.Collections.emptyList;
 import static org.hisp.dhis.query.JpaQueryUtils.generateHqlQueryForSharingCheck;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.datastore.DatastoreEntry;

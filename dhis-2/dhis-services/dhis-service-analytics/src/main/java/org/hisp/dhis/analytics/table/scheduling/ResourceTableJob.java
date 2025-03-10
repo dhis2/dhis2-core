@@ -37,6 +37,8 @@ import org.hisp.dhis.scheduling.JobType;
 import org.springframework.stereotype.Component;
 
 /**
+ * Job for resource table update.
+ *
  * @author Lars Helge Overland
  */
 @Component("resourceTableJob")

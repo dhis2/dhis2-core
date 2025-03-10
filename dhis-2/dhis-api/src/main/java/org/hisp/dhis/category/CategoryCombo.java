@@ -27,16 +27,19 @@
  */
 package org.hisp.dhis.category;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DataDimensionType;
@@ -50,7 +53,7 @@ import org.hisp.dhis.common.SystemDefaultMetadataObject;
 public class CategoryCombo extends BaseIdentifiableObject implements SystemDefaultMetadataObject {
   public static final String DEFAULT_CATEGORY_COMBO_NAME = "default";
 
-  /** A set with categories. */
+  /** The categories combined in this combo in the order they are used as a category combination */
   private List<Category> categories = new ArrayList<>();
 
   /**
@@ -141,8 +144,10 @@ public class CategoryCombo extends BaseIdentifiableObject implements SystemDefau
   }
 
   public List<CategoryOptionCombo> generateOptionCombosList() {
-    List<CategoryOptionCombo> list = new ArrayList<>();
+    // return default option combos if default
+    if (this.isDefault()) return this.optionCombos.stream().toList();
 
+    List<CategoryOptionCombo> list = new ArrayList<>();
     CombinationGenerator<CategoryOption> generator =
         CombinationGenerator.newInstance(getCategoryOptionsAsLists());
 
@@ -151,6 +156,10 @@ public class CategoryCombo extends BaseIdentifiableObject implements SystemDefau
       optionCombo.setCategoryOptions(new HashSet<>(generator.getNext()));
       optionCombo.setCategoryCombo(this);
       list.add(optionCombo);
+
+      for (CategoryOption categoryOption : optionCombo.getCategoryOptions()) {
+        categoryOption.addCategoryOptionCombo(optionCombo);
+      }
     }
 
     return list;
@@ -173,7 +182,6 @@ public class CategoryCombo extends BaseIdentifiableObject implements SystemDefau
 
         if (categoryOptionSet.equals(persistedCategoryOptions)) {
           list.add(optionCombo);
-          continue;
         }
       }
     }
@@ -181,18 +189,9 @@ public class CategoryCombo extends BaseIdentifiableObject implements SystemDefau
     return list;
   }
 
-  public void generateOptionCombos() {
-    this.optionCombos = new HashSet<>(generateOptionCombosList());
-
-    for (CategoryOptionCombo optionCombo : optionCombos) {
-      for (CategoryOption categoryOption : optionCombo.getCategoryOptions()) {
-        categoryOption.addCategoryOptionCombo(optionCombo);
-      }
-    }
-  }
-
-  public boolean hasOptionCombos() {
-    return optionCombos != null && !optionCombos.isEmpty();
+  @JsonIgnore
+  public List<Category> getDataDimensionCategories() {
+    return categories.stream().filter(Category::isDataDimension).toList();
   }
 
   // -------------------------------------------------------------------------
@@ -215,6 +214,18 @@ public class CategoryCombo extends BaseIdentifiableObject implements SystemDefau
     }
 
     categories.clear();
+  }
+
+  public void addCategoryOptionCombo(@Nonnull CategoryOptionCombo coc) {
+    this.getOptionCombos().add(coc);
+  }
+
+  public void removeCategoryOptionCombo(@Nonnull CategoryOptionCombo coc) {
+    this.getOptionCombos().remove(coc);
+  }
+
+  public void removeCategoryOptionCombos(@Nonnull Collection<CategoryOptionCombo> cocs) {
+    cocs.forEach(this::removeCategoryOptionCombo);
   }
 
   // -------------------------------------------------------------------------

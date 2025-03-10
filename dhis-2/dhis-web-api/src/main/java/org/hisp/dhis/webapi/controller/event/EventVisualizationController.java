@@ -38,20 +38,20 @@ import static org.hisp.dhis.eventvisualization.EventVisualizationType.PIVOT_TABL
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_PNG;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationService;
@@ -64,6 +64,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.ChartService;
@@ -71,7 +73,6 @@ import org.hisp.dhis.visualization.PlotData;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.springframework.stereotype.Controller;
@@ -89,7 +90,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequestMapping("/api/eventVisualizations")
 @ApiVersion({DEFAULT, ALL})
 @AllArgsConstructor
-public class EventVisualizationController extends AbstractCrudController<EventVisualization> {
+@OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
+public class EventVisualizationController
+    extends AbstractCrudController<EventVisualization, GetObjectListParams> {
   private final DimensionService dimensionService;
 
   private final LegendSetService legendSetService;
@@ -159,7 +162,7 @@ public class EventVisualizationController extends AbstractCrudController<EventVi
 
   @Override
   protected void postProcessResponseEntity(
-      EventVisualization eventVisualization, WebOptions options, Map<String, String> parameters) {
+      EventVisualization eventVisualization, GetObjectParams params) {
     eventVisualization.populateAnalyticalProperties();
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());

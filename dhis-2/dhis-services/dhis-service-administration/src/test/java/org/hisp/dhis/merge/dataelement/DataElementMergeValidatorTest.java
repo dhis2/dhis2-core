@@ -38,7 +38,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.MergeReport;
-import org.hisp.dhis.merge.MergeType;
 import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -58,8 +57,7 @@ class DataElementMergeValidatorTest extends TestBase {
     // when
     DataElementMergeValidator validator = new DataElementMergeValidator();
     MergeReport report =
-        validator.validateValueType(
-            target, List.of(source1, source2, source3), new MergeReport(MergeType.DATA_ELEMENT));
+        validator.validateValueType(target, List.of(source1, source2, source3), new MergeReport());
 
     // then
     assertFalse(report.hasErrorMessages());
@@ -78,12 +76,11 @@ class DataElementMergeValidatorTest extends TestBase {
     // when
     DataElementMergeValidator validator = new DataElementMergeValidator();
     MergeReport report =
-        validator.validateValueType(
-            target, List.of(source1, source2, source3), new MergeReport(MergeType.DATA_ELEMENT));
+        validator.validateValueType(target, List.of(source1, source2, source3), new MergeReport());
 
     // then
     assertTrue(report.hasErrorMessages());
-    assertEquals(ErrorCode.E1554, report.getMergeErrors().get(0).getErrorCode());
+    assertEquals(ErrorCode.E1550, report.getMergeErrors().get(0).getErrorCode());
     assertEquals(
         "All source ValueTypes must match target ValueType: `TEXT`. Other ValueTypes found: `[NUMBER]`",
         report.getMergeErrors().get(0).getMessage());
@@ -102,12 +99,11 @@ class DataElementMergeValidatorTest extends TestBase {
     // when
     DataElementMergeValidator validator = new DataElementMergeValidator();
     MergeReport report =
-        validator.validateValueType(
-            target, List.of(source1, source2, source3), new MergeReport(MergeType.DATA_ELEMENT));
+        validator.validateValueType(target, List.of(source1, source2, source3), new MergeReport());
 
     // then
     assertTrue(report.hasErrorMessages());
-    assertEquals(ErrorCode.E1554, report.getMergeErrors().get(0).getErrorCode());
+    assertEquals(ErrorCode.E1550, report.getMergeErrors().get(0).getErrorCode());
     assertEquals(
         "All source ValueTypes must match target ValueType: `TEXT`. Other ValueTypes found: `[NUMBER, DATE]`",
         report.getMergeErrors().get(0).getMessage());
@@ -130,8 +126,7 @@ class DataElementMergeValidatorTest extends TestBase {
     // when
     DataElementMergeValidator validator = new DataElementMergeValidator();
     MergeReport report =
-        validator.validateDomainType(
-            target, List.of(source1, source2, source3), new MergeReport(MergeType.DATA_ELEMENT));
+        validator.validateDomainType(target, List.of(source1, source2, source3), new MergeReport());
 
     // then
     assertFalse(report.hasErrorMessages());
@@ -154,12 +149,11 @@ class DataElementMergeValidatorTest extends TestBase {
     // when
     DataElementMergeValidator validator = new DataElementMergeValidator();
     MergeReport report =
-        validator.validateDomainType(
-            target, List.of(source1, source2, source3), new MergeReport(MergeType.DATA_ELEMENT));
+        validator.validateDomainType(target, List.of(source1, source2, source3), new MergeReport());
 
     // then
     assertTrue(report.hasErrorMessages());
-    assertEquals(ErrorCode.E1555, report.getMergeErrors().get(0).getErrorCode());
+    assertEquals(ErrorCode.E1551, report.getMergeErrors().get(0).getErrorCode());
     assertEquals(
         "All source DataElementDomains must match target DataElementDomain: `AGGREGATE`. Other DataElementDomains found: `[TRACKER]`",
         report.getMergeErrors().get(0).getMessage());

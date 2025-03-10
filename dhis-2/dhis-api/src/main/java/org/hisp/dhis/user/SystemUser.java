@@ -27,14 +27,13 @@
  */
 package org.hisp.dhis.user;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.springframework.security.core.GrantedAuthority;
 
 /**
@@ -91,8 +90,13 @@ public class SystemUser implements UserDetails {
   }
 
   @Override
+  public String getSecret() {
+    return "";
+  }
+
+  @Override
   public String getUid() {
-    return "system-process";
+    return "XXXXXSystem";
   }
 
   @Override
@@ -167,12 +171,6 @@ public class SystemUser implements UserDetails {
 
   @Nonnull
   @Override
-  public Map<String, Serializable> getUserSettings() {
-    return Map.of();
-  }
-
-  @Nonnull
-  @Override
   public Set<String> getUserRoleIds() {
     return Set.of();
   }
@@ -190,6 +188,16 @@ public class SystemUser implements UserDetails {
   @Override
   public boolean isTwoFactorEnabled() {
     return false;
+  }
+
+  @Override
+  public TwoFactorType getTwoFactorType() {
+    return TwoFactorType.NOT_ENABLED;
+  }
+
+  @Override
+  public boolean isEmailVerified() {
+    return true;
   }
 
   @Override

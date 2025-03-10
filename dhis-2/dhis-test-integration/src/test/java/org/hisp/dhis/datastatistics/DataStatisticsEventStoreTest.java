@@ -31,7 +31,6 @@ import static org.hisp.dhis.datastatistics.DataStatisticsEventType.DASHBOARD_VIE
 import static org.hisp.dhis.datastatistics.DataStatisticsEventType.EVENT_CHART_VIEW;
 import static org.hisp.dhis.datastatistics.DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW;
 import static org.hisp.dhis.datastatistics.DataStatisticsEventType.VISUALIZATION_VIEW;
-import static org.hisp.dhis.setting.SettingKey.COUNT_PASSIVE_DASHBOARD_VIEWS_IN_USAGE_ANALYTICS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -41,7 +40,7 @@ import java.util.Map;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardService;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,7 +55,7 @@ class DataStatisticsEventStoreTest extends PostgresIntegrationTestBase {
 
   @Autowired private DashboardService dashboardService;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService settingsService;
 
   @Autowired private DataStatisticsService dataStatisticsService;
 
@@ -155,7 +154,8 @@ class DataStatisticsEventStoreTest extends PostgresIntegrationTestBase {
     final FavoriteStatistics activeDashboardStats =
         dataStatisticsService.getFavoriteStatistics(DASHBOARD_UID);
 
-    systemSettingManager.saveSystemSetting(COUNT_PASSIVE_DASHBOARD_VIEWS_IN_USAGE_ANALYTICS, true);
+    settingsService.put("keyCountPassiveDashboardViewsInUsageAnalytics", true);
+    settingsService.clearCurrentSettings();
     final FavoriteStatistics activePlusPassiveDashboardStats =
         dataStatisticsService.getFavoriteStatistics(DASHBOARD_UID);
 

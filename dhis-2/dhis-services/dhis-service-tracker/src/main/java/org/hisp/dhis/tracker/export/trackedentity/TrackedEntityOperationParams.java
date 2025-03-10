@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,10 +42,16 @@ import lombok.Getter;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.Order;
 
 @Getter
@@ -57,17 +64,14 @@ public class TrackedEntityOperationParams {
 
   @Builder.Default private TrackedEntityParams trackedEntityParams = TrackedEntityParams.FALSE;
 
-  /** Tracked entity attribute filters per attribute UID. */
-  @Builder.Default private Map<String, List<QueryFilter>> filters = new HashMap<>();
-
   /**
    * Organisation units for which instances in the response were registered at. Is related to the
    * specified OrganisationUnitMode.
    */
-  @Builder.Default private Set<String> organisationUnits = new HashSet<>();
+  @Builder.Default private Set<UID> organisationUnits = new HashSet<>();
 
   /** Program for which instances in the response must be enrolled in. */
-  private String programUid;
+  private UID program;
 
   /** Status of a tracked entities enrollment into a given program. */
   private EnrollmentStatus enrollmentStatus;
@@ -97,18 +101,19 @@ public class TrackedEntityOperationParams {
   private Date programIncidentEndDate;
 
   /** Tracked entity type to fetch. */
-  private String trackedEntityTypeUid;
+  private UID trackedEntityType;
 
-  private OrganisationUnitSelectionMode orgUnitMode;
+  @Builder.Default
+  private OrganisationUnitSelectionMode orgUnitMode = OrganisationUnitSelectionMode.ACCESSIBLE;
 
   @Getter @Builder.Default
   private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
   /** Set of te uids to explicitly select. */
-  @Builder.Default private Set<String> trackedEntityUids = new HashSet<>();
+  @Builder.Default private Set<UID> trackedEntities = new HashSet<>();
 
   /** ProgramStage to be used in conjunction with eventstatus. */
-  private String programStageUid;
+  private UID programStage;
 
   /** Status of any events in the specified program. */
   private EventStatus eventStatus;
@@ -164,9 +169,14 @@ public class TrackedEntityOperationParams {
    */
   private List<Order> order;
 
+  /** Tracked entity attribute filters per attribute UID. */
+  private final Map<UID, List<QueryFilter>> filters;
+
   public static class TrackedEntityOperationParamsBuilder {
 
     private final List<Order> order = new ArrayList<>();
+
+    private Map<UID, List<QueryFilter>> filters = new HashMap<>();
 
     // Do not remove this unused method. This hides the order field from the builder which Lombok
     // does not support. The repeated order field and private order method prevent access to order
@@ -183,6 +193,82 @@ public class TrackedEntityOperationParams {
 
     public TrackedEntityOperationParamsBuilder orderBy(UID uid, SortDirection direction) {
       this.order.add(new Order(uid, direction));
+      return this;
+    }
+
+    public TrackedEntityOperationParamsBuilder program(UID uid) {
+      this.program = uid;
+      return this;
+    }
+
+    public TrackedEntityOperationParamsBuilder program(Program program) {
+      this.program = UID.of(program);
+      return this;
+    }
+
+    public TrackedEntityOperationParamsBuilder programStage(UID uid) {
+      this.programStage = uid;
+      return this;
+    }
+
+    public TrackedEntityOperationParamsBuilder programStage(ProgramStage programStage) {
+      this.programStage = UID.of(programStage);
+      return this;
+    }
+
+    public TrackedEntityOperationParamsBuilder trackedEntityType(UID uid) {
+      this.trackedEntityType = uid;
+      return this;
+    }
+
+    public TrackedEntityOperationParamsBuilder trackedEntityType(
+        TrackedEntityType trackedEntityType) {
+      this.trackedEntityType = UID.of(trackedEntityType);
+      return this;
+    }
+
+    public TrackedEntityOperationParamsBuilder trackedEntities(Set<UID> uids) {
+      this.trackedEntities$value = uids;
+      this.trackedEntities$set = true;
+      return this;
+    }
+
+    public TrackedEntityOperationParamsBuilder trackedEntities(TrackedEntity... trackedEntities) {
+      this.trackedEntities$value = UID.of(trackedEntities);
+      this.trackedEntities$set = true;
+      return this;
+    }
+
+    public TrackedEntityOperationParamsBuilder organisationUnits(Set<UID> uids) {
+      this.organisationUnits$value = uids;
+      this.organisationUnits$set = true;
+      return this;
+    }
+
+    public TrackedEntityOperationParamsBuilder organisationUnits(
+        OrganisationUnit... organisationUnits) {
+      this.organisationUnits$value = UID.of(organisationUnits);
+      this.organisationUnits$set = true;
+      return this;
+    }
+
+    // Do not remove this unused method. This hides the filters field from the builder which Lombok
+    // does not support. The repeated filters field and private filters method prevent access to
+    // the filter map via the builder.
+    // Filters should be added via the filterBy builder methods.
+    private TrackedEntityOperationParamsBuilder filters(Map<UID, List<QueryFilter>> filters) {
+      return this;
+    }
+
+    public TrackedEntityOperationParamsBuilder filterBy(
+        @Nonnull UID attribute, @Nonnull List<QueryFilter> queryFilters) {
+      this.filters.putIfAbsent(attribute, new ArrayList<>());
+      this.filters.get(attribute).addAll(queryFilters);
+      return this;
+    }
+
+    public TrackedEntityOperationParamsBuilder filterBy(@Nonnull UID attribute) {
+      this.filters.putIfAbsent(attribute, List.of(new QueryFilter(QueryOperator.NNULL)));
       return this;
     }
   }

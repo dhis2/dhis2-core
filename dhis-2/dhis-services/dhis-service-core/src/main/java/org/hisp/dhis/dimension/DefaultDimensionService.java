@@ -41,6 +41,7 @@ import static org.hisp.dhis.common.DimensionType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_ESCAPED_SEP;
+import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.splitSafe;
 import static org.hisp.dhis.eventvisualization.Attribute.COLUMN;
@@ -57,6 +58,7 @@ import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -110,11 +112,12 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriodEnum;
-import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramDataElementOptionDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeOptionDimensionItem;
 import org.hisp.dhis.schema.MetadataMergeService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -338,7 +341,7 @@ public class DefaultDimensionService implements DimensionService {
   @Override
   @Transactional(readOnly = true)
   public DimensionalItemObject getDataDimensionalItemObject(String dimensionItem) {
-    return getDataDimensionalItemObject(IdScheme.UID, dimensionItem);
+    return getDataDimensionalItemObject(UID, dimensionItem);
   }
 
   @Override
@@ -353,8 +356,22 @@ public class DefaultDimensionService implements DimensionService {
       DataElementOperand operand;
       ReportingRate reportingRate;
       ProgramDataElementDimensionItem programDataElement;
+      ProgramDataElementOptionDimensionItem programDataElementOption;
       ProgramTrackedEntityAttributeDimensionItem programAttribute;
+      ProgramTrackedEntityAttributeOptionDimensionItem programAttributeOption;
 
+      if ((programDataElementOption =
+              dataDimensionExtractor.getProgramDataElementOptionDimensionItem(
+                  idScheme, id0, id1, id2))
+          != null) {
+        return programDataElementOption;
+      }
+      if ((programAttributeOption =
+              dataDimensionExtractor.getProgramAttributeOptionDimensionItem(
+                  idScheme, id0, id1, id2))
+          != null) {
+        return programAttributeOption;
+      }
       if ((operand = getDataElementOperand(idScheme, id0, id1, id2)) != null) {
         return operand;
       }
@@ -532,32 +549,33 @@ public class DefaultDimensionService implements DimensionService {
         List<String> uids = getUids(items);
 
         if (DATA_X.equals(type)) {
-          for (String uid : uids) {
-            DimensionalItemObject dimItemObject = getDataDimensionalItemObject(IdScheme.UID, uid);
+          for (DimensionalItemObject item : items) {
+            DimensionalItemObject dimItemObject = getDataDimensionalItemObject(UID, item.getUid());
 
             if (dimItemObject != null) {
-              DataDimensionItem item = DataDimensionItem.create(dimItemObject);
-
-              object.getDataDimensionItems().add(item);
+              DataDimensionItem dataItem = DataDimensionItem.create(dimItemObject);
+              object.getDataDimensionItems().add(dataItem);
             }
           }
         } else if (PERIOD.equals(type)) {
           List<RelativePeriodEnum> enums = new ArrayList<>();
           List<Period> periods = new UniqueArrayList<>();
+          Set<String> relativePeriods = new LinkedHashSet<>();
 
-          for (String isoPeriod : uids) {
-            if (RelativePeriodEnum.contains(isoPeriod)) {
-              enums.add(RelativePeriodEnum.valueOf(isoPeriod));
+          for (String period : uids) {
+            if (RelativePeriodEnum.contains(period)) {
+              enums.add(RelativePeriodEnum.valueOf(period));
+              relativePeriods.add(period);
             } else {
-              Period period = PeriodType.getPeriodFromIsoString(isoPeriod);
+              Period isoPeriod = PeriodType.getPeriodFromIsoString(period);
 
               if (period != null) {
-                periods.add(period);
+                periods.add(isoPeriod);
               }
             }
           }
 
-          object.setRelatives(new RelativePeriods().setRelativePeriodsFromEnums(enums));
+          object.setRawRelativePeriods(new ArrayList<>(relativePeriods));
           object.setPeriods(periodService.reloadPeriods(new ArrayList<>(periods)));
         } else if (ORGANISATION_UNIT.equals(type)) {
           for (String ou : uids) {

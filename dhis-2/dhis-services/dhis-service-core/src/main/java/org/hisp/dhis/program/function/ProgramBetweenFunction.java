@@ -54,7 +54,7 @@ public abstract class ProgramBetweenFunction extends ProgramExpressionItem {
     String startDate = castString(visitor.visitAllowingNulls(ctx.expr(0)));
     String endDate = castString(visitor.visitAllowingNulls(ctx.expr(1)));
 
-    return getSqlBetweenDates(startDate, endDate);
+    return getSqlBetweenDates(startDate, endDate, visitor);
   }
 
   /**
@@ -64,5 +64,6 @@ public abstract class ProgramBetweenFunction extends ProgramExpressionItem {
    * @param endDate ending date
    * @return the SQL to compare the dates based on the time/date unit
    */
-  public abstract Object getSqlBetweenDates(String startDate, String endDate);
+  public abstract Object getSqlBetweenDates(
+      String startDate, String endDate, CommonExpressionVisitor visitor);
 }

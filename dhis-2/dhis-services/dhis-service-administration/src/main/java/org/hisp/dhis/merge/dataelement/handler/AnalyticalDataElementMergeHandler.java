@@ -38,14 +38,14 @@ import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationStore;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 /**
  * Merge handler for analytical entities.
  *
  * @author david mackessy
  */
-@Service
+@Component
 @RequiredArgsConstructor
 public class AnalyticalDataElementMergeHandler {
 

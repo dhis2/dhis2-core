@@ -29,11 +29,12 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonMixed;
-import org.hisp.dhis.test.web.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests the {@link
@@ -42,6 +43,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author david mackessy
  */
+@Transactional
 class AnalyticsOutlierDetectionControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test

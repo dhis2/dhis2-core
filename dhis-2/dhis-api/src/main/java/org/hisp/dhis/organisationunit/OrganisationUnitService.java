@@ -33,7 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.User;
@@ -131,14 +133,6 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
    * @return a list of OrganisationUnits.
    */
   List<OrganisationUnit> getOrganisationUnitsByUid(@Nonnull Collection<String> uids);
-
-  /**
-   * Returns a list of OrganisationUnits based on the given params.
-   *
-   * @param params the params.
-   * @return a list of OrganisationUnits.
-   */
-  List<OrganisationUnit> getOrganisationUnitsByQuery(OrganisationUnitQueryParams params);
 
   /**
    * Returns an OrganisationUnit with a given name.
@@ -311,9 +305,7 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
    * @return the count of member OrganisationUnits.
    */
   Long getOrganisationUnitHierarchyMemberCount(
-      OrganisationUnit parent, Object member, String collectionName);
-
-  OrganisationUnitDataSetAssociationSet getOrganisationUnitDataSetAssociationSet(User user);
+      OrganisationUnit parent, Object member, String collectionName) throws BadRequestException;
 
   /**
    * Returns the level of the given org unit level. The level parameter string can either represent
@@ -390,19 +382,6 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
    */
   @Deprecated(forRemoval = true)
   boolean isInUserDataViewHierarchy(User user, OrganisationUnit organisationUnit);
-
-  /**
-   * Equal to {@link OrganisationUnitService#isInUserSearchHierarchy(User, OrganisationUnit)} except
-   * adds a caching layer on top. Use this method when performance is imperative and the risk of a
-   * stale result is tolerable.
-   *
-   * @param user the user to check for.
-   * @param organisationUnit the organisation unit.
-   * @return true if the given organisation unit is part of the hierarchy.
-   * @deprecated Use {@link org.hisp.dhis.user.UserDetails#isInUserSearchHierarchy(String)} instead
-   */
-  @Deprecated(forRemoval = true)
-  boolean isInUserSearchHierarchyCached(User user, OrganisationUnit organisationUnit);
 
   /**
    * @deprecated Use {@link org.hisp.dhis.user.UserDetails#isInUserSearchHierarchy(String)} instead
@@ -486,4 +465,12 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
    * @return
    */
   List<String> getSearchOrganisationUnitsUidsByUser(String username);
+
+  /**
+   * Returns all OrganisationUnits with refs to any of the CategoryOptions passed in.
+   *
+   * @param categoryOptions refs to search for.
+   * @return OrganisationUnits with refs to any of the CategoryOptions passed in
+   */
+  List<OrganisationUnit> getByCategoryOption(Collection<UID> categoryOptions);
 }

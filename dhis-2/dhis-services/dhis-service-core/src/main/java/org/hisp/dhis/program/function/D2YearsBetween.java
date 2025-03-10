@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.program.function;
 
+import org.hisp.dhis.db.sql.DateUnit;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+
 /**
  * Program indicator function: d2 years between
  *
@@ -34,11 +37,8 @@ package org.hisp.dhis.program.function;
  */
 public class D2YearsBetween extends ProgramBetweenFunction {
   @Override
-  public Object getSqlBetweenDates(String startDate, String endDate) {
-    return "(date_part('year',age(cast("
-        + endDate
-        + " as date), cast("
-        + startDate
-        + " as date))))";
+  public Object getSqlBetweenDates(
+      String startDate, String endDate, CommonExpressionVisitor visitor) {
+    return visitor.getSqlBuilder().dateDifference(startDate, endDate, DateUnit.YEARS);
   }
 }

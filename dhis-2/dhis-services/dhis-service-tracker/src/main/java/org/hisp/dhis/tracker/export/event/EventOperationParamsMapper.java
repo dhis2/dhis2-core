@@ -28,10 +28,12 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
+import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserQueryParam;
@@ -52,9 +54,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,8 +74,6 @@ class EventOperationParamsMapper {
 
   private final CategoryOptionComboService categoryOptionComboService;
 
-  private final UserService userService;
-
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
   private final DataElementService dataElementService;
@@ -83,29 +81,29 @@ class EventOperationParamsMapper {
   private final OperationsParamsValidator paramsValidator;
 
   @Transactional(readOnly = true)
-  public EventQueryParams map(EventOperationParams operationParams)
+  public EventQueryParams map(
+      @Nonnull EventOperationParams operationParams, @Nonnull UserDetails user)
       throws BadRequestException, ForbiddenException {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-
-    Program program = paramsValidator.validateProgramAccess(operationParams.getProgramUid());
+    Program program = paramsValidator.validateProgramAccess(operationParams.getProgram(), user);
     ProgramStage programStage =
-        validateProgramStage(operationParams.getProgramStageUid(), currentUser);
+        validateProgramStage(
+            applyIfNotNull(operationParams.getProgramStage(), UID::getValue), user);
     TrackedEntity trackedEntity =
-        paramsValidator.validateTrackedEntity(operationParams.getTrackedEntityUid(), currentUser);
-
+        paramsValidator.validateTrackedEntity(
+            operationParams.getTrackedEntity(), user, operationParams.isIncludeDeleted());
     OrganisationUnit orgUnit =
-        validateRequestedOrgUnit(operationParams.getOrgUnitUid(), currentUser);
-    validateOrgUnitMode(operationParams.getOrgUnitMode(), program);
+        validateRequestedOrgUnit(applyIfNotNull(operationParams.getOrgUnit(), UID::getValue), user);
+    validateOrgUnitMode(operationParams.getOrgUnitMode(), program, user);
 
     CategoryOptionCombo attributeOptionCombo =
         categoryOptionComboService.getAttributeOptionCombo(
             operationParams.getAttributeCategoryCombo() != null
-                ? operationParams.getAttributeCategoryCombo()
+                ? operationParams.getAttributeCategoryCombo().getValue()
                 : null,
-            operationParams.getAttributeCategoryOptions(),
+            UID.toValueSet(operationParams.getAttributeCategoryOptions()),
             true);
 
-    validateAttributeOptionCombo(attributeOptionCombo, currentUser);
+    validateAttributeOptionCombo(attributeOptionCombo, user);
 
     EventQueryParams queryParams = new EventQueryParams();
 
@@ -123,7 +121,9 @@ class EventOperationParamsMapper {
         .setOrgUnitMode(operationParams.getOrgUnitMode())
         .setAssignedUserQueryParam(
             new AssignedUserQueryParam(
-                operationParams.getAssignedUserMode(), operationParams.getAssignedUsers()))
+                operationParams.getAssignedUserMode(),
+                operationParams.getAssignedUsers(),
+                UID.of(user)))
         .setOccurredStartDate(operationParams.getOccurredAfter())
         .setOccurredEndDate(operationParams.getOccurredBefore())
         .setScheduledStartDate(operationParams.getScheduledAfter())
@@ -137,16 +137,16 @@ class EventOperationParamsMapper {
         .setEnrollmentOccurredAfter(operationParams.getEnrollmentOccurredAfter())
         .setEventStatus(operationParams.getEventStatus())
         .setCategoryOptionCombo(attributeOptionCombo)
-        .setIdSchemes(operationParams.getIdSchemes())
         .setIncludeAttributes(false)
         .setIncludeAllDataElements(false)
         .setEvents(operationParams.getEvents())
         .setEnrollments(operationParams.getEnrollments())
         .setIncludeDeleted(operationParams.isIncludeDeleted())
-        .setIncludeRelationships(operationParams.getEventParams().isIncludeRelationships());
+        .setIncludeRelationships(operationParams.getEventParams().isIncludeRelationships())
+        .setIdSchemeParams(operationParams.getIdSchemeParams());
   }
 
-  private ProgramStage validateProgramStage(String programStageUid, User user)
+  private ProgramStage validateProgramStage(String programStageUid, UserDetails user)
       throws BadRequestException, ForbiddenException {
     if (programStageUid == null) {
       return null;
@@ -165,18 +165,18 @@ class EventOperationParamsMapper {
     return programStage;
   }
 
-  private OrganisationUnit validateRequestedOrgUnit(String orgUnitUid, User user)
+  private OrganisationUnit validateRequestedOrgUnit(String orgUnitUid, UserDetails user)
       throws BadRequestException, ForbiddenException {
     if (orgUnitUid == null) {
       return null;
     }
     OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(orgUnitUid);
     if (orgUnit == null) {
-      throw new BadRequestException("Org unit is specified but does not exist: " + orgUnitUid);
+      throw new BadRequestException(
+          "Organisation unit is specified but does not exist: " + orgUnitUid);
     }
 
-    if (!organisationUnitService.isInUserHierarchy(
-        orgUnit.getUid(), user.getEffectiveSearchOrganisationUnits())) {
+    if (!user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getStoredPath())) {
       throw new ForbiddenException(
           "Organisation unit is not part of your search scope: " + orgUnit.getUid());
     }
@@ -184,10 +184,10 @@ class EventOperationParamsMapper {
     return orgUnit;
   }
 
-  private void validateAttributeOptionCombo(CategoryOptionCombo attributeOptionCombo, User user)
-      throws ForbiddenException {
+  private void validateAttributeOptionCombo(
+      CategoryOptionCombo attributeOptionCombo, UserDetails user) throws ForbiddenException {
     if (attributeOptionCombo != null
-        && (user != null && !user.isSuper())
+        && !user.isSuper()
         && !aclService.canDataRead(user, attributeOptionCombo)) {
       throw new ForbiddenException(
           "User has no access to attribute category option combo: "
@@ -196,15 +196,19 @@ class EventOperationParamsMapper {
   }
 
   private void mapDataElementFilters(
-      EventQueryParams params, Map<String, List<QueryFilter>> dataElementFilters)
+      EventQueryParams params, Map<UID, List<QueryFilter>> dataElementFilters)
       throws BadRequestException {
-    for (Entry<String, List<QueryFilter>> dataElementFilter : dataElementFilters.entrySet()) {
-      DataElement de = dataElementService.getDataElement(dataElementFilter.getKey());
+    for (Entry<UID, List<QueryFilter>> dataElementFilter : dataElementFilters.entrySet()) {
+      DataElement de = dataElementService.getDataElement(dataElementFilter.getKey().getValue());
       if (de == null) {
         throw new BadRequestException(
             String.format(
                 "filter is invalid. Data element '%s' does not exist.",
                 dataElementFilter.getKey()));
+      }
+
+      if (dataElementFilter.getValue().isEmpty()) {
+        params.filterBy(de);
       }
 
       for (QueryFilter filter : dataElementFilter.getValue()) {
@@ -214,11 +218,12 @@ class EventOperationParamsMapper {
   }
 
   private void mapAttributeFilters(
-      EventQueryParams params, Map<String, List<QueryFilter>> attributeFilters)
+      EventQueryParams params, Map<UID, List<QueryFilter>> attributeFilters)
       throws BadRequestException {
-    for (Map.Entry<String, List<QueryFilter>> attributeFilter : attributeFilters.entrySet()) {
+    for (Map.Entry<UID, List<QueryFilter>> attributeFilter : attributeFilters.entrySet()) {
       TrackedEntityAttribute tea =
-          trackedEntityAttributeService.getTrackedEntityAttribute(attributeFilter.getKey());
+          trackedEntityAttributeService.getTrackedEntityAttribute(
+              attributeFilter.getKey().getValue());
       if (tea == null) {
         throw new BadRequestException(
             String.format(
@@ -258,7 +263,8 @@ class EventOperationParamsMapper {
           throw new BadRequestException(
               "Cannot order by '"
                   + uid.getValue()
-                  + "' as its neither a data element nor a tracked entity attribute. Events can be ordered by event fields, data elements and tracked entity attributes.");
+                  + "' as its neither a data element nor a tracked entity attribute. Events can be"
+                  + " ordered by event fields, data elements and tracked entity attributes.");
         }
 
         params.orderBy(tea, order.getDirection());
@@ -266,7 +272,8 @@ class EventOperationParamsMapper {
         throw new IllegalArgumentException(
             "Cannot order by '"
                 + order.getField()
-                + "'. Events can be ordered by event fields, data elements and tracked entity attributes.");
+                + "'. Events can be ordered by event fields, data elements and tracked entity"
+                + " attributes.");
       }
     }
   }

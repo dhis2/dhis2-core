@@ -33,19 +33,20 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Set;
 import javax.imageio.ImageIO;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -63,6 +64,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUser;
@@ -72,7 +75,6 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -90,7 +92,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @Controller
 @RequestMapping("/api/maps")
-public class MapController extends AbstractCrudController<Map> {
+@OpenApi.Document(classifiers = {"team:analytics", "purpose:metadata"})
+public class MapController extends AbstractCrudController<Map, GetObjectListParams> {
   private static final int MAP_MIN_WIDTH = 140;
 
   private static final int MAP_MIN_HEIGHT = 25;
@@ -206,8 +209,7 @@ public class MapController extends AbstractCrudController<Map> {
   // --------------------------------------------------------------------------
 
   @Override
-  public void postProcessResponseEntity(
-      Map map, WebOptions options, java.util.Map<String, String> parameters) {
+  public void postProcessResponseEntity(Map map, GetObjectParams params) {
     I18nFormat format = i18nManager.getI18nFormat();
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());

@@ -41,17 +41,27 @@ import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-/** Unit tests for {@link SqlQueryHelper}. */
+@ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class SqlQueryHelperTest {
+
+  @Mock private DimensionParam dimensionParam;
+
+  @Mock private DimensionIdentifier<DimensionParam> testedDimension;
+
+  @BeforeEach
+  void beforeEach() {
+    when(testedDimension.getDimension()).thenReturn(dimensionParam);
+  }
 
   @Test
   void test_throws_when_undetected_type() {
-    DimensionParam dimensionParam = mock(DimensionParam.class);
-    DimensionIdentifier<DimensionParam> testedDimension = mock(DimensionIdentifier.class);
-    when(testedDimension.getDimension()).thenReturn(dimensionParam);
-
     assertThrows(
         IllegalArgumentException.class,
         () -> SqlQueryHelper.buildOrderSubQuery(testedDimension, () -> "field"));
@@ -63,10 +73,6 @@ class SqlQueryHelperTest {
 
   @Test
   void test_subQuery_TE() {
-    DimensionParam dimensionParam = mock(DimensionParam.class);
-    DimensionIdentifier<DimensionParam> testedDimension = mock(DimensionIdentifier.class);
-    when(testedDimension.getDimension()).thenReturn(dimensionParam);
-
     when(testedDimension.isTeDimension()).thenReturn(true);
 
     assertEquals(
@@ -79,9 +85,6 @@ class SqlQueryHelperTest {
 
   @Test
   void test_subQuery_enrollment() {
-    DimensionParam dimensionParam = mock(DimensionParam.class);
-    DimensionIdentifier<DimensionParam> testedDimension = mock(DimensionIdentifier.class);
-    when(testedDimension.getDimension()).thenReturn(dimensionParam);
     when(testedDimension.getPrefix()).thenReturn("prefix");
 
     TrackedEntityType trackedEntityType = mock(TrackedEntityType.class);
@@ -99,34 +102,31 @@ class SqlQueryHelperTest {
 
     assertEquals(
         """
-            (select field
-             from (select *,
-                   row_number() over ( partition by trackedentity
-                                       order by enrollmentdate desc ) as rn
-                   from analytics_te_enrollment_trackedentitytype
-                   where program = 'programUid'
-                     and t_1.trackedentity = trackedentity) en
-             where en.rn = 1)""",
+        (select field
+         from (select *,
+               row_number() over ( partition by trackedentity
+                                   order by enrollmentdate desc ) as rn
+               from analytics_te_enrollment_trackedentitytype
+               where program = 'programUid'
+                 and t_1.trackedentity = trackedentity) en
+         where en.rn = 1)""",
         SqlQueryHelper.buildOrderSubQuery(testedDimension, () -> "field").render());
 
     assertEquals(
         """
-            exists(select 1
-                   from (select *
-                         from (select *, row_number() over (partition by trackedentity order by enrollmentdate desc) as rn
-                               from analytics_te_enrollment_trackedentitytype
-                               where program = 'programUid'
-                                 and trackedentity = t_1.trackedentity) en
-                         where en.rn = 1) as "prefix"
-                   where field)""",
+        exists(select 1
+               from (select *
+                     from (select *, row_number() over (partition by trackedentity order by enrollmentdate desc) as rn
+                           from analytics_te_enrollment_trackedentitytype
+                           where program = 'programUid'
+                             and trackedentity = t_1.trackedentity) en
+                     where en.rn = 1) as "prefix"
+               where field)""",
         SqlQueryHelper.buildExistsValueSubquery(testedDimension, () -> "field").render());
   }
 
   @Test
   void test_subQuery_event() {
-    DimensionParam dimensionParam = mock(DimensionParam.class);
-    DimensionIdentifier<DimensionParam> testedDimension = mock(DimensionIdentifier.class);
-    when(testedDimension.getDimension()).thenReturn(dimensionParam);
     when(testedDimension.getPrefix()).thenReturn("prefix");
 
     TrackedEntityType trackedEntityType = mock(TrackedEntityType.class);
@@ -148,53 +148,48 @@ class SqlQueryHelperTest {
 
     assertEquals(
         """
-            (select field
-             from (select *,
-                   row_number() over ( partition by enrollment
-                                       order by occurreddate desc ) as rn
-                   from analytics_te_event_trackedentitytype events
-                   where programstage = 'programStageUid'
-                     and enrollment = (select enrollment
-             from (select *,
-                   row_number() over ( partition by trackedentity
-                                       order by enrollmentdate desc ) as rn
-                   from analytics_te_enrollment_trackedentitytype
-                   where program = 'programUid'
-                     and t_1.trackedentity = trackedentity) en
-             where en.rn = 1)
-                     and status != 'SCHEDULE') ev
-             where ev.rn = 1)""",
+        (select field
+         from (select *,
+               row_number() over ( partition by enrollment
+                                   order by occurreddate desc ) as rn
+               from analytics_te_event_trackedentitytype events
+               where programstage = 'programStageUid'
+                 and enrollment = (select enrollment
+         from (select *,
+               row_number() over ( partition by trackedentity
+                                   order by enrollmentdate desc ) as rn
+               from analytics_te_enrollment_trackedentitytype
+               where program = 'programUid'
+                 and t_1.trackedentity = trackedentity) en
+         where en.rn = 1)
+                 and status != 'SCHEDULE') ev
+         where ev.rn = 1)""",
         SqlQueryHelper.buildOrderSubQuery(testedDimension, () -> "field").render());
 
     assertEquals(
         """
-            exists(select 1
-                   from (select *
-                         from (select *, row_number() over (partition by trackedentity order by enrollmentdate desc) as rn
-                               from analytics_te_enrollment_trackedentitytype
-                               where program = 'programUid'
-                                 and trackedentity = t_1.trackedentity) en
-                         where en.rn = 1) as "enrollmentSubqueryAlias"
-                   where exists(select 1
-                   from (select *
-                         from (select *, row_number() over ( partition by enrollment order by occurreddate desc ) as rn
-                               from analytics_te_event_trackedentitytype
-                               where "enrollmentSubqueryAlias".enrollment = enrollment
-                                 and programstage = 'programStageUid'
-                                 and status != 'SCHEDULE') ev
-                         where ev.rn = 1) as "prefix"
-                   where field))""",
+        exists(select 1
+               from (select *
+                     from (select *, row_number() over (partition by trackedentity order by enrollmentdate desc) as rn
+                           from analytics_te_enrollment_trackedentitytype
+                           where program = 'programUid'
+                             and trackedentity = t_1.trackedentity) en
+                     where en.rn = 1) as "enrollmentSubqueryAlias"
+               where exists(select 1
+               from (select *
+                     from (select *, row_number() over ( partition by enrollment order by occurreddate desc ) as rn
+                           from analytics_te_event_trackedentitytype
+                           where "enrollmentSubqueryAlias".enrollment = enrollment
+                             and programstage = 'programStageUid'
+                             and status != 'SCHEDULE') ev
+                     where ev.rn = 1) as "prefix"
+               where field))""",
         SqlQueryHelper.buildExistsValueSubquery(testedDimension, () -> "field").render());
   }
 
   @Test
   void test_subQuery_data_element() {
-    DimensionParam dimensionParam = mock(DimensionParam.class);
-
     when(dimensionParam.isOfType(any())).thenReturn(true);
-
-    DimensionIdentifier<DimensionParam> testedDimension = mock(DimensionIdentifier.class);
-    when(testedDimension.getDimension()).thenReturn(dimensionParam);
     when(testedDimension.getPrefix()).thenReturn("prefix");
 
     TrackedEntityType trackedEntityType = mock(TrackedEntityType.class);
@@ -216,47 +211,47 @@ class SqlQueryHelperTest {
 
     assertEquals(
         """
-            (select field
-             from analytics_te_event_trackedentitytype
-             where event = (select event
-             from (select *,
-                   row_number() over ( partition by enrollment
-                                       order by occurreddate desc ) as rn
-                   from analytics_te_event_trackedentitytype events
-                   where programstage = 'programStageUid'
-                     and enrollment = (select enrollment
-             from (select *,
-                   row_number() over ( partition by trackedentity
-                                       order by enrollmentdate desc ) as rn
-                   from analytics_te_enrollment_trackedentitytype
-                   where program = 'programUid'
-                     and t_1.trackedentity = trackedentity) en
-             where en.rn = 1)
-                     and status != 'SCHEDULE') ev
-             where ev.rn = 1))""",
+        (select field
+         from analytics_te_event_trackedentitytype
+         where event = (select event
+         from (select *,
+               row_number() over ( partition by enrollment
+                                   order by occurreddate desc ) as rn
+               from analytics_te_event_trackedentitytype events
+               where programstage = 'programStageUid'
+                 and enrollment = (select enrollment
+         from (select *,
+               row_number() over ( partition by trackedentity
+                                   order by enrollmentdate desc ) as rn
+               from analytics_te_enrollment_trackedentitytype
+               where program = 'programUid'
+                 and t_1.trackedentity = trackedentity) en
+         where en.rn = 1)
+                 and status != 'SCHEDULE') ev
+         where ev.rn = 1))""",
         SqlQueryHelper.buildOrderSubQuery(testedDimension, () -> "field").render());
 
     assertEquals(
         """
-            exists(select 1
-                   from (select *
-                         from (select *, row_number() over (partition by trackedentity order by enrollmentdate desc) as rn
-                               from analytics_te_enrollment_trackedentitytype
-                               where program = 'programUid'
-                                 and trackedentity = t_1.trackedentity) en
-                         where en.rn = 1) as "enrollmentSubqueryAlias"
-                   where exists(select 1
-                   from (select *
-                         from (select *, row_number() over ( partition by enrollment order by occurreddate desc ) as rn
-                               from analytics_te_event_trackedentitytype
-                               where "enrollmentSubqueryAlias".enrollment = enrollment
-                                 and programstage = 'programStageUid'
-                                 and status != 'SCHEDULE') ev
-                         where ev.rn = 1) as "prefix"
-                   where exists(select 1
-                   from analytics_te_event_trackedentitytype
-                   where "prefix".event = event
-                     and field)))""",
+        exists(select 1
+               from (select *
+                     from (select *, row_number() over (partition by trackedentity order by enrollmentdate desc) as rn
+                           from analytics_te_enrollment_trackedentitytype
+                           where program = 'programUid'
+                             and trackedentity = t_1.trackedentity) en
+                     where en.rn = 1) as "enrollmentSubqueryAlias"
+               where exists(select 1
+               from (select *
+                     from (select *, row_number() over ( partition by enrollment order by occurreddate desc ) as rn
+                           from analytics_te_event_trackedentitytype
+                           where "enrollmentSubqueryAlias".enrollment = enrollment
+                             and programstage = 'programStageUid'
+                             and status != 'SCHEDULE') ev
+                     where ev.rn = 1) as "prefix"
+               where exists(select 1
+               from analytics_te_event_trackedentitytype
+               where "prefix".event = event
+                 and field)))""",
         SqlQueryHelper.buildExistsValueSubquery(testedDimension, () -> "field").render());
   }
 

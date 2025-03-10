@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.supplier.strategy;
 
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,20 +38,18 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fieldfilter.Defaults;
+import org.hisp.dhis.query.Filter;
+import org.hisp.dhis.query.Filters;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.query.Restriction;
-import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.tracker.imports.TrackerIdScheme;
-import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.imports.preheat.mappers.CopyMapper;
 import org.hisp.dhis.tracker.imports.preheat.mappers.PreheatMapper;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserDetails;
 import org.mapstruct.factory.Mappers;
 
 /**
@@ -109,7 +109,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
                 UID.of(idSchemeParam.getAttributeUid()),
                 ids);
       } else {
-        objects = cacheAwareFetch(preheat.getUser(), schema, idSchemeParam, ids, mapper);
+        objects = cacheAwareFetch(schema, idSchemeParam, ids, mapper);
       }
 
       preheat.put(idSchemeParam, objects);
@@ -122,7 +122,6 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
 
   @SuppressWarnings({"unchecked", "rawtypes"})
   private List<IdentifiableObject> cacheAwareFetch(
-      User user,
       Schema schema,
       TrackerIdSchemeParam idSchemeParam,
       List<String> ids,
@@ -152,7 +151,11 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
         objects =
             map(
                 (List<IdentifiableObject>)
-                    queryService.query(buildQuery(schema, user, idScheme, ids)),
+                    queryService.query(
+                        buildQuery(
+                            (Class<? extends IdentifiableObject>) schema.getKlass(),
+                            idScheme,
+                            ids)),
                 mapper);
 
         // put objects in query based on given scheme. If the key
@@ -172,7 +175,9 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
       objects =
           map(
               (List<IdentifiableObject>)
-                  queryService.query(buildQuery(schema, user, idScheme, ids)),
+                  queryService.query(
+                      buildQuery(
+                          (Class<? extends IdentifiableObject>) schema.getKlass(), idScheme, ids)),
               mapper);
     }
 
@@ -193,23 +198,23 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
     }
   }
 
-  private Query buildQuery(Schema schema, User user, TrackerIdScheme idScheme, List<String> ids) {
-    Query query = Query.from(schema);
-    query.setCurrentUserDetails(user == null ? null : UserDetails.fromUser(user));
+  private <T extends IdentifiableObject> Query<T> buildQuery(
+      Class<T> objectType, TrackerIdScheme idScheme, List<String> ids) {
+    Query<T> query = Query.of(objectType);
+    query.setCurrentUserDetails(getCurrentUserDetails());
     query.add(generateRestrictionFromIdentifiers(idScheme, ids));
     query.setDefaults(Defaults.INCLUDE);
 
     return query;
   }
 
-  private Restriction generateRestrictionFromIdentifiers(
-      TrackerIdScheme idScheme, List<String> ids) {
+  private Filter generateRestrictionFromIdentifiers(TrackerIdScheme idScheme, List<String> ids) {
     if (TrackerIdScheme.CODE.equals(idScheme)) {
-      return Restrictions.in("code", ids);
+      return Filters.in("code", ids);
     } else if (TrackerIdScheme.NAME.equals(idScheme)) {
-      return Restrictions.in("name", ids);
+      return Filters.in("name", ids);
     } else {
-      return Restrictions.in("id", ids);
+      return Filters.in("id", ids);
     }
   }
 

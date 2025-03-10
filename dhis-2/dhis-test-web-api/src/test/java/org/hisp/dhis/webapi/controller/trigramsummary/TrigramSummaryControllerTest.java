@@ -66,8 +66,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 @ExtendWith(MockitoExtension.class)
+@Transactional
 class TrigramSummaryControllerTest extends H2ControllerIntegrationTestBase {
 
   private static final List<FieldPath> DEFAULT_FIELDS =
@@ -181,8 +183,7 @@ class TrigramSummaryControllerTest extends H2ControllerIntegrationTestBase {
     program.getProgramAttributes().add(pteaB);
     manager.update(program);
 
-    trackedEntity = createTrackedEntity(orgUnit);
-    trackedEntity.setTrackedEntityType(trackedEntityType);
+    trackedEntity = createTrackedEntity(orgUnit, trackedEntityType);
     manager.save(trackedEntity);
 
     enrollment = new Enrollment(program, trackedEntity, orgUnit);

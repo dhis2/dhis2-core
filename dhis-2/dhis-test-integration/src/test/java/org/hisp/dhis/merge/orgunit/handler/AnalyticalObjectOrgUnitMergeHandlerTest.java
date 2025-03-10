@@ -29,8 +29,6 @@ package org.hisp.dhis.merge.orgunit.handler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
@@ -49,8 +47,6 @@ import org.springframework.transaction.annotation.Transactional;
 class AnalyticalObjectOrgUnitMergeHandlerTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager idObjectManager;
-
-  @PersistenceContext private EntityManager entityManager;
 
   @Autowired private AnalyticalObjectOrgUnitMergeHandler handler;
 

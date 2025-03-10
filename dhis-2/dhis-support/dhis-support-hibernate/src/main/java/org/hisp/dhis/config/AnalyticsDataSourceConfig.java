@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.config;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.hisp.dhis.config.DataSourceConfig.createLoggingDataSource;
 import static org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper.ANALYTICS;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_URL;
@@ -38,14 +39,18 @@ import java.sql.SQLException;
 import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.analytics.AnalyticsDataSourceFactory;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
-import org.hisp.dhis.datasource.model.PoolConfig;
+import org.hisp.dhis.datasource.model.DbPoolConfig;
+import org.hisp.dhis.db.model.Database;
+import org.hisp.dhis.db.setting.SqlBuilderSettings;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -55,11 +60,15 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
-public class AnalyticsDataSourceConfig {
+public class AnalyticsDataSourceConfig implements AnalyticsDataSourceFactory {
 
   private static final int FETCH_SIZE = 1000;
 
   private final DhisConfigurationProvider config;
+
+  private final SqlBuilderSettings sqlBuilderSettings;
+
+  private final ApplicationContext applicationContext;
 
   @Bean("analyticsDataSource")
   @DependsOn("analyticsActualDataSource")
@@ -68,19 +77,27 @@ public class AnalyticsDataSourceConfig {
     return createLoggingDataSource(config, actualDataSource);
   }
 
+  /**
+   * Creates a DataSource for the analytics database. If the analytics database is not configured,
+   * the actualDataSource is returned. If the analytics database is configured, a new DataSource is
+   * created based on the configuration.
+   *
+   * @param actualDataSource the actual DataSource
+   * @return a DataSource
+   */
   @Bean("analyticsActualDataSource")
   public DataSource jdbcActualDataSource(
       @Qualifier("actualDataSource") DataSource actualDataSource) {
     if (config.isAnalyticsDatabaseConfigured()) {
       log.info(
-          "Analytics data source detected with database: '{}', connection URL: '{}'",
+          "Analytics database detected: '{}', connection URL: '{}'",
           config.getProperty(ANALYTICS_DATABASE),
           config.getProperty(ANALYTICS_CONNECTION_URL));
 
       return getAnalyticsDataSource();
     } else {
       log.info(
-          "Analytics data source connection URL not specified with key: '{}'",
+          "Analytics database connection URL not specified with key: '{}'",
           ANALYTICS_CONNECTION_URL.getKey());
 
       return actualDataSource;
@@ -101,6 +118,12 @@ public class AnalyticsDataSourceConfig {
     return getJdbcTemplate(dataSource);
   }
 
+  /**
+   * Creates a JdbcTemplate that uses the analytics datasource (Doris/Clickhouse) when configured.
+   *
+   * @param dataSource the analytics datasource
+   * @return a JdbcTemplate configured for the analytics database
+   */
   @Bean("analyticsReadOnlyJdbcTemplate")
   @DependsOn("analyticsDataSource")
   public JdbcTemplate readOnlyJdbcTemplate(
@@ -110,10 +133,32 @@ public class AnalyticsDataSourceConfig {
     return getJdbcTemplate(ds);
   }
 
+  /**
+   * Creates a JdbcTemplate that always uses the Postgres datasource regardless of whether analytics
+   * is configured or not.
+   *
+   * @param actualDataSource the main Postgres database datasource
+   * @return a JdbcTemplate configured for the Postgres database
+   */
   @Bean("analyticsJdbcTemplate")
-  @DependsOn("analyticsDataSource")
-  public JdbcTemplate jdbcTemplate(@Qualifier("analyticsDataSource") DataSource dataSource) {
-    return getJdbcTemplate(dataSource);
+  public JdbcTemplate jdbcTemplate(@Qualifier("actualDataSource") DataSource actualDataSource) {
+    return getJdbcTemplate(actualDataSource);
+  }
+
+  /**
+   * Creates a temporary DataSource for analytics database initialization. This is not a Spring bean
+   * and will be explicitly closed after use.
+   *
+   * @return A closeable DataSource for initialization tasks
+   */
+  @Override
+  public TemporaryDataSourceWrapper createTemporaryAnalyticsDataSource() {
+    final DataSource dataSource =
+        config.isAnalyticsDatabaseConfigured()
+            ? getAnalyticsDataSource()
+            : applicationContext.getBean("actualDataSource", DataSource.class);
+
+    return new TemporaryDataSourceWrapper(dataSource);
   }
 
   // -------------------------------------------------------------------------
@@ -126,11 +171,17 @@ public class AnalyticsDataSourceConfig {
    * @return a {@link DataSource}.
    */
   private DataSource getAnalyticsDataSource() {
-    String jdbcUrl = config.getProperty(ANALYTICS_CONNECTION_URL);
-    String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
+    final String jdbcUrl = config.getProperty(ANALYTICS_CONNECTION_URL);
+    final String driverClassName = inferDriverClassName();
+    final String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
-    PoolConfig poolConfig =
-        PoolConfig.builder().dhisConfig(config).mapper(ANALYTICS).dbPoolType(dbPoolType).build();
+    DbPoolConfig poolConfig =
+        DbPoolConfig.builder()
+            .driverClassName(driverClassName)
+            .dhisConfig(config)
+            .mapper(ANALYTICS)
+            .dbPoolType(dbPoolType)
+            .build();
 
     try {
       return DatabasePoolUtils.createDbPool(poolConfig);
@@ -156,5 +207,30 @@ public class AnalyticsDataSourceConfig {
     JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
     jdbcTemplate.setFetchSize(FETCH_SIZE);
     return jdbcTemplate;
+  }
+
+  /**
+   * If the driver class name is not explicitly specified, returns the driver class name based on
+   * the specified analytics database.
+   *
+   * @return a driver class name.
+   */
+  private String inferDriverClassName() {
+    String driverClass = config.getProperty(ConfigurationKey.ANALYTICS_CONNECTION_DRIVER_CLASS);
+    return isBlank(driverClass) ? getDriverClassName() : driverClass;
+  }
+
+  /**
+   * Returns a driver class name based on the specified analytics database.
+   *
+   * @return a driver class name.
+   */
+  private String getDriverClassName() {
+    final Database database = sqlBuilderSettings.getAnalyticsDatabase();
+    return switch (database) {
+      case POSTGRESQL -> org.postgresql.Driver.class.getName();
+      case DORIS -> com.mysql.cj.jdbc.Driver.class.getName();
+      case CLICKHOUSE -> com.clickhouse.jdbc.ClickHouseDriver.class.getName();
+    };
   }
 }

@@ -44,7 +44,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 public @interface Translatable {
   /** Property name for enabling translation */
   @Nonnull
-  String propertyName();
+  String propertyName() default "";
 
   /**
    * Translation key for storing translation in json format. If not defined then property name is

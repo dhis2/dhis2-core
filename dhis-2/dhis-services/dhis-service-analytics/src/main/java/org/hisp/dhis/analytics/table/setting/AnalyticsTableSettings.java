@@ -28,30 +28,25 @@
 package org.hisp.dhis.analytics.table.setting;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.hisp.dhis.commons.util.TextUtils.format;
 import static org.hisp.dhis.db.model.Logged.LOGGED;
 import static org.hisp.dhis.db.model.Logged.UNLOGGED;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE_CATALOG;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE_DRIVER_FILENAME;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_SKIP_COLUMN;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_SKIP_INDEX;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
-import static org.hisp.dhis.setting.SettingKey.ANALYTICS_MAX_PERIOD_YEARS_OFFSET;
-import static org.hisp.dhis.util.ObjectUtils.isNull;
+import static org.hisp.dhis.period.PeriodDataProvider.PeriodSource.DATABASE;
+import static org.hisp.dhis.period.PeriodDataProvider.PeriodSource.SYSTEM_DEFINED;
 
 import com.google.common.collect.Lists;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.EnumUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.table.model.Skip;
-import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.period.PeriodDataProvider.PeriodSource;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.springframework.stereotype.Component;
 
 /**
@@ -65,7 +60,7 @@ import org.springframework.stereotype.Component;
 public class AnalyticsTableSettings {
   private final DhisConfigurationProvider config;
 
-  private final SystemSettingManager systemSettings;
+  private final SystemSettingsProvider settingsProvider;
 
   /**
    * Returns the setting indicating whether resource and analytics tables should be logged or
@@ -82,15 +77,23 @@ public class AnalyticsTableSettings {
   }
 
   /**
-   * Returns the years' offset defined for the period generation. See {@link
-   * ANALYTICS_MAX_PERIOD_YEARS_OFFSET}.
+   * Returns the years' offset defined for the period generation configured by {@link
+   * SystemSettings#getAnalyticsPeriodYearsOffset()}
    *
    * @return the offset defined in system settings, or null if nothing is set.
    */
   public Integer getMaxPeriodYearsOffset() {
-    return systemSettings.getIntSetting(ANALYTICS_MAX_PERIOD_YEARS_OFFSET) < 0
-        ? null
-        : systemSettings.getIntSetting(ANALYTICS_MAX_PERIOD_YEARS_OFFSET);
+    int yearsOffset = settingsProvider.getCurrentSettings().getAnalyticsPeriodYearsOffset();
+    return yearsOffset < 0 ? null : yearsOffset;
+  }
+
+  /**
+   * Returns the {@link PeriodSource} based on the max years offset.
+   *
+   * @return the {@link PeriodSource}.
+   */
+  public PeriodSource getPeriodSource() {
+    return getMaxPeriodYearsOffset() == null ? SYSTEM_DEFINED : DATABASE;
   }
 
   /**
@@ -98,37 +101,8 @@ public class AnalyticsTableSettings {
    *
    * @return true if an analytics database instance is configured.
    */
-  public boolean isAnalyticsDatabaseConfigured() {
+  public boolean isAnalyticsDatabase() {
     return config.isAnalyticsDatabaseConfigured();
-  }
-
-  /**
-   * Returns the configured analytics {@link Database}. Default is {@link Database#POSTGRESQL}.
-   *
-   * @return the analytics {@link Database}.
-   */
-  public Database getAnalyticsDatabase() {
-    String value = config.getProperty(ANALYTICS_DATABASE);
-    String valueUpperCase = StringUtils.trimToEmpty(value).toUpperCase();
-    return getAndValidateDatabase(valueUpperCase);
-  }
-
-  /**
-   * Returns the analytics database JDBC catalog name.
-   *
-   * @return the analytics database JDBC catalog name.
-   */
-  public String getAnalyticsDatabaseCatalog() {
-    return config.getProperty(ANALYTICS_DATABASE_CATALOG);
-  }
-
-  /**
-   * Returns the analytics database JDBC driver filename.
-   *
-   * @return the analytics database JDBC driver filename.
-   */
-  public String getAnalyticsDatabaseDriverFilename() {
-    return config.getProperty(ANALYTICS_DATABASE_DRIVER_FILENAME);
   }
 
   /**
@@ -148,29 +122,6 @@ public class AnalyticsTableSettings {
    */
   public Set<String> getSkipColumnDimensions() {
     return toSet(config.getProperty(ANALYTICS_TABLE_SKIP_COLUMN));
-  }
-
-  /**
-   * Returns the {@link Database} matching the given value.
-   *
-   * @param value the string value.
-   * @return the {@link Database}.
-   * @throws IllegalArgumentException if the value does not match a valid option.
-   */
-  Database getAndValidateDatabase(String value) {
-    Database database = EnumUtils.getEnum(Database.class, value);
-
-    if (isNull(database)) {
-      String message =
-          format(
-              "Property '{}' has illegal value: '{}', allowed options: {}",
-              ANALYTICS_DATABASE.getKey(),
-              value,
-              StringUtils.join(Database.values(), ','));
-      throw new IllegalArgumentException(message);
-    }
-
-    return database;
   }
 
   /**

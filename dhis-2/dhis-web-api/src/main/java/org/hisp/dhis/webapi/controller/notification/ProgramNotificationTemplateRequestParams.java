@@ -29,8 +29,9 @@ package org.hisp.dhis.webapi.controller.notification;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.webapi.controller.tracker.export.PageRequestParams;
+import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
 
 /**
  * @author Zubair Asghar
@@ -42,19 +43,35 @@ public class ProgramNotificationTemplateRequestParams implements PageRequestPara
 
   private UID programStage;
 
+  @OpenApi.Description(
+      """
+Get the given page.
+""")
+  @OpenApi.Property(defaultValue = "1")
   private Integer page;
 
+  @OpenApi.Description(
+      """
+Get given number of items per page.
+""")
+  @OpenApi.Property(defaultValue = "50")
   private Integer pageSize;
 
-  private Boolean totalPages = false;
+  /**
+   * Parameter {@code totalPages} is not supported. Like other metadata totals are always returned.
+   */
+  @OpenApi.Ignore
+  @Override
+  public boolean isTotalPages() {
+    return true;
+  }
 
-  @Deprecated(since = "2.41")
-  private Boolean skipPaging;
+  @OpenApi.Description(
+      """
+Get all items by specifying `paging=false`. Requests are paginated by default.
 
-  // TODO(tracker): set paging=true once skipPaging is removed. Both cannot have a default right
-  // now. This would lead to invalid parameters if the user passes the other param i.e.
-  // skipPaging==paging.
-  // PageRequestParams.isPaged handles the default case of skipPaging==paging==null => paging
-  // enabled
-  private Boolean paging;
+**Be aware that the performance is directly related to the amount of data requested. Larger pages
+will take more time to return.**
+""")
+  private boolean paging = true;
 }

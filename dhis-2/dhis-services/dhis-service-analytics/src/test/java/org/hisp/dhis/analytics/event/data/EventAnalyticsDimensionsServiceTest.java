@@ -31,7 +31,7 @@ import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allV
 import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeTEAs;
 import static org.hisp.dhis.analytics.common.DimensionServiceCommonTest.aggregateAllowedValueTypesPredicate;
 import static org.hisp.dhis.analytics.common.DimensionServiceCommonTest.queryDisallowedValueTypesPredicate;
-import static org.hisp.dhis.test.TestBase.injectSecurityContext;
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -61,7 +61,7 @@ class EventAnalyticsDimensionsServiceTest {
 
   @BeforeEach
   void setup() {
-    injectSecurityContext(new SystemUser());
+    injectSecurityContextNoSettings(new SystemUser());
 
     ProgramService programService = mock(ProgramService.class);
     ProgramStageService programStageService = mock(ProgramStageService.class);

@@ -177,35 +177,35 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     return returnDate;
   }
 
-  public Boolean isCohortDateBoundary() {
+  public boolean isCohortDateBoundary() {
     return !isEventDateBoundary();
   }
 
-  public Boolean isEnrollmentHavingEventDateCohortBoundary() {
+  public boolean isEnrollmentHavingEventDateCohortBoundary() {
     return boundaryTarget.startsWith(COHORT_HAVING_PROGRAM_STAGE_PREFIX);
   }
 
-  public Boolean isDataElementCohortBoundary() {
+  public boolean isDataElementCohortBoundary() {
     return boundaryTarget.startsWith(COHORT_HAVING_DATA_ELEMENT_PREFIX);
   }
 
-  public Boolean isAttributeCohortBoundary() {
+  public boolean isAttributeCohortBoundary() {
     return boundaryTarget.startsWith(COHORT_HAVING_ATTRIBUTE_PREFIX);
   }
 
-  public Boolean isEventDateBoundary() {
+  public boolean isEventDateBoundary() {
     return boundaryTarget.equals(AnalyticsPeriodBoundary.EVENT_DATE);
   }
 
-  public Boolean isEnrollmentDateBoundary() {
+  public boolean isEnrollmentDateBoundary() {
     return boundaryTarget.equals(AnalyticsPeriodBoundary.ENROLLMENT_DATE);
   }
 
-  public Boolean isIncidentDateBoundary() {
+  public boolean isIncidentDateBoundary() {
     return boundaryTarget.equals(AnalyticsPeriodBoundary.INCIDENT_DATE);
   }
 
-  public Boolean isScheduledDateBoundary() {
+  public boolean isScheduledDateBoundary() {
     return boundaryTarget.equals(AnalyticsPeriodBoundary.SCHEDULED_DATE);
   }
 

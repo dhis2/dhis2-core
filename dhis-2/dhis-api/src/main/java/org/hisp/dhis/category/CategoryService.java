@@ -30,11 +30,15 @@ package org.hisp.dhis.category;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 
@@ -109,13 +113,6 @@ public interface CategoryService {
   Category getCategoryByName(String name, UserDetails userDetails);
 
   /**
-   * Returns all DataElementCategories.
-   *
-   * @return a list of all DataElementCategories.
-   */
-  List<Category> getAllDataElementCategories();
-
-  /**
    * Retrieves all DataElementCategories of dimension type disaggregation.
    *
    * @return a list of CategoryCombos.
@@ -144,6 +141,14 @@ public interface CategoryService {
    * @return a list of CategoryCombos.
    */
   List<Category> getAttributeDataDimensionCategoriesNoAcl();
+
+  /**
+   * Retrieves all Categories with a ref to any of the CategoryOptions passed in.
+   *
+   * @param categoryOptions refs to search for
+   * @return categories with refs to categoryOptions
+   */
+  List<Category> getCategoriesByCategoryOption(Collection<UID> categoryOptions);
 
   // -------------------------------------------------------------------------
   // CategoryOption
@@ -320,24 +325,6 @@ public interface CategoryService {
    */
   List<CategoryCombo> getAttributeCategoryCombos();
 
-  /**
-   * Validates the category combo. Possible return values are:
-   *
-   * <p>
-   *
-   * <ul>
-   *   <li>category_combo_is_null
-   *   <li>category_combo_must_have_at_least_one_category
-   *   <li>category_combo_cannot_have_duplicate_categories
-   *   <li>categories_must_have_at_least_one_category_option
-   *   <li>categories_cannot_share_category_options
-   * </ul>
-   *
-   * @param categoryCombo the category combo to validate.
-   * @return null if valid, non-empty string if invalid.
-   */
-  String validateCategoryCombo(CategoryCombo categoryCombo);
-
   // -------------------------------------------------------------------------
   // CategoryOptionCombo
   // -------------------------------------------------------------------------
@@ -426,27 +413,12 @@ public interface CategoryService {
   CategoryOptionCombo getDefaultCategoryOptionCombo();
 
   /**
-   * Generates and persists CategoryOptionCombos for the given CategoryCombo.
-   *
-   * @param categoryCombo the CategoryCombo.
-   */
-  void generateOptionCombos(CategoryCombo categoryCombo);
-
-  /**
    * Invokes updateOptionCombos( CategoryCombo ) for all category combos which the given category is
    * a part of.
    *
    * @param category the Category.
    */
   void updateOptionCombos(Category category);
-
-  /**
-   * Generates the complete set of category option combos for the given category combo and compares
-   * it to the set of persisted category option combos. Those which are not matched are persisted.
-   *
-   * @param categoryCombo the CategoryCombo.
-   */
-  void updateOptionCombos(CategoryCombo categoryCombo);
 
   /**
    * Returns the category option combo with the given uid. Respects access control by only returning
@@ -460,6 +432,23 @@ public interface CategoryService {
 
   /** Updates the name property of all category option combinations. */
   void updateCategoryOptionComboNames();
+
+  /**
+   * Retrieves all CategoryOptionCombos with a ref to any of the CategoryOptions passed in.
+   *
+   * @param categoryOptions refs to search for
+   * @return categoryOptionCombos with refs to categoryOptions
+   */
+  List<CategoryOptionCombo> getCategoryOptionCombosByCategoryOption(
+      @Nonnull Collection<UID> categoryOptions);
+
+  /**
+   * Retrieves all CategoryOptionCombos by {@link UID}.
+   *
+   * @param uids {@link UID}s to search for
+   * @return categoryOptionCombos with refs to {@link UID}s
+   */
+  List<CategoryOptionCombo> getCategoryOptionCombosByUid(@Nonnull Collection<UID> uids);
 
   // -------------------------------------------------------------------------
   // DataElementOperand
@@ -509,6 +498,8 @@ public interface CategoryService {
 
   List<CategoryOptionGroup> getCategoryOptionGroups(CategoryOptionGroupSet groupSet);
 
+  List<CategoryOptionGroup> getCategoryOptionGroupByCategoryOption(Collection<UID> categoryOptions);
+
   /**
    * Returns a set of CategoryOptionGroups that may be seen by the current user, if the current user
    * has any CategoryOptionGroupSet constraint(s).
@@ -541,4 +532,32 @@ public interface CategoryService {
   CategoryOption getDefaultCategoryOption();
 
   Category getDefaultCategory();
+
+  List<CategoryOption> getCategoryOptionsByUid(List<String> catOptionUids);
+
+  void validate(Category category) throws ConflictException;
+
+  void validate(CategoryCombo combo) throws ConflictException;
+
+  void validate(CategoryOptionCombo combo) throws ConflictException;
+
+  /**
+   * Generates the complete set of category option combos for the given category combo. Removes
+   * obsolete category option combos.
+   *
+   * @param categoryCombo the CategoryCombo
+   * @return returns an ImportSummary
+   */
+  ImportSummaries addAndPruneOptionCombosWithSummary(CategoryCombo categoryCombo);
+
+  /**
+   * Generates the complete set of category option combos for the given category combo. Removes
+   * obsolete category option combos.
+   *
+   * @param categoryCombo the CategoryCombo
+   */
+  void addAndPruneOptionCombos(CategoryCombo categoryCombo);
+
+  /** Generates the complete set of category option combos for all category combos. */
+  void addAndPruneAllOptionCombos();
 }

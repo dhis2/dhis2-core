@@ -39,8 +39,8 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -58,7 +58,7 @@ public class DataValueSynchronization implements DataSynchronizationWithPaging {
 
   private final DataValueSetService dataValueSetService;
 
-  private final SystemSettingManager settings;
+  private final SystemSettingsService settingsService;
 
   private final RestTemplate restTemplate;
 
@@ -85,7 +85,8 @@ public class DataValueSynchronization implements DataSynchronizationWithPaging {
   @Override
   public SynchronizationResult synchronizeData(int pageSize, JobProgress progress) {
     progress.startingProcess("Starting DataValueSynchronization job");
-    if (!SyncUtils.testServerAvailability(settings, restTemplate).isAvailable()) {
+    if (!SyncUtils.testServerAvailability(settingsService.getCurrentSettings(), restTemplate)
+        .isAvailable()) {
       String msg = "DataValueSynchronization failed. Remote server is unavailable.";
       progress.failedProcess(msg);
       return SynchronizationResult.failure(msg);
@@ -109,8 +110,7 @@ public class DataValueSynchronization implements DataSynchronizationWithPaging {
 
     if (runSyncWithPaging(context, progress)) {
       progress.completedProcess("SUCCESS! DataValueSynchronization job is done.");
-      SyncUtils.setLastSyncSuccess(
-          settings, SettingKey.LAST_SUCCESSFUL_DATA_VALUE_SYNC, context.getStartTime());
+      settingsService.put("keyLastSuccessfulDataSynch", context.getStartTime());
       return SynchronizationResult.success("DataValueSynchronization done.");
     }
 
@@ -120,10 +120,9 @@ public class DataValueSynchronization implements DataSynchronizationWithPaging {
   }
 
   private DataValueSynchronisationContext createContext(final int pageSize) {
-    final Date lastSuccessTime =
-        SyncUtils.getLastSyncSuccess(settings, SettingKey.LAST_SUCCESSFUL_DATA_VALUE_SYNC);
-    final Date skipChangedBefore =
-        settings.getDateSetting(SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE);
+    SystemSettings settings = settingsService.getCurrentSettings();
+    final Date lastSuccessTime = settings.getLastSuccessfulDataSynch();
+    final Date skipChangedBefore = settings.getSyncSkipSyncForDataChangedBefore();
     Date lastUpdatedAfter =
         lastSuccessTime.after(skipChangedBefore) ? lastSuccessTime : skipChangedBefore;
 
@@ -181,6 +180,10 @@ public class DataValueSynchronization implements DataSynchronizationWithPaging {
         };
 
     return SyncUtils.sendSyncRequest(
-        settings, restTemplate, requestCallback, instance, SyncEndpoint.DATA_VALUE_SETS);
+        settingsService.getCurrentSettings(),
+        restTemplate,
+        requestCallback,
+        instance,
+        SyncEndpoint.DATA_VALUE_SETS);
   }
 }

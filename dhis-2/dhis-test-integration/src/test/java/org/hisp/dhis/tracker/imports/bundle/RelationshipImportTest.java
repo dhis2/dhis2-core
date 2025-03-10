@@ -30,12 +30,12 @@ package org.hisp.dhis.tracker.imports.bundle;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.tracker.Assertions.assertHasError;
-import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 
 import java.io.IOException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -45,13 +45,19 @@ import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class RelationshipImportTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class RelationshipImportTest extends PostgresIntegrationTestBase {
+  @Autowired private TestSetup testSetup;
 
   @Autowired private TrackerImportService trackerImportService;
 
@@ -61,37 +67,43 @@ class RelationshipImportTest extends TrackerTest {
 
   @BeforeAll
   void setUp() throws IOException {
-    setUpMetadata("tracker/simple_metadata.json");
+    testSetup.importMetadata();
 
     userA = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(userA);
 
-    TrackerImportParams params = TrackerImportParams.builder().userId(userA.getUid()).build();
-    assertNoErrors(trackerImportService.importTracker(params, fromJson("tracker/single_te.json")));
-    assertNoErrors(
-        trackerImportService.importTracker(params, fromJson("tracker/single_enrollment.json")));
-    assertNoErrors(
-        trackerImportService.importTracker(params, fromJson("tracker/single_event.json")));
+    testSetup.importTrackerData("tracker/single_te.json");
+    testSetup.importTrackerData("tracker/single_enrollment.json");
+    testSetup.importTrackerData("tracker/single_event.json");
     manager.flush();
+  }
+
+  @BeforeEach
+  void setUpUser() {
+    injectSecurityContextUser(userA);
   }
 
   @Test
   void successImportingRelationships() throws IOException {
-    userA = userService.getUser("M5zQapPyTZI");
-    TrackerImportParams params = TrackerImportParams.builder().userId(userA.getUid()).build();
+    injectSecurityContextUser(userService.getUser("M5zQapPyTZI"));
+    TrackerImportParams params = TrackerImportParams.builder().build();
+
     ImportReport importReport =
-        trackerImportService.importTracker(params, fromJson("tracker/relationships.json"));
+        trackerImportService.importTracker(
+            params, testSetup.fromJson("tracker/relationships.json"));
+
     assertThat(importReport.getStatus(), is(Status.OK));
     assertThat(importReport.getStats().getCreated(), is(2));
   }
 
   @Test
   void shouldFailWhenUserNotAuthorizedToCreateRelationship() throws IOException {
-    userA = userService.getUser("o1HMTIzBGo7");
-    TrackerImportParams params = TrackerImportParams.builder().userId(userA.getUid()).build();
+    injectSecurityContextUser(userService.getUser("o1HMTIzBGo7"));
+    TrackerImportParams params = TrackerImportParams.builder().build();
 
     ImportReport importReport =
-        trackerImportService.importTracker(params, fromJson("tracker/relationships.json"));
+        trackerImportService.importTracker(
+            params, testSetup.fromJson("tracker/relationships.json"));
 
     assertHasError(importReport, ValidationCode.E4020);
     assertThat(importReport.getStats().getIgnored(), is(2));
@@ -99,14 +111,16 @@ class RelationshipImportTest extends TrackerTest {
 
   @Test
   void successUpdateRelationships() throws IOException {
+    testSetup.importTrackerData("tracker/relationships.json");
+
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/relationshipToUpdate.json");
     TrackerImportParams trackerImportParams =
-        TrackerImportParams.builder().userId(userA.getUid()).build();
-    TrackerObjects trackerObjects = fromJson("tracker/relationships.json");
-    trackerImportService.importTracker(trackerImportParams, trackerObjects);
-    trackerObjects = fromJson("tracker/relationshipToUpdate.json");
-    trackerImportParams.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
+        TrackerImportParams.builder()
+            .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
+            .build();
     ImportReport importReport =
         trackerImportService.importTracker(trackerImportParams, trackerObjects);
+
     assertThat(importReport.getStatus(), is(Status.OK));
     assertThat(importReport.getStats().getCreated(), is(0));
     assertThat(importReport.getStats().getIgnored(), is(1));
@@ -114,16 +128,17 @@ class RelationshipImportTest extends TrackerTest {
 
   @Test
   void shouldFailWhenTryingToUpdateADeletedRelationship() throws IOException {
-    TrackerImportParams trackerImportParams =
-        TrackerImportParams.builder().userId(userA.getUid()).build();
-    TrackerObjects trackerObjects = fromJson("tracker/relationships.json");
-    trackerImportService.importTracker(trackerImportParams, trackerObjects);
+    TrackerObjects trackerObjects = testSetup.importTrackerData("tracker/relationships.json");
 
     manager.delete(manager.get(Relationship.class, "Nva3Xj2j75W"));
 
-    trackerImportParams.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
+    TrackerImportParams trackerImportParams =
+        TrackerImportParams.builder()
+            .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
+            .build();
     ImportReport importReport =
         trackerImportService.importTracker(trackerImportParams, trackerObjects);
+
     assertHasError(importReport, ValidationCode.E4017);
     assertThat(importReport.getStats().getIgnored(), is(2));
   }

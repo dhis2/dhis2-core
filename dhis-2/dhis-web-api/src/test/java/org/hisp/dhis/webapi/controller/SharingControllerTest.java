@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
-import static org.hisp.dhis.test.TestBase.injectSecurityContext;
+import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
@@ -68,7 +68,7 @@ class SharingControllerTest {
 
   @BeforeAll
   static void setup() {
-    injectSecurityContext(new SystemUser());
+    injectSecurityContextNoSettings(new SystemUser());
   }
 
   @Test

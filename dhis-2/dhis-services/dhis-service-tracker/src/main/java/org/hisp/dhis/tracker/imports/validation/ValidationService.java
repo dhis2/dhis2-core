@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.validation;
 
+import javax.annotation.Nonnull;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 
 /**
@@ -38,12 +39,14 @@ public interface ValidationService {
    *
    * @param bundle Bundle to validate
    */
-  ValidationResult validate(TrackerBundle bundle);
+  @Nonnull
+  ValidationResult validate(@Nonnull TrackerBundle bundle);
 
   /**
    * Validate tracker bundle with validations created by rule engine
    *
    * @param bundle Bundle to validate
    */
-  ValidationResult validateRuleEngine(TrackerBundle bundle);
+  @Nonnull
+  ValidationResult validateRuleEngine(@Nonnull TrackerBundle bundle);
 }

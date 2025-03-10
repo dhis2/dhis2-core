@@ -230,7 +230,7 @@ class UserControllerTest {
     userController.expireUser(user.getUid(), now);
 
     assertUserUpdatedWithAccountExpiry(now);
-    verify(userService, atLeastOnce()).invalidateUserSessions(same(user.getUid()));
+    verify(userService, atLeastOnce()).invalidateUserSessions(same(user.getUsername()));
   }
 
   @Test

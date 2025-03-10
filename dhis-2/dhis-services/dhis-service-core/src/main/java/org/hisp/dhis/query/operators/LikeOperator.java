@@ -27,68 +27,41 @@
  */
 package org.hisp.dhis.query.operators;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import java.util.List;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.Type;
-import org.hisp.dhis.query.Typed;
-import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.query.planner.PropertyPath;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class LikeOperator<T extends Comparable<? super T>> extends Operator<T> {
+public class LikeOperator<T extends Comparable<T>> extends Operator<T> {
   private final boolean caseSensitive;
 
   private final JpaQueryUtils.StringSearchMode jpaMatchMode;
 
-  private final org.hibernate.criterion.MatchMode matchMode;
-
   public LikeOperator(
       T arg, boolean caseSensitive, org.hisp.dhis.query.operators.MatchMode matchMode) {
-    super("like", Typed.from(String.class), arg);
+    super("like", List.of(String.class), arg);
     this.caseSensitive = caseSensitive;
     this.jpaMatchMode = getJpaMatchMode(matchMode);
-    this.matchMode = getMatchMode(matchMode);
-  }
-
-  public LikeOperator(
-      String name,
-      T arg,
-      boolean caseSensitive,
-      org.hisp.dhis.query.operators.MatchMode matchMode) {
-    super(name, Typed.from(String.class), arg);
-    this.caseSensitive = caseSensitive;
-    this.jpaMatchMode = getJpaMatchMode(matchMode);
-    this.matchMode = getMatchMode(matchMode);
   }
 
   @Override
-  public Criterion getHibernateCriterion(QueryPath queryPath) {
-    if (caseSensitive) {
-      return Restrictions.like(
-          queryPath.getPath(), String.valueOf(args.get(0)).replace("%", "\\%"), matchMode);
-    } else {
-      return Restrictions.ilike(
-          queryPath.getPath(), String.valueOf(args.get(0)).replace("%", "\\%"), matchMode);
-    }
-  }
-
-  @Override
-  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, QueryPath queryPath) {
+  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, PropertyPath path) {
     if (caseSensitive) {
       return JpaQueryUtils.stringPredicateCaseSensitive(
           builder,
-          root.get(queryPath.getPath()),
+          root.get(path.getPath()),
           String.valueOf(args.get(0)).replace("%", ""),
           jpaMatchMode);
     }
     return JpaQueryUtils.stringPredicateIgnoreCase(
         builder,
-        root.get(queryPath.getPath()),
+        root.get(path.getPath()),
         String.valueOf(args.get(0)).replace("%", ""),
         jpaMatchMode);
   }

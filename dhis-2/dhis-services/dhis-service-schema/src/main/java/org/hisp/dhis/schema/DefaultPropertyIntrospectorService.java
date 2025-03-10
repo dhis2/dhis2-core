@@ -29,10 +29,10 @@ package org.hisp.dhis.schema;
 
 import static java.util.Collections.unmodifiableMap;
 
+import jakarta.persistence.EntityManagerFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.introspection.GistPropertyIntrospector;

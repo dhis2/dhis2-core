@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.merge.orgunit.handler;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -39,7 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Lars Helge Overland
  */
-@Service
+@Component
 @RequiredArgsConstructor
 public class TrackerOrgUnitMergeHandler {
   private final EntityManager entityManager;

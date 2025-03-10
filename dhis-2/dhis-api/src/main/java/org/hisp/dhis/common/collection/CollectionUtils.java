@@ -214,6 +214,7 @@ public class CollectionUtils {
    * @return a string, or null if no matches.
    */
   public static String popStartsWith(Collection<String> collection, String prefix) {
+    if (collection == null || collection.isEmpty()) return null;
     Iterator<String> iterator = collection.iterator();
 
     while (iterator.hasNext()) {

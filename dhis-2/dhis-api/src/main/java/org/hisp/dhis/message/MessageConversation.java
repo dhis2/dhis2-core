@@ -41,6 +41,7 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.User;
 
@@ -192,12 +193,12 @@ public class MessageConversation extends BaseIdentifiableObject {
     return false;
   }
 
-  public boolean markRead(User user) {
-    for (UserMessage userMessage : userMessages) {
-      if (userMessage.getUser() != null && userMessage.getUser().equals(user)) {
-        boolean read = userMessage.isRead();
+  public boolean markRead(UID user) {
+    for (UserMessage msg : userMessages) {
+      if (msg.getUser() != null && msg.getUser().getUid().equals(user.getValue())) {
+        boolean read = msg.isRead();
 
-        userMessage.setRead(true);
+        msg.setRead(true);
 
         return !read;
       }

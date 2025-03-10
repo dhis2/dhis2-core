@@ -61,6 +61,8 @@ import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EventProgramEnrollmentService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramCategoryMapping;
+import org.hisp.dhis.program.ProgramCategoryOptionMapping;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramSection;
@@ -78,6 +80,7 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.TestBase;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -130,14 +133,16 @@ class CopyServiceTest extends TestBase {
 
   @Test
   void testCopyProgramFromUidWithValidProgram() throws NotFoundException, ForbiddenException {
-
     OrganisationUnit orgUnit = createOrganisationUnit("New Org 1");
+    TrackedEntityType trackedEntityType = createTrackedEntityType('E');
+
     List<Enrollment> originalEnrollments =
-        List.of(createEnrollment(original, createTrackedEntity(orgUnit), orgUnit));
+        List.of(
+            createEnrollment(original, createTrackedEntity(orgUnit, trackedEntityType), orgUnit));
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
 
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
 
     when(eventProgramEnrollmentService.getEnrollments(original)).thenReturn(originalEnrollments);
 
@@ -172,7 +177,7 @@ class CopyServiceTest extends TestBase {
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
 
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
 
     Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
 
@@ -196,7 +201,7 @@ class CopyServiceTest extends TestBase {
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
 
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
 
     Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
     ProgramStage stageCopy = new ArrayList<>(programCopy.getProgramStages()).get(0);
@@ -242,7 +247,7 @@ class CopyServiceTest extends TestBase {
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
 
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
 
     Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
     ProgramSection sectionCopy = new ArrayList<>(programCopy.getProgramSections()).get(0);
@@ -258,7 +263,7 @@ class CopyServiceTest extends TestBase {
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
 
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
 
     Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
     ProgramTrackedEntityAttribute pteaCopy = programCopy.getProgramAttributes().get(0);
@@ -275,7 +280,7 @@ class CopyServiceTest extends TestBase {
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
 
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
 
     Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
     ProgramRuleVariable prvCopy = new ArrayList<>(programCopy.getProgramRuleVariables()).get(0);
@@ -291,7 +296,7 @@ class CopyServiceTest extends TestBase {
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
 
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
 
     Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
     ProgramIndicator indicatorCopy = new ArrayList<>(programCopy.getProgramIndicators()).get(0);
@@ -299,6 +304,20 @@ class CopyServiceTest extends TestBase {
     assertEquals(1, programCopy.getProgramIndicators().size());
     assertNotSame(indicatorOrig.getUid(), indicatorCopy.getUid());
     assertNotSame(indicatorOrig.getProgram().getUid(), indicatorCopy.getProgram().getUid());
+    assertEquals(indicatorOrig.getCategoryMappingIds(), indicatorCopy.getCategoryMappingIds());
+  }
+
+  @Test
+  void testCopyProgramFromUidCheckCategoryMappings() throws NotFoundException, ForbiddenException {
+    when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
+
+    when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
+
+    Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
+
+    assertEquals(2, programCopy.getProgramAttributes().size());
+    assertEquals(original.getCategoryMappings(), programCopy.getCategoryMappings());
   }
 
   @Test
@@ -308,7 +327,7 @@ class CopyServiceTest extends TestBase {
     when(eventProgramEnrollmentService.getEnrollments(original)).thenReturn(null);
 
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
 
     Program programCopy = copyService.copyProgram(VALID_PROGRAM_UID, Map.of());
 
@@ -322,7 +341,7 @@ class CopyServiceTest extends TestBase {
     when(programService.getProgram(VALID_PROGRAM_UID)).thenReturn(original);
 
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(false);
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
 
     ForbiddenException forbiddenException =
         assertThrows(
@@ -351,7 +370,7 @@ class CopyServiceTest extends TestBase {
     when(programService.addProgram(any(Program.class))).thenThrow(error);
 
     when(aclService.canWrite(UserDetails.fromUser(user), original)).thenReturn(true);
-    injectSecurityContext(UserDetails.fromUser(user));
+    injectSecurityContextNoSettings(UserDetails.fromUser(user));
 
     assertThrows(
         DataIntegrityViolationException.class,
@@ -359,6 +378,31 @@ class CopyServiceTest extends TestBase {
   }
 
   Program createProgram() {
+    ProgramCategoryOptionMapping omA =
+        ProgramCategoryOptionMapping.builder().optionId("PWoocil1Oof").filter("Filter A").build();
+    ProgramCategoryOptionMapping omB =
+        ProgramCategoryOptionMapping.builder().optionId("dEeluoqu2ai").filter("Filter B").build();
+    ProgramCategoryOptionMapping omC =
+        ProgramCategoryOptionMapping.builder().optionId("Oiewaenai0E").filter("Filter C").build();
+    ProgramCategoryOptionMapping omD =
+        ProgramCategoryOptionMapping.builder().optionId("lAedahy6eye").filter("Filter D").build();
+    Set<ProgramCategoryOptionMapping> omSet1 = Set.of(omA, omB);
+    Set<ProgramCategoryOptionMapping> omSet2 = Set.of(omC, omD);
+    ProgramCategoryMapping cm1 =
+        ProgramCategoryMapping.builder()
+            .id("iOChed1vei4")
+            .categoryId("Proh3kafa6K")
+            .mappingName("Mapping 1")
+            .optionMappings(omSet1)
+            .build();
+    ProgramCategoryMapping cm2 =
+        ProgramCategoryMapping.builder()
+            .id("fshoocuL0sh")
+            .categoryId("Oieth9ahGhu")
+            .mappingName("Mapping 2")
+            .optionMappings(omSet2)
+            .build();
+
     Program p = new Program();
     p.setAutoFields();
     p.setAccessLevel(AccessLevel.OPEN);
@@ -382,7 +426,7 @@ class CopyServiceTest extends TestBase {
         Set.of(createProgramNotificationTemplate("not1", 20, ENROLLMENT, WEB_HOOK)));
     p.setOnlyEnrollOnce(true);
     p.setOpenDaysAfterCoEndDate(20);
-    p.setOrganisationUnits(Set.of(createOrganisationUnit("Org 1")));
+    p.setOrganisationUnits(Set.of(createOrganisationUnit('A')));
     p.setProgramAttributes(createProgramAttributes(p));
     p.setProgramIndicators(createIndicators(p));
     p.setProgramRuleVariables(Set.of(createProgramRuleVariable('v', p)));
@@ -399,6 +443,7 @@ class CopyServiceTest extends TestBase {
     p.setTrackedEntityType(createTrackedEntityType('A'));
     p.setUseFirstStageDuringRegistration(false);
     p.setUserRoles(Set.of(createUserRole("tester", "d")));
+    p.setCategoryMappings(Set.of(cm1, cm2));
     return p;
   }
 
@@ -412,6 +457,7 @@ class CopyServiceTest extends TestBase {
 
   private Set<ProgramIndicator> createIndicators(Program program) {
     ProgramIndicator pi = createProgramIndicator('a', program, "exp", "ind");
+    pi.setCategoryMappingIds(Set.of("nAigheQuae3", "SOongooCa6F", "seiDoh0AeNg"));
     return Set.of(pi);
   }
 

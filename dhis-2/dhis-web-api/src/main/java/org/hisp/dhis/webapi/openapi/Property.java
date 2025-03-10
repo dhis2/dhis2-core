@@ -56,6 +56,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Access;
 import org.hisp.dhis.jsontree.Json;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
@@ -70,37 +71,46 @@ import org.hisp.dhis.jsontree.JsonValue;
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 class Property {
+
   private static final Map<Class<?>, List<Property>> PROPERTIES = new ConcurrentHashMap<>();
 
+  @Nonnull Class<?> declaringClass;
   @Nonnull String name;
   @Nonnull Type type;
   @Nonnull AnnotatedElement source;
+  @Nonnull Access access;
   @CheckForNull Boolean required;
   @CheckForNull JsonValue defaultValue;
 
   private Property(Field f) {
     this(
+        f.getDeclaringClass(),
         getPropertyName(f),
         getType(f, f.getGenericType()),
         f,
+        getAccess(f),
         isRequired(f, f.getType()),
         defaultValue(f));
   }
 
   private Property(Method m, Field f) {
     this(
+        m.getDeclaringClass(),
         getPropertyName(m),
         getType(m, isSetter(m) ? m.getGenericParameterTypes()[0] : m.getGenericReturnType()),
         m,
+        getAccess(m),
         isRequired(m, m.getReturnType()),
         defaultValue(f));
   }
 
   private Property(JsonObject.Property p, Type type) {
     this(
+        p.in(),
         p.jsonName(),
         getType(p.source(), type),
         p.source(),
+        Access.DEFAULT,
         isRequired(p.source(), p.javaType().getType()),
         defaultValueFromAnnotation(p.source()));
   }
@@ -119,27 +129,34 @@ class Property {
         (method, field) -> add.accept(new Property(method, field));
 
     boolean includeByDefault = isIncludeAllByDefault(object);
-    Map<String, Field> propertyFields = new HashMap<>();
-    fieldsIn(object).forEach(field -> propertyFields.putIfAbsent(getPropertyName(field), field));
+    Map<String, Field> fieldsByJavaPropertyName = new HashMap<>();
+    fieldsIn(object)
+        .forEach(field -> fieldsByJavaPropertyName.putIfAbsent(getJavaPropertyName(field), field));
     Set<String> ignoredFields =
-        propertyFields.values().stream()
+        fieldsByJavaPropertyName.values().stream()
             .filter(f -> f.isAnnotationPresent(OpenApi.Ignore.class))
-            .map(Property::getPropertyName)
+            .map(Property::getJavaPropertyName)
             .collect(Collectors.toSet());
-    propertyFields.values().stream()
+    fieldsByJavaPropertyName.values().stream()
         .filter(Property::isProperty)
         .filter(f -> includeByDefault || isExplicitlyIncluded(f))
         .forEach(addField);
     methodsIn(object)
         .filter(method -> Property.isGetter(method) || Property.isSetter(method))
         .filter(Property::isExplicitlyIncluded)
-        .filter(method -> !ignoredFields.contains(getPropertyName(method)))
-        .forEach(method -> addMethod.accept(method, propertyFields.get(getPropertyName(method))));
+        .filter(method -> !ignoredFields.contains(getJavaPropertyName(method)))
+        .forEach(
+            method ->
+                addMethod.accept(
+                    method, fieldsByJavaPropertyName.get(getJavaPropertyName(method))));
     if (properties.isEmpty() || includeByDefault) {
       methodsIn(object)
           .filter(Property::isGetter)
-          .filter(method -> !ignoredFields.contains(getPropertyName(method)))
-          .forEach(method -> addMethod.accept(method, propertyFields.get(getPropertyName(method))));
+          .filter(method -> !ignoredFields.contains(getJavaPropertyName(method)))
+          .forEach(
+              method ->
+                  addMethod.accept(
+                      method, fieldsByJavaPropertyName.get(getJavaPropertyName(method))));
     }
     return List.copyOf(properties.values());
   }
@@ -225,18 +242,15 @@ class Property {
     if (type instanceof Class<?>
         && ((Class<?>) type).isAnnotationPresent(OpenApi.Property.class)
         && ((Class<?>) type).getAnnotation(OpenApi.Property.class).value().length > 0) {
-      // TODO this does not allow oneOf types for Property annotations ;(
+      // Note: this does not support oneOf directly but the annotation is checked again
+      // then properties are converted to an Api.Schema
       return ((Class<?>) type).getAnnotation(OpenApi.Property.class).value()[0];
     }
     return type;
   }
 
   private static <T extends Member & AnnotatedElement> String getPropertyName(T member) {
-    String name = member.getName();
-    if (member instanceof Method) {
-      String prop = name.substring(name.startsWith("is") ? 2 : 3);
-      name = Character.toLowerCase(prop.charAt(0)) + prop.substring(1);
-    }
+    String name = getJavaPropertyName(member);
     OpenApi.Property oap = member.getAnnotation(OpenApi.Property.class);
     String nameOverride = oap == null ? "" : oap.name();
     if (!nameOverride.isEmpty()) {
@@ -245,6 +259,15 @@ class Property {
     JsonProperty property = member.getAnnotation(JsonProperty.class);
     nameOverride = property == null ? "" : property.value();
     return nameOverride.isEmpty() ? name : nameOverride;
+  }
+
+  private static <T extends Member & AnnotatedElement> String getJavaPropertyName(T member) {
+    String name = member.getName();
+    if (member instanceof Method) {
+      String prop = name.substring(name.startsWith("is") ? 2 : 3);
+      name = Character.toLowerCase(prop.charAt(0)) + prop.substring(1);
+    }
+    return name;
   }
 
   @CheckForNull
@@ -259,6 +282,20 @@ class Property {
     if (type instanceof Class<?> cls)
       return cls.isPrimitive() && cls != boolean.class || cls.isEnum() ? true : null;
     return null;
+  }
+
+  @Nonnull
+  private static Access getAccess(AnnotatedElement source) {
+    OpenApi.Property primary = source.getAnnotation(OpenApi.Property.class);
+    if (primary != null && primary.access() != Access.DEFAULT) return primary.access();
+    JsonProperty secondary = source.getAnnotation(JsonProperty.class);
+    if (secondary == null) return Access.DEFAULT;
+    return switch (secondary.access()) {
+      case READ_ONLY -> Access.READ;
+      case WRITE_ONLY -> Access.WRITE;
+      case READ_WRITE -> Access.READ_WRITE;
+      case AUTO -> Access.DEFAULT;
+    };
   }
 
   @SuppressWarnings("java:S3011")

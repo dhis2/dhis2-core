@@ -27,9 +27,7 @@
  */
 package org.hisp.dhis.user;
 
-import java.io.Serializable;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.Builder;
@@ -38,6 +36,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.springframework.security.core.GrantedAuthority;
 
 @Getter
@@ -55,6 +54,9 @@ public class UserDetailsImpl implements UserDetails {
   private final String password;
   private final boolean externalAuth;
   private final boolean isTwoFactorEnabled;
+  private final TwoFactorType twoFactorType;
+  private final String secret;
+  private final boolean isEmailVerified;
   private final boolean enabled;
   private final boolean accountNonExpired;
   private final boolean accountNonLocked;
@@ -62,7 +64,6 @@ public class UserDetailsImpl implements UserDetails {
   @Nonnull private final Collection<GrantedAuthority> authorities;
   @Nonnull private final Set<String> allAuthorities;
   @Nonnull private final Set<String> allRestrictions;
-  @Nonnull private final Map<String, Serializable> userSettings;
   @Nonnull private final Set<String> userGroupIds;
   @Nonnull private final Set<String> userOrgUnitIds;
   @Nonnull private final Set<String> userDataOrgUnitIds;
@@ -83,6 +84,11 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     return auths.containsAll(other.getAllAuthorities());
+  }
+
+  @Override
+  public boolean isEmailVerified() {
+    return this.isEmailVerified;
   }
 
   @Override

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataitem.query;
 
+import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.always;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayNameFiltering;
@@ -35,6 +36,7 @@ import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.identifiabl
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifAny;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifSet;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.optionSetIdFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.programIdFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.rootJunction;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.shortNameFiltering;
@@ -51,7 +53,9 @@ import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_WHERE;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.READ_ACCESS;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataitem.query.shared.OptionalFilterBuilder;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -67,19 +71,34 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProgramAttributeQuery implements DataItemQuery {
   private static final String COMMON_COLUMNS =
-      "program.name as program_name, program.uid as program_uid,"
-          + " program.shortname as program_shortname, trackedentityattribute.uid as item_uid,"
-          + " trackedentityattribute.name as item_name, trackedentityattribute.shortname as item_shortname,"
-          + " trackedentityattribute.valuetype as item_valuetype, trackedentityattribute.code as item_code,"
-          + " trackedentityattribute.sharing as item_sharing, cast (null as text) as item_domaintype,"
-          + " cast ('PROGRAM_ATTRIBUTE' as text) as item_type,"
-          + " cast (null as text) as expression";
+      List.of(
+              Pair.of("program_name", "program.name"),
+              Pair.of("program_uid", "program.uid"),
+              Pair.of("program_shortname", "program.shortname"),
+              Pair.of("item_uid", "trackedentityattribute.uid"),
+              Pair.of("item_name", "trackedentityattribute.name"),
+              Pair.of("item_shortname", "trackedentityattribute.shortname"),
+              Pair.of("item_valuetype", "trackedentityattribute.valuetype"),
+              Pair.of("item_code", "trackedentityattribute.code"),
+              Pair.of("item_sharing", "trackedentityattribute.sharing"),
+              Pair.of("item_domaintype", CAST_NULL_AS_TEXT),
+              Pair.of("item_type", "cast ('PROGRAM_ATTRIBUTE' as text)"),
+              Pair.of("expression", CAST_NULL_AS_TEXT),
+              Pair.of("optionset_uid", "optionset.uid"),
+              Pair.of("optionvalue_uid", CAST_NULL_AS_TEXT),
+              Pair.of("optionvalue_name", CAST_NULL_AS_TEXT),
+              Pair.of("optionvalue_code", CAST_NULL_AS_TEXT))
+          .stream()
+          .map(pair -> pair.getRight() + " as " + pair.getLeft())
+          .collect(joining(", "));
 
-  private static final String COMMON_UIDS = "program.uid, trackedentityattribute.uid";
+  private static final String COMMON_UIDS =
+      "program.uid, trackedentityattribute.uid, optionset.uid";
 
   private static final String JOINS =
       " join program_attributes on program_attributes.trackedentityattributeid = trackedentityattribute.trackedentityattributeid"
-          + " join program on program_attributes.programid = program.programid";
+          + " join program on program_attributes.programid = program.programid"
+          + " left join optionset on trackedentityattribute.optionsetid = optionset.optionsetid";
 
   private static final String SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE =
       " from trackedentityattribute ";
@@ -132,6 +151,7 @@ public class ProgramAttributeQuery implements DataItemQuery {
         ifSet(shortNameFiltering("t.program_shortname", "t.item_shortname", paramsMap)));
     optionalFilters.append(ifSet(programIdFiltering("t.program_uid", paramsMap)));
     optionalFilters.append(ifSet(uidFiltering("t.item_uid", paramsMap)));
+    optionalFilters.append(ifSet(optionSetIdFiltering("t.optionset_uid", paramsMap)));
     sql.append(ifAny(optionalFilters.toString()));
 
     String identifiableStatement =
@@ -191,7 +211,7 @@ public class ProgramAttributeQuery implements DataItemQuery {
     return new StringBuilder()
         .append(SPACED_SELECT + COMMON_COLUMNS)
         .append(
-            ", program.name as i18n_first_name, trackedentityattribute.name as i18n_second_name")
+            ", program.name as i18n_first_name, trackedentityattribute.name as i18n_second_name, cast (null as text) as i18n_third_name")
         .append(
             ", program.shortname as i18n_first_shortname, trackedentityattribute.shortname as i18n_second_shortname")
         .append(SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE)

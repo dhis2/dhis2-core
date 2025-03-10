@@ -34,6 +34,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataset.DataSet;
@@ -44,7 +48,9 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -158,5 +164,77 @@ class OrgUnitSplitServiceTest extends PostgresIntegrationTestBase {
     assertNull(idObjectManager.get(OrganisationUnit.class, ouA.getUid()));
     assertNotNull(idObjectManager.get(OrganisationUnit.class, ouB.getUid()));
     assertNotNull(idObjectManager.get(OrganisationUnit.class, ouC.getUid()));
+  }
+
+  @Test
+  @DisplayName("OrgUnit split has correct users for new split org units")
+  void orgUnitSplitCorrectUsersTest() {
+    // given multiple users
+    // each of which have different kinds of access to the same org unit
+    Set<OrganisationUnit> source = new HashSet<>(Collections.singletonList(ouA));
+
+    User userWithNoOrgUnits = createAndAddUser("user1");
+
+    User userDataCaptureOrgUnits = createAndAddUser("user2");
+    userDataCaptureOrgUnits.setOrganisationUnits(source);
+
+    User userDataViewOrgUnits = createAndAddUser("user3");
+    userDataViewOrgUnits.setDataViewOrganisationUnits(source);
+
+    User userTeiSearchOrgUnits = createAndAddUser("user4");
+    userTeiSearchOrgUnits.setTeiSearchOrganisationUnits(source);
+
+    User userAllOrgUnits = createAndAddUser("user5");
+    userAllOrgUnits.setOrganisationUnits(source);
+    userAllOrgUnits.setDataViewOrganisationUnits(source);
+    userAllOrgUnits.setTeiSearchOrganisationUnits(source);
+
+    idObjectManager.save(
+        List.of(
+            userWithNoOrgUnits,
+            userAllOrgUnits,
+            userDataCaptureOrgUnits,
+            userDataViewOrgUnits,
+            userTeiSearchOrgUnits));
+
+    assertUserHasExpectedOrgUnits(userAllOrgUnits, 1, 1, 1);
+    assertUserHasExpectedOrgUnits(userWithNoOrgUnits, 0, 0, 0);
+    assertUserHasExpectedOrgUnits(userDataCaptureOrgUnits, 1, 0, 0);
+    assertUserHasExpectedOrgUnits(userDataViewOrgUnits, 0, 1, 0);
+    assertUserHasExpectedOrgUnits(userTeiSearchOrgUnits, 0, 0, 1);
+
+    OrgUnitSplitRequest request =
+        new OrgUnitSplitRequest.Builder()
+            .withSource(ouA)
+            .addTargets(Set.of(ouB, ouC))
+            .withPrimaryTarget(ouB)
+            .withDeleteSource(true)
+            .build();
+
+    // when
+    service.split(request);
+
+    // then all users should have the appropriate access for the split org units
+    assertUserHasExpectedOrgUnits(userAllOrgUnits, 2, 2, 2);
+    assertUserHasExpectedOrgUnits(userWithNoOrgUnits, 0, 0, 0);
+    assertUserHasExpectedOrgUnits(userDataCaptureOrgUnits, 2, 0, 0);
+    assertUserHasExpectedOrgUnits(userDataViewOrgUnits, 0, 2, 0);
+    assertUserHasExpectedOrgUnits(userTeiSearchOrgUnits, 0, 0, 2);
+  }
+
+  private void assertUserHasExpectedOrgUnits(
+      User user, int orgUnits, int dataViewOrgUnits, int teiSearchOrgUnits) {
+    assertEquals(
+        orgUnits,
+        user.getOrganisationUnits().size(),
+        "user should have %s org units".formatted(orgUnits));
+    assertEquals(
+        dataViewOrgUnits,
+        user.getDataViewOrganisationUnits().size(),
+        "user should have %s data view org units".formatted(dataViewOrgUnits));
+    assertEquals(
+        teiSearchOrgUnits,
+        user.getTeiSearchOrganisationUnits().size(),
+        "user should have %s tei search org units".formatted(teiSearchOrgUnits));
   }
 }

@@ -72,9 +72,9 @@ class ValidationExecutorTest extends TestBase {
 
   private static final String EVALUATED_DATA = "4.0";
 
-  private static final String ACTIVE_EVENT_ID = "EventUid";
+  private static final UID ACTIVE_EVENT_UID = UID.generate();
 
-  private static final String COMPLETED_EVENT_ID = "CompletedEventUid";
+  private static final UID COMPLETED_EVENT_UID = UID.generate();
 
   private static final String PROGRAM_STAGE_ID = "ProgramStageId";
 
@@ -209,7 +209,7 @@ class ValidationExecutorTest extends TestBase {
 
   private Event activeEvent() {
     return Event.builder()
-        .event(ACTIVE_EVENT_ID)
+        .event(ACTIVE_EVENT_UID)
         .status(EventStatus.ACTIVE)
         .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
         .build();
@@ -217,7 +217,7 @@ class ValidationExecutorTest extends TestBase {
 
   private Event completedEvent() {
     return Event.builder()
-        .event(COMPLETED_EVENT_ID)
+        .event(COMPLETED_EVENT_UID)
         .status(EventStatus.COMPLETED)
         .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_ID))
         .build();

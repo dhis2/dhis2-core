@@ -34,6 +34,7 @@ import static org.hisp.dhis.security.Authorities.F_ACCEPT_DATA_LOWER_LEVELS;
 import static org.hisp.dhis.security.Authorities.F_APPROVE_DATA;
 import static org.hisp.dhis.security.Authorities.F_APPROVE_DATA_LOWER_LEVELS;
 
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -43,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -61,7 +61,6 @@ import org.hisp.dhis.dataapproval.DataApprovalStatus;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
@@ -103,7 +102,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  *
  * @author Lars Helge Overland
  */
-@OpenApi.Document(domain = DataValue.class)
+@OpenApi.Document(
+    entity = DataApprovalWorkflow.class,
+    classifiers = {"team:platform", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/dataApprovals")
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})

@@ -33,9 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Set;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.RestoreOptions;
 import org.hisp.dhis.user.RestoreType;
@@ -49,7 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
 class SecurityServiceTest extends PostgresIntegrationTestBase {
   @Autowired private PasswordManager passwordManager;
 
-  @Autowired private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingsService settingsService;
 
   private User userA;
 
@@ -63,7 +63,8 @@ class SecurityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testUserAuthenticationLockout() {
-    systemSettingManager.saveSystemSetting(SettingKey.LOCK_MULTIPLE_FAILED_LOGINS, Boolean.TRUE);
+    settingsService.put("keyLockMultipleFailedLogins", true);
+    settingsService.clearCurrentSettings();
     String username = "dr_evil";
     userService.registerFailedLogin(username);
     assertFalse(userService.isLocked(username));
@@ -77,12 +78,13 @@ class SecurityServiceTest extends PostgresIntegrationTestBase {
     assertTrue(userService.isLocked(username));
     userService.registerSuccessfulLogin(username);
     assertFalse(userService.isLocked(username));
-    systemSettingManager.saveSystemSetting(SettingKey.LOCK_MULTIPLE_FAILED_LOGINS, Boolean.FALSE);
+    settingsService.deleteAll(Set.of("keyLockMultipleFailedLogins"));
   }
 
   @Test
   void testRecoveryAttemptLocked() {
-    systemSettingManager.saveSystemSetting(SettingKey.LOCK_MULTIPLE_FAILED_LOGINS, Boolean.TRUE);
+    settingsService.put("keyLockMultipleFailedLogins", true);
+    settingsService.clearCurrentSettings();
     String username = "dr_evil";
     userService.registerRecoveryAttempt(username);
     assertFalse(userService.isRecoveryLocked(username));
@@ -96,7 +98,7 @@ class SecurityServiceTest extends PostgresIntegrationTestBase {
     assertFalse(userService.isRecoveryLocked(username));
     userService.registerRecoveryAttempt(username);
     assertTrue(userService.isRecoveryLocked(username));
-    systemSettingManager.saveSystemSetting(SettingKey.LOCK_MULTIPLE_FAILED_LOGINS, Boolean.FALSE);
+    settingsService.deleteAll(Set.of("keyLockMultipleFailedLogins"));
   }
 
   @Test

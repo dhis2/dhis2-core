@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
@@ -53,18 +53,18 @@ import org.springframework.stereotype.Service;
 @Service("org.hisp.dhis.tracker.imports.programrule.RuleActionEnrollmentMapper")
 @RequiredArgsConstructor
 class RuleActionEnrollmentMapper {
-  private final SystemSettingManager systemSettingManager;
+  private final SystemSettingsProvider settingsProvider;
 
   public Map<Enrollment, List<RuleActionExecutor<Enrollment>>> mapRuleEffects(
       Map<UID, List<ValidationEffect>> enrollmentValidationEffects, TrackerBundle bundle) {
     return enrollmentValidationEffects.keySet().stream()
-        .filter(e -> bundle.findEnrollmentByUid(e.getValue()).isPresent())
+        .filter(e -> bundle.findEnrollmentByUid(e).isPresent())
         .collect(
             Collectors.toMap(
-                e -> bundle.findEnrollmentByUid(e.getValue()).get(),
+                e -> bundle.findEnrollmentByUid(e).get(),
                 e ->
                     mapRuleEffects(
-                        bundle.findEnrollmentByUid(e.getValue()).get(),
+                        bundle.findEnrollmentByUid(e).get(),
                         enrollmentValidationEffects.get(e),
                         bundle)));
   }
@@ -88,7 +88,7 @@ class RuleActionEnrollmentMapper {
     return switch (validationEffect.type()) {
       case ASSIGN ->
           new AssignAttributeExecutor(
-              systemSettingManager,
+              settingsProvider,
               validationEffect.rule(),
               validationEffect.data(),
               validationEffect.field(),

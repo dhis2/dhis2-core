@@ -34,7 +34,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.persistence.EntityManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
@@ -54,8 +54,6 @@ class MessageConversationStoreTest extends PostgresIntegrationTestBase {
   @Autowired private MessageConversationStore messageConversationStore;
 
   @Autowired private MessageService messageService;
-
-  @Autowired private EntityManager entityManager;
 
   private User userB;
 
@@ -79,7 +77,7 @@ class MessageConversationStoreTest extends PostgresIntegrationTestBase {
     conversationIds = new HashSet<>();
     conversationA = messageService.sendPrivateMessage(usersA, "Subject1", "Text", "Meta", null);
     MessageConversation mc = messageService.getMessageConversation(conversationA);
-    mc.markRead(userC);
+    mc.markRead(UID.of(userC.getUid()));
     messageService.updateMessageConversation(mc);
     conversationIds.add(mc.getUid());
     messageService.sendReply(mc, "Message 1", "Meta", false, null);
@@ -117,7 +115,6 @@ class MessageConversationStoreTest extends PostgresIntegrationTestBase {
   @Test
   void testGetMessageConversationsReturnCorrectNumberOfMessages() {
     MessageConversation conversation = messageConversationStore.get(conversationA);
-    entityManager.flush();
     assertTrue((conversation.getMessageCount() == 4));
   }
 

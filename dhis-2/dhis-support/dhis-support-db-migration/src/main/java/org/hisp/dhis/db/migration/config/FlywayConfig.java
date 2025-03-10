@@ -29,6 +29,7 @@ package org.hisp.dhis.db.migration.config;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.FLYWAY_OUT_OF_ORDER_MIGRATION;
 import static org.hisp.dhis.external.conf.ConfigurationKey.FLYWAY_REPAIR_BEFORE_MIGRATION;
+import static org.hisp.dhis.external.conf.ConfigurationKey.FLYWAY_SKIP_MIGRATION;
 
 import javax.sql.DataSource;
 import org.flywaydb.core.Flyway;
@@ -60,6 +61,8 @@ public class FlywayConfig {
     classicConfiguration.setMixed(true);
 
     return new DhisFlyway(
-        classicConfiguration, configurationProvider.isEnabled(FLYWAY_REPAIR_BEFORE_MIGRATION));
+        classicConfiguration,
+        configurationProvider.isEnabled(FLYWAY_REPAIR_BEFORE_MIGRATION),
+        configurationProvider.isEnabled(FLYWAY_SKIP_MIGRATION));
   }
 }

@@ -85,8 +85,7 @@ class TrackerRuleEngineSideEffectsHandlerServiceTest extends PostgresIntegration
                 .getInputStream(),
             TrackerObjects.class);
     ImportReport importReport =
-        trackerImportService.importTracker(
-            TrackerImportParams.builder().userId(importUser.getUid()).build(), trackerObjects);
+        trackerImportService.importTracker(TrackerImportParams.builder().build(), trackerObjects);
     assertNoErrors(importReport);
 
     await()

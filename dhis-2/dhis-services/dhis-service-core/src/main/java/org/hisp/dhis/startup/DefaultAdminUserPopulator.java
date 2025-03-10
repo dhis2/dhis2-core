@@ -28,7 +28,7 @@
 package org.hisp.dhis.startup;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.user.DefaultUserService.TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME;
+import static org.hisp.dhis.security.twofa.TwoFactorAuthService.TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME;
 
 import java.util.Set;
 import java.util.UUID;

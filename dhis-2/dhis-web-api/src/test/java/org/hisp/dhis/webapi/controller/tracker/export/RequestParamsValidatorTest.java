@@ -31,11 +31,12 @@ import static java.util.Collections.emptySet;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria.fromOrderString;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitModeForTrackedEntities;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validatePaginationParameters;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.parseFilters;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateFilter;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrderParams;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrgUnitModeForTrackedEntities;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationParameters;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -49,6 +50,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import lombok.Data;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -56,6 +58,8 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
+import org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -66,11 +70,15 @@ import org.junit.jupiter.params.provider.ValueSource;
 /** Tests {@link RequestParamsValidator}. */
 class RequestParamsValidatorTest {
 
-  private static final String TEA_1_UID = "TvjwTPToKHO";
+  private static final UID TEA_1_UID = UID.of("TvjwTPToKHO");
 
-  private static final String TEA_2_UID = "cy2oRh2sNr6";
+  private static final UID TEA_2_UID = UID.of("cy2oRh2sNr6");
 
-  public static final String TEA_3_UID = "cy2oRh2sNr7";
+  public static final UID TEA_3_UID = UID.of("cy2oRh2sNr7");
+
+  private static final UID DE_1_UID = UID.of("D1jwTPToKHO");
+
+  private static final UID DE_2_UID = UID.of("D2jwTPToKHO");
 
   private static final OrganisationUnit orgUnit = new OrganisationUnit();
 
@@ -144,8 +152,70 @@ class RequestParamsValidatorTest {
   }
 
   @Test
+  void shouldValidateFilterWhenFormatIsCorrect() throws BadRequestException {
+    Set<Pair<String, Class<?>>> supportedFields =
+        Set.of(Pair.of("field1", String.class), Pair.of("field2", String.class));
+
+    validateFilter("field2:eq:value", supportedFields);
+  }
+
+  @Test
+  void shouldFailWhenChangeLogFilterFieldNotSupported() {
+    Set<Pair<String, Class<?>>> supportedFields =
+        Set.of(Pair.of("field1", String.class), Pair.of("field2", String.class));
+
+    BadRequestException exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> validateFilter("unknownField:eq:value", supportedFields));
+    assertStartsWith(
+        String.format(
+            "Invalid filter field. Supported fields are '%s'.",
+            String.join(", ", supportedFields.stream().map(Pair::getKey).sorted().toList())),
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenChangeLogFilterOperatorNotSupported() {
+    Set<Pair<String, Class<?>>> supportedFields =
+        Set.of(Pair.of("field1", String.class), Pair.of("field2", String.class));
+
+    BadRequestException exception =
+        assertThrows(
+            BadRequestException.class, () -> validateFilter("field1:sw:value", supportedFields));
+    assertStartsWith(
+        "Invalid filter operator. The only supported operator is 'eq'.", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenChangeLogFilterDoesNotHaveCorrectFormat() {
+    Set<Pair<String, Class<?>>> supportedFields =
+        Set.of(Pair.of("field1", String.class), Pair.of("field2", String.class));
+    String invalidFilter = "field1:eq";
+
+    BadRequestException exception =
+        assertThrows(
+            BadRequestException.class, () -> validateFilter(invalidFilter, supportedFields));
+    assertStartsWith(
+        String.format(
+            "Invalid filter => %s. Expected format is [field]:eq:[value].", invalidFilter),
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenChangeLogFilterDoesNotHaveCorrectUidFormat() {
+    Set<Pair<String, Class<?>>> supportedFields = Set.of(Pair.of("field1", UID.class));
+
+    BadRequestException exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> validateFilter("field1:eq:QRYjLTiJTr", supportedFields));
+    assertStartsWith("Incorrect filter value provided as UID: QRYjLTiJTr", exception.getMessage());
+  }
+
+  @Test
   void shouldParseFilters() throws BadRequestException {
-    Map<String, List<QueryFilter>> filters =
+    Map<UID, List<QueryFilter>> filters =
         parseFilters(TEA_1_UID + ":lt:20:gt:10," + TEA_2_UID + ":like:foo");
 
     assertEquals(
@@ -160,7 +230,7 @@ class RequestParamsValidatorTest {
 
   @Test
   void shouldParseFiltersGivenRepeatedUID() throws BadRequestException {
-    Map<String, List<QueryFilter>> filters =
+    Map<UID, List<QueryFilter>> filters =
         parseFilters(TEA_1_UID + ":lt:20," + TEA_2_UID + ":like:foo," + TEA_1_UID + ":gt:10");
 
     assertEquals(
@@ -175,21 +245,21 @@ class RequestParamsValidatorTest {
 
   @Test
   void shouldParseFiltersOnlyContainingAnIdentifier() throws BadRequestException {
-    Map<String, List<QueryFilter>> filters = parseFilters(TEA_1_UID);
+    Map<UID, List<QueryFilter>> filters = parseFilters(TEA_1_UID.getValue());
 
     assertEquals(Map.of(TEA_1_UID, List.of()), filters);
   }
 
   @Test
   void shouldParseFiltersWithIdentifierAndTrailingColon() throws BadRequestException {
-    Map<String, List<QueryFilter>> filters = parseFilters(TEA_1_UID + ":");
+    Map<UID, List<QueryFilter>> filters = parseFilters(TEA_1_UID.getValue() + ":");
 
     assertEquals(Map.of(TEA_1_UID, List.of()), filters);
   }
 
   @Test
   void shouldParseFiltersGivenBlankInput() throws BadRequestException {
-    Map<String, List<QueryFilter>> filters = parseFilters(" ");
+    Map<UID, List<QueryFilter>> filters = parseFilters(" ");
 
     assertTrue(filters.isEmpty());
   }
@@ -198,19 +268,23 @@ class RequestParamsValidatorTest {
   void shouldFailParsingFiltersMissingAValue() {
     Exception exception =
         assertThrows(BadRequestException.class, () -> parseFilters(TEA_1_UID + ":lt"));
-    assertEquals("Query item or filter is invalid: " + TEA_1_UID + ":lt", exception.getMessage());
+    assertEquals(
+        "Operator in filter must be be used with a value: " + TEA_1_UID + ":lt",
+        exception.getMessage());
   }
 
   @Test
   void shouldFailParsingFiltersWithMissingValueAndTrailingColon() {
     Exception exception =
         assertThrows(BadRequestException.class, () -> parseFilters(TEA_1_UID + ":lt:"));
-    assertEquals("Query item or filter is invalid: " + TEA_1_UID + ":lt:", exception.getMessage());
+    assertEquals(
+        "Operator in filter must be be used with a value: " + TEA_1_UID + ":lt:",
+        exception.getMessage());
   }
 
   @Test
   void shouldParseFiltersWithFilterNameHasSeparationCharInIt() throws BadRequestException {
-    Map<String, List<QueryFilter>> filters = parseFilters(TEA_2_UID + ":like:project/:x/:eq/:2");
+    Map<UID, List<QueryFilter>> filters = parseFilters(TEA_2_UID + ":like:project/:x/:eq/:2");
 
     assertEquals(
         Map.of(TEA_2_UID, List.of(new QueryFilter(QueryOperator.LIKE, "project:x:eq:2"))), filters);
@@ -221,13 +295,13 @@ class RequestParamsValidatorTest {
     BadRequestException exception =
         assertThrows(BadRequestException.class, () -> parseFilters(TEA_1_UID + ":lke:value"));
     assertEquals(
-        "Query item or filter is invalid: " + TEA_1_UID + ":lke:value", exception.getMessage());
+        "'lke' is not a valid operator: " + TEA_1_UID + ":lke:value", exception.getMessage());
   }
 
   @Test
   void shouldParseFilterWhenFilterHasDatesFormatDateWithMilliSecondsAndTimeZone()
       throws BadRequestException {
-    Map<String, List<QueryFilter>> filters =
+    Map<UID, List<QueryFilter>> filters =
         parseFilters(
             TEA_1_UID
                 + ":ge:2020-01-01T00/:00/:00.001 +05/:30:le:2021-01-01T00/:00/:00.001 +05/:30");
@@ -243,7 +317,7 @@ class RequestParamsValidatorTest {
 
   @Test
   void shouldParseFilterWhenFilterHasMultipleOperatorAndTextRange() throws BadRequestException {
-    Map<String, List<QueryFilter>> filters =
+    Map<UID, List<QueryFilter>> filters =
         parseFilters(TEA_1_UID + ":sw:project/:x:ew:project/:le/:");
 
     assertEquals(
@@ -257,7 +331,7 @@ class RequestParamsValidatorTest {
 
   @Test
   void shouldParseFilterWhenMultipleFiltersAreMixedCommaAndSlash() throws BadRequestException {
-    Map<String, List<QueryFilter>> filters =
+    Map<UID, List<QueryFilter>> filters =
         parseFilters(
             TEA_1_UID
                 + ":eq:project///,/,//"
@@ -278,7 +352,7 @@ class RequestParamsValidatorTest {
 
   @Test
   void shouldParseFilterWhenFilterHasMultipleOperatorWithFinalColon() throws BadRequestException {
-    Map<String, List<QueryFilter>> filters = parseFilters(TEA_1_UID + ":like:value1/::like:value2");
+    Map<UID, List<QueryFilter>> filters = parseFilters(TEA_1_UID + ":like:value1/::like:value2");
 
     assertEquals(
         Map.of(
@@ -287,6 +361,94 @@ class RequestParamsValidatorTest {
                 new QueryFilter(QueryOperator.LIKE, "value1:"),
                 new QueryFilter(QueryOperator.LIKE, "value2"))),
         filters);
+  }
+
+  @Test
+  void shouldParseDataElementFilters() throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters =
+        parseFilters(DE_1_UID + ":lt:20:gt:10," + DE_2_UID + ":like:foo");
+
+    assertEquals(
+        Map.of(
+            DE_1_UID,
+            List.of(
+                new QueryFilter(QueryOperator.LT, "20"), new QueryFilter(QueryOperator.GT, "10")),
+            DE_2_UID,
+            List.of(new QueryFilter(QueryOperator.LIKE, "foo"))),
+        filters);
+  }
+
+  @Test
+  void shouldParseDataElementFilterWhenOnlyUIDProvided() throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters = parseFilters(DE_1_UID.getValue());
+
+    assertEquals(Map.of(DE_1_UID, List.of()), filters);
+  }
+
+  @Test
+  void shouldParseDataElementFilterWhenSingleUnaryOperator() throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters = parseFilters(DE_1_UID + ":!null");
+
+    assertEquals(Map.of(DE_1_UID, List.of(new QueryFilter(QueryOperator.NNULL))), filters);
+  }
+
+  @Test
+  void shouldParseDataElementFilterWhenMultipleUnaryOperatorsCombined() throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters = parseFilters(DE_1_UID + ":!null:null");
+
+    assertEquals(
+        Map.of(
+            DE_1_UID,
+            List.of(new QueryFilter(QueryOperator.NNULL), new QueryFilter(QueryOperator.NULL))),
+        filters);
+  }
+
+  @Test
+  void shouldParseDataElementFilterWhenUnaryAndBinaryOperatorsCombined()
+      throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters = parseFilters(DE_1_UID + ":null:gt:10");
+
+    assertEquals(
+        Map.of(
+            DE_1_UID,
+            List.of(new QueryFilter(QueryOperator.NULL), new QueryFilter(QueryOperator.GT, "10"))),
+        filters);
+  }
+
+  @Test
+  void shouldFailParsingDataElementFiltersWhenUnaryOperatorContainsValue() {
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> parseFilters(DE_1_UID + ":!null:value"));
+    assertEquals(
+        "Operator '!null' in filter can't be used with a value: " + DE_1_UID + ":!null:value",
+        exception.getMessage());
+  }
+
+  @Test
+  void
+      shouldFailParsingDataElementFiltersWhenUnaryAndBinaryOperatorsCombinedAndUnaryContainsValue() {
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> parseFilters(DE_1_UID + ":gt:10:null:value"));
+    assertEquals(
+        "Operator 'null' in filter can't be used with a value: " + DE_1_UID + ":gt:10:null:value",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailParsingDataElementFilterWhenMoreThanTwoOperatorsUsed() {
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> parseFilters(DE_1_UID + ":gt:10:null:!null"));
+    assertEquals(
+        "A maximum of two operators can be used in a filter: " + DE_1_UID + ":gt:10:null:!null",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailParsingDataElementFilterWhenMultipleBinaryOperatorsAndOneHasNoValue() {
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> parseFilters(DE_1_UID + ":gt:10:lt"));
+    assertEquals(
+        "Query item or filter is invalid: " + DE_1_UID + ":gt:10:lt", exception.getMessage());
   }
 
   @ParameterizedTest
@@ -331,9 +493,7 @@ class RequestParamsValidatorTest {
   void shouldPassWhenTrackedEntitySuppliedAndOrgUnitModeRequiresOrgUnit(
       OrganisationUnitSelectionMode orgUnitMode) {
     assertDoesNotThrow(
-        () ->
-            validateOrgUnitModeForTrackedEntities(
-                emptySet(), orgUnitMode, Set.of(UID.of(TEA_1_UID))));
+        () -> validateOrgUnitModeForTrackedEntities(emptySet(), orgUnitMode, Set.of(TEA_1_UID)));
   }
 
   @ParameterizedTest
@@ -373,86 +533,59 @@ class RequestParamsValidatorTest {
   private static class PaginationParameters implements PageRequestParams {
     private Integer page;
     private Integer pageSize;
-    private Boolean totalPages;
-    private Boolean skipPaging;
-    private Boolean paging;
+    private boolean totalPages;
+    private boolean paging;
   }
 
   private static Stream<Arguments> mutuallyExclusivePaginationParameters() {
     return Stream.of(
-        arguments(null, 1, null, true, false),
-        arguments(null, 1, false, true, false),
-        arguments(null, 1, false, true, false),
-        arguments(1, 1, false, true, false),
-        arguments(1, 1, true, true, false),
-        arguments(null, null, true, true, false));
+        arguments(null, null, true),
+        arguments(null, 1, false),
+        arguments(null, 1, true),
+        arguments(1, null, false),
+        arguments(1, null, true),
+        arguments(1, 1, true));
   }
 
   @MethodSource("mutuallyExclusivePaginationParameters")
   @ParameterizedTest
   void shouldFailWhenGivenMutuallyExclusivePaginationParameters(
-      Integer page, Integer pageSize, Boolean totalPages, Boolean skipPaging, Boolean paging) {
+      Integer page, Integer pageSize, boolean totalPages) {
     PaginationParameters paginationParameters = new PaginationParameters();
     paginationParameters.setPage(page);
     paginationParameters.setPageSize(pageSize);
     paginationParameters.setTotalPages(totalPages);
-    paginationParameters.setSkipPaging(skipPaging);
-    paginationParameters.setPaging(paging);
+    paginationParameters.setPaging(false);
 
     Exception exception =
         assertThrows(
             BadRequestException.class, () -> validatePaginationParameters(paginationParameters));
 
-    assertStartsWith("Paging cannot be skipped with", exception.getMessage());
-  }
-
-  private static Stream<Arguments> mutuallyExclusiveSkipPaginationParameters() {
-    return Stream.of(arguments(1, 1, false, false, false), arguments(1, 1, false, true, true));
-  }
-
-  @MethodSource("mutuallyExclusiveSkipPaginationParameters")
-  @ParameterizedTest
-  void shouldFailWhenGivenMutuallyExclusiveSkipPaginationParameters(
-      Integer page, Integer pageSize, Boolean totalPages, Boolean skipPaging, Boolean paging) {
-    PaginationParameters paginationParameters = new PaginationParameters();
-    paginationParameters.setPage(page);
-    paginationParameters.setPageSize(pageSize);
-    paginationParameters.setTotalPages(totalPages);
-    paginationParameters.setSkipPaging(skipPaging);
-    paginationParameters.setPaging(paging);
-
-    Exception exception =
-        assertThrows(
-            BadRequestException.class, () -> validatePaginationParameters(paginationParameters));
-
-    assertStartsWith("Paging can either be enabled or disabled", exception.getMessage());
+    assertStartsWith("Paging cannot be disabled with", exception.getMessage());
   }
 
   private static Stream<Arguments> validPaginationParameters() {
     return Stream.of(
-        arguments(null, null, null, null, null),
-        arguments(null, null, null, false, true),
-        arguments(null, 1, true, null, null),
-        arguments(null, 1, false, null, null),
-        arguments(null, 1, false, false, true),
-        arguments(null, null, true, false, true),
-        arguments(1, 1, false, false, true),
-        arguments(null, null, true, null, null),
-        arguments(null, 1, true, false, true),
-        arguments(null, null, null, true, false),
-        arguments(null, null, false, true, false));
+        arguments(null, null, false, true),
+        arguments(null, null, true, true),
+        arguments(null, 1, false, true),
+        arguments(null, 1, true, true),
+        arguments(1, null, false, true),
+        arguments(1, null, true, true),
+        arguments(1, 1, false, true),
+        arguments(1, 1, true, true),
+        arguments(null, null, false, false));
   }
 
   @MethodSource("validPaginationParameters")
   @ParameterizedTest
   void shouldPassWhenGivenValidPaginationParameters(
-      Integer page, Integer pageSize, Boolean totalPages, Boolean skipPaging, Boolean paging)
+      Integer page, Integer pageSize, boolean totalPages, boolean paging)
       throws BadRequestException {
     PaginationParameters paginationParameters = new PaginationParameters();
     paginationParameters.setPage(page);
     paginationParameters.setPage(pageSize);
     paginationParameters.setTotalPages(totalPages);
-    paginationParameters.setSkipPaging(skipPaging);
     paginationParameters.setPaging(paging);
 
     validatePaginationParameters(paginationParameters);
@@ -462,6 +595,7 @@ class RequestParamsValidatorTest {
   @ParameterizedTest
   void shouldFailWhenGivenPageLessThanOrEqualToZero(int page) {
     PaginationParameters paginationParameters = new PaginationParameters();
+    paginationParameters.setPaging(true);
     paginationParameters.setPage(page);
 
     Exception exception =
@@ -475,6 +609,7 @@ class RequestParamsValidatorTest {
   @ParameterizedTest
   void shouldPassWhenGivenPageGreaterThanOrEqualToOne(int page) throws BadRequestException {
     PaginationParameters paginationParameters = new PaginationParameters();
+    paginationParameters.setPaging(true);
     paginationParameters.setPage(page);
 
     validatePaginationParameters(paginationParameters);
@@ -484,6 +619,7 @@ class RequestParamsValidatorTest {
   @ParameterizedTest
   void shouldFailWhenGivenPageSizeLessThanOrEqualToZero(int pageSize) {
     PaginationParameters paginationParameters = new PaginationParameters();
+    paginationParameters.setPaging(true);
     paginationParameters.setPageSize(pageSize);
 
     Exception exception =
@@ -497,6 +633,7 @@ class RequestParamsValidatorTest {
   @ParameterizedTest
   void shouldPassWhenGivenPageSizeGreaterThanOrEqualToOne(int pageSize) throws BadRequestException {
     PaginationParameters paginationParameters = new PaginationParameters();
+    paginationParameters.setPaging(true);
     paginationParameters.setPageSize(pageSize);
 
     validatePaginationParameters(paginationParameters);

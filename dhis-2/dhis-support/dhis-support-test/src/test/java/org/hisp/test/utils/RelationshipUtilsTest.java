@@ -29,6 +29,7 @@ package org.hisp.test.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
@@ -40,13 +41,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class RelationshipUtilsTest {
-  private static final String TE_A_UID = "TE_A_UID";
+  private static final UID TE_A_UID = UID.generate();
 
-  private static final String TE_B_UID = "TE_B_UID";
+  private static final UID TE_B_UID = UID.generate();
 
-  private static final String ENROLLMENT_UID = "ENROLLMENT_UID";
+  private static final UID ENROLLMENT_UID = UID.generate();
 
-  private static final String EVENT_UID = "EVENT_UID";
+  private static final UID EVENT_UID = UID.generate();
 
   private static final String RELATIONSHIP_TYPE_UID = "RELATIONSHIP_TYPE_UID";
 
@@ -61,13 +62,13 @@ class RelationshipUtilsTest {
   @BeforeEach
   void setup() {
     teA = new TrackedEntity();
-    teA.setUid(TE_A_UID);
+    teA.setUid(TE_A_UID.getValue());
     teB = new TrackedEntity();
-    teB.setUid(TE_B_UID);
+    teB.setUid(TE_B_UID.getValue());
     enrollmentA = new Enrollment();
-    enrollmentA.setUid(ENROLLMENT_UID);
+    enrollmentA.setUid(ENROLLMENT_UID.getValue());
     eventA = new Event();
-    eventA.setUid(EVENT_UID);
+    eventA.setUid(EVENT_UID.getValue());
     relationshipType = new RelationshipType();
     relationshipType.setUid(RELATIONSHIP_TYPE_UID);
   }
