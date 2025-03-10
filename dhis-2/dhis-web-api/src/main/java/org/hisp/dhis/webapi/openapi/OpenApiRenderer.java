@@ -119,7 +119,7 @@ public class OpenApiRenderer {
   h4 { font-weight: normal; padding: 0 1em; }
   nav > summary { margin: 1em 0 0.5em 0; font-weight: normal; font-size: 85%; }
 
-  h2 a[target="_blank"] { text-decoration: none; margin-right: 2em; float: right; }
+  h2 a[onclick] { text-decoration: none; margin-right: 2em; float: right; }
   a[href^="#"] { text-decoration: none; }
   a[title="permalink"] { position: absolute;  right: 1em; display: inline-block; width: 24px; height: 24px;
     text-align: center; vertical-align: middle; border-radius: 50%; line-height: 24px; color: dimgray; margin-top: -0.125rem; }
@@ -454,14 +454,14 @@ public class OpenApiRenderer {
     window.location.pathname = base + '/'+name;
   }
 
-  function setLocationSearch(name, value) {
+  function setLocationSearch(name, value, blank) {
     const searchParams = new URLSearchParams(window.location.search)
     if (value === '' || value == null) {
       searchParams.delete(name);
     } else {
       searchParams.set(name, value);
     }
-    setLocationSearchParams(searchParams);
+    setLocationSearchParams(searchParams, blank);
   }
 
   function removeLocationSearch(name, value) {
@@ -486,9 +486,17 @@ public class OpenApiRenderer {
     setLocationSearchParams(params);
   }
 
-  function setLocationSearchParams(params) {
+  function setLocationSearchParams(params, blank) {
     // undo : and / escaping for URL readability
-    window.location.search = params.toString().replaceAll('%3A', ':').replaceAll('%2F', '/');
+    const search = params.toString().replaceAll('%3A', ':').replaceAll('%2F', '/');
+    if (blank) {
+      let currentUrl = window.location.href;
+      let updatedUrl = new URL(currentUrl);
+      updatedUrl.search = search;
+      window.open(updatedUrl.href, '_blank');
+    } else {
+      window.location.search = search;
+    }
   }
 
   function addHashHotkey() {
@@ -878,7 +886,10 @@ public class OpenApiRenderer {
         "h2",
         () -> {
           appendRaw(toWords(op.entity()));
-          appendA("/api/openapi/openapi.html?scope=entity:" + op.entity, true, "&#x1F5D7;");
+          appendA(
+              "setLocationSearch('scope', 'entity:%s', true)".formatted(op.entity),
+              "&#x1F5D7;",
+              "");
         });
   }
 
@@ -1226,7 +1237,7 @@ public class OpenApiRenderer {
 
   private void renderSchemaSignatureType(SchemaObject schema) {
     if (schema.isShared()) {
-      appendA("#" + schema.getSharedName(), false, schema.getSharedName());
+      appendA("#" + schema.getSharedName(), schema.getSharedName());
       return;
     }
     renderSchemaSignatureTypeAny(schema);
@@ -1482,7 +1493,7 @@ public class OpenApiRenderer {
         "summary",
         attrs,
         () -> {
-          if (id != null) appendA("#" + id, false, "#");
+          if (id != null) appendA("#" + id, "#");
           body.run();
         });
   }
@@ -1491,10 +1502,9 @@ public class OpenApiRenderer {
     appendTag("input", Map.of("type", "button", "value", text, "onclick", onclick));
   }
 
-  private void appendA(String href, boolean blank, String text) {
-    String target = blank ? "_blank" : "";
+  private void appendA(String href, String text) {
     String title = "#".equals(text) ? "permalink" : "";
-    appendTag("a", Map.of("href", href, "target", target, "title", title), text);
+    appendTag("a", Map.of("href", href, "title", title), text);
   }
 
   private void appendA(String onclick, String text, String title) {
