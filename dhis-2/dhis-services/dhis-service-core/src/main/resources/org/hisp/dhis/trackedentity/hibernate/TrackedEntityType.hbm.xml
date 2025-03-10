@@ -21,7 +21,7 @@
 
     <property name="formName" type="text" />
 
-    <property name="shortName" />
+    <property name="shortName" not-null="true"/>
 
     <property name="style" type="jbObjectStyle" column="style" />
 
