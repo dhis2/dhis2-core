@@ -260,17 +260,29 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnChangeLogsFromSpecifiedProgramOnlyWhenMultipleLogsExist()
+  void shouldReturnChangeLogsFromSpecifiedProgram()
       throws NotFoundException, ForbiddenException, BadRequestException {
+    String trackedEntity = "dUE514NMOlo";
+    String program = "BFcipDERJnf";
+    String programAttribute = "fRGt4l6yIRb";
+
+    updateAttributeValue(trackedEntity, programAttribute, "updated program attribute value");
+
     Page<TrackedEntityChangeLog> changeLogs =
         trackedEntityChangeLogService.getTrackedEntityChangeLog(
-            UID.of("QS6w44flWAf"),
-            UID.of("BFcipDERJnf"),
-            defaultOperationParams,
-            defaultPageParams);
+            UID.of(trackedEntity), UID.of(program), defaultOperationParams, defaultPageParams);
 
-    assertNumberOfChanges(1, changeLogs.getItems());
-    assertAll(() -> assertCreate("dIVt4l5vIOa", "Value", changeLogs.getItems().get(0)));
+    assertNumberOfChanges(2, changeLogs.getItems());
+    assertAll(
+        () ->
+            assertUpdate(
+                programAttribute,
+                "program attribute value",
+                "updated program attribute value",
+                changeLogs.getItems().get(0)),
+        () ->
+            assertCreate(
+                programAttribute, "program attribute value", changeLogs.getItems().get(1)));
   }
 
   private static void assertNumberOfChanges(int expected, List<TrackedEntityChangeLog> changeLogs) {
