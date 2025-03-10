@@ -40,6 +40,7 @@ import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.springframework.stereotype.Component;
@@ -72,7 +73,10 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       throws IOException, ServletException {
     String globalShellAppName = settingsProvider.getCurrentSettings().getGlobalShellAppName();
     if (globalShellAppName.isEmpty() || !appManager.exists(globalShellAppName)) {
-      chain.doFilter(request, response);
+      boolean redirected = redirectDisabledGlobalShell(request, response, getContextRelativePath(request));
+      if (!redirected) {
+        chain.doFilter(request, response);
+      }
       return;
     }
 
@@ -87,6 +91,32 @@ public class GlobalShellFilter extends OncePerRequestFilter {
     }
 
     chain.doFilter(request, response);
+  }
+
+  private boolean redirectDisabledGlobalShell(HttpServletRequest request, HttpServletResponse response, String path)
+      throws IOException {
+    Matcher m = APP_IN_GLOBAL_SHELL_PATTERN.matcher(path);
+    
+    if (m.matches()) {
+      String appName = m.group(1);
+      App app = appManager.getApp(appName);
+
+      String targetPath;
+      if (app != null) {
+        log.debug("Installed app {} found", appName);
+        targetPath = app.getLaunchUrl();
+      } else if (AppManager.BUNDLED_APPS.contains(appName)) {
+        log.debug("Bundled app {} found", appName);
+        targetPath = String.join("/", request.getContextPath(), AppManager.BUNDLED_APP_PREFIX + appName);
+      } else {
+        log.debug("App {} not found", appName);
+        targetPath = request.getContextPath() + "/";
+      }
+      log.debug("Redirecting to {}", targetPath);
+      response.sendRedirect(targetPath);
+      return true;
+    }
+    return false;
   }
 
   private boolean redirectLegacyAppPaths(
