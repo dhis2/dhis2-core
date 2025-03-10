@@ -191,7 +191,7 @@ public class OpenApiRenderer {
 
   body > section details {
     margin-left: 2rem;
-  }
+  } 
   body > nav details {
     padding: 0.5rem 0 0 0.5rem;
   }
