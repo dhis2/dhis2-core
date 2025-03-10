@@ -34,6 +34,9 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -134,20 +137,24 @@ public class ProgramDataElementDimensionItem extends BaseDimensionalItemObject
 
   @Override
   public String getDimensionItem() {
-    return program.getUid()
-        + COMPOSITE_DIM_OBJECT_PLAIN_SEP
-        + dataElement.getUid()
-        + COMPOSITE_DIM_OBJECT_PLAIN_SEP
-        + getOptionSet().getUid();
+    return Stream.of(
+            Optional.ofNullable(program).map(BaseIdentifiableObject::getUid),
+            Optional.ofNullable(dataElement).map(BaseIdentifiableObject::getUid),
+            Optional.ofNullable(getOptionSet()).map(BaseIdentifiableObject::getUid))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(Collectors.joining(COMPOSITE_DIM_OBJECT_PLAIN_SEP));
   }
 
   @Override
   public String getDimensionItem(IdScheme idScheme) {
-    return program.getPropertyValue(idScheme)
-        + COMPOSITE_DIM_OBJECT_PLAIN_SEP
-        + dataElement.getPropertyValue(idScheme)
-        + COMPOSITE_DIM_OBJECT_PLAIN_SEP
-        + getOptionSet().getPropertyValue(idScheme);
+    return Stream.of(
+            Optional.ofNullable(program).map(p -> p.getPropertyValue(idScheme)),
+            Optional.ofNullable(dataElement).map(de -> de.getPropertyValue(idScheme)),
+            Optional.ofNullable(getOptionSet()).map(os -> os.getPropertyValue(idScheme)))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(Collectors.joining(COMPOSITE_DIM_OBJECT_PLAIN_SEP));
   }
 
   @Override
