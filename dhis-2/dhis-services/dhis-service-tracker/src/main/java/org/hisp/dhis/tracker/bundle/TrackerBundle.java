@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleEffects;
@@ -149,7 +150,7 @@ public class TrackerBundle {
     return User.username(user);
   }
 
-  @Builder.Default @JsonIgnore private Set<String> updatedTrackedEntities = new HashSet<>();
+  @Builder.Default @JsonIgnore private Set<UID> updatedTrackedEntities = new HashSet<>();
 
   public Optional<TrackedEntity> findTrackedEntityByUid(String uid) {
     return findById(this.trackedEntities, uid);
@@ -175,6 +176,14 @@ public class TrackerBundle {
     return ruleEffects.stream()
         .filter(RuleEffects::isEnrollment)
         .collect(Collectors.toMap(RuleEffects::getTrackerObjectUid, RuleEffects::getRuleEffects));
+  }
+
+  public Set<UID> getUpdatedTrackedEntities() {
+    return Set.copyOf(this.updatedTrackedEntities);
+  }
+
+  public void addUpdatedTrackedEntities(Set<UID> updatedTrackedEntities) {
+    this.updatedTrackedEntities.addAll(updatedTrackedEntities);
   }
 
   public Map<String, List<RuleEffect>> getEventRuleEffects() {

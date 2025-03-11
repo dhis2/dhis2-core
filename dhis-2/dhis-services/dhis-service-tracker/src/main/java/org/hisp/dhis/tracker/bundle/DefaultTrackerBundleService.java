@@ -31,11 +31,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.ParamsConverter;
@@ -135,7 +137,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
     if (!bundle.getUpdatedTrackedEntities().isEmpty()) {
       try {
         trackedEntityInstanceService.updateTrackedEntityInstancesLastUpdated(
-            bundle.getUpdatedTrackedEntities(),
+            new HashSet<>(UID.toValueList(bundle.getUpdatedTrackedEntities())),
             new Date(),
             mapper.writeValueAsString(bundle.getUserInfo()));
       } catch (JsonProcessingException e) {
