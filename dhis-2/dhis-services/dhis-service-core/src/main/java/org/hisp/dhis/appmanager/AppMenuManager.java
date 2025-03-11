@@ -32,6 +32,7 @@ import static org.hisp.dhis.security.Authorities.ALL;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -43,7 +44,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
 /**
@@ -57,11 +58,11 @@ public class AppMenuManager {
 
   private final LocaleManager localeManager;
 
-  private final List<WebModule> menuModules;
+  private final List<WebModule> menuModules = new ArrayList<>();
 
   private Locale currentLocale;
 
-  private final AppManager appManager;
+  private final ResourceLoader resourceLoader;
 
   private String readFromInputStream(InputStream inputStream) throws IOException {
     StringBuilder resultStringBuilder = new StringBuilder();
@@ -74,7 +75,7 @@ public class AppMenuManager {
     return resultStringBuilder.toString();
   }
 
-  private void generateModules() {
+  private void generateModules(AppManager appManager) {
     Set<String> bundledApps = AppManager.BUNDLED_APPS;
 
     for (String app : bundledApps) {
@@ -94,7 +95,9 @@ public class AppMenuManager {
       try {
         // 1. read the manifest file for bundled apps
         InputStream appManifestResource =
-            new ClassPathResource("static/" + key + "/manifest.webapp").getInputStream();
+            resourceLoader
+                .getResource("classpath:static/" + key + "/manifest.webapp")
+                .getInputStream();
         String appManifest = readFromInputStream(appManifestResource);
 
         ObjectMapper mapper = new ObjectMapper();
@@ -107,7 +110,7 @@ public class AppMenuManager {
         // 2. check if this is a bundled app that was updated (so its information should be in the
         // cache)
         App installedApp = appManager.getApp(app);
-        // ToDo: expose the concept of an overridden bundled app in the App class?
+
         if (installedApp != null && !installedApp.getVersion().equals(module.getVersion())) {
           module.setShortcuts(installedApp.getShortcuts());
           module.setVersion(installedApp.getVersion());
@@ -129,9 +132,9 @@ public class AppMenuManager {
     currentLocale = localeManager.getCurrentLocale();
   }
 
-  public List<WebModule> getAccessibleWebModules() {
+  public List<WebModule> getAccessibleWebModules(AppManager appManager) {
     if (menuModules.isEmpty()) {
-      generateModules();
+      generateModules(appManager);
     }
 
     detectLocaleChange();
