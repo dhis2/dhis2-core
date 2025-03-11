@@ -526,9 +526,9 @@ class JdbcEventStore implements EventStore {
     sqlBuilder.append(
         getIdSqlBasedOnIdScheme(
             idSchemes.getCategoryOptionComboIdScheme(),
-            "coc.uid as coc_identifier, ",
-            "coc.attributevalues #>> '{%s, value}' as coc_identifier, ",
-            "coc.code as coc_identifier, "));
+            "coc_agg.uid as coc_identifier, ",
+            "coc_agg.attributevalues #>> '{%s, value}' as coc_identifier, ",
+            "coc_agg.code as coc_identifier, "));
 
     return sqlBuilder.toString();
   }
@@ -797,7 +797,7 @@ class JdbcEventStore implements EventStore {
             .append("au.username as ")
             .append(COLUMN_EVENT_ASSIGNED_USER_USERNAME)
             .append(",")
-            .append("coc.uid as ")
+            .append("coc_agg.uid as ")
             .append(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID)
             .append(", ")
             .append("coc_agg.co_uids AS co_uids, ")
@@ -1501,13 +1501,11 @@ class JdbcEventStore implements EventStore {
    */
   private String getCategoryOptionComboQuery(User user) {
     String joinCondition =
-        "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = ev.attributeoptioncomboid "
-            + " inner join lateral (select coc.categoryoptioncomboid as id,"
+        " inner join (select coc.uid, coc.attributevalues, coc.code, coc.categoryoptioncomboid as id,"
             + " string_agg(co.uid, ',') as co_uids, count(co.categoryoptionid) as co_count"
             + " from categoryoptioncombo coc "
             + " inner join categoryoptioncombos_categoryoptions cocco on coc.categoryoptioncomboid = cocco.categoryoptioncomboid"
             + " inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid"
-            + " where ev.attributeoptioncomboid = coc.categoryoptioncomboid"
             + " group by coc.categoryoptioncomboid ";
 
     if (!isSuper(user)) {
