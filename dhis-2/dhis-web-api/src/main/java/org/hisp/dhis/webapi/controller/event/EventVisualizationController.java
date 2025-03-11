@@ -52,6 +52,7 @@ import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationService;
@@ -66,6 +67,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.GetObjectParams;
+import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.ChartService;
@@ -73,6 +75,7 @@ import org.hisp.dhis.visualization.PlotData;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.FilterUtils;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.springframework.stereotype.Controller;
@@ -175,6 +178,21 @@ public class EventVisualizationController
             .getParentGraphMap()
             .put(organisationUnit.getUid(), organisationUnit.getParentGraph(roots));
       }
+      for (TrackedEntityDataElementDimension dim : eventVisualization.getDataElementDimensions()) {
+        if (isOrgUnitType(dim)) {
+          List<String> ouUids = FilterUtils.fromFilter(dim.getFilter());
+          if (ouUids.isEmpty()) {
+            continue;
+          }
+          organisationUnitService
+              .getOrganisationUnitsByUid(ouUids)
+              .forEach(
+                  ou ->
+                      eventVisualization
+                          .getParentGraphMap()
+                          .put(ou.getUid(), ou.getParentGraph(roots)));
+        }
+      }
     }
 
     I18nFormat format = i18nManager.getI18nFormat();
@@ -206,7 +224,7 @@ public class EventVisualizationController
   @Override
   protected void preCreateEntity(EventVisualization newEventVisualization)
       throws ConflictException {
-    /**
+    /*
      * Once a legacy EventVisualization is CREATED through this new endpoint, it will automatically
      * become a non-legacy EventVisualization.
      */
@@ -217,7 +235,7 @@ public class EventVisualizationController
   protected void preUpdateEntity(
       EventVisualization eventVisualization, EventVisualization newEventVisualization)
       throws ConflictException {
-    /**
+    /*
      * Once a legacy EventVisualization is UPDATED through this new endpoint, it will automatically
      * become a non-legacy EventVisualization.
      */
@@ -256,8 +274,6 @@ public class EventVisualizationController
   /**
    * Load the current/existing legendSet (if any is set) into the current visualization object, so
    * the relationship can be persisted.
-   *
-   * @param eventVisualization
    */
   private void maybeLoadLegendSetInto(EventVisualization eventVisualization) {
     if (eventVisualization.getLegendDefinitions() != null
@@ -283,5 +299,10 @@ public class EventVisualizationController
               "Cannot generate chart for multi-program visualization "
                   + eventVisualization.getUid()));
     }
+  }
+
+  private boolean isOrgUnitType(TrackedEntityDataElementDimension dimension) {
+    return dimension.getDataElement() != null
+        && dimension.getDataElement().getValueType() == ValueType.ORGANISATION_UNIT;
   }
 }
