@@ -347,7 +347,7 @@ public class OpenApiRenderer {
   nav button:before { content: '🞕'; margin-right: 0.5rem;font-weight: normal; }
 
   details.box aside button,
-  details.box aside .button { background-color: #444; color: white; border: none; display: inline-block;
+  details.box aside .button { background-color: #2A303A; color: white; border: none; display: inline-block;
     cursor: pointer; margin: 0 1em 0 0; padding: 0.25em 0.5em; font-size: 90%;
     box-shadow: 1px 1px 0 0, 2px 2px 0 0, 3px 3px 0 0, 4px 4px 0 0, 5px 5px 0 0;}
   details.box aside .button > summary { display: inline-block; margin: 0; padding: 0; }
