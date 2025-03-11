@@ -35,10 +35,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.UserInfoSnapshot;
@@ -137,21 +137,19 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   }
 
   private void updateTrackedEntitiesLastUpdated(TrackerBundle bundle) {
-    Set<String> updatedTrackedEntities = bundle.getUpdatedTrackedEntities();
-
-    if (updatedTrackedEntities.isEmpty()) {
+    if (bundle.getUpdatedTrackedEntities().isEmpty()) {
       return;
     }
 
-    List<List<String>> uidsPartitions =
+    List<List<UID>> uidsPartitions =
         Lists.partition(Lists.newArrayList(bundle.getUpdatedTrackedEntities()), 20000);
 
     try (Session session = entityManager.unwrap(Session.class)) {
-      for (List<String> trackedEntities : uidsPartitions) {
+      for (List<UID> trackedEntities : uidsPartitions) {
         if (trackedEntities.isEmpty()) {
           continue;
         }
-        executeLastUpdatedQuery(session, trackedEntities, bundle.getUser());
+        executeLastUpdatedQuery(session, UID.toValueList(trackedEntities), bundle.getUser());
       }
     }
   }
