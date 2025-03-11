@@ -171,6 +171,14 @@ public class TrackerBundle {
         .collect(Collectors.toMap(RuleEffects::getTrackerObjectUid, RuleEffects::getRuleEffects));
   }
 
+  public Set<String> getUpdatedTrackedEntities() {
+    return Set.copyOf(this.updatedTrackedEntities);
+  }
+
+  public void addUpdatedTrackedEntities(Set<String> updatedTrackedEntities) {
+    this.updatedTrackedEntities.addAll(updatedTrackedEntities);
+  }
+
   public Map<String, List<RuleEffect>> getEventRuleEffects() {
     return ruleEffects.stream()
         .filter(RuleEffects::isEvent)

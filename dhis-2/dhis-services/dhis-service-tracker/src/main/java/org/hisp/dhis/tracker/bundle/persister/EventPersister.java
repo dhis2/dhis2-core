@@ -41,6 +41,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
@@ -273,11 +274,11 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
   }
 
   @Override
-  protected String getUpdatedTrackedEntity(ProgramStageInstance entity) {
-    return Optional.ofNullable(entity.getProgramInstance())
-        .filter(pi -> pi.getEntityInstance() != null)
-        .map(pi -> pi.getEntityInstance().getUid())
-        .orElse(null);
+  protected Set<String> getUpdatedTrackedEntities(ProgramStageInstance entity) {
+    return Stream.of(entity.getProgramInstance())
+        .filter(e -> e.getEntityInstance() != null)
+        .map(e -> e.getEntityInstance().getUid())
+        .collect(Collectors.toSet());
   }
 
   private boolean isNewDataValue(EventDataValue eventDataValue, DataValue dv) {
