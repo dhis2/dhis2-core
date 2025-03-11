@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.TrackerType;
@@ -137,7 +138,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
     if (!bundle.getUpdatedTrackedEntities().isEmpty()) {
       try {
         trackedEntityService.updateTrackedEntityLastUpdated(
-            bundle.getUpdatedTrackedEntities(),
+            UID.toValueList(bundle.getUpdatedTrackedEntities()),
             new Date(),
             mapper.writeValueAsString(bundle.getUserInfo()));
       } catch (JsonProcessingException e) {
