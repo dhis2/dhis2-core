@@ -531,7 +531,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
         entityAfterUpdate.getLastUpdatedByUserInfo().getUid(),
         String.format(
             "Data integrity error for tracked entity %s. The lastUpdatedByUserinfo has not been"
-                + " saved during the import",
+                + " updated during the import",
             entityAfterUpdate.getUid()));
   }
 
