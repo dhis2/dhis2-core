@@ -313,7 +313,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
-  void shouldGetEventWithNoRelationshipsWhenEventIsOnToEndOfAUnidirectionalRelationship() {
+  void shouldGetEventWithNoRelationshipsWhenEventIsOnTheToSideOfAUnidirectionalRelationship() {
     TrackedEntity from = trackedEntity();
     Event to = event(enrollment(from));
     Relationship relationship = relationship(from, to);

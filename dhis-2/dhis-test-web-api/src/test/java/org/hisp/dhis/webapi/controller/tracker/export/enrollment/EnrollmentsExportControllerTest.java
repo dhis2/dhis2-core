@@ -265,7 +265,7 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
 
   @Test
   void
-      shouldGetEnrollmentWithNoRelationshipsWhenEnrollmentIsOnToEndOfAUnidirectionalRelationship() {
+      shouldGetEnrollmentWithNoRelationshipsWhenEnrollmentIsOnTheToSideOfAUnidirectionalRelationship() {
     Relationship relationship = get(Relationship.class, "p53a6314631");
 
     assertNotNull(
