@@ -160,12 +160,14 @@ public class OrganisationUnitResolver {
           idObjectManager.getObject(
               OrganisationUnitLevel.class, idScheme, substringAfterLast(dimensionUid, SEPARATOR));
 
-      BaseDimensionalItemObject dim = new BaseDimensionalItemObject();
-      dim.setUid(level.getUid());
-      dim.setName(level.getDisplayName());
-      dim.setCode(level.getCode());
+      if (level != null) {
+        BaseDimensionalItemObject dim = new BaseDimensionalItemObject();
+        dim.setUid(level.getUid());
+        dim.setName(level.getDisplayName());
+        dim.setCode(level.getCode());
 
-      return dim;
+        return dim;
+      }
     } else if (dimensionUid.startsWith(KEY_ORGUNIT_GROUP)) {
       return idObjectManager.getObject(
           OrganisationUnitGroup.class, idScheme, substringAfter(dimensionUid, SEPARATOR));
