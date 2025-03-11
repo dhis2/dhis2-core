@@ -366,30 +366,6 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   }
 
   @Test
-  void
-      shouldGetNoRelationshipsByTrackedEntityWhenRelationshipTypeIsUnidirectionalAndTrackedEntityIsOnToEnd() {
-    RelationshipType relationshipType = manager.get(RelationshipType.class, "m1575931405");
-    relationshipType.setBidirectional(false);
-    manager.update(relationshipType);
-
-    assertEquals(
-        "QesgJkTyTCk",
-        manager
-            .get(org.hisp.dhis.relationship.Relationship.class, "N8800829a58")
-            .getTo()
-            .getTrackedEntity()
-            .getUid(),
-        "test expects relationship to have 'to' tracked entity with uid `QesgJkTyTCk`");
-
-    JsonList<JsonRelationship> jsonRelationships =
-        GET("/tracker/relationships?trackedEntity={trackedEntity}", "QesgJkTyTCk")
-            .content(HttpStatus.OK)
-            .getList("relationships", JsonRelationship.class);
-
-    assertIsEmpty(jsonRelationships.stream().toList());
-  }
-
-  @Test
   void getTrackedEntityByIdWithFieldsRelationships() {
     TrackedEntity from = get(TrackedEntity.class, "mHWCacsGYYn");
     assertHasSize(
