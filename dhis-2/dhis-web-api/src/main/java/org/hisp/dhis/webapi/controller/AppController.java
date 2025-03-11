@@ -45,7 +45,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
@@ -53,7 +52,6 @@ import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppMenuManager;
 import org.hisp.dhis.appmanager.AppStatus;
-import org.hisp.dhis.appmanager.AppType;
 import org.hisp.dhis.appmanager.ResourceResult;
 import org.hisp.dhis.appmanager.ResourceResult.Redirect;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
@@ -119,24 +117,8 @@ public class AppController {
   @GetMapping(value = "/menu", produces = ContextUtils.CONTENT_TYPE_JSON)
   public @ResponseBody Map<String, List<WebModule>> getWebModules(HttpServletRequest request) {
     String contextPath = HttpServletRequestPaths.getContextPath(request);
-    return Map.of("modules", getAccessibleAppMenu(contextPath));
-  }
-
-  private List<WebModule> getAccessibleAppMenu(String contextPath) {
-    // these are the bundle modules
-    List<WebModule> modules = appMenuManager.getAccessibleWebModules();
-
-    List<App> apps =
-        appManager.getApps(contextPath).stream()
-            .filter(
-                app ->
-                    app.getAppType() == AppType.APP && app.hasAppEntrypoint() && !app.isBundled())
-            .collect(Collectors.toList());
-
-    // map installed apps to the WebModule object
-    modules.addAll(apps.stream().map(WebModule::getModule).collect(Collectors.toList()));
-
-    return modules;
+    List<WebModule> modules = appManager.getMenu(contextPath);
+    return Map.of("modules", modules);
   }
 
   @GetMapping(produces = ContextUtils.CONTENT_TYPE_JSON)

@@ -30,10 +30,11 @@ package org.hisp.dhis.appmanager;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
 import org.hisp.dhis.common.DxfNamespaces;
 
 @JacksonXmlRootElement(localName = "shortcut", namespace = DxfNamespaces.DXF_2_0)
-public class AppShortcut {
+public class AppShortcut implements Serializable {
   /** Determines if a de-serialized file is compatible with this class. */
   private static final long serialVersionUID = -8865601558938806456L;
 
@@ -52,5 +53,13 @@ public class AppShortcut {
   public AppShortcut(String name, String url) {
     this.name = name;
     this.url = url;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public String getUrl() {
+    return url;
   }
 }
