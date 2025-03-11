@@ -347,6 +347,10 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   @Test
   void
       shouldGetTrackedEntityWithNoRelationshipsWhenTrackedEntityIsOnToEndOfAUnidirectionalRelationship() {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "m1575931405");
+    relationshipType.setBidirectional(false);
+    manager.update(relationshipType);
+
     TrackedEntity to = get(TrackedEntity.class, "QesgJkTyTCk");
     assertHasSize(
         1, to.getRelationshipItems(), "test expects a tracked entity with one relationship");
