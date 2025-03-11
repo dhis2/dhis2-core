@@ -49,6 +49,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
@@ -149,6 +150,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       return List.of();
     }
 
+    validateMaxTeLimit(params);
+
     String sql = getQuery(params, null);
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
@@ -169,6 +172,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       return Page.empty();
     }
 
+    validateMaxTeLimit(params);
+
     String sql = getQuery(params, pageParams);
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
@@ -179,6 +184,17 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     }
 
     return new Page<>(ids, pageParams, () -> getTrackedEntityCount(params));
+  }
+
+  private void validateMaxTeLimit(TrackedEntityQueryParams params) {
+    if (!params.isSearchOutsideCaptureScope()) {
+      return;
+    }
+
+    int maxTeLimit = getMaxTeLimit(params);
+    if (maxTeLimit > 0 && getTrackedEntityCountWithMaxLimit(params) > maxTeLimit) {
+      throw new IllegalQueryException("maxteicountreached");
+    }
   }
 
   public Set<String> getOrderableFields() {
@@ -201,7 +217,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     return jdbcTemplate.queryForObject(sql, Long.class);
   }
 
-  public int getTrackedEntityCountWithMaxLimit(TrackedEntityQueryParams params) {
+  private int getTrackedEntityCountWithMaxLimit(TrackedEntityQueryParams params) {
     // A TE which is not enrolled can only be accessed by a user that is able to enroll it into a
     // tracker program. Return an empty result if there are no tracker programs or the user does
     // not have access to one.
@@ -303,7 +319,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         + getQuerySelect(params)
         + "FROM "
         + getFromSubQuery(params, true, null)
-        + getLimitClause(params.getMaxTeLimit() + 1)
+        + getLimitClause(getMaxTeLimit(params) + 1)
         + " ) tecount";
   }
 
@@ -1008,7 +1024,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    */
   private String getFromSubQueryLimitAndOffset(PageParams pageParams) {
     StringBuilder limitOffset = new StringBuilder();
-    int systemMaxPageSize = settingsProvider.getCurrentSettings().getTrackedEntityMaxLimit();
+    int systemMaxLimit = settingsProvider.getCurrentSettings().getTrackedEntityMaxLimit();
 
     if (pageParams != null) {
       return limitOffset
@@ -1021,15 +1037,26 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           .append(pageParams.getOffset())
           .append(SPACE)
           .toString();
-    } else if (systemMaxPageSize > 0) {
+    } else if (systemMaxLimit > 0) {
       return limitOffset
           .append(LIMIT)
           .append(SPACE)
-          .append(systemMaxPageSize)
+          .append(systemMaxLimit)
           .append(SPACE)
           .toString();
     }
 
     return limitOffset.toString();
+  }
+
+  /** Returns the maximum TE retrieval limit. 0 no limit. */
+  private int getMaxTeLimit(TrackedEntityQueryParams params) {
+    if (params.hasTrackedEntityType()) {
+      return params.getTrackedEntityType().getMaxTeiCountToReturn();
+    } else if (params.hasEnrolledInTrackerProgram()) {
+      return params.getEnrolledInTrackerProgram().getMaxTeiCountToReturn();
+    }
+
+    return 0;
   }
 }

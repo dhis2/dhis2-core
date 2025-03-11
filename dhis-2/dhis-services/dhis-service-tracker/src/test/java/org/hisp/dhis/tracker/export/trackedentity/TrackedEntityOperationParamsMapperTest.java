@@ -535,8 +535,6 @@ class TrackedEntityOperationParamsMapperTest {
     program.setMaxTeiCountToReturn(1);
     when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
 
-    when(trackedEntityStore.getTrackedEntityCountWithMaxLimit(any())).thenReturn(100);
-
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder().orgUnitMode(ACCESSIBLE).build();
 

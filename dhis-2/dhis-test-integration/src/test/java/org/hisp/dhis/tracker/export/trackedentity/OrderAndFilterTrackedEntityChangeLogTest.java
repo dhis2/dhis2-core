@@ -166,7 +166,6 @@ class OrderAndFilterTrackedEntityChangeLogTest extends PostgresIntegrationTestBa
     String updatedValue = "100";
 
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
-    updateAttributeValue(trackedEntity, "dIVt4l5vIOa", "new value");
 
     List<String> changeLogs =
         trackedEntityChangeLogService
@@ -177,13 +176,7 @@ class OrderAndFilterTrackedEntityChangeLogTest extends PostgresIntegrationTestBa
             .toList();
 
     assertEquals(
-        List.of(
-            "numeric-attribute",
-            "numeric-attribute",
-            "TA First name",
-            "TA First name",
-            "to-update-tei-attribute"),
-        changeLogs);
+        List.of("numeric-attribute", "numeric-attribute", "to-update-tei-attribute"), changeLogs);
   }
 
   @Test
@@ -198,7 +191,6 @@ class OrderAndFilterTrackedEntityChangeLogTest extends PostgresIntegrationTestBa
     String updatedValue = "100";
 
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
-    updateAttributeValue(trackedEntity, "dIVt4l5vIOa", "new value");
 
     List<String> changeLogs =
         trackedEntityChangeLogService
@@ -209,13 +201,7 @@ class OrderAndFilterTrackedEntityChangeLogTest extends PostgresIntegrationTestBa
             .toList();
 
     assertEquals(
-        List.of(
-            "to-update-tei-attribute",
-            "TA First name",
-            "TA First name",
-            "numeric-attribute",
-            "numeric-attribute"),
-        changeLogs);
+        List.of("to-update-tei-attribute", "numeric-attribute", "numeric-attribute"), changeLogs);
   }
 
   @Test
