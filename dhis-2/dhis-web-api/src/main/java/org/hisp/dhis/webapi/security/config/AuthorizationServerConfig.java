@@ -27,20 +27,30 @@
  */
 package org.hisp.dhis.webapi.security.config;
 
+import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import java.io.IOException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.UUID;
+import org.hisp.dhis.security.oidc.KeyStoreUtil;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -63,8 +73,25 @@ import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 @Configuration
 public class AuthorizationServerConfig {
 
+  private static final Logger log = LoggerFactory.getLogger(AuthorizationServerConfig.class);
+
   @Autowired
   private TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource;
+
+  @Value("${oauth2.jwt.keystore.path:}")
+  private String keystorePath;
+
+  @Value("${oauth2.jwt.keystore.password:}")
+  private String keystorePassword;
+
+  @Value("${oauth2.jwt.keystore.alias:}")
+  private String keystoreAlias;
+
+  @Value("${oauth2.jwt.keystore.key-password:}")
+  private String keyPassword;
+
+  @Value("${oauth2.jwt.keystore.generate-if-missing:false}")
+  private boolean generateIfMissing;
 
   @Bean
   @Order(1)
@@ -111,16 +138,70 @@ public class AuthorizationServerConfig {
 
   @Bean
   public JWKSource<SecurityContext> jwkSource() {
+    RSAKey rsaKey;
+
+    // Try to load key from keystore if configured
+    if (keystorePath != null && !keystorePath.isEmpty()) {
+      log.info("Attempting to load JWK from keystore: {}", keystorePath);
+      try {
+        KeyStore keyStore = KeyStoreUtil.readKeyStore(keystorePath, keystorePassword);
+        log.debug("Keystore loaded successfully");
+        
+        // Use the keystore alias or fallback to the first alias in the keystore
+        String alias = keystoreAlias;
+        if (alias == null || alias.isEmpty()) {
+          String errorMsg = "Keystore alias is not configured but required: oauth2.jwt.keystore.alias";
+          log.error(errorMsg);
+          throw new IllegalStateException(errorMsg);
+        }
+        
+        char[] pin = keyPassword != null ? keyPassword.toCharArray() : null;
+        
+        try {
+          log.debug("Loading RSA key with alias: {}", alias);
+          rsaKey = KeyStoreUtil.loadRSAPublicKey(keyStore, alias, pin);
+          log.info("Successfully loaded JWK from keystore with key ID: {}", rsaKey.getKeyID());
+          return new ImmutableJWKSet<>(new JWKSet(rsaKey));
+        } catch (KeyStoreException | JOSEException e) {
+          String errorMessage = "Failed to load RSA key from keystore: " + e.getMessage();
+          if (generateIfMissing) {
+            log.warn("{} Generating a new key pair.", errorMessage);
+          } else {
+            log.error(errorMessage, e);
+            throw new IllegalStateException(errorMessage, e);
+          }
+        }
+      } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
+        String errorMessage = "Failed to load keystore: " + e.getMessage();
+        if (generateIfMissing) {
+          log.warn("{} Generating a new key pair.", errorMessage);
+        } else {
+          log.error(errorMessage, e);
+          throw new IllegalStateException(errorMessage, e);
+        }
+      }
+    } else {
+      if (!generateIfMissing) {
+        String errorMsg = "Keystore configuration is missing and generation of keys is disabled. "
+            + "Configure oauth2.jwt.keystore.path or enable oauth2.jwt.keystore.generate-if-missing.";
+        log.error(errorMsg);
+        throw new IllegalStateException(errorMsg);
+      }
+      log.warn("No keystore configuration provided. Generating a new ephemeral RSA key pair.");
+    }
+
+    // Generate a new key pair only if allowed or if keystore is not configured
+    log.info("Generating ephemeral RSA key pair");
     KeyPair keyPair = generateRsaKey();
     RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
     RSAPrivateKey privateKey = (RSAPrivateKey) keyPair.getPrivate();
-    RSAKey rsaKey =
-        new RSAKey.Builder(publicKey)
-            .privateKey(privateKey)
-            .keyID(UUID.randomUUID().toString())
-            .build();
-    JWKSet jwkSet = new JWKSet(rsaKey);
-    return new ImmutableJWKSet<>(jwkSet);
+    rsaKey = new RSAKey.Builder(publicKey)
+        .privateKey(privateKey)
+        .keyID(UUID.randomUUID().toString())
+        .build();
+    
+    log.info("Generated ephemeral RSA key pair with key ID: {}", rsaKey.getKeyID());
+    return new ImmutableJWKSet<>(new JWKSet(rsaKey));
   }
 
   private static KeyPair generateRsaKey() {
@@ -130,7 +211,9 @@ public class AuthorizationServerConfig {
       keyPairGenerator.initialize(2048);
       keyPair = keyPairGenerator.generateKeyPair();
     } catch (Exception ex) {
-      throw new IllegalStateException(ex);
+      String errorMsg = "Failed to generate RSA key pair: " + ex.getMessage();
+      LoggerFactory.getLogger(AuthorizationServerConfig.class).error(errorMsg, ex);
+      throw new IllegalStateException(errorMsg, ex);
     }
     return keyPair;
   }
