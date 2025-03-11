@@ -30,7 +30,9 @@ package org.hisp.dhis.webapi.utils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public class FilterUtils {
 
   /**

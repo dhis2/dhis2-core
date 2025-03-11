@@ -172,27 +172,8 @@ public class EventVisualizationController
 
     if (currentUser != null) {
       Set<OrganisationUnit> roots = currentUser.getDataViewOrganisationUnitsWithFallback();
-
-      for (OrganisationUnit organisationUnit : eventVisualization.getOrganisationUnits()) {
-        eventVisualization
-            .getParentGraphMap()
-            .put(organisationUnit.getUid(), organisationUnit.getParentGraph(roots));
-      }
-      for (TrackedEntityDataElementDimension dim : eventVisualization.getDataElementDimensions()) {
-        if (isOrgUnitType(dim)) {
-          List<String> ouUids = FilterUtils.fromFilter(dim.getFilter());
-          if (ouUids.isEmpty()) {
-            continue;
-          }
-          organisationUnitService
-              .getOrganisationUnitsByUid(ouUids)
-              .forEach(
-                  ou ->
-                      eventVisualization
-                          .getParentGraphMap()
-                          .put(ou.getUid(), ou.getParentGraph(roots)));
-        }
-      }
+      addOrganizationUnitsToGraphMap(eventVisualization, roots);
+      addFilterOrganizationUnitToGraphMap(eventVisualization, roots);
     }
 
     I18nFormat format = i18nManager.getI18nFormat();
@@ -215,6 +196,34 @@ public class EventVisualizationController
 
     eventVisualization.setProgramDimensions(
         new ArrayList<>(programService.getPrograms(programUidsInDimensions)));
+  }
+
+  private static void addOrganizationUnitsToGraphMap(
+      EventVisualization eventVisualization, Set<OrganisationUnit> roots) {
+    for (OrganisationUnit organisationUnit : eventVisualization.getOrganisationUnits()) {
+      eventVisualization
+          .getParentGraphMap()
+          .put(organisationUnit.getUid(), organisationUnit.getParentGraph(roots));
+    }
+  }
+
+  private void addFilterOrganizationUnitToGraphMap(
+      EventVisualization eventVisualization, Set<OrganisationUnit> roots) {
+    for (TrackedEntityDataElementDimension dim : eventVisualization.getDataElementDimensions()) {
+      if (isOrgUnitType(dim)) {
+        List<String> ouUids = FilterUtils.fromFilter(dim.getFilter());
+        if (ouUids.isEmpty()) {
+          continue;
+        }
+        organisationUnitService
+            .getOrganisationUnitsByUid(ouUids)
+            .forEach(
+                ou ->
+                    eventVisualization
+                        .getParentGraphMap()
+                        .put(ou.getUid(), ou.getParentGraph(roots)));
+      }
+    }
   }
 
   private Stream<Program> getPrograms(Stream<DimensionalObject> dimensionalObjectStream) {
