@@ -243,7 +243,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
     relationshipType.setBidirectional(false);
     manager.update(relationshipType);
 
-    org.hisp.dhis.program.Event to = manager.get(org.hisp.dhis.program.Event.class, "D9PbzJY8bJM");
+    org.hisp.dhis.program.Event to = manager.get(org.hisp.dhis.program.Event.class, "pTzf9KYMk72");
     assertHasSize(
         1,
         to.getRelationshipItems(),
