@@ -326,7 +326,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     switchContextToUser(user);
 
     JsonList<JsonRelationship> relationships =
-        GET("/tracker/events/?events={id}&fields=relationships&includeDeleted=true", to.getUid())
+        GET("/tracker/events/?events={id}&fields=relationships", to.getUid())
             .content(HttpStatus.OK)
             .getList("events", JsonEvent.class)
             .get(0)

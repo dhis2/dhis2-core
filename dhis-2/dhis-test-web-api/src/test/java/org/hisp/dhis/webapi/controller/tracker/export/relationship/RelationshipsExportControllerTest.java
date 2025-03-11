@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 import static org.hisp.dhis.http.HttpStatus.FORBIDDEN;
 import static org.hisp.dhis.http.HttpStatus.NOT_FOUND;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.Assertions.*;
@@ -237,13 +238,19 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
-  void shouldGetNoRelationshipsByEventWhenRelationshipTypeIsUnidirectionalAndEventIsOnToEnd() {
-    RelationshipType relationshipType =
-        manager.get(RelationshipType.class, relationship1.getRelationshipType().getIdentifier());
+  void shouldGetNoRelationshipsByEventWhenRelationshipTypeIsUnidirectionalAndEventIsOnTheToSide() {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "TV9oB9LT3sh");
     relationshipType.setBidirectional(false);
     manager.update(relationshipType);
+
+    org.hisp.dhis.program.Event to = manager.get(org.hisp.dhis.program.Event.class, "D9PbzJY8bJM");
+    assertHasSize(
+        1,
+        to.getRelationshipItems(),
+        "test expects relationship to have 'to' event with uid " + to.getUid());
+
     JsonList<JsonRelationship> jsonRelationships =
-        GET("/tracker/relationships?event={uid}", relationship1To.getUid())
+        GET("/tracker/relationships?event={uid}", to.getUid())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
@@ -358,13 +365,20 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
 
   @Test
   void
-      shouldGetNoRelationshipsByEnrollmentWhenRelationshipTypeIsUnidirectionalAndEnrollmentIsOnToEnd() {
-    RelationshipType relationshipType =
-        manager.get(RelationshipType.class, relationship2.getRelationshipType().getIdentifier());
+      shouldGetNoRelationshipsByEnrollmentWhenRelationshipTypeIsUnidirectionalAndEnrollmentIsOnTheToSide() {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "xLmPUYJX8Ks");
     relationshipType.setBidirectional(false);
     manager.update(relationshipType);
+
+    org.hisp.dhis.program.Enrollment to =
+        manager.get(org.hisp.dhis.program.Enrollment.class, "nxP7UnKhomJ");
+    assertHasSize(
+        1,
+        to.getRelationshipItems(),
+        "test expects relationship to have 'to' enrollment with uid " + to.getUid());
+
     JsonList<JsonRelationship> jsonRelationships =
-        GET("/tracker/relationships?enrollment=" + relationship2To.getUid())
+        GET("/tracker/relationships?enrollment=" + to.getUid())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
@@ -509,22 +523,20 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
 
   @Test
   void
-      shouldGetNoRelationshipsByTrackedEntityWhenRelationshipTypeIsUnidirectionalAndTrackedEntityIsOnToEnd() {
+      shouldGetNoRelationshipsByTrackedEntityWhenRelationshipTypeIsUnidirectionalAndTrackedEntityIsOnTheToSide() {
     RelationshipType relationshipType = manager.get(RelationshipType.class, "m1575931405");
     relationshipType.setBidirectional(false);
     manager.update(relationshipType);
 
-    assertEquals(
-        "QesgJkTyTCk",
-        manager
-            .get(org.hisp.dhis.relationship.Relationship.class, "N8800829a58")
-            .getTo()
-            .getTrackedEntity()
-            .getUid(),
-        "test expects relationship to have 'to' tracked entity with uid `QesgJkTyTCk`");
+    org.hisp.dhis.trackedentity.TrackedEntity to =
+        manager.get(org.hisp.dhis.trackedentity.TrackedEntity.class, "QesgJkTyTCk");
+    assertHasSize(
+        1,
+        to.getRelationshipItems(),
+        "test expects relationship to have 'to' tracked entity with uid " + to.getUid());
 
     JsonList<JsonRelationship> jsonRelationships =
-        GET("/tracker/relationships?trackedEntity={trackedEntity}", "QesgJkTyTCk")
+        GET("/tracker/relationships?trackedEntity={trackedEntity}", to.getUid())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
