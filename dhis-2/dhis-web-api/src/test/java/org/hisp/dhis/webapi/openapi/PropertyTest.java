@@ -28,12 +28,14 @@
 package org.hisp.dhis.webapi.openapi;
 
 import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import lombok.Getter;
 import lombok.Setter;
@@ -71,10 +73,11 @@ class PropertyTest {
   @Test
   void testGetPropertiesGivenOpenApiPropertyAnnotatedSetter() {
     Collection<Property> properties = Property.getProperties(AnotherProperty.class);
-    assertEquals(1, properties.size());
-    Property property = new ArrayList<>(properties).get(0);
-    assertEquals("openApiProperty", property.getName());
-    assertEquals(String.class, property.getType());
+    assertEquals(2, properties.size());
+    assertEquals(
+        Set.of("openApiProperty", "property"),
+        properties.stream().map(Property::getName).collect(toSet()));
+    assertEquals(Set.of(String.class), properties.stream().map(Property::getType).collect(toSet()));
   }
 
   @Test
