@@ -55,6 +55,20 @@
       "version": {
         "min": 42
       }
+    },
+    {
+      "name": "metadataForDataElementOfTypeOrgUnitFilterEq",
+      "query": "/api/analytics/events/query/eBAyeGv0exc.json?dimension=Zj7UnCAulEk.S33cRBsnXPo:EQ:Vth0fbpFcsO&totalPages=false&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=EVENT",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "metadataForDataElementOfTypeOrgUnitFilterIn",
+      "query": "/api/analytics/events/query/eBAyeGv0exc.json?dimension=Zj7UnCAulEk.S33cRBsnXPo:IN:USER_ORGUNIT;USER_ORGUNIT_GRANDCHILDREN;lc3eMKXaEfw;bL4ooGhyHRQ;LEVEL-H1KlN4QIauv;USER_ORGUNIT_CHILDREN;Vth0fbpFcsO;OU_GROUP-CXw2yu5fodb&filter=ou:USER_ORGUNIT&totalPages=false&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=EVENT",
+      "version": {
+        "min": 42
+      }
     }
   ]
 }
