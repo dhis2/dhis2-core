@@ -143,7 +143,7 @@ public class OpenApiController {
     // for HTML X-properties must be included
     generation.setIncludeXProperties(true);
 
-    OpenApiScopingParams scope = new OpenApiScopingParams().setScope(Set.of("path./api/" + path));
+    OpenApiScopingParams scope = new OpenApiScopingParams().setScope(Set.of("path:/api/" + path));
     getHtmlWriter(response).write(renderCached(scope, generation, rendering));
   }
 
@@ -160,7 +160,7 @@ public class OpenApiController {
       HttpServletResponse response) {
     if (notModified(request, response, generation)) return;
 
-    OpenApiScopingParams scope = new OpenApiScopingParams().setScope(Set.of("path./api/" + path));
+    OpenApiScopingParams scope = new OpenApiScopingParams().setScope(Set.of("path:/api/" + path));
     getYamlWriter(response).write(generateCached(Language.YAML, scope, generation));
   }
 
@@ -191,7 +191,7 @@ public class OpenApiController {
       HttpServletResponse response) {
     if (notModified(request, response, generation)) return;
 
-    OpenApiScopingParams scope = new OpenApiScopingParams().setScope(Set.of("path./api/" + path));
+    OpenApiScopingParams scope = new OpenApiScopingParams().setScope(Set.of("path:/api/" + path));
     getJsonWriter(response).write(generateCached(Language.JSON, scope, generation));
   }
 
