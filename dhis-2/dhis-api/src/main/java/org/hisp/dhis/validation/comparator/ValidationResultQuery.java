@@ -55,22 +55,25 @@ public class ValidationResultQuery {
 
   private int pageSize = Pager.DEFAULT_PAGE_SIZE;
 
-  @OpenApi.Description(
-      "Optional list of validation rule UIDs to filter. If empty the list is not restricting the query.")
+  /**
+   * Optional list of validation rule UIDs to filter. If empty the list is not restricting the query
+   */
   @OpenApi.Property({UID.class, ValidationRule.class})
   private List<String> vr;
 
-  @OpenApi.Description(
-      "Optional list of organisation unit UIDs to filter. If empty the list is not restricting the query")
+  /**
+   * Optional list of organisation unit UIDs to filter. If empty the list is not restricting the
+   * query
+   */
   @OpenApi.Property({UID.class, OrganisationUnit.class})
   private List<String> ou;
 
-  @OpenApi.Description(
-      "Optional list of ISO-Date expressions to filter. If empty the list is not restricting the query")
+  /**
+   * Optional list of ISO-Date expressions to filter. If empty the list is not restricting the query
+   */
   private List<String> pe;
 
-  @OpenApi.Description(
-      "Optional filter to select only results that have been created on or after the given date")
+  /** Optional filter to select only results that have been created on or after the given date */
   private Date createdDate;
 
   private List<String> fields;
