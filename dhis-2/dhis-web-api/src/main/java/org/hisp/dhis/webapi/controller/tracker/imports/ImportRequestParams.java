@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -63,6 +64,8 @@ public class ImportRequestParams {
 
   /** Validation mode to use, defaults to fully validated objects. */
   @JsonProperty @Builder.Default private ValidationMode validationMode = ValidationMode.FULL;
+
+  @JsonIgnore @Builder.Default private boolean async = true;
 
   /** Should text pattern validation be skipped or not, default is not. */
   @JsonProperty @Builder.Default private boolean skipPatternValidation = false;

@@ -62,6 +62,16 @@ class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase 
   }
 
   @Test
+  void shouldImportAsyncByDefault() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Tracker job added",
+        POST("/tracker?importMode=VALIDATE", "{}").content(HttpStatus.OK));
+  }
+
+  @Test
   void shouldReturnBadRequestWhenThereIsAnInvalidUidInThePayload() {
     assertWebMessage(
         "Bad Request",
@@ -92,7 +102,7 @@ class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase 
         400,
         "ERROR",
         "idScheme cannot be empty. Valid values are: [UID, CODE, NAME, ATTRIBUTE:attributeUid]",
-        POST("/tracker?async=false&idScheme=", "{}").content(HttpStatus.BAD_REQUEST));
+        POST("/tracker?idScheme=", "{}").content(HttpStatus.BAD_REQUEST));
   }
 
   @Test
@@ -112,7 +122,7 @@ class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase 
         400,
         "ERROR",
         "Value 'INVALID' is not valid for parameter reportMode. Valid values are: [FULL, ERRORS, WARNINGS]",
-        POST("/tracker?async=false&reportMode=INVALID", "{}").content(HttpStatus.BAD_REQUEST));
+        POST("/tracker?reportMode=INVALID", "{}").content(HttpStatus.BAD_REQUEST));
   }
 
   @Test
@@ -122,7 +132,7 @@ class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase 
         400,
         "ERROR",
         "Value 'INVALID' is not valid for parameter idScheme. Valid values are: [UID, CODE, NAME, ATTRIBUTE:attributeUid]",
-        POST("/tracker?async=false&idScheme=INVALID", "{}").content(HttpStatus.BAD_REQUEST));
+        POST("/tracker?idScheme=INVALID", "{}").content(HttpStatus.BAD_REQUEST));
   }
 
   @Test
@@ -132,7 +142,7 @@ class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase 
         400,
         "ERROR",
         "Value 'ATTRIBUTE:abc' is not valid for parameter idScheme. Valid values are: [UID, CODE, NAME, ATTRIBUTE:attributeUid]",
-        POST("/tracker?async=false&idScheme=ATTRIBUTE:abc", "{}").content(HttpStatus.BAD_REQUEST));
+        POST("/tracker?idScheme=ATTRIBUTE:abc", "{}").content(HttpStatus.BAD_REQUEST));
   }
 
   @Test
@@ -142,7 +152,7 @@ class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase 
         400,
         "ERROR",
         "Value 'ATTRIBUTE:abcdefghilm:invalid' is not valid for parameter idScheme. Valid values are: [UID, CODE, NAME, ATTRIBUTE:attributeUid]",
-        POST("/tracker?async=false&idScheme=ATTRIBUTE:abcdefghilm:invalid", "{}")
+        POST("/tracker?idScheme=ATTRIBUTE:abcdefghilm:invalid", "{}")
             .content(HttpStatus.BAD_REQUEST));
   }
 
@@ -153,7 +163,7 @@ class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase 
         400,
         "ERROR",
         "Value 'INVALID' is not valid for parameter importMode. Valid values are: [COMMIT, VALIDATE]",
-        POST("/tracker?async=false&importMode=INVALID", "{}").content(HttpStatus.BAD_REQUEST));
+        POST("/tracker?importMode=INVALID", "{}").content(HttpStatus.BAD_REQUEST));
   }
 
   @Test
@@ -163,7 +173,7 @@ class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase 
         400,
         "ERROR",
         "Value 'INVALID' is not valid for parameter importStrategy. Valid values are: [CREATE, UPDATE, CREATE_AND_UPDATE, DELETE]",
-        POST("/tracker?async=false&importStrategy=INVALID", "{}").content(HttpStatus.BAD_REQUEST));
+        POST("/tracker?importStrategy=INVALID", "{}").content(HttpStatus.BAD_REQUEST));
   }
 
   @Test
@@ -173,7 +183,7 @@ class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase 
         400,
         "ERROR",
         "Value 'INVALID' is not valid for parameter atomicMode. Valid values are: [ALL, OBJECT]",
-        POST("/tracker?async=false&atomicMode=INVALID", "{}").content(HttpStatus.BAD_REQUEST));
+        POST("/tracker?atomicMode=INVALID", "{}").content(HttpStatus.BAD_REQUEST));
   }
 
   @Test
@@ -183,7 +193,7 @@ class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase 
         400,
         "ERROR",
         "Value 'INVALID' is not valid for parameter flushMode. Valid values are: [OBJECT, AUTO]",
-        POST("/tracker?async=false&flushMode=INVALID", "{}").content(HttpStatus.BAD_REQUEST));
+        POST("/tracker?flushMode=INVALID", "{}").content(HttpStatus.BAD_REQUEST));
   }
 
   @Test
@@ -193,7 +203,17 @@ class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase 
         400,
         "ERROR",
         "Value 'INVALID' is not valid for parameter validationMode. Valid values are: [FULL, FAIL_FAST, SKIP]",
-        POST("/tracker?async=false&validationMode=INVALID", "{}").content(HttpStatus.BAD_REQUEST));
+        POST("/tracker?validationMode=INVALID", "{}").content(HttpStatus.BAD_REQUEST));
+  }
+
+  @Test
+  void shouldReturnBadRequestWhenInvalidAsyncIsPassed() {
+    assertWebMessage(
+        "Bad Request",
+        400,
+        "ERROR",
+        "Value 'INVALID' is not valid for parameter async. It should be of type boolean",
+        POST("/tracker?async=INVALID", "{}").content(HttpStatus.BAD_REQUEST));
   }
 
   @Test
@@ -203,8 +223,7 @@ class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase 
         400,
         "ERROR",
         "Value 'INVALID' is not valid for parameter skipPatternValidation. It should be of type boolean",
-        POST("/tracker?async=false&skipPatternValidation=INVALID", "{}")
-            .content(HttpStatus.BAD_REQUEST));
+        POST("/tracker?skipPatternValidation=INVALID", "{}").content(HttpStatus.BAD_REQUEST));
   }
 
   @Test
@@ -214,7 +233,7 @@ class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase 
         400,
         "ERROR",
         "Value 'INVALID' is not valid for parameter skipSideEffects. It should be of type boolean",
-        POST("/tracker?async=false&skipSideEffects=INVALID", "{}").content(HttpStatus.BAD_REQUEST));
+        POST("/tracker?skipSideEffects=INVALID", "{}").content(HttpStatus.BAD_REQUEST));
   }
 
   @Test
@@ -224,6 +243,6 @@ class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase 
         400,
         "ERROR",
         "Value 'INVALID' is not valid for parameter skipRuleEngine. It should be of type boolean",
-        POST("/tracker?async=false&skipRuleEngine=INVALID", "{}").content(HttpStatus.BAD_REQUEST));
+        POST("/tracker?skipRuleEngine=INVALID", "{}").content(HttpStatus.BAD_REQUEST));
   }
 }
