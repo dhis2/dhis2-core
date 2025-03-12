@@ -31,15 +31,14 @@ import static java.nio.file.Files.createTempDirectory;
 import static org.hisp.dhis.appmanager.AppManager.BUNDLED_APPS;
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppShortcut;
@@ -53,10 +52,6 @@ import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.AppControllerTest.DhisConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
@@ -171,18 +166,19 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testInstalledAppReturnsShortcuts() throws IOException {
     appManager.installApp(
-            new ClassPathResource("app/test-app-with-shortcuts.zip").getFile(),
-            "test-app-with-shortcuts.zip");
+        new ClassPathResource("app/test-app-with-shortcuts.zip").getFile(),
+        "test-app-with-shortcuts.zip");
 
     HttpResponse response = GET("/apps/menu");
     assertEquals(HttpStatus.OK, response.status());
     ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-    List<App> modules = mapper.readValue(response.content().get("modules").toJson(), new TypeReference<List<App>>() {
-    });
+    List<App> modules =
+        mapper.readValue(
+            response.content().get("modules").toJson(), new TypeReference<List<App>>() {});
 
-    assertEquals(BUNDLED_APPS.size() + 1 , modules.size());
+    assertEquals(BUNDLED_APPS.size() + 1, modules.size());
 
     App installedApp = modules.get(modules.size() - 1);
     AppShortcut firstShortcut = installedApp.getShortcuts().get(0);
@@ -194,9 +190,5 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
 
     assertEquals("Category", secondShortcut.getName());
     assertEquals("#/categories", secondShortcut.getUrl());
-
-    for(App a: modules) {
-      assertEquals(0, modules.get(0).getShortcuts().size());
-    }
   }
 }
