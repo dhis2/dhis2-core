@@ -1728,6 +1728,7 @@
       "created": "2019-02-05T13:46:01.308",
       "lastUpdated": "2020-12-17T12:52:27.373",
       "name": "TA Person",
+      "shortName": "Person",
       "id": "Q9GufDoplCL",
       "maxTeiCountToReturn": 0,
       "allowAuditLog": false,

@@ -160,13 +160,13 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
     assertNotEmpty(
         enrollment.getTrackedEntity().getTrackedEntityAttributeValues(),
         "test expects an enrollment with attribute values");
-    TrackedEntityAttribute ptea = get(TrackedEntityAttribute.class, "dIVt4l5vIOa");
+    TrackedEntityAttribute ptea = get(TrackedEntityAttribute.class, "fRGt4l6yIRb");
 
     JsonEnrollment jsonEnrollment = getEnrollment.apply(enrollment, "attributes");
     assertHasOnlyMembers(jsonEnrollment, "attributes");
     JsonAttribute attribute = jsonEnrollment.getAttributes().get(0);
     assertEquals(ptea.getUid(), attribute.getAttribute());
-    assertEquals("Frank PTEA", attribute.getValue());
+    assertEquals("Test PTEA", attribute.getValue());
     assertEquals(ValueType.TEXT.name(), attribute.getValueType());
     assertHasMember(attribute, "createdAt");
     assertHasMember(attribute, "updatedAt");
