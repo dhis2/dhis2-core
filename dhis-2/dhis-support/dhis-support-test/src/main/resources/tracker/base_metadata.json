@@ -1898,17 +1898,17 @@
     {
       "id": "fRGt4l6yIRb",
       "aggregationType": "NONE",
-      "code": "TA_TEST",
+      "code": "PA_TEST",
       "created": "2019-02-05T13:45:36.361",
       "displayInListNoProgram": true,
       "lastUpdated": "2022-01-07T12:45:47.338",
-      "name": "TA Test",
+      "name": "PA Test",
       "pattern": "",
       "sharing": {
         "owner": "tTgjgobT1oS",
         "public": "rwrwrw--"
       },
-      "shortName": "TA Test",
+      "shortName": "PA Test",
       "valueType": "TEXT"
     },
     {
