@@ -137,6 +137,19 @@ public class DefaultSystemService implements SystemService, InitializingBean {
         .build();
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public SystemInfo getSystemInfoForMetadataExport() {
+    if (systemInfo == null) return null;
+    Date now = new Date();
+    return new SystemInfo.SystemInfoBuilder()
+        .systemId(systemInfo.getSystemId())
+        .revision(systemInfo.getRevision())
+        .version(systemInfo.getVersion())
+        .serverDate(now)
+        .build();
+  }
+
   /**
    * @return A {@link SystemInfo} with all properties set that are stable (immutable) after start
    */

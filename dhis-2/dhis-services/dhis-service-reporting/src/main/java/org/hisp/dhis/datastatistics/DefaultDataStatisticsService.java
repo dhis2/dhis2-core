@@ -272,7 +272,7 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
   }
 
   private Dhis2Info getDhis2Info() {
-    SystemInfo system = systemService.getSystemInfo();
+    SystemInfo system = systemService.getSystemInfo(); // todo only get what's required
 
     return new Dhis2Info()
         .setVersion(system.getVersion())

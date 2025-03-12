@@ -30,11 +30,15 @@ package org.hisp.dhis.system;
 /**
  * @author Lars Helge Overland
  */
-@FunctionalInterface
 public interface SystemService {
 
   /**
    * @return The system info summary for right now
    */
   SystemInfo getSystemInfo();
+
+  /**
+   * @return The system info needed in a metadata export
+   */
+  SystemInfo getSystemInfoForMetadataExport();
 }

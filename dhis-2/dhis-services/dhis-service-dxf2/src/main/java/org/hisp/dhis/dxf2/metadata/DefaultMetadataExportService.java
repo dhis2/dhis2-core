@@ -224,7 +224,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
   @Transactional(readOnly = true)
   public ObjectNode getMetadataAsObjectNode(MetadataExportParams params) {
     ObjectNode rootNode = fieldFilterService.createObjectNode();
-    SystemInfo systemInfo = systemService.getSystemInfo();
+    SystemInfo systemInfo = systemService.getSystemInfoForMetadataExport();
 
     rootNode
         .putObject(SYSTEM)
@@ -260,7 +260,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
   @Transactional(readOnly = true)
   public void getMetadataAsObjectNodeStream(MetadataExportParams params, OutputStream outputStream)
       throws IOException {
-    SystemInfo systemInfo = systemService.getSystemInfo();
+    SystemInfo systemInfo = systemService.getSystemInfoForMetadataExport();
 
     if (params.isExportWithDependencies()) {
       getMetadataWithDependenciesAsNodeStream(
@@ -313,7 +313,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
   public void getMetadataWithDependenciesAsNodeStream(
       IdentifiableObject object, @Nonnull MetadataExportParams params, OutputStream outputStream)
       throws IOException {
-    SystemInfo systemInfo = systemService.getSystemInfo();
+    SystemInfo systemInfo = systemService.getSystemInfoForMetadataExport();
     SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata =
         getMetadataWithDependencies(object);
     try (JsonGenerator generator = objectMapper.getFactory().createGenerator(outputStream)) {

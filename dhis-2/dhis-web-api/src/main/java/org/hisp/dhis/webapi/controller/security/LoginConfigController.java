@@ -92,7 +92,10 @@ public class LoginConfigController {
         .useCustomLogoFront(settings.getUseCustomLogoFront())
         .emailConfigured(settings.isEmailConfigured())
         .selfRegistrationEnabled(configurationService.getConfiguration().selfRegistrationAllowed())
-        .apiVersion(systemService.getSystemInfo().getVersion())
+        .apiVersion(
+            systemService
+                .getSystemInfo() // todo only get what's required
+                .getVersion())
         .recaptchaSite(settings.getRecaptchaSite())
         .loginPageLayout(settings.getLoginPageLayout().name())
         .loginPageTemplate(settings.getLoginPageTemplate())

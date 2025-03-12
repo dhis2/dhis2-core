@@ -59,7 +59,7 @@ public class MetadataSyncDelegate {
   private final SystemService systemService;
 
   public boolean shouldStopSync(String metadataVersionSnapshot) {
-    SystemInfo systemInfo = systemService.getSystemInfo();
+    SystemInfo systemInfo = systemService.getSystemInfo(); // todo only get what's required
     String systemVersion = systemInfo.getVersion();
 
     if (StringUtils.isEmpty(systemVersion)

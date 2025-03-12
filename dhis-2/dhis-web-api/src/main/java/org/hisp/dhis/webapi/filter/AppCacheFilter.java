@@ -75,7 +75,7 @@ public class AppCacheFilter implements Filter {
       chain.doFilter(request, responseWrapper);
       responseWrapper.setContentType("text/cache-manifest");
 
-      SystemInfo systemInfo = systemService.getSystemInfo();
+      SystemInfo systemInfo = systemService.getSystemInfo(); // todo only get what's required
 
       writer.print(responseWrapper.toString());
       writer.println("# DHIS2 " + systemInfo.getVersion() + " r" + systemInfo.getRevision());

@@ -279,7 +279,9 @@ public class SystemController {
       HttpServletResponse response,
       @CurrentUser User currentUser) {
     SystemInfo info =
-        systemService.getSystemInfo().toBuilder()
+        systemService
+            .getSystemInfo() // todo only get what's required - don't throw runtime, show blank?
+            .toBuilder()
             .contextPath(HttpServletRequestPaths.getContextPath(request))
             .userAgent(request.getHeader(ContextUtils.HEADER_USER_AGENT))
             .build();

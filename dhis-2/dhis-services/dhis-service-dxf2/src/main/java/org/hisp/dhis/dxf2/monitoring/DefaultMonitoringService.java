@@ -95,7 +95,8 @@ public class DefaultMonitoringService implements MonitoringService {
       return;
     }
 
-    SystemInfo systemInfo = systemService.getSystemInfo().withoutSensitiveInfo();
+    SystemInfo systemInfo =
+        systemService.getSystemInfo().withoutSensitiveInfo(); // todo only get what's required
 
     if (StringUtils.isBlank(systemInfo.getSystemId())) {
       log.warn("System ID not available, aborting monitoring request");
