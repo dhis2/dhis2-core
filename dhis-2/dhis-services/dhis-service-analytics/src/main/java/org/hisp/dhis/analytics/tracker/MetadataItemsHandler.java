@@ -472,8 +472,7 @@ public class MetadataItemsHandler {
     for (QueryFilter filter : filters) {
       String[] filterValues = trimToEmpty(filter.getFilter()).split(OPTION_SEP);
       for (String filterValue : filterValues) {
-        boolean isDataElementOfTypeOrgUnit =
-            item.getValueType() == ORGANISATION_UNIT && item.getItem() instanceof DataElement;
+        boolean isDataElementOfTypeOrgUnit = item.getValueType() == ORGANISATION_UNIT;
 
         if (isDataElementOfTypeOrgUnit) {
           DimensionalItemObject itemObject =
