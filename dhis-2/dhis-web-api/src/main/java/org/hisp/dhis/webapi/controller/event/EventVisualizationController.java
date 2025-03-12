@@ -210,28 +210,22 @@ public class EventVisualizationController
   }
 
   private void addFilterOrganizationUnitToGraphMap(
-          EventVisualization eventVisualization, Set<OrganisationUnit> roots) {
+      EventVisualization eventVisualization, Set<OrganisationUnit> roots) {
 
     // Process attribute dimensions
     processAttributeDimensions(
-            eventVisualization.getAttributeDimensions(),
-            eventVisualization,
-            roots);
+        eventVisualization.getAttributeDimensions(), eventVisualization, roots);
 
     // Process data element dimensions
     processDataElementDimensions(
-            eventVisualization.getDataElementDimensions(),
-            eventVisualization,
-            roots);
+        eventVisualization.getDataElementDimensions(), eventVisualization, roots);
   }
 
-  /**
-   * Process organization unit attribute dimensions.
-   */
+  /** Process organization unit attribute dimensions. */
   private void processAttributeDimensions(
-          Collection<TrackedEntityAttributeDimension> dimensions,
-          EventVisualization eventVisualization,
-          Set<OrganisationUnit> roots) {
+      Collection<TrackedEntityAttributeDimension> dimensions,
+      EventVisualization eventVisualization,
+      Set<OrganisationUnit> roots) {
 
     for (TrackedEntityAttributeDimension dim : dimensions) {
       if (isOrgUnitType(dim)) {
@@ -244,13 +238,11 @@ public class EventVisualizationController
     }
   }
 
-  /**
-   * Process organization unit data element dimensions.
-   */
+  /** Process organization unit data element dimensions. */
   private void processDataElementDimensions(
-          Collection<TrackedEntityDataElementDimension> dimensions,
-          EventVisualization eventVisualization,
-          Set<OrganisationUnit> roots) {
+      Collection<TrackedEntityDataElementDimension> dimensions,
+      EventVisualization eventVisualization,
+      Set<OrganisationUnit> roots) {
 
     for (TrackedEntityDataElementDimension dim : dimensions) {
       if (isOrgUnitType(dim)) {
@@ -263,19 +255,13 @@ public class EventVisualizationController
     }
   }
 
-  /**
-   * Common method to process organization units once UIDs are extracted.
-   */
+  /** Common method to process organization units once UIDs are extracted. */
   private void processOrganisationUnits(
-          List<String> ouUids,
-          EventVisualization eventVisualization,
-          Set<OrganisationUnit> roots) {
+      List<String> ouUids, EventVisualization eventVisualization, Set<OrganisationUnit> roots) {
 
     List<OrganisationUnit> units = organisationUnitService.getOrganisationUnitsByUid(ouUids);
     for (OrganisationUnit ou : units) {
-      eventVisualization
-              .getParentGraphMap()
-              .put(ou.getUid(), ou.getParentGraph(roots));
+      eventVisualization.getParentGraphMap().put(ou.getUid(), ou.getParentGraph(roots));
     }
   }
 
@@ -370,6 +356,6 @@ public class EventVisualizationController
 
   private boolean isOrgUnitType(TrackedEntityAttributeDimension dimension) {
     return dimension.getAttribute() != null
-            && dimension.getAttribute().getValueType() == ValueType.ORGANISATION_UNIT;
+        && dimension.getAttribute().getValueType() == ValueType.ORGANISATION_UNIT;
   }
 }
