@@ -59,7 +59,7 @@ public class FilterUtils {
       // Handle operations
       if ("IN".equals(operation)) {
         // For IN operation, split by comma and add each identifier
-        String[] identifiers = identifiersPart.split(",");
+        String[] identifiers = identifiersPart.split(";");
         Collections.addAll(result, identifiers);
       } else {
         // For other operations (like EQ), add the identifier as is

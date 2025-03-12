@@ -42,6 +42,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -67,6 +68,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.GetObjectParams;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -198,7 +200,7 @@ public class EventVisualizationController
         new ArrayList<>(programService.getPrograms(programUidsInDimensions)));
   }
 
-  private static void addOrganizationUnitsToGraphMap(
+  private void addOrganizationUnitsToGraphMap(
       EventVisualization eventVisualization, Set<OrganisationUnit> roots) {
     for (OrganisationUnit organisationUnit : eventVisualization.getOrganisationUnits()) {
       eventVisualization
@@ -208,21 +210,72 @@ public class EventVisualizationController
   }
 
   private void addFilterOrganizationUnitToGraphMap(
-      EventVisualization eventVisualization, Set<OrganisationUnit> roots) {
-    for (TrackedEntityDataElementDimension dim : eventVisualization.getDataElementDimensions()) {
+          EventVisualization eventVisualization, Set<OrganisationUnit> roots) {
+
+    // Process attribute dimensions
+    processAttributeDimensions(
+            eventVisualization.getAttributeDimensions(),
+            eventVisualization,
+            roots);
+
+    // Process data element dimensions
+    processDataElementDimensions(
+            eventVisualization.getDataElementDimensions(),
+            eventVisualization,
+            roots);
+  }
+
+  /**
+   * Process organization unit attribute dimensions.
+   */
+  private void processAttributeDimensions(
+          Collection<TrackedEntityAttributeDimension> dimensions,
+          EventVisualization eventVisualization,
+          Set<OrganisationUnit> roots) {
+
+    for (TrackedEntityAttributeDimension dim : dimensions) {
       if (isOrgUnitType(dim)) {
         List<String> ouUids = FilterUtils.fromFilter(dim.getFilter());
         if (ouUids.isEmpty()) {
           continue;
         }
-        organisationUnitService
-            .getOrganisationUnitsByUid(ouUids)
-            .forEach(
-                ou ->
-                    eventVisualization
-                        .getParentGraphMap()
-                        .put(ou.getUid(), ou.getParentGraph(roots)));
+        processOrganisationUnits(ouUids, eventVisualization, roots);
       }
+    }
+  }
+
+  /**
+   * Process organization unit data element dimensions.
+   */
+  private void processDataElementDimensions(
+          Collection<TrackedEntityDataElementDimension> dimensions,
+          EventVisualization eventVisualization,
+          Set<OrganisationUnit> roots) {
+
+    for (TrackedEntityDataElementDimension dim : dimensions) {
+      if (isOrgUnitType(dim)) {
+        List<String> ouUids = FilterUtils.fromFilter(dim.getFilter());
+        if (ouUids.isEmpty()) {
+          continue;
+        }
+        processOrganisationUnits(ouUids, eventVisualization, roots);
+      }
+    }
+  }
+
+  /**
+   * Common method to process organization units once UIDs are extracted.
+   */
+  private void processOrganisationUnits(
+          List<String> ouUids,
+          EventVisualization eventVisualization,
+          Set<OrganisationUnit> roots) {
+
+    List<OrganisationUnit> units = organisationUnitService.getOrganisationUnitsByUid(ouUids);
+    for (OrganisationUnit ou : units) {
+      eventVisualization
+              .getParentGraphMap()
+              .put(ou.getUid(), ou.getParentGraph(roots));
     }
   }
 
@@ -313,5 +366,10 @@ public class EventVisualizationController
   private boolean isOrgUnitType(TrackedEntityDataElementDimension dimension) {
     return dimension.getDataElement() != null
         && dimension.getDataElement().getValueType() == ValueType.ORGANISATION_UNIT;
+  }
+
+  private boolean isOrgUnitType(TrackedEntityAttributeDimension dimension) {
+    return dimension.getAttribute() != null
+            && dimension.getAttribute().getValueType() == ValueType.ORGANISATION_UNIT;
   }
 }
