@@ -138,6 +138,9 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
   @Test
   void shouldUpdateOnlyFromTrackedEntityWhenUnidirectionalRelationshipIsCreated()
       throws IOException {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "m1575931405");
+    relationshipType.setBidirectional(false);
+    manager.update(relationshipType);
     TrackedEntity fromEntityBeforeUpdate = getTrackedEntity();
     TrackedEntity toEntityBeforeUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
 
