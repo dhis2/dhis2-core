@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,40 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.jackson.jsonpatch;
+package org.hisp.dhis.tracker;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
-import java.util.List;
-import lombok.Getter;
-import org.hisp.dhis.common.OpenApi;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-/**
- * Container class for patch operations, allows to deserialize patches in the format '[{...},
- * {...}]' and follows RFC 6902.
- *
- * @see JsonPatchOperation
- * @author Morten Olav Hansen
- */
-@Getter
-@OpenApi.Kind("JsonPatchObjects")
-public class JsonPatch implements Patch {
-  @JsonProperty private final List<JsonPatchOperation> operations;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.junit.jupiter.api.Test;
 
-  @JsonCreator
-  public JsonPatch(List<JsonPatchOperation> operations) {
-    this.operations = operations;
+class PageParamsTest {
+  @Test
+  void shouldWorkWhenPageAndPageSizeBiggerThanZero() throws BadRequestException {
+    PageParams pageParams = PageParams.of(1, 1, false);
+    assertEquals(1, pageParams.getPage());
+    assertEquals(1, pageParams.getPageSize());
   }
 
-  @Override
-  public JsonNode apply(JsonNode node) throws JsonPatchException {
-    JsonNode patched = node;
+  @Test
+  void shouldFailWhenPageIsNotNullAndSmallerThanOne() {
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> PageParams.of(0, 1, false));
+    assertStartsWith("page must be greater", exception.getMessage());
+  }
 
-    for (JsonPatchOperation op : operations) {
-      patched = op.apply(patched);
-    }
-
-    return patched;
+  @Test
+  void shouldFailWhenPageSizeIsNotNullAndSmallerThanOne() {
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> PageParams.of(1, 0, false));
+    assertStartsWith("pageSize must be greater", exception.getMessage());
   }
 }

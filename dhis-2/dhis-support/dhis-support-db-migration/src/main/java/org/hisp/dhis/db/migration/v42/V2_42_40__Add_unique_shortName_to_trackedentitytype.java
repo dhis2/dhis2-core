@@ -25,59 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.validation.comparator;
+package org.hisp.dhis.db.migration.v42;
 
-import java.util.Date;
-import java.util.List;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.PagerUtils;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.validation.ValidationRule;
+import static org.hisp.dhis.db.migration.helper.UniqueValueUtils.copyUniqueValue;
 
-/**
- * @author Stian Sandvold
- */
-@Setter
-@Getter
-@ToString
-public class ValidationResultQuery {
+import org.flywaydb.core.api.migration.BaseJavaMigration;
+import org.flywaydb.core.api.migration.Context;
 
-  private Boolean skipPaging;
-
-  private Boolean paging;
-
-  private int page = 1;
-
-  private int pageSize = Pager.DEFAULT_PAGE_SIZE;
-
-  @OpenApi.Description(
-      "Optional list of validation rule UIDs to filter. If empty the list is not restricting the query.")
-  @OpenApi.Property({UID.class, ValidationRule.class})
-  private List<String> vr;
-
-  @OpenApi.Description(
-      "Optional list of organisation unit UIDs to filter. If empty the list is not restricting the query")
-  @OpenApi.Property({UID.class, OrganisationUnit.class})
-  private List<String> ou;
-
-  @OpenApi.Description(
-      "Optional list of ISO-Date expressions to filter. If empty the list is not restricting the query")
-  private List<String> pe;
-
-  @OpenApi.Description(
-      "Optional filter to select only results that have been created on or after the given date")
-  private Date createdDate;
-
-  private List<String> fields;
-
-  public ValidationResultQuery() {}
-
-  public boolean isSkipPaging() {
-    return PagerUtils.isSkipPaging(skipPaging, paging);
+public class V2_42_40__Add_unique_shortName_to_trackedentitytype extends BaseJavaMigration {
+  @Override
+  public void migrate(Context context) throws Exception {
+    copyUniqueValue(context, "trackedentitytype", "trackedentitytypeid", "name", "shortname", 50);
   }
 }

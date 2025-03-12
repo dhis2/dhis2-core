@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,40 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.jackson.jsonpatch;
+package org.hisp.dhis.trackedentity;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
-import java.util.List;
-import lombok.Getter;
-import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
-/**
- * Container class for patch operations, allows to deserialize patches in the format '[{...},
- * {...}]' and follows RFC 6902.
- *
- * @see JsonPatchOperation
- * @author Morten Olav Hansen
- */
-@Getter
-@OpenApi.Kind("JsonPatchObjects")
-public class JsonPatch implements Patch {
-  @JsonProperty private final List<JsonPatchOperation> operations;
+class TrackedEntityTypeServiceTest extends PostgresIntegrationTestBase {
 
-  @JsonCreator
-  public JsonPatch(List<JsonPatchOperation> operations) {
-    this.operations = operations;
-  }
+  @Autowired private TrackedEntityTypeService trackedEntityTypeService;
 
-  @Override
-  public JsonNode apply(JsonNode node) throws JsonPatchException {
-    JsonNode patched = node;
+  @Test
+  void testAddShortNameAndCode() {
+    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
+    trackedEntityType.setShortName("shortname");
+    trackedEntityType.setCode("code");
+    trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
 
-    for (JsonPatchOperation op : operations) {
-      patched = op.apply(patched);
-    }
+    TrackedEntityType persisted =
+        trackedEntityTypeService.getTrackedEntityType(trackedEntityType.getId());
 
-    return patched;
+    Assertions.assertEquals(trackedEntityType.getShortName(), persisted.getShortName());
+    Assertions.assertEquals(trackedEntityType.getCode(), persisted.getCode());
   }
 }

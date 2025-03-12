@@ -1,0 +1,1 @@
+ALTER TABLE trackedentitytype ADD COLUMN IF NOT EXISTS shortname character varying(50);
