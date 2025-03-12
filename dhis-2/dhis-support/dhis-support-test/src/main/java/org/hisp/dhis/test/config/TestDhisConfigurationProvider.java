@@ -127,9 +127,16 @@ public class TestDhisConfigurationProvider implements DhisConfigurationProvider 
 
   @Override
   public String getServerBaseUrl() {
-    return this.properties.getProperty(
-        ConfigurationKey.SERVER_BASE_URL.getKey(),
-        ConfigurationKey.SERVER_BASE_URL.getDefaultValue());
+    String url =
+        StringUtils.trimToNull(
+            properties.getProperty(
+                ConfigurationKey.SERVER_BASE_URL.getKey(),
+                ConfigurationKey.SERVER_BASE_URL.getDefaultValue()));
+
+    if (url == null || url.isBlank()) {
+      throw new IllegalStateException("server.base.url should be set in dhis.conf");
+    }
+    return url;
   }
 
   @Override

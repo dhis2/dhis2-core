@@ -221,8 +221,13 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
 
   @Override
   public String getServerBaseUrl() {
-    return StringUtils.trimToNull(
-        properties.getProperty(ConfigurationKey.SERVER_BASE_URL.getKey()));
+    String url =
+        StringUtils.trimToNull(properties.getProperty(ConfigurationKey.SERVER_BASE_URL.getKey()));
+
+    if (url == null || url.isBlank()) {
+      throw new IllegalStateException("server.base.url should be set in dhis.conf");
+    }
+    return url;
   }
 
   @Override
