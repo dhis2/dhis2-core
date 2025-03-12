@@ -99,6 +99,11 @@ import org.springframework.web.client.HttpStatusCodeException;
 @RequiredArgsConstructor
 public class TrackerImportController {
   static final String TRACKER_JOB_ADDED = "Tracker job added";
+  public static final String OPENAPI_IMPORT_DESCRIPTION =
+      """
+Import tracker data.
+"""
+          + ImportRequestParams.OPENAPI_DESCRIPTION_ASYNC;
 
   private final TrackerImportService trackerImportService;
 
@@ -114,138 +119,84 @@ public class TrackerImportController {
 
   private final NoteMapper noteMapper = Mappers.getMapper(NoteMapper.class);
 
-  @PostMapping( consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+  @OpenApi.Description(OPENAPI_IMPORT_DESCRIPTION)
+  @OpenApi.Response({ImportReport.class, WebMessage.class})
+  @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   @ResponseBody
-  public WebMessage asyncPostJsonTracker(
-      ImportRequestParams importRequestParams,
-      @RequestBody Body body,
-      boolean async
-  ) {
-     return null;
-  }
-
-  @PostMapping( consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE,
-      params = {"async=true"}
-  )
-  @ResponseBody
-  public WebMessage asyncPostJsonTracker(
+  public ResponseEntity<?> importJson(
       HttpServletRequest request,
-      ImportRequestParams importRequestParams,
+      ImportRequestParams requestParams,
       @RequestBody Body body,
       @CurrentUser UserDetails currentUser)
       throws ConflictException, IOException {
+    if (requestParams.isAsync()) {
+      return importAsync(request, requestParams, body, currentUser, MediaType.APPLICATION_JSON);
+    }
 
-    TrackerImportParams trackerImportParams =
-        TrackerImportParamsMapper.trackerImportParams(importRequestParams);
-    TrackerObjects trackerObjects =
-        TrackerImportParamsMapper.trackerObjects(body, trackerImportParams.getIdSchemes());
-
-    return startAsyncTracker(
-        trackerImportParams,
-        MimeType.valueOf("application/json"),
-        trackerObjects,
-        currentUser.getUid(),
-        request);
+    return importSync(requestParams, body);
   }
 
-  private WebMessage startAsyncTracker(
-      TrackerImportParams params,
-      MimeType contentType,
-      TrackerObjects trackerObjects,
-      String userUid,
-      HttpServletRequest request)
-      throws IOException, ConflictException {
-    JobConfiguration config = new JobConfiguration(JobType.TRACKER_IMPORT_JOB);
-    config.setExecutedBy(userUid);
-    config.setJobParameters(params);
+  @OpenApi.Description(OPENAPI_IMPORT_DESCRIPTION)
+  @OpenApi.Response({ImportReport.class, WebMessage.class})
+  @PostMapping(
+      consumes = {"application/csv", "text/csv"},
+      produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public ResponseEntity<?> importCsv(
+      HttpServletRequest request,
+      ImportRequestParams requestParams,
+      @RequestParam(required = false, defaultValue = "true") boolean skipFirst,
+      @CurrentUser UserDetails currentUser)
+      throws IOException, ParseException, ConflictException {
+    InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat(request.getInputStream());
+    List<Event> events = csvEventService.read(inputStream, skipFirst);
+    Body body = Body.builder().events(events).build();
 
+    if (requestParams.isAsync()) {
+      return importAsync(
+          request, requestParams, body, currentUser, MimeType.valueOf("application/csv"));
+    }
+
+    return importSync(requestParams, body);
+  }
+
+  private ResponseEntity<WebMessage> importAsync(
+      HttpServletRequest request,
+      ImportRequestParams requestParams,
+      Body body,
+      UserDetails user,
+      MimeType contentType)
+      throws IOException, ConflictException {
+    TrackerImportParams importParams = TrackerImportParamsMapper.trackerImportParams(requestParams);
+
+    JobConfiguration config = new JobConfiguration(JobType.TRACKER_IMPORT_JOB);
+    config.setExecutedBy(user.getUid());
+    config.setJobParameters(importParams);
+
+    TrackerObjects trackerObjects =
+        TrackerImportParamsMapper.trackerObjects(body, importParams.getIdSchemes());
     byte[] jsonInput = jsonMapper.writeValueAsBytes(trackerObjects);
 
     jobExecutionService.executeOnceNow(config, contentType, new ByteArrayInputStream(jsonInput));
+
     String jobId = config.getUid();
     String location = ContextUtils.getRootPath(request) + "/tracker/jobs/" + jobId;
-    return ok(TRACKER_JOB_ADDED)
-        .setLocation("/tracker/jobs/" + jobId)
-        .setResponse(TrackerJobWebMessageResponse.builder().id(jobId).location(location).build());
+    return ResponseEntity.status(HttpStatus.OK)
+        .body(
+            ok(TRACKER_JOB_ADDED)
+                .setLocation("/tracker/jobs/" + jobId)
+                .setResponse(
+                    TrackerJobWebMessageResponse.builder().id(jobId).location(location).build()));
   }
 
-  @PostMapping(
-      consumes = APPLICATION_JSON_VALUE,
-      params = {"async=false"})
-  public ResponseEntity<ImportReport> syncPostJsonTracker(
-      ImportRequestParams importRequestParams, @RequestBody Body body) {
-
+  private ResponseEntity<ImportReport> importSync(
+      ImportRequestParams importRequestParams, Body body) {
     TrackerImportParams params = TrackerImportParamsMapper.trackerImportParams(importRequestParams);
     TrackerObjects trackerObjects =
         TrackerImportParamsMapper.trackerObjects(body, params.getIdSchemes());
     ImportReport importReport =
         trackerImportService.buildImportReport(
             trackerImportService.importTracker(params, trackerObjects), params.getReportMode());
-
-    ResponseEntity.BodyBuilder builder =
-        importReport.getStatus() == Status.ERROR
-            ? ResponseEntity.status(HttpStatus.CONFLICT)
-            : ResponseEntity.ok();
-
-    return builder.body(importReport);
-  }
-
-  @PostMapping(
-      consumes = {"application/csv", "text/csv"},
-      produces = APPLICATION_JSON_VALUE,
-  params = {"async=true"}
-  )
-  @ResponseBody
-  public WebMessage asyncPostCsvTracker(
-      HttpServletRequest request,
-      ImportRequestParams importRequest,
-      @RequestParam(required = false, defaultValue = "true") boolean skipFirst,
-      @CurrentUser UserDetails currentUser)
-      throws IOException, ParseException, ConflictException {
-
-    InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat(request.getInputStream());
-
-    List<Event> events = csvEventService.read(inputStream, skipFirst);
-
-    Body body = Body.builder().events(events).build();
-
-    TrackerImportParams trackerImportParams =
-        TrackerImportParamsMapper.trackerImportParams(importRequest);
-
-    TrackerObjects trackerObjects =
-        TrackerImportParamsMapper.trackerObjects(body, trackerImportParams.getIdSchemes());
-
-    return startAsyncTracker(
-        trackerImportParams,
-        MimeType.valueOf("application/csv"),
-        trackerObjects,
-        currentUser.getUid(),
-        request);
-  }
-
-  @PostMapping(
-      consumes = {"application/csv", "text/csv"},
-      produces = APPLICATION_JSON_VALUE,
-      params = {"async=false"})
-  public ResponseEntity<ImportReport> syncPostCsvTracker(
-      HttpServletRequest request,
-      ImportRequestParams importRequest,
-      @RequestParam(required = false, defaultValue = "true") boolean skipFirst,
-      @RequestParam(defaultValue = "errors", required = false) TrackerBundleReportMode reportMode)
-      throws IOException, ParseException {
-    InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat(request.getInputStream());
-
-    List<Event> events = csvEventService.read(inputStream, skipFirst);
-    Body body = Body.builder().events(events).build();
-
-    TrackerImportParams trackerImportParams =
-        TrackerImportParamsMapper.trackerImportParams(importRequest);
-    TrackerObjects trackerObjects =
-        TrackerImportParamsMapper.trackerObjects(body, trackerImportParams.getIdSchemes());
-    ImportReport importReport =
-        trackerImportService.buildImportReport(
-            trackerImportService.importTracker(trackerImportParams, trackerObjects),
-            trackerImportParams.getReportMode());
 
     ResponseEntity.BodyBuilder builder =
         importReport.getStatus() == Status.ERROR

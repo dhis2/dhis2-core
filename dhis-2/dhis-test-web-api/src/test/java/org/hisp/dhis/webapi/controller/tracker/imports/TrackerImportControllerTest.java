@@ -27,12 +27,17 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import static org.hisp.dhis.http.HttpClientAdapter.Body;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.webapi.Assertions.assertNoDiff;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -67,19 +72,40 @@ class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase 
 
   @Test
   void shouldImportAsyncByDefault() {
+    JsonWebMessage jsonWebMessage =
+        assertWebMessage(
+            "OK",
+            200,
+            "OK",
+            "Tracker job added",
+            POST("/tracker?importMode=VALIDATE", "{}").content(HttpStatus.OK));
+
+    JsonObject response = jsonWebMessage.getResponse();
+    String location = response.getString("location").string();
+    assertContains("/tracker/jobs/", location);
+    String jobId = location.substring(location.lastIndexOf('/') + 1);
+    assertEquals(jobId, response.getString("id").string());
+    assertEquals(
+        TrackerJobWebMessageResponse.class.getSimpleName(),
+        response.getString("responseType").string());
+  }
+
+  @Test
+  void shouldImportAsync() {
     assertWebMessage(
         "OK",
         200,
         "OK",
         "Tracker job added",
-        POST("/tracker?importMode=VALIDATE", "{}").content(HttpStatus.OK));
+        POST("/tracker?async=true&importMode=VALIDATE", "{}").content(HttpStatus.OK));
   }
 
   @ParameterizedTest
   @ValueSource(strings = {"false", "FALSE", "FaLSE"})
   void shouldImportSync(String async) {
     JsonMixed body =
-        POST("/tracker?async={async}&importMode=VALIDATE",async, "{}").content(HttpStatus.OK);
+        POST("/tracker?async={async}&importMode=VALIDATE", async, Body("{}"))
+            .content(HttpStatus.OK);
 
     assertNoDiff(
         """
@@ -100,27 +126,8 @@ class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase 
     "typeReportMap": {}
   }
 }
-""", body);
-  }
-
-  @Test
-  void soo() {
-    assertWebMessage(
-        "OK",
-        200,
-        "OK",
-        "Tracker job added",
-        POST("/tracker?async=FALSE&importMode=VALIDATE", "{}").content(HttpStatus.OK));
-  }
-
-  @Test
-  void soooo() {
-    assertWebMessage(
-        "OK",
-        200,
-        "OK",
-        "Tracker job added",
-        POST("/tracker?async=FaLSE&importMode=VALIDATE", "{}").content(HttpStatus.OK));
+""",
+        body);
   }
 
   @Test
