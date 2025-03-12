@@ -27,11 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import static org.hisp.dhis.test.webapi.Assertions.assertNoDiff;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -69,6 +73,54 @@ class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase 
         "OK",
         "Tracker job added",
         POST("/tracker?importMode=VALIDATE", "{}").content(HttpStatus.OK));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"false", "FALSE", "FaLSE"})
+  void shouldImportSync(String async) {
+    JsonMixed body =
+        POST("/tracker?async={async}&importMode=VALIDATE",async, "{}").content(HttpStatus.OK);
+
+    assertNoDiff(
+        """
+{
+  "status": "OK",
+  "validationReport": {
+    "errorReports": [],
+    "warningReports": []
+  },
+  "stats": {
+    "created": 0,
+    "updated": 0,
+    "deleted": 0,
+    "ignored": 0,
+    "total": 0
+  },
+  "bundleReport": {
+    "typeReportMap": {}
+  }
+}
+""", body);
+  }
+
+  @Test
+  void soo() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Tracker job added",
+        POST("/tracker?async=FALSE&importMode=VALIDATE", "{}").content(HttpStatus.OK));
+  }
+
+  @Test
+  void soooo() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Tracker job added",
+        POST("/tracker?async=FaLSE&importMode=VALIDATE", "{}").content(HttpStatus.OK));
   }
 
   @Test

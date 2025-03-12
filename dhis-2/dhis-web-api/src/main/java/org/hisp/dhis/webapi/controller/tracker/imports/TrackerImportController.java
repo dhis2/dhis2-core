@@ -114,7 +114,19 @@ public class TrackerImportController {
 
   private final NoteMapper noteMapper = Mappers.getMapper(NoteMapper.class);
 
-  @PostMapping(value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+  @PostMapping( consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public WebMessage asyncPostJsonTracker(
+      ImportRequestParams importRequestParams,
+      @RequestBody Body body,
+      boolean async
+  ) {
+     return null;
+  }
+
+  @PostMapping( consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE,
+      params = {"async=true"}
+  )
   @ResponseBody
   public WebMessage asyncPostJsonTracker(
       HttpServletRequest request,
@@ -158,7 +170,6 @@ public class TrackerImportController {
   }
 
   @PostMapping(
-      value = "",
       consumes = APPLICATION_JSON_VALUE,
       params = {"async=false"})
   public ResponseEntity<ImportReport> syncPostJsonTracker(
@@ -180,9 +191,10 @@ public class TrackerImportController {
   }
 
   @PostMapping(
-      value = "",
       consumes = {"application/csv", "text/csv"},
-      produces = APPLICATION_JSON_VALUE)
+      produces = APPLICATION_JSON_VALUE,
+  params = {"async=true"}
+  )
   @ResponseBody
   public WebMessage asyncPostCsvTracker(
       HttpServletRequest request,
@@ -212,7 +224,6 @@ public class TrackerImportController {
   }
 
   @PostMapping(
-      value = "",
       consumes = {"application/csv", "text/csv"},
       produces = APPLICATION_JSON_VALUE,
       params = {"async=false"})
