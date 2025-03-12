@@ -72,7 +72,7 @@ public class ValidationResultController {
   private final ValidationResultService validationResultService;
 
   @GetMapping
-  @OpenApi.Response(AbstractFullReadOnlyController.GetObjectListResponse.class)
+  @OpenApi.Response(AbstractFullReadOnlyController.ObjectListResponse.class)
   public @ResponseBody RootNode getObjectList(
       ValidationResultQuery query, HttpServletResponse response) {
     List<String> fields = query.getFields();
