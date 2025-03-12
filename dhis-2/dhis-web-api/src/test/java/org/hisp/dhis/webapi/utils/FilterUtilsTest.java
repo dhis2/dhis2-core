@@ -37,21 +37,21 @@ import org.junit.jupiter.api.Test;
 class FilterUtilsTest {
 
   @Test
-  public void testFromFilterWithNull() {
+  void testFromFilterWithNull() {
     // Test with null input
     List<String> result = FilterUtils.fromFilter(null);
     assertTrue(result.isEmpty(), "Result should be empty for null input");
   }
 
   @Test
-  public void testFromFilterWithEmptyString() {
+  void testFromFilterWithEmptyString() {
     // Test with empty string
     List<String> result = FilterUtils.fromFilter("");
     assertTrue(result.isEmpty(), "Result should be empty for empty string input");
   }
 
   @Test
-  public void testFromFilterWithNoOperation() {
+  void testFromFilterWithNoOperation() {
     // Test with input that doesn't contain a colon (no operation)
     String filter = "abc123";
     List<String> result = FilterUtils.fromFilter(filter);
@@ -61,7 +61,7 @@ class FilterUtilsTest {
   }
 
   @Test
-  public void testFromFilterWithInOperation() {
+  void testFromFilterWithInOperation() {
     // Test with IN operation and multiple identifiers
     String filter = "IN:id1;id2;id3";
     List<String> result = FilterUtils.fromFilter(filter);
@@ -71,7 +71,7 @@ class FilterUtilsTest {
   }
 
   @Test
-  public void testFromFilterWithEqOperation() {
+  void testFromFilterWithEqOperation() {
     // Test with EQ operation or any other operation besides IN
     String filter = "EQ:id1";
     List<String> result = FilterUtils.fromFilter(filter);
@@ -81,7 +81,7 @@ class FilterUtilsTest {
   }
 
   @Test
-  public void testFromFilterWithEmptyIdentifiers() {
+  void testFromFilterWithEmptyIdentifiers() {
     // Test with IN operation but empty identifiers
     String filter = "IN:";
     List<String> result = FilterUtils.fromFilter(filter);
@@ -91,7 +91,7 @@ class FilterUtilsTest {
   }
 
   @Test
-  public void testFromFilterWithInOperationAndEmptyElements() {
+  void testFromFilterWithInOperationAndEmptyElements() {
     // Test with IN operation and empty elements in the list
     String filter = "IN:id1;;id3";
     List<String> result = FilterUtils.fromFilter(filter);
@@ -101,7 +101,7 @@ class FilterUtilsTest {
   }
 
   @Test
-  public void testFromFilterWithMultipleColons() {
+  void testFromFilterWithMultipleColons() {
     // Test with multiple colons in the filter
     String filter = "EQ:prefix:value";
     List<String> result = FilterUtils.fromFilter(filter);
@@ -114,7 +114,7 @@ class FilterUtilsTest {
   }
 
   @Test
-  public void testFromFilterWithColonOnly() {
+  void testFromFilterWithColonOnly() {
     // Test with just a colon
     String filter = ":";
     List<String> result = FilterUtils.fromFilter(filter);
