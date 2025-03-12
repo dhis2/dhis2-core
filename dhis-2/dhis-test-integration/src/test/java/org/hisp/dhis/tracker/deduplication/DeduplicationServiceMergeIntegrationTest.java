@@ -229,7 +229,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
                 UID.of(original.getUid()),
                 null,
                 TrackedEntityChangeLogOperationParams.builder().build(),
-                new PageParams(1, 50, false))
+                PageParams.of(1, 50, false))
             .getItems();
     assertChangeLogCreate(trackedEntityChangeLogs);
   }
@@ -260,7 +260,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
                 UID.of(original.getUid()),
                 null,
                 TrackedEntityChangeLogOperationParams.builder().build(),
-                new PageParams(1, 50, false))
+                PageParams.of(1, 50, false))
             .getItems();
     assertChangeLogUpdate(trackedEntityChangeLogs, "value");
   }
@@ -299,7 +299,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
                 UID.of(original.getUid()),
                 null,
                 TrackedEntityChangeLogOperationParams.builder().build(),
-                new PageParams(1, 50, false))
+                PageParams.of(1, 50, false))
             .getItems()
             .stream()
             .filter(cl -> cl.getTrackedEntity().getUid().equals(duplicate.getUid()))

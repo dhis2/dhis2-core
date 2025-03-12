@@ -44,6 +44,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
@@ -80,11 +81,15 @@ class OrderAndFilterEventChangeLogTest extends PostgresIntegrationTestBase {
 
   private User importUser;
 
-  private final PageParams defaultPageParams = PageParams.of(1, 10, false);
+  private final PageParams defaultPageParams;
 
   private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
   private TrackerObjects trackerObjects;
+
+  OrderAndFilterEventChangeLogTest() throws BadRequestException {
+    defaultPageParams = PageParams.of(1, 10, false);
+  }
 
   @BeforeAll
   void setUp() throws IOException {

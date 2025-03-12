@@ -231,7 +231,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       @Nonnull TrackedEntityOperationParams operationParams, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException {
     UserDetails user = getCurrentUserDetails();
-    TrackedEntityQueryParams queryParams = mapper.map(operationParams, user);
+    TrackedEntityQueryParams queryParams = mapper.map(operationParams, user, pageParams);
     final Page<TrackedEntityIdentifiers> ids =
         trackedEntityStore.getTrackedEntityIds(queryParams, pageParams);
 

@@ -116,7 +116,6 @@ public class AnalyticsQueryDv15AutoTest extends AnalyticsApiTest {
 
     // When
     ApiResponse response = actions.get(params);
-    ;
 
     // Then
     response

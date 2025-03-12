@@ -48,6 +48,20 @@
       "version": {
         "min": 42
       }
+    },
+    {
+      "name": "metadataForDataElementOfTypeOrgUnitFilterEq",
+      "query": "/api/analytics/enrollments/query/WSGAb5XwJ3Y.json?dimension=PFDfvmGpsR3.n1rtSHYf6O6:EQ:OI0BQUurVFS,ou:USER_ORGUNIT&headers=ouname,PFDfvmGpsR3.n1rtSHYf6O6&totalPages=false&rowContext=true&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=ENROLLMENT",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "metadataForDataElementOfTypeOrgUnitFilterIn",
+      "query": "/api/analytics/enrollments/query/WSGAb5XwJ3Y.json?dimension=PFDfvmGpsR3.n1rtSHYf6O6:IN:OI0BQUurVFS;LEVEL-H1KlN4QIauv;USER_ORGUNIT_GRANDCHILDREN,ou:USER_ORGUNIT&headers=ouname,PFDfvmGpsR3.n1rtSHYf6O6&totalPages=false&rowContext=true&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=ENROLLMENT",
+      "version": {
+        "min": 42
+      }
     }
   ]
 }

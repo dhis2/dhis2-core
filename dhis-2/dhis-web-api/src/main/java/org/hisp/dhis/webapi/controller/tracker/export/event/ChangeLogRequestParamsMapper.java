@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateFilter;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrderParams;
-import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationBounds;
 
 import java.util.List;
 import java.util.Set;
@@ -59,7 +58,6 @@ class ChangeLogRequestParamsMapper {
       Set<Pair<String, Class<?>>> filterableFields,
       ChangeLogRequestParams requestParams)
       throws BadRequestException {
-    validatePaginationBounds(requestParams.getPage(), requestParams.getPageSize());
     validateOrderParams(requestParams.getOrder(), orderableFields);
     validateFilter(requestParams.getFilter(), filterableFields);
 
