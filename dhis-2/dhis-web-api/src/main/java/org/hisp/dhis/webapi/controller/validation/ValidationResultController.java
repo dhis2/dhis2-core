@@ -27,18 +27,17 @@
  */
 package org.hisp.dhis.webapi.controller.validation;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
-import com.google.common.collect.Lists;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.fieldfiltering.Preset;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.schema.descriptors.ValidationResultSchemaDescriptor;
@@ -46,8 +45,8 @@ import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultService;
 import org.hisp.dhis.validation.ValidationResultsDeletionRequest;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
+import org.hisp.dhis.webapi.controller.AbstractFullReadOnlyController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -62,32 +61,24 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Stian Sandvold
  */
 @OpenApi.Tags("data")
+@OpenApi.EntityType(ValidationResult.class)
 @RestController
 @RequestMapping(value = ValidationResultSchemaDescriptor.API_ENDPOINT)
 @ApiVersion({DhisApiVersion.ALL, DhisApiVersion.DEFAULT})
+@RequiredArgsConstructor
 public class ValidationResultController {
-  private final FieldFilterService fieldFilterService;
 
+  private final FieldFilterService fieldFilterService;
   private final ValidationResultService validationResultService;
 
-  private final ContextService contextService;
-
-  public ValidationResultController(
-      FieldFilterService fieldFilterService,
-      ValidationResultService validationResultService,
-      ContextService contextService) {
-    this.fieldFilterService = fieldFilterService;
-    this.validationResultService = validationResultService;
-    this.contextService = contextService;
-  }
-
   @GetMapping
+  @OpenApi.Response(AbstractFullReadOnlyController.ObjectListResponse.class)
   public @ResponseBody RootNode getObjectList(
       ValidationResultQuery query, HttpServletResponse response) {
-    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
+    List<String> fields = query.getFields();
 
-    if (fields.isEmpty()) {
-      fields.addAll(Preset.ALL.getFields());
+    if (fields == null || fields.isEmpty()) {
+      fields = List.of("*");
     }
 
     List<ValidationResult> validationResults = validationResultService.getValidationResults(query);
@@ -95,8 +86,9 @@ public class ValidationResultController {
     RootNode rootNode = NodeUtils.createMetadata();
 
     if (!query.isSkipPaging()) {
-      query.setTotal(validationResultService.countValidationResults(query));
-      rootNode.addChild(NodeUtils.createPager(query.getPager()));
+      long total = validationResultService.countValidationResults(query);
+      rootNode.addChild(
+          NodeUtils.createPager(new Pager(query.getPage(), total, query.getPageSize())));
     }
 
     rootNode.addChild(
@@ -108,18 +100,18 @@ public class ValidationResultController {
   }
 
   @GetMapping(value = "/{id}")
-  public @ResponseBody ValidationResult getObject(@PathVariable int id) throws WebMessageException {
+  public @ResponseBody ValidationResult getObject(@PathVariable int id) throws NotFoundException {
     ValidationResult result = validationResultService.getById(id);
-    checkFound(id, result);
+    if (result == null) throw new NotFoundException(ValidationResult.class, "" + id);
     return result;
   }
 
   @PreAuthorize("hasRole('F_PERFORM_MAINTENANCE')")
   @DeleteMapping(value = "/{id}")
   @ResponseStatus(value = HttpStatus.NO_CONTENT)
-  public void delete(@PathVariable int id) throws WebMessageException {
+  public void delete(@PathVariable int id) throws NotFoundException {
     ValidationResult result = validationResultService.getById(id);
-    checkFound(id, result);
+    if (result == null) throw new NotFoundException(ValidationResult.class, "" + id);
     validationResultService.deleteValidationResult(result);
   }
 
@@ -128,11 +120,5 @@ public class ValidationResultController {
   @ResponseStatus(value = HttpStatus.NO_CONTENT)
   public void deleteValidationResults(ValidationResultsDeletionRequest request) {
     validationResultService.deleteValidationResults(request);
-  }
-
-  private void checkFound(int id, ValidationResult result) throws WebMessageException {
-    if (result == null) {
-      throw new WebMessageException(notFound("Validation result with id " + id + " was not found"));
-    }
   }
 }
