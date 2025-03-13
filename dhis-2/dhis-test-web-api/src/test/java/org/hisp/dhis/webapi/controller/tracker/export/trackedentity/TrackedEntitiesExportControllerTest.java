@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.utils.Assertions.assertHasSize;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.web.WebClient.Accept;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
@@ -307,6 +309,26 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     assertContainsAll(
         List.of(tea.getUid(), tea2.getUid()), attributes, JsonAttribute::getAttribute);
     assertContainsAll(List.of("12", "24"), attributes, JsonAttribute::getValue);
+  }
+
+  @Test
+  void
+      shouldGetTrackedEntityWithNoRelationshipsWhenTrackedEntityIsOnTheToSideOfAUnidirectionalRelationship() {
+    TrackedEntity to = trackedEntity(trackedEntityType);
+    relationship(trackedEntity(), to);
+    this.switchContextToUser(user);
+
+    assertHasSize(
+        1, to.getRelationshipItems(), "test expects a tracked entity with one relationship");
+
+    JsonList<JsonRelationship> rels =
+        GET("/tracker/trackedEntities/{id}?fields=relationships", to.getUid())
+            .content(HttpStatus.OK)
+            .getList("trackedEntities", JsonTrackedEntity.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    assertIsEmpty(rels.stream().toList());
   }
 
   @Test
