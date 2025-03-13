@@ -78,7 +78,7 @@ public class ValidationResultController {
     List<String> fields = query.getFields();
 
     if (fields == null || fields.isEmpty()) {
-      fields = FieldPreset.ALL.getFields();
+      fields = List.of("*");
     }
 
     List<ValidationResult> validationResults = validationResultService.getValidationResults(query);
