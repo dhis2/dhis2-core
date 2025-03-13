@@ -275,10 +275,10 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
     SystemVersionBuildTime system = systemService.getSystemVersionBuildTime();
 
     return new Dhis2Info()
-        .setVersion(system.info().version())
-        .setRevision(system.info().revision())
+        .setVersion(system.systemIdVersionDate().version())
+        .setRevision(system.systemIdVersionDate().revision())
         .setBuildTime(system.buildTime())
-        .setSystemId(system.info().id())
-        .setServerDate(system.info().serverDate());
+        .setSystemId(system.systemIdVersionDate().id())
+        .setServerDate(system.systemIdVersionDate().serverDate());
   }
 }
