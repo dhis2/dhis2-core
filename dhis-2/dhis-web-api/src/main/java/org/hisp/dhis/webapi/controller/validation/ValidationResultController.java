@@ -95,8 +95,9 @@ public class ValidationResultController {
     RootNode rootNode = NodeUtils.createMetadata();
 
     if (!query.isSkipPaging()) {
-      query.setTotal(validationResultService.countValidationResults(query));
-      rootNode.addChild(NodeUtils.createPager(query.getPager()));
+      long total = validationResultService.countValidationResults(query);
+      rootNode.addChild(
+          NodeUtils.createPager(new Pager(query.getPage(), total, query.getPageSize())));
     }
 
     rootNode.addChild(
