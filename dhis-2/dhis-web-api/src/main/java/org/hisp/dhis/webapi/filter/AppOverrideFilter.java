@@ -27,20 +27,17 @@
  */
 package org.hisp.dhis.webapi.filter;
 
-import static java.util.regex.Pattern.compile;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Strings;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import static java.util.regex.Pattern.compile;
+
 import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
@@ -51,11 +48,22 @@ import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.webapi.utils.AppHtmlTemplate;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Austin McGee <austin@dhis2.org>
@@ -91,11 +99,11 @@ public class AppOverrideFilter extends OncePerRequestFilter {
       String appName = m.group(1);
       String resourcePath = m.group(2);
 
-      log.debug("AppOverrideFilter :: Matched for path: " + pathInfo);
+      log.info("AppOverrideFilter :: Matched for path: " + pathInfo);
 
       App app = appManager.getApp(appName, contextPath);
       if (app != null && app.getAppState() != AppStatus.DELETION_IN_PROGRESS) {
-        log.debug("AppOverrideFilter :: Overridden app " + appName + " found, serving override");
+        log.info("AppOverrideFilter :: Overridden app " + appName + " found, serving override");
         // if resource path is blank, this means the base app dir has been requested
         // this is due to the complex regex above which has to include '/' at the end, so correct
         // app names are matched e.g. dhis-web-user v dhis-web-user-profile
@@ -104,8 +112,31 @@ public class AppOverrideFilter extends OncePerRequestFilter {
 
         return;
       } else {
-        log.debug(
+        log.info(
             "AppOverrideFilter :: App " + appName + " not found, falling back to bundled app");
+
+        if (resourcePath.endsWith(".html")) {
+          log.info("AppOverrideFilter :: HTML response detected, applying app override template {}", resourcePath);
+          
+          CharResponseWrapper responseWrapper = new CharResponseWrapper(response);
+          chain.doFilter(request, responseWrapper);
+
+          InputStream inputStream = new ByteArrayInputStream(responseWrapper.toString().getBytes());
+          ByteArrayOutputStream bout = new ByteArrayOutputStream();
+
+          AppHtmlTemplate template = new AppHtmlTemplate(contextPath, contextPath);
+          template.apply(inputStream, bout);
+
+          response.setContentType("text/html");
+          response.setContentLength(bout.size());
+          response.setHeader("Content-Encoding", StandardCharsets.UTF_8.toString());
+          bout.writeTo(response.getOutputStream());
+        } else {
+          log.debug("AppOverrideFilter :: Non-HTML response detected, passing through");
+          chain.doFilter(request, response);
+        }
+
+        return;
       }
     }
 
