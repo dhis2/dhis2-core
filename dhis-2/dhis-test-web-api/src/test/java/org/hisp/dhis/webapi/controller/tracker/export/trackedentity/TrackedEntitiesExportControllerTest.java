@@ -106,7 +106,6 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   private OrganisationUnit anotherOrgUnit;
 
   private Program program;
-  private Program programB;
 
   private ProgramStage programStage;
 
