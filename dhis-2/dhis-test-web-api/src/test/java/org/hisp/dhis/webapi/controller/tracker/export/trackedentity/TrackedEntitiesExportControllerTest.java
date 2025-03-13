@@ -206,7 +206,6 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     program.getSharing().addUserAccess(userAccess(userWithDifferentScopes));
     manager.save(program, false);
 
-    trackedEntityType.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     trackedEntityType.getSharing().setUserAccesses(Set.of(userAccess(userWithDifferentScopes)));
     manager.save(trackedEntityType, false);
 
