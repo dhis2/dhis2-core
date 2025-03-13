@@ -82,8 +82,15 @@ public class PotentialDuplicatesRelationshipTests extends PotentialDuplicatesApi
         .getTrackedEntity(teA + "?fields=*")
         .validate()
         .statusCode(200)
-        .body("relationships", hasSize(2))
-        .body("relationships.relationship", hasItems(relationship3, relationship2));
+        .body("relationships", hasSize(1))
+        .body("relationships.relationship", hasItems(relationship2));
+
+    trackerImportExportActions
+        .getTrackedEntity(teC + "?fields=*")
+        .validate()
+        .statusCode(200)
+        .body("relationships", hasSize(1))
+        .body("relationships.relationship", hasItems(relationship3));
   }
 
   @Test
