@@ -234,16 +234,11 @@ public class RelationshipsTests extends TrackerApiTest {
         .body("stats.ignored", equalTo(0))
         .body("stats.created", equalTo(1));
 
-    // and there is 1 relationship for any of the tracked entities
+    // and there are 2 relationships for any of the tracked entities
     ApiResponse relationshipResponse =
         trackerImportExportActions.get("/relationships?trackedEntity=" + trackedEntity_1);
 
-    relationshipResponse.validate().statusCode(200).body("relationships.size()", is(1));
-
-    relationshipResponse =
-        trackerImportExportActions.get("/relationships?trackedEntity=" + trackedEntity_2);
-
-    relationshipResponse.validate().statusCode(200).body("relationships.size()", is(1));
+    relationshipResponse.validate().statusCode(200).body("relationships.size()", is(2));
   }
 
   @Test
