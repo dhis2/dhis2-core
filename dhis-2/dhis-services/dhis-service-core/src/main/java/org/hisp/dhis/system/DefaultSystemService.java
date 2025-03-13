@@ -166,7 +166,9 @@ public class DefaultSystemService implements SystemService, InitializingBean {
   public SystemVersionCalendar getSystemVersionCalendar() {
     if (systemInfo == null) return null;
     return new SystemVersionCalendar(
-        systemInfo.getRevision(), systemInfo.getVersion(), systemInfo.getCalendar());
+        systemInfo.getRevision(),
+        systemInfo.getVersion(),
+        calendarService.getSystemCalendar().name());
   }
 
   @Override

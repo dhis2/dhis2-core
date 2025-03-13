@@ -41,20 +41,23 @@ public interface SystemService {
    */
   SystemInfo getSystemInfo();
 
+  /**
+   * @return The system info version
+   */
   String getSystemInfoVersion();
 
   /**
-   * @return The system id ,version and server date
+   * @return SystemIdVersionDate
    */
   SystemIdVersionDate getSystemIdVersionDate();
 
   /**
-   * @return The system version info with build time
+   * @return SystemVersionBuildTime
    */
   SystemVersionBuildTime getSystemVersionBuildTime();
 
   /**
-   * @return The system info needed for app cache
+   * @return SystemVersionCalendar
    */
   SystemVersionCalendar getSystemVersionCalendar();
 }
