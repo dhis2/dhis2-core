@@ -33,6 +33,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
@@ -75,30 +76,57 @@ class AppMenuManagerTest {
 
   String mockFile =
       """
-                  {
-                    "app_hub_id": "4a5b87dc-015c-47db-ae77-f2f42e3bbb5a",
-                    "appType": "APP",
-                    "short_name": "aggregate-data-entry",
-                    "name": "Data Entry",
-                    "description": "",
-                    "version": "101.0.1",
-                    "core_app": true,
-                    "launch_path": "index.html",
-                    "default_locale": "en",
-                    "icons": {
-                      "48": "dhis2-app-icon.png"
-                    },
-                    "shortcuts": [
-                      {
-                        "name": "Aggregate form",
-                        "url": "#/aggregate-form"
-                      },{
-                        "name": "Custom form",
-                        "url": "#/custom-form"
-                      }
-                    ]
-                  }
-                  """;
+                    {
+                      "app_hub_id": "4a5b87dc-015c-47db-ae77-f2f42e3bbb5a",
+                      "appType": "APP",
+                      "short_name": "aggregate-data-entry",
+                      "name": "Data Entry",
+                      "description": "",
+                      "version": "101.0.1",
+                      "core_app": true,
+                      "launch_path": "index.html",
+                      "default_locale": "en",
+                      "icons": {
+                        "48": "dhis2-app-icon.png"
+                      },
+                      "shortcuts": [
+                        {
+                          "name": "Aggregate form",
+                          "url": "#/aggregate-form"
+                        },{
+                          "name": "Custom form",
+                          "url": "#/custom-form"
+                        }
+                      ]
+                    }
+                    """;
+  String mockTranslations =
+      """
+                    [
+                       {
+                         "locale": "es",
+                         "translations": {
+                           "APP_TITLE": "Gestión de aplicaciones",
+                           "APP_DESCRIPTION": "La aplicación de gestión de aplicaciones ofrece la posibilidad de cargar aplicaciones web",
+                           "SHORTCUT_Aggregate form": "Formulario agregado",
+                           "SHORTCUT_Custom form": "Formulario personalizado"
+                         }
+                       },
+                       {
+                         "locale": "es_CO",
+                         "translations": {
+                           "SHORTCUT_Custom form": "Formulario personalizado (Colombia)"
+                         }
+                       },
+                       {
+                         "locale": "ar",
+                         "translations": {
+                           "SHORTCUT_Aggregate form": "فورم"
+                         }
+                       }
+                     ]
+                    """;
+
   InputStream inputStream = new ByteArrayInputStream(mockFile.getBytes());
 
   @BeforeEach
@@ -109,7 +137,15 @@ class AppMenuManagerTest {
     Resource mockResource = Mockito.mock(Resource.class);
     Mockito.when(mockResource.getInputStream()).thenReturn(inputStream);
 
-    Mockito.when(resourceLoader.getResource(Mockito.anyString())).thenReturn(mockResource);
+    Mockito.when(resourceLoader.getResource(Mockito.matches("manifest\\.webapp$")))
+        .thenReturn(mockResource);
+
+    Resource mockTranslationResource = Mockito.mock(Resource.class);
+    Mockito.when(mockTranslationResource.getInputStream())
+        .thenAnswer((a -> new ByteArrayInputStream("".getBytes())));
+
+    Mockito.when(resourceLoader.getResource(Mockito.matches("translations\\.json$")))
+        .thenReturn(mockTranslationResource);
   }
 
   @Test
@@ -136,7 +172,85 @@ class AppMenuManagerTest {
       assertEquals("#/aggregate-form", firstShortcut.getUrl());
 
       assertEquals("Custom form", secondShortcut.getName());
+      assertEquals("Custom form", secondShortcut.getDisplayName());
       assertEquals("#/custom-form", secondShortcut.getUrl());
     }
+  }
+
+  List<WebModule> setLanguageForTest(String language) throws IOException {
+    Mockito.when(localeManager.getCurrentLocale()).thenReturn(new Locale(language));
+
+    Resource mockTranslationResource = Mockito.mock(Resource.class);
+    Mockito.when(mockTranslationResource.getInputStream())
+        .thenAnswer(a -> new ByteArrayInputStream(mockTranslations.getBytes()));
+
+    Mockito.when(mockTranslationResource.exists()).thenReturn(Boolean.TRUE);
+
+    Mockito.when(resourceLoader.getResource(Mockito.matches("translations\\.json$")))
+        .thenReturn(mockTranslationResource);
+
+    try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
+      userUtilMockedStatic
+          .when(() -> CurrentUserUtil.hasAnyAuthority(Mockito.anyList()))
+          .thenReturn(Boolean.TRUE);
+
+      List<WebModule> accessibleWebModules = appMenuManager.getAccessibleWebModules(appManager);
+      assertEquals(BUNDLED_APPS.size(), accessibleWebModules.size());
+
+      return accessibleWebModules;
+    }
+  }
+
+  @Test
+  void testGetMenu_BundledAppsWithTranslations_MatchingLocale() throws IOException {
+    List<WebModule> webModules = setLanguageForTest("es");
+    WebModule webModule = webModules.get(0);
+
+    AppShortcut firstShortcut = webModule.getShortcuts().get(0);
+    AppShortcut secondShortcut = webModule.getShortcuts().get(1);
+
+    assertEquals("Formulario agregado", firstShortcut.getDisplayName());
+    assertEquals("#/aggregate-form", firstShortcut.getUrl());
+
+    assertEquals("Formulario personalizado", secondShortcut.getDisplayName());
+    assertEquals("#/custom-form", secondShortcut.getUrl());
+  }
+
+  @Test
+  void testGetMenu_BundledAppsWithTranslations_PartialMatchingForLanguage() throws IOException {
+    List<WebModule> webModules = setLanguageForTest("es_CO");
+    WebModule webModule = webModules.get(0);
+
+    AppShortcut firstShortcut = webModule.getShortcuts().get(0);
+    AppShortcut secondShortcut = webModule.getShortcuts().get(1);
+
+    assertEquals("Formulario agregado", firstShortcut.getDisplayName());
+    assertEquals("Formulario personalizado (Colombia)", secondShortcut.getDisplayName());
+  }
+
+  @Test
+  void testGetMenu_BundledAppsWithTranslations_PartialMatchingWithFallbackToDefault()
+      throws IOException {
+    List<WebModule> webModules = setLanguageForTest("ar");
+    WebModule webModule = webModules.get(0);
+
+    AppShortcut firstShortcut = webModule.getShortcuts().get(0);
+    AppShortcut secondShortcut = webModule.getShortcuts().get(1);
+
+    assertEquals("فورم", firstShortcut.getDisplayName());
+    assertEquals("Custom form", secondShortcut.getDisplayName());
+  }
+
+  @Test
+  void testGetMenu_BundledAppsWithTranslations_PartialMatchingWithFallbackToLanguageAndDefault()
+      throws IOException {
+    List<WebModule> webModules = setLanguageForTest("ar_EG");
+    WebModule webModule = webModules.get(0);
+
+    AppShortcut firstShortcut = webModule.getShortcuts().get(0);
+    AppShortcut secondShortcut = webModule.getShortcuts().get(1);
+
+    assertEquals("فورم", firstShortcut.getDisplayName());
+    assertEquals("Custom form", secondShortcut.getDisplayName());
   }
 }

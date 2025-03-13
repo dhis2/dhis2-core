@@ -32,10 +32,7 @@ import static org.hisp.dhis.security.Authorities.ALL;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +41,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
@@ -65,6 +63,9 @@ public class AppMenuManager {
   private final ResourceLoader resourceLoader;
 
   private String readFromInputStream(InputStream inputStream) throws IOException {
+    if (inputStream == null) {
+      return null;
+    }
     StringBuilder resultStringBuilder = new StringBuilder();
     try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
       String line;
@@ -107,11 +108,35 @@ public class AppMenuManager {
         module.setShortcuts(bundledApp.getShortcuts());
         module.setVersion(bundledApp.getVersion());
 
+        // Read translations for possible manifest translations
+        Resource appManifestTranslation =
+            resourceLoader.getResource(
+                "classpath:static/" + key + "/manifest.webapp.translations.json");
+
+        List<AppManifestTranslation> manifestTranslations = null;
+
+        if (appManifestTranslation.exists()) {
+          log.warn("[MOZAFAR] manifest translation exists {}", bundledApp.getName());
+          InputStream appManifestTranslationResource = appManifestTranslation.getInputStream();
+          String appManifestTranslations = readFromInputStream(appManifestTranslationResource);
+          if (appManifestTranslations != null) {
+            manifestTranslations =
+                mapper
+                    .readerForListOf(AppManifestTranslation.class)
+                    .readValue(appManifestTranslations);
+          }
+        }
+
+        bundledApp.setManifestTranslations(
+            manifestTranslations, localeManager.getCurrentLocale().getLanguage());
+
         // 2. check if this is a bundled app that was updated (so its information should be in the
         // cache)
         App installedApp = appManager.getApp(app);
 
         if (installedApp != null && !installedApp.getVersion().equals(module.getVersion())) {
+          installedApp.setManifestTranslations(
+              manifestTranslations, localeManager.getCurrentLocale().getLanguage());
           module.setShortcuts(installedApp.getShortcuts());
           module.setVersion(installedApp.getVersion());
         }

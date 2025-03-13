@@ -36,8 +36,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
 import java.util.*;
 import javax.annotation.Nonnull;
+import lombok.Setter;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.datastore.DatastoreNamespace;
+import org.hisp.dhis.util.ObjectUtils;
 
 /**
  * @author Saptarshi
@@ -50,59 +52,59 @@ public class App implements Serializable {
   public static final String SEE_APP_AUTHORITY_PREFIX = "M_";
 
   /** Required. */
-  private String version;
+  @Setter private String version;
 
-  private String name;
+  @Setter private String name;
 
-  private AppType appType = AppType.APP;
+  @Setter private AppType appType = AppType.APP;
 
   private String basePath;
 
-  private String launchPath;
+  @Setter private String launchPath;
 
-  private String pluginLaunchPath;
+  @Setter private String pluginLaunchPath;
 
-  private String[] installsAllowedFrom;
+  @Setter private String[] installsAllowedFrom;
 
-  private String defaultLocale;
+  @Setter private String defaultLocale;
 
-  private AppStorageSource appStorageSource;
+  @Setter private AppStorageSource appStorageSource;
 
-  private String folderName;
+  @Setter private String folderName;
 
   /** Optional. */
-  private String shortName;
+  @Setter private String shortName;
 
-  private String description;
+  @Setter private String description;
 
-  private String appHubId;
+  @Setter private String appHubId;
 
-  private AppIcons icons;
+  @Setter private AppIcons icons;
 
-  private AppDeveloper developer;
+  @Setter private AppDeveloper developer;
 
-  private String locales;
+  @Setter private String locales;
 
-  private AppActivities activities;
+  @Setter private AppActivities activities;
 
   private String launchUrl;
 
   private String pluginLaunchUrl;
 
-  private String pluginType;
+  @Setter private String pluginType;
 
-  private String baseUrl;
+  @Setter private String baseUrl;
 
-  private Set<String> authorities = new HashSet<>();
+  @Setter private Set<String> authorities = new HashSet<>();
 
-  private AppSettings settings;
+  @Setter private AppSettings settings;
 
-  private boolean coreApp = false;
+  @Setter private boolean coreApp = false;
 
   /** Generated. */
-  private AppStatus appState = AppStatus.OK;
+  @Setter private AppStatus appState = AppStatus.OK;
 
-  private List<AppShortcut> shortcuts = new ArrayList<>();
+  @Setter private List<AppShortcut> shortcuts = new ArrayList<>();
 
   // -------------------------------------------------------------------------
   // Logic
@@ -153,10 +155,6 @@ public class App implements Serializable {
     return coreApp;
   }
 
-  public void setCoreApp(boolean coreApp) {
-    this.coreApp = coreApp;
-  }
-
   // -------------------------------------------------------------------------
   // Get and set methods
   // -------------------------------------------------------------------------
@@ -167,18 +165,10 @@ public class App implements Serializable {
     return version;
   }
 
-  public void setVersion(String version) {
-    this.version = version;
-  }
-
   @JsonProperty("app_hub_id")
   @JacksonXmlProperty(localName = "app_hub_id", namespace = DxfNamespaces.DXF_2_0)
   public String getAppHubId() {
     return appHubId;
-  }
-
-  public void setAppHubId(String appHubId) {
-    this.appHubId = appHubId;
   }
 
   @JsonProperty("short_name")
@@ -190,18 +180,10 @@ public class App implements Serializable {
     return shortName;
   }
 
-  public void setShortName(String shortName) {
-    this.shortName = shortName;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getName() {
     return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
   }
 
   @JsonProperty
@@ -210,18 +192,10 @@ public class App implements Serializable {
     return appType;
   }
 
-  public void setAppType(AppType appType) {
-    this.appType = appType;
-  }
-
   @JsonProperty("launch_path")
   @JacksonXmlProperty(localName = "launch_path", namespace = DxfNamespaces.DXF_2_0)
   public String getLaunchPath() {
     return launchPath;
-  }
-
-  public void setLaunchPath(String launchPath) {
-    this.launchPath = launchPath;
   }
 
   @JsonProperty("plugin_launch_path")
@@ -230,18 +204,10 @@ public class App implements Serializable {
     return pluginLaunchPath;
   }
 
-  public void setPluginLaunchPath(String pluginLaunchPath) {
-    this.pluginLaunchPath = pluginLaunchPath;
-  }
-
   @JsonProperty("plugin_type")
   @JacksonXmlProperty(localName = "plugin_type", namespace = DxfNamespaces.DXF_2_0)
   public String getPluginType() {
     return pluginType;
-  }
-
-  public void setPluginType(String pluginType) {
-    this.pluginType = pluginType;
   }
 
   @JsonProperty("installs_allowed_from")
@@ -250,18 +216,10 @@ public class App implements Serializable {
     return installsAllowedFrom;
   }
 
-  public void setInstallsAllowedFrom(String[] installsAllowedFrom) {
-    this.installsAllowedFrom = installsAllowedFrom;
-  }
-
   @JsonProperty("default_locale")
   @JacksonXmlProperty(localName = "default_locale", namespace = DxfNamespaces.DXF_2_0)
   public String getDefaultLocale() {
     return defaultLocale;
-  }
-
-  public void setDefaultLocale(String defaultLocale) {
-    this.defaultLocale = defaultLocale;
   }
 
   @JsonProperty
@@ -270,18 +228,10 @@ public class App implements Serializable {
     return description;
   }
 
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public AppDeveloper getDeveloper() {
     return developer;
-  }
-
-  public void setDeveloper(AppDeveloper developer) {
-    this.developer = developer;
   }
 
   @JsonProperty
@@ -290,17 +240,9 @@ public class App implements Serializable {
     return icons;
   }
 
-  public void setIcons(AppIcons icons) {
-    this.icons = icons;
-  }
-
   @JsonIgnore
   public String getLocales() {
     return locales;
-  }
-
-  public void setLocales(String locales) {
-    this.locales = locales;
   }
 
   @JsonProperty
@@ -309,18 +251,10 @@ public class App implements Serializable {
     return activities;
   }
 
-  public void setActivities(AppActivities activities) {
-    this.activities = activities;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getFolderName() {
     return folderName;
-  }
-
-  public void setFolderName(String folderName) {
-    this.folderName = folderName;
   }
 
   @JsonProperty
@@ -339,10 +273,6 @@ public class App implements Serializable {
     return baseUrl;
   }
 
-  public void setBaseUrl(String baseUrl) {
-    this.baseUrl = baseUrl;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public AppStorageSource getAppStorageSource() {
@@ -355,18 +285,10 @@ public class App implements Serializable {
     return shortcuts;
   }
 
-  public void setAppStorageSource(AppStorageSource appStorageSource) {
-    this.appStorageSource = appStorageSource;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Set<String> getAuthorities() {
     return authorities;
-  }
-
-  public void setAuthorities(Set<String> authorities) {
-    this.authorities = authorities;
   }
 
   @JsonProperty
@@ -375,22 +297,57 @@ public class App implements Serializable {
     return appState;
   }
 
-  public void setAppState(AppStatus appState) {
-    this.appState = appState;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public AppSettings getSettings() {
     return settings;
   }
 
-  public void setSettings(AppSettings settings) {
-    this.settings = settings;
+  private List<AppManifestTranslation> manifestTranslations = new ArrayList<>();
+
+  public void setManifestTranslations(
+      List<AppManifestTranslation> translations, String userLocale) {
+    if (translations == null) {
+      return;
+    }
+
+    manifestTranslations = translations;
+
+    if (!manifestTranslations.isEmpty()) {
+      for (AppShortcut shortcut : this.shortcuts) {
+        shortcut.setDisplayName(getTranslations(userLocale, shortcut.getName()));
+      }
+    }
   }
 
-  public void setShortcuts(List<AppShortcut> shortcuts) {
-    this.shortcuts = shortcuts;
+  private String getTranslations(String locale, String shortcutName) {
+    String language = locale.split("[-_]")[0];
+    Optional<AppManifestTranslation> matchingLocale =
+        manifestTranslations.stream()
+            .filter(tf -> Objects.equals(tf.getLocale().toLowerCase(), locale.toLowerCase()))
+            .findFirst();
+
+    Optional<AppManifestTranslation> matchingLanguage =
+        manifestTranslations.stream()
+            .filter(tf -> Objects.equals(tf.getLocale(), language))
+            .findFirst();
+
+    if (matchingLocale.isEmpty() && matchingLanguage.isEmpty()) {
+      return shortcutName;
+    }
+
+    String key = "SHORTCUT_" + shortcutName;
+
+    String result = null;
+    if (matchingLocale.isPresent()) {
+      result = matchingLocale.get().getTranslations().get(key);
+    }
+
+    if (result == null && matchingLanguage.isPresent()) {
+      result = matchingLanguage.get().getTranslations().get(key);
+    }
+
+    return ObjectUtils.firstNonNull(result, shortcutName);
   }
 
   // -------------------------------------------------------------------------
