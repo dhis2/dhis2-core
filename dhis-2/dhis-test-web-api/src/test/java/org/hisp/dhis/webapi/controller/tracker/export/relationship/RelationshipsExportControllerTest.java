@@ -243,7 +243,9 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
     relationshipType.setBidirectional(false);
     manager.update(relationshipType);
 
-    org.hisp.dhis.program.Event to = manager.get(org.hisp.dhis.program.Event.class, "LCSfHnurnNB");
+    Relationship relationship = getRelationship(UID.of("x8919212736"));
+
+    org.hisp.dhis.program.Event to = manager.get(org.hisp.dhis.program.Event.class, "QRYjLTiJTrA");
     assertHasSize(
         1,
         to.getRelationshipItems(),
@@ -254,7 +256,14 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
-    assertIsEmpty(jsonRelationships.stream().toList());
+    JsonRelationship jsonRelationship =
+        assertContains(
+            jsonRelationships,
+            rel -> relationship.getUid().getValue().equals(rel.getRelationship()),
+            "expected to find relationship " + relationship.getUid());
+
+    assertRelationship(relationship, jsonRelationship);
+    assertHasOnlyUid(UID.of(to), "event", jsonRelationship.getTo());
   }
 
   @Test
@@ -382,7 +391,10 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
-    assertIsEmpty(jsonRelationships.stream().toList());
+    JsonRelationship jsonRelationship = assertFirstRelationship(relationship2, jsonRelationships);
+    assertHasOnlyMembers(jsonRelationship, "relationship", "relationshipType", "from", "to");
+    assertHasOnlyUid(relationship2From.getUid(), "trackedEntity", jsonRelationship.getFrom());
+    assertHasOnlyUid(relationship2To.getUid(), "enrollment", jsonRelationship.getTo());
   }
 
   @Test
@@ -528,6 +540,8 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
     relationshipType.setBidirectional(false);
     manager.update(relationshipType);
 
+    Relationship relationship = getRelationship(UID.of("N8800829a58"));
+
     org.hisp.dhis.trackedentity.TrackedEntity to =
         manager.get(org.hisp.dhis.trackedentity.TrackedEntity.class, "QesgJkTyTCk");
     assertHasSize(
@@ -540,7 +554,14 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
-    assertIsEmpty(jsonRelationships.stream().toList());
+    JsonRelationship jsonRelationship =
+        assertContains(
+            jsonRelationships,
+            rel -> relationship.getUid().getValue().equals(rel.getRelationship()),
+            "expected to find relationship " + relationship.getUid());
+
+    assertRelationship(relationship, jsonRelationship);
+    assertHasOnlyUid(UID.of(to), "trackedEntity", jsonRelationship.getTo());
   }
 
   @Test

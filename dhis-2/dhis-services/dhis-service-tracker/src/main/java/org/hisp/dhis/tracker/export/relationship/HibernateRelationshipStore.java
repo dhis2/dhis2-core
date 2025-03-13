@@ -317,8 +317,7 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
 
     toSubQuery.where(
         builder.equal(root.get("to"), toRoot.get("id")),
-        builder.equal(toRoot.get(relationshipEntityType), entity.getId()),
-        builder.equal(root.get("relationshipType").get("bidirectional"), true));
+        builder.equal(toRoot.get(relationshipEntityType), entity.getId()));
 
     toSubQuery.select(toRoot.get("id"));
 
