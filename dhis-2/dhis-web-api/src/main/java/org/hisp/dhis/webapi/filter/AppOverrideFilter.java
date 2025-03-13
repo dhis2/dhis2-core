@@ -27,6 +27,14 @@
  */
 package org.hisp.dhis.webapi.filter;
 
+import static java.util.regex.Pattern.compile;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -34,10 +42,9 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import static java.util.regex.Pattern.compile;
-
 import javax.annotation.Nonnull;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
@@ -54,16 +61,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Strings;
-
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Austin McGee <austin@dhis2.org>
@@ -112,12 +109,13 @@ public class AppOverrideFilter extends OncePerRequestFilter {
 
         return;
       } else {
-        log.info(
-            "AppOverrideFilter :: App " + appName + " not found, falling back to bundled app");
+        log.info("AppOverrideFilter :: App " + appName + " not found, falling back to bundled app");
 
         if (resourcePath.endsWith(".html")) {
-          log.info("AppOverrideFilter :: HTML response detected, applying app override template {}", resourcePath);
-          
+          log.info(
+              "AppOverrideFilter :: HTML response detected, applying app override template {}",
+              resourcePath);
+
           CharResponseWrapper responseWrapper = new CharResponseWrapper(response);
           chain.doFilter(request, responseWrapper);
 
