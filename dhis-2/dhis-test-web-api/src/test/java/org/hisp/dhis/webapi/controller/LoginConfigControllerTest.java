@@ -151,9 +151,7 @@ class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
     assertFalse(responseDefaultLocale.getBoolean("selfRegistrationEnabled").booleanValue());
     assertFalse(responseDefaultLocale.getBoolean("emailConfigured").booleanValue());
     assertEquals(
-        systemService
-            .getSystemInfo()
-            .getVersion(), // todo only get what's required - don't throw runtime, show blank?
+        systemService.getSystemInfoVersion(),
         responseDefaultLocale.getString("apiVersion").string());
 
     assertEquals(

@@ -37,7 +37,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -59,9 +58,7 @@ public class MetadataSyncDelegate {
   private final SystemService systemService;
 
   public boolean shouldStopSync(String metadataVersionSnapshot) {
-    SystemInfo systemInfo = systemService.getSystemInfo(); // todo only get what's required
-    String systemVersion = systemInfo.getVersion();
-
+    String systemVersion = systemService.getSystemInfoVersion();
     if (StringUtils.isEmpty(systemVersion)
         || !metadataSystemSettingService.getStopMetadataSyncSetting()) {
       return false;

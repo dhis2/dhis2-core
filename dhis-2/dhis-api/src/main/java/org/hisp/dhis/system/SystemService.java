@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.system;
 
+import org.hisp.dhis.system.SystemInfo.SystemIdVersionDate;
+import org.hisp.dhis.system.SystemInfo.SystemVersionBuildTime;
+import org.hisp.dhis.system.SystemInfo.SystemVersionCalendar;
+
 /**
  * @author Lars Helge Overland
  */
@@ -37,8 +41,20 @@ public interface SystemService {
    */
   SystemInfo getSystemInfo();
 
+  String getSystemInfoVersion();
+
   /**
-   * @return The system info needed in a metadata export
+   * @return The system id ,version and server date
    */
-  SystemInfo getSystemInfoForMetadataExport();
+  SystemIdVersionDate getSystemIdVersionDate();
+
+  /**
+   * @return The system version info with build time
+   */
+  SystemVersionBuildTime getSystemVersionBuildTime();
+
+  /**
+   * @return The system info needed for app cache
+   */
+  SystemVersionCalendar getSystemVersionCalendar();
 }

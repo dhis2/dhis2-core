@@ -136,4 +136,16 @@ public final class SystemInfo {
         .databaseInfo(databaseInfo.withoutSensitiveInfo())
         .build();
   }
+
+  public record SystemIdVersionDate(String id, String revision, String version, Date serverDate) {}
+
+  public record SystemVersionBuildTime(SystemIdVersionDate info, Date buildTime) {}
+
+  public record SystemVersionCalendar(String revision, String version, String calendar) {}
 }
+
+// Data types that are a subsection of the full SystemInfo model. Use when only a few SystemInfo
+// fields are required. Using these help prevent:
+// - unnecessary generation of objects
+// - unnecessary service calls
+// - passing potential nulls around the system
