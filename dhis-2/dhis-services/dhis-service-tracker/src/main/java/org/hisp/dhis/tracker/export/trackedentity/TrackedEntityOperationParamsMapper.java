@@ -283,7 +283,7 @@ class TrackedEntityOperationParamsMapper {
 
   private void validateSearchOutsideCaptureScopeParameters(TrackedEntityQueryParams params)
       throws IllegalQueryException {
-    if (isLocalSearch(params, params.getUser())) {
+    if (isSearchInCaptureScope(params, params.getUser())) {
       return;
     }
 
@@ -363,7 +363,7 @@ class TrackedEntityOperationParamsMapper {
     return maxTeiLimit;
   }
 
-  private boolean isLocalSearch(TrackedEntityQueryParams params, User user) {
+  private boolean isSearchInCaptureScope(TrackedEntityQueryParams params, User user) {
     Set<OrganisationUnit> localOrgUnits = user.getOrganisationUnits();
 
     Set<OrganisationUnit> searchOrgUnits = new HashSet<>();

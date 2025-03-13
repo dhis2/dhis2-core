@@ -533,7 +533,7 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
-  void shouldFailWhenGlobalSearchAndProgramMaxTeLimitReached()
+  void validateSearchOutsideCaptureScopeAndProgramMaxTeLimitReached()
       throws ForbiddenException, BadRequestException {
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
     user.setOrganisationUnits(emptySet());
@@ -560,7 +560,7 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
-  void shouldFailWhenGlobalSearchAndTrackedEntityTypeMaxTeLimitReached()
+  void validateSearchOutsideCaptureScopeAndTrackedEntityTypeMaxTeLimitReached()
       throws ForbiddenException, BadRequestException {
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
     user.setOrganisationUnits(emptySet());
