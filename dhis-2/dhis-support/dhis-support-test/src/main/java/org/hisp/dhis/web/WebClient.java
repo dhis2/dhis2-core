@@ -82,7 +82,7 @@ public interface WebClient {
   }
 
   static Header ContentType(String mimeType) {
-    return Header("ContentType", mimeType);
+    return Header("Content-Type", mimeType);
   }
 
   static Header Accept(Object mimeType) {
@@ -181,7 +181,7 @@ public interface WebClient {
     for (RequestComponent c : components) {
       if (c instanceof Header) {
         Header header = (Header) c;
-        if (header.name.equalsIgnoreCase("ContentType")) {
+        if (header.name.equalsIgnoreCase("Content-Type")) {
           contentMediaType = header.value.toString();
         } else {
           headers.add(header);
@@ -311,7 +311,8 @@ public interface WebClient {
         }
         String error =
             String.format(
-                "{\"status\": \"error\",\"httpStatus\":\"%s\",\"httpStatusCode\":%d, \"message\":%s}",
+                "{\"status\": \"error\",\"httpStatus\":\"%s\",\"httpStatusCode\":%d,"
+                    + " \"message\":%s}",
                 status().name(), response.getStatus(), errorMessage);
         return JsonValue.of(error).as(JsonError.class);
       }
