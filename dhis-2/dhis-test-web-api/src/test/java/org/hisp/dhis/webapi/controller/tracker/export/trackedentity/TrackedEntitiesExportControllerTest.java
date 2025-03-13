@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.web.WebClient.Accept;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
@@ -105,6 +106,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   private OrganisationUnit anotherOrgUnit;
 
   private Program program;
+  private Program programB;
 
   private ProgramStage programStage;
 
@@ -115,6 +117,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   private User owner;
 
   private User user;
+  private User userWithDifferentScopes;
 
   private TrackedEntity softDeletedTrackedEntity;
 
@@ -141,12 +144,12 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
     program = createProgram('A');
     program.addOrganisationUnit(orgUnit);
     program.getSharing().setOwner(owner);
-    program.getSharing().addUserAccess(userAccess());
+    program.getSharing().addUserAccess(userAccess(user));
     manager.save(program, false);
 
     programStage = createProgramStage('A', program);
     programStage.getSharing().setOwner(owner);
-    programStage.getSharing().addUserAccess(userAccess());
+    programStage.getSharing().addUserAccess(userAccess(user));
     manager.save(programStage, false);
 
     trackedEntityType = trackedEntityTypeAccessible();
@@ -192,6 +195,32 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
             .getList("trackedEntities", JsonTrackedEntity.class);
 
     assertEquals(0, instances.size());
+  }
+
+  @Test
+  void shouldGetTrackedEntitiesDisregardingSearchScope() {
+    userWithDifferentScopes =
+        createUserWithId("testerWithDiffSearchScope", CodeGenerator.generateUid());
+    userWithDifferentScopes.addOrganisationUnit(orgUnit);
+    userWithDifferentScopes.setTeiSearchOrganisationUnits(Set.of(anotherOrgUnit));
+
+    program.getSharing().addUserAccess(userAccess(userWithDifferentScopes));
+    manager.save(program, false);
+
+    trackedEntityType.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    trackedEntityType.getSharing().setUserAccesses(Set.of(userAccess(userWithDifferentScopes)));
+    manager.save(trackedEntityType, false);
+
+    this.userService.updateUser(userWithDifferentScopes);
+
+    this.switchContextToUser(userWithDifferentScopes);
+    HttpResponse response =
+        GET(
+            "/tracker/trackedEntities?program={programId}&orgUnitMode={orgUnitMode}",
+            program.getUid(),
+            CAPTURE);
+
+    assertEquals(HttpStatus.OK, response.status());
   }
 
   @Test
@@ -1019,7 +1048,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   private TrackedEntityType trackedEntityTypeAccessible() {
     TrackedEntityType type = trackedEntityType('A');
     type.getSharing().setOwner(owner);
-    type.getSharing().addUserAccess(userAccess());
+    type.getSharing().addUserAccess(userAccess(user));
     type.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.save(type, false);
     return type;
@@ -1075,7 +1104,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
         trackedEntity, program, new Date(), new Date(), orgUnit);
   }
 
-  private UserAccess userAccess() {
+  private UserAccess userAccess(User user) {
     UserAccess a = new UserAccess();
     a.setUser(user);
     a.setAccess(AccessStringHelper.FULL);
@@ -1085,7 +1114,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   private RelationshipType relationshipTypeAccessible(
       RelationshipEntity from, RelationshipEntity to) {
     RelationshipType type = relationshipType(from, to);
-    type.getSharing().addUserAccess(userAccess());
+    type.getSharing().addUserAccess(userAccess(user));
     manager.save(type, false);
     return type;
   }
