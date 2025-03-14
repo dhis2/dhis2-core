@@ -230,9 +230,7 @@ public class DefaultAppManager implements AppManager {
     List<WebModule> modules = new ArrayList<>();
     List<App> apps =
         getApps(contextPath).stream()
-            .filter(
-                app ->
-                    app.getAppType() == AppType.APP && app.hasAppEntrypoint())
+            .filter(app -> app.getAppType() == AppType.APP && app.hasAppEntrypoint())
             .toList();
 
     // map installed apps to the WebModule object

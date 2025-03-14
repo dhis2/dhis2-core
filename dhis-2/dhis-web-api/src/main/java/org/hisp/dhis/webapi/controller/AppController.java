@@ -106,7 +106,7 @@ public class AppController {
   @GetMapping(value = "/menu", produces = ContextUtils.CONTENT_TYPE_JSON)
   public @ResponseBody Map<String, List<WebModule>> getWebModules(HttpServletRequest request) {
     String contextPath = HttpServletRequestPaths.getContextPath(request);
-    
+
     List<WebModule> modules = appManager.getMenu(contextPath);
     return Map.of("modules", modules);
   }

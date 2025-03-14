@@ -29,8 +29,6 @@ package org.hisp.dhis.appmanager;
 
 import static org.hisp.dhis.security.Authorities.ALL;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
