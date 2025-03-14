@@ -28,13 +28,12 @@
 package org.hisp.dhis.appmanager;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
-
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType.RESTRICTED;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -52,12 +51,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -81,8 +77,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Saptarshi Purkayastha
@@ -402,7 +396,7 @@ public class DefaultAppManager implements AppManager {
     localAppStorageService.discoverInstalledApps().values().stream()
         .filter(app -> !exists(app.getKey()))
         .forEach(this::installApp);
-    
+
     jCloudsAppStorageService.discoverInstalledApps().values().stream()
         .filter(app -> !exists(app.getKey()))
         .forEach(this::installApp);
@@ -432,7 +426,8 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Override
-  public ResourceResult getAppResource(App app, String pageName, String contextPath) throws IOException {
+  public ResourceResult getAppResource(App app, String pageName, String contextPath)
+      throws IOException {
     ResourceResult resource = getRawAppResource(app, pageName);
 
     if (resource instanceof ResourceResult.ResourceFound resourceFound) {
@@ -445,17 +440,19 @@ public class DefaultAppManager implements AppManager {
         }
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         jsonMapper.writeValue(bout, app);
-        ByteArrayResource byteArrayResource = deriveByteArrayResource(bout.toByteArray(), resourceFound.resource());
+        ByteArrayResource byteArrayResource =
+            deriveByteArrayResource(bout.toByteArray(), resourceFound.resource());
         return new ResourceResult.ResourceFound(byteArrayResource);
       } else if (pageName.equals("index.action")) {
         return new ResourceResult.Redirect(app.getLaunchUrl());
       } else if (pageName.endsWith(".html")) {
         AppHtmlTemplate template = new AppHtmlTemplate(contextPath, app);
-        
+
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         template.apply(resourceFound.resource().getInputStream(), bout);
 
-        ByteArrayResource byteArrayResource = deriveByteArrayResource(bout.toByteArray(), resourceFound.resource());
+        ByteArrayResource byteArrayResource =
+            deriveByteArrayResource(bout.toByteArray(), resourceFound.resource());
         return new ResourceResult.ResourceFound(byteArrayResource);
       }
     }

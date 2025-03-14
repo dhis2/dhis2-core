@@ -29,20 +29,15 @@ package org.hisp.dhis.appmanager;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.cache.Cache;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -52,6 +47,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * This class is responsible for managing apps bundled as ClassPath resources.
+ *
  * @author Austin McGee
  */
 @Slf4j
@@ -69,18 +65,27 @@ public class BundledAppStorageService implements AppStorageService {
   @Override
   public Map<String, App> discoverInstalledApps() {
     try {
-      Resource[] resources = resourcePatternResolver.getResources(CLASSPATH_PREFIX + STATIC_DIR + BUNDLED_APP_PREFIX + "*/manifest.webapp");
+      Resource[] resources =
+          resourcePatternResolver.getResources(
+              CLASSPATH_PREFIX + STATIC_DIR + BUNDLED_APP_PREFIX + "*/manifest.webapp");
       for (Resource resource : resources) {
         App app = readAppManifest(resource);
         if (app != null) {
           String path = ((ClassPathResource) resource).getPath();
-          String shortName = path.replaceAll("/manifest.webapp$", "").replaceAll("^" + STATIC_DIR + BUNDLED_APP_PREFIX, "");
+          String shortName =
+              path.replaceAll("/manifest.webapp$", "")
+                  .replaceAll("^" + STATIC_DIR + BUNDLED_APP_PREFIX, "");
           app.setIsBundled(true);
           app.setShortName(shortName);
           app.setAppStorageSource(AppStorageSource.BUNDLED);
           app.setFolderName(CLASSPATH_PREFIX + path.replaceAll("/manifest.webapp$", ""));
-          
-          log.info("Discovered bundled app {} (short name {}, name {}, path {})", app.getKey(), app.getShortName(), app.getName(), app.getFolderName());
+
+          log.info(
+              "Discovered bundled app {} (short name {}, name {}, path {})",
+              app.getKey(),
+              app.getShortName(),
+              app.getName(),
+              app.getFolderName());
           apps.put(app.getShortName(), app);
         }
       }
@@ -104,14 +109,12 @@ public class BundledAppStorageService implements AppStorageService {
 
   @Override
   public App installApp(File file, String fileName, Cache<App> appCache) {
-    throw new UnsupportedOperationException(
-        "Bundled apps cannot be installed.");
+    throw new UnsupportedOperationException("Bundled apps cannot be installed.");
   }
 
   @Override
   public void deleteApp(App app) {
-    throw new UnsupportedOperationException(
-        "Bundled apps cannot be deleted.");
+    throw new UnsupportedOperationException("Bundled apps cannot be deleted.");
   }
 
   @Override
@@ -119,7 +122,11 @@ public class BundledAppStorageService implements AppStorageService {
     if (app == null || !app.getAppStorageSource().equals(AppStorageSource.BUNDLED)) {
       return new ResourceResult.ResourceNotFound(pageName);
     }
-    log.info("Looking up resource for bundled app {}, page {}, folderName {}", app.getShortName(), pageName, app.getFolderName());
+    log.info(
+        "Looking up resource for bundled app {}, page {}, folderName {}",
+        app.getShortName(),
+        pageName,
+        app.getFolderName());
     if (pageName.isBlank()) {
       return new ResourceResult.Redirect("/");
     }
@@ -132,13 +139,13 @@ public class BundledAppStorageService implements AppStorageService {
     String cleanedPath = path.replaceAll("/+", "/");
 
     try {
-        Resource resource = resourceLoader.getResource(cleanedPath);
-        if (!resource.exists()) {
-          log.info("Resource not found {}", cleanedPath);
-          return new ResourceResult.ResourceNotFound(pageName);
-        }
-        log.info("Resource found {}", cleanedPath);
-        return new ResourceResult.ResourceFound(resource);
+      Resource resource = resourceLoader.getResource(cleanedPath);
+      if (!resource.exists()) {
+        log.info("Resource not found {}", cleanedPath);
+        return new ResourceResult.ResourceNotFound(pageName);
+      }
+      log.info("Resource found {}", cleanedPath);
+      return new ResourceResult.ResourceFound(resource);
     } catch (Exception ex) {
       log.error(ex.getLocalizedMessage(), ex);
     }

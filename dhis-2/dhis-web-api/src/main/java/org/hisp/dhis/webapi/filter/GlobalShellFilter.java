@@ -187,10 +187,13 @@ public class GlobalShellFilter extends OncePerRequestFilter {
 
     String globalShellAppName = settingsProvider.getCurrentSettings().getGlobalShellAppName();
     App globalShellApp = appManager.getApp(globalShellAppName);
-    
+
     if (globalShellApp != null) {
       log.debug("Serving global shell resource {}", resource);
-      RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/" + AppManager.INSTALLED_APP_PREFIX + globalShellAppName + "/" + resource);
+      RequestDispatcher dispatcher =
+          getServletContext()
+              .getRequestDispatcher(
+                  "/" + AppManager.INSTALLED_APP_PREFIX + globalShellAppName + "/" + resource);
       dispatcher.forward(request, response);
     }
   }

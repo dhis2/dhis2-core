@@ -28,9 +28,7 @@
 package org.hisp.dhis.appmanager.webmodules;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.Data;
-
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 

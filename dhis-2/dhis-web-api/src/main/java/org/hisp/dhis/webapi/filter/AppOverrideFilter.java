@@ -30,26 +30,20 @@ package org.hisp.dhis.webapi.filter;
 import static java.util.regex.Pattern.compile;
 
 import com.google.common.base.Strings;
-
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.appmanager.AppManager;
-
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import jakarta.servlet.RequestDispatcher;
 
 /**
  * @author Austin McGee <austin@dhis2.org>
@@ -66,7 +60,6 @@ public class AppOverrideFilter extends OncePerRequestFilter {
           + ")/(.*)";
 
   public static final Pattern APP_PATH_PATTERN = compile(APP_PATH_PATTERN_STRING);
-  
 
   @Override
   protected void doFilterInternal(
@@ -74,16 +67,19 @@ public class AppOverrideFilter extends OncePerRequestFilter {
       @Nonnull HttpServletResponse response,
       @Nonnull FilterChain chain)
       throws IOException, ServletException {
-    
+
     String pathInfo = request.getPathInfo();
     Matcher m = APP_PATH_PATTERN.matcher(Strings.nullToEmpty(pathInfo));
     if (m.find()) {
       String appName = m.group(1);
       String resourcePath = m.group(2);
-      
+
       log.info("AppOverrideFilter :: Matched for path: " + pathInfo);
 
-      RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/" + AppManager.INSTALLED_APP_PREFIX + appName + "/" + resourcePath);
+      RequestDispatcher dispatcher =
+          getServletContext()
+              .getRequestDispatcher(
+                  "/" + AppManager.INSTALLED_APP_PREFIX + appName + "/" + resourcePath);
       dispatcher.include(request, response);
     }
 

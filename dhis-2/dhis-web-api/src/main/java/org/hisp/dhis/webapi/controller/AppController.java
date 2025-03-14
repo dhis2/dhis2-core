@@ -31,14 +31,11 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.security.Authorities.M_DHIS_WEB_APP_MANAGEMENT;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +44,6 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
-import org.hisp.dhis.appmanager.AppMenuManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.appmanager.AppType;
 import org.hisp.dhis.appmanager.ResourceResult;
@@ -120,9 +116,7 @@ public class AppController {
 
     List<App> apps =
         appManager.getApps(contextPath).stream()
-            .filter(
-                app ->
-                    app.getAppType() == AppType.APP && app.hasAppEntrypoint())
+            .filter(app -> app.getAppType() == AppType.APP && app.hasAppEntrypoint())
             .collect(Collectors.toList());
 
     modules.addAll(apps.stream().map(WebModule::getModule).collect(Collectors.toList()));
@@ -211,8 +205,7 @@ public class AppController {
       return;
     }
     if (resourceResult instanceof Redirect redirect) {
-      String cleanValidUrl =
-          TextUtils.cleanUrlPathOnly(application.getBaseUrl(), redirect.path());
+      String cleanValidUrl = TextUtils.cleanUrlPathOnly(application.getBaseUrl(), redirect.path());
       log.debug(String.format("App resource redirected to: %s", cleanValidUrl));
       response.sendRedirect(cleanValidUrl);
     }
@@ -222,9 +215,7 @@ public class AppController {
   }
 
   private void serveResource(
-      HttpServletRequest request,
-      HttpServletResponse response,
-      Resource resource)
+      HttpServletRequest request, HttpServletResponse response, Resource resource)
       throws IOException {
     String filename = resource.getFilename();
     log.debug("App filename: '{}'", filename);

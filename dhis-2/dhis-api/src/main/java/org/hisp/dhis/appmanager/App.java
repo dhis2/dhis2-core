@@ -117,7 +117,8 @@ public class App implements Serializable {
    * @param contextPath the context path of this instance.
    */
   public void init(String contextPath) {
-    String prefix = this.isBundled() ? AppManager.BUNDLED_APP_PREFIX : AppManager.INSTALLED_APP_PREFIX;
+    String prefix =
+        this.isBundled() ? AppManager.BUNDLED_APP_PREFIX : AppManager.INSTALLED_APP_PREFIX;
     this.basePath = ("/" + prefix + getUrlFriendlyName()).replaceAll("/+", "/");
     this.baseUrl = contextPath + basePath;
 
