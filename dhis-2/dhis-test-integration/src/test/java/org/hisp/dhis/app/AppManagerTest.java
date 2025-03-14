@@ -140,7 +140,8 @@ class AppManagerTest extends PostgresIntegrationTestBase {
 
     // when non-existent an app resource path is retrieved
     App app = appManager.getApp("test minio");
-    ResourceNotFound resource = (ResourceNotFound) appManager.getAppResource(app, path, MOCK_CONTEXT_PATH);
+    ResourceNotFound resource =
+        (ResourceNotFound) appManager.getAppResource(app, path, MOCK_CONTEXT_PATH);
 
     // then the path returned should be null
     assertEquals(path, resource.path());
