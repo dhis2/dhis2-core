@@ -364,7 +364,6 @@ class TrackedEntityOperationParamsMapper {
   }
 
   private boolean isLocalSearch(TrackedEntityQueryParams params, User user) {
-    // If the organization unit selection mode is set to CAPTURE, then it's a local search.
     if (OrganisationUnitSelectionMode.CAPTURE == params.getOrgUnitMode()) {
       return true;
     }

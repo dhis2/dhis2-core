@@ -197,7 +197,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest 
   }
 
   @Test
-  void shouldGetTrackedEntitiesDisregardingSearchScope() {
+  void shouldGetTrackedEntitiesWhenCaptureScopeProvidedAndDisregardingSearchScope() {
     userWithDifferentScopes =
         createUserWithId("testerWithDiffSearchScope", CodeGenerator.generateUid());
     userWithDifferentScopes.addOrganisationUnit(orgUnit);
