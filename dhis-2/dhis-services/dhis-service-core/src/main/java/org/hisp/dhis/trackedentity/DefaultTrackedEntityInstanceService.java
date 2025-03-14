@@ -894,7 +894,6 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
   }
 
   private boolean isLocalSearch(TrackedEntityInstanceQueryParams params, User user) {
-    // If the organization unit selection mode is set to CAPTURE, then it's a local search.
     if (OrganisationUnitSelectionMode.CAPTURE == params.getOrganisationUnitMode()) {
       return true;
     }
