@@ -63,6 +63,8 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
 
   @BeforeEach
   void setUp() throws IOException {
+    config.getProperties().put(CHANGELOG_TRACKER.getKey(), "on");
+
     testSetup.importMetadata();
 
     User importUser = userService.getUser("tTgjgobT1oS");
@@ -75,8 +77,6 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
     updateAttribute(trackedEntityAttribute, "2");
     updateAttribute(trackedEntityAttribute, "3");
     updateAttribute(trackedEntityAttribute, "4");
-
-    config.getProperties().put(CHANGELOG_TRACKER.getKey(), "on");
   }
 
   @Test
