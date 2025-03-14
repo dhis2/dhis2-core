@@ -76,6 +76,7 @@ public class GlobalShellFilter extends OncePerRequestFilter {
     if (!globalShellEnabled) {
       boolean redirected =
           redirectDisabledGlobalShell(request, response, getContextRelativePath(request));
+      log.debug("GlobalShellFilter.doFilterInternal: redirectDisabledGlobalShell = {}", redirected);
       if (!redirected) {
         chain.doFilter(request, response);
       }
@@ -84,10 +85,12 @@ public class GlobalShellFilter extends OncePerRequestFilter {
 
     String path = getContextRelativePath(request);
     if (redirectLegacyAppPaths(request, response, path)) {
+      log.debug("GlobalShellFilter.doFilterInternal: redirectLegacyAppPaths = true");
       return;
     }
 
     if (path.startsWith(GLOBAL_SHELL_PATH_PREFIX)) {
+      log.debug("GlobalShellFilter.doFilterInternal: path starts with GLOBAL_SHELL_PATH_PREFIX");
       serveGlobalShell(request, response, path);
       return;
     }
@@ -134,6 +137,11 @@ public class GlobalShellFilter extends OncePerRequestFilter {
 
     String appName = m.group(1);
 
+    if (appName.equals("login")) {
+      log.info("Skipping global shell redirect for login app");
+      return false;
+    }
+
     // Only redirect index.html or directory root requests
     boolean isIndexPath = path.endsWith("/") || path.endsWith("/index.html");
 
@@ -179,15 +187,12 @@ public class GlobalShellFilter extends OncePerRequestFilter {
 
     String globalShellAppName = settingsProvider.getCurrentSettings().getGlobalShellAppName();
     App globalShellApp = appManager.getApp(globalShellAppName);
-
-    String globalShellPath = BUNDLED_GLOBAL_SHELL_PATH;
+    
     if (globalShellApp != null) {
-      globalShellPath = globalShellApp.getBasePath();
+      log.debug("Serving global shell resource {}", resource);
+      RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/" + AppManager.INSTALLED_APP_PREFIX + globalShellAppName + "/" + resource);
+      dispatcher.forward(request, response);
     }
-    globalShellPath = String.format("/%s/%s", globalShellPath, resource).replaceAll("/+", "/");
-
-    RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(globalShellPath);
-    dispatcher.forward(request, response);
   }
 
   private String getContextRelativePath(HttpServletRequest request) {

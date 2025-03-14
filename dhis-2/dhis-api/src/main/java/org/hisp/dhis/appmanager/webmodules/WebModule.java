@@ -28,8 +28,11 @@
 package org.hisp.dhis.appmanager.webmodules;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.Data;
+
 import org.hisp.dhis.appmanager.App;
+import org.hisp.dhis.appmanager.AppManager;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -73,7 +76,9 @@ public class WebModule {
 
     String description = subString(app.getDescription(), 0, 80);
 
-    WebModule module = new WebModule(app.getKey(), app.getBasePath(), defaultAction);
+    String key = app.isBundled() ? AppManager.BUNDLED_APP_PREFIX + app.getKey() : app.getKey();
+
+    WebModule module = new WebModule(key, app.getBasePath(), defaultAction);
     module.setIcon(icon);
     module.setDescription(description);
     module.setDisplayName(app.getName());

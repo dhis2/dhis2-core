@@ -63,6 +63,7 @@ public interface AppManager {
           "global-shell",
           "import-export",
           "interpretation",
+          "line-listing",
           "login",
           "maintenance",
           "maps",
@@ -202,7 +203,7 @@ public interface AppManager {
    * @param pageName the page requested
    * @return the {@link ResourceResult}
    */
-  ResourceResult getAppResource(App app, String pageName) throws IOException;
+  ResourceResult getAppResource(App app, String pageName, String contextPath) throws IOException;
 
   /**
    * Sets the app status to DELETION_IN_PROGRESS.

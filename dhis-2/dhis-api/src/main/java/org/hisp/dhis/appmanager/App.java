@@ -102,6 +102,8 @@ public class App implements Serializable {
 
   private boolean coreApp = false;
 
+  private boolean bundled = false;
+
   /** Generated. */
   private AppStatus appState = AppStatus.OK;
 
@@ -115,10 +117,8 @@ public class App implements Serializable {
    * @param contextPath the context path of this instance.
    */
   public void init(String contextPath) {
-    String appPathPrefix =
-        isBundled() ? AppManager.BUNDLED_APP_PREFIX : AppManager.INSTALLED_APP_PREFIX;
-
-    this.basePath = ("/" + appPathPrefix + getUrlFriendlyName()).replaceAll("/+", "/");
+    String prefix = this.isBundled() ? AppManager.BUNDLED_APP_PREFIX : AppManager.INSTALLED_APP_PREFIX;
+    this.basePath = ("/" + prefix + getUrlFriendlyName()).replaceAll("/+", "/");
     this.baseUrl = contextPath + basePath;
 
     if (contextPath != null && name != null && launchPath != null) {
@@ -144,7 +144,11 @@ public class App implements Serializable {
   /** Determine if this app will overload a bundled app */
   @JsonProperty
   public boolean isBundled() {
-    return AppManager.BUNDLED_APPS.contains(getShortName());
+    return this.bundled;
+  }
+
+  public void setIsBundled(boolean bundled) {
+    this.bundled = bundled;
   }
 
   /** Determine if the app is configured as a coreApp (to be served at the root namespace) */

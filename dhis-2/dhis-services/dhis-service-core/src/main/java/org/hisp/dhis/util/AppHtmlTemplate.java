@@ -25,22 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.utils;
+package org.hisp.dhis.util;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+
 import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
+import org.hisp.dhis.appmanager.App;
 
 @RequiredArgsConstructor
 public class AppHtmlTemplate {
 
   private final String contextPath;
-  private final String baseUrl;
+  private final App app;
 
   public void apply(InputStream inputStream, OutputStream outputStream) throws IOException {
     LineIterator iterator = IOUtils.lineIterator(inputStream, StandardCharsets.UTF_8);
@@ -58,6 +61,6 @@ public class AppHtmlTemplate {
 
   private String replaceLine(String line) {
     return line.replace("__DHIS2_BASE_URL__", this.contextPath)
-        .replace("__DHIS2_APP_ROOT_URL__", this.baseUrl);
+        .replace("__DHIS2_APP_ROOT_URL__", this.app.getBaseUrl());
   }
 }

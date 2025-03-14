@@ -26,5 +26,6 @@
   "https://github.com/d2-ci/user-app",
   "https://github.com/d2-ci/user-profile-app",
   "https://github.com/d2-ci/login-app#main",
-  "https://github.com/d2-ci/global-shell-app#setup-ci"
+  "https://github.com/d2-ci/global-shell-app#main",
+  "https://github.com/d2-ci/line-listing-app"
 ]

@@ -718,7 +718,7 @@ public non-sealed interface SystemSettings extends Settings {
    * @return true if apps should be served within a global shell.
    */
   default boolean getGlobalShellEnabled() {
-    return asBoolean("globalShellEnabled", false);
+    return asBoolean("globalShellEnabled", true);
   }
 
   /**
