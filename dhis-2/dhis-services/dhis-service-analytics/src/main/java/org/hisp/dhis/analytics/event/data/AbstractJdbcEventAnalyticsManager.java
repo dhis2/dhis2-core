@@ -598,7 +598,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // ---------------------------------------------------------------------
 
     final String finalSqlValue = sql;
-
+    System.out.println(sql);
     if (params.analyzeOnly()) {
       withExceptionHandling(
           () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), finalSqlValue));
@@ -741,7 +741,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // set
     // no need to continue and skip aggregation all together by returning NULL
     if (hasNoAggregationType(params)) {
-      return "NULL";
+      return "null";
     }
 
     EventOutputType outputType = params.getOutputType();

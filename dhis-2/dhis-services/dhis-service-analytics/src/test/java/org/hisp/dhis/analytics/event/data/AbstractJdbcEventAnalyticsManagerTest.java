@@ -334,7 +334,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     String clause = eventSubject.getAggregateClause(params);
 
-    assertThat(clause, is("NULL"));
+    assertThat(clause, is("null"));
   }
 
   private static Stream<Arguments> noAggregationTestCases() {
