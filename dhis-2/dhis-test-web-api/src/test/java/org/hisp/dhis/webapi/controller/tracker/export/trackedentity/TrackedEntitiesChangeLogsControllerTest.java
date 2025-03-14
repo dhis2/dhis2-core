@@ -251,8 +251,8 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
 
   @Test
   void shouldNotLogChangesWhenChangeLogConfigDisabled() {
-    String trackedEntityAttribute = "dIVt4l5vIOa";
     config.getProperties().put(CHANGELOG_TRACKER.getKey(), "off");
+    String trackedEntityAttribute = "dIVt4l5vIOa";
     updateAttribute(trackedEntityAttribute, "10");
     updateAttribute(trackedEntityAttribute, "5");
     deleteAttribute(trackedEntityAttribute);
