@@ -41,6 +41,7 @@ import java.util.Date;
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -94,6 +95,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
   private User owner;
 
   private User user;
+  private User userWithDifferentScopes;
 
   @BeforeEach
   void setUp() {
@@ -173,6 +175,31 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
     assertHasNoMember(json, "enrollments");
     assertHasNoMember(json, "events");
     assertHasNoMember(json, "programOwners");
+  }
+
+  @Test
+  void shouldGetTrackedEntitiesWhenCaptureScopeProvidedAndDisregardingSearchScope() {
+    userWithDifferentScopes =
+        createUserWithId("testerWithDiffSearchScope", CodeGenerator.generateUid());
+    userWithDifferentScopes.addOrganisationUnit(orgUnit);
+    userWithDifferentScopes.setTeiSearchOrganisationUnits(Set.of(anotherOrgUnit));
+
+    program.getSharing().addUserAccess(userAccess(userWithDifferentScopes));
+    manager.save(program, false);
+
+    trackedEntityType.getSharing().setUserAccesses(Set.of(userAccess(userWithDifferentScopes)));
+    manager.save(trackedEntityType, false);
+
+    this.userService.updateUser(userWithDifferentScopes);
+
+    this.switchContextToUser(userWithDifferentScopes);
+    HttpResponse response =
+        GET(
+            "/tracker/trackedEntities?program={programId}&ouMode={orgUnitMode}",
+            program.getUid(),
+            OrganisationUnitSelectionMode.CAPTURE);
+
+    assertEquals(HttpStatus.OK, response.status());
   }
 
   @Test
