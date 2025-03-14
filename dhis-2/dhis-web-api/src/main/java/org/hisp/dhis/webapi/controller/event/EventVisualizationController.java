@@ -72,8 +72,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.GetObjectParams;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
-import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.ChartService;
@@ -331,15 +329,5 @@ public class EventVisualizationController
               "Cannot generate chart for multi-program visualization "
                   + eventVisualization.getUid()));
     }
-  }
-
-  private boolean isOrgUnitType(TrackedEntityDataElementDimension dimension) {
-    return dimension.getDataElement() != null
-        && dimension.getDataElement().getValueType() == ORGANISATION_UNIT;
-  }
-
-  private boolean isOrgUnitType(TrackedEntityAttributeDimension dimension) {
-    return dimension.getAttribute() != null
-        && dimension.getAttribute().getValueType() == ORGANISATION_UNIT;
   }
 }
