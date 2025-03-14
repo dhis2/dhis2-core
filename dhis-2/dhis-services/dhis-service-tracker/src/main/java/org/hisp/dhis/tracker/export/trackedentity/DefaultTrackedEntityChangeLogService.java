@@ -77,7 +77,7 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
       @Nonnull ChangeLogType changeLogType,
       @Nonnull String username) {
 
-    if (!config.isEnabled(CHANGELOG_TRACKER)) {
+    if (config.isDisabled(CHANGELOG_TRACKER)) {
       return;
     }
 
@@ -123,7 +123,6 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
             .stream()
             .map(UID::of)
             .collect(Collectors.toSet());
-    ;
 
     return hibernateTrackedEntityChangeLogStore.getTrackedEntityChangeLogs(
         trackedEntityUid, programUid, trackedEntityAttributes, operationParams, pageParams);

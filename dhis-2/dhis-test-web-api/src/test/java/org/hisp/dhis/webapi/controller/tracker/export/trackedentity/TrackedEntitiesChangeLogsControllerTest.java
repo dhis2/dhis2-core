@@ -58,8 +58,8 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
   @Autowired private TestSetup testSetup;
   @Autowired private DhisConfigurationProvider config;
 
+  private final String trackedEntityAttribute = "numericAttr";
   private TrackedEntity trackedEntity;
-  private static final String trackedEntityAttribute = "numericAttr";
 
   @BeforeEach
   void setUp() throws IOException {
@@ -72,9 +72,9 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
 
     trackedEntity = manager.get(TrackedEntity.class, "QS6w44flWAf");
 
-    updateAttribute("numericAttr", "2");
-    updateAttribute("numericAttr", "3");
-    updateAttribute("numericAttr", "4");
+    updateAttribute(trackedEntityAttribute, "2");
+    updateAttribute(trackedEntityAttribute, "3");
+    updateAttribute(trackedEntityAttribute, "4");
 
     config.getProperties().put(CHANGELOG_TRACKER.getKey(), "on");
   }
@@ -264,7 +264,6 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
 
   @Test
   void shouldLogChangesWhenTrackedEntityTypeAuditConfigDisabled() {
-    String trackedEntityAttribute = "numericAttr";
     TrackedEntity trackedEntity = manager.get(TrackedEntity.class, "XUitxQbWYNz");
     updateAttribute(trackedEntityAttribute, "10", trackedEntity);
     updateAttribute(trackedEntityAttribute, "5", trackedEntity);
