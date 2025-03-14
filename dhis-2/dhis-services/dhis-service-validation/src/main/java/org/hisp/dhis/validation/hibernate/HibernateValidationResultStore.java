@@ -45,7 +45,6 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -169,9 +168,8 @@ public class HibernateValidationResultStore extends HibernateGenericStore<Valida
     addQueryParameters(query, hibernateQuery);
 
     if (!query.isSkipPaging()) {
-      Pager pager = query.getPager();
-      hibernateQuery.setFirstResult(pager.getOffset());
-      hibernateQuery.setMaxResults(pager.getPageSize());
+      hibernateQuery.setFirstResult((query.getPage() - 1) * query.getPageSize());
+      hibernateQuery.setMaxResults(query.getPageSize());
     }
 
     return hibernateQuery.getResultList();
