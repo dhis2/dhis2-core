@@ -1612,14 +1612,17 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @return true if the aggregation type is NONE on both the param value's aggregation type
    */
   private boolean hasNoAggregationType(EventQueryParams params) {
-    // If getAggregationType is provided and is NONE, it overrides the value's aggregation type
-    if (params.getAggregationType() != null
-        && params.getAggregationType().getAggregationType() == AggregationType.NONE) {
-      return true;
+    if (params.getValue() == null) {
+      return false;
     }
 
-    // Otherwise, check if value is null or has NONE aggregation type
-    return params.getValue() != null
-        && params.getValue().getAggregationType() == AggregationType.NONE;
+    // Check if there's an explicit aggregation type override
+    if (params.getAggregationType() != null) {
+      // If the override is NOT NONE, return false
+      return params.getAggregationType().getAggregationType() == AggregationType.NONE;
+    }
+
+    // No override exists, so check the value's aggregation type
+    return params.getValue().getAggregationType() == AggregationType.NONE;
   }
 }
