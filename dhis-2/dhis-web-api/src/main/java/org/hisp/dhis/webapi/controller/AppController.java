@@ -40,12 +40,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
-import org.hisp.dhis.appmanager.AppType;
 import org.hisp.dhis.appmanager.ResourceResult;
 import org.hisp.dhis.appmanager.ResourceResult.Redirect;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
@@ -108,20 +106,9 @@ public class AppController {
   @GetMapping(value = "/menu", produces = ContextUtils.CONTENT_TYPE_JSON)
   public @ResponseBody Map<String, List<WebModule>> getWebModules(HttpServletRequest request) {
     String contextPath = HttpServletRequestPaths.getContextPath(request);
-    return Map.of("modules", getAccessibleAppMenu(contextPath));
-  }
-
-  private List<WebModule> getAccessibleAppMenu(String contextPath) {
-    List<WebModule> modules = new ArrayList<>();
-
-    List<App> apps =
-        appManager.getApps(contextPath).stream()
-            .filter(app -> app.getAppType() == AppType.APP && app.hasAppEntrypoint())
-            .collect(Collectors.toList());
-
-    modules.addAll(apps.stream().map(WebModule::getModule).collect(Collectors.toList()));
-
-    return modules;
+    
+    List<WebModule> modules = appManager.getMenu(contextPath);
+    return Map.of("modules", modules);
   }
 
   @GetMapping(produces = ContextUtils.CONTENT_TYPE_JSON)

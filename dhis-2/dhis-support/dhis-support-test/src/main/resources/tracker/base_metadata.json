@@ -1790,6 +1790,31 @@
         "id": "FIgVWzUCkpw"
       },
       "version": 2
+    },
+    {
+      "id": "TsngICFQjvP",
+      "accessLevel": "OPEN",
+      "completeEventsExpiryDays": 0,
+      "created": "2020-05-31T09:02:52.718",
+      "displayIncidentDate": true,
+      "expiryDays": 0,
+      "maxTeiCountToReturn": 0,
+      "minAttributesRequiredToSearch": 1,
+      "name": "test-program-allow-audit-tet",
+      "organisationUnits": [
+        {
+          "id": "DiszpKrYNg8"
+        }
+      ],
+      "programType": "WITH_REGISTRATION",
+      "shortName": "test-program-allow-audit-tet",
+      "trackedEntityType": {
+        "id": "Fa7NY4PW6DL"
+      },
+      "user": {
+        "id": "FIgVWzUCkpw"
+      },
+      "version": 2
     }
   ],
   "relationshipTypes": [
@@ -1820,6 +1845,7 @@
     },
     {
       "id": "TV9oB9LT3sh",
+      "bidirectional": true,
       "created": "2020-11-20T09:06:23.348",
       "displayFromToName": "Parent Of",
       "displayName": "TA Parent to Child",
@@ -1848,6 +1874,7 @@
     },
     {
       "id": "m1575931405",
+      "bidirectional": true,
       "displayFromToName": "Parent Of",
       "displayName": "Parent to Child",
       "fromConstraint": {
@@ -2102,8 +2129,8 @@
       },
       "maxTeiCountToReturn": 0,
       "minAttributesRequiredToSearch": 1,
-      "name": "Inaccessible person",
-      "shortName": "Inaccessible person",
+      "name": "Inaccessible tracked entity type",
+      "shortName": "Inaccessible tracked entity type",
       "sharing": {
         "public": "--------"
       },
@@ -2113,6 +2140,7 @@
     },
     {
       "id": "Fa7NY4PW6DL",
+      "allowAuditLog": false,
       "created": "2020-05-31T08:59:52.758",
       "description": "person",
       "featureType": "NONE",
@@ -2122,11 +2150,28 @@
       },
       "maxTeiCountToReturn": 0,
       "minAttributesRequiredToSearch": 1,
-      "name": "Unused tracked entity type",
-      "shortName": "Unused tracked entity type",
+      "name": "disabled audit log TET",
+      "shortName": "disabled audit log TET",
       "sharing": {
         "public": "rwrw----"
       },
+      "trackedEntityTypeAttributes": [
+        {
+          "displayInList": true,
+          "displayName": "Person Given name",
+          "displayShortName": "null Given name",
+          "id": "hKZ9AJpnVcZ",
+          "name": "Person Given name",
+          "searchable": true,
+          "trackedEntityAttribute": {
+            "id": "numericAttr"
+          },
+          "trackedEntityType": {
+            "id": "Fa7NY4PW6DL"
+          },
+          "valueType": "TEXT"
+        }
+      ],
       "user": {
         "id": "tTgjgobT1oS"
       }

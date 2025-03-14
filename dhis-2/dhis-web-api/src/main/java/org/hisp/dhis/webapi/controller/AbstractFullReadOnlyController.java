@@ -160,7 +160,7 @@ public abstract class AbstractFullReadOnlyController<
   // --------------------------------------------------------------------------
 
   @OpenApi.Shared(value = false)
-  protected static class GetObjectListResponse {
+  public static class GetObjectListResponse {
     @OpenApi.Property Pager pager;
 
     @OpenApi.Property(name = "path$", value = OpenApi.EntityType[].class)

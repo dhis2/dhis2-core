@@ -34,10 +34,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.datastore.DatastoreNamespace;
@@ -106,6 +103,8 @@ public class App implements Serializable {
 
   /** Generated. */
   private AppStatus appState = AppStatus.OK;
+
+  private List<AppShortcut> shortcuts = new ArrayList<>();
 
   // -------------------------------------------------------------------------
   // Logic
@@ -355,6 +354,12 @@ public class App implements Serializable {
     return appStorageSource;
   }
 
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public List<AppShortcut> getShortcuts() {
+    return shortcuts;
+  }
+
   public void setAppStorageSource(AppStorageSource appStorageSource) {
     this.appStorageSource = appStorageSource;
   }
@@ -387,6 +392,10 @@ public class App implements Serializable {
 
   public void setSettings(AppSettings settings) {
     this.settings = settings;
+  }
+
+  public void setShortcuts(List<AppShortcut> shortcuts) {
+    this.shortcuts = shortcuts;
   }
 
   // -------------------------------------------------------------------------

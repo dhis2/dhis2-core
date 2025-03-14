@@ -29,6 +29,10 @@ package org.hisp.dhis.appmanager;
 
 import static org.hisp.dhis.security.Authorities.ALL;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -40,6 +44,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
 /**
@@ -55,11 +60,24 @@ public class AppMenuManager {
 
   private final LocaleManager localeManager;
 
-  private final List<WebModule> menuModules;
+  private final List<WebModule> menuModules = new ArrayList<>();
 
   private Locale currentLocale;
 
-  private void generateModules() {
+  private final ResourceLoader resourceLoader;
+
+  private String readFromInputStream(InputStream inputStream) throws IOException {
+    StringBuilder resultStringBuilder = new StringBuilder();
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
+      String line;
+      while ((line = br.readLine()) != null) {
+        resultStringBuilder.append(line).append("\n");
+      }
+    }
+    return resultStringBuilder.toString();
+  }
+
+  private void generateModules(AppManager appManager) {
     Set<String> bundledApps = AppManager.BUNDLED_APPS;
 
     for (String app : bundledApps) {
@@ -74,8 +92,6 @@ public class AppMenuManager {
         menuModules.add(module);
       }
     }
-
-    currentLocale = localeManager.getCurrentLocale();
   }
 
   private void detectLocaleChange() {
@@ -88,9 +104,9 @@ public class AppMenuManager {
     currentLocale = localeManager.getCurrentLocale();
   }
 
-  public List<WebModule> getAccessibleWebModules() {
+  public List<WebModule> getAccessibleWebModules(AppManager appManager) {
     if (menuModules.isEmpty()) {
-      generateModules();
+      generateModules(appManager);
     }
 
     detectLocaleChange();

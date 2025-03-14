@@ -42,13 +42,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -58,6 +52,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.apphub.AppHubService;
+import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheBuilderProvider;
 import org.hisp.dhis.datastore.DatastoreNamespace;
@@ -224,6 +219,26 @@ public class DefaultAppManager implements AppManager {
         .filter(app -> app.getShortName().equals(appName))
         .findFirst()
         .orElse(null);
+  }
+
+  @Override
+  public List<WebModule> getMenu(String contextPath) {
+    return getAccessibleAppMenu(contextPath);
+  }
+
+  private List<WebModule> getAccessibleAppMenu(String contextPath) {
+    List<WebModule> modules = new ArrayList<>();
+    List<App> apps =
+        getApps(contextPath).stream()
+            .filter(
+                app ->
+                    app.getAppType() == AppType.APP && app.hasAppEntrypoint())
+            .toList();
+
+    // map installed apps to the WebModule object
+    modules.addAll(apps.stream().map(WebModule::getModule).toList());
+
+    return modules;
   }
 
   private void applyFilter(Set<App> apps, String key, String operator, String value) {

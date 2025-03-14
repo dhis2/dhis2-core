@@ -27,21 +27,34 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.apache.commons.lang3.StringUtils.substringAfter;
+import static org.apache.commons.lang3.StringUtils.substringAfterLast;
+import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.SEPARATOR;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_LEVEL;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_ORGUNIT_GROUP;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.data.DimensionalObjectProvider;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.springframework.stereotype.Service;
 
@@ -52,6 +65,8 @@ public class OrganisationUnitResolver {
   private final DimensionalObjectProvider dimensionalObjectProducer;
 
   private final OrganisationUnitService organisationUnitService;
+
+  private final IdentifiableObjectManager idObjectManager;
 
   /**
    * Resolve organisation units like ou:USER_ORGUNIT;USER_ORGUNIT_CHILDREN;LEVEL-XXX;OUGROUP-XXX
@@ -126,5 +141,40 @@ public class OrganisationUnitResolver {
         .flatMap(Arrays::stream)
         .distinct()
         .toList();
+  }
+
+  /**
+   * This method loads an OU dimension {@link DimensionalItemObject} based on the given dimension
+   * identifier. It returns an instance of {@link BaseDimensionalItemObject}, {@link
+   * OrganisationUnitGroup} and {@link OrganisationUnit}, depending on the identifier.
+   *
+   * @param dimensionUid the dimension uid related to the OU dimension. ie: Vth0fbpFcsO,
+   *     OU_GROUP-CXw2yu5fodb.
+   * @param idScheme the {@link IdScheme}.
+   * @return the OU {@link DimensionalItemObject} or null if no object can be loaded.
+   */
+  public DimensionalItemObject loadOrgUnitDimensionalItem(
+      @Nonnull String dimensionUid, @Nonnull IdScheme idScheme) {
+    if (dimensionUid.startsWith(KEY_LEVEL)) {
+      OrganisationUnitLevel level =
+          idObjectManager.getObject(
+              OrganisationUnitLevel.class, idScheme, substringAfterLast(dimensionUid, SEPARATOR));
+
+      if (level != null) {
+        BaseDimensionalItemObject dim = new BaseDimensionalItemObject();
+        dim.setUid(level.getUid());
+        dim.setName(level.getDisplayName());
+        dim.setCode(level.getCode());
+
+        return dim;
+      }
+    } else if (dimensionUid.startsWith(KEY_ORGUNIT_GROUP)) {
+      return idObjectManager.getObject(
+          OrganisationUnitGroup.class, idScheme, substringAfter(dimensionUid, SEPARATOR));
+    } else if (isValidUid(dimensionUid)) {
+      return idObjectManager.getObject(OrganisationUnit.class, idScheme, dimensionUid);
+    }
+
+    return null;
   }
 }

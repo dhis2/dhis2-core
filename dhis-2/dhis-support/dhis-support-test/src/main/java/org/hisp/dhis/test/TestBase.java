@@ -2152,7 +2152,7 @@ public abstract class TestBase {
     relationshipType.setName("RelationshipType_" + relationshipType.getUid());
     relationshipType.setFromConstraint(fromRelationShipConstraint);
     relationshipType.setToConstraint(toRelationShipConstraint);
-
+    relationshipType.setBidirectional(true);
     return relationshipType;
   }
 
