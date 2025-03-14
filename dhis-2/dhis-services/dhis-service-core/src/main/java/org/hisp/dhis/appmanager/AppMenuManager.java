@@ -29,6 +29,10 @@ package org.hisp.dhis.appmanager;
 
 import static org.hisp.dhis.security.Authorities.ALL;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -40,6 +44,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
 /**
@@ -53,11 +58,24 @@ public class AppMenuManager {
 
   private final LocaleManager localeManager;
 
-  private final List<WebModule> menuModules;
+  private final List<WebModule> menuModules = new ArrayList<>();
 
   private Locale currentLocale;
 
-  private void generateModules() {
+  private final ResourceLoader resourceLoader;
+
+  private String readFromInputStream(InputStream inputStream) throws IOException {
+    StringBuilder resultStringBuilder = new StringBuilder();
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
+      String line;
+      while ((line = br.readLine()) != null) {
+        resultStringBuilder.append(line).append("\n");
+      }
+    }
+    return resultStringBuilder.toString();
+  }
+
+  private void generateModules(AppManager appManager) {
     Set<String> bundledApps = AppManager.BUNDLED_APPS;
 
     for (String app : bundledApps) {
@@ -68,10 +86,40 @@ public class AppMenuManager {
       module.setDisplayName(displayName);
       module.setIcon("../icons/" + key + ".png");
 
+      // Retrieve the manifest file from the manifest.web file in the bundled file path
+      // This contains other information we need like shortcuts and
+      // ToDo: consolidate these extra steps for bundled apps so that they are done on discovery and
+      // bundled apps are
+      //  also added to the AppManager cache - this means this generateModules would not to care
+      // about these differences
+      try {
+        // 1. read the manifest file for bundled apps
+        InputStream appManifestResource =
+            resourceLoader
+                .getResource("classpath:static/" + key + "/manifest.webapp")
+                .getInputStream();
+        String appManifest = readFromInputStream(appManifestResource);
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+        App bundledApp = mapper.readValue(appManifest, App.class);
+        module.setShortcuts(bundledApp.getShortcuts());
+        module.setVersion(bundledApp.getVersion());
+
+        // 2. check if this is a bundled app that was updated (so its information should be in the
+        // cache)
+        App installedApp = appManager.getApp(app);
+
+        if (installedApp != null && !installedApp.getVersion().equals(module.getVersion())) {
+          module.setShortcuts(installedApp.getShortcuts());
+          module.setVersion(installedApp.getVersion());
+        }
+      } catch (IOException ex) {
+        log.error(ex.getLocalizedMessage(), ex);
+      }
       menuModules.add(module);
     }
-
-    currentLocale = localeManager.getCurrentLocale();
   }
 
   private void detectLocaleChange() {
@@ -84,9 +132,9 @@ public class AppMenuManager {
     currentLocale = localeManager.getCurrentLocale();
   }
 
-  public List<WebModule> getAccessibleWebModules() {
+  public List<WebModule> getAccessibleWebModules(AppManager appManager) {
     if (menuModules.isEmpty()) {
-      generateModules();
+      generateModules(appManager);
     }
 
     detectLocaleChange();

@@ -25,22 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.view;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.test.webapi.Assertions.assertNoDiff;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Tests the {@link Page} class. The test class lives here instead of dhis-web-api so we can access
+ * {@link org.hisp.dhis.test.webapi.Assertions#assertNoDiff} and keep all other tests in the same
+ * class.
+ */
 class PageTest {
+  @Test
+  void commonAndTrackerPagerShouldAlign() {
+    org.hisp.dhis.common.Pager commonPager = new Pager(2, 20, 3);
+    commonPager.setPrevPage("a");
+    commonPager.setNextPage("b");
+    commonPager.force(2, 3);
+    Page.Pager trackerPager = new Page.Pager(2, 3, 20L, 7, "a", "b");
+
+    ObjectMapper mapper = JacksonObjectMapperConfig.staticJsonMapper();
+
+    assertNoDiff(
+        mapper.valueToTree(commonPager).toPrettyString(),
+        mapper.valueToTree(trackerPager).toPrettyString());
+  }
+
   @Test
   void shouldNotSetNoPageLinksIfThereAreNone() throws BadRequestException {
     List<String> fruits = List.of("apple", "banana", "cherry");
