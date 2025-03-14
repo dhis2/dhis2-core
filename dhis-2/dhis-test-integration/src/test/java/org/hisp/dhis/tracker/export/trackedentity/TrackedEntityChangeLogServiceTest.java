@@ -132,6 +132,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFailWhenUserHasNoAccessToTET() {
+    injectSecurityContextUser(manager.get(User.class, "o1HMTIzBGo7"));
     String trackedEntity = "XUitxQbWYNq";
 
     Exception exception =
