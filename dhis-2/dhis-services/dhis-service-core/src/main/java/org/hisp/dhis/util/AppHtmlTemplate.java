@@ -49,7 +49,7 @@ public class AppHtmlTemplate {
     PrintWriter output = new PrintWriter(outputStream, true, StandardCharsets.UTF_8);
     try {
       while (iterator.hasNext()) {
-        String line = iterator.nextLine();
+        String line = iterator.next();
         output.println(replaceLine(line));
       }
     } finally {
