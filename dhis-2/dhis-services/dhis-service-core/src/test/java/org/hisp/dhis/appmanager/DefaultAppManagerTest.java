@@ -59,6 +59,7 @@ class DefaultAppManagerTest {
   @Mock private AppHubService appHubService;
   @Mock private AppStorageService localAppStorageService;
   @Mock private AppStorageService jCloudsAppStorageService;
+  @Mock private BundledAppStorageService bundledAppStorageService;
   @Mock private DatastoreService datastoreService;
   @Mock private Cache<App> appCache;
   @Mock private DefaultCacheBuilderProvider cacheBuilderProvider;
@@ -120,6 +121,7 @@ class DefaultAppManagerTest {
             appHubService,
             localAppStorageService,
             jCloudsAppStorageService,
+            bundledAppStorageService,
             datastoreService,
             cacheBuilderProvider,
             appMenuManager);
