@@ -364,7 +364,7 @@ class TrackedEntityOperationParamsMapper {
     return maxTeiLimit;
   }
 
-  private boolean isLocalSearch(TrackedEntityQueryParams params, User user) {
+  private boolean isSearchInCaptureScope(TrackedEntityQueryParams params, User user) {
     if (OrganisationUnitSelectionMode.CAPTURE == params.getOrgUnitMode()) {
       return true;
     }
