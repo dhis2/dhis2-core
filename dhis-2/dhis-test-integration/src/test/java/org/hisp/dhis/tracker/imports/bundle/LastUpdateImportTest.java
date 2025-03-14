@@ -130,6 +130,9 @@ class LastUpdateImportTest extends TrackerTest {
   @Test
   void shouldUpdateOnlyFromTrackedEntityWhenUnidirectionalRelationshipIsCreated()
       throws IOException {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "m1575931405");
+    relationshipType.setBidirectional(false);
+    manager.update(relationshipType);
     TrackedEntity fromEntityBeforeUpdate = getTrackedEntity();
     TrackedEntity toEntityBeforeUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
 
@@ -140,7 +143,7 @@ class LastUpdateImportTest extends TrackerTest {
     TrackedEntity fromEntityAfterUpdate = getTrackedEntity();
     TrackedEntity toEntityAfterUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
 
-    assertTrackedEntityUpdated(fromEntityBeforeUpdate, fromEntityAfterUpdate, getAdminUser());
+    assertTrackedEntityUpdated(fromEntityBeforeUpdate, fromEntityAfterUpdate, getCurrentUser());
     assertTrackedEntityNotUpdated(toEntityBeforeUpdate, toEntityAfterUpdate);
   }
 
@@ -161,8 +164,62 @@ class LastUpdateImportTest extends TrackerTest {
     TrackedEntity fromEntityAfterUpdate = getTrackedEntity();
     TrackedEntity toEntityAfterUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
 
-    assertTrackedEntityUpdated(fromEntityBeforeUpdate, fromEntityAfterUpdate, getAdminUser());
-    assertTrackedEntityUpdated(toEntityBeforeUpdate, toEntityAfterUpdate, getAdminUser());
+    assertTrackedEntityUpdated(fromEntityBeforeUpdate, fromEntityAfterUpdate, getCurrentUser());
+    assertTrackedEntityUpdated(toEntityBeforeUpdate, toEntityAfterUpdate, getCurrentUser());
+  }
+
+  @Test
+  void shouldUpdateOnlyFromTrackedEntityWhenUnidirectionalRelationshipIsDeleted()
+      throws IOException {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "m1575931405");
+    relationshipType.setBidirectional(false);
+    manager.update(relationshipType);
+
+    TrackerObjects trackerObjects = fromJson("tracker/relationshipTEtoTE.json");
+    assertNoErrors(trackerImportService.importTracker(new TrackerImportParams(), trackerObjects));
+    clearSession();
+
+    TrackedEntity fromEntityBeforeUpdate = getTrackedEntity();
+    TrackedEntity toEntityBeforeUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
+    clearSession();
+
+    assertNoErrors(
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build(),
+            trackerObjects));
+
+    TrackedEntity fromEntityAfterUpdate = getTrackedEntity();
+    TrackedEntity toEntityAfterUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
+
+    assertTrackedEntityUpdated(fromEntityBeforeUpdate, fromEntityAfterUpdate, getCurrentUser());
+    assertTrackedEntityNotUpdated(toEntityBeforeUpdate, toEntityAfterUpdate);
+  }
+
+  @Test
+  void shouldUpdateFromAndToTrackedEntitiesWhenBidirectionalRelationshipIsDeleted()
+      throws IOException {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "m1575931405");
+    relationshipType.setBidirectional(true);
+    manager.update(relationshipType);
+
+    TrackerObjects trackerObjects = fromJson("tracker/relationshipTEtoTE.json");
+    assertNoErrors(trackerImportService.importTracker(new TrackerImportParams(), trackerObjects));
+    clearSession();
+
+    TrackedEntity fromEntityBeforeUpdate = getTrackedEntity();
+    TrackedEntity toEntityBeforeUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
+    clearSession();
+
+    assertNoErrors(
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build(),
+            trackerObjects));
+
+    TrackedEntity fromEntityAfterUpdate = getTrackedEntity();
+    TrackedEntity toEntityAfterUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
+
+    assertTrackedEntityUpdated(fromEntityBeforeUpdate, fromEntityAfterUpdate, getCurrentUser());
+    assertTrackedEntityUpdated(toEntityBeforeUpdate, toEntityAfterUpdate, getCurrentUser());
   }
 
   @Test

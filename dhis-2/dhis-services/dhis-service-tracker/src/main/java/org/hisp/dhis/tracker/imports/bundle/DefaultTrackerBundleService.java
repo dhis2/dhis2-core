@@ -31,6 +31,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
@@ -138,7 +139,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
     if (!bundle.getUpdatedTrackedEntities().isEmpty()) {
       try {
         trackedEntityService.updateTrackedEntityLastUpdated(
-            UID.toValueList(bundle.getUpdatedTrackedEntities()),
+            new HashSet<>(UID.toValueList(bundle.getUpdatedTrackedEntities())),
             new Date(),
             mapper.writeValueAsString(bundle.getUserInfo()));
       } catch (JsonProcessingException e) {
