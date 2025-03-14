@@ -64,6 +64,7 @@ import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
@@ -893,6 +894,10 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
   }
 
   private boolean isLocalSearch(TrackedEntityInstanceQueryParams params, User user) {
+    if (OrganisationUnitSelectionMode.CAPTURE == params.getOrganisationUnitMode()) {
+      return true;
+    }
+
     Set<OrganisationUnit> localOrgUnits = user.getOrganisationUnits();
 
     Set<OrganisationUnit> searchOrgUnits = new HashSet<>();
