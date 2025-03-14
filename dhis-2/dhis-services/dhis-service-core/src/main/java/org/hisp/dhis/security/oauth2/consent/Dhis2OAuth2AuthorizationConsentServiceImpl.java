@@ -31,7 +31,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2RegisteredClientRepository;
+import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -50,11 +50,11 @@ import org.springframework.util.StringUtils;
 public class Dhis2OAuth2AuthorizationConsentServiceImpl
     implements Dhis2OAuth2AuthorizationConsentService, OAuth2AuthorizationConsentService {
   private final Dhis2OAuth2AuthorizationConsentStore authorizationConsentStore;
-  private final Dhis2OAuth2RegisteredClientRepository clientRepository;
+  private final Dhis2OAuth2ClientService clientRepository;
 
   public Dhis2OAuth2AuthorizationConsentServiceImpl(
       Dhis2OAuth2AuthorizationConsentStore authorizationConsentStore,
-      Dhis2OAuth2RegisteredClientRepository clientRepository) {
+      Dhis2OAuth2ClientService clientRepository) {
     Assert.notNull(authorizationConsentStore, "authorizationConsentStore cannot be null");
     Assert.notNull(clientRepository, "registeredClientRepository cannot be null");
     this.authorizationConsentStore = authorizationConsentStore;

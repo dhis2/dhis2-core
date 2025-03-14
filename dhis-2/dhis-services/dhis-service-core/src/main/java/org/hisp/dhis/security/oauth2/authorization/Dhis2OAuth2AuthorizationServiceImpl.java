@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2RegisteredClientRepository;
+import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.SystemUser;
 import org.springframework.dao.DataRetrievalFailureException;
@@ -73,7 +73,7 @@ import org.springframework.util.StringUtils;
 public class Dhis2OAuth2AuthorizationServiceImpl
     implements Dhis2OAuth2AuthorizationService, OAuth2AuthorizationService {
   private final Dhis2OAuth2AuthorizationStore authorizationStore;
-  private final Dhis2OAuth2RegisteredClientRepository clientRepository;
+  private final Dhis2OAuth2ClientService clientRepository;
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   private static final String UUID_REGEX =
@@ -81,8 +81,7 @@ public class Dhis2OAuth2AuthorizationServiceImpl
   private static final Pattern UUID_PATTERN = Pattern.compile(UUID_REGEX);
 
   public Dhis2OAuth2AuthorizationServiceImpl(
-      Dhis2OAuth2AuthorizationStore authorizationStore,
-      Dhis2OAuth2RegisteredClientRepository clientRepository) {
+      Dhis2OAuth2AuthorizationStore authorizationStore, Dhis2OAuth2ClientService clientRepository) {
     Assert.notNull(authorizationStore, "authorizationStore cannot be null");
     Assert.notNull(clientRepository, "clientRepository cannot be null");
     this.authorizationStore = authorizationStore;

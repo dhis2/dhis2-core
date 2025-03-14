@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -55,17 +56,18 @@ import org.springframework.util.StringUtils;
  * HibernateOAuth2ClientStore for persistence.
  */
 @Service
-public class Dhis2OAuth2RegisteredClientRepositoryImpl
-    implements Dhis2OAuth2RegisteredClientRepository, RegisteredClientRepository {
+public class Dhis2OAuth2ClientServiceImpl
+    implements Dhis2OAuth2ClientService, RegisteredClientRepository {
+
   private final Dhis2OAuth2ClientStore clientStore;
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  public Dhis2OAuth2RegisteredClientRepositoryImpl(Dhis2OAuth2ClientStore clientStore) {
+  public Dhis2OAuth2ClientServiceImpl(Dhis2OAuth2ClientStore clientStore) {
     Assert.notNull(clientStore, "clientStore cannot be null");
     this.clientStore = clientStore;
 
     // Configure Jackson mapper with the required modules
-    ClassLoader classLoader = Dhis2OAuth2RegisteredClientRepositoryImpl.class.getClassLoader();
+    ClassLoader classLoader = Dhis2OAuth2ClientServiceImpl.class.getClassLoader();
     List<com.fasterxml.jackson.databind.Module> securityModules =
         SecurityJackson2Modules.getModules(classLoader);
     this.objectMapper.registerModules(securityModules);
@@ -118,7 +120,9 @@ public class Dhis2OAuth2RegisteredClientRepositoryImpl
    * @param client The DHIS2 OAuth2Client entity
    * @return The Spring RegisteredClient
    */
-  private RegisteredClient toObject(Dhis2OAuth2Client client) {
+  @Override
+  @NonTransactional
+  public RegisteredClient toObject(Dhis2OAuth2Client client) {
     Set<String> clientAuthenticationMethods =
         StringUtils.commaDelimitedListToSet(client.getClientAuthenticationMethods());
     Set<String> authorizationGrantTypes =
@@ -169,7 +173,9 @@ public class Dhis2OAuth2RegisteredClientRepositoryImpl
    * @param registeredClient The Spring RegisteredClient
    * @return The DHIS2 OAuth2Client entity
    */
-  private Dhis2OAuth2Client toEntity(RegisteredClient registeredClient) {
+  @Override
+  @NonTransactional
+  public Dhis2OAuth2Client toEntity(RegisteredClient registeredClient) {
     List<String> clientAuthenticationMethods =
         new ArrayList<>(registeredClient.getClientAuthenticationMethods().size());
     registeredClient
@@ -230,8 +236,6 @@ public class Dhis2OAuth2RegisteredClientRepositoryImpl
     return entity;
   }
 
-  private static final ObjectMapper MAPPER = new ObjectMapper();
-
   private Map<String, Object> parseMap(String data) {
     if (data == null || data.isBlank()) {
       return Map.of();
@@ -249,7 +253,8 @@ public class Dhis2OAuth2RegisteredClientRepositoryImpl
    * @param data The Map to convert
    * @return The JSON string
    */
-  private String writeMap(Map<String, Object> data) {
+  @Override
+  public String writeMap(Map<String, Object> data) {
     try {
       return this.objectMapper.writeValueAsString(data);
     } catch (Exception ex) {
@@ -304,7 +309,6 @@ public class Dhis2OAuth2RegisteredClientRepositoryImpl
 
   @Override
   public List<Dhis2OAuth2Client> getAll() {
-    List<Dhis2OAuth2Client> all = clientStore.getAll();
-    return all;
+    return clientStore.getAll();
   }
 }

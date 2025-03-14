@@ -122,6 +122,9 @@ import org.hisp.dhis.schema.descriptors.MapViewSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.MessageConversationSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.MetadataVersionSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.MinMaxDataElementSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.OAuth2AuthorizationConsentSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.OAuth2AuthorizationSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.OAuth2ClientSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ObjectStyleSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.OptionGroupSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.OptionGroupSetSchemaDescriptor;
@@ -319,6 +322,9 @@ public class DefaultSchemaService implements SchemaService {
     register(new ItemConfigSchemaDescriptor());
     register(new LayoutSchemaDescriptor());
     register(new RouteSchemaDescriptor());
+    register(new OAuth2ClientSchemaDescriptor());
+    register(new OAuth2AuthorizationSchemaDescriptor());
+    register(new OAuth2AuthorizationConsentSchemaDescriptor());
   }
 
   private final Map<Class<?>, Schema> classSchemaMap = new HashMap<>();

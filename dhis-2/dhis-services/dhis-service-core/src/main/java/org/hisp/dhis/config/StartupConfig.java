@@ -38,10 +38,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodTypePopulator;
 import org.hisp.dhis.scheduling.JobScheduler;
-import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2RegisteredClientRepository;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.startup.ConfigurationPopulator;
-import org.hisp.dhis.startup.CreateOAuthClient;
 import org.hisp.dhis.startup.DefaultAdminUserPopulator;
 import org.hisp.dhis.startup.I18nLocalePopulator;
 import org.hisp.dhis.startup.ModelUpgrader;
@@ -132,14 +130,5 @@ public class StartupConfig {
     schedulerStart.setRunlevel(15);
     schedulerStart.setSkipInTests(true);
     return schedulerStart;
-  }
-
-  @Bean
-  public CreateOAuthClient createOAuthClient(
-      Dhis2OAuth2RegisteredClientRepository clientRepository) {
-    CreateOAuthClient createOAuthClient = new CreateOAuthClient(clientRepository);
-    createOAuthClient.setRunlevel(16);
-    createOAuthClient.setSkipInTests(true);
-    return createOAuthClient;
   }
 }

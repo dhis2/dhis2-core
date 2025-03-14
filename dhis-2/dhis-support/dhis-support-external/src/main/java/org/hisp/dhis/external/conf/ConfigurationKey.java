@@ -707,7 +707,26 @@ public enum ConfigurationKey {
   /** Enable TOTP-based 2FA authentication. (default: true) */
   TOTP_2FA_ENABLED("login.security.totp_2fa.enabled", Constants.ON, false),
 
-  SESSION_COOKIE_SAME_SITE("session.cookie.samesite", "Lax", false);
+  SESSION_COOKIE_SAME_SITE("session.cookie.samesite", "Lax", false),
+
+  /** Enable OAuth2 authentication server. (default: off) */
+  OAUTH2_SERVER_ENABLED("oauth2.server.enabled", Constants.OFF, false),
+
+  /** Path to the JWT keystore file. */
+  OAUTH2_JWT_KEYSTORE_PATH("oauth2.server.jwt.keystore.path", "", false),
+
+  /** Password for the JWT keystore. (sensitive) */
+  OAUTH2_JWT_KEYSTORE_PASSWORD("oauth2.server.jwt.keystore.password", "", true),
+
+  /** Alias for the JWT key in the keystore. */
+  OAUTH2_JWT_KEYSTORE_ALIAS("oauth2.server.jwt.keystore.alias", "", false),
+
+  /** Password for the JWT key in the keystore. (sensitive) */
+  OAUTH2_JWT_KEYSTORE_KEY_PASSWORD("oauth2.server.jwt.keystore.key-password", "", true),
+
+  /** Whether to generate a new JWT key if the keystore is missing. */
+  OAUTH2_JWT_KEYSTORE_GENERATE_IF_MISSING(
+      "oauth2.server.jwt.keystore.generate-if-missing", "true", false);
 
   private final String key;
 

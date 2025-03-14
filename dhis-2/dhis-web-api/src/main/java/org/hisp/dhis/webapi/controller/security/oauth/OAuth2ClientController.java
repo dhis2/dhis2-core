@@ -30,13 +30,20 @@ package org.hisp.dhis.webapi.controller.security.oauth;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
-import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2RegisteredClientRepository;
+import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.security.config.AuthorizationServerEnabledCondition;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
+import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
+import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,22 +57,42 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Controller
-@RequestMapping({"/api/oauth2Clients"})
+@RequestMapping({"/api/oAuth2Clients"})
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @OpenApi.Document(
     entity = Dhis2OAuth2Client.class,
     classifiers = {"team:platform", "purpose:security"})
+@Conditional(AuthorizationServerEnabledCondition.class)
 public class OAuth2ClientController
     extends AbstractCrudController<Dhis2OAuth2Client, GetObjectListParams> {
 
-  private final Dhis2OAuth2RegisteredClientRepository clientRepository;
+  private final Dhis2OAuth2ClientService clientService;
 
   @GetMapping("/{uid}/registeredClient")
   @ResponseBody
   @ResponseStatus(HttpStatus.OK)
   public RegisteredClient getRegisteredClientByUid(@PathVariable("uid") String uid) {
-    RegisteredClient byUID = clientRepository.findByUID(uid);
-    return byUID;
+    return clientService.findByUID(uid);
+  }
+
+  @Override
+  protected void preCreateEntity(Dhis2OAuth2Client entity) throws ConflictException {
+    if (entity.getClientSettings() == null) {
+      ClientSettings.Builder builder = ClientSettings.builder();
+      builder.requireAuthorizationConsent(true);
+      ClientSettings clientSettings = builder.build();
+      entity.setClientSettings(clientService.writeMap(clientSettings.getSettings()));
+    }
+    if (entity.getTokenSettings() == null) {
+      TokenSettings tokenSettings = TokenSettings.builder().build();
+      entity.setTokenSettings(clientService.writeMap(tokenSettings.getSettings()));
+    }
+  }
+
+  private boolean isPublicClientType(RegisteredClient client) {
+    return client.getAuthorizationGrantTypes().contains(AuthorizationGrantType.AUTHORIZATION_CODE)
+        && client.getClientAuthenticationMethods().size() == 1
+        && client.getClientAuthenticationMethods().contains(ClientAuthenticationMethod.NONE);
   }
 }

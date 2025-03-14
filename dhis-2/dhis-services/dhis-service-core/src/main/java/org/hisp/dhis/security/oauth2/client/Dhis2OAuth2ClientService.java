@@ -27,31 +27,27 @@
  */
 package org.hisp.dhis.security.oauth2.client;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.Date;
-import lombok.Getter;
-import lombok.Setter;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
+import java.util.List;
+import java.util.Map;
+import org.hisp.dhis.user.UserDetails;
+import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 
-@Getter
-@Setter
-@JacksonXmlRootElement(localName = "oauth2Client", namespace = DxfNamespaces.DXF_2_0)
-public class Dhis2OAuth2Client extends BaseIdentifiableObject implements MetadataObject {
+public interface Dhis2OAuth2ClientService {
+  void save(RegisteredClient registeredClient);
 
-  public Dhis2OAuth2Client() {}
+  void save(RegisteredClient registeredClient, UserDetails userDetails);
 
-  @JsonProperty private String clientId;
-  @JsonProperty private String clientSecret;
-  @JsonProperty private Date clientIdIssuedAt;
-  @JsonProperty private Date clientSecretExpiresAt;
-  @JsonProperty private String clientAuthenticationMethods;
-  @JsonProperty private String authorizationGrantTypes;
-  @JsonProperty private String redirectUris;
-  @JsonProperty private String postLogoutRedirectUris;
-  @JsonProperty private String scopes;
-  @JsonProperty private String clientSettings;
-  @JsonProperty private String tokenSettings;
+  RegisteredClient findByUID(String uid);
+
+  RegisteredClient findById(String id);
+
+  RegisteredClient findByClientId(String clientId);
+
+  RegisteredClient toObject(Dhis2OAuth2Client client);
+
+  Dhis2OAuth2Client toEntity(RegisteredClient registeredClient);
+
+  String writeMap(Map<String, Object> data);
+
+  List<Dhis2OAuth2Client> getAll();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oauth2.client;
+package org.hisp.dhis.schema.descriptors;
 
-import java.util.List;
-import org.hisp.dhis.user.UserDetails;
-import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
 
-public interface Dhis2OAuth2RegisteredClientRepository {
-  void save(RegisteredClient registeredClient);
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+public class OAuth2ClientSchemaDescriptor implements SchemaDescriptor {
 
-  void save(RegisteredClient registeredClient, UserDetails userDetails);
+  public static final String SINGULAR = "oAuth2Client";
+  public static final String PLURAL = "oAuth2Clients";
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-  RegisteredClient findByUID(String uid);
-
-  RegisteredClient findById(String id);
-
-  RegisteredClient findByClientId(String clientId);
-
-  List<Dhis2OAuth2Client> getAll();
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(Dhis2OAuth2Client.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setDataShareable(false);
+    schema.setDefaultPrivate(true);
+    schema.setDataReadShareable(false);
+    schema.setDataWriteShareable(false);
+    return schema;
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,47 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oidc;
+package org.hisp.dhis.schema.descriptors;
 
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.jwk.RSAKey;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.interfaces.RSAPublicKey;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.oauth2.authorization.Dhis2OAuth2Authorization;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class KeyStoreUtil {
-  private KeyStoreUtil() {
-    throw new IllegalArgumentException("This class should not be instantiated");
-  }
+public class OAuth2AuthorizationSchemaDescriptor implements SchemaDescriptor {
 
-  public static KeyStore readKeyStore(String keystorePath, String keystorePassword)
-      throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
-    KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-    try (InputStream is = new FileInputStream(keystorePath)) {
-      keyStore.load(is, keystorePassword.toCharArray());
-    }
+  public static final String SINGULAR = "oauth2Authorization";
+  public static final String PLURAL = "oauth2Authorizations";
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    return keyStore;
-  }
-
-  public static RSAKey loadRSAPublicKey(
-      final KeyStore keyStore, final String alias, final char[] pin)
-      throws KeyStoreException, JOSEException {
-    java.security.cert.Certificate cert = keyStore.getCertificate(alias);
-
-    if (cert.getPublicKey() instanceof RSAPublicKey) {
-      return RSAKey.load(keyStore, alias, pin);
-    }
-
-    throw new JOSEException(
-        "Unsupported public key algorithm: " + cert.getPublicKey().getAlgorithm());
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(Dhis2OAuth2Authorization.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setDataShareable(false);
+    schema.setDefaultPrivate(true);
+    schema.setDataReadShareable(false);
+    schema.setDataWriteShareable(false);
+    return schema;
   }
 }

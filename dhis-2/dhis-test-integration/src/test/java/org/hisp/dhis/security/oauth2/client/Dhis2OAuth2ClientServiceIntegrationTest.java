@@ -45,14 +45,12 @@ import org.springframework.security.oauth2.server.authorization.settings.ClientS
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Integration tests for {@link Dhis2OAuth2RegisteredClientRepositoryImpl}. */
+/** Integration tests for {@link Dhis2OAuth2ClientServiceImpl}. */
 @Slf4j
 @Transactional
-public class Dhis2OAuth2RegisteredClientRepositoryIntegrationTest
-    extends PostgresIntegrationTestBase {
+public class Dhis2OAuth2ClientServiceIntegrationTest extends PostgresIntegrationTestBase {
 
-  @Autowired private Dhis2OAuth2RegisteredClientRepository clientRepository;
-
+  @Autowired private Dhis2OAuth2ClientService clientRepository;
   @Autowired private Dhis2OAuth2ClientStore clientStore;
 
   @Test

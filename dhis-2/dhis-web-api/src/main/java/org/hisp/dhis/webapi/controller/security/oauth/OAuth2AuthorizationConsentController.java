@@ -36,6 +36,8 @@ import org.hisp.dhis.security.oauth2.consent.Dhis2OAuth2AuthorizationConsent;
 import org.hisp.dhis.security.oauth2.consent.Dhis2OAuth2AuthorizationConsentService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.security.config.AuthorizationServerEnabledCondition;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -52,6 +54,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @OpenApi.Document(
     entity = Dhis2OAuth2Client.class,
     classifiers = {"team:platform", "purpose:security"})
+@Conditional(AuthorizationServerEnabledCondition.class)
 public class OAuth2AuthorizationConsentController
     extends AbstractCrudController<Dhis2OAuth2AuthorizationConsent, GetObjectListParams> {
 
