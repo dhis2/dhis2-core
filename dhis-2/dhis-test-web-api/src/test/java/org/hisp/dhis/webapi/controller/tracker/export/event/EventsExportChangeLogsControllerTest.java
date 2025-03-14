@@ -109,6 +109,8 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
 
   @BeforeEach
   void setUp() {
+    config.getProperties().put(CHANGELOG_TRACKER.getKey(), "on");
+
     owner = makeUser("owner");
 
     coc = categoryService.getDefaultCategoryOptionCombo();
@@ -145,8 +147,6 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
     dataValue.setDataElement(dataElement.getUid());
     dataValue.setStoredBy("user");
     dataValue.setValue(DATA_ELEMENT_VALUE);
-
-    config.getProperties().put(CHANGELOG_TRACKER.getKey(), "on");
 
     event = event(enrollment(trackedEntity()));
     event.getEventDataValues().add(dataValue);
