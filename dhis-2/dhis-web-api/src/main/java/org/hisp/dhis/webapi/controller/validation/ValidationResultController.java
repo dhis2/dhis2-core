@@ -35,6 +35,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
@@ -95,8 +96,9 @@ public class ValidationResultController {
     RootNode rootNode = NodeUtils.createMetadata();
 
     if (!query.isSkipPaging()) {
-      query.setTotal(validationResultService.countValidationResults(query));
-      rootNode.addChild(NodeUtils.createPager(query.getPager()));
+      long total = validationResultService.countValidationResults(query);
+      rootNode.addChild(
+          NodeUtils.createPager(new Pager(query.getPage(), total, query.getPageSize())));
     }
 
     rootNode.addChild(
