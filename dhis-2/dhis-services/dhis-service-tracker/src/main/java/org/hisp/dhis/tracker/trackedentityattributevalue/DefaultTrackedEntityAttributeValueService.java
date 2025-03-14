@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.trackedentityattributevalue;
 
 import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 import static org.hisp.dhis.system.util.ValidationUtils.valueIsValid;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
@@ -65,15 +64,13 @@ public class DefaultTrackedEntityAttributeValueService
   @Override
   @Transactional
   public void deleteTrackedEntityAttributeValue(TrackedEntityAttributeValue attributeValue) {
-    if (config.isEnabled(CHANGELOG_TRACKER)) {
-      trackedEntityChangeLogService.addTrackedEntityChangeLog(
-          attributeValue.getTrackedEntity(),
-          attributeValue.getAttribute(),
-          attributeValue.getPlainValue(),
-          null,
-          DELETE,
-          getCurrentUsername());
-    }
+    trackedEntityChangeLogService.addTrackedEntityChangeLog(
+        attributeValue.getTrackedEntity(),
+        attributeValue.getAttribute(),
+        attributeValue.getPlainValue(),
+        null,
+        DELETE,
+        getCurrentUsername());
 
     deleteFileValue(attributeValue);
     attributeValueStore.delete(attributeValue);

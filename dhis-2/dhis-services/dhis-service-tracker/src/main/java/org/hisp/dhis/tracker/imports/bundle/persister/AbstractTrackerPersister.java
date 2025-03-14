@@ -483,9 +483,8 @@ public abstract class AbstractTrackerPersister<
       String currentValue,
       TrackedEntity trackedEntity,
       ChangeLogType changeLogType) {
-    boolean allowAuditLog = trackedEntity.getTrackedEntityType().isAllowAuditLog();
 
-    if (allowAuditLog && changeLogType != null) {
+    if (changeLogType != null) {
       trackedEntityChangeLogService.addTrackedEntityChangeLog(
           trackedEntity,
           attributeValue.getAttribute(),
