@@ -28,9 +28,7 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import jakarta.persistence.EntityManager;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
@@ -121,15 +119,7 @@ public class RelationshipPersister
 
   @Override
   protected Set<UID> getUpdatedTrackedEntities(org.hisp.dhis.relationship.Relationship entity) {
-    Set<UID> uids = new HashSet<>();
-
-    Optional.ofNullable(entity.getFrom().getTrackedEntity()).map(UID::of).ifPresent(uids::add);
-
-    if (entity.getRelationshipType().isBidirectional()) {
-      Optional.ofNullable(entity.getTo().getTrackedEntity()).map(UID::of).ifPresent(uids::add);
-    }
-
-    return uids;
+    return entity.getTrackedEntityOrigins();
   }
 
   @Override
