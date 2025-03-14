@@ -148,7 +148,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     Page<String> firstPage =
         trackedEntityService
-            .findTrackedEntities(params, new PageParams(1, 3, false))
+            .findTrackedEntities(params, PageParams.of(1, 3, false))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
@@ -158,7 +158,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     Page<String> secondPage =
         trackedEntityService
-            .findTrackedEntities(params, new PageParams(2, 3, true))
+            .findTrackedEntities(params, PageParams.of(2, 3, true))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
@@ -168,7 +168,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     Page<String> thirdPage =
         trackedEntityService
-            .findTrackedEntities(params, new PageParams(3, 3, false))
+            .findTrackedEntities(params, PageParams.of(3, 3, false))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(new Page<>(List.of(), 3, 3, null, 2, null), thirdPage, "past the last page");
@@ -190,14 +190,14 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     Page<String> firstPage =
         trackedEntityService
-            .findTrackedEntities(params, new PageParams(1, 1, false))
+            .findTrackedEntities(params, PageParams.of(1, 1, false))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(new Page<>(List.of("dUE514NMOlo"), 1, 1, null, null, 2), firstPage, "first page");
 
     Page<String> secondPage =
         trackedEntityService
-            .findTrackedEntities(params, new PageParams(2, 1, true))
+            .findTrackedEntities(params, PageParams.of(2, 1, true))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
@@ -205,7 +205,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     Page<String> thirdPage =
         trackedEntityService
-            .findTrackedEntities(params, new PageParams(3, 1, false))
+            .findTrackedEntities(params, PageParams.of(3, 1, false))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(new Page<>(List.of(), 3, 1, null, 2, null), thirdPage, "past the last page");
@@ -635,14 +635,14 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     Page<String> secondPage =
         enrollmentService
-            .findEnrollments(operationParams, new PageParams(2, 1, false))
+            .findEnrollments(operationParams, PageParams.of(2, 1, false))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
         new Page<>(List.of("TvctPPhpD8z"), 2, 1, null, 1, null), secondPage, "second (last) page");
 
     Page<Enrollment> thirdPage =
-        enrollmentService.findEnrollments(operationParams, new PageParams(3, 1, false));
+        enrollmentService.findEnrollments(operationParams, PageParams.of(3, 1, false));
 
     assertEquals(new Page<>(List.of(), 3, 1, null, 2, null), thirdPage, "past the last page");
   }
@@ -659,21 +659,21 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     Page<String> firstPage =
         enrollmentService
-            .findEnrollments(operationParams, new PageParams(1, 1, true))
+            .findEnrollments(operationParams, PageParams.of(1, 1, true))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(new Page<>(List.of("nxP7UnKhomJ"), 1, 1, 2L, null, 2), firstPage, "first page");
 
     Page<String> secondPage =
         enrollmentService
-            .findEnrollments(operationParams, new PageParams(2, 1, true))
+            .findEnrollments(operationParams, PageParams.of(2, 1, true))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
         new Page<>(List.of("TvctPPhpD8z"), 2, 1, 2L, 1, null), secondPage, "second (last) page");
 
     Page<Enrollment> thirdPage =
-        enrollmentService.findEnrollments(operationParams, new PageParams(3, 1, true));
+        enrollmentService.findEnrollments(operationParams, PageParams.of(3, 1, true));
 
     assertEquals(new Page<>(List.of(), 3, 1, 2L, 2, null), thirdPage, "past the last page");
   }
@@ -767,13 +767,13 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     Page<String> secondPage =
         eventService
-            .findEvents(operationParams, new PageParams(2, 1, true))
+            .findEvents(operationParams, PageParams.of(2, 1, true))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
         new Page<>(List.of("pTzf9KYMk72"), 2, 1, 2L, 1, null), secondPage, "second (last) page");
 
-    Page<Event> thirdPage = eventService.findEvents(operationParams, new PageParams(3, 1, false));
+    Page<Event> thirdPage = eventService.findEvents(operationParams, PageParams.of(3, 1, false));
 
     assertEquals(new Page<>(List.of(), 3, 1, null, 2, null), thirdPage, "past the last page");
   }
@@ -793,7 +793,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     Page<String> firstPage =
         eventService
-            .findEvents(operationParams, new PageParams(1, 3, false))
+            .findEvents(operationParams, PageParams.of(1, 3, false))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
@@ -803,7 +803,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     Page<String> secondPage =
         eventService
-            .findEvents(operationParams, new PageParams(2, 3, true))
+            .findEvents(operationParams, PageParams.of(2, 3, true))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
@@ -811,7 +811,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
         secondPage,
         "second (last) page");
 
-    Page<Event> thirdPage = eventService.findEvents(operationParams, new PageParams(3, 3, true));
+    Page<Event> thirdPage = eventService.findEvents(operationParams, PageParams.of(3, 3, true));
 
     assertEquals(new Page<>(List.of(), 3, 3, 6L, 2, null), thirdPage, "past the last page");
   }
@@ -979,7 +979,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     Page<String> secondPage =
         eventService
-            .findEvents(operationParams, new PageParams(2, 1, false))
+            .findEvents(operationParams, PageParams.of(2, 1, false))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
@@ -987,7 +987,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     Page<String> thirdPage =
         eventService
-            .findEvents(operationParams, new PageParams(3, 3, false))
+            .findEvents(operationParams, PageParams.of(3, 3, false))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(new Page<>(List.of(), 3, 3, null, 2, null), thirdPage, "past the last page");
@@ -1424,14 +1424,14 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     Page<String> secondPage =
         relationshipService
-            .findRelationships(params, new PageParams(2, 1, true))
+            .findRelationships(params, PageParams.of(2, 1, true))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
         new Page<>(List.of(expectedOnPage2), 2, 1, 2L, 1, null), secondPage, "second (last) page");
 
     Page<Relationship> thirdPage =
-        relationshipService.findRelationships(params, new PageParams(3, 1, true));
+        relationshipService.findRelationships(params, PageParams.of(3, 1, true));
 
     assertEquals(new Page<>(List.of(), 3, 1, 2L, 2, null), thirdPage, "past the last page");
   }

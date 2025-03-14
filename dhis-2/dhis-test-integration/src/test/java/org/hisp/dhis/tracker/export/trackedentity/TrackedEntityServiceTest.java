@@ -2017,7 +2017,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         TrackedEntityOperationParams.builder().trackedEntityType(trackedEntityTypeA).build();
 
     Page<TrackedEntity> trackedEntities =
-        trackedEntityService.findTrackedEntities(operationParams, new PageParams(1, 3, false));
+        trackedEntityService.findTrackedEntities(operationParams, PageParams.of(1, 3, false));
 
     assertIsEmpty(trackedEntities.getItems());
   }

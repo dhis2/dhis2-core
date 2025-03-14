@@ -69,9 +69,13 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   private final TrackedEntityChangeLogOperationParams defaultOperationParams =
       TrackedEntityChangeLogOperationParams.builder().build();
-  private final PageParams defaultPageParams = PageParams.of(1, 10, false);
+  private final PageParams defaultPageParams;
 
   private TrackerObjects trackerObjects;
+
+  TrackedEntityChangeLogServiceTest() throws BadRequestException {
+    defaultPageParams = PageParams.of(1, 10, false);
+  }
 
   @BeforeAll
   void setUp() throws IOException {
@@ -128,6 +132,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFailWhenUserHasNoAccessToTET() {
+    injectSecurityContextUser(manager.get(User.class, "o1HMTIzBGo7"));
     String trackedEntity = "XUitxQbWYNq";
 
     Exception exception =
@@ -144,7 +149,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFailWhenUserHasNoAccessToOrgUnitScope() {
-    injectSecurityContextUser(manager.get(User.class, "o1HMTIzBGo7"));
+    injectSecurityContextUser(manager.get(User.class, "FIgVWzUCkpw"));
     String trackedEntity = "XUitxQbWYNq";
 
     Exception exception =

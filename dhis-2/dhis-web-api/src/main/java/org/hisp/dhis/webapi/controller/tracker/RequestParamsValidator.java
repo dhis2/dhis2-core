@@ -570,23 +570,6 @@ public class RequestParamsValidator {
           "Paging cannot be disabled with paging=false while also requesting a paginated"
               + " response with page, pageSize and/or totalPages=true");
     }
-
-    validatePaginationBounds(params.getPage(), params.getPageSize());
-  }
-
-  public static void validatePaginationBounds(Integer page, Integer pageSize)
-      throws BadRequestException {
-    if (lessThan(page, 1)) {
-      throw new BadRequestException("page must be greater than or equal to 1 if specified");
-    }
-
-    if (lessThan(pageSize, 1)) {
-      throw new BadRequestException("pageSize must be greater than or equal to 1 if specified");
-    }
-  }
-
-  private static boolean lessThan(Integer a, int b) {
-    return a != null && a < b;
   }
 
   public static void validateUnsupportedParameter(

@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
+import static java.util.Collections.emptyList;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
+
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
@@ -36,8 +40,10 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -53,11 +59,13 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
 
   private final TrackedEntityService trackedEntityService;
 
-  private final ProgramService programService;
+  private final HibernateTrackedEntityChangeLogStore hibernateTrackedEntityChangeLogStore;
 
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
-  private final HibernateTrackedEntityChangeLogStore hibernateTrackedEntityChangeLogStore;
+  private final ProgramService programService;
+
+  private final DhisConfigurationProvider config;
 
   @Transactional
   @Override
@@ -68,6 +76,10 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
       @CheckForNull String currentValue,
       @Nonnull ChangeLogType changeLogType,
       @Nonnull String username) {
+
+    if (config.isDisabled(CHANGELOG_TRACKER)) {
+      return;
+    }
 
     TrackedEntityChangeLog trackedEntityChangeLog =
         new TrackedEntityChangeLog(
@@ -100,10 +112,16 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
     TrackedEntity trackedEntity =
         trackedEntityService.getTrackedEntity(
             trackedEntityUid, programUid, TrackedEntityParams.FALSE.withIncludeAttributes(true));
+    Program program =
+        (programUid != null) ? programService.getProgram(programUid.getValue()) : null;
 
     Set<UID> trackedEntityAttributes =
-        trackedEntity.getTrackedEntityAttributeValues().stream()
-            .map(teav -> UID.of(teav.getAttribute().getUid()))
+        trackedEntityAttributeService
+            .getAllUserReadableTrackedEntityAttributes(
+                program != null ? List.of(program) : emptyList(),
+                List.of(trackedEntity.getTrackedEntityType()))
+            .stream()
+            .map(UID::of)
             .collect(Collectors.toSet());
 
     return hibernateTrackedEntityChangeLogStore.getTrackedEntityChangeLogs(

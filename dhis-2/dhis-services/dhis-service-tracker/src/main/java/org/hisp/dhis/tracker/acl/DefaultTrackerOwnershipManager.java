@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.tracker.acl;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
-
 import java.util.Optional;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
@@ -38,7 +36,6 @@ import org.hibernate.Hibernate;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -70,7 +67,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   private final ProgramTempOwnershipAuditService programTempOwnershipAuditService;
   private final ProgramTempOwnerService programTempOwnerService;
   private final ProgramOwnershipHistoryService programOwnershipHistoryService;
-  private final DhisConfigurationProvider config;
   private final UserService userService;
   private final ProgramService programService;
   private final IdentifiableObjectManager manager;
@@ -83,7 +79,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       ProgramTempOwnerService programTempOwnerService,
       ProgramOwnershipHistoryService programOwnershipHistoryService,
       ProgramService programService,
-      DhisConfigurationProvider config,
       IdentifiableObjectManager manager) {
 
     this.userService = userService;
@@ -92,7 +87,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     this.programOwnershipHistoryService = programOwnershipHistoryService;
     this.programTempOwnerService = programTempOwnerService;
     this.programService = programService;
-    this.config = config;
     this.manager = manager;
     this.ownerCache = cacheProvider.createProgramOwnerCache();
     this.tempOwnerCache = cacheProvider.createProgramTempOwnerCache();
@@ -163,7 +157,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
     // TODO(tracker) jdbc-hibernate: check the impact on performance
     TrackedEntity hibernateTrackedEntity = manager.get(TrackedEntity.class, trackedEntity.getUid());
-    if (config.isEnabled(CHANGELOG_TRACKER)) {
+    if (trackedEntity.getTrackedEntityType().isAllowAuditLog()) {
       programTempOwnershipAuditService.addProgramTempOwnershipAudit(
           new ProgramTempOwnershipAudit(
               program, hibernateTrackedEntity, reason, user.getUsername()));

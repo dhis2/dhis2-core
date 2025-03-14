@@ -142,8 +142,8 @@ class Property {
         .filter(f -> includeByDefault || isExplicitlyIncluded(f))
         .forEach(addField);
     methodsIn(object)
-        .filter(method -> Property.isGetter(method) || Property.isSetter(method))
         .filter(Property::isExplicitlyIncluded)
+        .filter(Property::isAccessor)
         .filter(method -> !ignoredFields.contains(getJavaPropertyName(method)))
         .forEach(
             method ->
@@ -151,7 +151,7 @@ class Property {
                     method, fieldsByJavaPropertyName.get(getJavaPropertyName(method))));
     if (properties.isEmpty() || includeByDefault) {
       methodsIn(object)
-          .filter(Property::isGetter)
+          .filter(Property::isAccessor)
           .filter(method -> !ignoredFields.contains(getJavaPropertyName(method)))
           .forEach(
               method ->
@@ -197,6 +197,10 @@ class Property {
         && !source.getType().isAnnotationPresent(OpenApi.Ignore.class);
   }
 
+  private static boolean isAccessor(Method source) {
+    return isGetter(source) || isSetter(source);
+  }
+
   private static boolean isSetter(Method source) {
     String name = source.getName();
     return !isExplicitlyExcluded(source)
@@ -225,7 +229,8 @@ class Property {
     return source.isSynthetic()
         || isStatic(source.getModifiers())
         || source.isAnnotationPresent(OpenApi.Ignore.class)
-        || source.isAnnotationPresent(JsonIgnore.class);
+        || (source.isAnnotationPresent(JsonIgnore.class)
+            && !source.isAnnotationPresent(OpenApi.Property.class));
   }
 
   private static boolean isExplicitlyIncluded(AnnotatedElement source) {

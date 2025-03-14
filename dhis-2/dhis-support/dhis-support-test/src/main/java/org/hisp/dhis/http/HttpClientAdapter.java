@@ -103,7 +103,7 @@ public interface HttpClientAdapter {
   }
 
   static Header ContentType(String mimeType) {
-    return Header("ContentType", mimeType);
+    return Header("Content-Type", mimeType);
   }
 
   static Header ContentType(Path file) {
@@ -207,7 +207,7 @@ public interface HttpClientAdapter {
     List<Header> headers = new ArrayList<>();
     for (RequestComponent c : components) {
       if (c instanceof Header header) {
-        if (header.name().equalsIgnoreCase("ContentType")) {
+        if (header.name().equalsIgnoreCase("Content-Type")) {
           // last provided content type wins
           contentMediaType = header.value().toString();
         } else {

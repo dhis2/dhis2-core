@@ -100,7 +100,7 @@ class ProgramControllerIntegrationTest extends PostgresControllerIntegrationTest
         HttpStatus.CREATED,
         POST(
             "/trackedEntityTypes",
-            "{'description': 'add TET for Enrollment test','id':'TEType10000','name':'Tracked Entity Type 1'}"));
+            "{'description': 'add TET for Enrollment test','id':'TEType10000','name':'Tracked Entity Type 1', 'shortName':'TET1'}"));
 
     assertStatus(
         HttpStatus.CREATED,

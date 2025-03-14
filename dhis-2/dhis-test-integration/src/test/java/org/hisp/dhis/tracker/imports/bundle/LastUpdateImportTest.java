@@ -138,6 +138,9 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
   @Test
   void shouldUpdateOnlyFromTrackedEntityWhenUnidirectionalRelationshipIsCreated()
       throws IOException {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "m1575931405");
+    relationshipType.setBidirectional(false);
+    manager.update(relationshipType);
     TrackedEntity fromEntityBeforeUpdate = getTrackedEntity();
     TrackedEntity toEntityBeforeUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
 
@@ -163,6 +166,56 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
 
     testSetup.importTrackerData("tracker/relationshipTEtoTE.json");
     clearSession();
+
+    TrackedEntity fromEntityAfterUpdate = getTrackedEntity();
+    TrackedEntity toEntityAfterUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
+
+    assertTrackedEntityUpdated(fromEntityBeforeUpdate, fromEntityAfterUpdate, importUser);
+    assertTrackedEntityUpdated(toEntityBeforeUpdate, toEntityAfterUpdate, importUser);
+  }
+
+  @Test
+  void shouldUpdateOnlyFromTrackedEntityWhenUnidirectionalRelationshipIsDeleted()
+      throws IOException {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "m1575931405");
+    relationshipType.setBidirectional(false);
+    manager.update(relationshipType);
+
+    testSetup.importTrackerData("tracker/relationshipTEtoTE.json");
+    clearSession();
+
+    TrackedEntity fromEntityBeforeUpdate = getTrackedEntity();
+    TrackedEntity toEntityBeforeUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
+    clearSession();
+
+    testSetup.importTrackerData(
+        "tracker/relationshipTEtoTE.json",
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build());
+
+    TrackedEntity fromEntityAfterUpdate = getTrackedEntity();
+    TrackedEntity toEntityAfterUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
+
+    assertTrackedEntityUpdated(fromEntityBeforeUpdate, fromEntityAfterUpdate, importUser);
+    assertTrackedEntityNotUpdated(toEntityBeforeUpdate, toEntityAfterUpdate);
+  }
+
+  @Test
+  void shouldUpdateFromAndToTrackedEntitiesWhenBidirectionalRelationshipIsDeleted()
+      throws IOException {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "m1575931405");
+    relationshipType.setBidirectional(true);
+    manager.update(relationshipType);
+
+    testSetup.importTrackerData("tracker/relationshipTEtoTE.json");
+    clearSession();
+
+    TrackedEntity fromEntityBeforeUpdate = getTrackedEntity();
+    TrackedEntity toEntityBeforeUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
+    clearSession();
+
+    testSetup.importTrackerData(
+        "tracker/relationshipTEtoTE.json",
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build());
 
     TrackedEntity fromEntityAfterUpdate = getTrackedEntity();
     TrackedEntity toEntityAfterUpdate = getTrackedEntity(anotherTrackedEntity.getUid());

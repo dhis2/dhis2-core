@@ -169,7 +169,7 @@ public class BaseNameableObject extends BaseIdentifiableObject implements Nameab
   @Sortable
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
-  @PropertyRange(min = 1)
+  @PropertyRange(min = 1, max = 50)
   public String getShortName() {
     return shortName;
   }
