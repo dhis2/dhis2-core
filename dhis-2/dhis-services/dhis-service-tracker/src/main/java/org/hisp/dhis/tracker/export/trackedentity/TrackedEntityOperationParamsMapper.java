@@ -141,7 +141,7 @@ class TrackedEntityOperationParamsMapper {
         .setIncludeDeleted(operationParams.isIncludeDeleted())
         .setPotentialDuplicate(operationParams.getPotentialDuplicate());
 
-    validateGlobalSearchParameters(params);
+    validateSearchOutsideCaptureScopeParameters(params);
 
     return params;
   }
@@ -282,19 +282,20 @@ class TrackedEntityOperationParamsMapper {
     }
   }
 
-  private void validateGlobalSearchParameters(TrackedEntityQueryParams params)
+  private void validateSearchOutsideCaptureScopeParameters(TrackedEntityQueryParams params)
       throws IllegalQueryException {
-    if (!isLocalSearch(params, params.getUser())) {
-
-      if (params.hasFilters()) {
-        List<String> searchableAttributeIds = getSearchableAttributeIds(params);
-        validateSearchableAttributes(params, searchableAttributeIds);
-      }
-
-      int maxTeiLimit = getMaxTeiLimit(params);
-      checkIfMaxTeiLimitIsReached(params, maxTeiLimit);
-      params.setMaxTeLimit(maxTeiLimit);
+    if (isSearchInCaptureScope(params, params.getUser())) {
+      return;
     }
+
+    if (params.hasFilters()) {
+      List<String> searchableAttributeIds = getSearchableAttributeIds(params);
+      validateSearchableAttributes(params, searchableAttributeIds);
+    }
+
+    int maxTeiLimit = getMaxTeiLimit(params);
+    params.setMaxTeLimit(maxTeiLimit);
+    checkIfMaxTeiLimitIsReached(params, maxTeiLimit);
   }
 
   private List<String> getSearchableAttributeIds(TrackedEntityQueryParams params) {
@@ -363,7 +364,7 @@ class TrackedEntityOperationParamsMapper {
     return maxTeiLimit;
   }
 
-  private boolean isLocalSearch(TrackedEntityQueryParams params, User user) {
+  private boolean isSearchInCaptureScope(TrackedEntityQueryParams params, User user) {
     if (OrganisationUnitSelectionMode.CAPTURE == params.getOrgUnitMode()) {
       return true;
     }
