@@ -176,7 +176,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
                 .withDataPeriodsForAggregationPeriods(dataPeriodAggregationPeriodMap)
                 .build();
 
-        params = queryPlanner.assignPartitionsFromQueryPeriods(params, tableType);
+        params = queryPlanner.withPartitionsFromQueryPeriods(params, tableType);
       }
 
       if (params.hasSubexpressions() && params.getSubexpression().hasPeriodOffsets()) {
@@ -292,7 +292,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
     DataQueryParams paramsWithOffsetPeriods = getParamsWithOffsetPeriods(params);
     DataQueryParams paramsWithOffsetPartitions =
-        queryPlanner.assignPartitionsFromQueryPeriods(paramsWithOffsetPeriods, tableType);
+        queryPlanner.withPartitionsFromQueryPeriods(paramsWithOffsetPeriods, tableType);
     return DataQueryParams.newBuilder(params)
         .withPartitions(paramsWithOffsetPartitions.getPartitions())
         .build();
