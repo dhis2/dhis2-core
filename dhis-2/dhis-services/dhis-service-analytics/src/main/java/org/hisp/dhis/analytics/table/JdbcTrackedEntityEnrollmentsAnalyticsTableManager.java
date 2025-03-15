@@ -235,7 +235,7 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
             left join ${program} p on en.programid=p.programid \
             left join analytics_rs_orgunitstructure ous on en.organisationunitid=ous.organisationunitid \
             where en.occurreddate is not null \
-            and en.deleted = false\s""",
+            and en.deleted = false """,
             Map.of(
                 "trackedEntityTypeId", valueOf(tetId),
                 "startTime", toLongDate(params.getStartTime()),

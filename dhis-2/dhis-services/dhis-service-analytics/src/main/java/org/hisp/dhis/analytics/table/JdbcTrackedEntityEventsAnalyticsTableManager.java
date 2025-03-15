@@ -299,7 +299,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
             and (${eventDateExpression}) is not null \
             and (${eventDateExpression}) > '1000-01-01' \
             and ev.deleted = false \
-            and te.deleted = false\s""",
+            and te.deleted = false """,
             Map.of(
                 "eventDateExpression", eventDateExpression,
                 "startTime", toLongDate(params.getStartTime()),
