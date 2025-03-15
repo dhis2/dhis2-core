@@ -123,7 +123,6 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.period.Period;
@@ -177,8 +176,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected final SqlBuilder sqlBuilder;
 
   protected final SystemSettingsService settingsService;
-
-  private final DhisConfigurationProvider config;
 
   private final OrganisationUnitResolver organisationUnitResolver;
 
