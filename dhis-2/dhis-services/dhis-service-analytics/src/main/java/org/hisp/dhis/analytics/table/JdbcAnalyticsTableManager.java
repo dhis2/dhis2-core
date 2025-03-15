@@ -275,7 +275,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     String doubleDataType = sqlBuilder.dataTypeDouble();
     String numericClause =
         skipDataTypeValidation ? "" : "and " + sqlBuilder.regexpMatch("dv.value", NUMERIC_REGEXP);
-    String zeroValueCondition = includeZeroValues ? " or des.zeroissignificant = true" : "";
+    String zeroValueCondition =
+        includeZeroValues ? " or " + sqlBuilder.isTrue("des", "zeroissignificant") : "";
     String zeroValueClause =
         replace(
             """
