@@ -80,6 +80,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.dataelement.DataElement;
@@ -1157,12 +1158,12 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
    * @param grid the {@link Grid}.
    */
   private void addHeadersForRows(Grid grid) {
-    Map<String, String> metaData = getMetaData();
+    Map<String, MetadataItem> metaData = getMetaData();
     metaData.putAll(PRETTY_NAMES);
 
     for (String dimension : rowDimensions) {
       String dimensionId = getDimensionIdentifierFor(dimension, getDimensionDescriptors());
-      String name = defaultIfEmpty(metaData.get(dimensionId), dimensionId);
+      String name = defaultIfEmpty(metaData.get(dimensionId).getName(), dimensionId);
       String col = defaultIfEmpty(COLUMN_NAMES.get(dimensionId), dimensionId);
 
       grid.addHeader(new GridHeader(name + " ID", col + "id", TEXT, true, true));
