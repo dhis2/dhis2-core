@@ -183,8 +183,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
         params = getParamsWithOffsetPartitions(params, tableType);
       }
 
-      final String sql = getSql(params, tableType);
-
+      final String sql = getSqlQuery(params, tableType);
       final DataQueryParams immutableParams = DataQueryParams.newBuilder(params).build();
 
       if (params.analyzeOnly()) {
@@ -305,7 +304,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
    * @param tableType the type of analytics table.
    * @return the query SQL.
    */
-  private String getSql(DataQueryParams params, AnalyticsTableType tableType) {
+  private String getSqlQuery(DataQueryParams params, AnalyticsTableType tableType) {
     if (params.hasSubexpressions()) {
       return new JdbcSubexpressionQueryGenerator(this, params, tableType).getSql();
     }
@@ -426,13 +425,17 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
    * @return a SQL from source clause.
    */
   protected String getFromSourceClause(DataQueryParams params) {
-    if (!params.isSkipPartitioning() && params.hasPartitions() && params.getPartitions().hasOne()) {
+    if (!params.isSkipPartitioning()
+        && params.hasPartitions()
+        && params.getPartitions().hasOne()
+        && isExplicitPartitioning()) {
       Integer partition = params.getPartitions().getAny();
 
       return PartitionUtils.getPartitionName(params.getTableName(), partition);
     } else if (!params.isSkipPartitioning()
         && params.hasPartitions()
-        && params.getPartitions().hasMultiple()) {
+        && params.getPartitions().hasMultiple()
+        && isExplicitPartitioning()) {
       String sql = "(";
 
       for (Integer partition : params.getPartitions().getPartitions()) {
@@ -1005,6 +1008,13 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
         !(params.getAggregationType().isFirstOrLastPeriodAggregationType()
             && params.getPeriods().size() > 1),
         "Max one dimension period can be present per query for last period aggregation");
+  }
+
+  /**
+   * @return true if explicit partitioning is used by the DBMS.
+   */
+  private boolean isExplicitPartitioning() {
+    return !sqlBuilder.supportsDeclarativePartitioning();
   }
 
   /**
