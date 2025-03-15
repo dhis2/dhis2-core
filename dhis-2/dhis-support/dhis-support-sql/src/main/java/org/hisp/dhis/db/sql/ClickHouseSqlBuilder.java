@@ -267,6 +267,12 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     return String.format("%s.%s", alias, quote(column));
   }
 
+  /**
+   * ClickHouse standard true/false predicates against PostgreSQL tables with boolean data type
+   * columns does not work.
+   *
+   * @see https://github.com/ClickHouse/ClickHouse/issues/67080
+   */
   @Override
   public String isFalse(String alias, String column) {
     return String.format("not %s.%s", alias, quote(column));
