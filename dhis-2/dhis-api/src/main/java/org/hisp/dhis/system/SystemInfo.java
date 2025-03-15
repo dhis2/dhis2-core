@@ -136,4 +136,25 @@ public final class SystemInfo {
         .databaseInfo(databaseInfo.withoutSensitiveInfo())
         .build();
   }
+
+  /**
+   * @param id
+   * @param revision
+   * @param version
+   * @param serverDate
+   */
+  public record SystemIdVersionDate(String id, String revision, String version, Date serverDate) {}
+
+  /**
+   * @param systemIdVersionDate
+   * @param buildTime
+   */
+  public record SystemVersionBuildTime(SystemIdVersionDate systemIdVersionDate, Date buildTime) {}
+
+  /**
+   * @param revision
+   * @param version
+   * @param calendar
+   */
+  public record SystemVersionCalendar(String revision, String version, String calendar) {}
 }

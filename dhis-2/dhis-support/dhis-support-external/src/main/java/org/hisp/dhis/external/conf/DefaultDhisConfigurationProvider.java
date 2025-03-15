@@ -47,6 +47,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
 import javax.annotation.PostConstruct;
 import javax.crypto.Cipher;
 import lombok.extern.slf4j.Slf4j;
@@ -220,6 +221,7 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
   }
 
   @Override
+  @CheckForNull
   public String getServerBaseUrl() {
     return StringUtils.trimToNull(
         properties.getProperty(ConfigurationKey.SERVER_BASE_URL.getKey()));

@@ -27,14 +27,37 @@
  */
 package org.hisp.dhis.system;
 
+import org.hisp.dhis.system.SystemInfo.SystemIdVersionDate;
+import org.hisp.dhis.system.SystemInfo.SystemVersionBuildTime;
+import org.hisp.dhis.system.SystemInfo.SystemVersionCalendar;
+
 /**
  * @author Lars Helge Overland
  */
-@FunctionalInterface
 public interface SystemService {
 
   /**
    * @return The system info summary for right now
    */
   SystemInfo getSystemInfo();
+
+  /**
+   * @return The system info version
+   */
+  String getSystemInfoVersion();
+
+  /**
+   * @return SystemIdVersionDate
+   */
+  SystemIdVersionDate getSystemIdVersionDate();
+
+  /**
+   * @return SystemVersionBuildTime
+   */
+  SystemVersionBuildTime getSystemVersionBuildTime();
+
+  /**
+   * @return SystemVersionCalendar
+   */
+  SystemVersionCalendar getSystemVersionCalendar();
 }
