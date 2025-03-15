@@ -9,6 +9,7 @@
       "created": "2020-05-31T08:59:52.758",
       "lastUpdated": "2020-05-31T11:41:22.419",
       "name": "Person",
+      "shortName": "Person",
       "id": "nEenWmSyUEp",
       "publicAccess": "rw------",
       "description": "person",

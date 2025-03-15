@@ -124,15 +124,6 @@ public class TrackedEntityOperationParams {
   /** End date for event for the given program. */
   private Date eventEndDate;
 
-  /** Page number. */
-  private Integer page;
-
-  /** Page size. */
-  private Integer pageSize;
-
-  /** Indicates whether to include the total number of pages in the paging response. */
-  private boolean totalPages;
-
   /** Indicates whether paging should be skipped. */
   private boolean skipPaging;
 

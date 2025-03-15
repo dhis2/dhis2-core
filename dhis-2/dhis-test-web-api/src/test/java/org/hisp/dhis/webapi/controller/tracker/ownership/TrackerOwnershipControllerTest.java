@@ -86,7 +86,7 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
             HttpStatus.CREATED,
             POST(
                 "/trackedEntityTypes/",
-                "{'name': 'A', 'sharing':{'external':false,'public':'rwrw----'}}"));
+                "{'name': 'A', 'shortName':'A','sharing':{'external':false,'public':'rwrw----'}}"));
 
     pId =
         assertStatus(

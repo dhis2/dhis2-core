@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetUtils;
@@ -133,9 +134,6 @@ public class TrackedEntityQueryParams {
   /** End date for event for the given program. */
   private Date eventEndDate;
 
-  /** Indicates if there is a maximum te retrieval limit. 0 no limit. */
-  private int maxTeLimit;
-
   /** Indicates whether to include soft-deleted elements. Default to false */
   private boolean includeDeleted = false;
 
@@ -146,6 +144,8 @@ public class TrackedEntityQueryParams {
   private Boolean potentialDuplicate;
 
   private final List<Order> order = new ArrayList<>();
+
+  @Setter private boolean isSearchOutsideCaptureScope = false;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -487,15 +487,6 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public int getMaxTeLimit() {
-    return maxTeLimit;
-  }
-
-  public TrackedEntityQueryParams setMaxTeLimit(int maxTeLimit) {
-    this.maxTeLimit = maxTeLimit;
-    return this;
-  }
-
   public boolean isIncludeDeleted() {
     return includeDeleted;
   }
@@ -559,5 +550,9 @@ public class TrackedEntityQueryParams {
       List<TrackedEntityType> trackedEntityTypes) {
     this.trackedEntityTypes = trackedEntityTypes;
     return this;
+  }
+
+  public boolean isSearchOutsideCaptureScope() {
+    return isSearchOutsideCaptureScope;
   }
 }

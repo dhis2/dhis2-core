@@ -2043,6 +2043,7 @@
       "created": "2019-02-05T13:46:01.308",
       "lastUpdated": "2022-01-07T12:45:47.352",
       "name": "TA Person",
+      "shortName": "TA Person",
       "id": "Q9GufDoplCL",
       "maxTeiCountToReturn": 0,
       "allowAuditLog": true,

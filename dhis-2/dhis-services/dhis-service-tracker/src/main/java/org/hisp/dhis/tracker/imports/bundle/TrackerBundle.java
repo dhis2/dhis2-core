@@ -137,7 +137,7 @@ public class TrackerBundle {
     return resolvedStrategyMap;
   }
 
-  @Builder.Default @JsonIgnore private Set<String> updatedTrackedEntities = new HashSet<>();
+  @Builder.Default @JsonIgnore private Set<UID> updatedTrackedEntities = new HashSet<>();
 
   public Optional<TrackedEntity> findTrackedEntityByUid(@Nonnull UID uid) {
     return findById(this.trackedEntities, uid);
@@ -157,6 +157,14 @@ public class TrackerBundle {
 
   private static <T extends TrackerDto> Optional<T> findById(List<T> entities, UID uid) {
     return entities.stream().filter(e -> Objects.equals(e.getUid(), uid)).findFirst();
+  }
+
+  public Set<UID> getUpdatedTrackedEntities() {
+    return Set.copyOf(this.updatedTrackedEntities);
+  }
+
+  public void addUpdatedTrackedEntities(Set<UID> updatedTrackedEntities) {
+    this.updatedTrackedEntities.addAll(updatedTrackedEntities);
   }
 
   public Map<UID, List<Notification>> getEnrollmentNotifications() {
