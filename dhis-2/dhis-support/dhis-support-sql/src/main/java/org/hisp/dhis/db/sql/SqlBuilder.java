@@ -327,6 +327,20 @@ public interface SqlBuilder {
   String dateDifference(String startDate, String endDate, DateUnit dateUnit);
 
   /**
+   * @param alias the table alias, not quoted, not null.
+   * @param column the column name, not quoted, not null.
+   * @return a false predicate.
+   */
+  String isTrue(String alias, String column);
+
+  /**
+   * @param alias the table alias, not quoted, not null.
+   * @param column the column name, not quoted, not null.
+   * @return a false predicate.
+   */
+  String isFalse(String alias, String column);
+
+  /**
    * Returns a conditional statement.
    *
    * @param condition the condition to evaluate.

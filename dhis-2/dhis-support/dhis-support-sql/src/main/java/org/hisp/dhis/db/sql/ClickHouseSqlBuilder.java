@@ -263,6 +263,16 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public String isTrue(String alias, String column) {
+    return String.format("%s.%s", alias, quote(column));
+  }
+
+  @Override
+  public String isFalse(String alias, String column) {
+    return String.format("not %s.%s", alias, quote(column));
+  }
+
+  @Override
   public String ifThen(String condition, String result) {
     return String.format("if(%s, %s, null)", condition, result);
   }
