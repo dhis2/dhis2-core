@@ -31,26 +31,18 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.security.Authorities.M_DHIS_WEB_APP_MANAGEMENT;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import com.nimbusds.jose.util.StandardCharset;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.LineIterator;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
-import org.hisp.dhis.appmanager.AppMenuManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.appmanager.ResourceResult;
 import org.hisp.dhis.appmanager.ResourceResult.Redirect;
@@ -98,13 +90,12 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class AppController {
+
   public static final String RESOURCE_PATH = "/api/apps";
 
   public static final Pattern REGEX_REMOVE_PROTOCOL = Pattern.compile(".+:/+");
 
   @Autowired private AppManager appManager;
-
-  @Autowired private AppMenuManager appMenuManager;
 
   @Autowired private RenderService renderService;
 
@@ -112,11 +103,10 @@ public class AppController {
 
   @Autowired private ContextService contextService;
 
-  @Autowired private ObjectMapper jsonMapper;
-
   @GetMapping(value = "/menu", produces = ContextUtils.CONTENT_TYPE_JSON)
   public @ResponseBody Map<String, List<WebModule>> getWebModules(HttpServletRequest request) {
     String contextPath = HttpServletRequestPaths.getContextPath(request);
+
     List<WebModule> modules = appManager.getMenu(contextPath);
     return Map.of("modules", modules);
   }
@@ -178,18 +168,12 @@ public class AppController {
     App application = appManager.getApp(app, contextPath);
 
     // Get page requested
-    String resource = getUrl(request.getPathInfo(), app);
+    String resource = getResourcePath(request.getPathInfo(), application);
+
+    log.debug("Rendering app: {} {}", app, resource);
 
     if (application == null) {
       throw new WebMessageException(notFound("App '" + app + "' not found."));
-    }
-
-    if (application.isBundled()) {
-      String cleanValidUrl = TextUtils.cleanUrlPathOnly(application.getBaseUrl(), resource);
-      log.info(String.format("Redirecting to bundled app: %s", cleanValidUrl));
-
-      response.sendRedirect(cleanValidUrl);
-      return;
     }
 
     if (!appManager.isAccessible(application)) {
@@ -202,44 +186,23 @@ public class AppController {
 
     log.debug(String.format("App resource name: '%s'", resource));
 
-    // Handling of 'manifest.webapp'
-    if ("manifest.webapp".equals(resource)) {
-      // If request was for manifest.webapp, check for * and replace with
-      // host
-      if (application.getActivities() != null
-          && application.getActivities().getDhis() != null
-          && "*".equals(application.getActivities().getDhis().getHref())) {
-        log.debug(String.format("Manifest context path: '%s'", contextPath));
-
-        application.getActivities().getDhis().setHref(contextPath);
-      }
-
-      jsonMapper.writeValue(response.getOutputStream(), application);
+    ResourceResult resourceResult = appManager.getAppResource(application, resource, contextPath);
+    if (resourceResult instanceof ResourceFound found) {
+      serveResource(request, response, found.resource());
+      return;
     }
-    // Any other resource
-    else {
-      ResourceResult resourceResult = appManager.getAppResource(application, resource);
-      if (resourceResult instanceof ResourceFound found) {
-        serveResource(request, response, found.resource(), contextPath, application.getBaseUrl());
-        return;
-      }
-      if (resourceResult instanceof Redirect redirect) {
-        String cleanValidUrl =
-            TextUtils.cleanUrlPathOnly(application.getBaseUrl(), redirect.path());
-        response.sendRedirect(cleanValidUrl);
-      }
-      if (resourceResult instanceof ResourceNotFound) {
-        response.sendError(HttpServletResponse.SC_NOT_FOUND);
-      }
+    if (resourceResult instanceof Redirect redirect) {
+      String cleanValidUrl = TextUtils.cleanUrlPathOnly(application.getBaseUrl(), redirect.path());
+      log.debug(String.format("App resource redirected to: %s", cleanValidUrl));
+      response.sendRedirect(cleanValidUrl);
+    }
+    if (resourceResult instanceof ResourceNotFound) {
+      response.sendError(HttpServletResponse.SC_NOT_FOUND);
     }
   }
 
   private void serveResource(
-      HttpServletRequest request,
-      HttpServletResponse response,
-      Resource resource,
-      String contextPath,
-      String appBaseUrl)
+      HttpServletRequest request, HttpServletResponse response, Resource resource)
       throws IOException {
     String filename = resource.getFilename();
     log.debug("App filename: '{}'", filename);
@@ -254,28 +217,8 @@ public class AppController {
       response.setContentType(mimeType);
     }
 
-    if (filename.endsWith("index.html") || filename.endsWith("plugin.html")) {
-      LineIterator iterator =
-          IOUtils.lineIterator(resource.getInputStream(), StandardCharsets.UTF_8);
-      ByteArrayOutputStream bout = new ByteArrayOutputStream();
-      PrintWriter output = new PrintWriter(bout, true, StandardCharset.UTF_8);
-      try {
-        while (iterator.hasNext()) {
-          String line = iterator.nextLine();
-          output.println(
-              line.replace("__DHIS2_BASE_URL__", contextPath)
-                  .replace("__DHIS2_APP_ROOT_URL__", appBaseUrl));
-        }
-      } finally {
-        iterator.close();
-        response.setContentLength(bout.size());
-        response.setHeader("Content-Encoding", StandardCharsets.UTF_8.toString());
-        bout.writeTo(response.getOutputStream());
-      }
-    } else {
-      response.setContentLengthLong(appManager.getUriContentLength(resource));
-      StreamUtils.copyThenCloseInputStream(resource.getInputStream(), response.getOutputStream());
-    }
+    response.setContentLengthLong(resource.contentLength());
+    StreamUtils.copyThenCloseInputStream(resource.getInputStream(), response.getOutputStream());
   }
 
   @DeleteMapping("/{app}")
@@ -312,9 +255,8 @@ public class AppController {
   // --------------------------------------------------------------------------
   // Helpers
   // --------------------------------------------------------------------------
-
-  private String getUrl(String path, String app) {
-    String prefix = RESOURCE_PATH + "/" + app;
+  private String getResourcePath(String path, App app) {
+    String prefix = RESOURCE_PATH + "/" + app.getKey();
 
     if (path.startsWith(prefix + "/")) {
       path = path.substring(prefix.length());

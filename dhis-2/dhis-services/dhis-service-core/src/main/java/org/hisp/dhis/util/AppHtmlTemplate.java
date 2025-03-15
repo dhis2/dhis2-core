@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,18 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.appmanager;
+package org.hisp.dhis.util;
 
-/**
- * @author Stian Sandvold
- */
-public enum AppStorageSource {
-  // NB! LOCAL AppStorageSource represents the old way of storing apps.
-  // This only exists to avoid breaking existing installation of apps
-  // installed prior to 2.28. Post 2.28 all apps will be installed using
-  // JCLOUDS
-  // If DHIS2 is used to install.
-  LOCAL,
-  JCLOUDS,
-  BUNDLED
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.LineIterator;
+import org.hisp.dhis.appmanager.App;
+
+@RequiredArgsConstructor
+public class AppHtmlTemplate {
+
+  private final String contextPath;
+  private final App app;
+
+  public void apply(InputStream inputStream, OutputStream outputStream) throws IOException {
+    LineIterator iterator = IOUtils.lineIterator(inputStream, StandardCharsets.UTF_8);
+
+    PrintWriter output = new PrintWriter(outputStream, true, StandardCharsets.UTF_8);
+    try {
+      while (iterator.hasNext()) {
+        String line = iterator.next();
+        output.println(replaceLine(line));
+      }
+    } finally {
+      iterator.close();
+    }
+  }
+
+  private String replaceLine(String line) {
+    return line.replace("__DHIS2_BASE_URL__", this.contextPath)
+        .replace("__DHIS2_APP_ROOT_URL__", this.app.getBaseUrl());
+  }
 }

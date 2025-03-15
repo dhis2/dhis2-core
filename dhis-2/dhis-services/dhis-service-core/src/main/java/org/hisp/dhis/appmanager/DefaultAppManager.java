@@ -33,7 +33,9 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType.RESTRICTED;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -64,7 +66,10 @@ import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.util.AppHtmlTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
@@ -82,9 +87,10 @@ public class DefaultAppManager implements AppManager {
   private final AppHubService appHubService;
   private final AppStorageService localAppStorageService;
   private final AppStorageService jCloudsAppStorageService;
+  private final AppStorageService bundledAppStorageService;
   private final DatastoreService datastoreService;
 
-  private final AppMenuManager appMenuManager;
+  @Autowired private ObjectMapper jsonMapper;
 
   /**
    * In-memory storage of installed apps. Initially loaded on startup. Should not be cleared during
@@ -99,12 +105,14 @@ public class DefaultAppManager implements AppManager {
           AppStorageService localAppStorageService,
       @Qualifier("org.hisp.dhis.appmanager.JCloudsAppStorageService")
           AppStorageService jCloudsAppStorageService,
+      @Qualifier("org.hisp.dhis.appmanager.BundledAppStorageService")
+          AppStorageService bundledAppStorageService,
       DatastoreService datastoreService,
-      CacheBuilderProvider cacheBuilderProvider,
-      AppMenuManager appMenuManager) {
+      CacheBuilderProvider cacheBuilderProvider) {
     checkNotNull(dhisConfigurationProvider);
     checkNotNull(localAppStorageService);
     checkNotNull(jCloudsAppStorageService);
+    checkNotNull(bundledAppStorageService);
     checkNotNull(datastoreService);
     checkNotNull(cacheBuilderProvider);
 
@@ -112,9 +120,9 @@ public class DefaultAppManager implements AppManager {
     this.appHubService = appHubService;
     this.localAppStorageService = localAppStorageService;
     this.jCloudsAppStorageService = jCloudsAppStorageService;
+    this.bundledAppStorageService = bundledAppStorageService;
     this.datastoreService = datastoreService;
     this.appCache = cacheBuilderProvider.<App>newCacheBuilder().forRegion("appCache").build();
-    this.appMenuManager = appMenuManager;
   }
 
   // -------------------------------------------------------------------------
@@ -219,14 +227,10 @@ public class DefaultAppManager implements AppManager {
   }
 
   private List<WebModule> getAccessibleAppMenu(String contextPath) {
-    // these are the bundle modules
-    List<WebModule> modules = appMenuManager.getAccessibleWebModules(this);
-
+    List<WebModule> modules = new ArrayList<>();
     List<App> apps =
         getApps(contextPath).stream()
-            .filter(
-                app ->
-                    app.getAppType() == AppType.APP && app.hasAppEntrypoint() && !app.isBundled())
+            .filter(app -> app.getAppType() == AppType.APP && app.hasAppEntrypoint())
             .toList();
 
     // map installed apps to the WebModule object
@@ -369,6 +373,7 @@ public class DefaultAppManager implements AppManager {
         deleteAppData(app);
       }
       appCache.invalidate(app.getKey());
+      reloadApps();
     }
   }
 
@@ -405,7 +410,13 @@ public class DefaultAppManager implements AppManager {
         .filter(app -> !exists(app.getKey()))
         .forEach(this::installApp);
 
-    jCloudsAppStorageService.discoverInstalledApps().values().forEach(this::installApp);
+    jCloudsAppStorageService.discoverInstalledApps().values().stream()
+        .filter(app -> !exists(app.getKey()))
+        .forEach(this::installApp);
+
+    bundledAppStorageService.discoverInstalledApps().values().stream()
+        .filter(app -> !exists(app.getKey()))
+        .forEach(this::installApp);
   }
 
   private void installApp(App app) {
@@ -423,9 +434,43 @@ public class DefaultAppManager implements AppManager {
                 app.getSeeAppAuthority()));
   }
 
-  @Override
-  public ResourceResult getAppResource(App app, String pageName) throws IOException {
+  public ResourceResult getRawAppResource(App app, String pageName) throws IOException {
     return getAppStorageServiceByApp(app).getAppResource(app, pageName);
+  }
+
+  @Override
+  public ResourceResult getAppResource(App app, String pageName, String contextPath)
+      throws IOException {
+    ResourceResult resource = getRawAppResource(app, pageName);
+
+    if (resource instanceof ResourceResult.ResourceFound resourceFound) {
+      if (pageName.equals("manifest.webapp")) {
+        // If request was for manifest.webapp, check for * and replace with host
+        if (app.getActivities() != null
+            && app.getActivities().getDhis() != null
+            && "*".equals(app.getActivities().getDhis().getHref())) {
+          app.getActivities().getDhis().setHref(contextPath);
+        }
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        jsonMapper.writeValue(bout, app);
+        ByteArrayResource byteArrayResource =
+            deriveByteArrayResource(bout.toByteArray(), resourceFound.resource());
+        return new ResourceResult.ResourceFound(byteArrayResource);
+      } else if (pageName.equals("index.action")) {
+        return new ResourceResult.Redirect(app.getLaunchUrl());
+      } else if (pageName.endsWith(".html")) {
+        AppHtmlTemplate template = new AppHtmlTemplate(contextPath, app);
+
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        template.apply(resourceFound.resource().getInputStream(), bout);
+
+        ByteArrayResource byteArrayResource =
+            deriveByteArrayResource(bout.toByteArray(), resourceFound.resource());
+        return new ResourceResult.ResourceFound(byteArrayResource);
+      }
+    }
+
+    return resource;
   }
 
   /**
@@ -461,6 +506,8 @@ public class DefaultAppManager implements AppManager {
   private AppStorageService getAppStorageServiceByApp(App app) {
     if (app != null && app.getAppStorageSource() == AppStorageSource.LOCAL) {
       return localAppStorageService;
+    } else if (app != null && app.getAppStorageSource() == AppStorageSource.BUNDLED) {
+      return bundledAppStorageService;
     }
     return jCloudsAppStorageService;
   }
@@ -529,5 +576,24 @@ public class DefaultAppManager implements AppManager {
       IOUtils.copy(in, out);
     }
     return tempFile;
+  }
+
+  private ByteArrayResource deriveByteArrayResource(byte[] bytes, Resource resource) {
+    return new ByteArrayResource(bytes, resource.getDescription()) {
+      @Override
+      public String getFilename() {
+        return resource.getFilename();
+      }
+
+      @Override
+      public URL getURL() throws IOException {
+        return resource.getURL();
+      }
+
+      @Override
+      public long lastModified() throws IOException {
+        return resource.lastModified();
+      }
+    };
   }
 }

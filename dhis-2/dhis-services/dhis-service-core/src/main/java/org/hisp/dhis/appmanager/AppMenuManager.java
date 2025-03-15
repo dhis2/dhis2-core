@@ -29,8 +29,6 @@ package org.hisp.dhis.appmanager;
 
 import static org.hisp.dhis.security.Authorities.ALL;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +52,8 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class AppMenuManager {
+  private static final Set<String> MENU_MODULE_EXCLUSIONS = Set.of("dhis-web-global-shell");
+
   private final I18nManager i18nManager;
 
   private final LocaleManager localeManager;
@@ -86,39 +86,9 @@ public class AppMenuManager {
       module.setDisplayName(displayName);
       module.setIcon("../icons/" + key + ".png");
 
-      // Retrieve the manifest file from the manifest.web file in the bundled file path
-      // This contains other information we need like shortcuts and
-      // ToDo: consolidate these extra steps for bundled apps so that they are done on discovery and
-      // bundled apps are
-      //  also added to the AppManager cache - this means this generateModules would not to care
-      // about these differences
-      try {
-        // 1. read the manifest file for bundled apps
-        InputStream appManifestResource =
-            resourceLoader
-                .getResource("classpath:static/" + key + "/manifest.webapp")
-                .getInputStream();
-        String appManifest = readFromInputStream(appManifestResource);
-
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-        App bundledApp = mapper.readValue(appManifest, App.class);
-        module.setShortcuts(bundledApp.getShortcuts());
-        module.setVersion(bundledApp.getVersion());
-
-        // 2. check if this is a bundled app that was updated (so its information should be in the
-        // cache)
-        App installedApp = appManager.getApp(app);
-
-        if (installedApp != null && !installedApp.getVersion().equals(module.getVersion())) {
-          module.setShortcuts(installedApp.getShortcuts());
-          module.setVersion(installedApp.getVersion());
-        }
-      } catch (IOException ex) {
-        log.error(ex.getLocalizedMessage(), ex);
+      if (!MENU_MODULE_EXCLUSIONS.contains(key)) {
+        menuModules.add(module);
       }
-      menuModules.add(module);
     }
   }
 
