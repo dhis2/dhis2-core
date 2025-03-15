@@ -49,6 +49,9 @@ import static org.hisp.dhis.common.collection.CollectionUtils.concat;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK;
 import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -59,6 +62,8 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsManager;
@@ -92,10 +97,6 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class is responsible for producing aggregated data values. It reads data from the analytics
@@ -182,8 +183,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
         params = getParamsWithOffsetPartitions(params, tableType);
       }
 
-      final String sql = getSql(params, tableType);
-
+      final String sql = getSqlQuery(params, tableType);
       final DataQueryParams immutableParams = DataQueryParams.newBuilder(params).build();
 
       if (params.analyzeOnly()) {
@@ -304,7 +304,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
    * @param tableType the type of analytics table.
    * @return the query SQL.
    */
-  private String getSql(DataQueryParams params, AnalyticsTableType tableType) {
+  private String getSqlQuery(DataQueryParams params, AnalyticsTableType tableType) {
     if (params.hasSubexpressions()) {
       return new JdbcSubexpressionQueryGenerator(this, params, tableType).getSql();
     }
@@ -425,17 +425,17 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
    * @return a SQL from source clause.
    */
   protected String getFromSourceClause(DataQueryParams params) {
-    if (!params.isSkipPartitioning() && 
-        params.hasPartitions() && 
-        params.getPartitions().hasOne() &&
-        sqlBuilder.supportsDeclarativePartitioning()) {
+    if (!params.isSkipPartitioning()
+        && params.hasPartitions()
+        && params.getPartitions().hasOne()
+        && !supportsDeclarativePartitioning()) {
       Integer partition = params.getPartitions().getAny();
 
       return PartitionUtils.getPartitionName(params.getTableName(), partition);
     } else if (!params.isSkipPartitioning()
         && params.hasPartitions()
         && params.getPartitions().hasMultiple()
-        && sqlBuilder.supportsDeclarativePartitioning()) {
+        && !supportsDeclarativePartitioning()) {
       String sql = "(";
 
       for (Integer partition : params.getPartitions().getPartitions()) {
@@ -1008,6 +1008,13 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
         !(params.getAggregationType().isFirstOrLastPeriodAggregationType()
             && params.getPeriods().size() > 1),
         "Max one dimension period can be present per query for last period aggregation");
+  }
+
+  /**
+   * @return true if the DBMS supports declarative partitioning.
+   */
+  private boolean supportsDeclarativePartitioning() {
+    return sqlBuilder.supportsDeclarativePartitioning();
   }
 
   /**
