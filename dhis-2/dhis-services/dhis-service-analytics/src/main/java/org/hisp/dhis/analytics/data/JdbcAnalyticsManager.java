@@ -428,14 +428,14 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     if (!params.isSkipPartitioning()
         && params.hasPartitions()
         && params.getPartitions().hasOne()
-        && !supportsDeclarativePartitioning()) {
+        && isExplicitPartitioning()) {
       Integer partition = params.getPartitions().getAny();
 
       return PartitionUtils.getPartitionName(params.getTableName(), partition);
     } else if (!params.isSkipPartitioning()
         && params.hasPartitions()
         && params.getPartitions().hasMultiple()
-        && !supportsDeclarativePartitioning()) {
+        && isExplicitPartitioning()) {
       String sql = "(";
 
       for (Integer partition : params.getPartitions().getPartitions()) {
@@ -1011,10 +1011,10 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
   }
 
   /**
-   * @return true if the DBMS supports declarative partitioning.
+   * @return true if explicit partitioning is used by the DBMS.
    */
-  private boolean supportsDeclarativePartitioning() {
-    return sqlBuilder.supportsDeclarativePartitioning();
+  private boolean isExplicitPartitioning() {
+    return !sqlBuilder.supportsDeclarativePartitioning();
   }
 
   /**
