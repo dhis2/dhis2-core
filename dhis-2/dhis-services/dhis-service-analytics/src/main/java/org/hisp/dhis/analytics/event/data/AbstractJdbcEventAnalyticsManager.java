@@ -63,6 +63,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_P
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.feedback.ErrorCode.E7149;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
@@ -91,26 +92,13 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
+import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DisplayProperty;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.InQueryFilter;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.Reference;
-import org.hisp.dhis.common.RepeatableStageParams;
-import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -545,6 +533,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
 
     // ---------------------------------------------------------------------
+    // Filtering criteria
+    // ---------------------------------------------------------------------
+    if (params.hasMeasureCriteria()) {
+      sql += getMeasureCriteriaSql(params, aggregateClause);
+    }
+
+    // ---------------------------------------------------------------------
     // Limit, add one to max to enable later check against max limit
     // ---------------------------------------------------------------------
 
@@ -674,6 +669,42 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         grid.addNullValues(NUMERATOR_DENOMINATOR_PROPERTIES_COUNT);
       }
     }
+  }
+
+  /**
+   * Returns the "having" clause for the aggregated query. The "having" clause is calculated based
+   * on the measure criteria in the {@link EventQueryParams} and the existing aggregate clause. The
+   * expression has to be first cast to a numeric type and then rounded to 10 decimal places,
+   * otherwise the comparison may fail due to floating point precision issues in Postgres.
+   *
+   * @param params the {@link EventQueryParams}
+   * @param aggregateClause the aggregate clause to use in the SQL
+   * @return the "having" clause
+   */
+  protected String getMeasureCriteriaSql(EventQueryParams params, String aggregateClause) {
+    SqlHelper sqlHelper = new SqlHelper();
+    StringBuilder builder = new StringBuilder();
+
+    for (MeasureFilter filter : params.getMeasureCriteria().keySet()) {
+      Double criterion = params.getMeasureCriteria().get(filter);
+
+      String sqlFilter =
+          String.format(
+              " round(%s::numeric, 10) %s %s ",
+              aggregateClause, getOperatorByMeasureFilter(filter), criterion);
+
+      builder.append(sqlHelper.havingAnd()).append(sqlFilter);
+    }
+
+    return builder.toString();
+  }
+
+  private String getOperatorByMeasureFilter(MeasureFilter filter) throws IllegalQueryException {
+    QueryOperator qo = QueryOperator.fromString(filter.toString());
+    if (qo != null) {
+      return qo.getValue();
+    }
+    throw new IllegalQueryException(E7149, filter.toString());
   }
 
   /**

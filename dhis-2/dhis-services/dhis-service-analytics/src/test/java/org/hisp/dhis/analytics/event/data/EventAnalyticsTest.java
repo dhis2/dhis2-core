@@ -41,6 +41,7 @@ import static org.mockito.Mockito.when;
 import java.util.LinkedHashSet;
 import java.util.List;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -130,6 +131,16 @@ abstract class EventAnalyticsTest {
         new EventQueryParams.Builder(createRequestParams(withProgramStage, withQueryItemValueType));
     QueryItem queryItem = params.build().getItems().get(0);
     queryItem.addFilter(new QueryFilter(withOperator, withQueryFilter));
+    return params.build();
+  }
+
+  protected EventQueryParams createRequestParamsMeasureCriteria(
+      ProgramStage withProgramStage, ValueType withQueryItemValueType) {
+    EventQueryParams.Builder params =
+        new EventQueryParams.Builder(createRequestParams(withProgramStage, withQueryItemValueType));
+
+    params.addMeasureCriteria(MeasureFilter.GT, 10.0);
+    params.addMeasureCriteria(MeasureFilter.LT, 20.0);
     return params.build();
   }
 

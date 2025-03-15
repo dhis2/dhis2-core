@@ -55,6 +55,7 @@ import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -105,6 +106,9 @@ class ProgramRuleTest extends TrackerTest {
         bundle.getPreheat().get(PreheatIdentifier.UID, DataElement.class, "DATAEL00002");
 
     dataElement6 = bundle.getPreheat().get(PreheatIdentifier.UID, DataElement.class, "DATAEL00006");
+
+    TrackedEntityAttribute trackedEntityAttribute =
+        bundle.getPreheat().get(PreheatIdentifier.UID, TrackedEntityAttribute.class, "dIVt4l5vIOa");
     programStageOnInsert =
         bundle.getPreheat().get(PreheatIdentifier.UID, ProgramStage.class, "NpsdDv6kKSO");
     programStageOnComplete =
@@ -114,8 +118,11 @@ class ProgramRuleTest extends TrackerTest {
 
     ProgramRuleVariable programRuleVariableDE6 =
         createProgramRuleVariableWithDataElement('D', programWithRegistration, dataElement6);
+    ProgramRuleVariable programRuleVariable2 =
+        createProgramRuleVariableWithTEA('B', programWithRegistration, trackedEntityAttribute);
     programRuleVariableDE6.setName("integer_prv_de6");
     programRuleVariableService.addProgramRuleVariable(programRuleVariable);
+    programRuleVariableService.addProgramRuleVariable(programRuleVariable2);
     programRuleVariableService.addProgramRuleVariable(programRuleVariableDE6);
     constantService.saveConstant(constant());
 
@@ -322,6 +329,17 @@ class ProgramRuleTest extends TrackerTest {
     ImportReport importReport = trackerImportService.importTracker(params);
 
     assertHasOnlyWarnings(importReport, E1300);
+  }
+
+  @Test
+  void shouldImportWhenTEAHasNullValue() throws IOException {
+    errorProgramRuleWithD2HasValue();
+    TrackerImportParams params =
+        fromJson("tracker/programrule/tei_enrollment_completed_event.json");
+
+    ImportReport importReport = trackerImportService.importTracker(params);
+
+    assertNoErrors(importReport.getValidationReport());
   }
 
   @Test
@@ -566,5 +584,17 @@ class ProgramRuleTest extends TrackerTest {
     constant.setName("Gravity");
     constant.setShortName("Gravity");
     return constant;
+  }
+
+  private void errorProgramRuleWithD2HasValue() {
+    ProgramRule programRule =
+        createProgramRule(
+            'H', programWithRegistration, null, "d2:hasValue(#{ProgramRuleVariableB})");
+    programRuleService.addProgramRule(programRule);
+    ProgramRuleAction programRuleAction =
+        createProgramRuleAction(programRule, SHOWERROR, null, null);
+    programRuleActionService.addProgramRuleAction(programRuleAction);
+    programRule.getProgramRuleActions().add(programRuleAction);
+    programRuleService.updateProgramRule(programRule);
   }
 }
