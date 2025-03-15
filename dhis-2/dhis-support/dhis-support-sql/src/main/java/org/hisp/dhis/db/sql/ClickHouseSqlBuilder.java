@@ -269,7 +269,7 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
 
   /**
    * ClickHouse standard true/false predicates against PostgreSQL tables with boolean data type
-   * columns does not work.
+   * columns do not work.
    *
    * @see https://github.com/ClickHouse/ClickHouse/issues/67080
    */
