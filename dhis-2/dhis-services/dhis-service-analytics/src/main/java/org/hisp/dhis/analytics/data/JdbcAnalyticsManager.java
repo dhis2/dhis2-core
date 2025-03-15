@@ -49,9 +49,6 @@ import static org.hisp.dhis.common.collection.CollectionUtils.concat;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK;
 import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -62,8 +59,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsManager;
@@ -97,6 +92,10 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class is responsible for producing aggregated data values. It reads data from the analytics
@@ -426,13 +425,17 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
    * @return a SQL from source clause.
    */
   protected String getFromSourceClause(DataQueryParams params) {
-    if (!params.isSkipPartitioning() && params.hasPartitions() && params.getPartitions().hasOne()) {
+    if (!params.isSkipPartitioning() && 
+        params.hasPartitions() && 
+        params.getPartitions().hasOne() &&
+        sqlBuilder.supportsDeclarativePartitioning()) {
       Integer partition = params.getPartitions().getAny();
 
       return PartitionUtils.getPartitionName(params.getTableName(), partition);
     } else if (!params.isSkipPartitioning()
         && params.hasPartitions()
-        && params.getPartitions().hasMultiple()) {
+        && params.getPartitions().hasMultiple()
+        && sqlBuilder.supportsDeclarativePartitioning()) {
       String sql = "(";
 
       for (Integer partition : params.getPartitions().getPartitions()) {
