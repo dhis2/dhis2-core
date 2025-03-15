@@ -298,7 +298,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
             and te.trackedentitytypeid = ${tetId} \
             and (${eventDateExpression}) is not null \
             and (${eventDateExpression}) > '1000-01-01' \
-            and {$evDeletedClause} \
+            and {${evDeletedClause} \
             and ${teDeletedClause} """,
             Map.of(
                 "eventDateExpression", eventDateExpression,
