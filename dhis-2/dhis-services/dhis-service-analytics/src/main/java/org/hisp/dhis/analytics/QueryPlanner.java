@@ -59,7 +59,7 @@ public interface QueryPlanner {
       throws IllegalQueryException;
 
   /**
-   * Sets the table name and partitions on the given query.
+   * Returns a copy of the given query with the table name and partitions set.
    *
    * @param params the data query parameters.
    * @param plannerParams the query planner parameters.
@@ -69,12 +69,12 @@ public interface QueryPlanner {
       DataQueryParams params, QueryPlannerParams plannerParams);
 
   /**
-   * Sets partitions on the given query
+   * Returns a copy of the given query with the partitions set.
    *
-   * @param params the data query parameters
-   * @return a data query parameters
+   * @param params the data query parameters.
+   * @return a data query parameters.
    */
-  DataQueryParams assignPartitionsFromQueryPeriods(
+  DataQueryParams withPartitionsFromQueryPeriods(
       DataQueryParams params, AnalyticsTableType tableType);
 
   /**

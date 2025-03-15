@@ -406,6 +406,7 @@ public class EventAggregateService {
    * @param parentUid
    * @param legendOptions
    */
+  @SuppressWarnings("unchecked")
   private static void addLegendOptions(
       List<EventAnalyticsDimensionalItem> dimensionalItems,
       Grid grid,
