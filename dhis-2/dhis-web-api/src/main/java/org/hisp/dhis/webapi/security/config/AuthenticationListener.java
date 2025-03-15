@@ -43,6 +43,8 @@ import org.springframework.security.authentication.event.AuthenticationSuccessEv
 import org.springframework.security.authentication.event.InteractiveAuthenticationSuccessEvent;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
+import org.springframework.security.oauth2.server.authorization.oidc.authentication.OidcUserInfoAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Component;
 
@@ -96,10 +98,20 @@ public class AuthenticationListener {
 
     Object details = auth.getDetails();
 
-    if (TwoFactorWebAuthenticationDetails.class.isAssignableFrom(details.getClass())) {
+    if (details != null
+        && TwoFactorWebAuthenticationDetails.class.isAssignableFrom(details.getClass())) {
       TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) details;
-
       log.debug(String.format("Login attempt succeeded for remote IP: %s", authDetails.getIp()));
+    }
+
+    if (OidcUserInfoAuthenticationToken.class.isAssignableFrom(auth.getClass())) {
+      OidcUserInfoAuthenticationToken oidcUserInfoAuthenticationToken =
+          (OidcUserInfoAuthenticationToken) auth;
+      JwtAuthenticationToken principal =
+          (JwtAuthenticationToken) oidcUserInfoAuthenticationToken.getPrincipal();
+      WebAuthenticationDetails principalDetails = (WebAuthenticationDetails) principal.getDetails();
+      String remoteAddress = principalDetails.getRemoteAddress();
+      log.debug(String.format("OIDC login attempt succeeded for remote IP: %s", remoteAddress));
     }
 
     if (OAuth2LoginAuthenticationToken.class.isAssignableFrom(auth.getClass())) {
