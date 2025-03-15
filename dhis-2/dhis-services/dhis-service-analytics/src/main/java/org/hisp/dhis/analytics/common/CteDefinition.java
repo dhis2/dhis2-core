@@ -103,7 +103,7 @@ public class CteDefinition {
     this.cteDefinition = cteDefinition;
     this.offsets.add(offset);
     // one alias per offset
-    this.alias = new RandomStringGenerator.Builder().withinRange('a', 'z').build().generate(5);
+    this.alias = new RandomStringGenerator.Builder().withinRange('a', 'z').get().generate(5);
     this.rowContext = false;
   }
 
@@ -129,7 +129,7 @@ public class CteDefinition {
     this.programIndicatorUid = programIndicatorUid;
     this.programStageUid = null;
     // ignore offset
-    this.alias = new RandomStringGenerator.Builder().withinRange('a', 'z').build().generate(5);
+    this.alias = new RandomStringGenerator.Builder().withinRange('a', 'z').get().generate(5);
     this.rowContext = false;
     this.programIndicator = true;
     this.requiresCoalesce = requiresCoalesce;
@@ -142,7 +142,7 @@ public class CteDefinition {
     this.programIndicatorUid = null;
     this.programStageUid = programStageUid;
     // ignore offset
-    this.alias = new RandomStringGenerator.Builder().withinRange('a', 'z').build().generate(5);
+    this.alias = new RandomStringGenerator.Builder().withinRange('a', 'z').get().generate(5);
     this.rowContext = false;
     this.programIndicator = false;
     this.filter = isFilter;

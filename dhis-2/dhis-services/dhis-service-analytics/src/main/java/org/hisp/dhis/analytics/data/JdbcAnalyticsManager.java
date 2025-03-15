@@ -46,7 +46,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.collection.CollectionUtils.concat;
-import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK;
 import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
@@ -74,7 +73,6 @@ import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
-import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
@@ -295,8 +293,9 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     DataQueryParams paramsWithOffsetPeriods = getParamsWithOffsetPeriods(params);
     DataQueryParams paramsWithOffsetPartitions =
         queryPlanner.assignPartitionsFromQueryPeriods(paramsWithOffsetPeriods, tableType);
-    Partitions offsetParitions = paramsWithOffsetPartitions.getPartitions();
-    return DataQueryParams.newBuilder(params).withPartitions(offsetParitions).build();
+    return DataQueryParams.newBuilder(params)
+        .withPartitions(paramsWithOffsetPartitions.getPartitions())
+        .build();
   }
 
   /**
