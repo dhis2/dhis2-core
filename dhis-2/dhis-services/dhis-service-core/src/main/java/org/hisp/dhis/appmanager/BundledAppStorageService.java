@@ -81,10 +81,7 @@ public class BundledAppStorageService implements AppStorageService {
           app.setAppStorageSource(AppStorageSource.BUNDLED);
           app.setFolderName(CLASSPATH_PREFIX + path.replaceAll("/manifest.webapp$", ""));
 
-          log.info(
-              "Discovered bundled app {} ({})",
-              app.getKey(),
-              app.getFolderName());
+          log.info("Discovered bundled app {} ({})", app.getKey(), app.getFolderName());
           apps.put(app.getKey(), app);
         }
       }

@@ -36,7 +36,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
-
 import org.hisp.dhis.appmanager.AppShortcut;
 import org.hisp.dhis.appmanager.DefaultAppManager;
 import org.hisp.dhis.appmanager.webmodules.WebModule;

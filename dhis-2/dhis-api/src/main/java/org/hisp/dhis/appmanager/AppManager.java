@@ -79,8 +79,9 @@ public interface AppManager {
           "usage-analytics",
           "user",
           "user-profile");
-  
-  static final Set<String> MENU_APP_EXCLUSIONS = Set.of("global-shell"); // TODO: instead filter by app type
+
+  static final Set<String> MENU_APP_EXCLUSIONS =
+      Set.of("global-shell"); // TODO: instead filter by app type
 
   static final String DASHBOARD_PLUGIN_TYPE = "DASHBOARD";
 
@@ -208,8 +209,8 @@ public interface AppManager {
   boolean isAccessible(App app);
 
   /**
-   * Looks up and returns the file associated with the app and pageName, if it exists
-   * No template replacement is performed, only the raw resource is returned.
+   * Looks up and returns the file associated with the app and pageName, if it exists No template
+   * replacement is performed, only the raw resource is returned.
    *
    * @param app the app to look up files for
    * @param pageName the page requested
@@ -218,8 +219,8 @@ public interface AppManager {
   ResourceResult getRawAppResource(App app, String pageName) throws IOException;
 
   /**
-   * Looks up and returns the file associated with the app and pageName, if it exists
-   * Template replacement is performed where applicable on the returned resource.
+   * Looks up and returns the file associated with the app and pageName, if it exists Template
+   * replacement is performed where applicable on the returned resource.
    *
    * @param app the app to look up files for
    * @param pageName the page requested

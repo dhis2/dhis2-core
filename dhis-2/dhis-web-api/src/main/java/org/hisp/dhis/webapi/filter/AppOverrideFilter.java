@@ -76,7 +76,12 @@ public class AppOverrideFilter extends OncePerRequestFilter {
 
       String destinationPath = "/" + AppManager.INSTALLED_APP_PREFIX + appName + resourcePath;
 
-      log.debug("AppOverrideFilter :: Matched for path {} ({} | {}) => {}", pathInfo, appName, resourcePath, destinationPath);
+      log.debug(
+          "AppOverrideFilter :: Matched for path {} ({} | {}) => {}",
+          pathInfo,
+          appName,
+          resourcePath,
+          destinationPath);
 
       RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(destinationPath);
       dispatcher.forward(request, response);

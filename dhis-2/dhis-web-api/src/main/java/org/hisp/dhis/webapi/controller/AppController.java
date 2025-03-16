@@ -176,7 +176,8 @@ public class AppController {
     }
 
     if (application.getAppState() == AppStatus.DELETION_IN_PROGRESS) {
-      throw new WebMessageException(conflict("App '" + appName + "' deletion is still in progress."));
+      throw new WebMessageException(
+          conflict("App '" + appName + "' deletion is still in progress."));
     }
 
     // Get page requested
