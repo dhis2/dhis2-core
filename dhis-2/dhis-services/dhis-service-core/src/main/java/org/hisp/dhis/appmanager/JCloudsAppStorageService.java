@@ -121,7 +121,7 @@ public class JCloudsAppStorageService implements AppStorageService {
   @Override
   public Map<String, App> discoverInstalledApps() {
     Map<String, App> apps = new HashMap<>();
-    discoverInstalledApps(app -> apps.put(app.getUrlFriendlyName(), app));
+    discoverInstalledApps(app -> apps.put(app.getKey(), app));
 
     if (apps.isEmpty()) {
       log.info("No apps found during JClouds discovery.");

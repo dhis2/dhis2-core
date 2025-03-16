@@ -138,7 +138,7 @@ public class GlobalShellFilter extends OncePerRequestFilter {
     String appName = m.group(1);
 
     if (appName.equals("login")) {
-      log.info("Skipping global shell redirect for login app");
+      log.debug("Skipping global shell redirect for login app");
       return false;
     }
 

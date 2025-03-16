@@ -162,29 +162,27 @@ public class AppController {
 
   @GetMapping("/{app}/**")
   public void renderApp(
-      @PathVariable("app") String app, HttpServletRequest request, HttpServletResponse response)
+      @PathVariable("app") String appName, HttpServletRequest request, HttpServletResponse response)
       throws IOException, WebMessageException, ForbiddenException {
     String contextPath = HttpServletRequestPaths.getContextPath(request);
-    App application = appManager.getApp(app, contextPath);
+    App application = appManager.getApp(appName, contextPath);
+
+    if (application == null) {
+      throw new WebMessageException(notFound("App '" + appName + "' not found."));
+    }
+
+    if (!appManager.isAccessible(application)) {
+      throw new ForbiddenException("You don't have access to application " + appName + ".");
+    }
+
+    if (application.getAppState() == AppStatus.DELETION_IN_PROGRESS) {
+      throw new WebMessageException(conflict("App '" + appName + "' deletion is still in progress."));
+    }
 
     // Get page requested
     String resource = getResourcePath(request.getPathInfo(), application);
 
-    log.debug("Rendering app: {} {}", app, resource);
-
-    if (application == null) {
-      throw new WebMessageException(notFound("App '" + app + "' not found."));
-    }
-
-    if (!appManager.isAccessible(application)) {
-      throw new ForbiddenException("You don't have access to application " + app + ".");
-    }
-
-    if (application.getAppState() == AppStatus.DELETION_IN_PROGRESS) {
-      throw new WebMessageException(conflict("App '" + app + "' deletion is still in progress."));
-    }
-
-    log.debug(String.format("App resource name: '%s'", resource));
+    log.debug("Rendering resource {} from app {}", resource, appName);
 
     ResourceResult resourceResult = appManager.getAppResource(application, resource, contextPath);
     if (resourceResult instanceof ResourceFound found) {
@@ -258,7 +256,7 @@ public class AppController {
   private String getResourcePath(String path, App app) {
     String prefix = RESOURCE_PATH + "/" + app.getKey();
 
-    if (path.startsWith(prefix + "/")) {
+    if (path.startsWith(prefix)) {
       path = path.substring(prefix.length());
     } else if (path.equals(prefix)) {
       path = "";

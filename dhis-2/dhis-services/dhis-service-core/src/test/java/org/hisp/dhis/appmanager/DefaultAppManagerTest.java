@@ -65,7 +65,6 @@ class DefaultAppManagerTest {
   @Mock private DefaultCacheBuilderProvider cacheBuilderProvider;
   @Mock private CacheBuilder cacheBuilder;
 
-  @Mock private AppMenuManager appMenuManager;
   private AppManager appManager;
 
   @BeforeEach
@@ -123,8 +122,7 @@ class DefaultAppManagerTest {
             jCloudsAppStorageService,
             bundledAppStorageService,
             datastoreService,
-            cacheBuilderProvider,
-            appMenuManager);
+            cacheBuilderProvider);
   }
 
   /**

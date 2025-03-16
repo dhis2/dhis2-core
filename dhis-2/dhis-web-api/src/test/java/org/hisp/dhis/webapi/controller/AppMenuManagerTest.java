@@ -36,9 +36,9 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
-import org.hisp.dhis.appmanager.AppManager;
-import org.hisp.dhis.appmanager.AppMenuManager;
+
 import org.hisp.dhis.appmanager.AppShortcut;
+import org.hisp.dhis.appmanager.DefaultAppManager;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
@@ -65,13 +65,11 @@ class AppMenuManagerTest {
 
   @Mock I18n i18n;
 
-  @Mock AppManager appManager;
-
   @Mock LocaleManager localeManager;
 
   @Spy private ResourceLoader resourceLoader;
 
-  @InjectMocks private AppMenuManager appMenuManager;
+  @InjectMocks private DefaultAppManager appManager;
 
   String mockFile =
       """
@@ -119,7 +117,7 @@ class AppMenuManagerTest {
           .when(() -> CurrentUserUtil.hasAnyAuthority(Mockito.anyList()))
           .thenReturn(Boolean.TRUE);
 
-      List<WebModule> accessibleWebModules = appMenuManager.getAccessibleWebModules(appManager);
+      List<WebModule> accessibleWebModules = appManager.getMenu("/context");
       assertEquals(BUNDLED_APPS.size(), accessibleWebModules.size());
 
       WebModule webModule = accessibleWebModules.get(0);

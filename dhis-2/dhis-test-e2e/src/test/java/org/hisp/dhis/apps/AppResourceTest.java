@@ -31,6 +31,10 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.junit.jupiter.api.DisplayName;
@@ -58,5 +62,29 @@ class AppResourceTest extends ApiTest {
     // then redirect should be returned with trailing slash
     response.validate().header("location", equalTo("http://web:8080/api/apps/test-minio/"));
     response.validate().statusCode(302);
+  }
+
+  @Test
+  @DisplayName("Bundled apps are served from /dhis-web-<app> paths with correct internal redirects")
+  void bundledAppServedFromDhisWebPath() {
+    List<String> apps = Arrays.asList("dhis-web-dashboard", "dhis-web-maintenance", "dhis-web-maps", "dhis-web-capture", "dhis-web-settings", "dhis-web-app-management");
+    List<String> indexPaths = Arrays.asList("/", "/index.html");
+    Map<String, String> redirects = Map.of(
+      "", "/",
+      "index.action", "/index.html"
+    );
+
+    apps.forEach(app -> {
+      indexPaths.forEach(path -> {
+        ApiResponse response = new ApiResponse(given().redirects().follow(false).get("/apps/dhis-web-commons/" + path));
+        response.validate().statusCode(302);
+        response.validate().header("location", equalTo("http://web:8080/dhis-web-commons/" + redirects.get(path)));
+      });
+      redirects.forEach((source, target) -> {
+        ApiResponse response = new ApiResponse(given().redirects().follow(false).get("/" + app + source));
+        response.validate().statusCode(302);
+        response.validate().header("location", equalTo("http://web:8080/" + app + redirects.get(target)));
+      });
+    });
   }
 }

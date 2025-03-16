@@ -234,7 +234,7 @@ public class DefaultAppManager implements AppManager {
             .toList();
 
     // map installed apps to the WebModule object
-    modules.addAll(apps.stream().map(WebModule::getModule).toList());
+    modules.addAll(apps.stream().filter(app -> !MENU_APP_EXCLUSIONS.contains(app.getKey())).map(WebModule::getModule).toList());
 
     return modules;
   }
@@ -434,6 +434,7 @@ public class DefaultAppManager implements AppManager {
                 app.getSeeAppAuthority()));
   }
 
+  @Override
   public ResourceResult getRawAppResource(App app, String pageName) throws IOException {
     return getAppStorageServiceByApp(app).getAppResource(app, pageName);
   }

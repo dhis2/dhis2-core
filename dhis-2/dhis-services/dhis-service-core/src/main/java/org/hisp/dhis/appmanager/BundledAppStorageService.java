@@ -64,6 +64,7 @@ public class BundledAppStorageService implements AppStorageService {
 
   @Override
   public Map<String, App> discoverInstalledApps() {
+    apps.clear();
     try {
       Resource[] resources =
           resourcePatternResolver.getResources(
@@ -81,12 +82,10 @@ public class BundledAppStorageService implements AppStorageService {
           app.setFolderName(CLASSPATH_PREFIX + path.replaceAll("/manifest.webapp$", ""));
 
           log.info(
-              "Discovered bundled app {} (short name {}, name {}, path {})",
+              "Discovered bundled app {} ({})",
               app.getKey(),
-              app.getShortName(),
-              app.getName(),
               app.getFolderName());
-          apps.put(app.getShortName(), app);
+          apps.put(app.getKey(), app);
         }
       }
     } catch (IOException e) {
@@ -122,7 +121,7 @@ public class BundledAppStorageService implements AppStorageService {
     if (app == null || !app.getAppStorageSource().equals(AppStorageSource.BUNDLED)) {
       return new ResourceResult.ResourceNotFound(pageName);
     }
-    log.info(
+    log.debug(
         "Looking up resource for bundled app {}, page {}, folderName {}",
         app.getShortName(),
         pageName,
@@ -141,10 +140,10 @@ public class BundledAppStorageService implements AppStorageService {
     try {
       Resource resource = resourceLoader.getResource(cleanedPath);
       if (!resource.exists()) {
-        log.info("Resource not found {}", cleanedPath);
+        log.debug("Resource not found {}", cleanedPath);
         return new ResourceResult.ResourceNotFound(pageName);
       }
-      log.info("Resource found {}", cleanedPath);
+      log.debug("Resource found {}", cleanedPath);
       return new ResourceResult.ResourceFound(resource);
     } catch (Exception ex) {
       log.error(ex.getLocalizedMessage(), ex);

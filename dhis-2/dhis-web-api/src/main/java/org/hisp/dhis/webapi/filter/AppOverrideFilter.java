@@ -57,7 +57,7 @@ public class AppOverrideFilter extends OncePerRequestFilter {
           + AppManager.BUNDLED_APP_PREFIX
           + "("
           + String.join("|", AppManager.BUNDLED_APPS)
-          + ")/(.*)";
+          + ")(/?.*)";
 
   public static final Pattern APP_PATH_PATTERN = compile(APP_PATH_PATTERN_STRING);
 
@@ -74,13 +74,14 @@ public class AppOverrideFilter extends OncePerRequestFilter {
       String appName = m.group(1);
       String resourcePath = m.group(2);
 
-      log.info("AppOverrideFilter :: Matched for path: " + pathInfo);
+      String destinationPath = "/" + AppManager.INSTALLED_APP_PREFIX + appName + resourcePath;
 
-      RequestDispatcher dispatcher =
-          getServletContext()
-              .getRequestDispatcher(
-                  "/" + AppManager.INSTALLED_APP_PREFIX + appName + "/" + resourcePath);
-      dispatcher.include(request, response);
+      log.debug("AppOverrideFilter :: Matched for path {} ({} | {}) => {}", pathInfo, appName, resourcePath, destinationPath);
+
+      RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(destinationPath);
+      dispatcher.forward(request, response);
+
+      return;
     }
 
     chain.doFilter(request, response);
