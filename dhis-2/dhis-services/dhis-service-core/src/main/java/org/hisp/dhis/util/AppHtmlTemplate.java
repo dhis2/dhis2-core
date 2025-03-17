@@ -27,19 +27,16 @@
  */
 package org.hisp.dhis.util;
 
+import com.google.common.base.Strings;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.hisp.dhis.appmanager.App;
-
-import com.google.common.base.Strings;
 
 @RequiredArgsConstructor
 public class AppHtmlTemplate {
