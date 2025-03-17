@@ -239,15 +239,18 @@ class JdbcEventStore {
   @Autowired
   public JdbcEventStore(
           NamedParameterJdbcTemplate jdbcTemplate,
-          @Qualifier("namedParameterReadOnlyJdbcTemplate") NamedParameterJdbcTemplate readOnlyJdbcTemplate,
+          @Qualifier("readOnlyNamedParameterJdbcTemplate") NamedParameterJdbcTemplate namedParameterJdbcTemplate,
           @Qualifier("dataValueJsonMapper") ObjectMapper jsonMapper,
           UserService userService,
           IdentifiableObjectManager manager,
           DhisConfigurationProvider configurationProvider) {
-    log.info(configurationProvider.isEnabled(ConfigurationKey.TRACKER_USE_READ_REPLICA_ENABLED)?"Enabled Tracker queries to read replica database (if configured)": "Disabled Tracker queries to read replica");
-    this.jdbcTemplate = configurationProvider.isEnabled(ConfigurationKey.TRACKER_USE_READ_REPLICA_ENABLED)
-            ? readOnlyJdbcTemplate
-            : jdbcTemplate;;
+    log.info(
+        configurationProvider.isEnabled(ConfigurationKey.TRACKER_READ_REPLICA_ENABLED)
+                && configurationProvider.isEnabled(
+                    ConfigurationKey.TRACKER_READ_REPLICA_EVENTS_ENABLED)
+            ? "Tracker Event read queries directed to read replica database"
+            : "Tracker Event read queries directed to main database");
+    this.jdbcTemplate = namedParameterJdbcTemplate;
     this.jsonMapper = jsonMapper;
     this.userService = userService;
     this.manager = manager;

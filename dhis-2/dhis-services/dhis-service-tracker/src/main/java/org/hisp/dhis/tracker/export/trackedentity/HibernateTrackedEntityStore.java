@@ -47,6 +47,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -76,6 +78,7 @@ import org.springframework.stereotype.Component;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 
+@Slf4j
 @Component("org.hisp.dhis.tracker.export.trackedentity.TrackedEntityStore")
 class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<TrackedEntity> {
 
@@ -138,13 +141,17 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       OrganisationUnitStore organisationUnitStore,
       SystemSettingsProvider settingsProvider,
       DhisConfigurationProvider configurationProvider) {
-    super(entityManager, configurationProvider.isEnabled(ConfigurationKey.TRACKER_USE_READ_REPLICA_ENABLED)
-            ? readOnlyJdbcTemplate
-            : jdbcTemplate, publisher, TrackedEntity.class, aclService, false);
+    super(entityManager, readOnlyJdbcTemplate, publisher, TrackedEntity.class, aclService, false);
 
     checkNotNull(organisationUnitStore);
     checkNotNull(settingsProvider);
 
+    log.info(
+        configurationProvider.isEnabled(ConfigurationKey.TRACKER_READ_REPLICA_ENABLED)
+                && configurationProvider.isEnabled(
+                    ConfigurationKey.TRACKER_READ_REPLICA_TRACKED_ENTITIES_ENABLED)
+            ? "Tracker Tracked Entity read queries directed to read replica database"
+            : "Tracker Tracked Entity read queries directed to main database");
     this.organisationUnitStore = organisationUnitStore;
     this.settingsProvider = settingsProvider;
   }

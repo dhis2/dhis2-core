@@ -55,6 +55,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -78,13 +79,13 @@ public class DataSourceConfig {
     return jdbcTemplate;
   }
 
-  @Bean
-  public NamedParameterJdbcTemplate namedParameterReadOnlyJdbcTemplate(
+  @Bean("readOnlyNamedParameterJdbcTemplate")
+  public NamedParameterJdbcTemplate readOnlyNamedParameterJdbcTemplate(
       @Qualifier("readReplicaDataSource") DataSource dataSource) {
     return new NamedParameterJdbcTemplate(dataSource);
   }
 
-  @Bean
+  @Bean("readOnlyJdbcTemplate")
   public JdbcTemplate readOnlyJdbcTemplate(
           @Qualifier("readReplicaDataSource") DataSource dataSource) {
     JdbcTemplate jdbcTemplate =
@@ -96,10 +97,39 @@ public class DataSourceConfig {
 
   @Bean("readReplicaDataSource")
   public DataSource readReplicaDataSource(
-          DhisConfigurationProvider config, DataSource dataSource) {
-    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(config);
+          DhisConfigurationProvider config,  @Qualifier("actualDataSource")DataSource actualDataSource) {
 
-    return (MoreObjects.firstNonNull(manager.getReadOnlyDataSource(), dataSource));
+    if ( !config.isTrackerReadReplicaEnabled() ) {
+      log.info("Tracker Read replica is disabled");
+      return actualDataSource;
+    }
+    String jdbcUrl = config.getProperty(ConfigurationKey.TRACKER_READ_REPLICA_CONNECTION_URL);
+    String username = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
+
+    if (!StringUtils.hasText(jdbcUrl)) {
+      String errorMessage= "Tracker Read replica is enabled but read replica connection url not specified in dhis.conf.";
+      log.error(errorMessage);
+      throw new IllegalStateException(errorMessage);
+    }
+    log.info("Tracker Read replica is enabled");
+    String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
+
+    DbPoolConfig poolConfig =
+            DbPoolConfig.builder().dhisConfig(config).jdbcUrl(jdbcUrl).username(username).dbPoolType(dbPoolType).build();
+
+    try {
+      return DatabasePoolUtils.createDbPool(poolConfig);
+    } catch (SQLException | PropertyVetoException e) {
+      String message =
+              String.format(
+                      "Connection test failed for tracker read replica database pool, jdbcUrl: '%s', user: '%s'",
+                      jdbcUrl, username);
+
+      log.error(message);
+      log.error(DebugUtils.getStackTrace(e));
+
+      throw new IllegalStateException(message, e);
+    }
   }
 
   @Primary

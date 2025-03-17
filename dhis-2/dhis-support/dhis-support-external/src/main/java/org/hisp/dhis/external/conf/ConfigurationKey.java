@@ -102,6 +102,9 @@ public enum ConfigurationKey {
   /** Analytics Database connection URL. */
   ANALYTICS_CONNECTION_URL("analytics.connection.url", "", false),
 
+  /** Tracker Read Replica Database connection URL. */
+  TRACKER_READ_REPLICA_CONNECTION_URL("tracker.read_replica.connection.url", "", false),
+
   /** Database username. */
   CONNECTION_USERNAME("connection.username", "", false),
 
@@ -711,7 +714,13 @@ public enum ConfigurationKey {
   TOTP_2FA_ENABLED("login.security.totp_2fa.enabled", Constants.ON, false),
 
   /** Use read replica database for tracker queries. (default: false) */
-  TRACKER_USE_READ_REPLICA_ENABLED("tracker.use_read_replica.enabled", Constants.OFF, false),
+  TRACKER_READ_REPLICA_ENABLED("tracker.read_replica.enabled", Constants.OFF, false),
+
+  /** Use read replica database for tracker event queries. (default: false) */
+  TRACKER_READ_REPLICA_EVENTS_ENABLED("tracker.read_replica.events.enabled", Constants.OFF, false),
+
+  /** Use read replica database for tracker tracked entity queries. (default: false) */
+  TRACKER_READ_REPLICA_TRACKED_ENTITIES_ENABLED("tracker.read_replica.tracked_entities.enabled", Constants.OFF, false),
 
   SESSION_COOKIE_SAME_SITE("session.cookie.samesite", "Lax", false);
 
