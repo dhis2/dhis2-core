@@ -38,12 +38,12 @@ import org.hisp.dhis.test.config.TestDhisConfigurationProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class RouteServiceTest {
+class RouteServiceTest {
 
   private String protocolUnderTest;
 
   @BeforeEach
-  public void beforeEach() {
+  void beforeEach() {
     String[] protocols = {"http", "https"};
     protocolUnderTest = protocols[new Random().nextInt(protocols.length)];
   }
@@ -57,7 +57,7 @@ public class RouteServiceTest {
         new TestDhisConfigurationProvider(properties);
 
     RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
-    assertThrows(IllegalStateException.class, () -> routeService.postConstruct());
+    assertThrows(IllegalStateException.class, routeService::postConstruct);
   }
 
   @Test
