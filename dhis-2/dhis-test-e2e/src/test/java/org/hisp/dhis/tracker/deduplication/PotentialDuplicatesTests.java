@@ -181,7 +181,7 @@ public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest {
 
     assertThat(
         potentialDuplicatesActions
-            .get(new QueryParamsBuilder().add("teis=" + te).add("order=creatd:DESC"))
+            .get(new QueryParamsBuilder().add("teis=" + te).add("order=created:DESC"))
             .statusCode(),
         equalTo(400));
   }
