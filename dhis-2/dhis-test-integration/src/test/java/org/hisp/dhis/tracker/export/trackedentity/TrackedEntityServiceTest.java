@@ -28,6 +28,8 @@
 package org.hisp.dhis.tracker.export.trackedentity;
 
 import static java.util.Collections.emptySet;
+import static org.hisp.dhis.common.AccessLevel.CLOSED;
+import static org.hisp.dhis.common.AccessLevel.PROTECTED;
 import static org.hisp.dhis.common.CodeGenerator.generateUid;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
@@ -110,6 +112,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -298,7 +301,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     programB.setProgramType(ProgramType.WITH_REGISTRATION);
     programB.setTrackedEntityType(trackedEntityTypeA);
     programB.setCategoryCombo(defaultCategoryCombo);
-    programB.setAccessLevel(AccessLevel.PROTECTED);
+    programB.setAccessLevel(PROTECTED);
     programB.getSharing().addUserAccess(new UserAccess(currentUser, AccessStringHelper.FULL));
     manager.save(programB, false);
     ProgramStage programStageB1 = createProgramStage(programB);
@@ -317,7 +320,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     programC.setProgramType(ProgramType.WITH_REGISTRATION);
     programC.setTrackedEntityType(trackedEntityTypeA);
     programC.setCategoryCombo(defaultCategoryCombo);
-    programC.setAccessLevel(AccessLevel.PROTECTED);
+    programC.setAccessLevel(CLOSED);
     programC.getSharing().setPublicAccess(AccessStringHelper.READ);
     manager.save(programC, false);
 
@@ -2220,6 +2223,41 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     assertIsEmpty(enrollmentA.get().getEvents());
   }
 
+  @Test
+  void
+      shouldFailWhenRequestingSingleTEEnrolledInProtectedProgramWhenUserInSearchScopeButNotIfNoCaptureScope() {
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityB, programB, orgUnitB);
+    manager.update(trackedEntityA);
+    Assertions.assertThrows(
+        NotFoundException.class,
+        () ->
+            trackedEntityService.getTrackedEntity(
+                UID.of(trackedEntityB.getUid()),
+                UID.of(programB.getUid()),
+                TrackedEntityParams.FALSE));
+  }
+
+  @Test
+  void
+      shouldFailWhenRequestingSingleTEEnrolledInClosedProgramWhenUserInSearchScopeButNotIfNoCaptureScope() {
+    injectAdminIntoSecurityContext();
+    makeProgramDataAndMetadataAccessible(programC);
+    Enrollment enrollment = createEnrollment(programC, trackedEntityB, orgUnitB);
+    manager.save(enrollment);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityB, programC, orgUnitB);
+    injectSecurityContextUser(user);
+
+    Assertions.assertThrows(
+        NotFoundException.class,
+        () ->
+            trackedEntityService.getTrackedEntity(
+                UID.of(trackedEntityB.getUid()),
+                UID.of(programC.getUid()),
+                TrackedEntityParams.FALSE));
+  }
+
   private Set<String> attributeNames(final Collection<TrackedEntityAttributeValue> attributes) {
     // depends on createTrackedEntityAttribute() prefixing with "Attribute"
     return attributes.stream()
@@ -2246,6 +2284,11 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             + (long) 1000
             + " got: "
             + interval);
+  }
+
+  private void makeProgramDataAndMetadataAccessible(Program program) {
+    program.setSharing(Sharing.builder().publicAccess("rwrw----").build());
+    manager.update(program);
   }
 
   private void makeProgramMetadataAccessibleOnly(Program program) {
