@@ -236,7 +236,6 @@ class JdbcEventStore {
 
   @Autowired
   public JdbcEventStore(
-      NamedParameterJdbcTemplate jdbcTemplate,
       @Qualifier("readOnlyNamedParameterJdbcTemplate")
           NamedParameterJdbcTemplate namedParameterJdbcTemplate,
       @Qualifier("dataValueJsonMapper") ObjectMapper jsonMapper,
