@@ -488,7 +488,7 @@ public enum ConfigurationKey {
   SERVER_BASE_URL("server.base.url", "", false),
 
   /**
-   * @deprecated use META_SYNC_SERVERS_ALLOWED instead
+   * @deprecated use META_DATA_SYNC_SERVERS_ALLOWED instead
    */
   @Deprecated
   REMOTE_SERVERS_ALLOWED("system.remote_servers_allowed", "", false),

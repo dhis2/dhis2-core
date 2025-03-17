@@ -146,17 +146,20 @@ public class RouteService {
             .strip();
     if (!routeRemoteServersAllowed.isEmpty()) {
       for (String host : routeRemoteServersAllowed.split(",")) {
+        if (!(host.startsWith("http://") || host.startsWith("https://"))) {
+          throw new IllegalStateException(
+              "Allowed route URL scheme must be either http or https: " + host);
+        }
+        String urlWithoutPortNo =
+            host.substring(0, host.lastIndexOf(":") > 5 ? host.lastIndexOf(":") : host.length());
         URL url;
         try {
-          url = new URL(host);
+          url = new URL(urlWithoutPortNo);
         } catch (MalformedURLException e) {
           throw new IllegalStateException(e);
         }
-        if (!(url.getProtocol().startsWith("http") || url.getProtocol().startsWith("https"))) {
-          throw new IllegalStateException();
-        }
         if (!url.getPath().isEmpty()) {
-          throw new IllegalStateException();
+          throw new IllegalStateException("Allowed route URL must not have a path: " + host);
         }
         allowedRouteRegexRemoteServers.add(TextUtils.createRegexFromGlob(host));
       }

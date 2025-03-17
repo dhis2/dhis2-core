@@ -54,7 +54,6 @@ import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
-import org.hisp.dhis.route.RouteService;
 import org.hisp.dhis.test.config.PostgresDhisConfigurationProvider;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.AfterAll;
@@ -83,7 +82,11 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 
 @Transactional
-@ContextConfiguration(classes = {RouteControllerTest.ClientHttpConnectorTestConfig.class})
+@ContextConfiguration(
+    classes = {
+      RouteControllerTest.ClientHttpConnectorTestConfig.class,
+      RouteControllerTest.DhisConfigurationProviderTestConfig.class
+    })
 class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
   private static GenericContainer<?> tokenMockServerContainer;
@@ -91,28 +94,29 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private OAuth2AuthorizedClientService oAuth2AuthorizedClientService;
 
-  @Autowired private RouteService service;
-
   @Autowired private ObjectMapper jsonMapper;
 
-  @Autowired private ClientHttpConnector clientHttpConnector;
-
   @Configuration
-  public static class ClientHttpConnectorTestConfig {
-    @Autowired private ObjectMapper jsonMapper;
-
-    @Autowired private WebApplicationContext webApplicationContext;
-
+  public static class DhisConfigurationProviderTestConfig {
     @Bean
     public DhisConfigurationProvider dhisConfigurationProvider() {
       Properties override = new Properties();
-      override.put(ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getKey(), "http://localhost");
+      override.put(
+          ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getKey(),
+          "http://localhost:*,https://stub");
 
       PostgresDhisConfigurationProvider postgresDhisConfigurationProvider =
           new PostgresDhisConfigurationProvider();
       postgresDhisConfigurationProvider.addProperties(override);
       return postgresDhisConfigurationProvider;
     }
+  }
+
+  @Configuration
+  public static class ClientHttpConnectorTestConfig {
+    @Autowired private ObjectMapper jsonMapper;
+
+    @Autowired private WebApplicationContext webApplicationContext;
 
     @Bean
     public ClientHttpConnector clientHttpConnector() {
@@ -170,6 +174,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Transactional
   @Nested
+  @ContextConfiguration(classes = {RouteControllerTest.DhisConfigurationProviderTestConfig.class})
   class IntegrationTest extends PostgresControllerIntegrationTestBase {
 
     private static GenericContainer<?> upstreamMockServerContainer;
@@ -299,7 +304,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
             "passw0rd",
             "tokenUri",
             "http://localhost:" + tokenMockServerContainer.getFirstMappedPort() + "/token"));
-    route.put("url", "http://stub");
+    route.put("url", "https://stub");
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
 
@@ -341,7 +346,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
             "passw0rd",
             "tokenUri",
             tokenUri));
-    route.put("url", "http://stub");
+    route.put("url", "https://stub");
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
 
@@ -404,7 +409,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
             "passw0rd",
             "tokenUri",
             tokenUri));
-    route.put("url", "http://stub");
+    route.put("url", "https://stub");
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
 
@@ -456,7 +461,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
             "passw0rd",
             "tokenUri",
             tokenUri));
-    route.put("url", "http://stub");
+    route.put("url", "https://stub");
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
 
@@ -496,7 +501,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
     route.put("auth", Map.of("type", "api-query-params", "queryParams", Map.of("token", "foo")));
-    route.put("url", "http://stub");
+    route.put("url", "https://stub");
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
     MvcResult mvcResult =
@@ -523,7 +528,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
     route.put("auth", Map.of("type", "api-headers", "headers", Map.of("X-API-KEY", "foo")));
-    route.put("url", "http://stub");
+    route.put("url", "https://stub");
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
     MvcResult mvcResult =
@@ -550,7 +555,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
     route.put("auth", Map.of("type", "api-headers", "headers", Map.of("X-API-KEY", "foo")));
-    route.put("url", "http://stub");
+    route.put("url", "https://stub");
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
     assertStatus(HttpStatus.CREATED, postHttpResponse);
@@ -561,7 +566,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
     route.put("auth", Map.of("type", "api-headers", "headers", Map.of("X-API-KEY", "foo")));
-    route.put("url", "http://stub");
+    route.put("url", "https://stub");
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
 
@@ -584,7 +589,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
     route.put("auth", Map.of("type", "api-query-params", "queryParams", Map.of("token", "foo")));
-    route.put("url", "http://stub");
+    route.put("url", "https://stub");
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
     assertStatus(HttpStatus.CREATED, postHttpResponse);
@@ -595,7 +600,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
     route.put("auth", Map.of("type", "api-query-params", "queryParams", Map.of("token", "foo")));
-    route.put("url", "http://stub");
+    route.put("url", "https://stub");
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
 
@@ -614,7 +619,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
   void testAddRouteGivenResponseTimeoutGreaterThanMax() throws JsonProcessingException {
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
-    route.put("url", "http://stub");
+    route.put("url", "https://stub");
     route.put("responseTimeoutSeconds", ThreadLocalRandom.current().nextInt(61, Integer.MAX_VALUE));
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
@@ -625,7 +630,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
   void testAddRouteGivenResponseTimeoutLessThanMin() throws JsonProcessingException {
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
-    route.put("url", "http://stub");
+    route.put("url", "https://stub");
     route.put("responseTimeoutSeconds", ThreadLocalRandom.current().nextInt(Integer.MIN_VALUE, 1));
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
@@ -636,7 +641,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
   void testUpdateRouteGivenResponseTimeoutGreaterThanMax() throws JsonProcessingException {
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
-    route.put("url", "http://stub");
+    route.put("url", "https://stub");
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
 
@@ -654,7 +659,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
   void testUpdateRouteGivenResponseTimeoutLessThanMin() throws JsonProcessingException {
     Map<String, Object> route = new HashMap<>();
     route.put("name", "route-under-test");
-    route.put("url", "http://stub");
+    route.put("url", "https://stub");
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
 
