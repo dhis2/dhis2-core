@@ -42,6 +42,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Set;
 import java.util.UUID;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
@@ -102,19 +103,22 @@ public class AuthorizationServerConfig {
   @Bean
   public OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer(UserService userService) {
     return (context) -> {
-      OAuth2TokenType tokenType = context.getTokenType();
-      if (OAuth2TokenType.ACCESS_TOKEN.equals(tokenType)) {
+      Set<String> authorizedScopes = context.getAuthorizedScopes();
+      if (authorizedScopes.contains("email")) {
+        OAuth2TokenType tokenType = context.getTokenType();
         String username = context.getPrincipal().getName();
         User user = userService.getUserByUsername(username);
         String email = user.getEmail();
-        Builder claims = context.getClaims();
-        claims.claim("email", email);
-      }
-
-      if (OidcParameterNames.ID_TOKEN.equals(context.getTokenType().getValue())) {
-        String username = context.getPrincipal().getName();
-        User user = userService.getUserByUsername(username);
-        context.getClaims().claim("email", user.getEmail());
+        // Use username as email if email is not set, email is mandatory, but default admin user
+        // don't have email set
+        if (email == null || email.isEmpty()) {
+          email = user.getUsername();
+        }
+        if (OAuth2TokenType.ACCESS_TOKEN.equals(tokenType)
+            || OidcParameterNames.ID_TOKEN.equals(tokenType.getValue())) {
+          Builder claims = context.getClaims();
+          claims.claim("email", email);
+        }
       }
     };
   }
