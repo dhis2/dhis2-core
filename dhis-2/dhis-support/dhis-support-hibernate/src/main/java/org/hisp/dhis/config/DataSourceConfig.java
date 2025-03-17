@@ -65,13 +65,13 @@ public class DataSourceConfig {
 
   @Primary
   @Bean
-  public NamedParameterJdbcTemplate namedParameterJdbcTemplate(DataSource dataSource) {
+  public NamedParameterJdbcTemplate namedParameterJdbcTemplate(@Qualifier("actualDataSource") DataSource dataSource) {
     return new NamedParameterJdbcTemplate(dataSource);
   }
 
   @Primary
   @Bean
-  public JdbcTemplate jdbcTemplate(DataSource dataSource) {
+  public JdbcTemplate jdbcTemplate(@Qualifier("actualDataSource") DataSource dataSource) {
     JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
     jdbcTemplate.setFetchSize(1000);
     return jdbcTemplate;
@@ -86,10 +86,10 @@ public class DataSourceConfig {
   @Bean("readOnlyJdbcTemplate")
   public JdbcTemplate readOnlyJdbcTemplate(
       @Qualifier("readReplicaDataSource") DataSource dataSource) {
-    JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-    jdbcTemplate.setFetchSize(1000);
+    JdbcTemplate readOnlyJdbcTemplate = new JdbcTemplate(dataSource);
+    readOnlyJdbcTemplate.setFetchSize(1000);
 
-    return jdbcTemplate;
+    return readOnlyJdbcTemplate;
   }
 
   @Bean("readReplicaDataSource")

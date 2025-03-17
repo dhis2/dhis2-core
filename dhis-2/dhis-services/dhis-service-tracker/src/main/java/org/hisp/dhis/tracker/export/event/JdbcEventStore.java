@@ -227,6 +227,7 @@ class JdbcEventStore {
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
+  @Qualifier("dataValueJsonMapper")
   private final ObjectMapper jsonMapper;
 
   private final UserService userService;
@@ -243,7 +244,7 @@ class JdbcEventStore {
       IdentifiableObjectManager manager,
       DhisConfigurationProvider configurationProvider) {
     log.info(
-        configurationProvider.isEnabled(ConfigurationKey.TRACKER_READ_REPLICA_ENABLED)
+        configurationProvider.isTrackerReadReplicaEnabled()
                 && configurationProvider.isEnabled(
                     ConfigurationKey.TRACKER_READ_REPLICA_EVENTS_ENABLED)
             ? "Tracker Event read queries directed to read replica database"

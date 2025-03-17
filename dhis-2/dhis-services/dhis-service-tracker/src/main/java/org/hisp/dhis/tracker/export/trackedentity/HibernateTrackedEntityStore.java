@@ -133,7 +133,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   public HibernateTrackedEntityStore(
       EntityManager entityManager,
-      JdbcTemplate jdbcTemplate,
       @Qualifier("readOnlyJdbcTemplate") JdbcTemplate readOnlyJdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService,
@@ -146,7 +145,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     checkNotNull(settingsProvider);
 
     log.info(
-        configurationProvider.isEnabled(ConfigurationKey.TRACKER_READ_REPLICA_ENABLED)
+        configurationProvider.isTrackerReadReplicaEnabled()
                 && configurationProvider.isEnabled(
                     ConfigurationKey.TRACKER_READ_REPLICA_TRACKED_ENTITIES_ENABLED)
             ? "Tracker Tracked Entity read queries directed to read replica database"
