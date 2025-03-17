@@ -78,6 +78,10 @@ public class DefaultRelationshipService implements RelationshipService {
     return relationshipItems.stream()
         .filter(
             ri ->
+                ri.getRelationship().getFrom().equals(ri)
+                    || ri.getRelationship().getRelationshipType().isBidirectional())
+        .filter(
+            ri ->
                 trackerAccessManager
                     .canRead(CurrentUserUtil.getCurrentUserDetails(), ri.getRelationship())
                     .isEmpty())

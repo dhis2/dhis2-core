@@ -345,6 +345,27 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   }
 
   @Test
+  void
+      shouldGetTrackedEntityWithNoRelationshipsWhenTrackedEntityIsOnTheToSideOfAUnidirectionalRelationship() {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "m1575931405");
+    relationshipType.setBidirectional(false);
+    manager.update(relationshipType);
+
+    TrackedEntity to = get(TrackedEntity.class, "QesgJkTyTCk");
+    assertHasSize(
+        1, to.getRelationshipItems(), "test expects a tracked entity with one relationship");
+
+    JsonList<JsonRelationship> rels =
+        GET("/tracker/trackedEntities?trackedEntities={id}&fields=relationships", to.getUid())
+            .content(HttpStatus.OK)
+            .getList("trackedEntities", JsonTrackedEntity.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    assertIsEmpty(rels.stream().toList());
+  }
+
+  @Test
   void getTrackedEntityByIdWithFieldsRelationships() {
     TrackedEntity from = get(TrackedEntity.class, "mHWCacsGYYn");
     assertHasSize(

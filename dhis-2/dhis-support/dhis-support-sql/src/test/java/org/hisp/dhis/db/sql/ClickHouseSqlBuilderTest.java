@@ -218,6 +218,18 @@ class ClickHouseSqlBuilderTest {
   }
 
   @Test
+  void testIsTrue() {
+    assertEquals("dv.\"deleted\"", sqlBuilder.isTrue("dv", "deleted"));
+    assertEquals("tei.\"followup\"", sqlBuilder.isTrue("tei", "followup"));
+  }
+
+  @Test
+  void testIsFalse() {
+    assertEquals("not dv.\"deleted\"", sqlBuilder.isFalse("dv", "deleted"));
+    assertEquals("not tei.\"followup\"", sqlBuilder.isFalse("tei", "followup"));
+  }
+
+  @Test
   void testRegexpMatch() {
     assertEquals("match(value, 'test')", sqlBuilder.regexpMatch("value", "'test'"));
     assertEquals("match(number, '\\d')", sqlBuilder.regexpMatch("number", "'\\d'"));

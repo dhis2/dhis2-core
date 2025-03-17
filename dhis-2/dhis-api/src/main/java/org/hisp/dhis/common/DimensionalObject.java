@@ -93,12 +93,12 @@ public interface DimensionalObject extends NameableObject, GroupableItem {
 
   List<String> STATIC_DIMS = List.of(LONGITUDE_DIM_ID, LATITUDE_DIM_ID);
 
-  Map<String, String> PRETTY_NAMES =
+  Map<String, MetadataItem> PRETTY_NAMES =
       Map.of(
-          DATA_X_DIM_ID, "Data",
-          CATEGORYOPTIONCOMBO_DIM_ID, "Data details",
-          PERIOD_DIM_ID, "Period",
-          ORGUNIT_DIM_ID, "Organisation unit");
+          DATA_X_DIM_ID, new MetadataItem("Data"),
+          CATEGORYOPTIONCOMBO_DIM_ID, new MetadataItem("Data details"),
+          PERIOD_DIM_ID, new MetadataItem("Period"),
+          ORGUNIT_DIM_ID, new MetadataItem("Organisation unit"));
 
   Set<Class<? extends BaseDimensionalObject>> DYNAMIC_DIMENSION_CLASSES =
       Set.of(

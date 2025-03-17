@@ -75,7 +75,7 @@
           "valueType": "TEXT",
           "attribute": {
             "idScheme": "UID",
-            "identifier": "dIVt4l5vIOa"
+            "identifier": "fRGt4l6yIRb"
           },
           "value": "Value"
         }
@@ -324,20 +324,6 @@
       "potentialDuplicate": false,
       "relationships": [],
       "enrollments": []
-    },
-    {
-      "trackedEntity": "XUitxQbWYNq",
-      "trackedEntityType": {
-        "idScheme": "UID",
-        "identifier": "Fa7NY4PW6DL"
-      },
-      "orgUnit": {
-        "idScheme": "UID",
-        "identifier": "DiszpKrYNg8"
-      },
-      "inactive": false,
-      "deleted": false,
-      "potentialDuplicate": false
     }
   ],
   "enrollments": [

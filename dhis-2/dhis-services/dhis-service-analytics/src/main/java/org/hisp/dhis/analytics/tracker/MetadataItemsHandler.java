@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.tracker;
 import static java.util.Collections.emptyList;
 import static java.util.Optional.empty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
@@ -38,12 +39,14 @@ import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptions;
 import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptionsAsFilter;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.getItemUid;
 import static org.hisp.dhis.analytics.util.AnalyticsOrganisationUnitUtils.getUserOrganisationUnitItems;
+import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 
@@ -56,6 +59,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -68,8 +72,11 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataItem;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -82,11 +89,13 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class MetadataItemsHandler {
-  protected final AnalyticsSecurityManager securityManager;
+  private final AnalyticsSecurityManager securityManager;
 
-  protected final UserService userService;
+  private final UserService userService;
 
-  protected final OrganisationUnitResolver organisationUnitResolver;
+  private final OrganisationUnitResolver organisationUnitResolver;
+
+  private final IdentifiableObjectManager idObjectManager;
 
   /**
    * Adds meta data values to the given grid based on the given data query parameters.
@@ -414,12 +423,21 @@ public class MetadataItemsHandler {
 
     addMetadataItems(metadataItemMap, params, itemOptions);
 
-    params.getItemsAndItemFilters().stream()
+    List<QueryItem> itemsAndFilters = params.getItemsAndItemFilters();
+
+    // Add filter params.
+    itemsAndFilters.stream()
         .filter(Objects::nonNull)
         .forEach(
             item ->
                 addItemToMetadata(
                     metadataItemMap, item, includeDetails, params.getDisplayProperty()));
+
+    // Add filter values (when it's a dimension).
+    for (QueryItem item : itemsAndFilters) {
+      List<QueryFilter> filters = item.getFilters();
+      addOrgUnitDimensionFilter(params, metadataItemMap, includeDetails, item, filters);
+    }
 
     if (isNotEmpty(keywords)) {
       for (Keyword keyword : keywords) {
@@ -433,5 +451,40 @@ public class MetadataItemsHandler {
     metadataItemMap.putAll(organisationUnitResolver.getMetadataItemsForOrgUnitDataElements(params));
 
     return metadataItemMap;
+  }
+
+  /**
+   * Adds, into the metadata, org. units used as filter in data elements of type org. unit.
+   *
+   * @param params the current {@link EventQueryParams}.
+   * @param metadataItemMap the current metadata map.
+   * @param includeDetails a boolean flag.
+   * @param item the {@link QueryItem}.
+   * @param filters the list of {@link QueryFilter}.
+   */
+  private void addOrgUnitDimensionFilter(
+      @Nonnull EventQueryParams params,
+      @Nonnull Map<String, MetadataItem> metadataItemMap,
+      boolean includeDetails,
+      @Nonnull QueryItem item,
+      @Nonnull List<QueryFilter> filters) {
+    for (QueryFilter filter : filters) {
+      String[] filterValues = trimToEmpty(filter.getFilter()).split(OPTION_SEP);
+      for (String filterValue : filterValues) {
+        boolean isDataElementOfTypeOrgUnit = item.getValueType() == ORGANISATION_UNIT;
+
+        if (isDataElementOfTypeOrgUnit) {
+          DimensionalItemObject itemObject =
+              organisationUnitResolver.loadOrgUnitDimensionalItem(filterValue, IdScheme.UID);
+          if (itemObject != null) {
+            addItemToMetadata(
+                metadataItemMap,
+                new QueryItem(itemObject),
+                includeDetails,
+                params.getDisplayProperty());
+          }
+        }
+      }
+    }
   }
 }

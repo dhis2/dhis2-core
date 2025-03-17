@@ -223,6 +223,7 @@
       "description": "Person",
       "id": "MDvmqCKmXQM",
       "name": "Person",
+      "shortName": "Person",
       "attributeValues": [],
       "created": "2016-03-09T09:56:10.596+0000",
       "lastUpdated": "2016-03-09T09:56:10.597+0000"

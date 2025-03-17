@@ -230,16 +230,18 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
             """
             \sfrom ${enrollment} en \
             inner join ${trackedentity} te on en.trackedentityid=te.trackedentityid \
-            and te.deleted = false and te.trackedentitytypeid = ${trackedEntityTypeId} \
+            and ${teDeletedClause} and te.trackedentitytypeid = ${trackedEntityTypeId} \
             and te.lastupdated < '${startTime}' \
             left join ${program} p on en.programid=p.programid \
             left join analytics_rs_orgunitstructure ous on en.organisationunitid=ous.organisationunitid \
             where en.occurreddate is not null \
-            and en.deleted = false\s""",
+            and ${enDeletedClause} """,
             Map.of(
                 "trackedEntityTypeId", valueOf(tetId),
+                "teDeletedClause", sqlBuilder.isFalse("te", "deleted"),
                 "startTime", toLongDate(params.getStartTime()),
-                "statuses", join(",", EXPORTABLE_EVENT_STATUSES))));
+                "statuses", join(",", EXPORTABLE_EVENT_STATUSES),
+                "enDeletedClause", sqlBuilder.isFalse("en", "deleted"))));
 
     invokeTimeAndLog(sql.toString(), "Populating table: '{}'", tableName);
   }

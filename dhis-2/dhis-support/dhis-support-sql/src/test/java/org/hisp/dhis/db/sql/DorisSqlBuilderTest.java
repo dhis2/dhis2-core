@@ -271,6 +271,18 @@ class DorisSqlBuilderTest {
   }
 
   @Test
+  void testIsTrue() {
+    assertEquals("dv.`deleted` = true", sqlBuilder.isTrue("dv", "deleted"));
+    assertEquals("tei.`followup` = true", sqlBuilder.isTrue("tei", "followup"));
+  }
+
+  @Test
+  void testIsFalse() {
+    assertEquals("dv.`deleted` = false", sqlBuilder.isFalse("dv", "deleted"));
+    assertEquals("tei.`followup` = false", sqlBuilder.isFalse("tei", "followup"));
+  }
+
+  @Test
   void testRegexpMatch() {
     assertEquals("value regexp 'test'", sqlBuilder.regexpMatch("value", "'test'"));
     assertEquals("number regexp '\\d'", sqlBuilder.regexpMatch("number", "'\\d'"));
