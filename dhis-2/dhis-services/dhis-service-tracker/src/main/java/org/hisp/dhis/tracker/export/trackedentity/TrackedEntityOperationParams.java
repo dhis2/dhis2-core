@@ -124,15 +124,6 @@ public class TrackedEntityOperationParams {
   /** End date for event for the given program. */
   private Date eventEndDate;
 
-  /** Page number. */
-  private Integer page;
-
-  /** Page size. */
-  private Integer pageSize;
-
-  /** Indicates whether to include the total number of pages in the paging response. */
-  private boolean totalPages;
-
   /** Indicates whether paging should be skipped. */
   private boolean skipPaging;
 
@@ -254,9 +245,8 @@ public class TrackedEntityOperationParams {
 
     // Do not remove this unused method. This hides the filters field from the builder which Lombok
     // does not support. The repeated filters field and private filters method prevent access to
-    // order
-    // via the builder.
-    // Order should be added via the filterBy builder methods.
+    // the filter map via the builder.
+    // Filters should be added via the filterBy builder methods.
     private TrackedEntityOperationParamsBuilder filters(Map<UID, List<QueryFilter>> filters) {
       return this;
     }

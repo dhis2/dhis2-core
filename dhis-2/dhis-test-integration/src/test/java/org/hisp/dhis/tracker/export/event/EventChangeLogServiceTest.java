@@ -40,7 +40,7 @@ import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -81,21 +81,25 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   private final EventChangeLogOperationParams defaultOperationParams =
       EventChangeLogOperationParams.builder().build();
-  private final PageParams defaultPageParams = new PageParams(null, null, false);
+  private final PageParams defaultPageParams;
 
   private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
   private TrackerObjects trackerObjects;
   @Autowired private TestSetup testSetup;
 
+  EventChangeLogServiceTest() throws BadRequestException {
+    defaultPageParams = PageParams.of(1, 10, false);
+  }
+
   @BeforeAll
   void setUp() throws IOException {
-    testSetup.setUpMetadata();
+    testSetup.importMetadata();
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    trackerObjects = testSetup.setUpTrackerData();
+    trackerObjects = testSetup.importTrackerData();
   }
 
   @BeforeEach
@@ -156,7 +160,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnChangeLogsWhenDataValueIsCreated() throws NotFoundException, ForbiddenException {
+  void shouldReturnChangeLogsWhenDataValueIsCreated() throws NotFoundException {
     String event = "QRYjLTiJTrA";
     String dataElement = getDataElement(event);
 
@@ -170,7 +174,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnChangeLogsWhenDataValueIsDeleted() throws NotFoundException, ForbiddenException {
+  void shouldReturnChangeLogsWhenDataValueIsDeleted() throws NotFoundException {
     String event = "QRYjLTiJTrA";
     String dataElement = getDataElement(event);
 
@@ -188,8 +192,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldNotUpdateChangeLogsWhenDataValueIsDeletedTwiceInARow()
-      throws NotFoundException, ForbiddenException {
+  void shouldNotUpdateChangeLogsWhenDataValueIsDeletedTwiceInARow() throws NotFoundException {
     String event = "QRYjLTiJTrA";
     String dataElement = getDataElement(event);
 
@@ -208,7 +211,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnChangeLogsWhenDataValueIsUpdated() throws NotFoundException, ForbiddenException {
+  void shouldReturnChangeLogsWhenDataValueIsUpdated() throws NotFoundException {
     String event = "QRYjLTiJTrA";
     String dataElement = getDataElement(event);
 
@@ -226,8 +229,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnChangeLogsWhenDataValueIsUpdatedTwiceInARow()
-      throws NotFoundException, ForbiddenException {
+  void shouldReturnChangeLogsWhenDataValueIsUpdatedTwiceInARow() throws NotFoundException {
     String event = "QRYjLTiJTrA";
     String dataElement = getDataElement(event);
 
@@ -247,8 +249,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnChangeLogsWhenDataValueIsCreatedUpdatedAndDeleted()
-      throws NotFoundException, ForbiddenException {
+  void shouldReturnChangeLogsWhenDataValueIsCreatedUpdatedAndDeleted() throws NotFoundException {
     String event = "QRYjLTiJTrA";
     String dataElement = getDataElement(event);
 
@@ -268,8 +269,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnOnlyUserNameWhenUserDoesNotExistInDatabase()
-      throws ForbiddenException, NotFoundException {
+  void shouldReturnOnlyUserNameWhenUserDoesNotExistInDatabase() throws NotFoundException {
     Event event = getEvent("QRYjLTiJTrA");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
     DataElement dataElement = manager.get(DataElement.class, dataElementUid);
@@ -292,8 +292,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnEventFieldChangeLogWhenNewDateFieldValueAdded()
-      throws ForbiddenException, NotFoundException {
+  void shouldReturnEventFieldChangeLogWhenNewDateFieldValueAdded() throws NotFoundException {
     String event = "QRYjLTiJTrA";
 
     Page<EventChangeLog> changeLogs =
@@ -311,7 +310,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnEventFieldChangeLogWhenExistingDateFieldUpdated()
-      throws IOException, ForbiddenException, NotFoundException {
+      throws IOException, NotFoundException {
     UID event = UID.of("QRYjLTiJTrA");
     LocalDateTime currentTime = LocalDateTime.now();
 
@@ -342,8 +341,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnEventFieldChangeLogWhenExistingDateFieldDeleted()
-      throws ForbiddenException, NotFoundException {
+  void shouldReturnEventFieldChangeLogWhenExistingDateFieldDeleted() throws NotFoundException {
     UID event = UID.of("QRYjLTiJTrA");
 
     deleteScheduledAtDate(event);
@@ -363,7 +361,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnEventFieldChangeLogWhenNewGeometryPointFieldValueAdded()
-      throws ForbiddenException, NotFoundException {
+      throws NotFoundException {
     String event = "QRYjLTiJTrA";
 
     Page<EventChangeLog> changeLogs =
@@ -378,7 +376,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnEventFieldChangeLogWhenNewGeometryPolygonFieldValueAdded()
-      throws ForbiddenException, NotFoundException {
+      throws NotFoundException {
     String event = "YKmfzHdjUDL";
 
     Page<EventChangeLog> changeLogs =
@@ -397,7 +395,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnEventFieldChangeLogWhenExistingGeometryPointFieldUpdated()
-      throws ForbiddenException, NotFoundException {
+      throws NotFoundException {
     UID event = UID.of("QRYjLTiJTrA");
 
     Geometry geometry = createGeometryPoint(16.435547, 49.26422);
@@ -420,7 +418,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnEventFieldChangeLogWhenExistingGeometryPointFieldDeleted()
-      throws ForbiddenException, NotFoundException {
+      throws NotFoundException {
     UID event = UID.of("QRYjLTiJTrA");
 
     deleteEventGeometry(event);

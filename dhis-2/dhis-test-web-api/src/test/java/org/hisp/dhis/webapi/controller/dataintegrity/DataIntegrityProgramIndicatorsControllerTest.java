@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -92,12 +93,14 @@ class DataIntegrityProgramIndicatorsControllerTest extends AbstractDataIntegrity
 
   public void setUpTest() {
 
+    CategoryCombo defaultCategoryCombo = categoryService.getCategoryCombo(getDefaultCatCombo());
+
     Program programA = new Program();
     programA.setAutoFields();
     programA.setName("Program A");
     programA.setShortName("Program A");
     programA.setProgramType(ProgramType.WITHOUT_REGISTRATION);
-    programA.setCategoryCombo(categoryService.getCategoryCombo(getDefaultCatCombo()));
+    programA.setCategoryCombo(defaultCategoryCombo);
     programService.addProgram(programA);
 
     programIndicatorA = new ProgramIndicator();
@@ -105,5 +108,7 @@ class DataIntegrityProgramIndicatorsControllerTest extends AbstractDataIntegrity
     programIndicatorA.setName("ProgramRuleA");
     programIndicatorA.setShortName("ProgramRuleA");
     programIndicatorA.setProgram(programA);
+    programIndicatorA.setCategoryCombo(defaultCategoryCombo);
+    programIndicatorA.setAttributeCombo(defaultCategoryCombo);
   }
 }

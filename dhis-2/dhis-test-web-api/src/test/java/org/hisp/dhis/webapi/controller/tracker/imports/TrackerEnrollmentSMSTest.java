@@ -265,7 +265,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEquals(SmsMessageStatus.PROCESSED, sms.getStatus()),
         () ->
             assertSmsResponse(submissionId + ":" + SmsResponse.SUCCESS, originator, messageSender));
-    assertDoesNotThrow(() -> enrollmentService.getEnrollment(enrollmentUid));
+    assertTrue(enrollmentService.findEnrollment(enrollmentUid).isPresent());
     Enrollment actual = enrollmentService.getEnrollment(enrollmentUid);
     assertAll(
         "created enrollment",
@@ -273,12 +273,12 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEqualUids(submission.getTrackedEntityInstance(), actual.getTrackedEntity()));
     assertDoesNotThrow(
         () ->
-            trackedEntityService.getNewTrackedEntity(
+            trackedEntityService.getTrackedEntity(
                 UID.of(submission.getTrackedEntityInstance().getUid()),
                 UID.of(submission.getTrackerProgram().getUid()),
                 TrackedEntityParams.FALSE));
     TrackedEntity actualTe =
-        trackedEntityService.getNewTrackedEntity(
+        trackedEntityService.getTrackedEntity(
             UID.of(submission.getTrackedEntityInstance().getUid()),
             UID.of(submission.getTrackerProgram().getUid()),
             TrackedEntityParams.FALSE.withIncludeAttributes(true));
@@ -373,12 +373,12 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEqualUids(submission.getTrackedEntityInstance(), actual.getTrackedEntity()));
     assertDoesNotThrow(
         () ->
-            trackedEntityService.getNewTrackedEntity(
+            trackedEntityService.getTrackedEntity(
                 UID.of(submission.getTrackedEntityInstance().getUid()),
                 UID.of(submission.getTrackerProgram().getUid()),
                 TrackedEntityParams.FALSE));
     TrackedEntity actualTe =
-        trackedEntityService.getNewTrackedEntity(
+        trackedEntityService.getTrackedEntity(
             UID.of(submission.getTrackedEntityInstance().getUid()),
             UID.of(submission.getTrackerProgram().getUid()),
             TrackedEntityParams.FALSE.withIncludeAttributes(true));
@@ -444,7 +444,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
                 "Command has been processed successfully", originator, messageSender));
 
     List<Enrollment> enrollments =
-        enrollmentService.getEnrollments(
+        enrollmentService.findEnrollments(
             EnrollmentOperationParams.builder()
                 .program(trackerProgram)
                 .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
@@ -461,10 +461,10 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     assertNotNull(trackedEntity);
     assertDoesNotThrow(
         () ->
-            trackedEntityService.getNewTrackedEntity(
+            trackedEntityService.getTrackedEntity(
                 UID.of(trackedEntity), UID.of(trackerProgram), TrackedEntityParams.FALSE));
     TrackedEntity actualTe =
-        trackedEntityService.getNewTrackedEntity(
+        trackedEntityService.getTrackedEntity(
             UID.of(trackedEntity),
             UID.of(trackerProgram),
             TrackedEntityParams.FALSE.withIncludeAttributes(true));

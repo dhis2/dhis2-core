@@ -148,7 +148,27 @@
       "version": {
         "min": 42
       }
+    },
+    {
+      "name": "subExpressionIndicator",
+      "query": "/api/analytics?dimension=dx:KjElpUc6jeX,pe:2021&filter=ou:Rp268JB6Ne4;cDw53Ej8rju;iPcreOldeV9;jjtzkzrmG7s&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "subExpressionIndicatorSingleValue",
+      "query": "/api/analytics?dimension=dx:KjElpUc6jeX&filter=ou:Rp268JB6Ne4;cDw53Ej8rju;jjtzkzrmG7s;iPcreOldeV9&filter=pe:2021&displayProperty=NAME&includeNumDen=false&skipMeta=false&skipData=true&includeMetadataDetails=true",
+      "version": {
+        "min": 42
+      }
+    },
+    {
+      "name": "programDataElementOptionDimensionItemWithOptions",
+      "query": "/api/analytics?dimension=dx:eBAyeGv0exc.K6uUAvq500H.IwbX7Ubzu57;eBAyeGv0exc.K6uUAvq500H.Fg4hq7La1MN;eBAyeGv0exc.K6uUAvq500H.UYhscH2W06r;eBAyeGv0exc.K6uUAvq500H.rmYsyizWAJx,pe:LAST_12_MONTHS&filter=ou:USER_ORGUNIT&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=true&includeMetadataDetails=true",
+      "version": {
+        "min": 42
+      }
     }
   ]
 }
-

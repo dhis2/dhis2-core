@@ -100,7 +100,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
+      @Qualifier("analyticsReadOnlyJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
@@ -218,12 +218,11 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             ${partitionClause} \
             and (ougs.startdate is null or ps.monthstartdate=ougs.startdate) \
             and cdr.lastupdated < '${startTime}' \
-            and cdr.completed = true""",
+            and ${completedClause}""",
             Map.of(
-                "partitionClause",
-                partitionClause,
-                "startTime",
-                toLongDate(params.getStartTime())));
+                "partitionClause", partitionClause,
+                "startTime", toLongDate(params.getStartTime()),
+                "completedClause", sqlBuilder.isTrue("cdr", "completed")));
 
     invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }

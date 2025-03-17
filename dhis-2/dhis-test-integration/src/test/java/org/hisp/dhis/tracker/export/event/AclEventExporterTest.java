@@ -85,12 +85,12 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() throws IOException {
-    testSetup.setUpMetadata();
+    testSetup.importMetadata();
 
     User userA = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(userA);
 
-    testSetup.setUpTrackerData();
+    testSetup.importTrackerData();
     orgUnit = get(OrganisationUnit.class, "h4w96yEMlzO");
     ProgramStage programStage = get(ProgramStage.class, "NpsdDv6kKSO");
     program = programStage.getProgram();
@@ -122,7 +122,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
             .orgUnitMode(DESCENDANTS)
             .build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -144,7 +144,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
     EventOperationParams params =
         operationParamsBuilder.orgUnit(orgUnit).orgUnitMode(DESCENDANTS).build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -172,7 +172,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
             .orgUnitMode(CHILDREN)
             .build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -194,7 +194,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
     EventOperationParams params =
         operationParamsBuilder.orgUnit(orgUnit).orgUnitMode(CHILDREN).build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -215,7 +215,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
             .build();
 
     ForbiddenException exception =
-        assertThrows(ForbiddenException.class, () -> eventService.getEvents(params));
+        assertThrows(ForbiddenException.class, () -> eventService.findEvents(params));
     assertEquals(
         "Organisation unit is not part of your search scope: DiszpKrYNg8", exception.getMessage());
   }
@@ -231,7 +231,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
             .build();
 
     ForbiddenException exception =
-        assertThrows(ForbiddenException.class, () -> eventService.getEvents(params));
+        assertThrows(ForbiddenException.class, () -> eventService.findEvents(params));
     assertEquals(
         "Organisation unit is not part of your search scope: DiszpKrYNg8", exception.getMessage());
   }
@@ -247,7 +247,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
             .orgUnitMode(SELECTED)
             .build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -269,7 +269,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
     EventOperationParams params =
         operationParamsBuilder.orgUnit(UID.of("DiszpKrYNg8")).orgUnitMode(SELECTED).build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -287,7 +287,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
     EventOperationParams params =
         operationParamsBuilder.orgUnit(UID.of("RojfDTBhoGC")).orgUnitMode(SELECTED).build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -309,7 +309,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
             .orgUnitMode(SELECTED)
             .build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertTrue(events.isEmpty(), "Expected to find no events, but found: " + events.size());
   }
@@ -321,7 +321,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
     EventOperationParams params =
         operationParamsBuilder.program(UID.of("pcxIanBWlSY")).orgUnitMode(ACCESSIBLE).build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(), "Expected to find events when ou mode accessible and program closed");
@@ -342,7 +342,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
     EventOperationParams params =
         operationParamsBuilder.program(program).orgUnitMode(ACCESSIBLE).build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(), "Expected to find events when ou mode accessible and program open");
@@ -363,7 +363,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
     EventOperationParams params =
         operationParamsBuilder.program(UID.of("pcxIanBWlSY")).orgUnitMode(CAPTURE).build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(), "Expected to find events when ou mode capture and program closed");
@@ -384,7 +384,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
     EventOperationParams params =
         operationParamsBuilder.program(UID.of("pcxIanBWlSY")).orgUnitMode(ACCESSIBLE).build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -413,7 +413,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
             .events(UID.of("lumVtWwwy0O", "cadc5eGj0j7"))
             .build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertContainsOnly(List.of("lumVtWwwy0O", "cadc5eGj0j7"), uids(events));
     List<Executable> executables =
@@ -459,7 +459,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
 
     EventOperationParams params = operationParamsBuilder.orgUnitMode(ALL).build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -484,7 +484,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
     EventOperationParams params =
         operationParamsBuilder.orgUnit(UID.of("uoNW0E3xXUy")).orgUnitMode(ALL).build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -509,7 +509,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
 
     EventOperationParams params = operationParamsBuilder.orgUnitMode(ACCESSIBLE).build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(), "Expected to find events when ou mode ACCESSIBLE and events visible");
@@ -535,6 +535,6 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
 
   private List<String> getEvents(EventOperationParams params)
       throws ForbiddenException, BadRequestException {
-    return uids(eventService.getEvents(params));
+    return uids(eventService.findEvents(params));
   }
 }

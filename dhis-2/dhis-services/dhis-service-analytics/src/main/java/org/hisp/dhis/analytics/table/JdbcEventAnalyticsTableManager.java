@@ -115,7 +115,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      SqlBuilder sqlBuilder) {
+      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -338,8 +338,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             \sfrom ${event} ev \
             inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
             inner join ${programstage} ps on ev.programstageid=ps.programstageid \
-            inner join ${program} pr on en.programid=pr.programid and en.deleted = false \
-            left join ${trackedentity} te on en.trackedentityid=te.trackedentityid and te.deleted = false \
+            inner join ${program} pr on en.programid=pr.programid and ${enDeletedClause} \
+            left join ${trackedentity} te on en.trackedentityid=te.trackedentityid and ${teDeletedClause} \
             left join ${organisationunit} registrationou on te.organisationunitid=registrationou.organisationunitid \
             inner join ${organisationunit} ou on ev.organisationunitid=ou.organisationunitid \
             left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod \
@@ -363,6 +363,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 "attributeJoinClause", attributeJoinClause,
                 "startTime", toLongDate(params.getStartTime()),
                 "programId", String.valueOf(program.getId()),
+                "enDeletedClause", sqlBuilder.isFalse("en", "deleted"),
+                "teDeletedClause", sqlBuilder.isFalse("te", "deleted"),
                 "firstDataYear", String.valueOf(firstDataYear),
                 "latestDataYear", String.valueOf(latestDataYear),
                 "exportableEventStatues", join(",", EXPORTABLE_EVENT_STATUSES)));

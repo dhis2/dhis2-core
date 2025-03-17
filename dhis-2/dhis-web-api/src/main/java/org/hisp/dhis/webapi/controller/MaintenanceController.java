@@ -34,17 +34,16 @@ import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryManager;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.dxf2.util.CategoryUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.maintenance.MaintenanceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -53,7 +52,6 @@ import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -72,29 +70,19 @@ import org.springframework.web.bind.annotation.ResponseStatus;
     classifiers = {"team:platform", "purpose:support"})
 @Controller
 @RequestMapping("/api/maintenance")
+@RequiredArgsConstructor
 @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class MaintenanceController {
 
-  @Autowired private MaintenanceService maintenanceService;
-
-  @Autowired private ResourceTableService resourceTableService;
-
-  @Autowired private AnalyticsTableGenerator analyticsTableGenerator;
-
-  @Autowired private OrganisationUnitService organisationUnitService;
-
-  @Autowired private DataElementService dataElementService;
-
-  @Autowired private List<AnalyticsTableService> analyticsTableService;
-
-  @Autowired private CategoryManager categoryManager;
-
-  @Autowired private CategoryUtils categoryUtils;
-
-  @Autowired private AppManager appManager;
-
-  @Autowired private CategoryService categoryService;
+  private final MaintenanceService maintenanceService;
+  private final ResourceTableService resourceTableService;
+  private final AnalyticsTableGenerator analyticsTableGenerator;
+  private final OrganisationUnitService organisationUnitService;
+  private final DataElementService dataElementService;
+  private final List<AnalyticsTableService> analyticsTableService;
+  private final AppManager appManager;
+  private final CategoryService categoryService;
 
   @RequestMapping(
       value = "/analyticsTablesClear",
@@ -205,7 +193,7 @@ public class MaintenanceController {
       method = {RequestMethod.PUT, RequestMethod.POST})
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void updateCategoryOptionCombos() {
-    categoryManager.addAndPruneAllOptionCombos();
+    categoryService.addAndPruneAllOptionCombos();
   }
 
   @RequestMapping(
@@ -219,7 +207,7 @@ public class MaintenanceController {
       return conflict("CategoryCombo does not exist: " + uid);
     }
 
-    return importSummaries(categoryUtils.addAndPruneOptionCombos(categoryCombo));
+    return importSummaries(categoryService.addAndPruneOptionCombosWithSummary(categoryCombo));
   }
 
   @RequestMapping(

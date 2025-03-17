@@ -73,18 +73,21 @@ class OrderAndFilterTrackedEntityChangeLogTest extends PostgresIntegrationTestBa
 
   private User importUser;
 
-  private final PageParams defaultPageParams = PageParams.of(null, null, false);
-
+  private final PageParams defaultPageParams;
   private TrackerObjects trackerObjects;
+
+  OrderAndFilterTrackedEntityChangeLogTest() throws BadRequestException {
+    defaultPageParams = PageParams.of(1, 10, false);
+  }
 
   @BeforeAll
   void setUp() throws IOException {
-    testSetup.setUpMetadata();
+    testSetup.importMetadata();
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    trackerObjects = testSetup.setUpTrackerData();
+    trackerObjects = testSetup.importTrackerData();
   }
 
   @BeforeEach
@@ -163,7 +166,6 @@ class OrderAndFilterTrackedEntityChangeLogTest extends PostgresIntegrationTestBa
     String updatedValue = "100";
 
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
-    updateAttributeValue(trackedEntity, "dIVt4l5vIOa", "new value");
 
     List<String> changeLogs =
         trackedEntityChangeLogService
@@ -174,13 +176,7 @@ class OrderAndFilterTrackedEntityChangeLogTest extends PostgresIntegrationTestBa
             .toList();
 
     assertEquals(
-        List.of(
-            "numeric-attribute",
-            "numeric-attribute",
-            "TA First name",
-            "TA First name",
-            "to-update-tei-attribute"),
-        changeLogs);
+        List.of("numeric-attribute", "numeric-attribute", "to-update-tei-attribute"), changeLogs);
   }
 
   @Test
@@ -195,7 +191,6 @@ class OrderAndFilterTrackedEntityChangeLogTest extends PostgresIntegrationTestBa
     String updatedValue = "100";
 
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
-    updateAttributeValue(trackedEntity, "dIVt4l5vIOa", "new value");
 
     List<String> changeLogs =
         trackedEntityChangeLogService
@@ -206,13 +201,7 @@ class OrderAndFilterTrackedEntityChangeLogTest extends PostgresIntegrationTestBa
             .toList();
 
     assertEquals(
-        List.of(
-            "to-update-tei-attribute",
-            "TA First name",
-            "TA First name",
-            "numeric-attribute",
-            "numeric-attribute"),
-        changeLogs);
+        List.of("to-update-tei-attribute", "numeric-attribute", "numeric-attribute"), changeLogs);
   }
 
   @Test

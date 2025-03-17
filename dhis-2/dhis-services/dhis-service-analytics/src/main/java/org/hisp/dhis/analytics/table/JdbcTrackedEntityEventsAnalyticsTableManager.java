@@ -184,7 +184,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
       TrackedEntityTypeService trackedEntityTypeService,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      SqlBuilder sqlBuilder,
+      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder,
       AnalyticsSqlBuilder analyticsSqlBuilder) {
     super(
         idObjectManager,
@@ -298,16 +298,19 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
             and te.trackedentitytypeid = ${tetId} \
             and (${eventDateExpression}) is not null \
             and (${eventDateExpression}) > '1000-01-01' \
-            and ev.deleted = false \
-            and te.deleted = false\s""",
+            and ${evDeletedClause} \
+            and ${teDeletedClause} """,
             Map.of(
                 "eventDateExpression", eventDateExpression,
                 "startTime", toLongDate(params.getStartTime()),
-                "tetId", String.valueOf(tet.getId()))));
+                "tetId", String.valueOf(tet.getId()),
+                "evDeletedClause", sqlBuilder.isFalse("ev", "deleted"),
+                "teDeletedClause", sqlBuilder.isFalse("te", "deleted"))));
 
     if (params.getFromDate() != null) {
-      sql.append(
-          " and (" + eventDateExpression + ") >= '" + toMediumDate(params.getFromDate()) + "'");
+      sql.append(" and (" + eventDateExpression + ") >= '")
+          .append(toMediumDate(params.getFromDate()))
+          .append("'");
     }
 
     List<Integer> availableDataYears =
@@ -372,16 +375,19 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
         replaceQualify(
             """
             from ${event} ev \
-            inner join ${enrollment} en on en.enrollmentid=ev.enrollmentid and en.deleted = false \
+            inner join ${enrollment} en on en.enrollmentid=ev.enrollmentid and ${enDeletedClause} \
             inner join ${trackedentity} te on te.trackedentityid=en.trackedentityid \
-            and te.deleted = false and te.trackedentitytypeid = ${tetId} and te.lastupdated < '${startTime}' \
+            and ${teDeletedClause} and te.trackedentitytypeid = ${tetId} and te.lastupdated < '${startTime}' \
             left join ${programstage} ps on ev.programstageid=ps.programstageid \
             left join ${program} p on ps.programid=p.programid \
             left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid \
             where ev.status in (${statuses}) \
             ${partitionClause} \
-            and ev.deleted = false\s""",
+            and ${evDeletedClause} """,
             Map.of(
+                "enDeletedClause", sqlBuilder.isFalse("en", "deleted"),
+                "teDeletedClause", sqlBuilder.isFalse("te", "deleted"),
+                "evDeletedClause", sqlBuilder.isFalse("ev", "deleted"),
                 "tetId", String.valueOf(tetId),
                 "startTime", toLongDate(params.getStartTime()),
                 "statuses", join(",", EXPORTABLE_EVENT_STATUSES),

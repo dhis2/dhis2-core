@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,20 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.category;
+package org.hisp.dhis.trackedentity;
 
-/**
- * @author Viet Nguyen <viet@dhis2.org>
- */
-public interface CategoryManager {
-  /**
-   * Generates the complete set of category option combos for the given category combo. Removes
-   * obsolete category option combos.
-   *
-   * @param categoryCombo the CategoryCombo.
-   */
-  void addAndPruneOptionCombos(CategoryCombo categoryCombo);
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
-  /** Generates the complete set of category option combos for all category combos. */
-  void addAndPruneAllOptionCombos();
+class TrackedEntityTypeServiceTest extends PostgresIntegrationTestBase {
+
+  @Autowired private TrackedEntityTypeService trackedEntityTypeService;
+
+  @Test
+  void testAddShortNameAndCode() {
+    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
+    trackedEntityType.setShortName("shortname");
+    trackedEntityType.setCode("code");
+    trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
+
+    TrackedEntityType persisted =
+        trackedEntityTypeService.getTrackedEntityType(trackedEntityType.getId());
+
+    Assertions.assertEquals(trackedEntityType.getShortName(), persisted.getShortName());
+    Assertions.assertEquals(trackedEntityType.getCode(), persisted.getCode());
+  }
 }

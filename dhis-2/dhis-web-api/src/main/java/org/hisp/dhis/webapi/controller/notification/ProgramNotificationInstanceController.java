@@ -33,11 +33,12 @@ import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestH
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Response.Status;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -67,6 +68,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping("/api/programNotificationInstances")
 @ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@RequiredArgsConstructor
 public class ProgramNotificationInstanceController {
   private final ProgramNotificationInstanceService programNotificationInstanceService;
 
@@ -74,30 +76,27 @@ public class ProgramNotificationInstanceController {
 
   private final EventService eventService;
 
-  public ProgramNotificationInstanceController(
-      ProgramNotificationInstanceService programNotificationInstanceService,
-      EnrollmentService enrollmentService,
-      EventService eventService) {
-    this.programNotificationInstanceService = programNotificationInstanceService;
-    this.enrollmentService = enrollmentService;
-    this.eventService = eventService;
-  }
+  private final IdentifiableObjectManager manager;
 
   @OpenApi.Response(status = Status.OK, value = Page.class)
   @RequiresAuthority(anyOf = ALL)
   @GetMapping(produces = {"application/json"})
   public @ResponseBody ResponseEntity<Page<ProgramNotificationInstance>> getScheduledMessage(
       ProgramNotificationInstanceRequestParams requestParams, HttpServletRequest request)
-      throws ForbiddenException, NotFoundException, BadRequestException {
+      throws NotFoundException, BadRequestException {
     validatePaginationParameters(requestParams);
 
     Event storedEvent = null;
     if (requestParams.getEvent() != null) {
-      storedEvent = eventService.getEvent(requestParams.getEvent());
+      eventService.getEvent(requestParams.getEvent());
+      // TODO(tracker) jdbc-hibernate: check the impact on performance
+      storedEvent = manager.get(Event.class, requestParams.getEvent());
     }
     Enrollment storedEnrollment = null;
     if (requestParams.getEnrollment() != null) {
-      storedEnrollment = enrollmentService.getEnrollment(requestParams.getEnrollment());
+      enrollmentService.getEnrollment(requestParams.getEnrollment());
+      // TODO(tracker) jdbc-hibernate: check the impact on performance
+      storedEnrollment = manager.get(Enrollment.class, requestParams.getEnrollment());
     }
 
     if (requestParams.isPaging()) {

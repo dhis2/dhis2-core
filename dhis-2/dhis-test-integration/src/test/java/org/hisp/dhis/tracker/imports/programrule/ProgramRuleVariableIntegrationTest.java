@@ -64,7 +64,7 @@ class ProgramRuleVariableIntegrationTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() throws IOException {
-    testSetup.setUpMetadata("tracker/tracker_metadata_with_program_rules_variables.json");
+    testSetup.importMetadata("tracker/tracker_metadata_with_program_rules_variables.json");
 
     User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);

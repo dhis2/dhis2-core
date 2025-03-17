@@ -29,14 +29,19 @@ package org.hisp.dhis.webapi.controller.event;
 
 import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
+import static org.hisp.dhis.common.DimensionType.PROGRAM_ATTRIBUTE;
+import static org.hisp.dhis.common.DimensionType.PROGRAM_DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getQualifiedDimensions;
+import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
+import static org.hisp.dhis.commons.collection.ListUtils.union;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.eventvisualization.EventVisualizationType.LINE_LIST;
 import static org.hisp.dhis.eventvisualization.EventVisualizationType.PIVOT_TABLE;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_PNG;
+import static org.hisp.dhis.webapi.utils.FilterUtils.fromFilter;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -51,6 +56,7 @@ import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.eventvisualization.EventVisualization;
@@ -169,12 +175,14 @@ public class EventVisualizationController
 
     if (currentUser != null) {
       Set<OrganisationUnit> roots = currentUser.getDataViewOrganisationUnitsWithFallback();
-
-      for (OrganisationUnit organisationUnit : eventVisualization.getOrganisationUnits()) {
-        eventVisualization
-            .getParentGraphMap()
-            .put(organisationUnit.getUid(), organisationUnit.getParentGraph(roots));
-      }
+      addOrganizationUnitsToGraphMap(eventVisualization, roots);
+      addFilterOrganizationUnitsToResponse(
+          union(
+              eventVisualization.getColumns(),
+              eventVisualization.getRows(),
+              eventVisualization.getFilters()),
+          eventVisualization,
+          roots);
     }
 
     I18nFormat format = i18nManager.getI18nFormat();
@@ -199,6 +207,46 @@ public class EventVisualizationController
         new ArrayList<>(programService.getPrograms(programUidsInDimensions)));
   }
 
+  private void addOrganizationUnitsToGraphMap(
+      EventVisualization eventVisualization, Set<OrganisationUnit> roots) {
+    for (OrganisationUnit ou : eventVisualization.getOrganisationUnits()) {
+      eventVisualization.getParentGraphMap().put(ou.getUid(), ou.getParentGraph(roots));
+    }
+  }
+
+  private void addFilterOrganizationUnitsToResponse(
+      List<DimensionalObject> dimensionalObjects,
+      EventVisualization eventVisualization,
+      Set<OrganisationUnit> roots) {
+    for (DimensionalObject dimensionalObject : dimensionalObjects) {
+      if ((dimensionalObject.getDimensionType() == PROGRAM_ATTRIBUTE
+              || dimensionalObject.getDimensionType() == PROGRAM_DATA_ELEMENT)
+          && dimensionalObject.getValueType() == ORGANISATION_UNIT) {
+
+        List<String> orgUnitUids = fromFilter(dimensionalObject.getFilter());
+        processOrganisationUnits(orgUnitUids, eventVisualization, roots);
+      }
+    }
+  }
+
+  /** Common method to process organization units once UIDs are extracted. */
+  private void processOrganisationUnits(
+      List<String> orgUnitUids,
+      EventVisualization eventVisualization,
+      Set<OrganisationUnit> roots) {
+
+    if (!orgUnitUids.isEmpty()) {
+      List<OrganisationUnit> units = organisationUnitService.getOrganisationUnitsByUid(orgUnitUids);
+
+      for (OrganisationUnit ou : units) {
+        eventVisualization.getParentGraphMap().put(ou.getUid(), ou.getParentGraph(roots));
+        eventVisualization
+            .getMetaData()
+            .put(ou.getUid(), new MetadataItem(ou.getDisplayName(), ou.getUid(), ou.getCode()));
+      }
+    }
+  }
+
   private Stream<Program> getPrograms(Stream<DimensionalObject> dimensionalObjectStream) {
     return dimensionalObjectStream.map(DimensionalObject::getProgram).filter(Objects::nonNull);
   }
@@ -206,7 +254,7 @@ public class EventVisualizationController
   @Override
   protected void preCreateEntity(EventVisualization newEventVisualization)
       throws ConflictException {
-    /**
+    /*
      * Once a legacy EventVisualization is CREATED through this new endpoint, it will automatically
      * become a non-legacy EventVisualization.
      */
@@ -217,7 +265,7 @@ public class EventVisualizationController
   protected void preUpdateEntity(
       EventVisualization eventVisualization, EventVisualization newEventVisualization)
       throws ConflictException {
-    /**
+    /*
      * Once a legacy EventVisualization is UPDATED through this new endpoint, it will automatically
      * become a non-legacy EventVisualization.
      */
@@ -256,8 +304,6 @@ public class EventVisualizationController
   /**
    * Load the current/existing legendSet (if any is set) into the current visualization object, so
    * the relationship can be persisted.
-   *
-   * @param eventVisualization
    */
   private void maybeLoadLegendSetInto(EventVisualization eventVisualization) {
     if (eventVisualization.getLegendDefinitions() != null

@@ -107,7 +107,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
       TrackedEntityAttributeService trackedEntityAttributeService,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      SqlBuilder sqlBuilder) {
+      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -333,11 +333,12 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
             \swhere te.trackedentitytypeid = ${tetId} \
             and te.lastupdated < '${startTime}' \
             and te.created is not null \
-            and te.deleted = false""",
+            and ${teDeletedClause}""",
             Map.of(
                 "tetId", String.valueOf(trackedEntityType.getId()),
                 "startTime", toLongDate(params.getStartTime()),
-                "statuses", join(",", EXPORTABLE_EVENT_STATUSES))));
+                "statuses", join(",", EXPORTABLE_EVENT_STATUSES),
+                "teDeletedClause", sqlBuilder.isFalse("te", "deleted"))));
 
     invokeTimeAndLog(sql.toString(), "Populating table: '{}'", tableName);
   }

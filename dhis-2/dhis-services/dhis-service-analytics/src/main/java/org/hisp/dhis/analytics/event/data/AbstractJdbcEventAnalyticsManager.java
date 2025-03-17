@@ -62,7 +62,6 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_P
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.feedback.ErrorCode.E7149;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
@@ -124,7 +123,6 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.period.Period;
@@ -166,7 +164,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   private static final Collector<CharSequence, ?, String> AND_JOINER = joining(AND);
 
-  @Qualifier("analyticsReadOnlyJdbcTemplate")
+  @Qualifier("analyticsJdbcTemplate")
   protected final JdbcTemplate jdbcTemplate;
 
   protected final ProgramIndicatorService programIndicatorService;
@@ -178,8 +176,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected final SqlBuilder sqlBuilder;
 
   protected final SystemSettingsService settingsService;
-
-  private final DhisConfigurationProvider config;
 
   private final OrganisationUnitResolver organisationUnitResolver;
 
@@ -599,7 +595,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // ---------------------------------------------------------------------
 
     final String finalSqlValue = sql;
-
     if (params.analyzeOnly()) {
       withExceptionHandling(
           () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), finalSqlValue));
@@ -737,6 +732,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   protected String getAggregateClause(EventQueryParams params) {
     // TODO include output type if aggregation type is count
+
+    // If no aggregation type is set for this event data item and no override aggregation type is
+    // set
+    // no need to continue and skip aggregation all together by returning NULL
+    if (hasNoAggregationType(params)) {
+      return "null";
+    }
 
     EventOutputType outputType = params.getOutputType();
 
@@ -1504,8 +1506,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @return true if the experimental analytics query engine should be used, false otherwise.
    */
   protected boolean useExperimentalAnalyticsQueryEngine() {
-    return "doris".equalsIgnoreCase(config.getPropertyOrDefault(ANALYTICS_DATABASE, "").trim())
-        || this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine();
+    return this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine();
   }
 
   /**
@@ -1599,4 +1600,26 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @return the {@link AnalyticsType}.
    */
   protected abstract AnalyticsType getAnalyticsType();
+
+  /**
+   * Check if the aggregation type is NONE on both the param value's aggregation type and the
+   * EventQueryParams aggregation type (in case of aggregation type override).
+   *
+   * @param params the {@link EventQueryParams}.
+   * @return true if the aggregation type is NONE on both the param value's aggregation type
+   */
+  private boolean hasNoAggregationType(EventQueryParams params) {
+    if (params.getValue() == null) {
+      return false;
+    }
+
+    // Check if there's an explicit aggregation type override
+    if (params.getAggregationType() != null) {
+      // If the override is NOT NONE, return false
+      return params.getAggregationType().getAggregationType() == AggregationType.NONE;
+    }
+
+    // No override exists, so check the value's aggregation type
+    return params.getValue().getAggregationType() == AggregationType.NONE;
+  }
 }

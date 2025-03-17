@@ -177,7 +177,7 @@ class TrackedEntitiesExportController {
           PageParams.of(
               requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
       org.hisp.dhis.tracker.Page<org.hisp.dhis.trackedentity.TrackedEntity> trackedEntitiesPage =
-          trackedEntityService.getTrackedEntities(operationParams, pageParams);
+          trackedEntityService.findTrackedEntities(operationParams, pageParams);
 
       MappingErrors errors = new MappingErrors(idSchemeParams);
       org.hisp.dhis.tracker.Page<TrackedEntity> page =
@@ -190,7 +190,7 @@ class TrackedEntitiesExportController {
 
     MappingErrors errors = new MappingErrors(idSchemeParams);
     List<TrackedEntity> trackedEntities =
-        trackedEntityService.getTrackedEntities(operationParams).stream()
+        trackedEntityService.findTrackedEntities(operationParams).stream()
             .map(te -> TRACKED_ENTITY_MAPPER.map(idSchemeParams, errors, te))
             .toList();
     ensureNoMappingErrors(errors);
@@ -275,7 +275,7 @@ class TrackedEntitiesExportController {
 
     MappingErrors errors = new MappingErrors(idSchemeParams);
     List<TrackedEntity> result =
-        trackedEntityService.getTrackedEntities(operationParams).stream()
+        trackedEntityService.findTrackedEntities(operationParams).stream()
             .map(te -> TRACKED_ENTITY_MAPPER.map(idSchemeParams, errors, te))
             .toList();
     ensureNoMappingErrors(errors);
@@ -291,7 +291,7 @@ class TrackedEntitiesExportController {
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
           List<FieldPath> fields,
       TrackerIdSchemeParams idSchemeParams)
-      throws ForbiddenException, NotFoundException, BadRequestException, WebMessageException {
+      throws ForbiddenException, NotFoundException, WebMessageException {
     TrackedEntityParams trackedEntityParams = fieldsMapper.map(fields);
 
     MappingErrors errors = new MappingErrors(idSchemeParams);
@@ -314,11 +314,7 @@ class TrackedEntitiesExportController {
       HttpServletResponse response,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader,
       @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program)
-      throws IOException,
-          ForbiddenException,
-          NotFoundException,
-          BadRequestException,
-          WebMessageException {
+      throws IOException, ForbiddenException, NotFoundException, WebMessageException {
     TrackedEntityParams trackedEntityParams = fieldsMapper.map(CSV_FIELDS);
 
     MappingErrors errors = new MappingErrors(idSchemeParams);
@@ -342,7 +338,7 @@ class TrackedEntitiesExportController {
       @OpenApi.Param({UID.class, Attribute.class}) @PathVariable UID attribute,
       @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
       HttpServletRequest request)
-      throws NotFoundException, ConflictException, BadRequestException {
+      throws NotFoundException, ConflictException, BadRequestException, ForbiddenException {
     validateUnsupportedParameter(
         request,
         "dimension",
@@ -361,7 +357,7 @@ class TrackedEntitiesExportController {
       @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
       @RequestParam(required = false) ImageFileDimension dimension,
       HttpServletRequest request)
-      throws NotFoundException, ConflictException, BadRequestException {
+      throws NotFoundException, ConflictException, BadRequestException, ForbiddenException {
     return requestHandler.serve(
         request,
         trackedEntityService.getFileResourceImage(trackedEntity, attribute, program, dimension));

@@ -33,9 +33,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.UnaryOperator;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.springframework.context.ApplicationContext;
 import org.springframework.util.StringUtils;
 
 /**
@@ -44,6 +49,9 @@ import org.springframework.util.StringUtils;
 @Getter
 @Setter
 @Accessors(chain = true)
+@Builder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class HttpBasicAuthScheme implements AuthScheme {
   public static final String HTTP_BASIC_TYPE = "http-basic";
 
@@ -54,7 +62,10 @@ public class HttpBasicAuthScheme implements AuthScheme {
   private String password;
 
   @Override
-  public void apply(Map<String, List<String>> headers, Map<String, List<String>> queryParams) {
+  public void apply(
+      ApplicationContext applicationContext,
+      Map<String, List<String>> headers,
+      Map<String, List<String>> queryParams) {
     if (!(StringUtils.hasText(username) && StringUtils.hasText(password))) {
       return;
     }
@@ -66,25 +77,17 @@ public class HttpBasicAuthScheme implements AuthScheme {
 
   @Override
   public HttpBasicAuthScheme encrypt(UnaryOperator<String> encryptFunc) {
-    return copy(encryptFunc.apply(password));
+    return this.toBuilder().password(encryptFunc.apply(password)).build();
   }
 
   @Override
   public HttpBasicAuthScheme decrypt(UnaryOperator<String> decryptFunc) {
-    return copy(decryptFunc.apply(password));
+    return this.toBuilder().password(decryptFunc.apply(password)).build();
   }
 
   @Override
   public String getType() {
     return HTTP_BASIC_TYPE;
-  }
-
-  protected HttpBasicAuthScheme copy(String password) {
-    HttpBasicAuthScheme newHttpBasicAuth = new HttpBasicAuthScheme();
-    newHttpBasicAuth.setUsername(username);
-    newHttpBasicAuth.setPassword(password);
-
-    return newHttpBasicAuth;
   }
 
   private String getBasicAuth(String username, String password) {

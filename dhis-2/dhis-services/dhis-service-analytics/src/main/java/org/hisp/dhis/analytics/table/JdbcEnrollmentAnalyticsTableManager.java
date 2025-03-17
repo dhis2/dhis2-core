@@ -78,7 +78,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      SqlBuilder sqlBuilder) {
+      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -143,7 +143,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
             """
             \sfrom ${enrollment} en \
             inner join ${program} pr on en.programid=pr.programid \
-            left join ${trackedentity} te on en.trackedentityid=te.trackedentityid and te.deleted = false \
+            left join ${trackedentity} te on en.trackedentityid=te.trackedentityid and ${teDeletedClause} \
             left join ${organisationunit} registrationou on te.organisationunitid=registrationou.organisationunitid \
             inner join ${organisationunit} ou on en.organisationunitid=ou.organisationunitid \
             left join analytics_rs_dateperiodstructure dps on cast(en.enrollmentdate as date)=dps.dateperiod \
@@ -155,11 +155,13 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
             and (ougs.startdate is null or dps.monthstartdate=ougs.startdate) \
             and en.lastupdated <= '${startTime}' \
             and en.occurreddate is not null \
-            and en.deleted = false\s""",
+            and ${enDeletedClause} """,
             Map.of(
                 "attributeJoinClause", attributeJoinClause,
                 "programId", String.valueOf(program.getId()),
-                "startTime", toLongDate(params.getStartTime())));
+                "startTime", toLongDate(params.getStartTime()),
+                "teDeletedClause", sqlBuilder.isFalse("te", "deleted"),
+                "enDeletedClause", sqlBuilder.isFalse("en", "deleted")));
 
     populateTableInternal(partition, fromClause);
   }

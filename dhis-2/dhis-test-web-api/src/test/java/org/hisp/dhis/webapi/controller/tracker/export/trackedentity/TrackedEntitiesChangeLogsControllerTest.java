@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
@@ -35,13 +36,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
+import java.util.List;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.http.HttpStatus;
-import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -56,90 +56,66 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrationTestBase {
   @Autowired private TestSetup testSetup;
+  @Autowired private DhisConfigurationProvider config;
 
-  @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
-
+  private final String trackedEntityAttribute = "numericAttr";
   private TrackedEntity trackedEntity;
-
-  private TrackedEntityAttribute trackedEntityAttribute;
 
   @BeforeEach
   void setUp() throws IOException {
-    testSetup.setUpMetadata();
+    config.getProperties().put(CHANGELOG_TRACKER.getKey(), "on");
+
+    testSetup.importMetadata();
 
     User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    testSetup.setUpTrackerData("tracker/single_te.json");
+    testSetup.importTrackerData();
 
-    trackedEntity = manager.get(TrackedEntity.class, "IOR1AXXl24H");
+    trackedEntity = manager.get(TrackedEntity.class, "QS6w44flWAf");
 
-    JsonWebMessage importResponse =
-        POST("/tracker?async=false&importStrategy=UPDATE", createJsonPayload("numericAttr", 2))
-            .content(HttpStatus.OK)
-            .as(JsonWebMessage.class);
-    assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
-
-    importResponse =
-        POST("/tracker?async=false&importStrategy=UPDATE", createJsonPayload("numericAttr", 3))
-            .content(HttpStatus.OK)
-            .as(JsonWebMessage.class);
-    assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
-
-    importResponse =
-        POST("/tracker?async=false&importStrategy=UPDATE", createJsonPayload("numericAttr", 4))
-            .content(HttpStatus.OK)
-            .as(JsonWebMessage.class);
-    assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
-
-    trackedEntityAttribute = trackedEntityAttributeService.getTrackedEntityAttribute("numericAttr");
+    updateAttribute(trackedEntityAttribute, "2");
+    updateAttribute(trackedEntityAttribute, "3");
+    updateAttribute(trackedEntityAttribute, "4");
   }
 
   @Test
   void shouldGetTrackedEntityChangeLogInDescOrderByDefault() {
-    JsonList<JsonTrackedEntityChangeLog> changeLogs =
-        GET("/tracker/trackedEntities/{id}/changeLogs", trackedEntity.getUid())
-            .content(HttpStatus.OK)
-            .getList("changeLogs", JsonTrackedEntityChangeLog.class);
+    List<JsonTrackedEntityChangeLog> changeLogs = getChangeLogs(trackedEntityAttribute);
 
-    assertNumberOfChanges(3, changeLogs);
+    assertNumberOfChanges(4, changeLogs);
     assertAll(
-        () -> assertUpdate(trackedEntityAttribute.getUid(), "3", "4", changeLogs.get(0)),
-        () -> assertUpdate(trackedEntityAttribute.getUid(), "2", "3", changeLogs.get(1)),
-        () -> assertCreate(trackedEntityAttribute.getUid(), "2", changeLogs.get(2)));
+        () -> assertUpdate(trackedEntityAttribute, "3", "4", changeLogs.get(0)),
+        () -> assertUpdate(trackedEntityAttribute, "2", "3", changeLogs.get(1)),
+        () -> assertUpdate(trackedEntityAttribute, "88", "2", changeLogs.get(2)),
+        () -> assertCreate(trackedEntityAttribute, "88", changeLogs.get(3)));
   }
 
   @Test
   void shouldGetTrackedEntityChangeLogInAscOrder() {
-    JsonList<JsonTrackedEntityChangeLog> changeLogs =
-        GET("/tracker/trackedEntities/{id}/changeLogs?order=createdAt:asc", trackedEntity.getUid())
-            .content(HttpStatus.OK)
-            .getList("changeLogs", JsonTrackedEntityChangeLog.class);
+    List<JsonTrackedEntityChangeLog> changeLogs =
+        getChangeLogs("order=createdAt:asc", trackedEntityAttribute, trackedEntity);
 
-    assertNumberOfChanges(3, changeLogs);
+    assertNumberOfChanges(4, changeLogs);
     assertAll(
-        () -> assertCreate(trackedEntityAttribute.getUid(), "2", changeLogs.get(0)),
-        () -> assertUpdate(trackedEntityAttribute.getUid(), "2", "3", changeLogs.get(1)),
-        () -> assertUpdate(trackedEntityAttribute.getUid(), "3", "4", changeLogs.get(2)));
+        () -> assertCreate(trackedEntityAttribute, "88", changeLogs.get(0)),
+        () -> assertUpdate(trackedEntityAttribute, "88", "2", changeLogs.get(1)),
+        () -> assertUpdate(trackedEntityAttribute, "2", "3", changeLogs.get(2)),
+        () -> assertUpdate(trackedEntityAttribute, "3", "4", changeLogs.get(3)));
   }
 
   @Test
   void shouldGetEventChangeLogsWhenFilteringByAttribute() {
-    JsonWebMessage importResponse =
-        POST("/tracker?async=false&importStrategy=UPDATE", createJsonPayload("toUpdate000", 10))
-            .content(HttpStatus.OK)
-            .as(JsonWebMessage.class);
-    assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
+    String trackedEntityAttribute = "toUpdate000";
+    updateAttribute(trackedEntityAttribute, "10");
 
-    JsonList<JsonTrackedEntityChangeLog> changeLogs =
-        GET(
-                "/tracker/trackedEntities/{id}/changeLogs?filter=attribute:eq:toUpdate000",
-                trackedEntity.getUid())
-            .content(HttpStatus.OK)
-            .getList("changeLogs", JsonTrackedEntityChangeLog.class);
+    List<JsonTrackedEntityChangeLog> changeLogs =
+        getChangeLogs("filter=attribute:eq:toUpdate000", trackedEntityAttribute, trackedEntity);
 
-    assertNumberOfChanges(1, changeLogs);
-    assertAll(() -> assertCreate("toUpdate000", "10", changeLogs.get(0)));
+    assertNumberOfChanges(2, changeLogs);
+    assertAll(
+        () -> assertUpdate(trackedEntityAttribute, "summer day", "10", changeLogs.get(0)),
+        () -> assertCreate(trackedEntityAttribute, "summer day", changeLogs.get(1)));
   }
 
   @Test
@@ -211,19 +187,19 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
         GET(
                 "/tracker/trackedEntities/{id}/changeLogs?page={page}&pageSize={pageSize}",
                 trackedEntity.getUid(),
-                "3",
+                "5",
                 "1")
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
     JsonPager pager = changeLogs.getPager();
     assertAll(
-        () -> assertEquals(3, pager.getPage()),
+        () -> assertEquals(5, pager.getPage()),
         () -> assertEquals(1, pager.getPageSize()),
         () ->
             assertPagerLink(
                 pager.getPrevPage(),
-                2,
+                4,
                 1,
                 String.format(
                     "http://localhost/api/tracker/trackedEntities/%s/changeLogs",
@@ -239,14 +215,14 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
                 "/tracker/trackedEntities/{id}/changeLogs?page={page}&pageSize={pageSize}",
                 trackedEntity.getUid(),
                 "1",
-                "3")
+                "5")
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
     JsonPager pagerObject = changeLogs.getPager();
     assertAll(
         () -> assertEquals(1, pagerObject.getPage()),
-        () -> assertEquals(3, pagerObject.getPageSize()),
+        () -> assertEquals(5, pagerObject.getPageSize()),
         () -> assertHasNoMember(pagerObject, "prevPage", "nextPage", "total", "pageCount"));
   }
 
@@ -273,7 +249,66 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
     assertEquals(50, pager.getPageSize());
   }
 
-  private String createJsonPayload(String attribute, int value) {
+  @Test
+  void shouldNotLogChangesWhenChangeLogConfigDisabled() {
+    config.getProperties().put(CHANGELOG_TRACKER.getKey(), "off");
+    String trackedEntityAttribute = "dIVt4l5vIOa";
+    updateAttribute(trackedEntityAttribute, "10");
+    updateAttribute(trackedEntityAttribute, "5");
+    deleteAttribute(trackedEntityAttribute);
+
+    List<JsonTrackedEntityChangeLog> changeLogs = getChangeLogs(trackedEntityAttribute);
+
+    assertNumberOfChanges(0, changeLogs);
+  }
+
+  @Test
+  void shouldLogChangesWhenTrackedEntityTypeAuditConfigDisabled() {
+    TrackedEntity trackedEntity = manager.get(TrackedEntity.class, "XUitxQbWYNz");
+    updateAttribute(trackedEntityAttribute, "10", trackedEntity);
+    updateAttribute(trackedEntityAttribute, "5", trackedEntity);
+    deleteAttribute(trackedEntityAttribute, trackedEntity);
+
+    List<JsonTrackedEntityChangeLog> changeLogs =
+        getChangeLogs(trackedEntityAttribute, trackedEntity);
+
+    assertNumberOfChanges(3, changeLogs);
+    assertAll(
+        () -> assertDelete(trackedEntityAttribute, "5", changeLogs.get(0)),
+        () -> assertUpdate(trackedEntityAttribute, "10", "5", changeLogs.get(1)),
+        () -> assertCreate(trackedEntityAttribute, "10", changeLogs.get(2)));
+  }
+
+  private void updateAttribute(String attribute, String value) {
+    updateAttribute(attribute, value, trackedEntity);
+  }
+
+  private void updateAttribute(String attribute, String value, TrackedEntity trackedEntity) {
+    JsonWebMessage importResponse =
+        POST("/tracker?async=false", createUpdateJsonPayload(attribute, value, trackedEntity))
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class);
+    assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
+  }
+
+  private void deleteAttribute(String attribute) {
+    JsonWebMessage importResponse =
+        POST("/tracker?async=false", createDeleteJsonPayload(attribute, trackedEntity))
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class);
+    assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
+  }
+
+  private void deleteAttribute(String attribute, TrackedEntity trackedEntity) {
+    JsonWebMessage importResponse =
+        POST("/tracker?async=false", createDeleteJsonPayload(attribute, trackedEntity))
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class);
+    assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
+  }
+
+  private String createUpdateJsonPayload(
+      String attribute, String value, TrackedEntity trackedEntity) {
     return """
            {
              "trackedEntities": [
@@ -281,17 +316,66 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
                  "attributes": [
                    {
                      "attribute": "%s",
-                     "value": %d
+                     "value": "%s"
                    }
                  ],
-                 "trackedEntity": "IOR1AXXl24H",
-                 "trackedEntityType": "ja8NY4PW7Xm",
-                 "orgUnit": "h4w96yEMlzO"
+                 "trackedEntity": "%s",
+                 "trackedEntityType": "%s",
+                 "orgUnit": "%s"
                }
              ]
            }
            """
-        .formatted(attribute, value);
+        .formatted(
+            attribute,
+            value,
+            trackedEntity.getUid(),
+            trackedEntity.getTrackedEntityType().getUid(),
+            trackedEntity.getOrganisationUnit().getUid());
+  }
+
+  private String createDeleteJsonPayload(String attribute, TrackedEntity trackedEntity) {
+    return """
+           {
+             "trackedEntities": [
+               {
+                 "attributes": [
+                   {
+                     "attribute": "%s",
+                     "value": null
+                   }
+                 ],
+                 "trackedEntity": "%s",
+                 "trackedEntityType": "%s",
+                 "orgUnit": "%s"
+               }
+             ]
+           }
+           """
+        .formatted(
+            attribute,
+            trackedEntity.getUid(),
+            trackedEntity.getTrackedEntityType().getUid(),
+            trackedEntity.getOrganisationUnit().getUid());
+  }
+
+  private List<JsonTrackedEntityChangeLog> getChangeLogs(String attribute) {
+    return getChangeLogs("", attribute, trackedEntity);
+  }
+
+  private List<JsonTrackedEntityChangeLog> getChangeLogs(
+      String attribute, TrackedEntity trackedEntity) {
+    return getChangeLogs("", attribute, trackedEntity);
+  }
+
+  private List<JsonTrackedEntityChangeLog> getChangeLogs(
+      String requestParams, String attribute, TrackedEntity trackedEntity) {
+    return GET("/tracker/trackedEntities/{id}/changeLogs?" + requestParams, trackedEntity.getUid())
+        .content(HttpStatus.OK)
+        .getList("changeLogs", JsonTrackedEntityChangeLog.class)
+        .stream()
+        .filter(cl -> cl.getChange().getAttributeValue().getAttribute().equalsIgnoreCase(attribute))
+        .toList();
   }
 
   private static void assertPagerLink(String actual, int page, int pageSize, String start) {
@@ -303,7 +387,7 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
   }
 
   private static void assertNumberOfChanges(
-      int expected, JsonList<JsonTrackedEntityChangeLog> changeLogs) {
+      int expected, List<JsonTrackedEntityChangeLog> changeLogs) {
     assertNotNull(changeLogs);
     assertEquals(
         expected,
@@ -340,6 +424,14 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
         () -> assertUser(actual),
         () -> assertEquals("UPDATE", actual.getType()),
         () -> assertChange(attribute, previousValue, currentValue, actual));
+  }
+
+  private static void assertDelete(
+      String attribute, String previousValue, JsonTrackedEntityChangeLog actual) {
+    assertAll(
+        () -> assertUser(actual),
+        () -> assertEquals("DELETE", actual.getType()),
+        () -> assertChange(attribute, previousValue, null, actual));
   }
 
   private static void assertChange(

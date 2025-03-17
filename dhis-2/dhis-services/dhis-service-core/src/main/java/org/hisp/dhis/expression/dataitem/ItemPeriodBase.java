@@ -28,11 +28,11 @@
 package org.hisp.dhis.expression.dataitem;
 
 import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import java.util.List;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 
@@ -53,7 +53,7 @@ public abstract class ItemPeriodBase implements ExpressionItem {
     List<Period> periods = visitor.getParams().getPeriods();
 
     if (periods.size() != 1) {
-      return 0.0; // Not applicable
+      return 0d; // Not applicable
     }
 
     PeriodType periodType = periods.get(0).getPeriodType();

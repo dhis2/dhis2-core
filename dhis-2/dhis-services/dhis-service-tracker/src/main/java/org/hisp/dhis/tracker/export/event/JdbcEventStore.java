@@ -28,11 +28,9 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static java.util.Map.entry;
-import static org.hisp.dhis.common.ValueType.NUMERIC_TYPES;
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -82,7 +80,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.Page;
@@ -305,7 +302,6 @@ class JdbcEventStore {
               event = eventsByUid.get(eventUid);
             } else {
               event = new Event();
-              event.setId(resultSet.getLong(COLUMN_EVENT_ID));
               event.setUid(eventUid);
               eventsByUid.put(eventUid, event);
               dataElementUids.put(eventUid, new HashSet<>());
@@ -625,141 +621,111 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   /**
-   * Generates a single INNER JOIN for each attribute we are filtering or ordering on. We can search
-   * by a range of operators. All searching is using lower() since attribute values are
-   * case-insensitive.
+   * Generates the WHERE-clause related to the user provided attribute filters. It will find the
+   * tracked entity attributes that match the given user filter criteria. This condition only
+   * applies when an attribute filter is specified.
    */
-  private String joinAttributeValue(
-      EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
-    StringBuilder sql = new StringBuilder();
-
+  private String getWhereClauseFromAttributeFilterConditions(
+      EventQueryParams params, MapSqlParameterSource mapSqlParameterSource, SqlHelper hlp) {
+    StringBuilder fromBuilder = new StringBuilder();
     for (Entry<TrackedEntityAttribute, List<QueryFilter>> queryItem :
         params.getAttributes().entrySet()) {
-
       TrackedEntityAttribute tea = queryItem.getKey();
       String teaUid = tea.getUid();
-      String teaValueCol = quote(teaUid);
-      String teaCol = quote(teaUid + "ATT");
 
-      sql.append(" inner join trackedentityattributevalue ")
-          .append(teaValueCol)
-          .append(" on ")
-          .append(teaValueCol + ".trackedentityid")
-          .append(" = TE.trackedentityid ")
-          .append(" inner join trackedentityattribute ")
-          .append(teaCol)
-          .append(" on ")
-          .append(teaValueCol + ".trackedentityattributeid")
-          .append(EQUALS)
-          .append(teaCol + ".trackedentityattributeid")
+      fromBuilder
+          .append(hlp.whereAnd())
+          .append(" TE.trackedentityid is not null ") // filters out results from event programs
           .append(AND)
-          .append(teaCol + ".UID")
-          .append(EQUALS)
-          .append(singleQuote(teaUid));
-
-      sql.append(
-          getAttributeFilterQuery(
-              mapSqlParameterSource,
-              queryItem.getValue(),
-              teaCol,
-              teaValueCol,
-              tea.getValueType().isNumeric()));
+          .append(SPACE)
+          .append(
+              getAttributeFilterQuery(
+                  mapSqlParameterSource,
+                  queryItem.getValue(),
+                  teaUid,
+                  tea.getValueType().isNumeric()));
     }
-
-    return sql.toString();
+    return fromBuilder.toString();
   }
 
   private String getAttributeFilterQuery(
       MapSqlParameterSource mapSqlParameterSource,
       List<QueryFilter> filters,
-      String teaCol,
-      String teaValueCol,
+      String teaUid,
       boolean isNumericTea) {
-
+    String teaValueCol = quote(teaUid);
     if (filters.isEmpty()) {
       return "";
     }
 
-    StringBuilder query = new StringBuilder(AND);
-    // In SQL the order of expressions linked by AND is not
-    // guaranteed.
-    // So when casting to number we need to be sure that the value
-    // to cast is really a number.
-    if (isNumericTea) {
-      query
-          .append(" case when ")
-          .append(lower(teaCol + ".valueType"))
-          .append(" in (")
-          .append(
-              NUMERIC_TYPES.stream()
-                  .map(Enum::name)
-                  .map(StringUtils::lowerCase)
-                  .map(SqlUtils::singleQuote)
-                  .collect(Collectors.joining(",")))
-          .append(")")
-          .append(" then ");
-    }
-
+    StringBuilder query = new StringBuilder();
     List<String> filterStrings = new ArrayList<>();
 
     for (int i = 0; i < filters.size(); i++) {
       QueryFilter filter = filters.get(i);
-      StringBuilder filterString = new StringBuilder();
       final String queryCol =
           isNumericTea ? castToNumber(teaValueCol + ".value") : lower(teaValueCol + ".value");
       int itemType = isNumericTea ? Types.NUMERIC : Types.VARCHAR;
-      String parameterKey = "attributeFilter_%s_%d".formatted(teaValueCol.replace("\"", ""), i);
-      mapSqlParameterSource.addValue(
-          parameterKey,
-          isNumericTea
-              ? Double.valueOf(filter.getSqlBindFilter())
-              : StringUtils.lowerCase(filter.getSqlBindFilter()),
-          itemType);
+      String parameterKey = "attributeFilter_%s_%d".formatted(teaUid, i);
 
-      filterString
-          .append(queryCol)
-          .append(SPACE)
-          .append(filter.getSqlOperator())
-          .append(SPACE)
-          .append(":" + parameterKey);
+      StringBuilder filterString = new StringBuilder();
+      filterString.append(queryCol).append(SPACE);
+
+      filterString.append(
+          switch (filter.getOperator()) {
+            case NULL, NNULL -> filter.getSqlOperator() + SPACE;
+            default -> {
+              mapSqlParameterSource.addValue(
+                  parameterKey,
+                  isNumericTea
+                      ? Double.valueOf(filter.getSqlBindFilter())
+                      : StringUtils.lowerCase(filter.getSqlBindFilter()),
+                  itemType);
+              yield new StringBuilder()
+                  .append(filter.getSqlOperator())
+                  .append(SPACE)
+                  .append(":")
+                  .append(parameterKey)
+                  .append(SPACE);
+            }
+          });
+
       filterStrings.add(filterString.toString());
     }
     query.append(String.join(AND, filterStrings));
-
-    if (isNumericTea) {
-      query.append(" END ");
-    }
 
     return query.toString();
   }
 
   /**
-   * Generates the LEFT JOINs used for attributes we are ordering by (If any). We use LEFT JOIN to
-   * avoid removing any rows if there is no value for a given attribute and te. The result of this
-   * LEFT JOIN is used in the sub-query projection, and ordering in the sub-query and main query.
+   * Generates the LEFT JOIN based on the attributes we are ordering and filtering by, if any. We
+   * use LEFT JOIN to avoid removing any rows if there is no value for a given attribute and te. The
+   * result of this LEFT JOIN is used in the sub-query projection, and ordering in the sub-query and
+   * main query.
    *
-   * @return a SQL LEFT JOIN for attributes used for ordering, or empty string if no attributes is
-   *     used in order.
+   * <p>Attribute filtering is handled in {@link
+   * #getWhereClauseFromAttributeFilterConditions(EventQueryParams, MapSqlParameterSource,
+   * SqlHelper)}.
+   *
+   * @return a SQL LEFT JOIN for the relevant attributes, or an empty string if none are provided.
    */
-  private String getFromSubQueryJoinOrderByAttributes(EventQueryParams params) {
-    StringBuilder joinOrderAttributes = new StringBuilder();
+  private String getLeftJoinFromAttributes(EventQueryParams params) {
+    StringBuilder attributes = new StringBuilder();
 
-    for (TrackedEntityAttribute orderAttribute : params.leftJoinAttributes()) {
-
-      joinOrderAttributes
+    for (TrackedEntityAttribute attribute : params.leftJoinAttributes()) {
+      attributes
           .append(" left join trackedentityattributevalue as ")
-          .append(quote(orderAttribute.getUid()))
+          .append(quote(attribute.getUid()))
           .append(" on ")
-          .append(quote(orderAttribute.getUid()))
-          .append(".trackedentityid = TE.trackedentityid ")
-          .append("and ")
-          .append(quote(orderAttribute.getUid()))
+          .append(quote(attribute.getUid()))
+          .append(".trackedentityid = TE.trackedentityid and ")
+          .append(quote(attribute.getUid()))
           .append(".trackedentityattributeid = ")
-          .append(orderAttribute.getId())
+          .append(attribute.getId())
           .append(SPACE);
     }
 
-    return joinOrderAttributes.toString();
+    return attributes.toString();
   }
 
   private String getEventSelectQuery(
@@ -864,7 +830,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
                 mapSqlParameterSource,
                 user,
                 hlp,
-                dataElementAndFiltersSql(params, mapSqlParameterSource, hlp, selectBuilder)))
+                dataElementFiltersSql(params, mapSqlParameterSource, hlp, selectBuilder)))
         .toString();
   }
 
@@ -908,7 +874,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       MapSqlParameterSource mapSqlParameterSource,
       User user,
       SqlHelper hlp,
-      StringBuilder dataElementAndFiltersSql) {
+      StringBuilder dataElementFiltersSql) {
     StringBuilder fromBuilder =
         new StringBuilder(" from event ev ")
             .append("inner join enrollment en on en.enrollmentid=ev.enrollmentid ")
@@ -933,15 +899,15 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         .append("left join trackedentity te on te.trackedentityid=en.trackedentityid ")
         .append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
 
-    // JOIN attributes we need to filter on.
-    fromBuilder.append(joinAttributeValue(params, mapSqlParameterSource));
-
-    // LEFT JOIN not filterable attributes we need to sort on.
-    fromBuilder.append(getFromSubQueryJoinOrderByAttributes(params));
+    // LEFT JOIN attributes we need to sort on and/or filter by.
+    fromBuilder.append(getLeftJoinFromAttributes(params));
 
     fromBuilder.append(getCategoryOptionComboQuery(user));
 
-    fromBuilder.append(dataElementAndFiltersSql);
+    fromBuilder.append(dataElementFiltersSql);
+
+    fromBuilder.append(
+        getWhereClauseFromAttributeFilterConditions(params, mapSqlParameterSource, hlp));
 
     if (params.getTrackedEntity() != null) {
       mapSqlParameterSource.addValue("trackedentityid", params.getTrackedEntity().getId());
@@ -1293,7 +1259,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    * For dataElement params, restriction is set in inner join. For query params, restriction is set
    * in where clause.
    */
-  private StringBuilder dataElementAndFiltersSql(
+  private StringBuilder dataElementFiltersSql(
       EventQueryParams params,
       MapSqlParameterSource mapSqlParameterSource,
       SqlHelper hlp,

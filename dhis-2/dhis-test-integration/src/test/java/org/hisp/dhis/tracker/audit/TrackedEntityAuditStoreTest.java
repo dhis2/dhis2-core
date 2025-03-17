@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
+package org.hisp.dhis.tracker.audit;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,7 +35,8 @@ import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.audit.AuditOperationType;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.tracker.audit.TrackedEntityAuditStore;
+import org.hisp.dhis.trackedentity.TrackedEntityAudit;
+import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;

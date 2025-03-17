@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
 import lombok.Getter;
+import org.hisp.dhis.common.OpenApi;
 
 /**
  * Container class for patch operations, allows to deserialize patches in the format '[{...},
@@ -41,6 +42,7 @@ import lombok.Getter;
  * @author Morten Olav Hansen
  */
 @Getter
+@OpenApi.Kind("JsonPatchObjects")
 public class JsonPatch implements Patch {
   @JsonProperty private final List<JsonPatchOperation> operations;
 

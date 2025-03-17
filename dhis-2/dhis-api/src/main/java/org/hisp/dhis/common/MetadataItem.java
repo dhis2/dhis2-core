@@ -32,6 +32,7 @@ import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.io.Serializable;
@@ -158,6 +159,23 @@ public class MetadataItem implements Serializable {
     }
   }
 
+  public MetadataItem(String name, String optionSetUid, Set<Option> options) {
+    if (optionSetUid != null) {
+      this.name = name;
+      this.uid = optionSetUid;
+      if (isNotEmpty(options)) {
+        this.options =
+            options.stream()
+                .map(
+                    option ->
+                        Map.of(
+                            "uid", option.getUid(),
+                            "code", option.getCode()))
+                .toList();
+      }
+    }
+  }
+
   public MetadataItem(String name, ProgramStage programStage) {
     this.name = name;
 
@@ -199,6 +217,7 @@ public class MetadataItem implements Serializable {
     }
   }
 
+  @JsonIgnore
   private void setDataItem(DimensionalItemObject dimensionalItemObject) {
     if (dimensionalItemObject == null) {
       return;
@@ -344,6 +363,7 @@ public class MetadataItem implements Serializable {
     return absoluteUrl + "api/icons/" + iconName + "/icon.svg";
   }
 
+  @JsonIgnore
   private void setDataItem(DimensionalObject dimensionalObject) {
     if (dimensionalObject == null) {
       return;

@@ -286,6 +286,20 @@
         "idScheme": "UID",
         "identifier": "DiszpKrYNg8"
       }
+    },
+    {
+      "trackedEntity": "XUitxQbWYNz",
+      "trackedEntityType": {
+        "idScheme": "UID",
+        "identifier": "Fa7NY4PW6DL"
+      },
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "DiszpKrYNg8"
+      },
+      "inactive": false,
+      "deleted": false,
+      "potentialDuplicate": false
     }
   ],
   "enrollments": [

@@ -46,6 +46,7 @@ import org.hisp.dhis.eventhook.targets.JmsTarget;
 import org.hisp.dhis.eventhook.targets.KafkaTarget;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -58,6 +59,8 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Component
 @RequiredArgsConstructor
 public class EventHookListener {
+  private final ApplicationContext applicationContext;
+
   private final ObjectMapper objectMapper;
 
   private final FieldFilterService fieldFilterService;
@@ -120,7 +123,9 @@ public class EventHookListener {
 
       for (Target target : eh.getTargets()) {
         if (WebhookTarget.TYPE.equals(target.getType())) {
-          targets.get(eh.getUid()).add(new WebhookHandler((WebhookTarget) target));
+          targets
+              .get(eh.getUid())
+              .add(new WebhookHandler(applicationContext, (WebhookTarget) target));
         } else if (ConsoleTarget.TYPE.equals(target.getType())) {
           targets.get(eh.getUid()).add(new ConsoleHandler((ConsoleTarget) target));
         } else if (JmsTarget.TYPE.equals(target.getType())) {

@@ -65,7 +65,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 /** Tests {@link RequestParamsValidator}. */
 class RequestParamsValidatorTest {
@@ -587,54 +586,6 @@ class RequestParamsValidatorTest {
     paginationParameters.setPage(pageSize);
     paginationParameters.setTotalPages(totalPages);
     paginationParameters.setPaging(paging);
-
-    validatePaginationParameters(paginationParameters);
-  }
-
-  @ValueSource(ints = {-1, 0})
-  @ParameterizedTest
-  void shouldFailWhenGivenPageLessThanOrEqualToZero(int page) {
-    PaginationParameters paginationParameters = new PaginationParameters();
-    paginationParameters.setPaging(true);
-    paginationParameters.setPage(page);
-
-    Exception exception =
-        assertThrows(
-            BadRequestException.class, () -> validatePaginationParameters(paginationParameters));
-
-    assertStartsWith("page must be greater", exception.getMessage());
-  }
-
-  @ValueSource(ints = {1, 2})
-  @ParameterizedTest
-  void shouldPassWhenGivenPageGreaterThanOrEqualToOne(int page) throws BadRequestException {
-    PaginationParameters paginationParameters = new PaginationParameters();
-    paginationParameters.setPaging(true);
-    paginationParameters.setPage(page);
-
-    validatePaginationParameters(paginationParameters);
-  }
-
-  @ValueSource(ints = {-1, 0})
-  @ParameterizedTest
-  void shouldFailWhenGivenPageSizeLessThanOrEqualToZero(int pageSize) {
-    PaginationParameters paginationParameters = new PaginationParameters();
-    paginationParameters.setPaging(true);
-    paginationParameters.setPageSize(pageSize);
-
-    Exception exception =
-        assertThrows(
-            BadRequestException.class, () -> validatePaginationParameters(paginationParameters));
-
-    assertStartsWith("pageSize must be greater", exception.getMessage());
-  }
-
-  @ValueSource(ints = {1, 2})
-  @ParameterizedTest
-  void shouldPassWhenGivenPageSizeGreaterThanOrEqualToOne(int pageSize) throws BadRequestException {
-    PaginationParameters paginationParameters = new PaginationParameters();
-    paginationParameters.setPaging(true);
-    paginationParameters.setPageSize(pageSize);
 
     validatePaginationParameters(paginationParameters);
   }

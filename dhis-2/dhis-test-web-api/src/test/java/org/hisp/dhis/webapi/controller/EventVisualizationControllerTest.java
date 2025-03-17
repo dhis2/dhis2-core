@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.containsStringIgnoringCase;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -46,8 +47,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.eventvisualization.EventVisualization;
@@ -151,6 +154,78 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
     assertThat(response.get("columns").toString(), containsString(eventDateDimension));
     assertThat(response.get("rows").toString(), not(containsString(eventDateDimension)));
     assertThat(response.get("filters").toString(), not(containsString(eventDateDimension)));
+  }
+
+  @Test
+  void testPostForOuDimensionAsFilter() throws JsonProcessingException {
+    // Given
+    DataElement ouDe = createDataElement('D', ValueType.TEXT, AggregationType.SUM, TRACKER);
+    ouDe.setValueType(ValueType.ORGANISATION_UNIT);
+    POST("/dataElements", jsonMapper.writeValueAsString(ouDe)).content(CREATED);
+
+    String createPayload =
+        """
+            {
+              "type": "LINE_LIST",
+              "outputType": "EVENT",
+              "program": {
+            	"id": "%s"
+              },
+              "programStage": {
+            	"id": "%s"
+              },
+              "columns": [
+            	{
+            	  "dimension": "ou",
+            	  "items": [
+            		{
+            		  "id": "USER_ORGUNIT"
+            		}
+            	  ]
+            	},
+            	{
+            	  "dimension": "lastUpdated",
+            	  "items": [
+            		{
+            		  "id": "THIS_MONTH"
+            		}
+            	  ]
+            	},
+            	{
+            	  "dimension": "%s",
+            	  "filter": "EQ:%s",
+            	  "programStage": {
+            		"id": "%s"
+            	  }
+            	}
+              ],
+              "rows": [],
+              "filters": [],
+              "displayDensity": "NORMAL",
+              "fontSize": "NORMAL",
+              "digitGroupSeparator": "SPACE",
+              "showHierarchy": false,
+              "skipRounding": false,
+              "legend": {},
+              "name": "OU Filter"
+            }
+            """
+            .formatted(
+                mockProgram.getUid(),
+                mockProgramStage.getUid(),
+                ouDe.getUid(),
+                mockOrganisationUnit.getUid(),
+                mockProgramStage.getUid());
+
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", createPayload));
+
+    // Then
+    JsonObject response = GET("/eventVisualizations/" + uid).content();
+    System.out.println(response.toString());
+
+    assertThat(
+        response.get("parentGraphMap").toString(), containsString(mockOrganisationUnit.getUid()));
   }
 
   @Test
@@ -892,5 +967,65 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("ERROR", error.getStatus());
     assertEquals(
         "Cannot generate chart for multi-program visualization " + uid, error.getMessage());
+  }
+
+  @Test
+  void testGetMetaDataObject() {
+    // Given
+    String body =
+        """
+              {"name": "Test metadata post", "type": "STACKED_COLUMN",
+              "program": {"id": "deabcdefghP"},
+              "trackedEntityType": {"id": "nEenWmSyUEp"},
+              "filters": [
+                  {
+                      "dimension": "ou",
+                      "programStage": {
+                          "id": "deabcdefghS"
+                      },
+                      "repetition": {
+                          "indexes": [
+                              1,
+                              2,
+                              3,
+                              -2,
+                              -1,
+                              0
+                          ]
+                      },
+                      "items": [
+                          {
+                              "id": "ImspTQPwCqd"
+                          }
+                      ]
+                  },
+                  {
+                      "dimension": "deabcdefghE",
+                      "repetition": {
+                          "indexes": [
+                              1,
+                              2,
+                              0
+                          ]
+                      },
+                      "items": []
+                  }
+               ]
+              }
+              """;
+
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
+
+    // Then
+    JsonObject response = GET("/eventVisualizations/" + uid).content();
+
+    assertThat(response.get("name").node().value(), is(equalTo("Test metadata post")));
+    assertThat(
+        response.get("metaData").node().value().toString(),
+        containsStringIgnoringCase(
+            "{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OrganisationUnitCodeA\",\"name\":\"OrganisationUnitA\"},\"deabcdefghE\":{\"uid\":\"deabcdefghE\",\"code\":\"DataElementCodeB\",\"name\":\"DataElementB\"}}"));
+    assertThat(response.get("type").node().value(), is(equalTo("STACKED_COLUMN")));
+    assertThat(response.get("program").node().get("id").value(), is(equalTo(mockProgram.getUid())));
   }
 }

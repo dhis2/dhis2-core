@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.core.JsonPointer;
 import lombok.Getter;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.AddOperation;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.RemoveByIdOperation;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.RemoveOperation;
@@ -56,6 +57,7 @@ import org.hisp.dhis.commons.jackson.jsonpatch.operations.ReplaceOperation;
   @JsonSubTypes.Type(name = "replace", value = ReplaceOperation.class)
 })
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "op")
+@OpenApi.Kind("JsonPatchObjects")
 public abstract class JsonPatchOperation implements Patch {
   public static final String ADD_OPERATION = "add";
 

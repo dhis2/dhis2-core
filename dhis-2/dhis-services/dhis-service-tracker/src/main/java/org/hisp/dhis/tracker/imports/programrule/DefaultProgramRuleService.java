@@ -32,6 +32,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -50,6 +51,7 @@ import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.engine.ProgramRuleEngine;
 import org.hisp.dhis.tracker.imports.programrule.engine.RuleEngineEffects;
@@ -172,13 +174,16 @@ class DefaultProgramRuleService implements ProgramRuleService {
         bundle
             .findEnrollmentByUid(enrollmentUid)
             .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getAttributes)
+            .map(this::filterNullAttributes)
             .map(attributes -> RuleEngineMapper.mapAttributes(preheat, attributes))
             .orElse(Collections.emptyList());
 
     List<RuleAttributeValue> payloadTrackedEntityAttributes =
         bundle
             .findTrackedEntityByUid(teUid)
-            .map(te -> RuleEngineMapper.mapAttributes(preheat, te.getAttributes()))
+            .map(org.hisp.dhis.tracker.imports.domain.TrackedEntity::getAttributes)
+            .map(this::filterNullAttributes)
+            .map(attributes -> RuleEngineMapper.mapAttributes(preheat, attributes))
             .orElse(Collections.emptyList());
 
     TrackedEntity trackedEntity = preheat.getTrackedEntity(teUid);
@@ -208,7 +213,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
     try {
       events =
           eventService
-              .getEvents(
+              .findEvents(
                   EventOperationParams.builder()
                       .eventParams(EventParams.TRUE)
                       .orgUnitMode(ACCESSIBLE)
@@ -229,6 +234,13 @@ class DefaultProgramRuleService implements ProgramRuleService {
 
     return Stream.concat(
             RuleEngineMapper.mapSavedEvents(events.toList()).stream(), ruleEvents.stream())
+        .toList();
+  }
+
+  private List<Attribute> filterNullAttributes(List<Attribute> attributes) {
+    return attributes.stream()
+        .filter(Objects::nonNull)
+        .filter(attr -> attr.getValue() != null)
         .toList();
   }
 }

@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.springframework.core.io.Resource;
 
 /**
@@ -43,6 +44,7 @@ public interface AppManager {
   static final String ID = AppManager.class.getName();
 
   static final String BUNDLED_APP_PREFIX = "dhis-web-";
+  static final String INSTALLED_APP_PREFIX = "api/apps/";
 
   static final Set<String> BUNDLED_APPS =
       Set.of(
@@ -123,6 +125,14 @@ public interface AppManager {
    * @return the app with the requested name
    */
   App getApp(String appName);
+
+  /**
+   * Returns the menu items that the user has access to
+   *
+   * @param contextPath the context path of this instance.
+   * @return a list of WebModules
+   */
+  List<WebModule> getMenu(String contextPath);
 
   /**
    * Return a list of all installed apps with given filter list Currently support filtering by

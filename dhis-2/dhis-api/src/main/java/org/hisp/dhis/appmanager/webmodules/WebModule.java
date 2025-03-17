@@ -28,8 +28,10 @@
 package org.hisp.dhis.appmanager.webmodules;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 import lombok.Data;
 import org.hisp.dhis.appmanager.App;
+import org.hisp.dhis.appmanager.AppShortcut;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -47,6 +49,10 @@ public class WebModule {
   @JsonProperty private String icon;
 
   @JsonProperty private String description;
+
+  @JsonProperty private String version;
+
+  @JsonProperty private List<AppShortcut> shortcuts;
 
   public WebModule() {}
 
@@ -73,10 +79,14 @@ public class WebModule {
 
     String description = subString(app.getDescription(), 0, 80);
 
-    WebModule module = new WebModule(app.getShortName(), app.getShortName(), defaultAction);
+    WebModule module = new WebModule(app.getKey(), app.getBasePath(), defaultAction);
     module.setIcon(icon);
     module.setDescription(description);
     module.setDisplayName(app.getName());
+    module.setVersion(app.getVersion());
+
+    List<AppShortcut> shortcuts = app.getShortcuts();
+    module.setShortcuts(shortcuts);
 
     return module;
   }

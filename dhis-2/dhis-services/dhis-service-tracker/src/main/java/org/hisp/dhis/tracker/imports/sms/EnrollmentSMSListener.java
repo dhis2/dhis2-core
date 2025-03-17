@@ -96,7 +96,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener {
     TrackedEntity trackedEntity = null;
     try {
       trackedEntity =
-          trackedEntityService.getNewTrackedEntity(
+          trackedEntityService.getTrackedEntity(
               UID.of(subm.getTrackedEntityInstance().getUid()),
               UID.of(subm.getTrackerProgram().getUid()),
               TrackedEntityParams.FALSE.withIncludeAttributes(true));

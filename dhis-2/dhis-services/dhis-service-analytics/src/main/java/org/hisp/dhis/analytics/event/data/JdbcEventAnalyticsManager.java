@@ -86,7 +86,6 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
@@ -123,9 +122,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       EventTimeFieldSqlRenderer timeFieldSqlRenderer,
       ExecutionPlanStore executionPlanStore,
       SystemSettingsService settingsService,
-      DhisConfigurationProvider config,
-      SqlBuilder sqlBuilder,
-      AnalyticsSqlBuilder analyticsSqlBuilder,
+      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder,
+      @Qualifier("postgresAnalyticsSqlBuilder") AnalyticsSqlBuilder analyticsSqlBuilder,
       OrganisationUnitResolver organisationUnitResolver) {
     super(
         jdbcTemplate,
@@ -134,7 +132,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         executionPlanStore,
         sqlBuilder,
         settingsService,
-        config,
         organisationUnitResolver,
         analyticsSqlBuilder);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;

@@ -31,6 +31,8 @@ import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockserver.model.HttpRequest.request;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -51,17 +53,21 @@ import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.route.RouteService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockserver.client.MockServerClient;
+import org.mockserver.model.MediaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -75,6 +81,11 @@ import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 @Transactional
 @ContextConfiguration(classes = {RouteControllerTest.ClientHttpConnectorTestConfig.class})
 class RouteControllerTest extends PostgresControllerIntegrationTestBase {
+
+  private static GenericContainer<?> tokenMockServerContainer;
+  private static MockServerClient tokentMockServerClient;
+
+  @Autowired private OAuth2AuthorizedClientService oAuth2AuthorizedClientService;
 
   @Autowired private RouteService service;
 
@@ -121,44 +132,65 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     }
   }
 
+  @BeforeAll
+  static void beforeAll() {
+    tokenMockServerContainer =
+        new GenericContainer<>("mockserver/mockserver")
+            .waitingFor(new HttpWaitStrategy().forStatusCode(404))
+            .withExposedPorts(1080);
+    tokenMockServerContainer.start();
+    tokentMockServerClient =
+        new MockServerClient("localhost", tokenMockServerContainer.getFirstMappedPort());
+  }
+
+  @BeforeEach
+  void beforeEach() {
+    tokentMockServerClient.reset();
+  }
+
+  @AfterAll
+  static void afterAll() {
+    tokenMockServerContainer.stop();
+  }
+
   @Transactional
   @Nested
-  public class IntegrationTest extends PostgresControllerIntegrationTestBase {
+  class IntegrationTest extends PostgresControllerIntegrationTestBase {
 
-    private static GenericContainer<?> routeTargetMockServerContainer;
-    private MockServerClient routeTargetMockServerClient;
+    private static GenericContainer<?> upstreamMockServerContainer;
+    private MockServerClient upstreamMockServerClient;
 
     @BeforeAll
     public static void beforeAll() {
-      routeTargetMockServerContainer =
+      upstreamMockServerContainer =
           new GenericContainer<>("mockserver/mockserver")
               .waitingFor(new HttpWaitStrategy().forStatusCode(404))
               .withExposedPorts(1080);
-      routeTargetMockServerContainer.start();
+      upstreamMockServerContainer.start();
     }
 
     @BeforeEach
     public void beforeEach() {
-      routeTargetMockServerClient =
-          new MockServerClient("localhost", routeTargetMockServerContainer.getFirstMappedPort());
+      upstreamMockServerClient =
+          new MockServerClient("localhost", upstreamMockServerContainer.getFirstMappedPort());
     }
 
     @AfterEach
-    public void afterEach() {
-      routeTargetMockServerClient.reset();
+    void afterEach() {
+      upstreamMockServerClient.reset();
     }
 
     @Test
     void testRunRouteWhenResponseDurationExceedsRouteResponseTimeout()
         throws JsonProcessingException {
-      routeTargetMockServerClient
+      upstreamMockServerClient
           .when(request().withPath("/"))
           .respond(
               org.mockserver.model.HttpResponse.response("{}").withDelay(TimeUnit.SECONDS, 10));
 
       Map<String, Object> route = new HashMap<>();
       route.put("name", "route-under-test");
-      route.put("url", "http://localhost:" + routeTargetMockServerContainer.getFirstMappedPort());
+      route.put("url", "http://localhost:" + upstreamMockServerContainer.getFirstMappedPort());
       route.put("responseTimeoutSeconds", 5);
 
       HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
@@ -179,13 +211,13 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     @Test
     void testRunRouteWhenResponseDurationDoesNotExceedRouteResponseTimeout()
         throws JsonProcessingException {
-      routeTargetMockServerClient
+      upstreamMockServerClient
           .when(request().withPath("/"))
           .respond(org.mockserver.model.HttpResponse.response("{}"));
 
       Map<String, Object> route = new HashMap<>();
       route.put("name", "route-under-test");
-      route.put("url", "http://localhost:" + routeTargetMockServerContainer.getFirstMappedPort());
+      route.put("url", "http://localhost:" + upstreamMockServerContainer.getFirstMappedPort());
       route.put("responseTimeoutSeconds", 5);
 
       HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
@@ -206,7 +238,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     @Test
     void testRunRouteWhenResponseIsHttpError()
         throws JsonProcessingException, UnsupportedEncodingException {
-      routeTargetMockServerClient
+      upstreamMockServerClient
           .when(request().withPath("/"))
           .respond(
               org.mockserver.model.HttpResponse.response(
@@ -215,7 +247,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
       Map<String, Object> route = new HashMap<>();
       route.put("name", "route-under-test");
-      route.put("url", "http://localhost:" + routeTargetMockServerContainer.getFirstMappedPort());
+      route.put("url", "http://localhost:" + upstreamMockServerContainer.getFirstMappedPort());
 
       HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
       MvcResult mvcResult =
@@ -234,6 +266,213 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
           JsonValue.of(mvcResult.getResponse().getContentAsString()).asObject();
       assertEquals("not found", responseBody.get("message").as(JsonString.class).string());
     }
+  }
+
+  @Test
+  void testRunRouteGivenOAuth2ClientCredentialsAuthSchemeWhenTokenEndpointReturnsUnauthorizedError()
+      throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put(
+        "auth",
+        Map.of(
+            "type",
+            "oauth2-client-credentials",
+            "clientId",
+            "alice",
+            "clientSecret",
+            "passw0rd",
+            "tokenUri",
+            "http://localhost:" + tokenMockServerContainer.getFirstMappedPort() + "/token"));
+    route.put("url", "http://stub");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+    MockServerClient routeTargetMockServerClient =
+        new MockServerClient("localhost", tokenMockServerContainer.getFirstMappedPort());
+    routeTargetMockServerClient
+        .when(request().withPath("/token"))
+        .respond(org.mockserver.model.HttpResponse.response().withStatusCode(401));
+
+    MvcResult mvcResult =
+        webRequestWithMvcResult(
+            buildMockRequest(
+                HttpMethod.GET,
+                "/routes/"
+                    + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                    + "/run",
+                new ArrayList<>(),
+                "application/json",
+                null));
+
+    assertEquals(502, mvcResult.getResponse().getStatus());
+  }
+
+  @Test
+  void testRunRouteGivenOAuth2ClientCredentialsAuthScheme()
+      throws JsonProcessingException, UnsupportedEncodingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    String tokenUri =
+        "http://localhost:" + tokenMockServerContainer.getFirstMappedPort() + "/token";
+    route.put(
+        "auth",
+        Map.of(
+            "type",
+            "oauth2-client-credentials",
+            "clientId",
+            "john",
+            "clientSecret",
+            "passw0rd",
+            "tokenUri",
+            tokenUri));
+    route.put("url", "http://stub");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+    tokentMockServerClient
+        .when(request().withPath("/token"))
+        .respond(
+            org.mockserver.model.HttpResponse.response(
+                    """
+                        { "access_token":"MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3",
+                          "token_type":"Bearer",
+                          "expires_in":3600,
+                          "refresh_token":"IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk",
+                          "scope":"create"}""")
+                .withContentType(MediaType.APPLICATION_JSON)
+                .withStatusCode(200));
+
+    assertNull(oAuth2AuthorizedClientService.loadAuthorizedClient("john:" + tokenUri, "anonymous"));
+
+    MvcResult mvcResult =
+        webRequestWithAsyncMvcResult(
+            buildMockRequest(
+                HttpMethod.GET,
+                "/routes/"
+                    + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                    + "/run",
+                new ArrayList<>(),
+                "application/json",
+                null));
+
+    assertEquals(200, mvcResult.getResponse().getStatus());
+    JsonObject responseBody = JsonValue.of(mvcResult.getResponse().getContentAsString()).asObject();
+
+    assertEquals("John Doe", responseBody.get("name").as(JsonString.class).string());
+    assertEquals(
+        "Bearer MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3",
+        responseBody.get("headers").asObject().get("Authorization").as(JsonString.class).string());
+
+    OAuth2AuthorizedClient oAuth2AuthorizedClient =
+        oAuth2AuthorizedClientService.loadAuthorizedClient("john:" + tokenUri, "anonymous");
+    assertEquals(
+        "MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3",
+        oAuth2AuthorizedClient.getAccessToken().getTokenValue());
+  }
+
+  @Test
+  void testDeleteRouteRemovesOAuth2AuthorizedClientWhenAuthSchemeIsOAuth2ClientCredentials()
+      throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    String tokenUri =
+        "http://localhost:" + tokenMockServerContainer.getFirstMappedPort() + "/token";
+    route.put(
+        "auth",
+        Map.of(
+            "type",
+            "oauth2-client-credentials",
+            "clientId",
+            "tom",
+            "clientSecret",
+            "passw0rd",
+            "tokenUri",
+            tokenUri));
+    route.put("url", "http://stub");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+    tokentMockServerClient
+        .when(request().withPath("/token"))
+        .respond(
+            org.mockserver.model.HttpResponse.response(
+                    """
+                                        { "access_token":"MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3",
+                                          "token_type":"Bearer",
+                                          "expires_in":3600,
+                                          "refresh_token":"IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk",
+                                          "scope":"create"}""")
+                .withContentType(MediaType.APPLICATION_JSON)
+                .withStatusCode(200));
+
+    String routeId = postHttpResponse.content().get("response.uid").as(JsonString.class).string();
+
+    assertNull(oAuth2AuthorizedClientService.loadAuthorizedClient("tom:" + tokenUri, "anonymous"));
+    webRequestWithAsyncMvcResult(
+        buildMockRequest(
+            HttpMethod.GET,
+            "/routes/" + routeId + "/run",
+            new ArrayList<>(),
+            "application/json",
+            null));
+
+    assertNotNull(
+        oAuth2AuthorizedClientService.loadAuthorizedClient("tom:" + tokenUri, "anonymous"));
+    DELETE("/routes/" + routeId);
+    assertNull(oAuth2AuthorizedClientService.loadAuthorizedClient("tom:" + tokenUri, "anonymous"));
+  }
+
+  @Test
+  void testUpdateRouteRemovesOAuth2AuthorizedClientWhenAuthSchemeIsOAuth2ClientCredentials()
+      throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    String tokenUri =
+        "http://localhost:" + tokenMockServerContainer.getFirstMappedPort() + "/token";
+    route.put(
+        "auth",
+        Map.of(
+            "type",
+            "oauth2-client-credentials",
+            "clientId",
+            "mary",
+            "clientSecret",
+            "passw0rd",
+            "tokenUri",
+            tokenUri));
+    route.put("url", "http://stub");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+    tokentMockServerClient
+        .when(request().withPath("/token"))
+        .respond(
+            org.mockserver.model.HttpResponse.response(
+                    """
+                                        { "access_token":"MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3",
+                                          "token_type":"Bearer",
+                                          "expires_in":3600,
+                                          "refresh_token":"IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk",
+                                          "scope":"create"}""")
+                .withContentType(MediaType.APPLICATION_JSON)
+                .withStatusCode(200));
+
+    String routeId = postHttpResponse.content().get("response.uid").as(JsonString.class).string();
+
+    assertNull(oAuth2AuthorizedClientService.loadAuthorizedClient("mary:" + tokenUri, "anonymous"));
+    webRequestWithAsyncMvcResult(
+        buildMockRequest(
+            HttpMethod.GET,
+            "/routes/" + routeId + "/run",
+            new ArrayList<>(),
+            "application/json",
+            null));
+
+    assertNotNull(
+        oAuth2AuthorizedClientService.loadAuthorizedClient("mary:" + tokenUri, "anonymous"));
+    PUT("/routes/" + routeId, jsonMapper.writeValueAsString(route));
+    assertNull(oAuth2AuthorizedClientService.loadAuthorizedClient("mary:" + tokenUri, "anonymous"));
   }
 
   @Test

@@ -34,10 +34,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.datastore.DatastoreNamespace;
@@ -52,14 +49,14 @@ public class App implements Serializable {
 
   public static final String SEE_APP_AUTHORITY_PREFIX = "M_";
 
-  public static final String INSTALLED_APP_PATH = "api/apps/";
-
   /** Required. */
   private String version;
 
   private String name;
 
   private AppType appType = AppType.APP;
+
+  private String basePath;
 
   private String launchPath;
 
@@ -105,6 +102,8 @@ public class App implements Serializable {
   /** Generated. */
   private AppStatus appState = AppStatus.OK;
 
+  private List<AppShortcut> shortcuts = new ArrayList<>();
+
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
@@ -115,9 +114,11 @@ public class App implements Serializable {
    * @param contextPath the context path of this instance.
    */
   public void init(String contextPath) {
-    String appPathPrefix = isBundled() ? AppManager.BUNDLED_APP_PREFIX : INSTALLED_APP_PATH;
+    String appPathPrefix =
+        isBundled() ? AppManager.BUNDLED_APP_PREFIX : AppManager.INSTALLED_APP_PREFIX;
 
-    this.baseUrl = String.join("/", contextPath, appPathPrefix) + getUrlFriendlyName();
+    this.basePath = ("/" + appPathPrefix + getUrlFriendlyName()).replaceAll("/+", "/");
+    this.baseUrl = contextPath + basePath;
 
     if (contextPath != null && name != null && launchPath != null) {
       this.launchUrl = String.join("/", baseUrl, launchPath.replaceFirst("^/+", ""));
@@ -132,6 +133,11 @@ public class App implements Serializable {
   @JsonProperty
   public String getKey() {
     return getUrlFriendlyName();
+  }
+
+  @JsonProperty
+  public String getBasePath() {
+    return this.basePath;
   }
 
   /** Determine if this app will overload a bundled app */
@@ -343,6 +349,12 @@ public class App implements Serializable {
     return appStorageSource;
   }
 
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public List<AppShortcut> getShortcuts() {
+    return shortcuts;
+  }
+
   public void setAppStorageSource(AppStorageSource appStorageSource) {
     this.appStorageSource = appStorageSource;
   }
@@ -375,6 +387,10 @@ public class App implements Serializable {
 
   public void setSettings(AppSettings settings) {
     this.settings = settings;
+  }
+
+  public void setShortcuts(List<AppShortcut> shortcuts) {
+    this.shortcuts = shortcuts;
   }
 
   // -------------------------------------------------------------------------
@@ -420,6 +436,12 @@ public class App implements Serializable {
         + "\", "
         + "\"shortName:\""
         + getShortName()
+        + "\", "
+        + "\"key:\""
+        + getKey()
+        + "\", "
+        + "\"basePath:\""
+        + getBasePath()
         + "\", "
         + "\"appType:\""
         + appType

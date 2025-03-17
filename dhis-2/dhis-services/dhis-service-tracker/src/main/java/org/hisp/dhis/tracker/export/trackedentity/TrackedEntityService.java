@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.export.trackedentity;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
@@ -44,61 +45,69 @@ public interface TrackedEntityService {
 
   /** Get a file for a tracked entities' attribute. */
   FileResourceStream getFileResource(UID trackedEntity, UID attribute, UID program)
-      throws NotFoundException;
+      throws NotFoundException, ForbiddenException;
 
   /** Get an image for a tracked entities' attribute in the given dimension. */
   FileResourceStream getFileResourceImage(
       UID trackedEntity, UID attribute, UID program, ImageFileDimension dimension)
-      throws NotFoundException;
-
-  /**
-   * Get the tracked entity matching given {@code UID} under the privileges of the currently
-   * authenticated user. No program attributes are included, only TETAs. Enrollments and
-   * relationships are not included. Use {@link #getTrackedEntity(UID, UID, TrackedEntityParams)}
-   * instead to also get the relationships, enrollments and program attributes.
-   */
-  @Nonnull
-  TrackedEntity getNewTrackedEntity(@Nonnull UID uid) throws NotFoundException, ForbiddenException;
-
-  /**
-   * Get the tracked entity matching given {@code UID} under the privileges of the currently
-   * authenticated user. If {@code program} is defined, program attributes for such program are
-   * included, otherwise only TETAs are included. It will include enrollments, relationships,
-   * attributes and ownerships as defined in {@code params}.
-   */
-  @Nonnull
-  TrackedEntity getNewTrackedEntity(
-      @Nonnull UID uid, UID program, @Nonnull TrackedEntityParams params)
       throws NotFoundException, ForbiddenException;
 
   /**
-   * Get the tracked entity matching given {@code UID} under the privileges of the currently
-   * authenticated user. If {@code program} is defined, program attributes for such program are
-   * included, otherwise only TETAs are included. It will include enrollments, relationships,
-   * attributes and ownerships as defined in {@code params}.
+   * Finds the tracked entity that matches the given {@code UID} based on the privileges of the
+   * currently authenticated user. Returns an {@link Optional} indicating whether the tracked entity
+   * was found.
    *
-   * @deprecated use {@link #getNewTrackedEntity(UID, UID, TrackedEntityParams)} instead.
+   * @return an {@link Optional} containing the tracked entity if found, or an empty {@link
+   *     Optional} if not
    */
-  @Deprecated(forRemoval = true)
+  @Nonnull
+  Optional<TrackedEntity> findTrackedEntity(@Nonnull UID uid);
+
+  /**
+   * Retrieves the tracked entity that matches the given {@code UID} based on the privileges of the
+   * currently authenticated user. This method only includes TETAs (Tracked Entity Type Attributes)
+   * and excludes program attributes, enrollments, and relationships. To include enrollments,
+   * relationships, and program attributes, use {@link #getTrackedEntity(UID, UID,
+   * TrackedEntityParams)}.
+   *
+   * @return the tracked entity associated with the specified {@code UID}
+   * @throws NotFoundException if the tracked entity cannot be found
+   * @throws ForbiddenException if the user does not have permission to access the tracked entity
+   */
+  @Nonnull
+  TrackedEntity getTrackedEntity(@Nonnull UID uid) throws NotFoundException, ForbiddenException;
+
+  /**
+   * Retrieves the tracked entity that matches the given {@code UID} based on the privileges of the
+   * currently authenticated user. If the {@code program} is provided, the program attributes for
+   * the specified program are included; otherwise, only TETAs (Tracked Entity Type Attributes) are
+   * included. This method also includes any enrollments, relationships, attributes, and ownerships
+   * as defined by the provided {@code params}.
+   *
+   * @return the tracked entity with additional details based on the provided parameters
+   * @throws NotFoundException if the tracked entity cannot be found
+   * @throws ForbiddenException if the user does not have permission to access the tracked entity
+   */
   @Nonnull
   TrackedEntity getTrackedEntity(@Nonnull UID uid, UID program, @Nonnull TrackedEntityParams params)
-      throws NotFoundException, ForbiddenException, BadRequestException;
+      throws NotFoundException, ForbiddenException;
 
-  /** Get all tracked entities matching given params. */
+  /** Find all tracked entities matching given params. */
   @Nonnull
-  List<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams operationParams)
+  List<TrackedEntity> findTrackedEntities(TrackedEntityOperationParams operationParams)
       throws BadRequestException, ForbiddenException, NotFoundException;
 
   /** Get a page of tracked entities matching given params. */
   @Nonnull
-  Page<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams params, PageParams pageParams)
+  Page<TrackedEntity> findTrackedEntities(
+      TrackedEntityOperationParams params, PageParams pageParams)
       throws BadRequestException, ForbiddenException, NotFoundException;
 
   /**
-   * Fields the {@link #getTrackedEntities(TrackedEntityOperationParams)} can order tracked entities
-   * by. Ordering by fields other than these is considered a programmer error. Validation of user
-   * provided field names should occur before calling {@link
-   * #getTrackedEntities(TrackedEntityOperationParams)}.
+   * Fields the {@link #findTrackedEntities(TrackedEntityOperationParams)} can order tracked
+   * entities by. Ordering by fields other than these is considered a programmer error. Validation
+   * of user provided field names should occur before calling {@link
+   * #findTrackedEntities(TrackedEntityOperationParams)}.
    */
   Set<String> getOrderableFields();
 }

@@ -31,7 +31,7 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -121,9 +121,9 @@ class DefaultEventService implements EventService {
               .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
               .events(Set.of(eventUid))
               .eventParams(EventParams.FALSE)
-              .dataElementFilters(Map.of(dataElementUid, List.of()))
+              .filterByDataElement(dataElementUid)
               .build();
-      events = getEvents(operationParams, PageParams.single());
+      events = findEvents(operationParams, PageParams.single());
     } catch (BadRequestException e) {
       throw new IllegalArgumentException(
           "this must be a bug in how the EventOperationParams are built");
@@ -160,17 +160,29 @@ class DefaultEventService implements EventService {
     return fileResourceService.getExistingFileResource(fileResourceUid);
   }
 
+  @Nonnull
   @Override
-  public Event getEvent(@Nonnull UID event) throws ForbiddenException, NotFoundException {
+  public Optional<Event> findEvent(@Nonnull UID event) {
+    try {
+      return Optional.of(getEvent(event));
+    } catch (NotFoundException e) {
+      return Optional.empty();
+    }
+  }
+
+  @Nonnull
+  @Override
+  public Event getEvent(@Nonnull UID event) throws NotFoundException {
     return getEvent(event, TrackerIdSchemeParams.builder().build(), EventParams.FALSE);
   }
 
+  @Nonnull
   @Override
   public Event getEvent(
       @Nonnull UID eventUid,
       @Nonnull TrackerIdSchemeParams idSchemeParams,
       @Nonnull EventParams eventParams)
-      throws ForbiddenException, NotFoundException {
+      throws NotFoundException {
     Page<Event> events;
     try {
       EventOperationParams operationParams =
@@ -180,8 +192,8 @@ class DefaultEventService implements EventService {
               .eventParams(eventParams)
               .idSchemeParams(idSchemeParams)
               .build();
-      events = getEvents(operationParams, PageParams.single());
-    } catch (BadRequestException e) {
+      events = findEvents(operationParams, PageParams.single());
+    } catch (BadRequestException | ForbiddenException e) {
       throw new IllegalArgumentException(
           "this must be a bug in how the EventOperationParams are built");
     }
@@ -223,14 +235,14 @@ class DefaultEventService implements EventService {
 
   @Nonnull
   @Override
-  public List<Event> getEvents(@Nonnull EventOperationParams operationParams)
+  public List<Event> findEvents(@Nonnull EventOperationParams operationParams)
       throws BadRequestException, ForbiddenException {
     EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
     List<Event> events = eventStore.getEvents(queryParams);
     if (operationParams.getEventParams().isIncludeRelationships()) {
       for (Event event : events) {
         event.setRelationshipItems(
-            relationshipService.getRelationshipItems(
+            relationshipService.findRelationshipItems(
                 TrackerType.EVENT, UID.of(event), queryParams.isIncludeDeleted()));
       }
     }
@@ -239,7 +251,7 @@ class DefaultEventService implements EventService {
 
   @Nonnull
   @Override
-  public Page<Event> getEvents(
+  public Page<Event> findEvents(
       @Nonnull EventOperationParams operationParams, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException {
     EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
@@ -247,7 +259,7 @@ class DefaultEventService implements EventService {
     if (operationParams.getEventParams().isIncludeRelationships()) {
       for (Event event : events.getItems()) {
         event.setRelationshipItems(
-            relationshipService.getRelationshipItems(
+            relationshipService.findRelationshipItems(
                 TrackerType.EVENT, UID.of(event), queryParams.isIncludeDeleted()));
       }
     }
