@@ -2224,11 +2224,26 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldFailWhenRequestingSingleTEEnrolledInOpenProgramWhenUserNotInSearchScope() {
+    user.setTeiSearchOrganisationUnits(Set.of(orgUnitB));
+    user.setOrganisationUnits(Set.of(orgUnitB));
+    injectSecurityContextUser(user);
+
+    Assertions.assertThrows(
+        NotFoundException.class,
+        () ->
+            trackedEntityService.getTrackedEntity(
+                UID.of(trackedEntityA.getUid()),
+                UID.of(programA.getUid()),
+                TrackedEntityParams.FALSE));
+  }
+
+  @Test
   void
-      shouldFailWhenRequestingSingleTEEnrolledInProtectedProgramWhenUserInSearchScopeButNotIfNoCaptureScope() {
+      shouldFailWhenRequestingSingleTEEnrolledInProtectedProgramWhenUserInSearchScopeButNotInCaptureScope() {
     trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
         trackedEntityB, programB, orgUnitB);
-    manager.update(trackedEntityA);
+
     Assertions.assertThrows(
         NotFoundException.class,
         () ->
@@ -2240,7 +2255,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void
-      shouldFailWhenRequestingSingleTEEnrolledInClosedProgramWhenUserInSearchScopeButNotIfNoCaptureScope() {
+      shouldFailWhenRequestingSingleTEEnrolledInClosedProgramWhenUserInSearchScopeButNotInCaptureScope() {
     injectAdminIntoSecurityContext();
     makeProgramDataAndMetadataAccessible(programC);
     Enrollment enrollment = createEnrollment(programC, trackedEntityB, orgUnitB);
