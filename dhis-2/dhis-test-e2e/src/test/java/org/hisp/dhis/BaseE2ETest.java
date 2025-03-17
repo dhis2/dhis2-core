@@ -230,7 +230,7 @@ public class BaseE2ETest {
 
   public String callTokenEndpoint(String code) {
     RestTemplate restTemplate = getRestTemplateNoRedirects();
-    String apiUrl = "http://localhost:8080/oauth2/token";
+    String apiUrl = serverHostUrl + "/oauth2/token";
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 

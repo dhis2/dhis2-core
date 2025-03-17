@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.security.oauth2.authorization;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Date;
@@ -50,35 +51,35 @@ public class Dhis2OAuth2Authorization extends BaseIdentifiableObject implements 
   @JsonProperty private String attributes;
   @JsonProperty private String state;
 
-  @JsonProperty private String authorizationCodeValue;
+  @JsonIgnore private String authorizationCodeValue;
   @JsonProperty private Date authorizationCodeIssuedAt;
   @JsonProperty private Date authorizationCodeExpiresAt;
   @JsonProperty private String authorizationCodeMetadata;
 
-  @JsonProperty private String accessTokenValue;
+  @JsonIgnore private String accessTokenValue;
   @JsonProperty private Date accessTokenIssuedAt;
   @JsonProperty private Date accessTokenExpiresAt;
   @JsonProperty private String accessTokenMetadata;
   @JsonProperty private String accessTokenType;
   @JsonProperty private String accessTokenScopes;
 
-  @JsonProperty private String refreshTokenValue;
+  @JsonIgnore private String refreshTokenValue;
   @JsonProperty private Date refreshTokenIssuedAt;
   @JsonProperty private Date refreshTokenExpiresAt;
   @JsonProperty private String refreshTokenMetadata;
 
-  @JsonProperty private String oidcIdTokenValue;
+  @JsonIgnore private String oidcIdTokenValue;
   @JsonProperty private Date oidcIdTokenIssuedAt;
   @JsonProperty private Date oidcIdTokenExpiresAt;
   @JsonProperty private String oidcIdTokenMetadata;
   @JsonProperty private String oidcIdTokenClaims;
 
-  @JsonProperty private String userCodeValue;
+  @JsonIgnore private String userCodeValue;
   @JsonProperty private Date userCodeIssuedAt;
   @JsonProperty private Date userCodeExpiresAt;
   @JsonProperty private String userCodeMetadata;
 
-  @JsonProperty private String deviceCodeValue;
+  @JsonIgnore private String deviceCodeValue;
   @JsonProperty private Date deviceCodeIssuedAt;
   @JsonProperty private Date deviceCodeExpiresAt;
   @JsonProperty private String deviceCodeMetadata;

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.security.oauth2.client;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Date;
@@ -44,7 +45,7 @@ public class Dhis2OAuth2Client extends BaseIdentifiableObject implements Metadat
   public Dhis2OAuth2Client() {}
 
   @JsonProperty private String clientId;
-  @JsonProperty private String clientSecret;
+  @JsonIgnore private String clientSecret;
   @JsonProperty private Date clientIdIssuedAt;
   @JsonProperty private Date clientSecretExpiresAt;
   @JsonProperty private String clientAuthenticationMethods;

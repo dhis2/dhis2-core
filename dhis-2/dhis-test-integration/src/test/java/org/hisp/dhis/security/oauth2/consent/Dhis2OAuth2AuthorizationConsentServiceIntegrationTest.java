@@ -102,12 +102,6 @@ public class Dhis2OAuth2AuthorizationConsentServiceIntegrationTest
         authorizationConsent.getRegisteredClientId(), foundConsent.getRegisteredClientId());
     assertEquals(authorizationConsent.getPrincipalName(), foundConsent.getPrincipalName());
 
-    // Verify authorities
-    Set<String> expectedAuthorities = new HashSet<>();
-    authorizationConsent
-        .getAuthorities()
-        .forEach(authority -> expectedAuthorities.add(authority.getAuthority()));
-
     Set<String> actualAuthorities = new HashSet<>();
     foundConsent
         .getAuthorities()
