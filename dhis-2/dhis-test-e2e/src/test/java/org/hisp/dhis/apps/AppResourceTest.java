@@ -27,28 +27,32 @@
  */
 package org.hisp.dhis.apps;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.io.File;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
-import java.util.Map;
+
+import static org.hamcrest.Matchers.equalTo;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+
+import static io.restassured.RestAssured.given;
 
 @Tag("apptests")
 class AppResourceTest extends ApiTest {
@@ -159,6 +163,10 @@ class AppResourceTest extends ApiTest {
     //   assertEquals(SERVER_BASE + "/dhis-web-" + app + "/index.html", location.get(0));
     // }
   }
+
+  // TODO: Installed apps
+  // TODO: Global shell
+  // TODO: Test when global shell disabled
 
   private ResponseEntity<String> get(String path, HttpHeaders headers) {
     try {
