@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.containsStringIgnoringCase;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -966,5 +967,65 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("ERROR", error.getStatus());
     assertEquals(
         "Cannot generate chart for multi-program visualization " + uid, error.getMessage());
+  }
+
+  @Test
+  void testGetMetaDataObject() {
+    // Given
+    String body =
+        """
+              {"name": "Test metadata post", "type": "STACKED_COLUMN",
+              "program": {"id": "deabcdefghP"},
+              "trackedEntityType": {"id": "nEenWmSyUEp"},
+              "filters": [
+                  {
+                      "dimension": "ou",
+                      "programStage": {
+                          "id": "deabcdefghS"
+                      },
+                      "repetition": {
+                          "indexes": [
+                              1,
+                              2,
+                              3,
+                              -2,
+                              -1,
+                              0
+                          ]
+                      },
+                      "items": [
+                          {
+                              "id": "ImspTQPwCqd"
+                          }
+                      ]
+                  },
+                  {
+                      "dimension": "deabcdefghE",
+                      "repetition": {
+                          "indexes": [
+                              1,
+                              2,
+                              0
+                          ]
+                      },
+                      "items": []
+                  }
+               ]
+              }
+              """;
+
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
+
+    // Then
+    JsonObject response = GET("/eventVisualizations/" + uid).content();
+
+    assertThat(response.get("name").node().value(), is(equalTo("Test metadata post")));
+    assertThat(
+        response.get("metaData").node().value().toString(),
+        containsStringIgnoringCase(
+            "{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OrganisationUnitCodeA\",\"name\":\"OrganisationUnitA\"},\"deabcdefghE\":{\"uid\":\"deabcdefghE\",\"code\":\"DataElementCodeB\",\"name\":\"DataElementB\"}}"));
+    assertThat(response.get("type").node().value(), is(equalTo("STACKED_COLUMN")));
+    assertThat(response.get("program").node().get("id").value(), is(equalTo(mockProgram.getUid())));
   }
 }

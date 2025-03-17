@@ -29,20 +29,24 @@ package org.hisp.dhis.webapi.controller.event;
 
 import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
+import static org.hisp.dhis.common.DimensionType.PROGRAM_ATTRIBUTE;
+import static org.hisp.dhis.common.DimensionType.PROGRAM_DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getQualifiedDimensions;
+import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
+import static org.hisp.dhis.commons.collection.ListUtils.union;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.eventvisualization.EventVisualizationType.LINE_LIST;
 import static org.hisp.dhis.eventvisualization.EventVisualizationType.PIVOT_TABLE;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_PNG;
+import static org.hisp.dhis.webapi.utils.FilterUtils.fromFilter;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -52,8 +56,8 @@ import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationService;
@@ -68,8 +72,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.GetObjectParams;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
-import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.ChartService;
@@ -77,7 +79,6 @@ import org.hisp.dhis.visualization.PlotData;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.utils.FilterUtils;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.springframework.stereotype.Controller;
@@ -175,7 +176,13 @@ public class EventVisualizationController
     if (currentUser != null) {
       Set<OrganisationUnit> roots = currentUser.getDataViewOrganisationUnitsWithFallback();
       addOrganizationUnitsToGraphMap(eventVisualization, roots);
-      addFilterOrganizationUnitToGraphMap(eventVisualization, roots);
+      addFilterOrganizationUnitsToResponse(
+          union(
+              eventVisualization.getColumns(),
+              eventVisualization.getRows(),
+              eventVisualization.getFilters()),
+          eventVisualization,
+          roots);
     }
 
     I18nFormat format = i18nManager.getI18nFormat();
@@ -202,66 +209,41 @@ public class EventVisualizationController
 
   private void addOrganizationUnitsToGraphMap(
       EventVisualization eventVisualization, Set<OrganisationUnit> roots) {
-    for (OrganisationUnit organisationUnit : eventVisualization.getOrganisationUnits()) {
-      eventVisualization
-          .getParentGraphMap()
-          .put(organisationUnit.getUid(), organisationUnit.getParentGraph(roots));
+    for (OrganisationUnit ou : eventVisualization.getOrganisationUnits()) {
+      eventVisualization.getParentGraphMap().put(ou.getUid(), ou.getParentGraph(roots));
     }
   }
 
-  private void addFilterOrganizationUnitToGraphMap(
-      EventVisualization eventVisualization, Set<OrganisationUnit> roots) {
-
-    // Process attribute dimensions
-    processAttributeDimensions(
-        eventVisualization.getAttributeDimensions(), eventVisualization, roots);
-
-    // Process data element dimensions
-    processDataElementDimensions(
-        eventVisualization.getDataElementDimensions(), eventVisualization, roots);
-  }
-
-  /** Process organization unit attribute dimensions. */
-  private void processAttributeDimensions(
-      Collection<TrackedEntityAttributeDimension> dimensions,
+  private void addFilterOrganizationUnitsToResponse(
+      List<DimensionalObject> dimensionalObjects,
       EventVisualization eventVisualization,
       Set<OrganisationUnit> roots) {
+    for (DimensionalObject dimensionalObject : dimensionalObjects) {
+      if ((dimensionalObject.getDimensionType() == PROGRAM_ATTRIBUTE
+              || dimensionalObject.getDimensionType() == PROGRAM_DATA_ELEMENT)
+          && dimensionalObject.getValueType() == ORGANISATION_UNIT) {
 
-    for (TrackedEntityAttributeDimension dim : dimensions) {
-      if (isOrgUnitType(dim)) {
-        List<String> ouUids = FilterUtils.fromFilter(dim.getFilter());
-        if (ouUids.isEmpty()) {
-          continue;
-        }
-        processOrganisationUnits(ouUids, eventVisualization, roots);
-      }
-    }
-  }
-
-  /** Process organization unit data element dimensions. */
-  private void processDataElementDimensions(
-      Collection<TrackedEntityDataElementDimension> dimensions,
-      EventVisualization eventVisualization,
-      Set<OrganisationUnit> roots) {
-
-    for (TrackedEntityDataElementDimension dim : dimensions) {
-      if (isOrgUnitType(dim)) {
-        List<String> ouUids = FilterUtils.fromFilter(dim.getFilter());
-        if (ouUids.isEmpty()) {
-          continue;
-        }
-        processOrganisationUnits(ouUids, eventVisualization, roots);
+        List<String> orgUnitUids = fromFilter(dimensionalObject.getFilter());
+        processOrganisationUnits(orgUnitUids, eventVisualization, roots);
       }
     }
   }
 
   /** Common method to process organization units once UIDs are extracted. */
   private void processOrganisationUnits(
-      List<String> ouUids, EventVisualization eventVisualization, Set<OrganisationUnit> roots) {
+      List<String> orgUnitUids,
+      EventVisualization eventVisualization,
+      Set<OrganisationUnit> roots) {
 
-    List<OrganisationUnit> units = organisationUnitService.getOrganisationUnitsByUid(ouUids);
-    for (OrganisationUnit ou : units) {
-      eventVisualization.getParentGraphMap().put(ou.getUid(), ou.getParentGraph(roots));
+    if (!orgUnitUids.isEmpty()) {
+      List<OrganisationUnit> units = organisationUnitService.getOrganisationUnitsByUid(orgUnitUids);
+
+      for (OrganisationUnit ou : units) {
+        eventVisualization.getParentGraphMap().put(ou.getUid(), ou.getParentGraph(roots));
+        eventVisualization
+            .getMetaData()
+            .put(ou.getUid(), new MetadataItem(ou.getDisplayName(), ou.getUid(), ou.getCode()));
+      }
     }
   }
 
@@ -347,15 +329,5 @@ public class EventVisualizationController
               "Cannot generate chart for multi-program visualization "
                   + eventVisualization.getUid()));
     }
-  }
-
-  private boolean isOrgUnitType(TrackedEntityDataElementDimension dimension) {
-    return dimension.getDataElement() != null
-        && dimension.getDataElement().getValueType() == ValueType.ORGANISATION_UNIT;
-  }
-
-  private boolean isOrgUnitType(TrackedEntityAttributeDimension dimension) {
-    return dimension.getAttribute() != null
-        && dimension.getAttribute().getValueType() == ValueType.ORGANISATION_UNIT;
   }
 }
