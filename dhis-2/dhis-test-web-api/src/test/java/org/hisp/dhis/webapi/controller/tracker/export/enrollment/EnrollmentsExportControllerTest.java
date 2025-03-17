@@ -55,6 +55,7 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -160,13 +161,13 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
     assertNotEmpty(
         enrollment.getTrackedEntity().getTrackedEntityAttributeValues(),
         "test expects an enrollment with attribute values");
-    TrackedEntityAttribute ptea = get(TrackedEntityAttribute.class, "dIVt4l5vIOa");
+    TrackedEntityAttribute ptea = get(TrackedEntityAttribute.class, "fRGt4l6yIRb");
 
     JsonEnrollment jsonEnrollment = getEnrollment.apply(enrollment, "attributes");
     assertHasOnlyMembers(jsonEnrollment, "attributes");
     JsonAttribute attribute = jsonEnrollment.getAttributes().get(0);
     assertEquals(ptea.getUid(), attribute.getAttribute());
-    assertEquals("Frank PTEA", attribute.getValue());
+    assertEquals("Test PTEA", attribute.getValue());
     assertEquals(ValueType.TEXT.name(), attribute.getValueType());
     assertHasMember(attribute, "createdAt");
     assertHasMember(attribute, "updatedAt");
@@ -260,6 +261,30 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
         () -> assertHasMember(jsonRelationship, "createdAt"),
         () -> assertHasMember(jsonRelationship, "updatedAt"),
         () -> assertHasMember(jsonRelationship, "bidirectional"));
+  }
+
+  @Test
+  void
+      shouldGetEnrollmentWithNoRelationshipsWhenEnrollmentIsOnTheToSideOfAUnidirectionalRelationship() {
+    Relationship relationship = get(Relationship.class, "p53a6314631");
+
+    assertNotNull(
+        relationship.getTo().getEnrollment(),
+        "test expects relationship to have a 'to' enrollment");
+    RelationshipType relationshipType = relationship.getRelationshipType();
+    relationshipType.setBidirectional(false);
+    manager.save(relationshipType);
+
+    JsonList<JsonRelationship> jsonRelationships =
+        GET(
+                "/tracker/enrollments?enrollments={id}&fields=*&includeDeleted=true",
+                relationship.getTo().getEnrollment().getUid())
+            .content(HttpStatus.OK)
+            .getList("enrollments", JsonEnrollment.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    assertIsEmpty(jsonRelationships.stream().toList());
   }
 
   @ParameterizedTest

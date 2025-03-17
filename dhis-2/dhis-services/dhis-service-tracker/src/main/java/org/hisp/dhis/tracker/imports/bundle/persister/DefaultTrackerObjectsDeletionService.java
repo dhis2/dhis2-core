@@ -228,6 +228,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   @Override
   public TrackerTypeReport deleteRelationships(List<UID> relationships) throws NotFoundException {
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.RELATIONSHIP);
+    UserInfoSnapshot userInfoSnapshot = UserInfoSnapshot.from(getCurrentUserDetails());
 
     for (UID uid : relationships) {
       Entity objectReport = new Entity(TrackerType.RELATIONSHIP, uid);
@@ -236,6 +237,16 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       if (relationship == null) {
         throw new NotFoundException(Relationship.class, uid);
       }
+
+      relationship
+          .getTrackedEntityOrigins()
+          .forEach(
+              teUid -> {
+                TrackedEntity trackedEntity = manager.get(TrackedEntity.class, teUid);
+                trackedEntity.setLastUpdatedByUserInfo(userInfoSnapshot);
+                manager.update(trackedEntity);
+              });
+
       manager.delete(relationship);
 
       typeReport.getStats().incDeleted();

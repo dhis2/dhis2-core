@@ -187,6 +187,7 @@
     {
       "created": "2016-03-09T09:56:10.596+0000",
       "name": "Person",
+      "shortName": "Person",
       "lastUpdated": "2016-03-09T09:56:10.597+0000",
       "id": "K0wAVaOSKb7",
       "attributeValues": [],

@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.expression.dataitem;
 
+import static java.lang.String.format;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.common.DimensionalItemId;
@@ -39,6 +39,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 import org.hisp.dhis.system.util.ValidationUtils;
 
 /**
@@ -55,7 +56,7 @@ public abstract class DimensionalItem implements ExpressionItem {
 
     if (item == null) {
       throw new ParserExceptionWithoutContext(
-          "Can't find " + itemId.getDimensionItemType().name() + " for '" + itemId + "'");
+          format("Cannot find %s for %s", itemId.getDimensionItemType().name(), itemId));
     }
 
     visitor.getItemDescriptions().put(ctx.getText(), item.getDisplayName());

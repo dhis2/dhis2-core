@@ -67,6 +67,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -115,6 +116,8 @@ class TrackedEntityOperationParamsMapperTest {
   @Mock private HibernateTrackedEntityStore trackedEntityStore;
 
   @Mock private OperationsParamsValidator paramsValidator;
+
+  @Mock private SystemSettingsService systemSettingsService;
 
   @InjectMocks private TrackedEntityOperationParamsMapper mapper;
 
@@ -522,36 +525,6 @@ class TrackedEntityOperationParamsMapperTest {
   }
 
   @Test
-  void shouldFailWhenGlobalSearchAndMaxTeLimitReached()
-      throws ForbiddenException, BadRequestException {
-    User userWithOrgUnits = new User();
-    userWithOrgUnits.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
-    userWithOrgUnits.setOrganisationUnits(emptySet());
-    UserDetails currentUserWithOrgUnits = UserDetails.fromUser(userWithOrgUnits);
-
-    when(aclService.canDataRead(any(UserDetails.class), any(Program.class))).thenReturn(true);
-    program.setMinAttributesRequiredToSearch(0);
-    program.setMaxTeiCountToReturn(1);
-    when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
-    when(paramsValidator.validateTrackerProgram(UID.of(program), currentUserWithOrgUnits))
-        .thenReturn(program);
-
-    when(trackedEntityStore.getTrackedEntityCountWithMaxTrackedEntityLimit(any())).thenReturn(100);
-    when(organisationUnitService.getOrganisationUnitsByUid(
-            Set.of(orgUnit1.getUid(), orgUnit2.getUid())))
-        .thenReturn(List.of(orgUnit1, orgUnit2));
-
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder().orgUnitMode(ACCESSIBLE).program(PROGRAM_UID).build();
-
-    Exception exception =
-        assertThrows(
-            IllegalQueryException.class,
-            () -> mapper.map(operationParams, currentUserWithOrgUnits));
-    assertEquals("maxteicountreached", exception.getMessage());
-  }
-
-  @Test
   void shouldFailWhenUserHasNoAccessToAnyTrackedEntityType() {
     User userWithOrgUnits = new User();
     userWithOrgUnits.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
@@ -561,8 +534,6 @@ class TrackedEntityOperationParamsMapperTest {
     program.setMinAttributesRequiredToSearch(0);
     program.setMaxTeiCountToReturn(1);
     when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
-
-    when(trackedEntityStore.getTrackedEntityCountWithMaxTrackedEntityLimit(any())).thenReturn(100);
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder().orgUnitMode(ACCESSIBLE).build();

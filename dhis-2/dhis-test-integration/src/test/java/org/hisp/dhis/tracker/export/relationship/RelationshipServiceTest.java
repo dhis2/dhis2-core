@@ -241,7 +241,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
     RelationshipOperationParams operationParams = RelationshipOperationParams.builder(teA).build();
 
-    List<Relationship> relationships = relationshipService.getRelationships(operationParams);
+    List<Relationship> relationships = relationshipService.findRelationships(operationParams);
 
     assertContainsOnly(
         List.of(accessible.getUid()), relationships.stream().map(Relationship::getUid).toList());
@@ -256,7 +256,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     RelationshipOperationParams operationParams =
         RelationshipOperationParams.builder(enrollmentA).build();
 
-    List<Relationship> relationships = relationshipService.getRelationships(operationParams);
+    List<Relationship> relationships = relationshipService.findRelationships(operationParams);
 
     assertContainsOnly(
         List.of(accessible.getUid()), relationships.stream().map(Relationship::getUid).toList());
@@ -271,7 +271,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     RelationshipOperationParams operationParams =
         RelationshipOperationParams.builder(eventA).build();
 
-    List<Relationship> relationships = relationshipService.getRelationships(operationParams);
+    List<Relationship> relationships = relationshipService.findRelationships(operationParams);
 
     assertContainsOnly(
         List.of(accessible.getUid()), relationships.stream().map(Relationship::getUid).toList());
@@ -313,7 +313,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
     assertThrows(
         ForbiddenException.class,
-        () -> relationshipService.getRelationships(operationParams),
+        () -> relationshipService.findRelationships(operationParams),
         "User should not have access to a relationship in case of ownership transfer of a tracked entity");
   }
 
@@ -342,7 +342,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     RelationshipOperationParams operationParams =
         RelationshipOperationParams.builder(trackedEntityFrom).build();
 
-    List<Relationship> relationships = relationshipService.getRelationships(operationParams);
+    List<Relationship> relationships = relationshipService.findRelationships(operationParams);
 
     assertContainsOnly(
         List.of(accessible.getUid()), relationships.stream().map(Relationship::getUid).toList());
@@ -379,7 +379,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
     assertThrows(
         ForbiddenException.class,
-        () -> relationshipService.getRelationships(operationParams),
+        () -> relationshipService.findRelationships(operationParams),
         "User should not have access to a relationship in case of missing metadata access to at least one program");
   }
 
@@ -413,7 +413,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
     assertThrows(
         ForbiddenException.class,
-        () -> relationshipService.getRelationships(operationParams),
+        () -> relationshipService.findRelationships(operationParams),
         "User should not have access to a relationship in case of missing data read access to at least one program");
   }
 

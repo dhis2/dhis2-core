@@ -44,7 +44,7 @@ public class SqlExceptionUtils {
       "An error occurred during the execution of an analytics query: ";
 
   public static final String ERR_MSG_SILENT_FALLBACK =
-      "An exception occurred - silently fallback since it's multiple analytics query: ";
+      "An exception occurred, silent fallback due to multiple analytics query: ";
 
   /**
    * Utility method to detect if the {@link SQLException} refers to a missing relation in the

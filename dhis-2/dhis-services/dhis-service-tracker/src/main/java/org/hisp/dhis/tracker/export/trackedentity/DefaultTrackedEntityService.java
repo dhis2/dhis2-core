@@ -189,7 +189,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
               .trackedEntityParams(params)
               .program(program)
               .build();
-      trackedEntities = getTrackedEntities(operationParams, PageParams.single());
+      trackedEntities = findTrackedEntities(operationParams, PageParams.single());
     } catch (BadRequestException e) {
       throw new IllegalArgumentException(
           "this must be a bug in how the TrackedEntityOperationParams are built");
@@ -215,27 +215,28 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Nonnull
   @Override
-  public List<TrackedEntity> getTrackedEntities(
+  public List<TrackedEntity> findTrackedEntities(
       @Nonnull TrackedEntityOperationParams operationParams)
-      throws ForbiddenException, NotFoundException, BadRequestException {
+      throws ForbiddenException, BadRequestException {
     UserDetails user = getCurrentUserDetails();
     TrackedEntityQueryParams queryParams = mapper.map(operationParams, user);
     final List<TrackedEntityIdentifiers> ids = trackedEntityStore.getTrackedEntityIds(queryParams);
 
-    return getTrackedEntities(ids, operationParams, queryParams, user);
+    return findTrackedEntities(ids, operationParams, queryParams, user);
   }
 
+  @Nonnull
   @Override
-  public @Nonnull Page<TrackedEntity> getTrackedEntities(
+  public Page<TrackedEntity> findTrackedEntities(
       @Nonnull TrackedEntityOperationParams operationParams, @Nonnull PageParams pageParams)
-      throws BadRequestException, ForbiddenException, NotFoundException {
+      throws BadRequestException, ForbiddenException {
     UserDetails user = getCurrentUserDetails();
-    TrackedEntityQueryParams queryParams = mapper.map(operationParams, user);
+    TrackedEntityQueryParams queryParams = mapper.map(operationParams, user, pageParams);
     final Page<TrackedEntityIdentifiers> ids =
         trackedEntityStore.getTrackedEntityIds(queryParams, pageParams);
 
     List<TrackedEntity> trackedEntities =
-        getTrackedEntities(ids.getItems(), operationParams, queryParams, user);
+        findTrackedEntities(ids.getItems(), operationParams, queryParams, user);
 
     // TODO(tracker): Push this filter into the store because it is breaking pagination
     trackedEntities =
@@ -246,7 +247,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     return ids.withFilteredItems(trackedEntities);
   }
 
-  private List<TrackedEntity> getTrackedEntities(
+  private List<TrackedEntity> findTrackedEntities(
       List<TrackedEntityIdentifiers> ids,
       TrackedEntityOperationParams operationParams,
       TrackedEntityQueryParams queryParams,
@@ -261,7 +262,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     for (TrackedEntity trackedEntity : trackedEntities) {
       if (operationParams.getTrackedEntityParams().isIncludeRelationships()) {
         trackedEntity.setRelationshipItems(
-            relationshipService.getRelationshipItems(
+            relationshipService.findRelationshipItems(
                 TrackerType.TRACKED_ENTITY, UID.of(trackedEntity), queryParams.isIncludeDeleted()));
       }
     }

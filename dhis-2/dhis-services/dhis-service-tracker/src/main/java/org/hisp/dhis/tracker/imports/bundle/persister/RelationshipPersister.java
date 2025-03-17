@@ -29,6 +29,8 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import jakarta.persistence.EntityManager;
 import java.util.List;
+import java.util.Set;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
@@ -116,8 +118,8 @@ public class RelationshipPersister
   }
 
   @Override
-  protected String getUpdatedTrackedEntity(org.hisp.dhis.relationship.Relationship entity) {
-    return null;
+  protected Set<UID> getUpdatedTrackedEntities(org.hisp.dhis.relationship.Relationship entity) {
+    return entity.getTrackedEntityOrigins();
   }
 
   @Override

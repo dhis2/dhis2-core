@@ -231,7 +231,8 @@
       "description": "Person",
       "id": "vmZxWXOw5CD",
       "lastUpdated": "2016-03-11T06:56:14.000+0000",
-      "name": "Person"
+      "name": "Person",
+      "shortName": "Person"
     }
   ],
   "programs": [

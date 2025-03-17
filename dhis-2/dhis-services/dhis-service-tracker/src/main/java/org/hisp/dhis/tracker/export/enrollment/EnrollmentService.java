@@ -75,28 +75,28 @@ public interface EnrollmentService {
   @Nonnull
   Enrollment getEnrollment(UID uid, EnrollmentParams params) throws NotFoundException;
 
-  /** Get all enrollments matching given params. */
+  /** Find all enrollments matching given params. */
   @Nonnull
-  List<Enrollment> getEnrollments(EnrollmentOperationParams params)
+  List<Enrollment> findEnrollments(EnrollmentOperationParams params)
       throws BadRequestException, ForbiddenException;
 
   /** Get a page of enrollments matching given params. */
   @Nonnull
-  Page<Enrollment> getEnrollments(EnrollmentOperationParams params, PageParams pageParams)
+  Page<Enrollment> findEnrollments(EnrollmentOperationParams params, PageParams pageParams)
       throws BadRequestException, ForbiddenException;
 
   /**
-   * Get event matching given {@code UID} under the privileges the user in the context. This method
-   * does not get the events relationships.
+   * Find all enrollments matching given {@code UID} under the privileges the user in the context.
+   * This method does not get the enrollment relationships.
    */
   @Nonnull
-  List<Enrollment> getEnrollments(@Nonnull Set<UID> uids) throws ForbiddenException;
+  List<Enrollment> findEnrollments(@Nonnull Set<UID> uids) throws ForbiddenException;
 
   /**
-   * Fields the {@link #getEnrollments(EnrollmentOperationParams)} can order enrollments by.
+   * Fields the {@link #findEnrollments(EnrollmentOperationParams)} can order enrollments by.
    * Ordering by fields other than these is considered a programmer error. Validation of user
    * provided field names should occur before calling {@link
-   * #getEnrollments(EnrollmentOperationParams)}.
+   * #findEnrollments(EnrollmentOperationParams)}.
    */
   Set<String> getOrderableFields();
 }

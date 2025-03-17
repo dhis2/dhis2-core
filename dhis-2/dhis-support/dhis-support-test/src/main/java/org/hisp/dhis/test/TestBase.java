@@ -2152,7 +2152,7 @@ public abstract class TestBase {
     relationshipType.setName("RelationshipType_" + relationshipType.getUid());
     relationshipType.setFromConstraint(fromRelationShipConstraint);
     relationshipType.setToConstraint(toRelationShipConstraint);
-
+    relationshipType.setBidirectional(true);
     return relationshipType;
   }
 
@@ -2170,6 +2170,7 @@ public abstract class TestBase {
     TrackedEntityType trackedEntityType = new TrackedEntityType();
     trackedEntityType.setAutoFields();
     trackedEntityType.setName("TrackedEntityType" + uniqueChar);
+    trackedEntityType.setShortName("TrackedEntityTypeShort" + uniqueChar);
     trackedEntityType.setDescription("TrackedEntityType" + uniqueChar + " description");
 
     return trackedEntityType;

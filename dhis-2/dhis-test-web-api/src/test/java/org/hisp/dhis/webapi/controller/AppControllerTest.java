@@ -28,15 +28,20 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.nio.file.Files.createTempDirectory;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hisp.dhis.appmanager.AppManager.BUNDLED_APPS;
+import static org.junit.jupiter.api.Assertions.*;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
+import org.hisp.dhis.appmanager.AppShortcut;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
@@ -155,6 +160,35 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
         new ClassPathResource("app/test-bundled-app.zip").getFile(), "test-bundled-app.zip");
 
     HttpResponse get = GET("/api/apps/cache-cleaner/index.html");
-    assertTrue(get.location().contains("/dhis-web-cache-cleaner/index.html"));
+    assertEquals("http://localhost/dhis-web-cache-cleaner/index.html", get.location());
+  }
+
+  @Test
+  void testInstalledAppReturnsShortcuts() throws IOException {
+    appManager.installApp(
+        new ClassPathResource("app/test-app-with-shortcuts.zip").getFile(),
+        "test-app-with-shortcuts.zip");
+
+    HttpResponse response = GET("/apps/menu");
+    assertEquals(HttpStatus.OK, response.status());
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+    List<App> modules =
+        mapper.readValue(
+            response.content().get("modules").toJson(), new TypeReference<List<App>>() {});
+
+    assertEquals(BUNDLED_APPS.size() + 1, modules.size());
+
+    App installedApp = modules.get(modules.size() - 1);
+    AppShortcut firstShortcut = installedApp.getShortcuts().get(0);
+    AppShortcut secondShortcut = installedApp.getShortcuts().get(1);
+
+    assertEquals(2, installedApp.getShortcuts().size());
+    assertEquals("Category section", firstShortcut.getName());
+    assertEquals("#/overview/categories", firstShortcut.getUrl());
+
+    assertEquals("Category", secondShortcut.getName());
+    assertEquals("#/categories", secondShortcut.getUrl());
   }
 }
