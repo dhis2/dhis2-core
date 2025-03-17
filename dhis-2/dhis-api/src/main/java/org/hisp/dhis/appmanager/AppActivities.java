@@ -31,6 +31,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.DxfNamespaces;
 
 /**
@@ -43,7 +44,8 @@ public class AppActivities implements Serializable {
 
   @JsonProperty("dhis")
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  private AppDhis dhis;
+  @Nonnull
+  private AppDhis dhis = new AppDhis();
 
   public AppDhis getDhis() {
     return dhis;

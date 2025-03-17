@@ -83,7 +83,8 @@ public class App implements Serializable {
 
   private String locales;
 
-  private AppActivities activities;
+  @Nonnull
+  private AppActivities activities = new AppActivities();
 
   private String launchUrl;
 

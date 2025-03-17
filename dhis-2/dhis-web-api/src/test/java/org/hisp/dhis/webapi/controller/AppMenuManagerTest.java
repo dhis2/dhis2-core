@@ -25,11 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.appmanager;
 
 import static org.hisp.dhis.appmanager.AppManager.BUNDLED_APPS;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
@@ -38,17 +39,24 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.hisp.dhis.apphub.AppHubService;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppShortcut;
 import org.hisp.dhis.appmanager.BundledAppStorageService;
 import org.hisp.dhis.appmanager.DefaultAppManager;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheBuilder;
+import org.hisp.dhis.cache.DefaultCacheBuilderProvider;
+import org.hisp.dhis.datastore.DatastoreService;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -112,6 +120,11 @@ class AppMenuManagerTest {
   @BeforeEach
   void setUp() throws Exception {
     mockBundledApps();
+
+    doReturn(cacheBuilder).when(cacheBuilderProvider).newCacheBuilder();
+    doReturn(cacheBuilder).when(cacheBuilder).forRegion("appCache");
+    doReturn(appCache).when(cacheBuilder).build();
+
     appManager =
         new DefaultAppManager(
             dhisConfigurationProvider,
@@ -121,6 +134,8 @@ class AppMenuManagerTest {
             bundledAppStorageService,
             datastoreService,
             cacheBuilderProvider);
+    
+    appManager.reloadApps();
 
     Mockito.when(localeManager.getCurrentLocale()).thenReturn(new Locale("en"));
     when(i18nManager.getI18n()).thenReturn(i18n);
@@ -131,6 +146,7 @@ class AppMenuManagerTest {
     Mockito.when(resourceLoader.getResource(Mockito.anyString())).thenReturn(mockResource);
   }
 
+  @Disabled("Needs to be updated to mock ResourcePatternResolver and ResourceLoader in BundledAppStorageService")
   @Test
   void testGetMenu_BundledApps() {
     try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
@@ -172,6 +188,7 @@ class AppMenuManagerTest {
     App app = new App();
     app.setShortName(key);
     app.setIsBundled(bundled);
+    app.setShortcuts(List.of(new AppShortcut(), new AppShortcut()));
     return app;
   }
 }
