@@ -56,6 +56,7 @@ import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
@@ -966,5 +967,91 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("ERROR", error.getStatus());
     assertEquals(
         "Cannot generate chart for multi-program visualization " + uid, error.getMessage());
+  }
+
+  @Test
+  void testGetMetaDataObject() {
+    // Given
+    OrganisationUnitGroup organisationUnitGroup = createOrganisationUnitGroup('A');
+    organisationUnitGroup.setUid("CXw2yu5fodb");
+    manager.save(organisationUnitGroup);
+
+    DataElement ouDe = createDataElement('D', ValueType.TEXT, AggregationType.SUM, TRACKER);
+    ouDe.setUid("Zj7UnCAulEk");
+    ouDe.setValueType(ValueType.ORGANISATION_UNIT);
+    manager.save(ouDe);
+
+    String body =
+        """
+              {"name": "Test metadata post", "type": "STACKED_COLUMN",
+              "program": {"id": "deabcdefghP"},
+              "trackedEntityType": {"id": "nEenWmSyUEp"},
+              "filters": [
+                  {
+                      "dimension": "ou",
+                      "programStage": {
+                          "id": "deabcdefghS"
+                      },
+                      "repetition": {
+                          "indexes": [
+                              1,
+                              2,
+                              3,
+                              -2,
+                              -1,
+                              0
+                          ]
+                      },
+                      "items": [
+                          {
+                              "id": "ImspTQPwCqd"
+                          }
+                      ]
+                  },
+                  {
+                      "dimension": "deabcdefghE",
+                      "repetition": {
+                          "indexes": [
+                              1,
+                              2,
+                              0
+                          ]
+                      },
+                      "items": []
+                  },
+                  {
+                      "dimension": "Zj7UnCAulEk",
+                      "filter": "IN:OU_GROUP-CXw2yu5fodb"
+                   }
+               ]
+              }
+              """;
+
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
+
+    // Then
+    JsonObject response = GET("/eventVisualizations/" + uid).content();
+    String metaData = response.get("metaData").node().value().toString();
+
+    assertThat(response.get("name").node().value(), is(equalTo("Test metadata post")));
+    assertThat(
+        metaData,
+        containsString(
+            "\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OrganisationUnitCodeA\",\"name\":\"OrganisationUnitA\"}"));
+    assertThat(
+        metaData,
+        containsString(
+            "{\"uid\":\"CXw2yu5fodb\",\"code\":\"OrganisationUnitGroupCodeA\",\"name\":\"OrganisationUnitGroupA\"}"));
+    assertThat(
+        metaData,
+        containsString(
+            "\"deabcdefghE\":{\"uid\":\"deabcdefghE\",\"code\":\"DataElementCodeB\",\"name\":\"DataElementB\"}"));
+    assertThat(
+        metaData,
+        containsString(
+            "{\"uid\":\"Zj7UnCAulEk\",\"code\":\"DataElementCodeD\",\"name\":\"DataElementD\"}"));
+    assertThat(response.get("type").node().value(), is(equalTo("STACKED_COLUMN")));
+    assertThat(response.get("program").node().get("id").value(), is(equalTo(mockProgram.getUid())));
   }
 }

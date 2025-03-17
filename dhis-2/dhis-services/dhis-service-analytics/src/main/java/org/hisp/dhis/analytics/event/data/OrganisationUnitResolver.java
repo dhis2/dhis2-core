@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.apache.commons.lang3.StringUtils.substringAfter;
 import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
@@ -170,7 +169,7 @@ public class OrganisationUnitResolver {
       }
     } else if (dimensionUid.startsWith(KEY_ORGUNIT_GROUP)) {
       return idObjectManager.getObject(
-          OrganisationUnitGroup.class, idScheme, substringAfter(dimensionUid, SEPARATOR));
+          OrganisationUnitGroup.class, idScheme, substringAfterLast(dimensionUid, SEPARATOR));
     } else if (isValidUid(dimensionUid)) {
       return idObjectManager.getObject(OrganisationUnit.class, idScheme, dimensionUid);
     }
