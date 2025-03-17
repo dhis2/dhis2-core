@@ -38,18 +38,11 @@ import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.security.config.AuthorizationServerEnabledCondition;
 import org.springframework.context.annotation.Conditional;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
  * Controller for managing OAuth2 clients for the DHIS2 OAuth2 authorization server.
@@ -69,15 +62,11 @@ public class OAuth2ClientController
 
   private final Dhis2OAuth2ClientService clientService;
 
-  @GetMapping("/{uid}/registeredClient")
-  @ResponseBody
-  @ResponseStatus(HttpStatus.OK)
-  public RegisteredClient getRegisteredClientByUid(@PathVariable("uid") String uid) {
-    return clientService.findByUID(uid);
-  }
-
   @Override
   protected void preCreateEntity(Dhis2OAuth2Client entity) throws ConflictException {
+    validateAuthorizationGrantTypes(entity);
+    validateRedirectUris(entity);
+
     if (entity.getClientSettings() == null) {
       ClientSettings.Builder builder = ClientSettings.builder();
       builder.requireAuthorizationConsent(true);
@@ -90,9 +79,61 @@ public class OAuth2ClientController
     }
   }
 
-  private boolean isPublicClientType(RegisteredClient client) {
-    return client.getAuthorizationGrantTypes().contains(AuthorizationGrantType.AUTHORIZATION_CODE)
-        && client.getClientAuthenticationMethods().size() == 1
-        && client.getClientAuthenticationMethods().contains(ClientAuthenticationMethod.NONE);
+  @Override
+  protected void preUpdateEntity(Dhis2OAuth2Client entity, Dhis2OAuth2Client newEntity)
+      throws ConflictException {
+    validateAuthorizationGrantTypes(newEntity);
+    validateRedirectUris(newEntity);
+
+    super.preUpdateEntity(entity, newEntity);
+  }
+
+  /**
+   * Validates that the authorization grant types in the entity contain only allowed values
+   * (authorization_code and refresh_token)
+   *
+   * @param entity the OAuth2 client entity to validate
+   * @throws ConflictException if any invalid grant type is found
+   */
+  private void validateAuthorizationGrantTypes(Dhis2OAuth2Client entity) throws ConflictException {
+    if (entity.getAuthorizationGrantTypes() != null) {
+      String[] grantTypes = entity.getAuthorizationGrantTypes().split(",");
+      for (String grantType : grantTypes) {
+        String trimmedGrantType = grantType.trim();
+        if (!AuthorizationGrantType.AUTHORIZATION_CODE.getValue().equals(trimmedGrantType)
+            && !AuthorizationGrantType.REFRESH_TOKEN.getValue().equals(trimmedGrantType)) {
+          throw new ConflictException(
+              "Invalid authorization grant type: "
+                  + trimmedGrantType
+                  + ". Only authorization_code and refresh_token are allowed.");
+        }
+      }
+    }
+  }
+
+  /**
+   * Validates that all redirect URIs in the entity are valid URLs. Special handling is done for
+   * localhost URLs to allow for development environments.
+   *
+   * @param entity the OAuth2 client entity to validate
+   * @throws ConflictException if any invalid URI is found
+   */
+  private void validateRedirectUris(Dhis2OAuth2Client entity) throws ConflictException {
+    if (entity.getRedirectUris() != null) {
+      String[] uris = entity.getRedirectUris().split(",");
+      for (String uri : uris) {
+        String trimmedUri = uri.trim();
+        if (trimmedUri.isEmpty()) {
+          continue;
+        }
+        // Special handling for localhost URLs which are valid for development
+        boolean isLocalhost =
+            trimmedUri.startsWith("http://localhost") || trimmedUri.startsWith("https://localhost");
+
+        if (!isLocalhost && !org.hisp.dhis.system.util.ValidationUtils.urlIsValid(trimmedUri)) {
+          throw new ConflictException("Invalid redirect URI: " + trimmedUri);
+        }
+      }
+    }
   }
 }

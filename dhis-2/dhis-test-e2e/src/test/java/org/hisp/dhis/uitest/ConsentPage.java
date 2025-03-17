@@ -32,18 +32,15 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 
-public class LoginPage {
+public class ConsentPage {
 
-  @FindBy(css = "input[id$='username']")
-  public WebElement inputUsername;
+  @FindBy(id = "email")
+  public WebElement emailCheckbox;
 
-  @FindBy(css = "input[id$='password']")
-  public WebElement inputPassword;
+  @FindBy(id = "submit-consent")
+  public WebElement submitButton;
 
-  @FindBy(css = "*[data-test=\"dhis2-uicore-button\"]")
-  public WebElement inputSubmit;
-
-  public LoginPage(WebDriver driver) {
+  public ConsentPage(WebDriver driver) {
     PageFactory.initElements(driver, this);
   }
 }

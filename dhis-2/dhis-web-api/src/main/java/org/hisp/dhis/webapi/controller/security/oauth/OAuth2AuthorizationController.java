@@ -32,14 +32,12 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.security.oauth2.authorization.Dhis2OAuth2Authorization;
-import org.hisp.dhis.security.oauth2.authorization.Dhis2OAuth2AuthorizationService;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.controller.AbstractFullReadOnlyController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.security.config.AuthorizationServerEnabledCondition;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
@@ -48,7 +46,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Controller
-@RequestMapping({"/api/oauth2Authorizations"})
+@RequestMapping({"/api/oAuth2Authorizations"})
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @OpenApi.Document(
@@ -56,14 +54,4 @@ import org.springframework.web.bind.annotation.RequestMapping;
     classifiers = {"team:platform", "purpose:security"})
 @Conditional(AuthorizationServerEnabledCondition.class)
 public class OAuth2AuthorizationController
-    extends AbstractCrudController<Dhis2OAuth2Authorization, GetObjectListParams> {
-
-  private final Dhis2OAuth2AuthorizationService authorizationService;
-
-  @DeleteMapping
-  public void deleteAll() {
-    for (Dhis2OAuth2Authorization dhis2OAuth2Authorization : authorizationService.getAll()) {
-      authorizationService.delete(dhis2OAuth2Authorization.getUid());
-    }
-  }
-}
+    extends AbstractFullReadOnlyController<Dhis2OAuth2Authorization, GetObjectListParams> {}

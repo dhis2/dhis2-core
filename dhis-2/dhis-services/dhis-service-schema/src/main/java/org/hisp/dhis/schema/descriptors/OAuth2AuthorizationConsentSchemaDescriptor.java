@@ -36,8 +36,8 @@ import org.hisp.dhis.security.oauth2.consent.Dhis2OAuth2AuthorizationConsent;
  */
 public class OAuth2AuthorizationConsentSchemaDescriptor implements SchemaDescriptor {
 
-  public static final String SINGULAR = "oauth2AuthorizationConsent";
-  public static final String PLURAL = "oauth2AuthorizationsConsents";
+  public static final String SINGULAR = "oAuth2AuthorizationConsent";
+  public static final String PLURAL = "oAuth2AuthorizationsConsents";
   public static final String API_ENDPOINT = "/" + PLURAL;
 
   @Override
