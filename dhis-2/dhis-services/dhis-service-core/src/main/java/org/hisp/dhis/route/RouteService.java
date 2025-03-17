@@ -32,7 +32,10 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 import io.netty.handler.timeout.ReadTimeoutException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -48,8 +51,12 @@ import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadGatewayException;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.user.UserDetails;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -62,6 +69,7 @@ import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.stereotype.Service;
@@ -85,6 +93,8 @@ public class RouteService {
   private final ApplicationContext applicationContext;
 
   private final RouteStore routeStore;
+
+  private final DhisConfigurationProvider configuration;
 
   @Qualifier(AES_128_STRING_ENCRYPTOR)
   private final PBEStringCleanablePasswordEncryptor encryptor;
@@ -126,8 +136,32 @@ public class RouteService {
           "last-modified",
           "etag");
 
+  private final List<String> allowedRouteRegexRemoteServers = new ArrayList<>();
+
   @PostConstruct
   public void postConstruct() {
+    String routeRemoteServersAllowed =
+        configuration
+            .getPropertyOrDefault(ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED, "")
+            .strip();
+    if (!routeRemoteServersAllowed.isEmpty()) {
+      for (String host : routeRemoteServersAllowed.split(",")) {
+        URL url;
+        try {
+          url = new URL(host);
+        } catch (MalformedURLException e) {
+          throw new IllegalStateException(e);
+        }
+        if (!(url.getProtocol().startsWith("http") || url.getProtocol().startsWith("https"))) {
+          throw new IllegalStateException();
+        }
+        if (!url.getPath().isEmpty()) {
+          throw new IllegalStateException();
+        }
+        allowedRouteRegexRemoteServers.add(TextUtils.createRegexFromGlob(host));
+      }
+    }
+
     webClient = WebClient.builder().clientConnector(clientHttpConnector).build();
     dataBufferFactory = new DefaultDataBufferFactory();
   }
@@ -154,6 +188,43 @@ public class RouteService {
     return route;
   }
 
+  protected boolean isRouteUrlAllowed(Route route) {
+    if (route.getUrl().toLowerCase().startsWith("http:")
+        || !allowedRouteRegexRemoteServers.isEmpty()) {
+      for (String regexRemoteServer : allowedRouteRegexRemoteServers) {
+        if (route.getUrl().matches(regexRemoteServer)) {
+          return true;
+        }
+      }
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  public void validateRoute(Route route) throws ConflictException {
+    URL url;
+    try {
+      url = new URL(route.getUrl());
+    } catch (MalformedURLException e) {
+      throw new ConflictException("Malformed route URL");
+    }
+
+    if (!(url.getProtocol().equalsIgnoreCase("http")
+        || url.getProtocol().equalsIgnoreCase("https"))) {
+      throw new ConflictException("Route URL scheme must be either http or https");
+    }
+
+    if (!isRouteUrlAllowed(route)) {
+      throw new ConflictException("Route URL is not permitted");
+    }
+
+    if (route.getResponseTimeoutSeconds() < 1 || route.getResponseTimeoutSeconds() > 60) {
+      throw new ConflictException(
+          "Route response timeout must be greater than 0 seconds and less than or equal to 60 seconds");
+    }
+  }
+
   /**
    * Executes the given route and returns the response from the target API.
    *
@@ -168,6 +239,10 @@ public class RouteService {
   public ResponseEntity<StreamingResponseBody> execute(
       Route route, UserDetails userDetails, Optional<String> subPath, HttpServletRequest request)
       throws BadGatewayException {
+
+    if (!isRouteUrlAllowed(route)) {
+      return new ResponseEntity<>(HttpStatusCode.valueOf(503));
+    }
 
     HttpHeaders headers = filterRequestHeaders(request);
     route.getHeaders().forEach(headers::add);
