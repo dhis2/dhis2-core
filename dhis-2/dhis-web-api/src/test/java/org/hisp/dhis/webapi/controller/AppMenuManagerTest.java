@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppShortcut;
@@ -142,9 +141,10 @@ class AppMenuManagerTest {
   }
 
   private void mockBundledApps() {
-    Map<String, App> apps = AppManager.BUNDLED_APPS.stream()
-      .map(app -> stubApp(app, true))
-      .collect(Collectors.toMap(App::getKey, app -> app));
+    Map<String, App> apps =
+        AppManager.BUNDLED_APPS.stream()
+            .map(app -> stubApp(app, true))
+            .collect(Collectors.toMap(App::getKey, app -> app));
 
     when(bundledAppStorageService.discoverInstalledApps()).thenReturn(apps);
   }
