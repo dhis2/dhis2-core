@@ -238,7 +238,6 @@ public class Dhis2OAuth2ClientServiceIntegrationTest extends PostgresIntegration
     assertTrue(foundClient.getRedirectUris().contains("https://direct.example.com/callback"));
 
     ClientSettings clientSettings = foundClient.getClientSettings();
-    TokenSettings tokenSettings = foundClient.getTokenSettings();
 
     assertTrue(clientSettings.isRequireAuthorizationConsent());
   }

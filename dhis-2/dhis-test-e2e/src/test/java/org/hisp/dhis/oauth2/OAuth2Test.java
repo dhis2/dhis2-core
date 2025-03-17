@@ -39,6 +39,7 @@ import java.time.Duration;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.BaseE2ETest;
+import org.hisp.dhis.login.CodeGenerator;
 import org.hisp.dhis.test.e2e.helpers.config.TestConfiguration;
 import org.hisp.dhis.uitest.ConsentPage;
 import org.hisp.dhis.uitest.LoginPage;
@@ -58,7 +59,7 @@ import org.springframework.http.ResponseEntity;
 
 @Tag("oauth2tests")
 @Slf4j
-public class OAuth2Test extends BaseE2ETest {
+class OAuth2Test extends BaseE2ETest {
 
   private static WebDriver driver;
 
@@ -80,7 +81,6 @@ public class OAuth2Test extends BaseE2ETest {
     serverApiUrl = TestConfiguration.get().baseUrl();
 
     // When testing with docker, use this: http://host.docker.internal:8080
-    //    serverHostUrl = "http://host.docker.internal:8080";
     serverHostUrl = TestConfiguration.get().baseUrl().replace("/api", "");
 
     orgUnitUID = createOrgUnit();
@@ -118,6 +118,9 @@ public class OAuth2Test extends BaseE2ETest {
 
   @Test
   void testGetAccessToken() throws MalformedURLException, JsonProcessingException {
+    String username = CodeGenerator.generateCode(8);
+    String password = "Test123###...";
+    createSuperuser(username, password, orgUnitUID);
 
     ChromeOptions chromeOptions = new ChromeOptions();
     chromeOptions.addArguments("--remote-allow-origins=*");
@@ -137,8 +140,8 @@ public class OAuth2Test extends BaseE2ETest {
 
     // 2. Login
     LoginPage mainPage = new LoginPage(driver);
-    mainPage.inputUsername.sendKeys("admin");
-    mainPage.inputPassword.sendKeys("district");
+    mainPage.inputUsername.sendKeys(username);
+    mainPage.inputPassword.sendKeys(password);
     mainPage.inputSubmit.click();
 
     // Wait for the consent page to load

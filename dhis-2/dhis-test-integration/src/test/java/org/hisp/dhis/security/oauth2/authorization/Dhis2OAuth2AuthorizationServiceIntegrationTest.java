@@ -257,7 +257,7 @@ public class Dhis2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
         OAuth2Authorization.withRegisteredClient(registeredClient)
             .principalName("user1")
             .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-            .token(accessToken, (m) -> m.putAll(metadata))
+            .token(accessToken, m -> m.putAll(metadata))
             .id(CodeGenerator.generateUid())
             .build();
 
