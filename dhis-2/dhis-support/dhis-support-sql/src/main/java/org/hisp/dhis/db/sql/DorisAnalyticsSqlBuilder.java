@@ -31,6 +31,7 @@ import java.time.LocalDateTime;
 import org.apache.commons.lang3.StringUtils;
 
 public class DorisAnalyticsSqlBuilder implements AnalyticsSqlBuilder {
+
   @Override
   public String getEventDataValues() {
     return "ev.eventdatavalues";

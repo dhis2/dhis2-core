@@ -155,7 +155,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
   }
 
   @Override
-  public DataQueryParams assignPartitionsFromQueryPeriods(
+  public DataQueryParams withPartitionsFromQueryPeriods(
       DataQueryParams params, AnalyticsTableType tableType) {
     Partitions partitions = PartitionUtils.getPartitions(params, tableType);
 
