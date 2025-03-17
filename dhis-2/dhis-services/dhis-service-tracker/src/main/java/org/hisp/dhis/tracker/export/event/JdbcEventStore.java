@@ -226,7 +226,6 @@ class JdbcEventStore {
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
-  @Qualifier("dataValueJsonMapper")
   private final ObjectMapper jsonMapper;
 
   private final UserService userService;
