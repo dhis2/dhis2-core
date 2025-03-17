@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.analytics.event.data.programindicator.disag;
 
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -35,6 +37,8 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramCategoryMapping;
@@ -257,6 +261,9 @@ abstract class AbstractPIDisagTest extends PostgresIntegrationTestBase {
     eventQueryParams =
         new EventQueryParams.Builder()
             .withProgramIndicator(programIndicator)
+            .addDimension(
+                new BaseDimensionalObject(
+                    DATA_X_DIM_ID, DimensionType.DATA_X, List.of(programIndicator)))
             .addDimension(category2)
             .withStartDate(new Date())
             .withEndDate(new Date())

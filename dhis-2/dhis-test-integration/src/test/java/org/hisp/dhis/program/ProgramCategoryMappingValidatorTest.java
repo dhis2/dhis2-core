@@ -34,6 +34,7 @@ import static org.hisp.dhis.feedback.ErrorCode.E4071;
 import static org.hisp.dhis.feedback.ErrorCode.E4072;
 import static org.hisp.dhis.feedback.ErrorCode.E4073;
 import static org.hisp.dhis.feedback.ErrorCode.E4074;
+import static org.hisp.dhis.feedback.ErrorCode.E4079;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -82,6 +83,7 @@ class ProgramCategoryMappingValidatorTest extends PostgresIntegrationTestBase {
   private DataElement dataElement;
 
   private ProgramCategoryOptionMapping omA;
+  private ProgramCategoryOptionMapping omADuplicate;
   private ProgramCategoryOptionMapping omB;
   private ProgramCategoryOptionMapping omC;
   private ProgramCategoryOptionMapping omD;
@@ -99,9 +101,9 @@ class ProgramCategoryMappingValidatorTest extends PostgresIntegrationTestBase {
   private Set<ProgramCategoryMapping> categoryMappings;
   private Set<String> categoryMappingIds;
 
-  private static final String CM1_ID = "iOChed1vei4";
-  private static final String CM2_ID = "cwohgheSe3t";
-  private static final String CM3_ID = "Ttaesahgo2W";
+  private static final String CM1_ID = "catMapping1";
+  private static final String CM2_ID = "catMapping2";
+  private static final String CM3_ID = "catMapping3";
 
   @BeforeAll
   void setup() {
@@ -114,6 +116,13 @@ class ProgramCategoryMappingValidatorTest extends PostgresIntegrationTestBase {
     optionE = createCategoryOption('E');
     optionF = createCategoryOption('F');
 
+    optionA.setUid("cataOptionA");
+    optionB.setUid("cataOptionB");
+    optionC.setUid("cataOptionC");
+    optionD.setUid("cataOptionD");
+    optionE.setUid("cataOptionE");
+    optionF.setUid("cataOptionF");
+
     manager.save(optionA);
     manager.save(optionB);
     manager.save(optionC);
@@ -125,12 +134,19 @@ class ProgramCategoryMappingValidatorTest extends PostgresIntegrationTestBase {
     category2 = createCategory('2', optionC, optionD);
     category3 = createCategory('3', optionE, optionF);
 
+    category1.setUid("categoryId1");
+    category2.setUid("categoryId2");
+    category3.setUid("categoryId3");
+
     manager.save(category1);
     manager.save(category2);
     manager.save(category3);
 
     catComboA = createCategoryCombo('A', category1, category2);
     catComboB = createCategoryCombo('B', category3);
+
+    catComboA.setUid("catagComboA");
+    catComboB.setUid("catagComboB");
 
     manager.save(catComboA);
     manager.save(catComboB);
@@ -147,6 +163,11 @@ class ProgramCategoryMappingValidatorTest extends PostgresIntegrationTestBase {
         ProgramCategoryOptionMapping.builder()
             .optionId(optionA.getUid())
             .filter(de + " > 1")
+            .build();
+    omADuplicate =
+        ProgramCategoryOptionMapping.builder()
+            .optionId(optionA.getUid())
+            .filter(de + " > 100")
             .build();
     omB =
         ProgramCategoryOptionMapping.builder()
@@ -227,6 +248,9 @@ class ProgramCategoryMappingValidatorTest extends PostgresIntegrationTestBase {
 
     // Then
     assertEquals(E4072, thrown.getCode());
+    assertEquals(
+        "Program `programUidA` category mapping `catMapping1` category `x2345678901` not found",
+        thrown.getMessage());
   }
 
   @Test
@@ -243,6 +267,28 @@ class ProgramCategoryMappingValidatorTest extends PostgresIntegrationTestBase {
 
     // Then
     assertEquals(E4073, thrown.getCode());
+    assertEquals(
+        "Program `programUidA` category `categoryId1` mapping `catMapping1` option `x2345678901` not found",
+        thrown.getMessage());
+  }
+
+  @Test
+  void testResolveProgramCategoryMappingsDuplicateOptionId() {
+    // Given
+    ProgramCategoryMapping cmDuplicate =
+        cm1.toBuilder().optionMappings(List.of(omA, omADuplicate)).build();
+    Program program = createProgram(Set.of(cmDuplicate, cm2, cm3));
+
+    // When throws
+    ConflictException thrown =
+        assertThrows(
+            ConflictException.class, () -> target.validateProgramCategoryMappings(program));
+
+    // Then
+    assertEquals(E4079, thrown.getCode());
+    assertEquals(
+        "Program `programUidA` category mapping `catMapping1` has multiple option mappings for Category Option `cataOptionA`",
+        thrown.getMessage());
   }
 
   @Test
@@ -274,6 +320,9 @@ class ProgramCategoryMappingValidatorTest extends PostgresIntegrationTestBase {
 
     // Then
     assertEquals(E4071, thrown.getCode());
+    assertEquals(
+        "Program indicator `programIndA` category mapping `NoMappingId` not found in program `programUidA`",
+        thrown.getMessage());
   }
 
   @Test
@@ -290,11 +339,15 @@ class ProgramCategoryMappingValidatorTest extends PostgresIntegrationTestBase {
 
     // Then
     assertEquals(E4074, thrown.getCode());
+    assertEquals(
+        "Program indicator `programIndA` disaggregation category `categoryId1` needs a category mapping in the program",
+        thrown.getMessage());
   }
 
   /** Creates a program with a set of category mappings. */
   private Program createProgram(Set<ProgramCategoryMapping> categoryMappings) {
     Program program = createProgram('A');
+    program.setUid("programUidA");
     program.setCategoryMappings(categoryMappings);
 
     return program;
@@ -304,6 +357,7 @@ class ProgramCategoryMappingValidatorTest extends PostgresIntegrationTestBase {
   private ProgramIndicator createProgramIndicator(Program program, Set<String> mappingIds) {
     ProgramIndicator programIndicator =
         createProgramIndicator('A', program, "dummy expression", "dummy filter");
+    programIndicator.setUid("programIndA");
     programIndicator.setCategoryCombo(catComboA);
     programIndicator.setAttributeCombo(catComboB);
     programIndicator.setCategoryMappingIds(mappingIds);

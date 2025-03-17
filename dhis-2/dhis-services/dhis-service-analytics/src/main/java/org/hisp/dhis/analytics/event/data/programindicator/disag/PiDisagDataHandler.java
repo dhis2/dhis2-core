@@ -94,38 +94,49 @@ public class PiDisagDataHandler {
     }
 
     ProgramIndicator pi = params.getProgramIndicator();
-
-    Map<String, String> cocResolver = info.getCocResolver();
-    Map<String, String> aocResolver = info.getAocResolver();
-
-    String coc =
-        cocResolver.isEmpty()
-            ? SYMBOL_WILDCARD
-            : getOptionCombo(params, rowSet, pi.getCategoryCombo(), cocResolver);
-
-    String aoc =
-        aocResolver.isEmpty()
-            ? SYMBOL_WILDCARD
-            : getOptionCombo(params, rowSet, pi.getAttributeCombo(), aocResolver);
+    String coc = getCocOrAoc(params, rowSet, pi.getCategoryCombo(), info.getCocResolver());
+    String aoc = getCocOrAoc(params, rowSet, pi.getAttributeCombo(), info.getAocResolver());
 
     // Don't store rows if they are missing coc or aoc
     if (coc == null || aoc == null) {
       return false;
     }
 
+    // If we are producing a DataValueSet, add the coc and aoc to the row
     if (params.isOutputFormat(DATA_VALUE_SET)) {
-      int dxInx = grid.getIndexOfHeader(DATA_COLLAPSED_DIM_ID);
-      Assert.isTrue(dxInx >= 0, "Data dimension index must be zero or positive");
-      String compositeVal =
-          row.get(dxInx)
-              + COMPOSITE_DIM_OBJECT_PLAIN_SEP
-              + coc
-              + COMPOSITE_DIM_OBJECT_PLAIN_SEP
-              + aoc;
-      row.set(dxInx, compositeVal);
+      addCocAndAocToRow(grid, row, coc, aoc);
     }
 
     return true;
+  }
+
+  /**
+   * Gets the COC or AOC for the row. If the resolver is empty, this means that the COC or AOC is
+   * not disaggregated so return the wildcard. Otherwise, get the COC or AOC (if present) from the
+   * category column(s) in the rowset.
+   */
+  private static String getCocOrAoc(
+      EventQueryParams params,
+      SqlRowSet rowSet,
+      CategoryCombo categoryCombo,
+      Map<String, String> resolver) {
+    return resolver.isEmpty()
+        ? SYMBOL_WILDCARD
+        : getOptionCombo(params, rowSet, categoryCombo, resolver);
+  }
+
+  /** Adds the CategoryOptionCombo and AttributeOptionCombo to the row values */
+  private static void addCocAndAocToRow(Grid grid, List<Object> row, String coc, String aoc) {
+    int dxInx = grid.getIndexOfHeader(DATA_COLLAPSED_DIM_ID);
+    Assert.isTrue(dxInx >= 0, "Data dimension index must be zero or positive");
+
+    String compositeVal =
+        row.get(dxInx)
+            + COMPOSITE_DIM_OBJECT_PLAIN_SEP
+            + coc
+            + COMPOSITE_DIM_OBJECT_PLAIN_SEP
+            + aoc;
+    row.set(dxInx, compositeVal);
   }
 
   /** Gets a disaggregated categoryOptionCombo or attributeOptionCombo */

@@ -205,6 +205,11 @@ public interface IdentifiableObjectManager {
   <T extends IdentifiableObject> List<T> getByUid(
       @Nonnull Class<T> type, @Nonnull Collection<String> uids);
 
+  /**
+   * Gets a list of objects by uid but without starting a read-only transaction. This method is used
+   * by ProgramCategoryOptionValidator within an aggregate data exchange transaction that needs to
+   * be read/write.
+   */
   @Nonnull
   <T extends IdentifiableObject> List<T> getByUidWithoutTransaction(
       @Nonnull Class<T> type, @Nonnull Collection<String> uids);

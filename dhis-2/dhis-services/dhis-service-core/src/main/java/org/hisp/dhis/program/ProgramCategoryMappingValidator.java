@@ -32,6 +32,7 @@ import static org.hisp.dhis.feedback.ErrorCode.E4071;
 import static org.hisp.dhis.feedback.ErrorCode.E4072;
 import static org.hisp.dhis.feedback.ErrorCode.E4073;
 import static org.hisp.dhis.feedback.ErrorCode.E4074;
+import static org.hisp.dhis.feedback.ErrorCode.E4079;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -182,8 +183,14 @@ public class ProgramCategoryMappingValidator {
           E4072, program.getUid(), mapping.getId(), mapping.getCategoryId());
     }
 
+    Set<String> mappedOptions = new HashSet<>();
     for (ProgramCategoryOptionMapping optionMapping : mapping.getOptionMappings()) {
       validateOptionMapping(program, mapping, optionMapping, optionUidMap);
+      if (mappedOptions.contains(optionMapping.getOptionId())) {
+        throw new ConflictException(
+            E4079, program.getUid(), mapping.getId(), optionMapping.getOptionId());
+      }
+      mappedOptions.add(optionMapping.getOptionId());
     }
   }
 
