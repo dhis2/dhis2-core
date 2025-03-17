@@ -72,6 +72,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 import javax.sql.rowset.RowSetMetaDataImpl;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
@@ -111,6 +112,9 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -305,6 +309,44 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .build();
 
     assertThrows(NullPointerException.class, () -> eventSubject.getAggregateClause(params));
+  }
+
+  @ParameterizedTest
+  @MethodSource("noAggregationTestCases")
+  void verifyGetAggregateClauseWithNoAggregation(
+      AggregationType valueAggregationType, AggregationType overrideAggregationType) {
+    DataElement de = new DataElement();
+
+    de.setUid(dataElementA.getUid());
+    de.setAggregationType(valueAggregationType);
+    de.setValueType(NUMBER);
+
+    EventQueryParams.Builder paramsBuilder =
+        new EventQueryParams.Builder(createRequestParams()).withValue(de);
+
+    // Apply override aggregation if specified
+    if (overrideAggregationType != null) {
+      paramsBuilder.withAggregationType(
+          AnalyticsAggregationType.fromAggregationType(overrideAggregationType));
+    }
+
+    EventQueryParams params = paramsBuilder.build();
+
+    String clause = eventSubject.getAggregateClause(params);
+
+    assertThat(clause, is("null"));
+  }
+
+  private static Stream<Arguments> noAggregationTestCases() {
+    return Stream.of(
+        // Test case 1: Both value and override are NONE
+        Arguments.of(AggregationType.NONE, AggregationType.NONE),
+
+        // Test case 2: Value is NONE, no override
+        Arguments.of(AggregationType.NONE, null),
+
+        // Test case 3: Value is SUM, override is NONE
+        Arguments.of(AggregationType.SUM, AggregationType.NONE));
   }
 
   @Test
