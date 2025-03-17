@@ -27,17 +27,18 @@
  */
 package org.hisp.dhis.apps;
 
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import java.io.File;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
-
-import static org.hamcrest.Matchers.equalTo;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -52,17 +53,17 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import static io.restassured.RestAssured.given;
-
 @Tag("apptests")
 class AppResourceTest extends ApiTest {
 
-  private static final RestTemplate restTemplate = new RestTemplate(new SimpleClientHttpRequestFactory(){
-    @Override
-    protected void prepareConnection( HttpURLConnection connection, String httpMethod ) {
-        connection.setInstanceFollowRedirects(false);
-    }
-  });
+  private static final RestTemplate restTemplate =
+      new RestTemplate(
+          new SimpleClientHttpRequestFactory() {
+            @Override
+            protected void prepareConnection(HttpURLConnection connection, String httpMethod) {
+              connection.setInstanceFollowRedirects(false);
+            }
+          });
   private static final String SERVER_BASE = "http://web:8080";
 
   @Test
@@ -79,7 +80,7 @@ class AppResourceTest extends ApiTest {
         .statusCode(201);
 
     // when called with missing trailing slash
-    ApiResponse response = 
+    ApiResponse response =
         new ApiResponse(given().redirects().follow(false).get("/apps/test-minio"));
 
     // then redirect should be returned with trailing slash
@@ -89,19 +90,14 @@ class AppResourceTest extends ApiTest {
 
   @ParameterizedTest
   @DisplayName("Bundled apps are served from /dhis-web-<app> paths with correct internal redirects")
-  @ValueSource(strings = {
-            "dashboard", 
-            "maintenance",
-            "maps",
-            "capture",
-            "settings",
-            "app-management"
-  })
+  @ValueSource(
+      strings = {"dashboard", "maintenance", "maps", "capture", "settings", "app-management"})
   void bundledAppServedFromDhisWebPath(String app) {
 
     // Serve index.html from index.html?redirect=false
     {
-      ResponseEntity<String> response = getAuthenticated("/dhis-web-" + app + "/index.html?redirect=false");
+      ResponseEntity<String> response =
+          getAuthenticated("/dhis-web-" + app + "/index.html?redirect=false");
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertNotNull(response.getBody());
       // TODO: Confirm content-type and template replacement
@@ -176,9 +172,11 @@ class AppResourceTest extends ApiTest {
       return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
     }
   }
+
   private ResponseEntity<String> get(String path) {
     return get(path, new HttpHeaders());
   }
+
   private ResponseEntity<String> getAuthenticated(String path) {
     // TODO: Use cookies and test with multiple users
     String authHeader =
