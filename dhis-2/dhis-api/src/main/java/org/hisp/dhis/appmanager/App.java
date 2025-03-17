@@ -310,7 +310,7 @@ public class App implements Serializable {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Nonnull 
+  @Nonnull
   public AppActivities getActivities() {
     return activities;
   }

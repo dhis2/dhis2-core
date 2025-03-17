@@ -27,28 +27,24 @@
  */
 package org.hisp.dhis.webapi.filter;
 
-import java.io.IOException;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import static java.util.regex.Pattern.compile;
-
-import javax.annotation.Nonnull;
-
-import org.hisp.dhis.appmanager.App;
-import org.hisp.dhis.appmanager.AppManager;
-import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.appmanager.App;
+import org.hisp.dhis.appmanager.AppManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
  * @author Austin McGee <austin@dhis2.org>
@@ -66,7 +62,13 @@ public class GlobalShellFilter extends OncePerRequestFilter {
   public static final String SHELL_FALSE = "shell=false";
 
   private static final Pattern LEGACY_APP_PATH_PATTERN =
-      compile("^/" + "(?:" + AppManager.BUNDLED_APP_PREFIX + "|" + AppManager.INSTALLED_APP_PREFIX + ")(\\S+)/(.*)");
+      compile(
+          "^/"
+              + "(?:"
+              + AppManager.BUNDLED_APP_PREFIX
+              + "|"
+              + AppManager.INSTALLED_APP_PREFIX
+              + ")(\\S+)/(.*)");
 
   private static final Pattern APP_IN_GLOBAL_SHELL_PATTERN =
       compile("^" + GLOBAL_SHELL_PATH_PREFIX + "([^/.]+)/?$");
@@ -157,11 +159,14 @@ public class GlobalShellFilter extends OncePerRequestFilter {
     boolean isIndexPath = path.endsWith("/") || path.endsWith("/index.html");
 
     // Skip redirect if explicitly requested with ?redirect=false
-    boolean hasRedirectFalse = queryString != null && (queryString.contains(REDIRECT_FALSE) || queryString.contains(SHELL_FALSE));
+    boolean hasRedirectFalse =
+        queryString != null
+            && (queryString.contains(REDIRECT_FALSE) || queryString.contains(SHELL_FALSE));
 
     // Only redirect browser navigation requests
     String secFetchMode = request.getHeader(SEC_FETCH_MODE);
-    boolean isNavigationRequest = secFetchMode != null && secFetchMode.equals(SEC_FETCH_MODE_NAVIGATE);
+    boolean isNavigationRequest =
+        secFetchMode != null && secFetchMode.equals(SEC_FETCH_MODE_NAVIGATE);
 
     log.debug(
         "redirectLegacyAppPaths: path = {}, queryString = {}, secFetchMode = {}",
@@ -226,7 +231,7 @@ public class GlobalShellFilter extends OncePerRequestFilter {
 
   private String withQueryString(@Nonnull String path, String queryString) {
     String result = path;
-  
+
     if (queryString != null && !queryString.isEmpty()) {
       result += "?" + queryString;
     }

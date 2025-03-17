@@ -27,18 +27,19 @@
  */
 package org.hisp.dhis.apps;
 
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
-
-import static org.hamcrest.Matchers.equalTo;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -53,8 +54,6 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import static io.restassured.RestAssured.given;
-
 @Tag("apptests")
 class AppResourceTest extends ApiTest {
 
@@ -62,7 +61,8 @@ class AppResourceTest extends ApiTest {
       new RestTemplate(
           new SimpleClientHttpRequestFactory() {
             @Override
-            protected void prepareConnection(HttpURLConnection connection, String httpMethod) throws IOException {
+            protected void prepareConnection(HttpURLConnection connection, String httpMethod)
+                throws IOException {
               super.prepareConnection(connection, httpMethod);
               connection.setInstanceFollowRedirects(false);
             }
@@ -182,7 +182,7 @@ class AppResourceTest extends ApiTest {
       strings = {"dashboard", "maintenance", "maps", "capture", "settings", "app-management"})
   void bundledAppOverridesServedFromApiApps(String app) {
     String prefix = "/api/apps/";
-    
+
     // Serve index.html from index.html?redirect=false
     {
       ResponseEntity<String> response =
@@ -285,6 +285,7 @@ class AppResourceTest extends ApiTest {
     headers.set("Authorization", "Basic " + authHeader);
     return get(path, headers);
   }
+
   private ResponseEntity<String> getAuthenticated(String path) {
     return getAuthenticated(path, new HttpHeaders());
   }

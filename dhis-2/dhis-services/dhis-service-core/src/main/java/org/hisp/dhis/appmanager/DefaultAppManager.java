@@ -27,6 +27,13 @@
  */
 package org.hisp.dhis.appmanager;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType.RESTRICTED;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -39,29 +46,23 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
-import static java.util.Objects.requireNonNull;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
-import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
-
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import org.hisp.dhis.apphub.AppHubService;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheBuilderProvider;
 import org.hisp.dhis.datastore.DatastoreNamespace;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
-import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType.RESTRICTED;
 import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -78,11 +79,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Saptarshi Purkayastha
@@ -254,11 +250,13 @@ public class DefaultAppManager implements AppManager {
         apps.stream()
             .filter(app -> !MENU_APP_EXCLUSIONS.contains(app.getKey()))
             .map(WebModule::getModule)
-            .map(module -> {
-              String bundledAppNameTranslation = i18nManager.getI18n().getString(module.getName());
-              module.setDisplayName(bundledAppNameTranslation);
-              return module;
-            })
+            .map(
+                module -> {
+                  String bundledAppNameTranslation =
+                      i18nManager.getI18n().getString(module.getName());
+                  module.setDisplayName(bundledAppNameTranslation);
+                  return module;
+                })
             .toList());
 
     return modules;
@@ -477,7 +475,7 @@ public class DefaultAppManager implements AppManager {
 
     if (pageName.equals("/index.action")) {
       return new ResourceResult.Redirect(app.getLaunchPath());
-    } 
+    }
 
     if (resource instanceof ResourceResult.ResourceFound resourceFound) {
       if (pageName.equals("/manifest.webapp")) {

@@ -28,19 +28,16 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.nio.file.Files.createTempDirectory;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppShortcut;
@@ -156,7 +153,8 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(HttpStatus.NO_CONTENT, PUT("/apps").status());
   }
 
-  @Disabled("Deprecated, will be reintroduced if bundled app overrides are again served at root paths")
+  @Disabled(
+      "Deprecated, will be reintroduced if bundled app overrides are again served at root paths")
   @Test
   @DisplayName("Redirect for bundled app has correct location header")
   void redirectLocationTest() throws IOException {
