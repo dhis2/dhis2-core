@@ -47,7 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -57,8 +56,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.security.acl.AclService;
@@ -71,13 +68,11 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
-@Slf4j
 @Component("org.hisp.dhis.tracker.export.trackedentity.TrackedEntityStore")
 class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<TrackedEntity> {
 
@@ -133,23 +128,16 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   public HibernateTrackedEntityStore(
       EntityManager entityManager,
-      @Qualifier("readOnlyJdbcTemplate") JdbcTemplate readOnlyJdbcTemplate,
+      JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService,
       OrganisationUnitStore organisationUnitStore,
-      SystemSettingsProvider settingsProvider,
-      DhisConfigurationProvider configurationProvider) {
-    super(entityManager, readOnlyJdbcTemplate, publisher, TrackedEntity.class, aclService, false);
+      SystemSettingsProvider settingsProvider) {
+    super(entityManager, jdbcTemplate, publisher, TrackedEntity.class, aclService, false);
 
     checkNotNull(organisationUnitStore);
     checkNotNull(settingsProvider);
 
-    log.info(
-        configurationProvider.isTrackerReadReplicaEnabled()
-                && configurationProvider.isEnabled(
-                    ConfigurationKey.TRACKER_READ_REPLICA_TRACKED_ENTITIES_ENABLED)
-            ? "Tracker Tracked Entity read queries directed to read replica database"
-            : "Tracker Tracked Entity read queries directed to main database");
     this.organisationUnitStore = organisationUnitStore;
     this.settingsProvider = settingsProvider;
   }

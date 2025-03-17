@@ -66,7 +66,6 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
 import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
@@ -236,19 +235,21 @@ class JdbcEventStore {
 
   @Autowired
   public JdbcEventStore(
+      NamedParameterJdbcTemplate namedParameterJdbcTemplate,
       @Qualifier("readOnlyNamedParameterJdbcTemplate")
-          NamedParameterJdbcTemplate namedParameterJdbcTemplate,
+          NamedParameterJdbcTemplate readOnlyNamedParameterJdbcTemplate,
       @Qualifier("dataValueJsonMapper") ObjectMapper jsonMapper,
       UserService userService,
       IdentifiableObjectManager manager,
       DhisConfigurationProvider configurationProvider) {
-    log.info(
-        configurationProvider.isTrackerReadReplicaEnabled()
-                && configurationProvider.isEnabled(
-                    ConfigurationKey.TRACKER_READ_REPLICA_EVENTS_ENABLED)
-            ? "Tracker Event read queries directed to read replica database"
-            : "Tracker Event read queries directed to main database");
-    this.jdbcTemplate = namedParameterJdbcTemplate;
+
+    if (configurationProvider.isTrackerReadReplicaEnabled()) {
+      log.info("Tracker Event read queries directed to read replica database");
+      this.jdbcTemplate = readOnlyNamedParameterJdbcTemplate;
+    } else {
+      log.info("Tracker Event read queries directed to main database");
+      this.jdbcTemplate = namedParameterJdbcTemplate;
+    }
     this.jsonMapper = jsonMapper;
     this.userService = userService;
     this.manager = manager;

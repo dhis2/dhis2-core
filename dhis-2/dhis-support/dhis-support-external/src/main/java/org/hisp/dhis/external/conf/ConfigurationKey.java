@@ -716,13 +716,6 @@ public enum ConfigurationKey {
   /** Use read replica database for tracker queries. (default: false) */
   TRACKER_READ_REPLICA_ENABLED("tracker.read_replica.enabled", Constants.OFF, false),
 
-  /** Use read replica database for tracker event queries. (default: false) */
-  TRACKER_READ_REPLICA_EVENTS_ENABLED("tracker.read_replica.events.enabled", Constants.OFF, false),
-
-  /** Use read replica database for tracker tracked entity queries. (default: false) */
-  TRACKER_READ_REPLICA_TRACKED_ENTITIES_ENABLED(
-      "tracker.read_replica.tracked_entities.enabled", Constants.OFF, false),
-
   SESSION_COOKIE_SAME_SITE("session.cookie.samesite", "Lax", false);
 
   private final String key;
