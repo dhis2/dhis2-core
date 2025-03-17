@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.nio.file.Files.createTempDirectory;
-import static org.hisp.dhis.appmanager.AppManager.BUNDLED_APPS;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;

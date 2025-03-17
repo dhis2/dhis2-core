@@ -73,7 +73,8 @@ class AuthoritiesControllerTest extends H2ControllerIntegrationTestBase {
 
     // Authorities from AppManager.BUNDLED_APPS
     // TODO
-    // List<String> moduleAuths = listIds.stream().filter(id -> id.startsWith("M_dhis-web-")).toList();
+    // List<String> moduleAuths = listIds.stream().filter(id ->
+    // id.startsWith("M_dhis-web-")).toList();
     // assertTrue(moduleAuths.size() > 4);
 
     // Authorities from schemaService
