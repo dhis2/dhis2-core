@@ -27,15 +27,9 @@
  */
 package org.hisp.dhis.webapi.utils;
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.substringAfterLast;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.SEPARATOR;
-
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
@@ -77,27 +71,5 @@ public class FilterUtils {
     }
 
     return result;
-  }
-
-  /**
-   * It reads the given list of Org. Unit identifiers and returns only the uid of each level or
-   * group.
-   *
-   * @param ouIdentifiers the list of org. units identifiers. ie: LEVEL-1-m9lBJogzE95,
-   *     OU_GROUP-tDZVQ1WtwpA.
-   * @return the list of org. units uids.
-   */
-  public static List<String> getOrgUnitLevelsGroups(List<String> ouIdentifiers) {
-    Set<String> uids = new HashSet<>();
-
-    if (isNotEmpty(ouIdentifiers)) {
-      for (String uid : ouIdentifiers) {
-        if (uid.contains(SEPARATOR)) {
-          uids.add(substringAfterLast(uid, SEPARATOR));
-        }
-      }
-    }
-
-    return uids.stream().toList();
   }
 }
