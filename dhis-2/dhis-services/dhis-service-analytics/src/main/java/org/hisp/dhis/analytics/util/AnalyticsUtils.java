@@ -653,7 +653,7 @@ public final class AnalyticsUtils {
         String id3 = DimensionalObjectUtils.getThirdIdentifier(dx);
         DataDimensionalItemObject dataItem = (DataDimensionalItemObject) item;
         coc = getItemCoc(id2, dataItem.getAggregateExportCategoryOptionCombo());
-        coc = getItemCoc(id3, dataItem.getAggregateExportAttributeOptionCombo());
+        aoc = getItemCoc(id3, dataItem.getAggregateExportAttributeOptionCombo());
       } else if (DataDimensionalItemObject.class.isAssignableFrom(item.getClass())) {
         DataDimensionalItemObject dataItem = (DataDimensionalItemObject) item;
         coc = dataItem.getAggregateExportCategoryOptionCombo();
