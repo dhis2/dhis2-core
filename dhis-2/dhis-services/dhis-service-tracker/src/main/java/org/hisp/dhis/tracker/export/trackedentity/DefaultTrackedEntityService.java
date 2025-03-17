@@ -33,6 +33,7 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -239,10 +240,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
         findTrackedEntities(ids.getItems(), operationParams, queryParams, user);
 
     // TODO(tracker): Push this filter into the store because it is breaking pagination
-    trackedEntities =
-        trackedEntities.stream()
-            .filter(te -> trackerAccessManager.canRead(user, te).isEmpty())
-            .toList();
+    trackedEntities = trackedEntities.stream().filter(getFilter(user, queryParams)).toList();
 
     return ids.withFilteredItems(trackedEntities);
   }
@@ -280,5 +278,17 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   @Override
   public Set<String> getOrderableFields() {
     return trackedEntityStore.getOrderableFields();
+  }
+
+  private Predicate<TrackedEntity> getFilter(
+      UserDetails user, TrackedEntityQueryParams queryParams) {
+    if (queryParams.hasEnrolledInTrackerProgram()) {
+      return te ->
+          trackerAccessManager
+              .canRead(user, te, queryParams.getEnrolledInTrackerProgram(), false)
+              .isEmpty();
+    }
+
+    return te -> trackerAccessManager.canRead(user, te).isEmpty();
   }
 }
