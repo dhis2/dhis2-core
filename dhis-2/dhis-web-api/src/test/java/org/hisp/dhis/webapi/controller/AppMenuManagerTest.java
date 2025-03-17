@@ -36,6 +36,8 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
+
+import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppShortcut;
 import org.hisp.dhis.appmanager.DefaultAppManager;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
@@ -58,8 +60,6 @@ import org.springframework.test.web.servlet.MockMvc;
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class AppMenuManagerTest {
-  @Autowired private MockMvc mockMvc;
-
   @Mock private I18nManager i18nManager;
 
   @Mock I18n i18n;
@@ -68,7 +68,7 @@ class AppMenuManagerTest {
 
   @Spy private ResourceLoader resourceLoader;
 
-  @InjectMocks private DefaultAppManager appManager;
+  @Spy private AppManager appManager;
 
   String mockFile =
       """
