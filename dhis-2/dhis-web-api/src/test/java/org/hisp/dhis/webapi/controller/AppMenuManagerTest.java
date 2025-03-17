@@ -29,8 +29,8 @@ package org.hisp.dhis.appmanager;
 
 import static org.hisp.dhis.appmanager.AppManager.BUNDLED_APPS;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
@@ -40,11 +40,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.hisp.dhis.apphub.AppHubService;
-import org.hisp.dhis.appmanager.App;
-import org.hisp.dhis.appmanager.AppManager;
-import org.hisp.dhis.appmanager.AppShortcut;
-import org.hisp.dhis.appmanager.BundledAppStorageService;
-import org.hisp.dhis.appmanager.DefaultAppManager;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheBuilder;
@@ -134,7 +129,7 @@ class AppMenuManagerTest {
             bundledAppStorageService,
             datastoreService,
             cacheBuilderProvider);
-    
+
     appManager.reloadApps();
 
     Mockito.when(localeManager.getCurrentLocale()).thenReturn(new Locale("en"));
@@ -146,7 +141,8 @@ class AppMenuManagerTest {
     Mockito.when(resourceLoader.getResource(Mockito.anyString())).thenReturn(mockResource);
   }
 
-  @Disabled("Needs to be updated to mock ResourcePatternResolver and ResourceLoader in BundledAppStorageService")
+  @Disabled(
+      "Needs to be updated to mock ResourcePatternResolver and ResourceLoader in BundledAppStorageService")
   @Test
   void testGetMenu_BundledApps() {
     try (MockedStatic<CurrentUserUtil> userUtilMockedStatic = mockStatic(CurrentUserUtil.class)) {
