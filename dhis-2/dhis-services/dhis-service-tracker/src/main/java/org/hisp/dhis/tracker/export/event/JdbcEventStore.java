@@ -66,6 +66,8 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
 import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
 import org.hisp.dhis.jsontree.JsonMixed;
@@ -95,14 +97,12 @@ import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.external.conf.ConfigurationKey;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -235,12 +235,13 @@ class JdbcEventStore {
 
   @Autowired
   public JdbcEventStore(
-          NamedParameterJdbcTemplate jdbcTemplate,
-          @Qualifier("readOnlyNamedParameterJdbcTemplate") NamedParameterJdbcTemplate namedParameterJdbcTemplate,
-          @Qualifier("dataValueJsonMapper") ObjectMapper jsonMapper,
-          UserService userService,
-          IdentifiableObjectManager manager,
-          DhisConfigurationProvider configurationProvider) {
+      NamedParameterJdbcTemplate jdbcTemplate,
+      @Qualifier("readOnlyNamedParameterJdbcTemplate")
+          NamedParameterJdbcTemplate namedParameterJdbcTemplate,
+      @Qualifier("dataValueJsonMapper") ObjectMapper jsonMapper,
+      UserService userService,
+      IdentifiableObjectManager manager,
+      DhisConfigurationProvider configurationProvider) {
     log.info(
         configurationProvider.isEnabled(ConfigurationKey.TRACKER_READ_REPLICA_ENABLED)
                 && configurationProvider.isEnabled(

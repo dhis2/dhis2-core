@@ -121,6 +121,11 @@ public class TestDhisConfigurationProvider implements DhisConfigurationProvider 
   }
 
   @Override
+  public boolean isTrackerReadReplicaEnabled() {
+    return false;
+  }
+
+  @Override
   public boolean isClusterEnabled() {
     return false;
   }

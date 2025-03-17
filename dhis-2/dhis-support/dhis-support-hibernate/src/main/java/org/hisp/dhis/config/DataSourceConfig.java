@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.config;
 
-import com.google.common.base.MoreObjects;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import java.util.Objects;
@@ -45,7 +44,6 @@ import org.hibernate.engine.jdbc.internal.Formatter;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
-import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
 import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -87,9 +85,8 @@ public class DataSourceConfig {
 
   @Bean("readOnlyJdbcTemplate")
   public JdbcTemplate readOnlyJdbcTemplate(
-          @Qualifier("readReplicaDataSource") DataSource dataSource) {
-    JdbcTemplate jdbcTemplate =
-            new JdbcTemplate(dataSource);
+      @Qualifier("readReplicaDataSource") DataSource dataSource) {
+    JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
     jdbcTemplate.setFetchSize(1000);
 
     return jdbcTemplate;
@@ -97,9 +94,10 @@ public class DataSourceConfig {
 
   @Bean("readReplicaDataSource")
   public DataSource readReplicaDataSource(
-          DhisConfigurationProvider config,  @Qualifier("actualDataSource")DataSource actualDataSource) {
+      DhisConfigurationProvider config,
+      @Qualifier("actualDataSource") DataSource actualDataSource) {
 
-    if ( !config.isTrackerReadReplicaEnabled() ) {
+    if (!config.isTrackerReadReplicaEnabled()) {
       log.info("Tracker Read replica is disabled");
       return actualDataSource;
     }
@@ -107,7 +105,8 @@ public class DataSourceConfig {
     String username = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
 
     if (!StringUtils.hasText(jdbcUrl)) {
-      String errorMessage= "Tracker Read replica is enabled but read replica connection url not specified in dhis.conf.";
+      String errorMessage =
+          "Tracker Read replica is enabled but read replica connection url not specified in dhis.conf.";
       log.error(errorMessage);
       throw new IllegalStateException(errorMessage);
     }
@@ -115,15 +114,20 @@ public class DataSourceConfig {
     String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
     DbPoolConfig poolConfig =
-            DbPoolConfig.builder().dhisConfig(config).jdbcUrl(jdbcUrl).username(username).dbPoolType(dbPoolType).build();
+        DbPoolConfig.builder()
+            .dhisConfig(config)
+            .jdbcUrl(jdbcUrl)
+            .username(username)
+            .dbPoolType(dbPoolType)
+            .build();
 
     try {
       return DatabasePoolUtils.createDbPool(poolConfig);
     } catch (SQLException | PropertyVetoException e) {
       String message =
-              String.format(
-                      "Connection test failed for tracker read replica database pool, jdbcUrl: '%s', user: '%s'",
-                      jdbcUrl, username);
+          String.format(
+              "Connection test failed for tracker read replica database pool, jdbcUrl: '%s', user: '%s'",
+              jdbcUrl, username);
 
       log.error(message);
       log.error(DebugUtils.getStackTrace(e));
