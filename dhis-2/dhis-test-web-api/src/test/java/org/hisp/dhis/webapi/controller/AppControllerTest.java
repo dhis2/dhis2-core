@@ -28,16 +28,19 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.nio.file.Files.createTempDirectory;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppShortcut;
@@ -49,6 +52,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.config.TestDhisConfigurationProvider;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.controller.AppControllerTest.DhisConfig;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -152,16 +156,16 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(HttpStatus.NO_CONTENT, PUT("/apps").status());
   }
 
-  // TODO: Fix this test
-  // @Test
-  // @DisplayName("Redirect for bundled app has correct location header")
-  // void redirectLocationTest() throws IOException {
-  //   appManager.installApp(
-  //       new ClassPathResource("app/test-bundled-app.zip").getFile(), "test-bundled-app.zip");
+  @Disabled("Deprecated, will be reintroduced if bundled app overrides are again served at root paths")
+  @Test
+  @DisplayName("Redirect for bundled app has correct location header")
+  void redirectLocationTest() throws IOException {
+    appManager.installApp(
+        new ClassPathResource("app/test-bundled-app.zip").getFile(), "test-bundled-app.zip");
 
-  //   HttpResponse get = GET("/api/apps/cache-cleaner/index.html");
-  //   assertEquals("http://localhost/dhis-web-cache-cleaner/index.html", get.location());
-  // }
+    HttpResponse get = GET("/api/apps/cache-cleaner/index.html");
+    assertEquals("http://localhost/dhis-web-cache-cleaner/index.html", get.location());
+  }
 
   @Test
   void testInstalledAppReturnsShortcuts() throws IOException {

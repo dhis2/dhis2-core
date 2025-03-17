@@ -183,7 +183,7 @@ class AppMenuManagerTest {
   private App stubApp(String key, boolean bundled) {
     App app = new App();
     app.setShortName(key);
-    app.setIsBundled(bundled);
+    app.setBundled(bundled);
     app.setShortcuts(List.of(new AppShortcut(), new AppShortcut()));
     return app;
   }

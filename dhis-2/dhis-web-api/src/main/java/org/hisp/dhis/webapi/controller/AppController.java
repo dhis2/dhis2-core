@@ -27,20 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
-import static org.hisp.dhis.security.Authorities.M_DHIS_WEB_APP_MANAGEMENT;
-
-import com.google.common.collect.Lists;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
@@ -54,9 +47,12 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
+import static org.hisp.dhis.security.Authorities.M_DHIS_WEB_APP_MANAGEMENT;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -78,6 +74,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.google.common.collect.Lists;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -191,9 +193,13 @@ public class AppController {
       return;
     }
     if (resourceResult instanceof Redirect redirect) {
-      String cleanValidUrl = TextUtils.cleanUrlPathOnly(application.getBaseUrl(), redirect.path());
-      log.debug(String.format("App resource redirected to: %s", cleanValidUrl));
-      response.sendRedirect(cleanValidUrl);
+      String redirectUrl = TextUtils.cleanUrlPathOnly(application.getBaseUrl(), redirect.path());
+      String queryString = request.getQueryString();
+      if (queryString != null) {
+        redirectUrl += "?" + queryString;
+      }
+      log.debug(String.format("App resource redirected to: %s", redirectUrl));
+      response.sendRedirect(redirectUrl);
     }
     if (resourceResult instanceof ResourceNotFound) {
       response.sendError(HttpServletResponse.SC_NOT_FOUND);

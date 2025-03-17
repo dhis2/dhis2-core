@@ -60,6 +60,8 @@ public class BundledAppStorageService implements AppStorageService {
   private final ResourceLoader resourceLoader;
   private final ResourcePatternResolver resourcePatternResolver;
 
+  private final ObjectMapper objectMapper = new ObjectMapper();
+
   private final Map<String, App> apps = new ConcurrentHashMap<>();
 
   @Override
@@ -76,7 +78,7 @@ public class BundledAppStorageService implements AppStorageService {
           String shortName =
               path.replaceAll("/manifest.webapp$", "")
                   .replaceAll("^" + STATIC_DIR + BUNDLED_APP_PREFIX, "");
-          app.setIsBundled(true);
+          app.setBundled(true);
           app.setShortName(shortName);
           app.setAppStorageSource(AppStorageSource.BUNDLED);
           app.setFolderName(CLASSPATH_PREFIX + path.replaceAll("/manifest.webapp$", ""));
@@ -94,7 +96,6 @@ public class BundledAppStorageService implements AppStorageService {
   private App readAppManifest(Resource resource) {
     try {
       InputStream inputStream = resource.getInputStream();
-      ObjectMapper objectMapper = new ObjectMapper();
       objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
       return objectMapper.readValue(inputStream, App.class);
     } catch (IOException e) {

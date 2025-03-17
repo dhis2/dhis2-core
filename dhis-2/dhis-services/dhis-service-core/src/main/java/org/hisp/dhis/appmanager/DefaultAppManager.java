@@ -27,13 +27,6 @@
  */
 package org.hisp.dhis.appmanager;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.StringUtils.trimToEmpty;
-import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType.RESTRICTED;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -42,25 +35,38 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import static java.util.Objects.requireNonNull;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.function.Predicate;
+import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
+
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
-import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import org.hisp.dhis.apphub.AppHubService;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheBuilderProvider;
 import org.hisp.dhis.datastore.DatastoreNamespace;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
+import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType.RESTRICTED;
 import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.query.QueryParserException;
@@ -72,6 +78,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Saptarshi Purkayastha
@@ -89,6 +100,8 @@ public class DefaultAppManager implements AppManager {
   private final AppStorageService jCloudsAppStorageService;
   private final AppStorageService bundledAppStorageService;
   private final DatastoreService datastoreService;
+
+  private final I18nManager i18nManager;
 
   @Autowired private ObjectMapper jsonMapper;
 
@@ -108,13 +121,15 @@ public class DefaultAppManager implements AppManager {
       @Qualifier("org.hisp.dhis.appmanager.BundledAppStorageService")
           AppStorageService bundledAppStorageService,
       DatastoreService datastoreService,
-      CacheBuilderProvider cacheBuilderProvider) {
+      CacheBuilderProvider cacheBuilderProvider,
+      I18nManager i18nManager) {
     checkNotNull(dhisConfigurationProvider);
     checkNotNull(localAppStorageService);
     checkNotNull(jCloudsAppStorageService);
     checkNotNull(bundledAppStorageService);
     checkNotNull(datastoreService);
     checkNotNull(cacheBuilderProvider);
+    checkNotNull(i18nManager);
 
     this.dhisConfigurationProvider = dhisConfigurationProvider;
     this.appHubService = appHubService;
@@ -123,6 +138,7 @@ public class DefaultAppManager implements AppManager {
     this.bundledAppStorageService = bundledAppStorageService;
     this.datastoreService = datastoreService;
     this.appCache = cacheBuilderProvider.<App>newCacheBuilder().forRegion("appCache").build();
+    this.i18nManager = i18nManager;
   }
 
   // -------------------------------------------------------------------------
@@ -238,6 +254,11 @@ public class DefaultAppManager implements AppManager {
         apps.stream()
             .filter(app -> !MENU_APP_EXCLUSIONS.contains(app.getKey()))
             .map(WebModule::getModule)
+            .map(module -> {
+              String bundledAppNameTranslation = i18nManager.getI18n().getString(module.getName());
+              module.setDisplayName(bundledAppNameTranslation);
+              return module;
+            })
             .toList());
 
     return modules;
@@ -410,14 +431,20 @@ public class DefaultAppManager implements AppManager {
   @Override
   @PostConstruct
   public void reloadApps() {
+    /*
+     * DEPRECATED - local app storage is no longer used, but some implementations upgrading from 2.28
+     * or earlier might still have app files in the local system.  To be removed in 2.43.
+     */
     localAppStorageService.discoverInstalledApps().values().stream()
         .filter(app -> !exists(app.getKey()))
         .forEach(this::installApp);
 
+    // Install apps from jClouds (either local storage or a remote object store)
     jCloudsAppStorageService.discoverInstalledApps().values().stream()
         .filter(app -> !exists(app.getKey()))
         .forEach(this::installApp);
 
+    // Only add bundled apps if an app with the same key hasn't been installed as an override
     bundledAppStorageService.discoverInstalledApps().values().stream()
         .filter(app -> !exists(app.getKey()))
         .forEach(this::installApp);
@@ -448,8 +475,12 @@ public class DefaultAppManager implements AppManager {
       throws IOException {
     ResourceResult resource = getRawAppResource(app, pageName);
 
+    if (pageName.equals("/index.action")) {
+      return new ResourceResult.Redirect(app.getLaunchPath());
+    } 
+
     if (resource instanceof ResourceResult.ResourceFound resourceFound) {
-      if (pageName.equals("manifest.webapp")) {
+      if (pageName.equals("/manifest.webapp")) {
         // If request was for manifest.webapp, check for * and replace with host
         if (app.getActivities() != null
             && app.getActivities().getDhis() != null
@@ -459,10 +490,8 @@ public class DefaultAppManager implements AppManager {
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         jsonMapper.writeValue(bout, app);
         ByteArrayResource byteArrayResource =
-            deriveByteArrayResource(bout.toByteArray(), resourceFound.resource());
+            toByteArrayResource(bout.toByteArray(), resourceFound.resource());
         return new ResourceResult.ResourceFound(byteArrayResource);
-      } else if (pageName.equals("index.action")) {
-        return new ResourceResult.Redirect(app.getLaunchUrl());
       } else if (pageName.endsWith(".html")) {
         AppHtmlTemplate template = new AppHtmlTemplate(contextPath, app);
 
@@ -470,7 +499,7 @@ public class DefaultAppManager implements AppManager {
         template.apply(resourceFound.resource().getInputStream(), bout);
 
         ByteArrayResource byteArrayResource =
-            deriveByteArrayResource(bout.toByteArray(), resourceFound.resource());
+            toByteArrayResource(bout.toByteArray(), resourceFound.resource());
         return new ResourceResult.ResourceFound(byteArrayResource);
       }
     }
@@ -583,7 +612,7 @@ public class DefaultAppManager implements AppManager {
     return tempFile;
   }
 
-  private ByteArrayResource deriveByteArrayResource(byte[] bytes, Resource resource) {
+  private ByteArrayResource toByteArrayResource(byte[] bytes, Resource resource) {
     return new ByteArrayResource(bytes, resource.getDescription()) {
       @Override
       public String getFilename() {

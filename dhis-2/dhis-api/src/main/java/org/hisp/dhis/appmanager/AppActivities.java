@@ -44,14 +44,14 @@ public class AppActivities implements Serializable {
 
   @JsonProperty("dhis")
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Nonnull
   private AppDhis dhis = new AppDhis();
 
+  @Nonnull
   public AppDhis getDhis() {
     return dhis;
   }
 
-  public void setDhis(AppDhis dhis) {
+  public void setDhis(@Nonnull AppDhis dhis) {
     this.dhis = dhis;
   }
 }

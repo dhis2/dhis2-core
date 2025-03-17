@@ -83,7 +83,7 @@ public class App implements Serializable {
 
   private String locales;
 
-  @Nonnull private AppActivities activities = new AppActivities();
+  private AppActivities activities = new AppActivities();
 
   private String launchUrl;
 
@@ -147,7 +147,7 @@ public class App implements Serializable {
     return this.bundled;
   }
 
-  public void setIsBundled(boolean bundled) {
+  public void setBundled(boolean bundled) {
     this.bundled = bundled;
   }
 
@@ -310,11 +310,12 @@ public class App implements Serializable {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Nonnull 
   public AppActivities getActivities() {
     return activities;
   }
 
-  public void setActivities(AppActivities activities) {
+  public void setActivities(@Nonnull AppActivities activities) {
     this.activities = activities;
   }
 
