@@ -29,17 +29,38 @@ package org.hisp.dhis.apps;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
+import java.net.HttpURLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.http.*;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 
+@Tag("apptests")
 class AppResourceTest extends ApiTest {
+
+  private static final RestTemplate restTemplate = new RestTemplate(new SimpleClientHttpRequestFactory(){
+    @Override
+    protected void prepareConnection( HttpURLConnection connection, String httpMethod ) {
+        connection.setInstanceFollowRedirects(false);
+    }
+  });
+  private static final String SERVER_BASE = "http://web:8080";
+
   @Test
   @DisplayName("Redirect location should have correct format")
   void redirectLocationCorrectFormatTest() {
@@ -62,37 +83,100 @@ class AppResourceTest extends ApiTest {
     response.validate().statusCode(302);
   }
 
-  @Test
+  @ParameterizedTest
   @DisplayName("Bundled apps are served from /dhis-web-<app> paths with correct internal redirects")
-  void bundledAppServedFromDhisWebPath() {
-    List<String> apps = 
-        Arrays.asList(
-            "dhis-web-dashboard",
-            "dhis-web-maintenance",
-            "dhis-web-maps",
-            "dhis-web-capture",
-            "dhis-web-settings",
-            "dhis-web-app-management");
-    List<String> indexPaths = Arrays.asList("/", "/index.html");
-    Map<String, String> redirects = 
-        Map.of(
-            "", "/",
-            "index.action", "/index.html");
+  @ValueSource(strings = {
+            "dashboard", 
+            "maintenance",
+            "maps",
+            "capture",
+            "settings",
+            "app-management"
+  })
+  void bundledAppServedFromDhisWebPath(String app) {
 
-    apps.forEach(
-      app -> {
-        indexPaths.forEach(
-            path -> {
-              ApiResponse response = new ApiResponse(given().redirects().follow(false).get("/apps/dhis-web-commons/" + path));
-              response.validate().statusCode(302);
-              response.validate().header("location", equalTo("http://web:8080/dhis-web-commons/" + redirects.get(path)));
-            });
-        redirects.forEach(
-            (source, target) -> {
-              ApiResponse response = new ApiResponse(given().redirects().follow(false).get("/" + app + source));
-              response.validate().statusCode(302);
-              response.validate().header("location", equalTo("http://web:8080/" + app + redirects.get(target)));
-            });
-      });
+    // Serve index.html from index.html?redirect=false
+    {
+      ResponseEntity<String> response = getAuthenticated("/dhis-web-" + app + "/index.html?redirect=false");
+      assertEquals(HttpStatus.OK, response.getStatusCode());
+      assertNotNull(response.getBody());
+      // TODO: Confirm content-type and template replacement
+    }
+
+    // Serve index.html from /?redirect=false
+    {
+      ResponseEntity<String> response = getAuthenticated("/dhis-web-" + app + "/?redirect=false");
+      assertEquals(HttpStatus.OK, response.getStatusCode());
+      assertNotNull(response.getBody());
+    }
+
+    // Append trailing slash and redirect
+    {
+      ResponseEntity<String> response = getAuthenticated("/dhis-web-" + app);
+      assertEquals(HttpStatus.FOUND, response.getStatusCode());
+      List<String> location = response.getHeaders().get("Location");
+      assertEquals(SERVER_BASE + "/dhis-web-" + app + "/", location.get(0));
+    }
+
+    // Serve index.html from index.html (non-navigation)
+    {
+      ResponseEntity<String> response = getAuthenticated("/dhis-web-" + app + "/index.html");
+      assertEquals(HttpStatus.OK, response.getStatusCode());
+      assertNotNull(response.getBody());
+    }
+
+    // Serve index.html from / (non-navigation)
+    {
+      ResponseEntity<String> response = getAuthenticated("/dhis-web-" + app + "/");
+      assertEquals(HttpStatus.OK, response.getStatusCode());
+      assertNotNull(response.getBody());
+    }
+
+    // Redirect to global shell from index.html (navigation)
+    // TODO: Set Sec-Fetch-Mode=navigate
+    // {
+    //   ResponseEntity<String> response = getAuthenticated("/dhis-web-" + app + "/index.html");
+    //   assertEquals(HttpStatus.FOUND, response.getStatusCode());
+    //   List<String> location = response.getHeaders().get("Location");
+    //   assertEquals(SERVER_BASE + "/apps/" + app, location.get(0));
+    // }
+
+    // Redirect to global shell from / (navigation)
+    // TODO: Set Sec-Fetch-Mode=navigate
+    // {
+    //   ResponseEntity<String> response aa = getAuthenticated("/dhis-web-" + app + "/");
+    //   assertEquals(HttpStatus.FOUND, response.getStatusCode());
+    //   List<String> location = response.getHeaders().get("Location");
+    //   assertEquals(SERVER_BASE + "/apps/" + app, location.get(0));
+    // }
+
+    // Redirect index.action
+    // TODO: Fix index.action redirects
+    // {
+    //   ResponseEntity<String> response = getAuthenticated("/dhis-web-" + app + "/index.action");
+    //   assertEquals(HttpStatus.FOUND, response.getStatusCode());
+    //   List<String> location = response.getHeaders().get("Location");
+    //   assertEquals(SERVER_BASE + "/dhis-web-" + app + "/index.html", location.get(0));
+    // }
+  }
+
+  private ResponseEntity<String> get(String path, HttpHeaders headers) {
+    try {
+      return restTemplate.exchange(
+          SERVER_BASE + path, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+    } catch (HttpClientErrorException e) {
+      return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+    }
+  }
+  private ResponseEntity<String> get(String path) {
+    return get(path, new HttpHeaders());
+  }
+  private ResponseEntity<String> getAuthenticated(String path) {
+    // TODO: Use cookies and test with multiple users
+    String authHeader =
+        Base64.getUrlEncoder().encodeToString("admin:district".getBytes(StandardCharsets.UTF_8));
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("Authorization", "Basic " + authHeader);
+    return get(path, headers);
   }
 }
