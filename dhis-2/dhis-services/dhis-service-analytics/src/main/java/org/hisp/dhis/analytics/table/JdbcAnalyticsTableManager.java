@@ -275,7 +275,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     String doubleDataType = sqlBuilder.dataTypeDouble();
     String numericClause =
         skipDataTypeValidation ? "" : "and " + sqlBuilder.regexpMatch("dv.value", NUMERIC_REGEXP);
-    String zeroValueCondition = includeZeroValues ? " or des.zeroissignificant = true" : "";
+    String zeroValueCondition =
+        includeZeroValues ? " or " + sqlBuilder.isTrue("des", "zeroissignificant") : "";
     String zeroValueClause =
         replace(
             """
@@ -386,12 +387,13 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             and (ougs.startdate is null or ps.monthstartdate=ougs.startdate) \
             and dv.lastupdated < '${startTime}' \
             and dv.value is not null \
-            and dv.deleted = false\s""",
+            and ${deletedClause} """,
             Map.of(
                 "approvalClause", approvalClause,
                 "valTypes", valTypes,
                 "partitionClause", partitionClause,
-                "startTime", toLongDate(params.getStartTime()))));
+                "startTime", toLongDate(params.getStartTime()),
+                "deletedClause", sqlBuilder.isFalse("dv", "deleted"))));
 
     if (respectStartEndDates) {
       sql.append(

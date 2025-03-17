@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,39 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.sql;
+package org.hisp.dhis.appmanager;
 
-import java.time.LocalDateTime;
-import org.apache.commons.lang3.StringUtils;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
+import org.hisp.dhis.common.DxfNamespaces;
 
-public class DorisAnalyticsSqlBuilder implements AnalyticsSqlBuilder {
+@JacksonXmlRootElement(localName = "shortcut", namespace = DxfNamespaces.DXF_2_0)
+public class AppShortcut implements Serializable {
+  /** Determines if a de-serialized file is compatible with this class. */
+  private static final long serialVersionUID = -8865601558938806456L;
 
-  @Override
-  public String getEventDataValues() {
-    return "ev.eventdatavalues";
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  private String name;
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  private String url;
+
+  public AppShortcut() {}
+
+  public AppShortcut(String name, String url) {
+    this.name = name;
+    this.url = url;
   }
 
-  @Override
-  public String renderTimestamp(String timestampAsString) {
-    if (StringUtils.isBlank(timestampAsString)) return null;
-    LocalDateTime dateTime = LocalDateTime.parse(timestampAsString);
-    String formattedDate = dateTime.format(TIMESTAMP_FORMATTER);
+  public String getName() {
+    return name;
+  }
 
-    // Find the position of the decimal point
-    int decimalPoint = formattedDate.lastIndexOf('.');
-    if (decimalPoint != -1) {
-      // Remove trailing zeros after decimal point
-      String millisPart = formattedDate.substring(decimalPoint + 1);
-      millisPart = millisPart.replaceAll("0+$", ""); // Remove all trailing zeros
-
-      // If all digits were zeros, use "0" instead of empty string
-      if (millisPart.isEmpty()) {
-        millisPart = "0";
-      }
-
-      formattedDate = formattedDate.substring(0, decimalPoint + 1) + millisPart;
-    }
-
-    return formattedDate;
+  public String getUrl() {
+    return url;
   }
 }

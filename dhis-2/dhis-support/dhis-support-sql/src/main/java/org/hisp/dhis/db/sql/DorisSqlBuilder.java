@@ -272,6 +272,16 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public String isTrue(String alias, String column) {
+    return String.format("%s.%s = true", alias, quote(column));
+  }
+
+  @Override
+  public String isFalse(String alias, String column) {
+    return String.format("%s.%s = false", alias, quote(column));
+  }
+
+  @Override
   public String ifThen(String condition, String result) {
     return String.format("case when %s then %s end", condition, result);
   }
