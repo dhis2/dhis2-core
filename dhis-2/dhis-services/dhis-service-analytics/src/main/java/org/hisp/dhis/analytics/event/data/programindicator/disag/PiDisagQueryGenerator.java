@@ -171,13 +171,13 @@ public class PiDisagQueryGenerator {
   /** Constructs a SQL ifThenElse expression to test for one category option. */
   private String getOptionSql(EventQueryParams params, ProgramCategoryOptionMapping optionMapping) {
     return sqlBuilder.ifThenElse(
-        getfilterSql(params, optionMapping),
+        getFilterSql(params, optionMapping),
         sqlBuilder.singleQuote(optionMapping.getOptionId()),
         sqlBuilder.singleQuote(""));
   }
 
   /** Gets the filter SQL for a category option */
-  private String getfilterSql(EventQueryParams params, ProgramCategoryOptionMapping optionMapping) {
+  private String getFilterSql(EventQueryParams params, ProgramCategoryOptionMapping optionMapping) {
     return programIndicatorService.getAnalyticsSqlAllowingNulls(
         optionMapping.getFilter(),
         BOOLEAN,
