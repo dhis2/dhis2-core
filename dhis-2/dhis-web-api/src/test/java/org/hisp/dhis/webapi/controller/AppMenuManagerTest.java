@@ -128,7 +128,8 @@ class AppMenuManagerTest {
             jCloudsAppStorageService,
             bundledAppStorageService,
             datastoreService,
-            cacheBuilderProvider);
+            cacheBuilderProvider,
+            i18nManager);
 
     appManager.reloadApps();
 
