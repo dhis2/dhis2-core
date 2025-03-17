@@ -221,7 +221,8 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
 
   @Override
   public String getServerBaseUrl() {
-    return StringUtils.trimToNull(properties.getProperty(ConfigurationKey.SERVER_BASE_URL.getKey()));
+    return StringUtils.trimToNull(
+        properties.getProperty(ConfigurationKey.SERVER_BASE_URL.getKey()));
   }
 
   @Override
