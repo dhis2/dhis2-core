@@ -2239,6 +2239,22 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldGetTrackedEntityWhenRequestingSingleTEEnrolledInProtectedProgramAndUserInCaptureScope()
+      throws ForbiddenException, NotFoundException {
+    user.setTeiSearchOrganisationUnits(Set.of());
+    user.setOrganisationUnits(Set.of(orgUnitB));
+    injectSecurityContextUser(user);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityB, programB, orgUnitB);
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            UID.of(trackedEntityB.getUid()), UID.of(programB.getUid()), TrackedEntityParams.FALSE);
+
+    assertEquals(trackedEntityB.getUid(), trackedEntity.getUid());
+  }
+
+  @Test
   void
       shouldFailWhenRequestingSingleTEEnrolledInProtectedProgramWhenUserInSearchScopeButNotInCaptureScope() {
     trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
@@ -2251,6 +2267,26 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
                 UID.of(trackedEntityB.getUid()),
                 UID.of(programB.getUid()),
                 TrackedEntityParams.FALSE));
+  }
+
+  @Test
+  void shouldGetTrackedEntityWhenRequestingSingleTEEnrolledInClosedAndUserInCaptureScope()
+      throws ForbiddenException, NotFoundException {
+    injectAdminIntoSecurityContext();
+    makeProgramDataAndMetadataAccessible(programC);
+    Enrollment enrollment = createEnrollment(programC, trackedEntityB, orgUnitB);
+    manager.save(enrollment);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityB, programC, orgUnitB);
+    user.setTeiSearchOrganisationUnits(Set.of());
+    user.setOrganisationUnits(Set.of(orgUnitB));
+    injectSecurityContextUser(user);
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            UID.of(trackedEntityB.getUid()), UID.of(programC.getUid()), TrackedEntityParams.FALSE);
+
+    assertEquals(trackedEntityB.getUid(), trackedEntity.getUid());
   }
 
   @Test
