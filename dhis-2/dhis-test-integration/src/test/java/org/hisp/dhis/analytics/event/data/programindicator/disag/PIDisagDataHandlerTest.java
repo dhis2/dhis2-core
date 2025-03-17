@@ -32,6 +32,7 @@ import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -129,6 +130,7 @@ class PIDisagDataHandlerTest extends AbstractPIDisagTest {
     boolean result = PiDisagDataHandler.addCocAndAoc(params, grid, row, sqlRowSet);
 
     // Then
+    assertTrue(result);
     assertEquals(expectedDx, row.get(0));
     assertEquals("IIpo1jem6na", row.get(1));
     assertEquals("hOaxuch8Eg3", row.get(2));

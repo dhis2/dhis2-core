@@ -39,6 +39,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -161,7 +163,7 @@ public class PiDisagDataHandler {
     List<String> options = new ArrayList<>();
     for (Category category : categoryCombo.getCategories()) {
       String option = rowSet.getString(category.getUid());
-      if (option.isEmpty()) {
+      if (StringUtils.isEmpty(option)) {
         return null;
       }
       if (option.length() > UID_CODE_SIZE) {

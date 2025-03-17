@@ -229,13 +229,13 @@ class ProgramObjectBundleHookTest {
     programA.setCategoryMappings(goodCategoryMappings);
 
     // Note: any() is used for list matching because the list order may vary.
-    when(identifiableObjectManager.getByUid(eq(Category.class), any()))
+    when(identifiableObjectManager.getByUidWithoutTransaction(eq(Category.class), any()))
         .thenReturn(
             List.of(
                 createCategory("Category A", "mGeengien2R"),
                 createCategory("Category B", "uweesh3Do7e")));
 
-    when(identifiableObjectManager.getByUid(eq(CategoryOption.class), any()))
+    when(identifiableObjectManager.getByUidWithoutTransaction(eq(CategoryOption.class), any()))
         .thenReturn(
             List.of(
                 createCategoryOption("Option A", "sephoo5OWah"),
@@ -264,7 +264,8 @@ class ProgramObjectBundleHookTest {
 
     programA.setCategoryMappings(unresolvableCategoryMappings);
 
-    when(identifiableObjectManager.getByUid(Category.class, List.of("vaiZahCei7P")))
+    when(identifiableObjectManager.getByUidWithoutTransaction(
+            Category.class, List.of("vaiZahCei7P")))
         .thenReturn(emptyList());
 
     List<ErrorReport> errors = subject.validate(programA, null);
@@ -291,10 +292,12 @@ class ProgramObjectBundleHookTest {
 
     programA.setCategoryMappings(categoryMappingsWithInvalidId);
 
-    when(identifiableObjectManager.getByUid(Category.class, List.of("daihai8Vee4")))
+    when(identifiableObjectManager.getByUidWithoutTransaction(
+            Category.class, List.of("daihai8Vee4")))
         .thenReturn(List.of(createCategory("Category A", "daihai8Vee4")));
 
-    when(identifiableObjectManager.getByUid(CategoryOption.class, List.of("Ueeth6egaeH")))
+    when(identifiableObjectManager.getByUidWithoutTransaction(
+            CategoryOption.class, List.of("Ueeth6egaeH")))
         .thenReturn(List.of(createCategoryOption("Option A", "Ueeth6egaeH")));
 
     List<ErrorReport> errors = subject.validate(programA, null);
@@ -333,13 +336,13 @@ class ProgramObjectBundleHookTest {
     programA.setCategoryMappings(categoryMappingsWithDuplicateId);
 
     // Note: any() is used for list matching because the list order may vary.
-    when(identifiableObjectManager.getByUid(eq(Category.class), any()))
+    when(identifiableObjectManager.getByUidWithoutTransaction(eq(Category.class), any()))
         .thenReturn(
             List.of(
                 createCategory("Category A", "Zhoo0oTaej2"),
                 createCategory("Category B", "IaD3eey1wee")));
 
-    when(identifiableObjectManager.getByUid(eq(CategoryOption.class), any()))
+    when(identifiableObjectManager.getByUidWithoutTransaction(eq(CategoryOption.class), any()))
         .thenReturn(
             List.of(
                 createCategoryOption("Option A", "gvieJuud0Ro"),
@@ -380,10 +383,12 @@ class ProgramObjectBundleHookTest {
 
     programA.setCategoryMappings(categoryMappingsWithDuplicateName);
 
-    when(identifiableObjectManager.getByUid(Category.class, List.of("zceth5Ia2oh")))
+    when(identifiableObjectManager.getByUidWithoutTransaction(
+            Category.class, List.of("zceth5Ia2oh")))
         .thenReturn(List.of(createCategory("Category A", "zceth5Ia2oh")));
 
-    when(identifiableObjectManager.getByUid(CategoryOption.class, List.of("oohX9vageij")))
+    when(identifiableObjectManager.getByUidWithoutTransaction(
+            CategoryOption.class, List.of("oohX9vageij")))
         .thenReturn(List.of(createCategoryOption("Option A", "oohX9vageij")));
 
     List<ErrorReport> errors = subject.validate(programA, null);
