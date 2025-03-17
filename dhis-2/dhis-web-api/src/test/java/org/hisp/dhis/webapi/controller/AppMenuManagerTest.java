@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
+import org.hisp.dhis.appmanager.DefaultAppManager;
 import org.hisp.dhis.appmanager.AppShortcut;
 import org.hisp.dhis.appmanager.BundledAppStorageService;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
@@ -62,14 +63,23 @@ import org.springframework.core.io.ResourceLoader;
 class AppMenuManagerTest {
   @Mock private I18nManager i18nManager;
 
-  @Mock I18n i18n;
+  @Mock private I18n i18n;
 
-  @Mock LocaleManager localeManager;
-  @Mock BundledAppStorageService bundledAppStorageService;
+  @Mock private LocaleManager localeManager;
+
+  @Mock private DhisConfigurationProvider dhisConfigurationProvider;
+  @Mock private AppHubService appHubService;
+  @Mock private AppStorageService localAppStorageService;
+  @Mock private AppStorageService jCloudsAppStorageService;
+  @Mock private BundledAppStorageService bundledAppStorageService;
+  @Mock private DatastoreService datastoreService;
+  @Mock private Cache<App> appCache;
+  @Mock private DefaultCacheBuilderProvider cacheBuilderProvider;
+  @Mock private CacheBuilder cacheBuilder;
 
   @Spy private ResourceLoader resourceLoader;
 
-  @Spy private AppManager appManager;
+  private AppManager appManager;
 
   String mockFile =
       """
@@ -102,6 +112,15 @@ class AppMenuManagerTest {
   @BeforeEach
   void setUp() throws Exception {
     mockBundledApps();
+    appManager =
+        new DefaultAppManager(
+            dhisConfigurationProvider,
+            appHubService,
+            localAppStorageService,
+            jCloudsAppStorageService,
+            bundledAppStorageService,
+            datastoreService,
+            cacheBuilderProvider);
 
     Mockito.when(localeManager.getCurrentLocale()).thenReturn(new Locale("en"));
     when(i18nManager.getI18n()).thenReturn(i18n);
