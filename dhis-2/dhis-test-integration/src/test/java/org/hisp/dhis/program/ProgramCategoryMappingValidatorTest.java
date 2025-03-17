@@ -206,7 +206,7 @@ class ProgramCategoryMappingValidatorTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testResolveProgramCategoryMappings() throws ConflictException {
+  void testResolveProgramCategoryMappings() {
     // Given
     Program program = createProgram(categoryMappings);
 

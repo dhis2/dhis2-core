@@ -30,8 +30,6 @@ package org.hisp.dhis.program;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.common.DataDimensionType;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -42,9 +40,6 @@ class ProgramCategoryMappingTest {
   private static final String ID = "beij9Thagie";
 
   private static final String CATEGORY_ID = "MAr7xe1Baic";
-
-  private static final Category CATEGORY =
-      new Category("Category Name", DataDimensionType.DISAGGREGATION);
 
   private static final List<ProgramCategoryOptionMapping> OPTION_MAPPINGS =
       List.of(

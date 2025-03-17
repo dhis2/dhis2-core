@@ -321,6 +321,8 @@ public enum ErrorCode {
   E4075("Program `{0}` has an invalid category mapping `{1}`"),
   E4076("Program `{0}` has duplicate category mapping `{1}`"),
   E4077("Program `{0}` category `{1}` has duplicate category mapping name `{2}`"),
+  E4078(
+      "Multiple Category Options %s while disaggregating Program Indicator %s-%s Category Combo %s-%s Category %s-%s"),
 
   /* SQL views */
   E4300("SQL query is null"),

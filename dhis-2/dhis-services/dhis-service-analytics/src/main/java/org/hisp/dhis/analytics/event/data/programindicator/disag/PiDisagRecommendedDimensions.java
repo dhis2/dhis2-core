@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.event.data.programindicator.disag;
 
 import static java.util.stream.Collectors.toMap;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -56,14 +57,16 @@ public class PiDisagRecommendedDimensions {
         Category.class,
         pis.stream()
             .map(pi -> getCategoryIds((ProgramIndicator) pi))
-            .flatMap(c -> c.stream())
+            .flatMap(Collection::stream)
             .toList());
   }
 
   private static List<String> getCategoryIds(ProgramIndicator pi) {
+    // For the program of the program indicator, get a map from mappings to category Ids.
     Map<String, String> mappingCategoryMap =
         pi.getProgram().getCategoryMappings().stream()
             .collect(toMap(ProgramCategoryMapping::getId, ProgramCategoryMapping::getCategoryId));
-    return pi.getCategoryMappingIds().stream().map(m -> mappingCategoryMap.get(m)).toList();
+    // Return all the category IDs referenced from the program indicator
+    return pi.getCategoryMappingIds().stream().map(mappingCategoryMap::get).toList();
   }
 }

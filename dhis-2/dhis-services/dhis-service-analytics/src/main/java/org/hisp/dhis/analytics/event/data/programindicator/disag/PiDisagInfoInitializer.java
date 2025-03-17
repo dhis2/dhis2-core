@@ -49,6 +49,7 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.program.ProgramCategoryMapping;
 import org.hisp.dhis.program.ProgramCategoryMappingValidator;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.query.QueryException;
 import org.springframework.stereotype.Component;
 
 /**
@@ -114,7 +115,7 @@ public class PiDisagInfoInitializer {
     try {
       allMappings = mappingValidator.getAndValidateProgramIndicatorCategoryMappings(pi);
     } catch (ConflictException e) {
-      throw new RuntimeException(e);
+      throw new QueryException(e.getMessage());
     }
 
     Set<String> dimensionCategories = getDimensionCategories(params, allMappings);
@@ -149,12 +150,12 @@ public class PiDisagInfoInitializer {
    * @param allMappings All the category mappings
    * @return the set of categories that will be served for dimensions by pi disaggregation
    */
-  public Set<String> getDimensionCategories(
+  private Set<String> getDimensionCategories(
       EventQueryParams params, Set<ProgramCategoryMapping> allMappings) {
 
     return allMappings.stream()
         .map(ProgramCategoryMapping::getCategoryId)
-        .filter(dim -> params.hasDimensionId(dim))
+        .filter(params::hasDimensionId)
         .collect(toUnmodifiableSet());
   }
 

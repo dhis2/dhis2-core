@@ -33,17 +33,18 @@ import static org.hisp.dhis.common.CodeGenerator.UID_CODE_SIZE;
 import static org.hisp.dhis.common.DimensionalObject.DATA_COLLAPSED_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
+import static org.hisp.dhis.feedback.ErrorCode.E4078;
 
 import com.google.common.base.Splitter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.common.ErrorCodeException;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -169,16 +170,15 @@ public class PiDisagDataHandler {
       if (option.length() > UID_CODE_SIZE) {
         String[] multiOptions =
             toArray(Splitter.fixedLength(UID_CODE_SIZE).split(option), String.class);
-        throw new RuntimeException(
-            String.format(
-                "Multiple Category Options %s while disaggregating Program Indicator %s-%s Category Combo %s-%s Category %s-%s",
-                String.join(",", multiOptions),
-                params.getProgramIndicator().getUid(),
-                params.getProgramIndicator().getName(),
-                categoryCombo.getUid(),
-                categoryCombo.getName(),
-                category.getUid(),
-                category.getName()));
+        throw new ErrorCodeException(
+            E4078,
+            String.join(",", multiOptions),
+            params.getProgramIndicator().getUid(),
+            params.getProgramIndicator().getName(),
+            categoryCombo.getUid(),
+            categoryCombo.getName(),
+            category.getUid(),
+            category.getName());
       }
       options.add(option);
     }

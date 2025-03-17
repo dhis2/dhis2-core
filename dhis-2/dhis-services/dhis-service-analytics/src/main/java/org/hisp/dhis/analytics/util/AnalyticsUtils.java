@@ -652,8 +652,8 @@ public final class AnalyticsUtils {
         String id2 = DimensionalObjectUtils.getSecondIdentifier(dx);
         String id3 = DimensionalObjectUtils.getThirdIdentifier(dx);
         DataDimensionalItemObject dataItem = (DataDimensionalItemObject) item;
-        coc = SYMBOL_WILDCARD.equals(id2) ? dataItem.getAggregateExportCategoryOptionCombo() : id2;
-        aoc = SYMBOL_WILDCARD.equals(id3) ? dataItem.getAggregateExportAttributeOptionCombo() : id3;
+        coc = getItemCoc(id2, dataItem.getAggregateExportCategoryOptionCombo());
+        coc = getItemCoc(id3, dataItem.getAggregateExportAttributeOptionCombo());
       } else if (DataDimensionalItemObject.class.isAssignableFrom(item.getClass())) {
         DataDimensionalItemObject dataItem = (DataDimensionalItemObject) item;
         coc = dataItem.getAggregateExportCategoryOptionCombo();
@@ -692,6 +692,11 @@ public final class AnalyticsUtils {
                 true))
         .addColumn(vlInx, aocCol)
         .addColumn(vlInx, cocCol);
+  }
+
+  /** Use dynamic COC or, if wild, the fixed COC */
+  private static String getItemCoc(String token, String fixed) {
+    return SYMBOL_WILDCARD.equals(token) ? fixed : token;
   }
 
   /**

@@ -30,6 +30,8 @@ package org.hisp.dhis.analytics.event.data.programindicator.disag;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
@@ -74,7 +76,7 @@ class PIDisagInfoInitializerTest extends AbstractPIDisagTest {
     EventQueryParams params = target.getParamsWithDisaggregationInfo(eventQueryParams);
 
     // Then
-    assertFalse(params == eventQueryParams);
+    assertNotSame(eventQueryParams, params);
     assertTrue(params.hasPiDisagInfo());
   }
 
@@ -89,7 +91,7 @@ class PIDisagInfoInitializerTest extends AbstractPIDisagTest {
     EventQueryParams params = target.getParamsWithDisaggregationInfo(testParams);
 
     // Then
-    assertTrue(params == testParams);
+    assertSame(testParams, params);
     assertFalse(params.hasPiDisagInfo());
   }
 
@@ -105,7 +107,7 @@ class PIDisagInfoInitializerTest extends AbstractPIDisagTest {
     EventQueryParams params = target.getParamsWithDisaggregationInfo(testParams);
 
     // Then
-    assertTrue(params == testParams);
+    assertSame(testParams, params);
     assertFalse(params.hasPiDisagInfo());
   }
 
@@ -185,18 +187,6 @@ class PIDisagInfoInitializerTest extends AbstractPIDisagTest {
     assertEquals(expectedCategoryMappings, info.getCategoryMappings());
     assertEquals(expectedCocResolver, info.getCocResolver());
     assertEquals(expectedAocResolver, info.getAocResolver());
-  }
-
-  @Test
-  void testgGetDimensionCategories() {
-    // Given
-    Set<String> expectedCocCategories = Set.of(category1.getUid(), category3.getUid());
-
-    // When
-    List<String> result = target.getCocCategories(eventQueryParams);
-
-    // Then
-    assertEquals(expectedCocCategories, new HashSet<>(result)); // In any order
   }
 
   @Test
