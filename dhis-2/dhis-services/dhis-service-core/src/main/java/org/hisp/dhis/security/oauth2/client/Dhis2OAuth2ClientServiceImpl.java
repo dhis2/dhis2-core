@@ -195,12 +195,11 @@ public class Dhis2OAuth2ClientServiceImpl
     Dhis2OAuth2Client entity = new Dhis2OAuth2Client();
 
     // Handle case when we're creating a new client vs updating existing
-    if (this.clientStore.getByClientId(registeredClient.getClientId()) != null) {
-      Dhis2OAuth2Client existingClient =
-          this.clientStore.getByClientId(registeredClient.getClientId());
+    Dhis2OAuth2Client existingClient =
+        this.clientStore.getByClientId(registeredClient.getClientId());
+    if (existingClient != null) {
       entity.setUid(existingClient.getUid());
       entity.setCreated(existingClient.getCreated());
-
     } else if (registeredClient.getId() != null) {
       entity.setUid(registeredClient.getId());
     } else {

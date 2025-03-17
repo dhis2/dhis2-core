@@ -93,8 +93,7 @@ public class LoginTest extends BaseE2ETest {
         LoginRequest.builder().username("admin").password("wrongpassword").build();
     HttpEntity<LoginRequest> requestEntity = new HttpEntity<>(loginRequest, jsonHeaders());
     try {
-      restTemplate.postForEntity(
-          serverApiUrl + LOGIN_API_PATH, requestEntity, LoginResponse.class);
+      restTemplate.postForEntity(serverApiUrl + LOGIN_API_PATH, requestEntity, LoginResponse.class);
       fail("Should have thrown an exception");
     } catch (HttpClientErrorException e) {
       assertEquals(HttpStatus.UNAUTHORIZED, e.getStatusCode());

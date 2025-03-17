@@ -40,7 +40,6 @@ import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.SystemUser;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
@@ -113,14 +112,7 @@ public class Dhis2OAuth2AuthorizationServiceImpl
     if (existing != null) {
       log.info("Updating existing authorization with id: " + authorization.getId());
       entity.setId(existing.getId());
-
-      if (CurrentUserUtil.hasCurrentUser()) {
-        //        this.authorizationStore.merge(entity, CurrentUserUtil.getCurrentUserDetails());
-        this.authorizationStore.merge(entity, new SystemUser());
-      } else {
-        this.authorizationStore.merge(entity, new SystemUser());
-      }
-
+      this.authorizationStore.merge(entity, new SystemUser());
     } else {
       log.info("Creating new authorization with id: " + authorization.getId());
       this.authorizationStore.save(entity);
@@ -310,11 +302,9 @@ public class Dhis2OAuth2AuthorizationServiceImpl
    */
   private Dhis2OAuth2Authorization toEntity(OAuth2Authorization authorization) {
     Dhis2OAuth2Authorization entity = new Dhis2OAuth2Authorization();
-
-    // Handle case when we're creating a new authorization
-    if (this.authorizationStore.getByUidNoAcl(authorization.getId()) != null) {
-      Dhis2OAuth2Authorization existingEntity =
-          this.authorizationStore.getByUidNoAcl(authorization.getId());
+    Dhis2OAuth2Authorization existingEntity =
+        this.authorizationStore.getByUidNoAcl(authorization.getId());
+    if (existingEntity != null) {
       entity.setUid(existingEntity.getUid());
       entity.setCreated(existingEntity.getCreated());
     } else {

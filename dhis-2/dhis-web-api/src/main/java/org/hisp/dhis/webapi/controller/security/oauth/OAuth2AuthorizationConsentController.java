@@ -29,14 +29,10 @@ package org.hisp.dhis.webapi.controller.security.oauth;
 
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.query.GetObjectListParams;
-import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
 import org.hisp.dhis.security.oauth2.consent.Dhis2OAuth2AuthorizationConsent;
 import org.hisp.dhis.webapi.controller.AbstractFullReadOnlyController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.security.config.AuthorizationServerEnabledCondition;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -49,9 +45,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping({"/api/oAuth2AuthorizationConsents"})
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@OpenApi.Document(
-    entity = Dhis2OAuth2Client.class,
-    classifiers = {"team:platform", "purpose:security"})
-@Conditional(AuthorizationServerEnabledCondition.class)
 public class OAuth2AuthorizationConsentController
     extends AbstractFullReadOnlyController<Dhis2OAuth2AuthorizationConsent, GetObjectListParams> {}
