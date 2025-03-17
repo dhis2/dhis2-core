@@ -270,7 +270,7 @@ public interface SqlBuilder {
    * @return the SQL function for concatenation.
    */
   String concat(String... columns);
- 
+
   /**
    * Concatenates list of columns or expressions.
    *
@@ -279,7 +279,7 @@ public interface SqlBuilder {
    */
   String concat(List<String> columns);
 
-   /**
+  /**
    * Trims the given column or expression by removing leading and trailing spaces.
    *
    * @param expression the expression to trim.
