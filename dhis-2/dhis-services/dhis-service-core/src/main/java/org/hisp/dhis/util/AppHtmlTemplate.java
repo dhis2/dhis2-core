@@ -32,10 +32,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+
 import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.hisp.dhis.appmanager.App;
+
+import com.google.common.base.Strings;
 
 @RequiredArgsConstructor
 public class AppHtmlTemplate {
@@ -55,6 +59,6 @@ public class AppHtmlTemplate {
 
   private String replaceLine(String line) {
     return line.replace("__DHIS2_BASE_URL__", this.contextPath)
-        .replace("__DHIS2_APP_ROOT_URL__", this.app.getBaseUrl());
+        .replace("__DHIS2_APP_ROOT_URL__", Strings.nullToEmpty(this.app.getBaseUrl()));
   }
 }
