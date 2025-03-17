@@ -137,24 +137,11 @@ public final class SystemInfo {
         .build();
   }
 
-  /**
-   * @param id
-   * @param revision
-   * @param version
-   * @param serverDate
-   */
-  public record SystemIdVersionDate(String id, String revision, String version, Date serverDate) {}
+  public record SystemInfoForMetadataExport(
+      String id, String revision, String version, Date serverDate) {}
 
-  /**
-   * @param systemIdVersionDate
-   * @param buildTime
-   */
-  public record SystemVersionBuildTime(SystemIdVersionDate systemIdVersionDate, Date buildTime) {}
+  public record SystemInfoForDataStats(
+      String version, String revision, Date buildTime, String id, Date serverDate) {}
 
-  /**
-   * @param revision
-   * @param version
-   * @param calendar
-   */
-  public record SystemVersionCalendar(String revision, String version, String calendar) {}
+  public record SystemInfoForAppCacheFilter(String revision, String version, String calendar) {}
 }

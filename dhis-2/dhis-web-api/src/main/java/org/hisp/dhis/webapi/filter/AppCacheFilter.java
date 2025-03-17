@@ -43,7 +43,7 @@ import java.io.PrintWriter;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.i18n.ui.locale.UserSettingLocaleManager;
 import org.hisp.dhis.setting.UserSettings;
-import org.hisp.dhis.system.SystemInfo.SystemVersionCalendar;
+import org.hisp.dhis.system.SystemInfo.SystemInfoForAppCacheFilter;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserSettingsService;
@@ -75,7 +75,7 @@ public class AppCacheFilter implements Filter {
       chain.doFilter(request, responseWrapper);
       responseWrapper.setContentType("text/cache-manifest");
 
-      SystemVersionCalendar systemInfo = systemService.getSystemVersionCalendar();
+      SystemInfoForAppCacheFilter systemInfo = systemService.getSystemInfoForAppCacheFilter();
 
       writer.print(responseWrapper.toString());
       writer.println("# DHIS2 " + systemInfo.version() + " r" + systemInfo.revision());

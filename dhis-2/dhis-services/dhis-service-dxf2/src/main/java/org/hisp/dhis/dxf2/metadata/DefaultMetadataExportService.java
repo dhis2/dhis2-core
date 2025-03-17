@@ -102,7 +102,7 @@ import org.hisp.dhis.report.Report;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.system.SystemInfo.SystemIdVersionDate;
+import org.hisp.dhis.system.SystemInfo.SystemInfoForMetadataExport;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -224,7 +224,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
   @Transactional(readOnly = true)
   public ObjectNode getMetadataAsObjectNode(MetadataExportParams params) {
     ObjectNode rootNode = fieldFilterService.createObjectNode();
-    SystemIdVersionDate systemInfo = systemService.getSystemIdVersionDate();
+    SystemInfoForMetadataExport systemInfo = systemService.getSystemInfoForMetadataExport();
 
     rootNode
         .putObject(SYSTEM)
@@ -260,7 +260,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
   @Transactional(readOnly = true)
   public void getMetadataAsObjectNodeStream(MetadataExportParams params, OutputStream outputStream)
       throws IOException {
-    SystemIdVersionDate systemInfo = systemService.getSystemIdVersionDate();
+    SystemInfoForMetadataExport systemInfo = systemService.getSystemInfoForMetadataExport();
 
     if (params.isExportWithDependencies()) {
       getMetadataWithDependenciesAsNodeStream(
@@ -313,7 +313,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
   public void getMetadataWithDependenciesAsNodeStream(
       IdentifiableObject object, @Nonnull MetadataExportParams params, OutputStream outputStream)
       throws IOException {
-    SystemIdVersionDate systemInfo = systemService.getSystemIdVersionDate();
+    SystemInfoForMetadataExport systemInfo = systemService.getSystemInfoForMetadataExport();
     SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata =
         getMetadataWithDependencies(object);
     try (JsonGenerator generator = objectMapper.getFactory().createGenerator(outputStream)) {

@@ -52,9 +52,9 @@ import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.system.SystemInfo.SystemIdVersionDate;
-import org.hisp.dhis.system.SystemInfo.SystemVersionBuildTime;
-import org.hisp.dhis.system.SystemInfo.SystemVersionCalendar;
+import org.hisp.dhis.system.SystemInfo.SystemInfoForAppCacheFilter;
+import org.hisp.dhis.system.SystemInfo.SystemInfoForDataStats;
+import org.hisp.dhis.system.SystemInfo.SystemInfoForMetadataExport;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -114,8 +114,10 @@ public class DefaultSystemService implements SystemService, InitializingBean {
         settings.getLastSuccessfulLatestAnalyticsPartitionUpdate();
 
     Date now = new Date();
+    Configuration config = configurationService.getConfiguration();
 
     return systemInfo.toBuilder()
+        .systemId(config.getSystemId())
         .databaseInfo(databaseInfoProvider.getDatabaseInfo())
         .calendar(calendarService.getSystemCalendar().name())
         .dateFormat(calendarService.getSystemDateFormat().getJs())
@@ -145,27 +147,35 @@ public class DefaultSystemService implements SystemService, InitializingBean {
   @Override
   @CheckForNull
   @NonTransactional
-  public SystemIdVersionDate getSystemIdVersionDate() {
+  public SystemInfoForMetadataExport getSystemInfoForMetadataExport() {
     if (systemInfo == null) return null;
+    Configuration config = configurationService.getConfiguration();
     Date now = new Date();
-    return new SystemIdVersionDate(
-        systemInfo.getSystemId(), systemInfo.getRevision(), systemInfo.getVersion(), now);
+    return new SystemInfoForMetadataExport(
+        config.getSystemId(), systemInfo.getRevision(), systemInfo.getVersion(), now);
   }
 
   @Override
   @CheckForNull
   @NonTransactional
-  public SystemVersionBuildTime getSystemVersionBuildTime() {
+  public SystemInfoForDataStats getSystemInfoForDataStats() {
     if (systemInfo == null) return null;
-    return new SystemVersionBuildTime(getSystemIdVersionDate(), systemInfo.getBuildTime());
+    Configuration config = configurationService.getConfiguration();
+    Date now = new Date();
+    return new SystemInfoForDataStats(
+        systemInfo.getVersion(),
+        systemInfo.getRevision(),
+        systemInfo.getBuildTime(),
+        config.getSystemId(),
+        now);
   }
 
   @Override
   @CheckForNull
   @Transactional(readOnly = true)
-  public SystemVersionCalendar getSystemVersionCalendar() {
+  public SystemInfoForAppCacheFilter getSystemInfoForAppCacheFilter() {
     if (systemInfo == null) return null;
-    return new SystemVersionCalendar(
+    return new SystemInfoForAppCacheFilter(
         systemInfo.getRevision(),
         systemInfo.getVersion(),
         calendarService.getSystemCalendar().name());
@@ -183,7 +193,6 @@ public class DefaultSystemService implements SystemService, InitializingBean {
    * @return A {@link SystemInfo} with all properties set that are stable (immutable) after start
    */
   private SystemInfo getStableSystemInfo() {
-    Configuration config = configurationService.getConfiguration();
     Properties props = System.getProperties();
     boolean redisEnabled = dhisConfig.isEnabled(ConfigurationKey.REDIS_ENABLED);
 
@@ -194,7 +203,6 @@ public class DefaultSystemService implements SystemService, InitializingBean {
         .readOnlyMode(dhisConfig.getProperty(ConfigurationKey.SYSTEM_READ_ONLY_MODE))
         .nodeId(dhisConfig.getProperty(ConfigurationKey.NODE_ID))
         .systemMonitoringUrl(dhisConfig.getProperty(ConfigurationKey.SYSTEM_MONITORING_URL))
-        .systemId(config.getSystemId())
         .clusterHostname(dhisConfig.getProperty(ConfigurationKey.CLUSTER_HOSTNAME))
         .redisEnabled(redisEnabled)
         .redisHostname(redisEnabled ? dhisConfig.getProperty(ConfigurationKey.REDIS_HOST) : null)
