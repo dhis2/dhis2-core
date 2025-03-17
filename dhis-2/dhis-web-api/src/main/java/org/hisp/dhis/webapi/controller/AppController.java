@@ -183,7 +183,7 @@ public class AppController {
     // Get page requested
     String resource = getResourcePath(request.getPathInfo(), application);
 
-    log.debug("Rendering resource {} from app {}", resource, appName);
+    log.debug("Rendering resource {} from app {}", resource, application.getKey());
 
     ResourceResult resourceResult = appManager.getAppResource(application, resource, contextPath);
     if (resourceResult instanceof ResourceFound found) {

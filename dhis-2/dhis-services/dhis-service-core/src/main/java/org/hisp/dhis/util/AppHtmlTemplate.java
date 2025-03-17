@@ -44,16 +44,12 @@ public class AppHtmlTemplate {
   private final App app;
 
   public void apply(InputStream inputStream, OutputStream outputStream) throws IOException {
-    LineIterator iterator = IOUtils.lineIterator(inputStream, StandardCharsets.UTF_8);
-
     PrintWriter output = new PrintWriter(outputStream, true, StandardCharsets.UTF_8);
-    try {
+    try (LineIterator iterator = IOUtils.lineIterator(inputStream, StandardCharsets.UTF_8)) {
       while (iterator.hasNext()) {
         String line = iterator.next();
         output.println(replaceLine(line));
       }
-    } finally {
-      iterator.close();
     }
   }
 
