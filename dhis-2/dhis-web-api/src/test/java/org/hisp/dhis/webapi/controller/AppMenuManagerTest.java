@@ -36,8 +36,13 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppShortcut;
+import org.hisp.dhis.appmanager.BundledAppStorageService;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
@@ -61,6 +66,7 @@ class AppMenuManagerTest {
   @Mock I18n i18n;
 
   @Mock LocaleManager localeManager;
+  @Mock BundledAppStorageService bundledAppStorageService;
 
   @Spy private ResourceLoader resourceLoader;
 
@@ -96,6 +102,8 @@ class AppMenuManagerTest {
 
   @BeforeEach
   void setUp() throws Exception {
+    mockBundledApps();
+
     Mockito.when(localeManager.getCurrentLocale()).thenReturn(new Locale("en"));
     when(i18nManager.getI18n()).thenReturn(i18n);
 
@@ -131,5 +139,20 @@ class AppMenuManagerTest {
       assertEquals("Custom form", secondShortcut.getName());
       assertEquals("#/custom-form", secondShortcut.getUrl());
     }
+  }
+
+  private void mockBundledApps() {
+    Map<String, App> apps = AppManager.BUNDLED_APPS.stream()
+      .map(app -> stubApp(app, true))
+      .collect(Collectors.toMap(App::getKey, app -> app));
+
+    when(bundledAppStorageService.discoverInstalledApps()).thenReturn(apps);
+  }
+
+  private App stubApp(String key, boolean bundled) {
+    App app = new App();
+    app.setShortName(key);
+    app.setIsBundled(bundled);
+    return app;
   }
 }

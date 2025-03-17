@@ -54,8 +54,7 @@ class AppResourceTest extends ApiTest {
         .statusCode(201);
 
     // when called with missing trailing slash
-    ApiResponse response
-        = new ApiResponse(given().redirects().follow(false).get("/apps/test-minio"));
+    ApiResponse response = new ApiResponse(given().redirects().follow(false).get("/apps/test-minio"));
 
     // then redirect should be returned with trailing slash
     response.validate().header("location", equalTo("http://web:8080/api/apps/test-minio/"));
