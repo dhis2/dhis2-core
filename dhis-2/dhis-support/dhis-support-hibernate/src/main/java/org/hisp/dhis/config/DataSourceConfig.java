@@ -65,7 +65,8 @@ public class DataSourceConfig {
 
   @Primary
   @Bean
-  public NamedParameterJdbcTemplate namedParameterJdbcTemplate(@Qualifier("actualDataSource") DataSource dataSource) {
+  public NamedParameterJdbcTemplate namedParameterJdbcTemplate(
+      @Qualifier("actualDataSource") DataSource dataSource) {
     return new NamedParameterJdbcTemplate(dataSource);
   }
 
