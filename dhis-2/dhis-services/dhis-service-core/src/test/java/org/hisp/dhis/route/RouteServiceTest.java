@@ -57,7 +57,7 @@ public class RouteServiceTest {
         new TestDhisConfigurationProvider(properties);
 
     RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
-    assertThrows(ConflictException.class, () -> routeService.postConstruct());
+    assertThrows(IllegalStateException.class, () -> routeService.postConstruct());
   }
 
   @Test
