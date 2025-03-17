@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,50 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+package org.hisp.dhis.analytics.event.data.programindicator.disag;
 
 import java.util.List;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.common.DataDimensionType;
-import org.junit.jupiter.api.Test;
+import java.util.Map;
+import java.util.Set;
+import lombok.Builder;
+import lombok.Getter;
+import org.hisp.dhis.program.ProgramCategoryMapping;
 
 /**
+ * Contextual information needed when disaggregating a {@link
+ * org.hisp.dhis.program.ProgramIndicator} during an analytics query
+ *
  * @author Jim Grace
  */
-class ProgramCategoryMappingTest {
+@Builder
+@Getter
+public class PiDisagInfo {
 
-  private static final String ID = "beij9Thagie";
+  /** Category UIDs that are used as query dimensions */
+  Set<String> dimensionCategories;
 
-  private static final String CATEGORY_ID = "MAr7xe1Baic";
+  /**
+   * Additional category UIDs (that are not also dimensions) needed to assemble a
+   * categoryOptionCombo and/or attributeOptionCombo. (This is a list rather than a set for
+   * consistency in ordering the SQL columns, since it is traversed more than once.)
+   */
+  List<String> cocCategories;
 
-  private static final Category CATEGORY =
-      new Category("Category Name", DataDimensionType.DISAGGREGATION);
+  /** All category mappings that are being used by the current query */
+  Map<String, ProgramCategoryMapping> categoryMappings;
 
-  private static final List<ProgramCategoryOptionMapping> OPTION_MAPPINGS =
-      List.of(
-          ProgramCategoryOptionMapping.builder().optionId("Ceingee8soV").filter("FilterA").build(),
-          ProgramCategoryOptionMapping.builder().optionId("aiabi0aet3W").filter("FilterB").build());
+  /** Map of ordered option UIDs to categoryOptionCombo UID */
+  Map<String, String> cocResolver;
 
-  @Test
-  void testSetGetId() {
-    ProgramCategoryMapping mapping = new ProgramCategoryMapping();
-    mapping.setId(ID);
-    assertEquals(ID, mapping.getId());
-  }
+  /** Map of ordered option UIDs to attributeOptionCombo UID */
+  Map<String, String> aocResolver;
 
-  @Test
-  void testSetGetCategoryId() {
-    ProgramCategoryMapping mapping = new ProgramCategoryMapping();
-    mapping.setCategoryId(CATEGORY_ID);
-    assertEquals(CATEGORY_ID, mapping.getCategoryId());
-  }
-
-  @Test
-  void testSetGetOptionMappings() {
-    ProgramCategoryMapping mapping = new ProgramCategoryMapping();
-    mapping.setOptionMappings(OPTION_MAPPINGS);
-    assertEquals(OPTION_MAPPINGS, mapping.getOptionMappings());
+  /**
+   * Tests to see if a dimension is provided by program indicator disaggregation logic.
+   *
+   * @param dimension the dimension to test
+   * @return true if a piDisag dimension, else false
+   */
+  public boolean isPiDisagDimension(String dimension) {
+    return categoryMappings.containsKey(dimension);
   }
 }

@@ -205,6 +205,10 @@ public interface IdentifiableObjectManager {
   <T extends IdentifiableObject> List<T> getByUid(
       @Nonnull Class<T> type, @Nonnull Collection<String> uids);
 
+  @Nonnull
+  <T extends IdentifiableObject> List<T> getByUidWithoutTransaction(
+      @Nonnull Class<T> type, @Nonnull Collection<String> uids);
+
   /**
    * Retrieves the objects of the given type and collection of UIDs, throws exception is any object
    * does not exist.

@@ -60,7 +60,7 @@ import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.EventProgramEnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramCategoryMapping;
-import org.hisp.dhis.program.ProgramCategoryMappingResolver;
+import org.hisp.dhis.program.ProgramCategoryMappingValidator;
 import org.hisp.dhis.program.ProgramCategoryOptionMapping;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStage;
@@ -93,13 +93,13 @@ class ProgramObjectBundleHookTest {
 
   @Mock private ProgramIndicatorService programIndicatorService;
 
-  private ProgramCategoryMappingResolver categoryMappingResolver;
+  private ProgramCategoryMappingValidator categoryMappingResolver;
 
   private Program programA;
 
   @BeforeEach
   public void setUp() {
-    categoryMappingResolver = new ProgramCategoryMappingResolver(identifiableObjectManager);
+    categoryMappingResolver = new ProgramCategoryMappingValidator(identifiableObjectManager);
 
     this.subject =
         new ProgramObjectBundleHook(
@@ -108,8 +108,7 @@ class ProgramObjectBundleHookTest {
             organisationUnitService,
             aclService,
             identifiableObjectManager,
-            categoryMappingResolver,
-            programIndicatorService);
+            categoryMappingResolver);
 
     programA = createProgram('A');
     programA.setId(100);
@@ -202,7 +201,7 @@ class ProgramObjectBundleHookTest {
                 .categoryId("mGeengien2R")
                 .mappingName("Mapping 1")
                 .optionMappings(
-                    Set.of(
+                    List.of(
                         ProgramCategoryOptionMapping.builder()
                             .optionId("sephoo5OWah")
                             .filter("true")
@@ -217,7 +216,7 @@ class ProgramObjectBundleHookTest {
                 .categoryId("uweesh3Do7e")
                 .mappingName("Mapping 2")
                 .optionMappings(
-                    Set.of(
+                    List.of(
                         ProgramCategoryOptionMapping.builder()
                             .optionId("hohngoo6aiV")
                             .filter("true")
@@ -256,7 +255,7 @@ class ProgramObjectBundleHookTest {
                 .categoryId("vaiZahCei7P")
                 .mappingName("Mapping 1")
                 .optionMappings(
-                    Set.of(
+                    List.of(
                         ProgramCategoryOptionMapping.builder()
                             .optionId("zmeiNahdow2")
                             .filter("true")
@@ -283,7 +282,7 @@ class ProgramObjectBundleHookTest {
                 .categoryId("daihai8Vee4")
                 .mappingName("Mapping 1")
                 .optionMappings(
-                    Set.of(
+                    List.of(
                         ProgramCategoryOptionMapping.builder()
                             .optionId("Ueeth6egaeH")
                             .filter("true")
@@ -313,7 +312,7 @@ class ProgramObjectBundleHookTest {
                 .categoryId("Zhoo0oTaej2")
                 .mappingName("Mapping 1")
                 .optionMappings(
-                    Set.of(
+                    List.of(
                         ProgramCategoryOptionMapping.builder()
                             .optionId("gvieJuud0Ro")
                             .filter("true")
@@ -324,7 +323,7 @@ class ProgramObjectBundleHookTest {
                 .categoryId("IaD3eey1wee")
                 .mappingName("Mapping 2")
                 .optionMappings(
-                    Set.of(
+                    List.of(
                         ProgramCategoryOptionMapping.builder()
                             .optionId("prah3dao8Ra")
                             .filter("true")
@@ -361,7 +360,7 @@ class ProgramObjectBundleHookTest {
                 .categoryId("zceth5Ia2oh")
                 .mappingName("Same mapping name for same category")
                 .optionMappings(
-                    Set.of(
+                    List.of(
                         ProgramCategoryOptionMapping.builder()
                             .optionId("oohX9vageij")
                             .filter("true")
@@ -372,7 +371,7 @@ class ProgramObjectBundleHookTest {
                 .categoryId("zceth5Ia2oh")
                 .mappingName("Same mapping name for same category")
                 .optionMappings(
-                    Set.of(
+                    List.of(
                         ProgramCategoryOptionMapping.builder()
                             .optionId("oohX9vageij")
                             .filter("false")

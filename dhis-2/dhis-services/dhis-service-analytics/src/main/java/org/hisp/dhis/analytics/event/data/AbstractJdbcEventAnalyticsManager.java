@@ -61,6 +61,7 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
+import static org.hisp.dhis.commons.collection.ListUtils.union;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.feedback.ErrorCode.E7149;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
@@ -100,6 +101,9 @@ import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagDataHandler;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.analytics.util.sql.SqlConditionJoiner;
 import org.hisp.dhis.common.DimensionType;
@@ -170,6 +174,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected final ProgramIndicatorService programIndicatorService;
 
   protected final ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder;
+
+  protected final PiDisagInfoInitializer piDisagInfoInitializer;
+
+  protected final PiDisagQueryGenerator piDisagQueryGenerator;
 
   protected final ExecutionPlanStore executionPlanStore;
 
@@ -548,12 +556,15 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   @Transactional(readOnly = true, propagation = REQUIRES_NEW)
-  public Grid getAggregatedEventData(EventQueryParams params, Grid grid, int maxLimit) {
+  public Grid getAggregatedEventData(EventQueryParams passedParams, Grid grid, int maxLimit) {
+    EventQueryParams params = piDisagInfoInitializer.getParamsWithDisaggregationInfo(passedParams);
     String aggregateClause = getAggregateClause(params);
-    String columns = StringUtils.join(getSelectColumns(params, true), ",");
+    List<String> columns =
+        union(getSelectColumns(params, true), piDisagQueryGenerator.getCocSelectColumns(params));
 
     String sql =
-        TextUtils.removeLastComma("select " + aggregateClause + " as value," + columns + " ");
+        TextUtils.removeLastComma(
+            "select " + aggregateClause + " as value," + StringUtils.join(columns, ",") + " ");
 
     // ---------------------------------------------------------------------
     // Criteria
@@ -617,7 +628,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     String sql = "";
 
     if (params.isAggregation()) {
-      List<String> selectColumnNames = getGroupByColumnNames(params, true);
+      List<String> selectColumnNames =
+          union(
+              getGroupByColumnNames(params, true),
+              piDisagQueryGenerator.getCocColumnsForGroupBy(params));
 
       if (isNotEmpty(selectColumnNames)) {
         sql += "group by " + getCommaDelimitedString(selectColumnNames) + " ";
@@ -633,13 +647,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
     while (rowSet.next()) {
-      grid.addRow();
+      List<Object> row = new ArrayList<>();
 
       if (params.isAggregateData()) {
         if (params.hasValueDimension()) {
-          grid.addValue(getItemId(params));
+          row.add(getItemId(params));
         } else if (params.hasProgramIndicatorDimension()) {
-          grid.addValue(params.getProgramIndicator().getUid());
+          row.add(params.getProgramIndicator().getUid());
         }
       } else {
         for (QueryItem queryItem : params.getItems()) {
@@ -657,7 +671,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                   : itemName;
 
           if (params.getOutputIdScheme() == null || params.getOutputIdScheme() == IdScheme.NAME) {
-            grid.addValue(itemValue);
+            row.add(itemValue);
           } else {
             String value = null;
 
@@ -673,36 +687,43 @@ public abstract class AbstractJdbcEventAnalyticsManager {
               }
             }
 
-            grid.addValue(value == null ? itemValue : value);
+            row.add(value == null ? itemValue : value);
           }
         }
       }
 
       for (DimensionalObject dimension : params.getDimensions()) {
         String dimensionValue = rowSet.getString(dimension.getDimensionName());
-        grid.addValue(dimensionValue);
+        row.add(dimensionValue);
       }
 
       if (params.hasValueDimension()) {
         if (params.hasTextValueDimension()) {
           String value = rowSet.getString(COL_VALUE);
-          grid.addValue(value);
+          row.add(value);
         } else // Numeric
         {
           double value = rowSet.getDouble(COL_VALUE);
-          grid.addValue(params.isSkipRounding() ? value : getRounded(value));
+          row.add(params.isSkipRounding() ? value : getRounded(value));
         }
       } else if (params.hasProgramIndicatorDimension()) {
         double value = rowSet.getDouble(COL_VALUE);
         ProgramIndicator indicator = params.getProgramIndicator();
-        grid.addValue(AnalyticsUtils.getRoundedValue(params, indicator.getDecimals(), value));
+        row.add(AnalyticsUtils.getRoundedValue(params, indicator.getDecimals(), value));
       } else {
         int value = rowSet.getInt(COL_VALUE);
-        grid.addValue(value);
+        row.add(value);
       }
 
       if (params.isIncludeNumDen()) {
-        grid.addNullValues(NUMERATOR_DENOMINATOR_PROPERTIES_COUNT);
+        for (int i = 0; i < NUMERATOR_DENOMINATOR_PROPERTIES_COUNT; i++) {
+          row.add(null);
+        }
+      }
+
+      if (PiDisagDataHandler.addCocAndAoc(params, grid, row, rowSet)) {
+        grid.addRow();
+        grid.addValuesAsList(row);
       }
     }
   }
@@ -946,6 +967,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           .getOrgUnitField()
           .withSqlBuilder(sqlBuilder)
           .getOrgUnitGroupSetCol(col, getAnalyticsType(), isGroupByClause);
+    } else if (params.isPiDisagDimension(col)) {
+      return piDisagQueryGenerator.getColumnForSelectOrGroupBy(params, col, isGroupByClause);
     } else {
       return quoteAlias(col);
     }

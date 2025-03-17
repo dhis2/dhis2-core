@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,50 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.analytics.event.data.programindicator.disag;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.category.Category;
-import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.DimensionalObject;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jim Grace
  */
-class ProgramCategoryMappingTest {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Transactional
+class PIDisagRecommendedDimensionsTest extends AbstractPIDisagTest {
 
-  private static final String ID = "beij9Thagie";
-
-  private static final String CATEGORY_ID = "MAr7xe1Baic";
-
-  private static final Category CATEGORY =
-      new Category("Category Name", DataDimensionType.DISAGGREGATION);
-
-  private static final List<ProgramCategoryOptionMapping> OPTION_MAPPINGS =
-      List.of(
-          ProgramCategoryOptionMapping.builder().optionId("Ceingee8soV").filter("FilterA").build(),
-          ProgramCategoryOptionMapping.builder().optionId("aiabi0aet3W").filter("FilterB").build());
-
-  @Test
-  void testSetGetId() {
-    ProgramCategoryMapping mapping = new ProgramCategoryMapping();
-    mapping.setId(ID);
-    assertEquals(ID, mapping.getId());
+  @Override
+  @BeforeAll
+  protected void setUp() {
+    super.setUp();
   }
 
   @Test
-  void testSetGetCategoryId() {
-    ProgramCategoryMapping mapping = new ProgramCategoryMapping();
-    mapping.setCategoryId(CATEGORY_ID);
-    assertEquals(CATEGORY_ID, mapping.getCategoryId());
-  }
+  void testGetRecommendedDimensions() {
 
-  @Test
-  void testSetGetOptionMappings() {
-    ProgramCategoryMapping mapping = new ProgramCategoryMapping();
-    mapping.setOptionMappings(OPTION_MAPPINGS);
-    assertEquals(OPTION_MAPPINGS, mapping.getOptionMappings());
+    // Given
+    Set<Category> expectedCategories = Set.of(category1, category2, category3);
+
+    // When
+    List<? extends DimensionalObject> recommendations =
+        PiDisagRecommendedDimensions.getRecommendations(eventQueryParams, manager);
+
+    // Then (in any order)
+    assertEquals(expectedCategories, new HashSet<>(recommendations));
   }
 }

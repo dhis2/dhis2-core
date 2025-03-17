@@ -51,13 +51,6 @@ class ProgramCategoryOptionMappingTest {
   }
 
   @Test
-  void testSetGetOption() {
-    ProgramCategoryOptionMapping mapping = new ProgramCategoryOptionMapping();
-    mapping.setOption(OPTION);
-    assertEquals(OPTION, mapping.getOption());
-  }
-
-  @Test
   void testSetGetFilter() {
     ProgramCategoryOptionMapping mapping = new ProgramCategoryOptionMapping();
     mapping.setFilter(FILTER);

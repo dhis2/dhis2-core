@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,50 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.analytics.event.data.programindicator.disag;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static java.util.stream.Collectors.toMap;
 
 import java.util.List;
+import java.util.Map;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.Category;
-import org.hisp.dhis.common.DataDimensionType;
-import org.junit.jupiter.api.Test;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.program.ProgramCategoryMapping;
+import org.hisp.dhis.program.ProgramIndicator;
 
 /**
+ * Finder of analytics recommended categories for disaggregated program indicators.
+ *
  * @author Jim Grace
  */
-class ProgramCategoryMappingTest {
-
-  private static final String ID = "beij9Thagie";
-
-  private static final String CATEGORY_ID = "MAr7xe1Baic";
-
-  private static final Category CATEGORY =
-      new Category("Category Name", DataDimensionType.DISAGGREGATION);
-
-  private static final List<ProgramCategoryOptionMapping> OPTION_MAPPINGS =
-      List.of(
-          ProgramCategoryOptionMapping.builder().optionId("Ceingee8soV").filter("FilterA").build(),
-          ProgramCategoryOptionMapping.builder().optionId("aiabi0aet3W").filter("FilterB").build());
-
-  @Test
-  void testSetGetId() {
-    ProgramCategoryMapping mapping = new ProgramCategoryMapping();
-    mapping.setId(ID);
-    assertEquals(ID, mapping.getId());
+public class PiDisagRecommendedDimensions {
+  PiDisagRecommendedDimensions() {
+    throw new IllegalStateException("Utility class");
   }
 
-  @Test
-  void testSetGetCategoryId() {
-    ProgramCategoryMapping mapping = new ProgramCategoryMapping();
-    mapping.setCategoryId(CATEGORY_ID);
-    assertEquals(CATEGORY_ID, mapping.getCategoryId());
+  public static List<Category> getRecommendations(
+      DataQueryParams params, IdentifiableObjectManager idObjectManager) {
+    List<DimensionalItemObject> pis = params.getProgramIndicators();
+
+    return idObjectManager.getByUid(
+        Category.class,
+        pis.stream()
+            .map(pi -> getCategoryIds((ProgramIndicator) pi))
+            .flatMap(c -> c.stream())
+            .toList());
   }
 
-  @Test
-  void testSetGetOptionMappings() {
-    ProgramCategoryMapping mapping = new ProgramCategoryMapping();
-    mapping.setOptionMappings(OPTION_MAPPINGS);
-    assertEquals(OPTION_MAPPINGS, mapping.getOptionMappings());
+  private static List<String> getCategoryIds(ProgramIndicator pi) {
+    Map<String, String> mappingCategoryMap =
+        pi.getProgram().getCategoryMappings().stream()
+            .collect(toMap(ProgramCategoryMapping::getId, ProgramCategoryMapping::getCategoryId));
+    return pi.getCategoryMappingIds().stream().map(m -> mappingCategoryMap.get(m)).toList();
   }
 }

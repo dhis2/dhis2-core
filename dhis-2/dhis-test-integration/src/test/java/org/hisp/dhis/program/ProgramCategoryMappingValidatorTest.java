@@ -35,9 +35,11 @@ import static org.hisp.dhis.feedback.ErrorCode.E4072;
 import static org.hisp.dhis.feedback.ErrorCode.E4073;
 import static org.hisp.dhis.feedback.ErrorCode.E4074;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -57,11 +59,11 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Transactional
-class ProgramCategoryMappingResolverTest extends PostgresIntegrationTestBase {
+class ProgramCategoryMappingValidatorTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  private ProgramCategoryMappingResolver target;
+  private ProgramCategoryMappingValidator target;
 
   private CategoryOption optionA;
   private CategoryOption optionB;
@@ -86,9 +88,9 @@ class ProgramCategoryMappingResolverTest extends PostgresIntegrationTestBase {
   private ProgramCategoryOptionMapping omE;
   private ProgramCategoryOptionMapping omF;
 
-  private Set<ProgramCategoryOptionMapping> omSet1;
-  private Set<ProgramCategoryOptionMapping> omSet2;
-  private Set<ProgramCategoryOptionMapping> omSet3;
+  private List<ProgramCategoryOptionMapping> omList1;
+  private List<ProgramCategoryOptionMapping> omList2;
+  private List<ProgramCategoryOptionMapping> omList3;
 
   private ProgramCategoryMapping cm1;
   private ProgramCategoryMapping cm2;
@@ -103,7 +105,7 @@ class ProgramCategoryMappingResolverTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setup() {
-    target = new ProgramCategoryMappingResolver(manager);
+    target = new ProgramCategoryMappingValidator(manager);
 
     optionA = createCategoryOption('A');
     optionB = createCategoryOption('B');
@@ -172,30 +174,30 @@ class ProgramCategoryMappingResolverTest extends PostgresIntegrationTestBase {
             .filter(de + " > 6")
             .build();
 
-    omSet1 = Set.of(omA, omB);
-    omSet2 = Set.of(omC, omD);
-    omSet3 = Set.of(omE, omF);
+    omList1 = List.of(omA, omB);
+    omList2 = List.of(omC, omD);
+    omList3 = List.of(omE, omF);
 
     cm1 =
         ProgramCategoryMapping.builder()
             .id(CM1_ID)
             .categoryId(category1.getUid())
             .mappingName("Mapping 1")
-            .optionMappings(omSet1)
+            .optionMappings(omList1)
             .build();
     cm2 =
         ProgramCategoryMapping.builder()
             .id(CM2_ID)
             .categoryId(category2.getUid())
             .mappingName("Mapping 2")
-            .optionMappings(omSet2)
+            .optionMappings(omList2)
             .build();
     cm3 =
         ProgramCategoryMapping.builder()
             .id(CM3_ID)
             .categoryId(category3.getUid())
             .mappingName("Mapping 3")
-            .optionMappings(omSet3)
+            .optionMappings(omList3)
             .build();
 
     categoryMappings = Set.of(cm1, cm2, cm3);
@@ -208,11 +210,8 @@ class ProgramCategoryMappingResolverTest extends PostgresIntegrationTestBase {
     // Given
     Program program = createProgram(categoryMappings);
 
-    // When
-    Set<ProgramCategoryMapping> result = target.resolveProgramCategoryMappings(program);
-
     // Then
-    assertResolvedCategoryMappings(result);
+    assertDoesNotThrow(() -> target.validateProgramCategoryMappings(program));
   }
 
   @Test
@@ -223,7 +222,8 @@ class ProgramCategoryMappingResolverTest extends PostgresIntegrationTestBase {
 
     // When throws
     ConflictException thrown =
-        assertThrows(ConflictException.class, () -> target.resolveProgramCategoryMappings(program));
+        assertThrows(
+            ConflictException.class, () -> target.validateProgramCategoryMappings(program));
 
     // Then
     assertEquals(E4072, thrown.getCode());
@@ -233,12 +233,13 @@ class ProgramCategoryMappingResolverTest extends PostgresIntegrationTestBase {
   void testResolveProgramCategoryMappingsBadOptionId() {
     // Given
     ProgramCategoryOptionMapping omBad = omA.toBuilder().optionId("x2345678901").build();
-    ProgramCategoryMapping cmBad = cm1.toBuilder().optionMappings(Set.of(omBad, omB)).build();
+    ProgramCategoryMapping cmBad = cm1.toBuilder().optionMappings(List.of(omBad, omB)).build();
     Program program = createProgram(Set.of(cmBad, cm2, cm3));
 
     // When throws
     ConflictException thrown =
-        assertThrows(ConflictException.class, () -> target.resolveProgramCategoryMappings(program));
+        assertThrows(
+            ConflictException.class, () -> target.validateProgramCategoryMappings(program));
 
     // Then
     assertEquals(E4073, thrown.getCode());
@@ -252,10 +253,10 @@ class ProgramCategoryMappingResolverTest extends PostgresIntegrationTestBase {
 
     // When
     Set<ProgramCategoryMapping> result =
-        target.resolveProgramIndicatorCategoryMappings(programIndicator);
+        target.getAndValidateProgramIndicatorCategoryMappings(programIndicator);
 
     // Then
-    assertResolvedCategoryMappings(result);
+    assertContainsOnly(categoryMappings, result);
   }
 
   @Test
@@ -269,7 +270,7 @@ class ProgramCategoryMappingResolverTest extends PostgresIntegrationTestBase {
     ConflictException thrown =
         assertThrows(
             ConflictException.class,
-            () -> target.resolveProgramIndicatorCategoryMappings(programIndicator));
+            () -> target.getAndValidateProgramIndicatorCategoryMappings(programIndicator));
 
     // Then
     assertEquals(E4071, thrown.getCode());
@@ -285,7 +286,7 @@ class ProgramCategoryMappingResolverTest extends PostgresIntegrationTestBase {
     ConflictException thrown =
         assertThrows(
             ConflictException.class,
-            () -> target.resolveProgramIndicatorCategoryMappings(programIndicator));
+            () -> target.getAndValidateProgramIndicatorCategoryMappings(programIndicator));
 
     // Then
     assertEquals(E4074, thrown.getCode());
@@ -308,18 +309,5 @@ class ProgramCategoryMappingResolverTest extends PostgresIntegrationTestBase {
     programIndicator.setCategoryMappingIds(mappingIds);
 
     return programIndicator;
-  }
-
-  private void assertResolvedCategoryMappings(Set<ProgramCategoryMapping> result) {
-    // Compare the non-transient fields
-    assertContainsOnly(categoryMappings, result);
-
-    // Check that transient Category and CategoryOption fields are filled correctly
-    for (ProgramCategoryMapping catMap : result) {
-      assertEquals(catMap.getCategoryId(), catMap.getCategory().getUid());
-      for (ProgramCategoryOptionMapping optMap : catMap.getOptionMappings()) {
-        assertEquals(optMap.getOptionId(), optMap.getOption().getUid());
-      }
-    }
   }
 }

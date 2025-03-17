@@ -28,6 +28,7 @@
 package org.hisp.dhis.db.sql;
 
 import java.util.Collection;
+import java.util.List;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Index;
@@ -269,8 +270,16 @@ public interface SqlBuilder {
    * @return the SQL function for concatenation.
    */
   String concat(String... columns);
-
+ 
   /**
+   * Concatenates list of columns or expressions.
+   *
+   * @param columns a list of column names or expressions to concatenate.
+   * @return the SQL function for concatenation.
+   */
+  String concat(List<String> columns);
+
+   /**
    * Trims the given column or expression by removing leading and trailing spaces.
    *
    * @param expression the expression to trim.

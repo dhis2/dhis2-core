@@ -47,8 +47,7 @@ import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.EventProgramEnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramCategoryMapping;
-import org.hisp.dhis.program.ProgramCategoryMappingResolver;
-import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.program.ProgramCategoryMappingValidator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramType;
@@ -73,9 +72,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
 
   private final IdentifiableObjectManager identifiableObjectManager;
 
-  private final ProgramCategoryMappingResolver categoryMappingResolver;
-
-  private final ProgramIndicatorService programIndicatorService;
+  private final ProgramCategoryMappingValidator categoryMappingValidator;
 
   @Override
   public void postCreate(Program object, ObjectBundle bundle) {
@@ -196,7 +193,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
   /** Validates that program category mappings reference to valid objects. */
   private void validateCategoryMappingObjects(Program program, Consumer<ErrorReport> addReports) {
     try {
-      categoryMappingResolver.resolveProgramCategoryMappings(program);
+      categoryMappingValidator.validateProgramCategoryMappings(program);
     } catch (ConflictException ex) {
       addReports.accept(new ErrorReport(Program.class, ex.getCode(), ex.getArgs()));
     }

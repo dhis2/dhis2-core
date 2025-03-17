@@ -108,6 +108,8 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramCategoryMapping;
+import org.hisp.dhis.program.ProgramCategoryOptionMapping;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramOwnershipHistory;
 import org.hisp.dhis.program.ProgramOwnershipHistoryService;
@@ -213,15 +215,23 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   private CategoryOption coB;
 
+  private CategoryOption coC;
+
+  private CategoryOption coD;
+
   private Category caA;
 
   private Category caB;
 
   private CategoryCombo ccA;
 
-  private CategoryOptionCombo cocA;
+  private CategoryOptionCombo cocAC;
 
-  private CategoryOptionCombo cocB;
+  private CategoryOptionCombo cocAD;
+
+  private CategoryOptionCombo cocBC;
+
+  private CategoryOptionCombo cocBD;
 
   private DataElement deA;
 
@@ -230,6 +240,10 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   private DataElement deM;
 
   private DataElement deU;
+
+  private ProgramCategoryMapping cmA;
+
+  private ProgramCategoryMapping cmB;
 
   private TrackedEntityAttribute atU;
 
@@ -296,37 +310,57 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     // Category Options
     coA = createCategoryOption('A');
     coB = createCategoryOption('B');
+    coC = createCategoryOption('C');
+    coD = createCategoryOption('D');
     coA.setUid("cataOptionA");
     coB.setUid("cataOptionB");
-    categoryService.addCategoryOption(coA);
-    categoryService.addCategoryOption(coB);
+    coC.setUid("cataOptionC");
+    coD.setUid("cataOptionD");
+    manager.save(coA);
+    manager.save(coB);
+    manager.save(coC);
+    manager.save(coD);
 
     // Categories
-    caA = createCategory('A', coA);
-    caB = createCategory('B', coB);
+    caA = createCategory('A', coA, coB);
+    caB = createCategory('B', coC, coD);
     caA.setDataDimensionType(DataDimensionType.ATTRIBUTE);
     caB.setDataDimensionType(DataDimensionType.ATTRIBUTE);
     caA.setUid("categoryIdA");
     caB.setUid("categoryIdB");
-    categoryService.addCategory(caA);
-    categoryService.addCategory(caB);
+    manager.save(caA);
+    manager.save(caB);
 
     // Category Combos
     ccA = createCategoryCombo("CCa", "categComboA", caA, caB);
-    categoryService.addCategoryCombo(ccA);
+    manager.save(ccA);
 
     // Category Option Combos
-    cocA = createCategoryOptionCombo("COCa", "catOptCombA", ccA, coA);
-    cocB = createCategoryOptionCombo("COCb", "catOptCombB", ccA, coB);
-    categoryService.addCategoryOptionCombo(cocA);
-    categoryService.addCategoryOptionCombo(cocB);
-    ccA.getOptionCombos().add(cocA);
-    ccA.getOptionCombos().add(cocB);
-    categoryService.updateCategoryCombo(ccA);
-    coA.getCategoryOptionCombos().add(cocA);
-    coB.getCategoryOptionCombos().add(cocB);
-    categoryService.updateCategoryOption(coA);
-    categoryService.updateCategoryOption(coB);
+    cocAC = createCategoryOptionCombo("COCac", "catOptComAB", ccA, coA, coC);
+    cocAD = createCategoryOptionCombo("COCad", "catOptComAD", ccA, coA, coD);
+    cocBC = createCategoryOptionCombo("COCbc", "catOptComCB", ccA, coB, coC);
+    cocBD = createCategoryOptionCombo("COCbd", "catOptComCD", ccA, coB, coD);
+    categoryService.addCategoryOptionCombo(cocAC);
+    categoryService.addCategoryOptionCombo(cocAD);
+    categoryService.addCategoryOptionCombo(cocBC);
+    categoryService.addCategoryOptionCombo(cocBD);
+    ccA.getOptionCombos().add(cocAC);
+    ccA.getOptionCombos().add(cocAD);
+    ccA.getOptionCombos().add(cocBC);
+    ccA.getOptionCombos().add(cocBD);
+    manager.save(ccA);
+    coA.getCategoryOptionCombos().add(cocAC);
+    coA.getCategoryOptionCombos().add(cocAD);
+    coB.getCategoryOptionCombos().add(cocBC);
+    coB.getCategoryOptionCombos().add(cocBD);
+    coC.getCategoryOptionCombos().add(cocAC);
+    coC.getCategoryOptionCombos().add(cocBC);
+    coD.getCategoryOptionCombos().add(cocAD);
+    coD.getCategoryOptionCombos().add(cocBD);
+    manager.save(coA);
+    manager.save(coB);
+    manager.save(coC);
+    manager.save(coD);
 
     // Default Category Option Combo
     CategoryOptionCombo cocDefault = categoryService.getDefaultCategoryOptionCombo();
@@ -383,6 +417,44 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     psB.addDataElement(deM, 3);
     manager.save(psB);
 
+    // Program Category Option Mappings
+    ProgramCategoryOptionMapping omA =
+        ProgramCategoryOptionMapping.builder()
+            .optionId(coA.getUid())
+            .filter("#{" + psB.getUid() + "." + deA.getUid() + "} < 15")
+            .build();
+    ProgramCategoryOptionMapping omB =
+        ProgramCategoryOptionMapping.builder()
+            .optionId(coB.getUid())
+            .filter("#{" + psB.getUid() + "." + deA.getUid() + "} >= 15")
+            .build();
+    ProgramCategoryOptionMapping omC =
+        ProgramCategoryOptionMapping.builder()
+            .optionId(coC.getUid())
+            .filter("is(#{" + psB.getUid() + "." + deB.getUid() + "} in 'A','B','C')")
+            .build();
+    ProgramCategoryOptionMapping omD =
+        ProgramCategoryOptionMapping.builder()
+            .optionId(coD.getUid())
+            .filter("not is(#{" + psB.getUid() + "." + deB.getUid() + "} in 'A','B','C')")
+            .build();
+
+    // Program Category Mappings
+    cmA =
+        ProgramCategoryMapping.builder()
+            .id("ProgCatMapA")
+            .categoryId(caA.getUid())
+            .mappingName("Category A mapping")
+            .optionMappings(List.of(omA, omB))
+            .build();
+    cmB =
+        ProgramCategoryMapping.builder()
+            .id("ProgCatMapB")
+            .categoryId(caB.getUid())
+            .mappingName("Category B mapping")
+            .optionMappings(List.of(omC, omD))
+            .build();
+
     // Programs
     programA = createProgram('A');
     programA.getProgramStages().add(psA);
@@ -395,6 +467,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     programB.getOrganisationUnits().addAll(level3Ous);
     programB.setUid("programB123");
     programB.setCategoryCombo(ccA);
+    programB.setCategoryMappings(Set.of(cmA, cmB));
     manager.save(programB);
 
     // Tracked Entity Attributes
@@ -1373,6 +1446,42 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         // Grid
         List.of(List.of("201701", "ouabcdefghA", "2.0"), List.of("201701", "ouabcdefghI", "2.0")),
         getTestAggregatedGrid("if(containsItems(#{progrStageB.deMultTextM},'c,d'),1,2)"));
+  }
+
+  // -------------------------------------------------------------------------
+  // Test program indicator with category mappings
+  // -------------------------------------------------------------------------
+
+  @Test
+  void testEventProgramIndicatorCategoryMappings() {
+    ProgramIndicator pi = createProgramIndicatorB(EVENT, "V{event_count}", null, SUM);
+    pi.setCategoryMappingIds(Set.of(cmA.getId(), cmB.getId()));
+    pi.setAttributeCombo(ccA);
+
+    EventQueryParams params =
+        getBaseEventQueryParamsBuilder()
+            .withAggregateData(true)
+            .addItemProgramIndicator(pi)
+            .addDimension(caA)
+            .addDimension(caB)
+            .withPeriods(List.of(peJan, peFeb, peMar), "Monthly")
+            .withOrganisationUnits(level3Ous)
+            .build();
+
+    Grid grid = eventAggregateService.getAggregatedData(params);
+
+    assertGridContains(
+        // Headers
+        List.of("dy", "categoryIdA", "categoryIdB", "pe", "ou", "value"),
+        // Grid
+        List.of(
+            List.of("programIndB", "cataOptionA", "cataOptionC", "201701", "ouabcdefghI", "1.0"),
+            List.of("programIndB", "cataOptionB", "cataOptionC", "201701", "ouabcdefghI", "1.0"),
+            List.of("programIndB", "cataOptionB", "cataOptionC", "201701", "ouabcdefghJ", "1.0"),
+            List.of("programIndB", "cataOptionB", "cataOptionD", "201701", "ouabcdefghJ", "1.0"),
+            List.of("programIndB", "cataOptionB", "cataOptionD", "201702", "ouabcdefghI", "2.0"),
+            List.of("programIndB", "cataOptionB", "cataOptionD", "201702", "ouabcdefghJ", "2.0")),
+        grid);
   }
 
   // -------------------------------------------------------------------------
