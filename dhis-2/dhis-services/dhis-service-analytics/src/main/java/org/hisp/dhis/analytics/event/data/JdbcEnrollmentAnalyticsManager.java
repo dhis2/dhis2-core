@@ -75,6 +75,8 @@ import org.hisp.dhis.analytics.common.InQueryCteFilter;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.util.sql.Condition;
@@ -147,6 +149,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       ProgramIndicatorService programIndicatorService,
       ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
+      PiDisagInfoInitializer piDisagInfoInitializer,
+      PiDisagQueryGenerator piDisagQueryGenerator,
       EnrollmentTimeFieldSqlRenderer timeFieldSqlRenderer,
       ExecutionPlanStore executionPlanStore,
       SystemSettingsService settingsService,
@@ -157,6 +161,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         jdbcTemplate,
         programIndicatorService,
         programIndicatorSubqueryBuilder,
+        piDisagInfoInitializer,
+        piDisagQueryGenerator,
         executionPlanStore,
         sqlBuilder,
         settingsService,
@@ -427,7 +433,11 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     for (DimensionalObject dim : dynamicDimensions) {
       if (!isAttributeCategory(dim)) {
-        String col = quoteAlias(dim.getDimensionName());
+        String dimName = dim.getDimensionName();
+        String col =
+            params.isPiDisagDimension(dimName)
+                ? piDisagQueryGenerator.getColumnForWhereClause(params, dimName)
+                : quoteAlias(dimName);
 
         sql +=
             "and " + col + " in (" + getQuotedCommaDelimitedString(getUids(dim.getItems())) + ") ";

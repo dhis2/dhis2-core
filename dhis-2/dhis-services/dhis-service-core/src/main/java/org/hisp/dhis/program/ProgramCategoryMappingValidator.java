@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.program;
 
-import static java.util.Collections.unmodifiableSet;
 import static org.apache.commons.collections4.ListUtils.union;
 import static org.hisp.dhis.feedback.ErrorCode.E4071;
 import static org.hisp.dhis.feedback.ErrorCode.E4072;
 import static org.hisp.dhis.feedback.ErrorCode.E4073;
 import static org.hisp.dhis.feedback.ErrorCode.E4074;
+import static org.hisp.dhis.feedback.ErrorCode.E4079;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -61,38 +61,33 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
-public class ProgramCategoryMappingResolver {
+public class ProgramCategoryMappingValidator {
 
   private final IdentifiableObjectManager idObjectManager;
 
   /**
-   * Resolves the UIDs for {@link Category} and {@link CategoryOption} within each {@link
+   * Validates the UIDs for {@link Category} and {@link CategoryOption} within each {@link
    * ProgramCategoryMapping} of a {@link Program}.
    *
    * @param program the {@link Program} to resolve category mappings for
-   * @return the set of {@link ProgramCategoryMapping} with UIDs resolved
    */
-  public Set<ProgramCategoryMapping> resolveProgramCategoryMappings(Program program)
-      throws ConflictException {
-    return resolveCategoryMappings(program, program.getCategoryMappings());
+  public void validateProgramCategoryMappings(Program program) throws ConflictException {
+    validateCategoryMappings(program, program.getCategoryMappings());
   }
 
   /**
-   * Resolves the UIDs for {@link Category} and {@link CategoryOption} within each {@link
-   * ProgramCategoryMapping} of a {@link ProgramIndicator}.
+   * Gets and validates the category mappings within each {@link ProgramCategoryMapping} referenced
+   * by a {@link ProgramIndicator}.
    *
    * @param programIndicator the {@link ProgramIndicator} to resolve category mappings for
    * @return the set of {@link ProgramCategoryMapping} with UIDs resolved
    */
-  public Set<ProgramCategoryMapping> resolveProgramIndicatorCategoryMappings(
+  public Set<ProgramCategoryMapping> getAndValidateProgramIndicatorCategoryMappings(
       ProgramIndicator programIndicator) throws ConflictException {
 
-    Set<ProgramCategoryMapping> unresolvedMappings = getUnresolvedMappings(programIndicator);
-    Set<ProgramCategoryMapping> mappings =
-        resolveCategoryMappings(programIndicator.getProgram(), unresolvedMappings);
-
+    Set<ProgramCategoryMapping> mappings = getPiMappings(programIndicator);
+    validateCategoryMappings(programIndicator.getProgram(), mappings);
     validateProgramIndicatorCategories(programIndicator, mappings);
-
     return mappings;
   }
 
@@ -102,40 +97,41 @@ public class ProgramCategoryMappingResolver {
    * <p>This may be all the program's mappings if resolving for a program, or only the mappings for
    * a program indicator if resolving for a program indicator.
    */
-  private Set<ProgramCategoryMapping> resolveCategoryMappings(
+  private void validateCategoryMappings(
       Program program, Collection<ProgramCategoryMapping> mappings) throws ConflictException {
     Map<String, Category> categoryUidMap = getCategoryUidMap(mappings);
     Map<String, CategoryOption> optionUidMap = getOptionUidMap(mappings);
 
-    Set<ProgramCategoryMapping> result = new HashSet<>();
     for (ProgramCategoryMapping mapping : mappings) {
-      result.add(resolveCategoryMapping(program, mapping, categoryUidMap, optionUidMap));
+      validateCategoryMapping(program, mapping, categoryUidMap, optionUidMap);
     }
-    return unmodifiableSet(result);
   }
 
   /**
    * Gets the (unresolved) category mappings for a program indicator. These are found within the
    * program using the UID of the category mappings.
    */
-  private Set<ProgramCategoryMapping> getUnresolvedMappings(ProgramIndicator programIndicator)
+  private Set<ProgramCategoryMapping> getPiMappings(ProgramIndicator programIndicator)
       throws ConflictException {
 
-    Map<String, ProgramCategoryMapping> mappingMap =
-        programIndicator.getProgram().getCategoryMappings().stream()
+    Set<ProgramCategoryMapping> programMappings =
+        programIndicator.getProgram().getCategoryMappings();
+
+    Map<String, ProgramCategoryMapping> programMappingMap =
+        programMappings.stream()
             .collect(
                 Collectors.toUnmodifiableMap(ProgramCategoryMapping::getId, mapping -> mapping));
-    Set<ProgramCategoryMapping> mappings = new HashSet<>();
 
+    Set<ProgramCategoryMapping> programIndicatorMappings = new HashSet<>();
     for (String mappingId : programIndicator.getCategoryMappingIds()) {
-      ProgramCategoryMapping mapping = mappingMap.get(mappingId);
+      ProgramCategoryMapping mapping = programMappingMap.get(mappingId);
       if (mapping == null) {
         throw new ConflictException(
             E4071, programIndicator.getUid(), mappingId, programIndicator.getProgram().getUid());
       }
-      mappings.add(mapping);
+      programIndicatorMappings.add(mapping);
     }
-    return mappings;
+    return programIndicatorMappings;
   }
 
   /**
@@ -148,7 +144,7 @@ public class ProgramCategoryMappingResolver {
     List<String> categoryIds =
         mappings.stream().map(ProgramCategoryMapping::getCategoryId).distinct().toList();
 
-    return idObjectManager.getByUid(Category.class, categoryIds).stream()
+    return idObjectManager.getByUidWithoutTransaction(Category.class, categoryIds).stream()
         .collect(Collectors.toUnmodifiableMap(IdentifiableObject::getUid, o -> o));
   }
 
@@ -166,15 +162,15 @@ public class ProgramCategoryMappingResolver {
             .distinct()
             .toList();
 
-    return idObjectManager.getByUid(CategoryOption.class, optionIds).stream()
+    return idObjectManager.getByUidWithoutTransaction(CategoryOption.class, optionIds).stream()
         .collect(Collectors.toUnmodifiableMap(IdentifiableObject::getUid, o -> o));
   }
 
   /**
-   * Resolves the {@link Category} and {@link CategoryOption} references within a single {@link
+   * Validates the {@link Category} and {@link CategoryOption} references within a single {@link
    * ProgramCategoryMapping}.
    */
-  private ProgramCategoryMapping resolveCategoryMapping(
+  private void validateCategoryMapping(
       Program program,
       ProgramCategoryMapping mapping,
       Map<String, Category> categoryUidMap,
@@ -187,21 +183,22 @@ public class ProgramCategoryMappingResolver {
           E4072, program.getUid(), mapping.getId(), mapping.getCategoryId());
     }
 
-    Set<ProgramCategoryOptionMapping> resultMappings = new HashSet<>();
+    Set<String> mappedOptions = new HashSet<>();
     for (ProgramCategoryOptionMapping optionMapping : mapping.getOptionMappings()) {
-      resultMappings.add(resolveOptionMapping(program, mapping, optionMapping, optionUidMap));
+      validateOptionMapping(program, mapping, optionMapping, optionUidMap);
+      if (mappedOptions.contains(optionMapping.getOptionId())) {
+        throw new ConflictException(
+            E4079, program.getUid(), mapping.getId(), optionMapping.getOptionId());
+      }
+      mappedOptions.add(optionMapping.getOptionId());
     }
-    return mapping.toBuilder()
-        .category(category)
-        .optionMappings(unmodifiableSet(resultMappings))
-        .build();
   }
 
   /**
    * Resolves the {@link CategoryOption} references within a single {@link
    * ProgramCategoryOptionMapping}.
    */
-  private ProgramCategoryOptionMapping resolveOptionMapping(
+  private void validateOptionMapping(
       Program program,
       ProgramCategoryMapping mapping,
       ProgramCategoryOptionMapping optionMapping,
@@ -217,8 +214,6 @@ public class ProgramCategoryMappingResolver {
           mapping.getId(),
           optionMapping.getOptionId());
     }
-
-    return optionMapping.toBuilder().option(option).build();
   }
 
   /**

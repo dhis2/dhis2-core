@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.analytics.event.data.programindicator.disag;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.common.DimensionalObject;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jim Grace
  */
-class ProgramCategoryOptionMappingTest {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Transactional
+class PIDisagRecommendedDimensionsTest extends AbstractPIDisagTest {
 
-  private static final String OPTION_ID = "Wluthah6aeC";
-
-  private static final String FILTER = "A filter";
-
-  @Test
-  void testSetGetOptionId() {
-    ProgramCategoryOptionMapping mapping = new ProgramCategoryOptionMapping();
-    mapping.setOptionId(OPTION_ID);
-    assertEquals(OPTION_ID, mapping.getOptionId());
+  @Override
+  @BeforeAll
+  protected void setUp() {
+    super.setUp();
   }
 
   @Test
-  void testSetGetFilter() {
-    ProgramCategoryOptionMapping mapping = new ProgramCategoryOptionMapping();
-    mapping.setFilter(FILTER);
-    assertEquals(FILTER, mapping.getFilter());
+  void testGetRecommendedDimensions() {
+
+    // Given
+    Set<Category> expectedCategories = Set.of(category1, category2, category3);
+
+    // When
+    List<? extends DimensionalObject> recommendations =
+        PiDisagRecommendedDimensions.getRecommendations(eventQueryParams, manager);
+
+    // Then (in any order)
+    assertEquals(expectedCategories, new HashSet<>(recommendations));
   }
 }
