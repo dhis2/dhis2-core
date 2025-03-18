@@ -93,8 +93,6 @@ import org.springframework.web.multipart.MultipartFile;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class AppController {
 
-  public static final String RESOURCE_PATH = "/api/apps";
-
   public static final Pattern REGEX_REMOVE_PROTOCOL = Pattern.compile(".+:/+");
 
   @Autowired private AppManager appManager;
@@ -183,7 +181,7 @@ public class AppController {
     }
 
     // Get page requested
-    String resource = getResourcePath(request.getPathInfo(), application);
+    String resource = getResourcePath(request.getPathInfo(), application, contextPath);
 
     log.debug("Rendering resource {} from app {}", resource, application.getKey());
 
@@ -245,7 +243,7 @@ public class AppController {
       throw new WebMessageException(badRequest("Bundled apps cannot be deleted."));
     }
 
-    appManager.markAppToDelete(appToDelete, deleteAppData);
+    appManager.deleteApp(appToDelete, deleteAppData);
   }
 
   @SuppressWarnings("unchecked")
@@ -263,19 +261,26 @@ public class AppController {
   // --------------------------------------------------------------------------
   // Helpers
   // --------------------------------------------------------------------------
-  private String getResourcePath(String path, App app) {
-    String prefix = RESOURCE_PATH + "/" + app.getKey();
+  private String getResourcePath(String path, App app, String contextPath) {
+    String resourcePath = path;
+    String appPrefix = "/" + AppManager.INSTALLED_APP_PREFIX + app.getKey();
+    
+    log.info("AppController::getResourcePath {} (contextPath {}, appPrefix {})", path, contextPath, appPrefix);
 
-    if (path.startsWith(prefix)) {
-      path = path.substring(prefix.length());
-    } else if (path.equals(prefix)) {
-      path = "";
+    if (resourcePath.startsWith(contextPath)) {
+      resourcePath = resourcePath.substring(contextPath.length());
+    }
+
+    if (resourcePath.startsWith(appPrefix)) {
+      resourcePath = resourcePath.substring(appPrefix.length());
+    } else if (resourcePath.equals(appPrefix)) {
+      resourcePath = "";
     }
 
     // if path is prefixed by any protocol, clear it out (this is to ensure
     // that only files inside app directory can be resolved)
-    path = REGEX_REMOVE_PROTOCOL.matcher(path).replaceAll("");
+    resourcePath = REGEX_REMOVE_PROTOCOL.matcher(resourcePath).replaceAll("");
 
-    return path;
+    return resourcePath;
   }
 }

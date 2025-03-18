@@ -82,6 +82,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
@@ -387,8 +388,8 @@ public class DefaultAppManager implements AppManager {
     return getApp(appName) != null;
   }
 
-  @Override
-  public Future<Boolean> deleteAppAsync(App app, boolean deleteAppData) {
+  @Async
+  public Future<Boolean> deleteAppFromStorageAsync(App app) {
     if (app != null) {
       Future<Boolean> promise = getAppStorageServiceByApp(app).deleteAppAsync(app);
 
@@ -398,31 +399,24 @@ public class DefaultAppManager implements AppManager {
         result = promise.get();
       } catch (Exception e) {
         log.error("Interrupted while deleting app {}", app.getKey());
+        app.setAppState(AppStatus.INSTALLATION_FAILED);
+        appCache.put(app.getKey(), app);
         return CompletableFuture.completedFuture(false);
       }
 
       if (!result) {
         log.warn("Deleting app {} is not allowed", app.getKey());
         app.setAppState(AppStatus.OK);
+        appCache.put(app.getKey(), app);
         return CompletableFuture.completedFuture(false);
       }
-
-      App otherVersionApp = getApp(app.getKey());
-      if (otherVersionApp == null) {
-        unregisterDatastoreProtection(app);
-      }
-      if (deleteAppData) {
-        deleteAppData(app);
-      }
-
-      appCache.invalidate(app.getKey());
-      reloadApps();
     }
+    reloadApps();
     return CompletableFuture.completedFuture(true);
   }
 
   @Override
-  public boolean markAppToDelete(App app, boolean deleteAppData) {
+  public boolean deleteApp(App app, boolean deleteAppData) {
     Optional<App> appOpt = appCache.get(app.getKey());
     if (appOpt.isEmpty()) return false;
 
@@ -432,7 +426,19 @@ public class DefaultAppManager implements AppManager {
     App appFromCache = appOpt.get();
     appFromCache.setAppState(AppStatus.DELETION_IN_PROGRESS);
     appCache.put(app.getKey(), appFromCache);
-    deleteAppAsync(app, deleteAppData);
+    
+    deleteAppFromStorageAsync(app);
+
+    boolean isBundledAppOverride = app.isBundled();
+    // If a bundled version exists it will replace the deleted override.
+    // In that case, deleting the app should not remove the namespace protection
+    if (!isBundledAppOverride) {
+      unregisterDatastoreProtection(app);
+    }
+    if (deleteAppData) {
+      deleteAppData(app);
+    }
+
     return true;
   }
 

@@ -164,7 +164,7 @@ public class BundledAppStorageService implements AppStorageService {
     return resource;
   }
 
-  public Set<String> getBundledAppNames() {
+  public Set<String> getBundledAppKeys() {
     return apps.keySet();
   }
 }

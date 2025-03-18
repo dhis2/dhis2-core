@@ -165,16 +165,19 @@ public class GlobalShellFilter extends OncePerRequestFilter {
 
     // Only redirect browser navigation requests
     String secFetchMode = request.getHeader(SEC_FETCH_MODE);
-    boolean isNavigationRequest =
-        secFetchMode != null && secFetchMode.equals(SEC_FETCH_MODE_NAVIGATE);
+    // boolean isNavigationRequest =
+    //     secFetchMode != null && secFetchMode.equals(SEC_FETCH_MODE_NAVIGATE);
+    String referer = request.getHeader("Referer");
+    boolean isServiceWorkerRequest = referer != null && referer.endsWith("/service-worker.js");
 
     log.info(
-        "redirectLegacyAppPaths: path = {}, queryString = {}, secFetchMode = {}",
+        "redirectLegacyAppPaths: path = {}, queryString = {}, secFetchMode = {}, referer = {}",
         path,
         queryString,
-        secFetchMode);
+        secFetchMode,
+        referer);
 
-    if (isIndexPath && isNavigationRequest && !hasRedirectFalse) {
+    if (isIndexPath && !isServiceWorkerRequest && !hasRedirectFalse) {
       String targetPath = request.getContextPath() + GLOBAL_SHELL_PATH_PREFIX + appName;
       targetPath = withQueryString(targetPath, queryString);
       response.sendRedirect(targetPath);
