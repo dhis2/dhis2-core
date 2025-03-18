@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -252,6 +254,8 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
   protected transient List<DimensionalObject> filters = new ArrayList<>();
 
   protected transient Map<String, String> parentGraphMap = new HashMap<>();
+
+  protected transient Map<String, MetadataItem> metaData = new HashMap<>();
 
   private Date startDate;
 
@@ -924,18 +928,52 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
    * Returns meta-data mapping for this analytical object. Includes a identifier to name mapping for
    * dynamic dimensions.
    */
-  public Map<String, String> getMetaData() {
-    Map<String, String> meta = new HashMap<>();
-
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "metaData", namespace = DXF_2_0)
+  @JacksonXmlProperty(localName = "metaData", namespace = DXF_2_0)
+  public Map<String, MetadataItem> getMetaData() {
     // TODO use getDimension() instead of getUid() ?
     dataElementGroupSetDimensions.forEach(
-        dim -> meta.put(dim.getDimension().getUid(), dim.getDimension().getDisplayName()));
+        dim ->
+            metaData.put(
+                dim.getDimension().getUid(),
+                new MetadataItem(
+                    dim.getDimension().getDisplayName(),
+                    dim.getDimension().getUid(),
+                    dim.getDimension().getCode())));
     organisationUnitGroupSetDimensions.forEach(
-        group -> meta.put(group.getDimension().getUid(), group.getDimension().getDisplayName()));
+        dim ->
+            metaData.put(
+                dim.getDimension().getUid(),
+                new MetadataItem(
+                    dim.getDimension().getDisplayName(),
+                    dim.getDimension().getUid(),
+                    dim.getDimension().getCode())));
     categoryDimensions.forEach(
-        dim -> meta.put(dim.getDimension().getUid(), dim.getDimension().getDisplayName()));
+        dim ->
+            metaData.put(
+                dim.getDimension().getUid(),
+                new MetadataItem(
+                    dim.getDimension().getDisplayName(),
+                    dim.getDimension().getUid(),
+                    dim.getDimension().getCode())));
 
-    return meta;
+    organisationUnits.forEach(
+        ou ->
+            metaData.put(
+                ou.getUid(), new MetadataItem(ou.getDisplayName(), ou.getUid(), ou.getCode())));
+
+    dataElementDimensions.forEach(
+        dim ->
+            metaData.put(
+                dim.getUid(), new MetadataItem(dim.getDisplayName(), dim.getUid(), dim.getCode())));
+
+    attributeDimensions.forEach(
+        dim ->
+            metaData.put(
+                dim.getUid(), new MetadataItem(dim.getDisplayName(), dim.getUid(), dim.getCode())));
+
+    return metaData;
   }
 
   /** Clear or set to false all persistent dimensional (not property) properties for this object. */

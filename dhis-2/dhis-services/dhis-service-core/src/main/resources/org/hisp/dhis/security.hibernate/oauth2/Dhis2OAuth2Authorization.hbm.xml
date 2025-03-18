@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.security.oauth2.authorization.Dhis2OAuth2Authorization"
+    table="oauth2_authorization">
+
+    <cache usage="read-write"/>
+
+    <id name="id" column="id">
+      <generator class="native"/>
+    </id>
+
+    &identifiableProperties;
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="createdby" foreign-key="fk_oauth2_authorization_userid" />
+
+    <property name="registeredClientId" column="registered_client_id" not-null="true" length="255"/>
+    <property name="principalName" column="principal_name" not-null="true" length="255"/>
+    <property name="authorizationGrantType" column="authorization_grant_type" not-null="true"
+      length="255"/>
+    <property name="authorizedScopes" column="authorized_scopes" length="1000"/>
+    <property name="attributes" column="attributes" type="text"/>
+    <property name="state" column="state" length="500"/>
+
+    <property name="authorizationCodeValue" column="authorization_code_value" length="4000"/>
+    <property name="authorizationCodeIssuedAt" column="authorization_code_issued_at"
+      type="timestamp"/>
+    <property name="authorizationCodeExpiresAt" column="authorization_code_expires_at"
+      type="timestamp"/>
+    <property name="authorizationCodeMetadata" column="authorization_code_metadata" type="text"/>
+
+    <property name="accessTokenValue" column="access_token_value" length="4000"/>
+    <property name="accessTokenIssuedAt" column="access_token_issued_at" type="timestamp"/>
+    <property name="accessTokenExpiresAt" column="access_token_expires_at" type="timestamp"/>
+    <property name="accessTokenMetadata" column="access_token_metadata" type="text"/>
+    <property name="accessTokenType" column="access_token_type" length="255"/>
+    <property name="accessTokenScopes" column="access_token_scopes" length="1000"/>
+
+    <property name="refreshTokenValue" column="refresh_token_value" length="4000"/>
+    <property name="refreshTokenIssuedAt" column="refresh_token_issued_at" type="timestamp"/>
+    <property name="refreshTokenExpiresAt" column="refresh_token_expires_at" type="timestamp"/>
+    <property name="refreshTokenMetadata" column="refresh_token_metadata" type="text"/>
+
+    <property name="oidcIdTokenValue" column="oidc_id_token_value" length="4000"/>
+    <property name="oidcIdTokenIssuedAt" column="oidc_id_token_issued_at" type="timestamp"/>
+    <property name="oidcIdTokenExpiresAt" column="oidc_id_token_expires_at" type="timestamp"/>
+    <property name="oidcIdTokenMetadata" column="oidc_id_token_metadata" type="text"/>
+    <property name="oidcIdTokenClaims" column="oidc_id_token_claims" type="text"/>
+
+    <property name="userCodeValue" column="user_code_value" length="4000"/>
+    <property name="userCodeIssuedAt" column="user_code_issued_at" type="timestamp"/>
+    <property name="userCodeExpiresAt" column="user_code_expires_at" type="timestamp"/>
+    <property name="userCodeMetadata" column="user_code_metadata" type="text"/>
+
+    <property name="deviceCodeValue" column="device_code_value" length="4000"/>
+    <property name="deviceCodeIssuedAt" column="device_code_issued_at" type="timestamp"/>
+    <property name="deviceCodeExpiresAt" column="device_code_expires_at" type="timestamp"/>
+    <property name="deviceCodeMetadata" column="device_code_metadata" type="text"/>
+
+  </class>
+</hibernate-mapping> 

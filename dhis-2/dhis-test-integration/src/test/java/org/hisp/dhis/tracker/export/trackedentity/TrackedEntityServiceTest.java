@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -28,6 +30,8 @@
 package org.hisp.dhis.tracker.export.trackedentity;
 
 import static java.util.Collections.emptySet;
+import static org.hisp.dhis.common.AccessLevel.CLOSED;
+import static org.hisp.dhis.common.AccessLevel.PROTECTED;
 import static org.hisp.dhis.common.CodeGenerator.generateUid;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
@@ -110,6 +114,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -298,7 +303,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     programB.setProgramType(ProgramType.WITH_REGISTRATION);
     programB.setTrackedEntityType(trackedEntityTypeA);
     programB.setCategoryCombo(defaultCategoryCombo);
-    programB.setAccessLevel(AccessLevel.PROTECTED);
+    programB.setAccessLevel(PROTECTED);
     programB.getSharing().addUserAccess(new UserAccess(currentUser, AccessStringHelper.FULL));
     manager.save(programB, false);
     ProgramStage programStageB1 = createProgramStage(programB);
@@ -317,7 +322,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     programC.setProgramType(ProgramType.WITH_REGISTRATION);
     programC.setTrackedEntityType(trackedEntityTypeA);
     programC.setCategoryCombo(defaultCategoryCombo);
-    programC.setAccessLevel(AccessLevel.PROTECTED);
+    programC.setAccessLevel(CLOSED);
     programC.getSharing().setPublicAccess(AccessStringHelper.READ);
     manager.save(programC, false);
 
@@ -2220,6 +2225,92 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     assertIsEmpty(enrollmentA.get().getEvents());
   }
 
+  @Test
+  void shouldFailWhenRequestingSingleTEEnrolledInOpenProgramWhenUserNotInSearchScope() {
+    user.setTeiSearchOrganisationUnits(Set.of(orgUnitB));
+    user.setOrganisationUnits(Set.of(orgUnitB));
+    injectSecurityContextUser(user);
+
+    Assertions.assertThrows(
+        NotFoundException.class,
+        () ->
+            trackedEntityService.getTrackedEntity(
+                UID.of(trackedEntityA.getUid()),
+                UID.of(programA.getUid()),
+                TrackedEntityParams.FALSE));
+  }
+
+  @Test
+  void shouldGetTrackedEntityWhenRequestingSingleTEEnrolledInProtectedProgramAndUserInCaptureScope()
+      throws ForbiddenException, NotFoundException {
+    user.setTeiSearchOrganisationUnits(Set.of());
+    user.setOrganisationUnits(Set.of(orgUnitB));
+    injectSecurityContextUser(user);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityB, programB, orgUnitB);
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            UID.of(trackedEntityB.getUid()), UID.of(programB.getUid()), TrackedEntityParams.FALSE);
+
+    assertEquals(trackedEntityB.getUid(), trackedEntity.getUid());
+  }
+
+  @Test
+  void
+      shouldFailWhenRequestingSingleTEEnrolledInProtectedProgramWhenUserInSearchScopeButNotInCaptureScope() {
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityB, programB, orgUnitB);
+
+    Assertions.assertThrows(
+        NotFoundException.class,
+        () ->
+            trackedEntityService.getTrackedEntity(
+                UID.of(trackedEntityB.getUid()),
+                UID.of(programB.getUid()),
+                TrackedEntityParams.FALSE));
+  }
+
+  @Test
+  void shouldGetTrackedEntityWhenRequestingSingleTEEnrolledInClosedAndUserInCaptureScope()
+      throws ForbiddenException, NotFoundException {
+    injectAdminIntoSecurityContext();
+    makeProgramDataAndMetadataAccessible(programC);
+    Enrollment enrollment = createEnrollment(programC, trackedEntityB, orgUnitB);
+    manager.save(enrollment);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityB, programC, orgUnitB);
+    user.setTeiSearchOrganisationUnits(Set.of());
+    user.setOrganisationUnits(Set.of(orgUnitB));
+    injectSecurityContextUser(user);
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            UID.of(trackedEntityB.getUid()), UID.of(programC.getUid()), TrackedEntityParams.FALSE);
+
+    assertEquals(trackedEntityB.getUid(), trackedEntity.getUid());
+  }
+
+  @Test
+  void
+      shouldFailWhenRequestingSingleTEEnrolledInClosedProgramWhenUserInSearchScopeButNotInCaptureScope() {
+    injectAdminIntoSecurityContext();
+    makeProgramDataAndMetadataAccessible(programC);
+    Enrollment enrollment = createEnrollment(programC, trackedEntityB, orgUnitB);
+    manager.save(enrollment);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityB, programC, orgUnitB);
+    injectSecurityContextUser(user);
+
+    Assertions.assertThrows(
+        NotFoundException.class,
+        () ->
+            trackedEntityService.getTrackedEntity(
+                UID.of(trackedEntityB.getUid()),
+                UID.of(programC.getUid()),
+                TrackedEntityParams.FALSE));
+  }
+
   private Set<String> attributeNames(final Collection<TrackedEntityAttributeValue> attributes) {
     // depends on createTrackedEntityAttribute() prefixing with "Attribute"
     return attributes.stream()
@@ -2246,6 +2337,11 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             + (long) 1000
             + " got: "
             + interval);
+  }
+
+  private void makeProgramDataAndMetadataAccessible(Program program) {
+    program.setSharing(Sharing.builder().publicAccess("rwrw----").build());
+    manager.update(program);
   }
 
   private void makeProgramMetadataAccessibleOnly(Program program) {

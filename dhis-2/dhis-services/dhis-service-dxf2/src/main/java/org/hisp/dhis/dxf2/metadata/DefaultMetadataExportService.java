@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -102,7 +104,7 @@ import org.hisp.dhis.report.Report;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.system.SystemInfo;
+import org.hisp.dhis.system.SystemInfo.SystemInfoForMetadataExport;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -224,14 +226,14 @@ public class DefaultMetadataExportService implements MetadataExportService {
   @Transactional(readOnly = true)
   public ObjectNode getMetadataAsObjectNode(MetadataExportParams params) {
     ObjectNode rootNode = fieldFilterService.createObjectNode();
-    SystemInfo systemInfo = systemService.getSystemInfo();
+    SystemInfoForMetadataExport systemInfo = systemService.getSystemInfoForMetadataExport();
 
     rootNode
         .putObject(SYSTEM)
-        .put(SYSTEM_ID, systemInfo.getSystemId())
-        .put(SYSTEM_REVISION, systemInfo.getRevision())
-        .put(SYSTEM_VERSION, systemInfo.getVersion())
-        .put(SYSTEM_DATE, DateUtils.toIso8601(systemInfo.getServerDate()));
+        .put(SYSTEM_ID, systemInfo.id())
+        .put(SYSTEM_REVISION, systemInfo.revision())
+        .put(SYSTEM_VERSION, systemInfo.version())
+        .put(SYSTEM_DATE, DateUtils.toIso8601(systemInfo.serverDate()));
 
     Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata =
         getMetadata(params);
@@ -260,7 +262,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
   @Transactional(readOnly = true)
   public void getMetadataAsObjectNodeStream(MetadataExportParams params, OutputStream outputStream)
       throws IOException {
-    SystemInfo systemInfo = systemService.getSystemInfo();
+    SystemInfoForMetadataExport systemInfo = systemService.getSystemInfoForMetadataExport();
 
     if (params.isExportWithDependencies()) {
       getMetadataWithDependenciesAsNodeStream(
@@ -275,10 +277,10 @@ public class DefaultMetadataExportService implements MetadataExportService {
       generator.writeStartObject();
 
       generator.writeObjectFieldStart(SYSTEM);
-      generator.writeStringField(SYSTEM_ID, systemInfo.getSystemId());
-      generator.writeStringField(SYSTEM_REVISION, systemInfo.getRevision());
-      generator.writeStringField(SYSTEM_VERSION, systemInfo.getVersion());
-      generator.writeStringField(SYSTEM_DATE, DateUtils.toIso8601(systemInfo.getServerDate()));
+      generator.writeStringField(SYSTEM_ID, systemInfo.id());
+      generator.writeStringField(SYSTEM_REVISION, systemInfo.revision());
+      generator.writeStringField(SYSTEM_VERSION, systemInfo.version());
+      generator.writeStringField(SYSTEM_DATE, DateUtils.toIso8601(systemInfo.serverDate()));
       generator.writeEndObject();
 
       for (Class<? extends IdentifiableObject> klass : metadata.keySet()) {
@@ -313,17 +315,17 @@ public class DefaultMetadataExportService implements MetadataExportService {
   public void getMetadataWithDependenciesAsNodeStream(
       IdentifiableObject object, @Nonnull MetadataExportParams params, OutputStream outputStream)
       throws IOException {
-    SystemInfo systemInfo = systemService.getSystemInfo();
+    SystemInfoForMetadataExport systemInfo = systemService.getSystemInfoForMetadataExport();
     SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata =
         getMetadataWithDependencies(object);
     try (JsonGenerator generator = objectMapper.getFactory().createGenerator(outputStream)) {
       generator.writeStartObject();
 
       generator.writeObjectFieldStart(SYSTEM);
-      generator.writeStringField(SYSTEM_ID, systemInfo.getSystemId());
-      generator.writeStringField(SYSTEM_REVISION, systemInfo.getRevision());
-      generator.writeStringField(SYSTEM_VERSION, systemInfo.getVersion());
-      generator.writeStringField(SYSTEM_DATE, DateUtils.toIso8601(systemInfo.getServerDate()));
+      generator.writeStringField(SYSTEM_ID, systemInfo.id());
+      generator.writeStringField(SYSTEM_REVISION, systemInfo.revision());
+      generator.writeStringField(SYSTEM_VERSION, systemInfo.version());
+      generator.writeStringField(SYSTEM_DATE, DateUtils.toIso8601(systemInfo.serverDate()));
       generator.writeEndObject();
 
       for (Class<? extends IdentifiableObject> klass : metadata.keySet()) {

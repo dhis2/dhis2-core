@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -66,6 +68,7 @@ import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.TimeField;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfo;
 import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.common.AnalyticsDateFilter;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -227,6 +230,9 @@ public class EventQueryParams extends DataQueryParams {
    */
   protected IdScheme dataIdScheme;
 
+  /** Info needed for disaggregating a program indicator */
+  private PiDisagInfo piDisagInfo;
+
   /**
    * A map that holds time fields({@link TimeField}) and their respective range of dates({@link
    * DateRange}).
@@ -317,6 +323,8 @@ public class EventQueryParams extends DataQueryParams {
     params.multipleQueries = this.multipleQueries;
     params.userOrganisationUnitsCriteria = this.userOrganisationUnitsCriteria;
     params.userOrgUnits = this.userOrgUnits;
+    params.outputFormat = this.outputFormat;
+    params.piDisagInfo = this.piDisagInfo;
     return params;
   }
 
@@ -861,6 +869,14 @@ public class EventQueryParams extends DataQueryParams {
     return value != null;
   }
 
+  public boolean hasPiDisagInfo() {
+    return piDisagInfo != null;
+  }
+
+  public boolean isPiDisagDimension(String dimension) {
+    return hasPiDisagInfo() && piDisagInfo.isPiDisagDimension(dimension);
+  }
+
   public boolean useIndividualQuery() {
     return this.hasAnalyticsVariables() || this.hasNonDefaultBoundaries();
   }
@@ -1184,6 +1200,10 @@ public class EventQueryParams extends DataQueryParams {
 
   public boolean isRowContext() {
     return rowContext;
+  }
+
+  public PiDisagInfo getPiDisagInfo() {
+    return piDisagInfo;
   }
 
   // -------------------------------------------------------------------------
@@ -1556,6 +1576,11 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withUserOrgUnits(List<OrganisationUnit> userOrgUnits) {
       this.params.userOrgUnits = userOrgUnits;
+      return this;
+    }
+
+    public Builder withPiDisagInfo(PiDisagInfo piDisagInfo) {
+      this.params.piDisagInfo = piDisagInfo;
       return this;
     }
 

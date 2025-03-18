@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -745,6 +747,11 @@ public class DataQueryParams {
     return !getDimensionsAndFilters(ORGANISATION_UNIT_GROUP_SET).isEmpty();
   }
 
+  /** Indicates whether categories are present as dimension or filter. */
+  public boolean hasCategories() {
+    return !getDimensionsAndFilters(CATEGORY).isEmpty();
+  }
+
   /**
    * Returns the period type of the first period specified as filter, or null if there is no period
    * filter.
@@ -1154,6 +1161,14 @@ public class DataQueryParams {
   /** Indicates whether a dimension with the given identifier exists. */
   public boolean hasDimension(String key) {
     return dimensions.contains(new BaseDimensionalObject(key));
+  }
+
+  /** Indicates whether a dimension with the given id exists (when the above doesn't work) */
+  public boolean hasDimensionId(String id) {
+    return dimensions.stream()
+        .map(DimensionalObject::getUid)
+        .collect(Collectors.toSet())
+        .contains(id);
   }
 
   /** Indicates whether a filter with the given identifier exists. */

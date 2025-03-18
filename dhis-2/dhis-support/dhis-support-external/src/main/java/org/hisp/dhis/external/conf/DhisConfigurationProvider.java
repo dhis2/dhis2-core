@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -172,11 +174,11 @@ public interface DhisConfigurationProvider {
   String getServerBaseUrl();
 
   /**
-   * Returns the remote servers allowed to make calls to.
+   * Returns the metadata sync remote servers allowed to make calls to.
    *
    * @return the remote servers.
    */
-  List<String> getRemoteServersAllowed();
+  List<String> getMetaDataSyncRemoteServersAllowed();
 
   /**
    * Checks whether the supplied URL is contained in the remote servers allowed list.
@@ -184,7 +186,7 @@ public interface DhisConfigurationProvider {
    * @param url the URL to check.
    * @return true if in the remote servers allowed list.
    */
-  boolean remoteServerIsInAllowedList(String url);
+  boolean isMetaDataSyncRemoteServerAllowed(String url);
 
   /**
    * Indicates whether LDAP authentication is configured.

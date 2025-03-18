@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -352,6 +354,14 @@ public enum ConfigurationKey {
   META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC(
       "metadata.sync.retry.time.frequency.millisec", "30000", false),
 
+  /**
+   * Remote servers allowed to call. <br>
+   * Default is empty. <br>
+   * Servers should be in a comma-separated style and always end with '/' for security reasons <br>
+   * e.g. metadata.sync.remote_servers_allowed = https://server1.com/,https://server2.com/
+   */
+  META_DATA_SYNC_SERVERS_ALLOWED("metadata.sync.remote_servers_allowed", "", false),
+
   /** EHCache replication host. */
   CLUSTER_HOSTNAME("cluster.hostname", "", false),
 
@@ -480,11 +490,9 @@ public enum ConfigurationKey {
   SERVER_BASE_URL("server.base.url", "", false),
 
   /**
-   * Remote servers allowed to call. <br>
-   * Default is empty. <br>
-   * Servers should be in a comma-separated style and always end with '/' for security reasons <br>
-   * e.g. system.remote_servers_allowed = https://server1.com/,https://server2.com/
+   * @deprecated use META_DATA_SYNC_SERVERS_ALLOWED instead
    */
+  @Deprecated
   REMOTE_SERVERS_ALLOWED("system.remote_servers_allowed", "", false),
 
   /** Enable secure settings if system is deployed on HTTPS, can be 'off', 'on'. */
@@ -636,9 +644,6 @@ public enum ConfigurationKey {
    */
   AUDIT_ENABLED("system.audit.enabled", Constants.ON, false),
 
-  /** OAuth2 authorization server feature. Enable or disable. */
-  ENABLE_OAUTH2_AUTHORIZATION_SERVER("oauth2.authorization.server.enabled", Constants.ON, false),
-
   /** JWT OIDC token authentication feature. Enable or disable. */
   ENABLE_JWT_OIDC_TOKEN_AUTHENTICATION(
       "oidc.jwt.token.authentication.enabled", Constants.OFF, false),
@@ -710,7 +715,34 @@ public enum ConfigurationKey {
   /** Enable TOTP-based 2FA authentication. (default: true) */
   TOTP_2FA_ENABLED("login.security.totp_2fa.enabled", Constants.ON, false),
 
-  SESSION_COOKIE_SAME_SITE("session.cookie.samesite", "Lax", false);
+  SESSION_COOKIE_SAME_SITE("session.cookie.samesite", "Lax", false),
+
+  /**
+   * Remote servers allowed to call from the Route endpoint. <br>
+   * Default is 'https://*'. <br>
+   * Servers should be in a comma-separated style and always end with '/' for security reasons <br>
+   * e.g. route.remote_servers_allowed = https://server1.com/,https://server2.com/
+   */
+  ROUTE_REMOTE_SERVERS_ALLOWED("route.remote_servers_allowed", "https://*", false),
+
+  /** Enable OAuth2 authentication server. (default: off) */
+  OAUTH2_SERVER_ENABLED("oauth2.server.enabled", Constants.OFF, false),
+
+  /** Path to the JWT keystore file. */
+  OAUTH2_JWT_KEYSTORE_PATH("oauth2.server.jwt.keystore.path", "", false),
+
+  /** Password for the JWT keystore. (sensitive) */
+  OAUTH2_JWT_KEYSTORE_PASSWORD("oauth2.server.jwt.keystore.password", "", true),
+
+  /** Alias for the JWT key in the keystore. */
+  OAUTH2_JWT_KEYSTORE_ALIAS("oauth2.server.jwt.keystore.alias", "", false),
+
+  /** Password for the JWT key in the keystore. (sensitive) */
+  OAUTH2_JWT_KEYSTORE_KEY_PASSWORD("oauth2.server.jwt.keystore.key-password", "", true),
+
+  /** Whether to generate a new JWT key if the keystore is missing. */
+  OAUTH2_JWT_KEYSTORE_GENERATE_IF_MISSING(
+      "oauth2.server.jwt.keystore.generate-if-missing", "true", false);
 
   private final String key;
 

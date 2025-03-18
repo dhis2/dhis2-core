@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -439,6 +441,61 @@ class AnalyticsUtilsTest extends TestBase {
     assertEquals("ceabcdefghA", grid.getRow(5).get(3));
     assertNull(grid.getRow(5).get(4));
     assertEquals(0.01, (Double) grid.getRow(5).get(5), 6d);
+  }
+
+  @Test
+  void testHandleGridForDataValueSetWithProgramIndicatorDisaggregation() {
+    Program program = createProgram('A');
+    ProgramIndicator programIndicator = createProgramIndicator('A', program, ".", ".");
+    programIndicator.setUid("programIndA");
+    programIndicator.setAggregateExportCategoryOptionCombo("AggExporCOC");
+    programIndicator.setAggregateExportAttributeOptionCombo("AggExporAOC");
+    programIndicator.setAggregateExportDataElement("AggExportDE");
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject(
+                    DATA_X_DIM_ID, DimensionType.DATA_X, List.of(programIndicator)))
+            .build();
+
+    Grid grid = new ListGrid();
+    grid.addHeader(new GridHeader(DimensionalObject.DATA_X_DIM_ID));
+    grid.addHeader(new GridHeader(DimensionalObject.ORGUNIT_DIM_ID));
+    grid.addHeader(new GridHeader(DimensionalObject.PERIOD_DIM_ID));
+    grid.addHeader(new GridHeader(VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, false, false));
+    grid.addRow().addValuesAsList(List.of("programIndA", "ouA", "peA", 1d));
+    grid.addRow().addValuesAsList(List.of("programIndA.CatOptCombo.*", "ouA", "peA", 2d));
+    grid.addRow().addValuesAsList(List.of("programIndA.*.AttOptCombo", "ouA", "peA", 3d));
+    grid.addRow().addValuesAsList(List.of("programIndA.CatOptCombo.AttOptCombo", "ouA", "peA", 4d));
+
+    assertEquals(4, grid.getWidth());
+    assertEquals(4, grid.getHeight());
+
+    AnalyticsUtils.handleGridForDataValueSet(params, grid);
+
+    assertEquals(6, grid.getWidth());
+    assertEquals(4, grid.getHeight());
+
+    assertEquals("AggExportDE", grid.getRow(0).get(0));
+    assertEquals("AggExporCOC", grid.getRow(0).get(3));
+    assertEquals("AggExporAOC", grid.getRow(0).get(4));
+    assertEquals(1.0, grid.getRow(0).get(5));
+
+    assertEquals("AggExportDE", grid.getRow(1).get(0));
+    assertEquals("CatOptCombo", grid.getRow(1).get(3));
+    assertEquals("AggExporAOC", grid.getRow(1).get(4));
+    assertEquals(2.0, grid.getRow(1).get(5));
+
+    assertEquals("AggExportDE", grid.getRow(2).get(0));
+    assertEquals("AggExporCOC", grid.getRow(2).get(3));
+    assertEquals("AttOptCombo", grid.getRow(2).get(4));
+    assertEquals(3.0, grid.getRow(2).get(5));
+
+    assertEquals("AggExportDE", grid.getRow(3).get(0));
+    assertEquals("CatOptCombo", grid.getRow(3).get(3));
+    assertEquals("AttOptCombo", grid.getRow(3).get(4));
+    assertEquals(4.0, grid.getRow(3).get(5));
   }
 
   @Test

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -72,6 +74,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 import javax.sql.rowset.RowSetMetaDataImpl;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
@@ -111,6 +114,9 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -305,6 +311,44 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             .build();
 
     assertThrows(NullPointerException.class, () -> eventSubject.getAggregateClause(params));
+  }
+
+  @ParameterizedTest
+  @MethodSource("noAggregationTestCases")
+  void verifyGetAggregateClauseWithNoAggregation(
+      AggregationType valueAggregationType, AggregationType overrideAggregationType) {
+    DataElement de = new DataElement();
+
+    de.setUid(dataElementA.getUid());
+    de.setAggregationType(valueAggregationType);
+    de.setValueType(NUMBER);
+
+    EventQueryParams.Builder paramsBuilder =
+        new EventQueryParams.Builder(createRequestParams()).withValue(de);
+
+    // Apply override aggregation if specified
+    if (overrideAggregationType != null) {
+      paramsBuilder.withAggregationType(
+          AnalyticsAggregationType.fromAggregationType(overrideAggregationType));
+    }
+
+    EventQueryParams params = paramsBuilder.build();
+
+    String clause = eventSubject.getAggregateClause(params);
+
+    assertThat(clause, is("null"));
+  }
+
+  private static Stream<Arguments> noAggregationTestCases() {
+    return Stream.of(
+        // Test case 1: Both value and override are NONE
+        Arguments.of(AggregationType.NONE, AggregationType.NONE),
+
+        // Test case 2: Value is NONE, no override
+        Arguments.of(AggregationType.NONE, null),
+
+        // Test case 3: Value is SUM, override is NONE
+        Arguments.of(AggregationType.SUM, AggregationType.NONE));
   }
 
   @Test

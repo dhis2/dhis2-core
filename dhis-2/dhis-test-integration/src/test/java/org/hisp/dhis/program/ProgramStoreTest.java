@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -123,21 +125,21 @@ class ProgramStoreTest extends PostgresIntegrationTestBase {
         ProgramCategoryOptionMapping.builder().optionId("Oiewaenai0E").filter("Filter C").build();
     ProgramCategoryOptionMapping omD =
         ProgramCategoryOptionMapping.builder().optionId("lAedahy6eye").filter("Filter D").build();
-    Set<ProgramCategoryOptionMapping> omSet1 = Set.of(omA, omB);
-    Set<ProgramCategoryOptionMapping> omSet2 = Set.of(omC, omD);
+    List<ProgramCategoryOptionMapping> omList1 = List.of(omA, omB);
+    List<ProgramCategoryOptionMapping> omList2 = List.of(omC, omD);
     ProgramCategoryMapping cm1 =
         ProgramCategoryMapping.builder()
             .id("iOChed1vei4")
             .categoryId("Proh3kafa6K")
             .mappingName("Mapping 1")
-            .optionMappings(omSet1)
+            .optionMappings(omList1)
             .build();
     ProgramCategoryMapping cm2 =
         ProgramCategoryMapping.builder()
             .id("fshoocuL0sh")
             .categoryId("Oieth9ahGhu")
             .mappingName("Mapping 2")
-            .optionMappings(omSet2)
+            .optionMappings(omList2)
             .build();
     Set<ProgramCategoryMapping> categoryMappings = Set.of(cm1, cm2);
     programA.setCategoryMappings(categoryMappings);

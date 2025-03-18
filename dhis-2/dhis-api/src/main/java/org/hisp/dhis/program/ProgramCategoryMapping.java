@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,6 +29,7 @@
  */
 package org.hisp.dhis.program;
 
+import static java.util.Collections.emptyList;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -34,15 +37,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hisp.dhis.category.Category;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 
@@ -66,14 +65,11 @@ public class ProgramCategoryMapping implements EmbeddedObject, Serializable {
   /** The category UID for this category mapping */
   private String categoryId = "";
 
-  /** The category for this category mapping (from the category UID) */
-  @Setter @Getter private transient Category category;
-
   /** The category mapping name, must be unique within a program and category */
   private String mappingName = "";
 
   /** The category option mappings for this program, category, and name */
-  private Set<ProgramCategoryOptionMapping> optionMappings = new HashSet<>();
+  private List<ProgramCategoryOptionMapping> optionMappings = emptyList();
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
@@ -108,11 +104,11 @@ public class ProgramCategoryMapping implements EmbeddedObject, Serializable {
   @JsonProperty("optionMappings")
   @JacksonXmlElementWrapper(localName = "optionMappings", namespace = DXF_2_0)
   @JacksonXmlProperty(localName = "optionMappings", namespace = DXF_2_0)
-  public Set<ProgramCategoryOptionMapping> getOptionMappings() {
+  public List<ProgramCategoryOptionMapping> getOptionMappings() {
     return optionMappings;
   }
 
-  public void setOptionMappings(Set<ProgramCategoryOptionMapping> optionMappings) {
+  public void setOptionMappings(List<ProgramCategoryOptionMapping> optionMappings) {
     this.optionMappings = optionMappings;
   }
 }

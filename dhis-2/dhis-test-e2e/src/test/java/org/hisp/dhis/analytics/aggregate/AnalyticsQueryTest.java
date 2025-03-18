@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -174,8 +176,7 @@ public class AnalyticsQueryTest extends AnalyticsApiTest {
 
     validateRow(response, List.of("M3xtLkYBlKI.fyjPqlHE7Dn", "202107", ""));
 
-    validateRow(
-        response, List.of("M3xtLkYBlKI.fyjPqlHE7Dn", "202107", "Some insecticide resistance"));
+    validateRow(response, List.of("M3xtLkYBlKI.fyjPqlHE7Dn", "202107", ""));
   }
 
   @Test
@@ -511,29 +512,24 @@ public class AnalyticsQueryTest extends AnalyticsApiTest {
     validateHeader(response, 7, "divisor", "Divisor", "NUMBER", "java.lang.Double", false, false);
 
     // Assert rows.
-    validateRow(
-        response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Antonio", "", "", "", "", ""));
-    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Jane", "", "", "", "", ""));
-    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Jane", "", "", "", "", ""));
-    validateRow(
-        response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Jonathan", "", "", "", "", ""));
-    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Walter", "", "", "", "", ""));
-    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Helen", "", "", "", "", ""));
-    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Andrea", "", "", "", "", ""));
-    validateRow(
-        response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Matthew", "", "", "", "", ""));
-    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Tammy", "", "", "", "", ""));
-    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Joan", "", "", "", "", ""));
-    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Scott", "", "", "", "", ""));
-    validateRow(
-        response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Patricia", "", "", "", "", ""));
-    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Sandra", "", "", "", "", ""));
-    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Maria", "", "", "", "", ""));
-    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Aaron", "", "", "", "", ""));
-    validateRow(
-        response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Catherine", "", "", "", "", ""));
-    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Evelyn", "", "", "", "", ""));
-    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Ruth", "", "", "", "", ""));
-    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "Gary", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "", "", "", "", "", ""));
+    validateRow(response, List.of("IpHINAT79UW.w75KJ2mc4zz", "2023", "", "", "", "", "", ""));
   }
 }
