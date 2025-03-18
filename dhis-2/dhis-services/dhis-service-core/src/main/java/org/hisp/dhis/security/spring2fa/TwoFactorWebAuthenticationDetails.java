@@ -30,7 +30,6 @@ package org.hisp.dhis.security.spring2fa;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.servlet.http.HttpServletRequest;
 import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
 
@@ -38,7 +37,6 @@ import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
  * @author Henning Håkonsen
  * @author Lars Helge Øverland
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TwoFactorWebAuthenticationDetails extends ForwardedIpAwareWebAuthenticationDetails {
   private static final String TWO_FACTOR_AUTHENTICATION_GETTER = "2fa_code";

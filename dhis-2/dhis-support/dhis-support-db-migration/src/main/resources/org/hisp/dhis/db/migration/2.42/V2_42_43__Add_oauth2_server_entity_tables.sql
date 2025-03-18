@@ -1,4 +1,4 @@
--- OAuth2 Client table
+-- OAuth2 authorization table
 create table if not exists oauth2_authorization
 (
     id                            bigint                      not null primary key,
@@ -9,8 +9,6 @@ create table if not exists oauth2_authorization
     lastUpdated                   timestamp without time zone not null,
     lastupdatedby                 bigint                      ,
     createdby                     bigint                      ,
-
---     name                          varchar(230)                not null,
 
     principal_name                varchar(255)                not null,
     registered_client_id          varchar(255)                not null,
@@ -54,7 +52,7 @@ create table if not exists oauth2_authorization
     device_code_metadata          text
 );
 
--- OAuth2 Authorization table
+-- OAuth2 client table
 create table if not exists oauth2_client
 (
     id                            bigint                      not null primary key,
@@ -65,8 +63,6 @@ create table if not exists oauth2_client
     lastUpdated                   timestamp without time zone not null,
     lastupdatedby                 bigint                      ,
     createdby                     bigint                      ,
-
---     name                          varchar(230)                not null,
 
     client_id                     varchar(255)                not null unique,
     client_secret                 varchar(255),
@@ -82,7 +78,7 @@ create table if not exists oauth2_client
     token_settings                text
 );
 
--- OAuth2 Authorization Consent table
+-- OAuth2 authorization consent table
 create table if not exists oauth2_authorization_consent
 (
     id                   bigint                      not null primary key,
@@ -94,13 +90,27 @@ create table if not exists oauth2_authorization_consent
     lastupdatedby        bigint                      ,
     createdby            bigint                      ,
 
---     name                 varchar(230)                not null,
-
     principal_name       varchar(255)                not null,
     registered_client_id varchar(255)                not null,
 
     authorities          varchar(1000)
 );
+
+-- Foreign key constraints
+alter table oauth2_authorization add constraint fk_oauth2_authorization_lastupdateby_userinfoid
+    foreign key (lastupdatedby) references userinfo(userinfoid);
+alter table oauth2_authorization add constraint fk_oauth2_authorization_createdby_userinfoid
+    foreign key (createdby) references userinfo(userinfoid);
+
+alter table oauth2_authorization_consent add constraint fk_oauth2_authorization_consent_lastupdateby_userinfoid
+    foreign key (lastupdatedby) references userinfo(userinfoid);
+alter table oauth2_authorization_consent add constraint fk_oauth2_authorization_consent_createdby_userinfoid
+    foreign key (createdby) references userinfo(userinfoid);
+
+alter table oauth2_client add constraint fk_oauth2_client_lastupdateby_userinfoid
+    foreign key (lastupdatedby) references userinfo(userinfoid);
+alter table oauth2_client add constraint fk_oauth2_client_createdby_userinfoid
+    foreign key (createdby) references userinfo(userinfoid);
 
 -- Create indexes for commonly queried fields
 create index if not exists oauth2_client_client_id_idx on oauth2_client (client_id);

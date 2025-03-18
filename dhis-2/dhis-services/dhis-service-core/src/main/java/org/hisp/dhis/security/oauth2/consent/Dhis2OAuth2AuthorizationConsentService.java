@@ -28,7 +28,6 @@
 package org.hisp.dhis.security.oauth2.consent;
 
 import java.util.List;
-import org.springframework.transaction.annotation.Transactional;
 
 public interface Dhis2OAuth2AuthorizationConsentService {
   void save(
@@ -42,9 +41,7 @@ public interface Dhis2OAuth2AuthorizationConsentService {
   org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsent findById(
       String registeredClientId, String principalName);
 
-  @Transactional(readOnly = true)
   List<Dhis2OAuth2AuthorizationConsent> getAll();
 
-  @Transactional
   void delete(Dhis2OAuth2AuthorizationConsent consent);
 }

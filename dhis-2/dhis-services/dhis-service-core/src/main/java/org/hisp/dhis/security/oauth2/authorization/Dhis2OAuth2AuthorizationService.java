@@ -29,7 +29,6 @@ package org.hisp.dhis.security.oauth2.authorization;
 
 import java.util.List;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
-import org.springframework.transaction.annotation.Transactional;
 
 public interface Dhis2OAuth2AuthorizationService {
   void save(
@@ -38,10 +37,8 @@ public interface Dhis2OAuth2AuthorizationService {
   void remove(
       org.springframework.security.oauth2.server.authorization.OAuth2Authorization authorization);
 
-  @Transactional
   void delete(String uid);
 
-  @Transactional(readOnly = true)
   List<Dhis2OAuth2Authorization> getAll();
 
   org.springframework.security.oauth2.server.authorization.OAuth2Authorization findById(String id);

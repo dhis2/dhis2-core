@@ -156,20 +156,21 @@ public class Dhis2OAuth2AuthorizationServiceImpl
 
     if (tokenType == null) {
       entity = this.authorizationStore.getByToken(token);
-    } else if (OAuth2ParameterNames.STATE.equals(tokenType.getValue())) {
-      entity = this.authorizationStore.getByState(token);
-    } else if (OAuth2ParameterNames.CODE.equals(tokenType.getValue())) {
-      entity = this.authorizationStore.getByAuthorizationCode(token);
-    } else if (OAuth2ParameterNames.ACCESS_TOKEN.equals(tokenType.getValue())) {
-      entity = this.authorizationStore.getByAccessToken(token);
-    } else if (OAuth2ParameterNames.REFRESH_TOKEN.equals(tokenType.getValue())) {
-      entity = this.authorizationStore.getByRefreshToken(token);
-    } else if (OidcParameterNames.ID_TOKEN.equals(tokenType.getValue())) {
-      entity = this.authorizationStore.getByOidcIdToken(token);
-    } else if (OAuth2ParameterNames.USER_CODE.equals(tokenType.getValue())) {
-      entity = this.authorizationStore.getByUserCode(token);
-    } else if (OAuth2ParameterNames.DEVICE_CODE.equals(tokenType.getValue())) {
-      entity = this.authorizationStore.getByDeviceCode(token);
+    } else {
+      String tokenTypeValue = tokenType.getValue();
+      entity =
+          switch (tokenTypeValue) {
+            case OAuth2ParameterNames.STATE -> this.authorizationStore.getByState(token);
+            case OAuth2ParameterNames.CODE -> this.authorizationStore.getByAuthorizationCode(token);
+            case OAuth2ParameterNames.ACCESS_TOKEN ->
+                this.authorizationStore.getByAccessToken(token);
+            case OAuth2ParameterNames.REFRESH_TOKEN ->
+                this.authorizationStore.getByRefreshToken(token);
+            case OidcParameterNames.ID_TOKEN -> this.authorizationStore.getByOidcIdToken(token);
+            case OAuth2ParameterNames.USER_CODE -> this.authorizationStore.getByUserCode(token);
+            case OAuth2ParameterNames.DEVICE_CODE -> this.authorizationStore.getByDeviceCode(token);
+            default -> entity;
+          };
     }
 
     return entity != null ? toObject(entity) : null;

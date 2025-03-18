@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.CodeGenerator;
@@ -77,7 +78,7 @@ public class Dhis2OAuth2ClientServiceImpl
   @Transactional
   @Override
   public void save(RegisteredClient registeredClient) {
-    Assert.notNull(registeredClient, "registeredClient cannot be null");
+    Objects.requireNonNull(registeredClient, "registeredClient cannot be null");
     Dhis2OAuth2Client client = toEntity(registeredClient);
     this.clientStore.save(client);
   }
