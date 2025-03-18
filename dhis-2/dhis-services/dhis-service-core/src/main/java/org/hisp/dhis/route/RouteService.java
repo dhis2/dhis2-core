@@ -144,9 +144,7 @@ public class RouteService {
   @PostConstruct
   public void postConstruct() {
     String routeRemoteServersAllowed =
-        configuration
-            .getProperty(ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED)
-            .strip();
+        configuration.getProperty(ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED).strip();
     if (!routeRemoteServersAllowed.isEmpty()) {
       for (String host : routeRemoteServersAllowed.split(",")) {
         validateHost(host);
