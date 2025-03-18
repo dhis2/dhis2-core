@@ -70,9 +70,10 @@ class AppResourceTest extends ApiTest {
               connection.setInstanceFollowRedirects(false);
             }
           });
-  
+
   private static final String SERVER_BASE = "http://web:8080";
-  private static final String META_BASE_URL_TAG = "<meta name=\"dhis2-base-url\" content=\"" +  SERVER_BASE + "\"/>";
+  private static final String META_BASE_URL_TAG =
+      "<meta name=\"dhis2-base-url\" content=\"" + SERVER_BASE + "\"/>";
 
   @Test
   @DisplayName("Redirect location should have correct format")

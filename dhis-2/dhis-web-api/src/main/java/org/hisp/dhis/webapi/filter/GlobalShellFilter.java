@@ -85,13 +85,12 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       @Nonnull HttpServletResponse response,
       @Nonnull FilterChain chain)
       throws IOException, ServletException {
-    
+
     boolean globalShellEnabled = settingsProvider.getCurrentSettings().getGlobalShellEnabled();
     String path = getContextRelativePath(request);
 
     if (!globalShellEnabled) {
-      boolean redirected =
-          redirectDisabledGlobalShell(request, response, path);
+      boolean redirected = redirectDisabledGlobalShell(request, response, path);
       log.debug("GlobalShellFilter.doFilterInternal: redirectDisabledGlobalShell = {}", redirected);
       if (!redirected) {
         chain.doFilter(request, response);
@@ -214,20 +213,19 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       if (resource.isEmpty()) {
         resource = "index.html";
       }
-      
+
       log.debug("Serving global shell resource. Path {}, resolved resource {}", path, resource);
       // Serve global app shell resources
-      serveGlobalShellResource(
-          request, response, resource);
+      serveGlobalShellResource(request, response, resource);
     }
   }
 
   private void serveGlobalShellResource(
       HttpServletRequest request, HttpServletResponse response, String resource)
       throws IOException, ServletException {
-    
+
     log.info("Serving global shell resource {}", resource);
-    
+
     String globalShellAppName = settingsProvider.getCurrentSettings().getGlobalShellAppName();
     App globalShellApp = appManager.getApp(globalShellAppName);
 
