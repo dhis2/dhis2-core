@@ -188,7 +188,8 @@ public class AppController {
 
     log.debug("Rendering resource {} from app {}", resource, application.getKey());
 
-    ResourceResult resourceResult = appManager.getAppResource(application, resource, fullContextPath);
+    ResourceResult resourceResult =
+        appManager.getAppResource(application, resource, fullContextPath);
     if (resourceResult instanceof ResourceFound found) {
       serveResource(request, response, found.resource());
       return;
