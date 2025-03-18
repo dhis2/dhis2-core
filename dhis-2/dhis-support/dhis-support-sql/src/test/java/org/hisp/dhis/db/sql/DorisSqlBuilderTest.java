@@ -231,6 +231,14 @@ class DorisSqlBuilderTest {
   }
 
   @Test
+  void testConcat_FromList() {
+    String result = sqlBuilder.concat(List.of("column1", "column2", "column3"));
+    assertEquals(
+        "concat(trim(nullif('', column1)), trim(nullif('', column2)), trim(nullif('', column3)))",
+        result);
+  }
+
+  @Test
   void testTrim() {
     assertEquals("trim(ax.value)", sqlBuilder.trim("ax.value"));
   }

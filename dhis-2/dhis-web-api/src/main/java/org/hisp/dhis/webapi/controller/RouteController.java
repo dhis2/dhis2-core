@@ -136,25 +136,18 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
 
   @Override
   protected void preCreateEntity(Route route) throws ConflictException {
-    validateRoute(route);
+    routeService.validateRoute(route);
   }
 
   @Override
   protected void preUpdateEntity(Route route, Route newRoute) throws ConflictException {
-    validateRoute(newRoute);
+    routeService.validateRoute(newRoute);
     removeOAuth2AuthorizedClient(route);
   }
 
   @Override
   protected void preDeleteEntity(Route route) {
     removeOAuth2AuthorizedClient(route);
-  }
-
-  protected void validateRoute(Route route) throws ConflictException {
-    if (route.getResponseTimeoutSeconds() < 1 || route.getResponseTimeoutSeconds() > 60) {
-      throw new ConflictException(
-          "Route response timeout must be greater than 0 seconds and less than or equal to 60 seconds");
-    }
   }
 
   /**

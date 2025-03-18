@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.security.spring2fa;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.servlet.http.HttpServletRequest;
 import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
 
@@ -34,10 +37,26 @@ import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
  * @author Henning Håkonsen
  * @author Lars Helge Øverland
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TwoFactorWebAuthenticationDetails extends ForwardedIpAwareWebAuthenticationDetails {
   private static final String TWO_FACTOR_AUTHENTICATION_GETTER = "2fa_code";
 
   private String code;
+
+  @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
+  public static TwoFactorWebAuthenticationDetails twoFactorWebAuthenticationDetails(
+      @JsonProperty("remoteAddress") String remoteAddress,
+      @JsonProperty("sessionId") String sessionId,
+      @JsonProperty("ip") String ip,
+      @JsonProperty("code") String code) {
+    return new TwoFactorWebAuthenticationDetails(remoteAddress, sessionId, ip, code);
+  }
+
+  public TwoFactorWebAuthenticationDetails(
+      String remoteAddress, String sessionId, String ip, String code) {
+    super(remoteAddress, sessionId, ip);
+    this.code = code;
+  }
 
   public TwoFactorWebAuthenticationDetails(HttpServletRequest request) {
     super(request);

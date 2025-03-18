@@ -89,7 +89,7 @@ public class SynchronizationController {
   @ResponseBody
   public ImportReport importMetaData(@RequestBody @Nonnull String url) throws ConflictException {
     String urlTrimmed = url.trim();
-    if (configProvider.remoteServerIsInAllowedList(urlTrimmed)) {
+    if (configProvider.isMetaDataSyncRemoteServerAllowed(urlTrimmed)) {
       return synchronizationManager.executeMetadataPull(urlTrimmed);
     }
     throw new ConflictException("Provided URL is not in the remote servers allowed list");

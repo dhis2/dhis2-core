@@ -442,6 +442,61 @@ class AnalyticsUtilsTest extends TestBase {
   }
 
   @Test
+  void testHandleGridForDataValueSetWithProgramIndicatorDisaggregation() {
+    Program program = createProgram('A');
+    ProgramIndicator programIndicator = createProgramIndicator('A', program, ".", ".");
+    programIndicator.setUid("programIndA");
+    programIndicator.setAggregateExportCategoryOptionCombo("AggExporCOC");
+    programIndicator.setAggregateExportAttributeOptionCombo("AggExporAOC");
+    programIndicator.setAggregateExportDataElement("AggExportDE");
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject(
+                    DATA_X_DIM_ID, DimensionType.DATA_X, List.of(programIndicator)))
+            .build();
+
+    Grid grid = new ListGrid();
+    grid.addHeader(new GridHeader(DimensionalObject.DATA_X_DIM_ID));
+    grid.addHeader(new GridHeader(DimensionalObject.ORGUNIT_DIM_ID));
+    grid.addHeader(new GridHeader(DimensionalObject.PERIOD_DIM_ID));
+    grid.addHeader(new GridHeader(VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, false, false));
+    grid.addRow().addValuesAsList(List.of("programIndA", "ouA", "peA", 1d));
+    grid.addRow().addValuesAsList(List.of("programIndA.CatOptCombo.*", "ouA", "peA", 2d));
+    grid.addRow().addValuesAsList(List.of("programIndA.*.AttOptCombo", "ouA", "peA", 3d));
+    grid.addRow().addValuesAsList(List.of("programIndA.CatOptCombo.AttOptCombo", "ouA", "peA", 4d));
+
+    assertEquals(4, grid.getWidth());
+    assertEquals(4, grid.getHeight());
+
+    AnalyticsUtils.handleGridForDataValueSet(params, grid);
+
+    assertEquals(6, grid.getWidth());
+    assertEquals(4, grid.getHeight());
+
+    assertEquals("AggExportDE", grid.getRow(0).get(0));
+    assertEquals("AggExporCOC", grid.getRow(0).get(3));
+    assertEquals("AggExporAOC", grid.getRow(0).get(4));
+    assertEquals(1.0, grid.getRow(0).get(5));
+
+    assertEquals("AggExportDE", grid.getRow(1).get(0));
+    assertEquals("CatOptCombo", grid.getRow(1).get(3));
+    assertEquals("AggExporAOC", grid.getRow(1).get(4));
+    assertEquals(2.0, grid.getRow(1).get(5));
+
+    assertEquals("AggExportDE", grid.getRow(2).get(0));
+    assertEquals("AggExporCOC", grid.getRow(2).get(3));
+    assertEquals("AttOptCombo", grid.getRow(2).get(4));
+    assertEquals(3.0, grid.getRow(2).get(5));
+
+    assertEquals("AggExportDE", grid.getRow(3).get(0));
+    assertEquals("CatOptCombo", grid.getRow(3).get(3));
+    assertEquals("AttOptCombo", grid.getRow(3).get(4));
+    assertEquals(4.0, grid.getRow(3).get(5));
+  }
+
+  @Test
   void testGetColumnType() {
     assertEquals(BIGINT, AnalyticsUtils.getColumnType(ValueType.INTEGER, true));
     assertEquals(GEOMETRY_POINT, AnalyticsUtils.getColumnType(ValueType.COORDINATE, true));

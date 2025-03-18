@@ -48,23 +48,20 @@ class LoginPageTest {
 
   private LoginPage mainPage;
 
-  private static URL getUrl() {
-    URL remoteAddress = null;
+  private static URL getSeleniumUrl() {
     String seleniumUrl = TestConfiguration.get().seleniumUrl();
     try {
-      remoteAddress = new URL(seleniumUrl);
+      return new URL(seleniumUrl);
     } catch (MalformedURLException e) {
       throw new RuntimeException(e);
     }
-
-    return remoteAddress;
   }
 
   @BeforeEach
   public void setUp() {
     ChromeOptions chromeOptions = new ChromeOptions();
     chromeOptions.addArguments("--remote-allow-origins=*");
-    driver = new RemoteWebDriver(getUrl(), chromeOptions);
+    driver = new RemoteWebDriver(getSeleniumUrl(), chromeOptions);
     driver.get("http://web:8080/dhis-web-commons/security/login.action");
 
     mainPage = new LoginPage(driver);

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.program;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.program.Program.DEFAULT_PREFIX;
 import static org.hisp.dhis.program.Program.PREFIX_KEY;
 
@@ -42,8 +43,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import lombok.Getter;
-import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryCombo;
@@ -133,9 +132,6 @@ public class ProgramIndicator extends BaseDataDimensionalItemObject implements M
   /** Category mapping UIDs for both COC and AOC PI disaggregation */
   private Set<String> categoryMappingIds = new HashSet<>();
 
-  /** Category mapping objects for both COC and AOC PI disaggregation */
-  @Getter @Setter private transient Set<ProgramCategoryMapping> categoryMappings;
-
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -156,6 +152,10 @@ public class ProgramIndicator extends BaseDataDimensionalItemObject implements M
 
   public boolean hasZeroDecimals() {
     return decimals != null && decimals == 0;
+  }
+
+  public boolean hasAggregateExportDataElement() {
+    return !isEmpty(aggregateExportDataElement);
   }
 
   /**

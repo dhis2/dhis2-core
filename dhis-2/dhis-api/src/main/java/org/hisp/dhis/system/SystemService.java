@@ -27,14 +27,37 @@
  */
 package org.hisp.dhis.system;
 
+import org.hisp.dhis.system.SystemInfo.SystemInfoForAppCacheFilter;
+import org.hisp.dhis.system.SystemInfo.SystemInfoForDataStats;
+import org.hisp.dhis.system.SystemInfo.SystemInfoForMetadataExport;
+
 /**
  * @author Lars Helge Overland
  */
-@FunctionalInterface
 public interface SystemService {
 
   /**
    * @return The system info summary for right now
    */
   SystemInfo getSystemInfo();
+
+  /**
+   * @return The system info version
+   */
+  String getSystemInfoVersion();
+
+  /**
+   * @return SystemIdVersionDate
+   */
+  SystemInfoForMetadataExport getSystemInfoForMetadataExport();
+
+  /**
+   * @return SystemVersionBuildTime
+   */
+  SystemInfoForDataStats getSystemInfoForDataStats();
+
+  /**
+   * @return SystemVersionCalendar
+   */
+  SystemInfoForAppCacheFilter getSystemInfoForAppCacheFilter();
 }

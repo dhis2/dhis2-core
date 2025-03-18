@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.db.sql;
 
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -217,9 +216,9 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String concat(String... columns) {
+  public String concat(List<String> columns) {
     return "concat("
-        + Arrays.stream(columns)
+        + columns.stream()
             .map(this::wrapTrimNullIf) // Adjust wrapping logic
             .collect(Collectors.joining(", "))
         + ")";

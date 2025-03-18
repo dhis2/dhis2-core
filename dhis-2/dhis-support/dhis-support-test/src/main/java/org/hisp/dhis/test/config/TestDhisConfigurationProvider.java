@@ -138,21 +138,21 @@ public class TestDhisConfigurationProvider implements DhisConfigurationProvider 
   }
 
   @Override
-  public List<String> getRemoteServersAllowed() {
+  public List<String> getMetaDataSyncRemoteServersAllowed() {
     return Stream.of(
             this.properties
                 .getProperty(
-                    ConfigurationKey.REMOTE_SERVERS_ALLOWED.getKey(),
-                    ConfigurationKey.REMOTE_SERVERS_ALLOWED.getDefaultValue())
+                    ConfigurationKey.META_DATA_SYNC_SERVERS_ALLOWED.getKey(),
+                    ConfigurationKey.META_DATA_SYNC_SERVERS_ALLOWED.getDefaultValue())
                 .split(","))
         .filter(StringUtils::isNotEmpty)
         .toList();
   }
 
   @Override
-  public boolean remoteServerIsInAllowedList(String url) {
-    List<String> remoteServersAllowed = getRemoteServersAllowed();
-    return !getRemoteServersAllowed().isEmpty()
+  public boolean isMetaDataSyncRemoteServerAllowed(String url) {
+    List<String> remoteServersAllowed = getMetaDataSyncRemoteServersAllowed();
+    return !getMetaDataSyncRemoteServersAllowed().isEmpty()
         && remoteServersAllowed.stream().anyMatch(url::startsWith);
   }
 

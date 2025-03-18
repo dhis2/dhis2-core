@@ -174,11 +174,11 @@ public interface DhisConfigurationProvider {
   String getServerBaseUrl();
 
   /**
-   * Returns the remote servers allowed to make calls to.
+   * Returns the metadata sync remote servers allowed to make calls to.
    *
    * @return the remote servers.
    */
-  List<String> getRemoteServersAllowed();
+  List<String> getMetaDataSyncRemoteServersAllowed();
 
   /**
    * Checks whether the supplied URL is contained in the remote servers allowed list.
@@ -186,7 +186,7 @@ public interface DhisConfigurationProvider {
    * @param url the URL to check.
    * @return true if in the remote servers allowed list.
    */
-  boolean remoteServerIsInAllowedList(String url);
+  boolean isMetaDataSyncRemoteServerAllowed(String url);
 
   /**
    * Indicates whether LDAP authentication is configured.

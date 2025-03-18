@@ -237,7 +237,9 @@ public class OpenApiController {
       OpenApiGenerationParams generation,
       OpenApiRenderingParams rendering) {
     String cacheKey =
-        generation.isSkipCache() ? null : scoping.getCacheKey() + generation.getDocumentCacheKey();
+        generation.isSkipCache()
+            ? null
+            : scoping.getCacheKey() + generation.getDocumentCacheKey() + rendering.getCacheKey();
     return HTML_CACHE.get(
         cacheKey,
         () -> {

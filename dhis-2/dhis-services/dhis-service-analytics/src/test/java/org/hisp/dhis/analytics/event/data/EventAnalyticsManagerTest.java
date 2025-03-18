@@ -50,6 +50,7 @@ import static org.hisp.dhis.test.TestBase.createPeriod;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramIndicator;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -66,6 +67,8 @@ import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.Grid;
@@ -113,6 +116,10 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private OrganisationUnitResolver organisationUnitResolver;
 
+  @Mock private PiDisagInfoInitializer piDisagInfoInitializer;
+
+  @Mock private PiDisagQueryGenerator piDisagQueryGenerator;
+
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   private JdbcEventAnalyticsManager subject;
@@ -146,6 +153,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             jdbcTemplate,
             programIndicatorService,
             programIndicatorSubqueryBuilder,
+            piDisagInfoInitializer,
+            piDisagQueryGenerator,
             timeCoordinateSelector,
             executionPlanStore,
             systemSettingsService,
@@ -483,6 +492,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     mockRowSet();
 
     when(rowSet.getString("fWIAEtYVEGk")).thenReturn("2000");
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
 
     Grid resultGrid =
         subject.getAggregatedEventData(
@@ -511,6 +522,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   void verifyGetAggregatedEventQueryWithFilter() {
 
     when(rowSet.getString("fWIAEtYVEGk")).thenReturn("2000");
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
 
     mockRowSet();
 
@@ -538,16 +551,23 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Test
   void verifyFirstAggregationTypeSubquery() {
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
     verifyFirstOrLastAggregationTypeSubquery(AnalyticsAggregationType.FIRST);
   }
 
   @Test
   void verifyLastAggregationTypeSubquery() {
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
     verifyFirstOrLastAggregationTypeSubquery(AnalyticsAggregationType.LAST);
   }
 
   @Test
   void verifyLastLastOrgUnitAggregationTypeSubquery() {
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+
     DataElement deX = createDataElement('X');
 
     EventQueryParams params =
@@ -645,6 +665,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   void verifyGetAggregatedEventQueryWithMeasureCriteria() {
 
     when(rowSet.getString("fWIAEtYVEGk")).thenReturn("2000");
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
 
     mockRowSet();
 
