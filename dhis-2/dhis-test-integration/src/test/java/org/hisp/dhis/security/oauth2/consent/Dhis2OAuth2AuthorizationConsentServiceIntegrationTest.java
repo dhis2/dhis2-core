@@ -65,7 +65,7 @@ public class Dhis2OAuth2AuthorizationConsentServiceIntegrationTest
   private RegisteredClient registeredClient;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     // Create and save a test client
     registeredClient =
         RegisteredClient.withId(CodeGenerator.generateUid())
@@ -83,7 +83,7 @@ public class Dhis2OAuth2AuthorizationConsentServiceIntegrationTest
   }
 
   @Test
-  public void testSaveAndFindById() {
+  void testSaveAndFindById() {
     // Given
     OAuth2AuthorizationConsent authorizationConsent =
         OAuth2AuthorizationConsent.withId(registeredClient.getId(), "user1")
@@ -113,7 +113,7 @@ public class Dhis2OAuth2AuthorizationConsentServiceIntegrationTest
   }
 
   @Test
-  public void testRemoveAuthorizationConsent() {
+  void testRemoveAuthorizationConsent() {
     // Given
     OAuth2AuthorizationConsent authorizationConsent =
         OAuth2AuthorizationConsent.withId(registeredClient.getId(), "user2")
@@ -135,7 +135,7 @@ public class Dhis2OAuth2AuthorizationConsentServiceIntegrationTest
   }
 
   @Test
-  public void testUpdateExistingConsent() {
+  void testUpdateExistingConsent() {
     // Given - create initial consent with one authority
     OAuth2AuthorizationConsent initialConsent =
         OAuth2AuthorizationConsent.withId(registeredClient.getId(), "user3")
@@ -170,7 +170,7 @@ public class Dhis2OAuth2AuthorizationConsentServiceIntegrationTest
   }
 
   @Test
-  public void testMultipleConsentsForDifferentUsers() {
+  void testMultipleConsentsForDifferentUsers() {
     // Given - create consents for different users
     OAuth2AuthorizationConsent consent1 =
         OAuth2AuthorizationConsent.withId(registeredClient.getId(), "user4")
@@ -210,7 +210,7 @@ public class Dhis2OAuth2AuthorizationConsentServiceIntegrationTest
   }
 
   @Test
-  public void testConsentsForMultipleClients() {
+  void testConsentsForMultipleClients() {
     // Given - create another client
     RegisteredClient anotherClient =
         RegisteredClient.withId(CodeGenerator.generateUid())

@@ -54,7 +54,7 @@ public class Dhis2OAuth2ClientServiceIntegrationTest extends PostgresIntegration
   @Autowired private Dhis2OAuth2ClientStore clientStore;
 
   @Test
-  public void testSaveAndFindById() {
+  void testSaveAndFindById() {
     // Given
     RegisteredClient registeredClient = createTestClient();
 
@@ -71,7 +71,7 @@ public class Dhis2OAuth2ClientServiceIntegrationTest extends PostgresIntegration
   }
 
   @Test
-  public void testFindByClientId() {
+  void testFindByClientId() {
     // Given
     RegisteredClient registeredClient = createTestClient();
     clientRepository.save(registeredClient);
@@ -86,7 +86,7 @@ public class Dhis2OAuth2ClientServiceIntegrationTest extends PostgresIntegration
   }
 
   @Test
-  public void testComplexAttributesConversion() {
+  void testComplexAttributesConversion() {
     // Given
     RegisteredClient registeredClient = createTestClientWithComplexAttributes();
     clientRepository.save(registeredClient);
@@ -115,7 +115,7 @@ public class Dhis2OAuth2ClientServiceIntegrationTest extends PostgresIntegration
   }
 
   @Test
-  public void testMultiValuedAttributesConversion() {
+  void testMultiValuedAttributesConversion() {
     // Given
     RegisteredClient registeredClient = createTestClientWithMultiValuedAttributes();
     clientRepository.save(registeredClient);
@@ -163,7 +163,7 @@ public class Dhis2OAuth2ClientServiceIntegrationTest extends PostgresIntegration
   }
 
   @Test
-  public void testTimestampConversion() {
+  void testTimestampConversion() {
     // Given
     Instant now = Instant.now();
     Instant future = now.plusSeconds(3600);
@@ -192,7 +192,7 @@ public class Dhis2OAuth2ClientServiceIntegrationTest extends PostgresIntegration
   }
 
   @Test
-  public void testEntityToDomainConversion() {
+  void testEntityToDomainConversion() {
     // Given
     Dhis2OAuth2Client entity = new Dhis2OAuth2Client();
     entity.setUid(CodeGenerator.generateUid());
