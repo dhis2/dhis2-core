@@ -318,7 +318,6 @@ class AppResourceTest extends ApiTest {
   }
 
   // TODO: Installed apps
-  // TODO: Global shell
   // TODO: Test when global shell disabled
 
   private ResponseEntity<String> get(String path, HttpHeaders headers) {
