@@ -145,7 +145,7 @@ public class RouteService {
   public void postConstruct() {
     String routeRemoteServersAllowed =
         configuration
-            .getPropertyOrDefault(ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED, "")
+            .getProperty(ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED)
             .strip();
     if (!routeRemoteServersAllowed.isEmpty()) {
       for (String host : routeRemoteServersAllowed.split(",")) {
