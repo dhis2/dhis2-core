@@ -721,7 +721,7 @@ public enum ConfigurationKey {
    * Servers should be in a comma-separated style and always end with '/' for security reasons <br>
    * e.g. route.remote_servers_allowed = https://server1.com/,https://server2.com/
    */
-  ROUTE_REMOTE_SERVERS_ALLOWED("route.remote_servers_allowed", "https://*", false);
+  ROUTE_REMOTE_SERVERS_ALLOWED("route.remote_servers_allowed", "https://*", false),
 
   /** Enable OAuth2 authentication server. (default: off) */
   OAUTH2_SERVER_ENABLED("oauth2.server.enabled", Constants.OFF, false),
