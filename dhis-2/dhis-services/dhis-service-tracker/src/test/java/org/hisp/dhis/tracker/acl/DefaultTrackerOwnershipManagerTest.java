@@ -94,6 +94,7 @@ class DefaultTrackerOwnershipManagerTest {
   private UserDetails userDetails;
   private String reason;
   private OrganisationUnit orgUnit;
+  private TrackedEntityType trackedEntityType;
 
   @BeforeEach
   void setUp() {
@@ -116,18 +117,23 @@ class DefaultTrackerOwnershipManagerTest {
     orgUnit.setPath(orgUnit.getUid());
     program = createProgram('A');
     program.setAccessLevel(AccessLevel.PROTECTED);
+    trackedEntityType = createTrackedEntityType('A');
+    program.setTrackedEntityType(trackedEntityType);
     User user = new User();
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
     userDetails = UserDetails.fromUser(user);
     reason = "breaking the glass";
 
     when(ownerCache.get(any(), any())).thenReturn(orgUnit);
+    when(aclService.canDataRead(userDetails, program)).thenReturn(true);
   }
 
   @Test
   void shouldLogProgramOwnershipChangeWhenTrackedEntityTypeAuditEnabled()
       throws ForbiddenException {
     TrackedEntity trackedEntity = createTrackedEntityWithAuditLog(true);
+    when(aclService.canDataRead(userDetails, trackedEntity.getTrackedEntityType()))
+        .thenReturn(true);
 
     trackerOwnershipManager.grantTemporaryOwnership(trackedEntity, program, userDetails, reason);
 
@@ -139,6 +145,8 @@ class DefaultTrackerOwnershipManagerTest {
   void shouldNotLogProgramOwnershipChangeWhenTrackedEntityTypeAuditDisabled()
       throws ForbiddenException {
     TrackedEntity trackedEntity = createTrackedEntityWithAuditLog(false);
+    when(aclService.canDataRead(userDetails, trackedEntity.getTrackedEntityType()))
+        .thenReturn(true);
 
     trackerOwnershipManager.grantTemporaryOwnership(trackedEntity, program, userDetails, reason);
 
@@ -147,7 +155,6 @@ class DefaultTrackerOwnershipManagerTest {
   }
 
   private TrackedEntity createTrackedEntityWithAuditLog(boolean isAllowAuditLog) {
-    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
     trackedEntityType.setAllowAuditLog(isAllowAuditLog);
     TrackedEntity trackedEntity = createTrackedEntity('A', orgUnit, trackedEntityType);
     trackedEntity.setTrackedEntityType(trackedEntityType);
