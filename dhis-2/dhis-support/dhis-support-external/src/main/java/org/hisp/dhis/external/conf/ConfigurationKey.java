@@ -356,9 +356,9 @@ public enum ConfigurationKey {
    * Remote servers allowed to call. <br>
    * Default is empty. <br>
    * Servers should be in a comma-separated style and always end with '/' for security reasons <br>
-   * e.g. metadata.sync.remote.servers.allowed = https://server1.com/,https://server2.com/
+   * e.g. metadata.sync.remote_servers_allowed = https://server1.com/,https://server2.com/
    */
-  META_DATA_SYNC_SERVERS_ALLOWED("metadata.sync.remote.servers.allowed", "", false),
+  META_DATA_SYNC_SERVERS_ALLOWED("metadata.sync.remote_servers_allowed", "", false),
 
   /** EHCache replication host. */
   CLUSTER_HOSTNAME("cluster.hostname", "", false),
