@@ -45,6 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -84,10 +85,12 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       @Nonnull HttpServletResponse response,
       @Nonnull FilterChain chain)
       throws IOException, ServletException {
+
     boolean globalShellEnabled = settingsProvider.getCurrentSettings().getGlobalShellEnabled();
+    String path = getContextRelativePath(request);
+
     if (!globalShellEnabled) {
-      boolean redirected =
-          redirectDisabledGlobalShell(request, response, getContextRelativePath(request));
+      boolean redirected = redirectDisabledGlobalShell(request, response, path);
       log.debug("GlobalShellFilter.doFilterInternal: redirectDisabledGlobalShell = {}", redirected);
       if (!redirected) {
         chain.doFilter(request, response);
@@ -95,7 +98,6 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       return;
     }
 
-    String path = getContextRelativePath(request);
     if (redirectLegacyAppPaths(request, response, path)) {
       log.debug("GlobalShellFilter.doFilterInternal: redirectLegacyAppPaths = true");
       return;
@@ -113,6 +115,7 @@ public class GlobalShellFilter extends OncePerRequestFilter {
   private boolean redirectDisabledGlobalShell(
       HttpServletRequest request, HttpServletResponse response, String path) throws IOException {
     Matcher m = APP_IN_GLOBAL_SHELL_PATTERN.matcher(path);
+    String baseUrl = HttpServletRequestPaths.getContextPath(request);
 
     if (m.matches()) {
       String appName = m.group(1);
@@ -122,13 +125,9 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       if (app != null) {
         log.debug("Installed app {} found", appName);
         targetPath = app.getLaunchUrl();
-      } else if (AppManager.BUNDLED_APPS.contains(appName)) {
-        log.debug("Bundled app {} found", appName);
-        targetPath =
-            String.join("/", request.getContextPath(), AppManager.BUNDLED_APP_PREFIX + appName);
       } else {
         log.debug("App {} not found", appName);
-        targetPath = request.getContextPath() + "/";
+        targetPath = baseUrl;
       }
 
       targetPath = withQueryString(targetPath, request.getQueryString());
@@ -136,12 +135,17 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       log.debug("Redirecting to {}", targetPath);
       response.sendRedirect(targetPath);
       return true;
+    } else if (path.startsWith(GLOBAL_SHELL_PATH_PREFIX)) {
+      log.debug("Redirecting to instance root");
+      response.sendRedirect(baseUrl);
+      return true;
     }
     return false;
   }
 
   private boolean redirectLegacyAppPaths(
       HttpServletRequest request, HttpServletResponse response, String path) throws IOException {
+    String baseUrl = HttpServletRequestPaths.getContextPath(request);
     String queryString = request.getQueryString();
     Matcher m = LEGACY_APP_PATH_PATTERN.matcher(path);
 
@@ -168,14 +172,14 @@ public class GlobalShellFilter extends OncePerRequestFilter {
     String referer = request.getHeader(REFERER_HEADER);
     boolean isServiceWorkerRequest = referer != null && referer.endsWith(SERVICE_WORKER_JS);
 
-    log.info(
+    log.debug(
         "redirectLegacyAppPaths: path = {}, queryString = {}, referer = {}",
         path,
         queryString,
         referer);
 
     if (isIndexPath && !isServiceWorkerRequest && !hasRedirectFalse) {
-      String targetPath = request.getContextPath() + GLOBAL_SHELL_PATH_PREFIX + appName;
+      String targetPath = baseUrl + GLOBAL_SHELL_PATH_PREFIX + appName;
       targetPath = withQueryString(targetPath, queryString);
       response.sendRedirect(targetPath);
       log.debug("Redirecting to global shell {}", targetPath);
@@ -205,16 +209,22 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       log.debug("Serving global shell index.  Original path: {}", path);
       serveGlobalShellResource(request, response, "index.html");
     } else {
-      log.debug("Serving global shell resource. Path {}", path);
+      String resource = path.substring(GLOBAL_SHELL_PATH_PREFIX.length());
+      if (resource.isEmpty()) {
+        resource = "index.html";
+      }
+
+      log.debug("Serving global shell resource. Path {}, resolved resource {}", path, resource);
       // Serve global app shell resources
-      serveGlobalShellResource(
-          request, response, path.substring(GLOBAL_SHELL_PATH_PREFIX.length()));
+      serveGlobalShellResource(request, response, resource);
     }
   }
 
   private void serveGlobalShellResource(
       HttpServletRequest request, HttpServletResponse response, String resource)
       throws IOException, ServletException {
+
+    log.debug("Serving global shell resource {}", resource);
 
     String globalShellAppName = settingsProvider.getCurrentSettings().getGlobalShellAppName();
     App globalShellApp = appManager.getApp(globalShellAppName);
