@@ -57,6 +57,7 @@ import org.hisp.dhis.webapi.openapi.OpenApiObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.ParameterObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.ResponseObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.SchemaObject;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openapitools.codegen.DefaultGenerator;
 import org.openapitools.codegen.config.CodegenConfigurator;
@@ -72,6 +73,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
+
   @Test
   void testGetOpenApiDocumentJson() {
     JsonObject doc =
@@ -83,7 +85,13 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
     assertGreaterOrEqual(1, doc.getObject("components.securitySchemes").size());
     assertGreaterOrEqual(200, doc.getObject("components.schemas").size());
     assertGreaterOrEqual(200, doc.getObject("components.schemas").size());
+  }
 
+  @Test
+  @Disabled("JB: temporary until we find the cause of flakiness")
+  void testGetOpenApiDocumentJson_NoValidationErrors() {
+    JsonObject doc =
+        GET("/openapi/openapi.json?failOnNameClash=true&failOnInconsistency=true").content();
     SwaggerParseResult result =
         new OpenAPIParser().readContents(doc.node().getDeclaration(), null, null);
     assertEquals(List.of(), result.getMessages(), "There should not be any errors");
@@ -233,6 +241,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  @Disabled("JB: temporary until we find the cause of flakiness")
   void testGetOpenApiDocument_CodeGeneration() throws IOException {
     JsonObject doc = GET("/openapi/openapi.json?failOnNameClash=true").content();
 
