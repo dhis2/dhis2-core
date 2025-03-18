@@ -492,7 +492,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
                     trackedEntityA1, programA, userDetailsA, "test temporary ownership"));
 
     assertStartsWith(
-        "Temporary ownership not created. The the tracked entity type of the program",
+        "Temporary ownership not created. The tracked entity type of the program",
         exception.getMessage());
   }
 

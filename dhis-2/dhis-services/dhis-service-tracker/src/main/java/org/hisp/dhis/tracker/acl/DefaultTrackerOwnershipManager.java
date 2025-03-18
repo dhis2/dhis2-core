@@ -226,7 +226,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
         program.getTrackedEntityType().getUid(), trackedEntity.getTrackedEntityType().getUid())) {
       throw new ForbiddenException(
           String.format(
-              "Temporary ownership not created. The the tracked entity type of the program %s differs from that of the tracked entity %s.",
+              "Temporary ownership not created. The tracked entity type of the program %s differs from that of the tracked entity %s.",
               program.getTrackedEntityType().getUid(),
               trackedEntity.getTrackedEntityType().getUid()));
     }
