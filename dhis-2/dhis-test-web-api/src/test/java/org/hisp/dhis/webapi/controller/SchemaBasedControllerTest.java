@@ -91,7 +91,9 @@ class SchemaBasedControllerTest extends PostgresControllerIntegrationTestBase {
           "programStageWorkingList", // same reason as programStage
           "dataElement", // non-postgres SQL in deletion handler
           "predictor", // NPE in preheat when creating objects
-          "aggregateDataExchange" // required JSONB objects not working
+          "aggregateDataExchange", // required JSONB objects not working,
+          "oauth2Authorization", // Read-only
+          "oauth2AuthorizationConsent" // Read-only
           );
 
   /**
