@@ -720,11 +720,11 @@ public enum ConfigurationKey {
 
   /**
    * Remote servers allowed to call from the Route endpoint. <br>
-   * Default is empty. <br>
+   * Default is 'https://*'. <br>
    * Servers should be in a comma-separated style and always end with '/' for security reasons <br>
    * e.g. route.remote_servers_allowed = https://server1.com/,https://server2.com/
    */
-  ROUTE_REMOTE_SERVERS_ALLOWED("route.remote_servers_allowed", "", false);
+  ROUTE_REMOTE_SERVERS_ALLOWED("route.remote_servers_allowed", "https://*", false);
 
   private final String key;
 

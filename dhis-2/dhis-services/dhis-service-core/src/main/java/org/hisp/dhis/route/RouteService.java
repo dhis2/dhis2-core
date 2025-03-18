@@ -156,9 +156,21 @@ public class RouteService {
   }
 
   protected void validateHost(String host) {
-    if (!(host.startsWith("http://") || host.startsWith("https://"))) {
+    if (!(host.startsWith("http:") || host.startsWith("https:"))) {
       throw new IllegalStateException(
           "Allowed route URL scheme must be either http or https: " + host);
+    }
+    if ((host.startsWith("http:"))) {
+      log.warn("Allowed route URL is insecure: {}. You should change the protocol to HTTPS", host);
+    }
+    if ((host.equals("https://*"))) {
+      log.warn(
+          "Default allowed route URL {} is vulnerable to server-side request forgery (SSRF) attacks. You should further restrict the default allowed route URL such that it contains no wildcards",
+          host);
+    } else if (host.contains("*")) {
+      log.warn(
+          "Allowed route URL is vulnerable to server-side request forgery (SSRF) attacks: {}. You should further restrict the allowed route URL such that it contains no wildcards",
+          host);
     }
     String urlWithoutPortNo =
         host.substring(0, host.lastIndexOf(":") > 5 ? host.lastIndexOf(":") : host.length());
@@ -196,17 +208,12 @@ public class RouteService {
   }
 
   protected boolean isRouteUrlAllowed(Route route) {
-    if (route.getUrl().toLowerCase().startsWith("http:")
-        || !allowedRouteRegexRemoteServers.isEmpty()) {
-      for (String regexRemoteServer : allowedRouteRegexRemoteServers) {
-        if (route.getUrl().matches(regexRemoteServer)) {
-          return true;
-        }
+    for (String regexRemoteServer : allowedRouteRegexRemoteServers) {
+      if (route.getUrl().matches(regexRemoteServer)) {
+        return true;
       }
-      return false;
-    } else {
-      return true;
     }
+    return false;
   }
 
   public void validateRoute(Route route) throws ConflictException {

@@ -48,6 +48,19 @@ class RouteServiceTest {
     protocolUnderTest = protocols[new Random().nextInt(protocols.length)];
   }
 
+  //  @Test
+  //  void testX() {
+  //    Properties properties = new Properties();
+  //    properties.setProperty(
+  //            ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getKey(), protocolUnderTest + "://*");
+  //    DhisConfigurationProvider dhisConfigurationProvider =
+  //            new TestDhisConfigurationProvider(properties);
+  //
+  //    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null,
+  // null);
+  //    assertThrows(IllegalStateException.class, routeService::postConstruct);
+  //  }
+
   @Test
   void testPostConstructThrowsExceptionWhenRouteRemoteServerAllowedEntryHasUrlPath() {
     Properties properties = new Properties();
@@ -61,8 +74,25 @@ class RouteServiceTest {
   }
 
   @Test
-  void testValidateRoutePassesWhenRouteUrlProtocolIsHttpsGivenEmptyRouteRemoteServerAllowedList()
+  void testValidateRoutePassesWhenRouteUrlProtocolIsHttpsGivenDefaultRouteRemoteServerAllowedList()
       throws ConflictException {
+    Properties properties = new Properties();
+    properties.setProperty(
+        ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getKey(),
+        ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getDefaultValue());
+    DhisConfigurationProvider dhisConfigurationProvider =
+        new TestDhisConfigurationProvider(properties);
+
+    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
+    routeService.postConstruct();
+
+    Route route = new Route();
+    route.setUrl("https://stub");
+    routeService.validateRoute(route);
+  }
+
+  @Test
+  void testValidateRouteFailsWhenRouteUrlProtocolIsHttpsGivenEmptyRouteRemoteServerAllowedList() {
     Properties properties = new Properties();
     properties.setProperty(ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getKey(), "");
     DhisConfigurationProvider dhisConfigurationProvider =
@@ -73,7 +103,7 @@ class RouteServiceTest {
 
     Route route = new Route();
     route.setUrl("https://stub");
-    routeService.validateRoute(route);
+    assertThrows(ConflictException.class, () -> routeService.validateRoute(route));
   }
 
   @Test
