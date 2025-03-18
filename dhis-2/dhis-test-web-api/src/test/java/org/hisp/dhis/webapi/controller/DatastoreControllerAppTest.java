@@ -31,6 +31,7 @@ import static java.util.Collections.singletonList;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.concurrent.Future;
@@ -157,7 +158,7 @@ class DatastoreControllerAppTest extends H2ControllerIntegrationTestBase {
     Future<Boolean> promise = appManager.deleteAppAsync(appManager.getApp("test"), false);
     assertDoesNotThrow(
         () -> {
-          assertEquals(true, promise.get());
+          assertTrue(promise.get());
         });
     switchToNewUser("has-no-app-authority");
     assertEquals(singletonList("key1"), GET("/dataStore/test-app-ns").content().stringValues());
@@ -169,7 +170,7 @@ class DatastoreControllerAppTest extends H2ControllerIntegrationTestBase {
     Future<Boolean> promise = appManager.deleteAppAsync(appManager.getApp("test"), true);
     assertDoesNotThrow(
         () -> {
-          assertEquals(true, promise.get());
+          assertTrue(promise.get());
         });
     assertStatus(HttpStatus.NOT_FOUND, GET("/dataStore/test-app-ns"));
   }
