@@ -50,6 +50,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTempOwnerService;
 import org.hisp.dhis.program.ProgramTempOwnershipAudit;
 import org.hisp.dhis.program.ProgramTempOwnershipAuditService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
@@ -85,6 +86,8 @@ class DefaultTrackerOwnershipManagerTest {
 
   @Mock private Cache<Object> tempOwnerCache;
 
+  @Mock private AclService aclService;
+
   @InjectMocks private DefaultTrackerOwnershipManager trackerOwnershipManager;
 
   private Program program;
@@ -106,7 +109,8 @@ class DefaultTrackerOwnershipManagerTest {
             programTempOwnerService,
             programOwnershipHistoryService,
             programService,
-            manager);
+            manager,
+            aclService);
 
     orgUnit = createOrganisationUnit("org unit");
     orgUnit.setPath(orgUnit.getUid());

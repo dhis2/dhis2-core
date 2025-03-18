@@ -31,7 +31,6 @@ import static java.util.Collections.emptySet;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
@@ -238,23 +237,8 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
         200,
         "OK",
         "Temporary Ownership granted",
-        POST("/tracker/ownership/override?trackedEntity={tei}&program={prog}&reason=42", teUid, pId)
+        POST("/tracker/ownership/override?trackedEntity={te}&program={prog}&reason=42", teUid, pId)
             .content(HttpStatus.OK));
-  }
-
-  @Test
-  void shouldFailToOverrideWhenGivenTrackedEntityAndTrackedEntityInstanceParameters() {
-    assertEquals(
-        "Only one parameter of 'trackedEntityInstance' and 'trackedEntity' must be specified. "
-            + "Prefer 'trackedEntity' as 'trackedEntityInstance' will be removed.",
-        POST(
-                "/tracker/ownership/override?trackedEntity={tei}&"
-                    + "trackedEntityInstance={tei}&program={prog}&&reason=42",
-                teUid,
-                teUid,
-                pId)
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
   }
 
   @Test
