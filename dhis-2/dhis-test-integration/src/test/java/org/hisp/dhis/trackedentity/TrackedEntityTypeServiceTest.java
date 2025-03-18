@@ -27,10 +27,13 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 
 class TrackedEntityTypeServiceTest extends PostgresIntegrationTestBase {
 
@@ -48,5 +51,18 @@ class TrackedEntityTypeServiceTest extends PostgresIntegrationTestBase {
 
     Assertions.assertEquals(trackedEntityType.getShortName(), persisted.getShortName());
     Assertions.assertEquals(trackedEntityType.getCode(), persisted.getCode());
+  }
+
+  @Test
+  void testAddDuplicateShortName() {
+    TrackedEntityType trackedEntityType1 = createTrackedEntityType('A');
+    trackedEntityType1.setShortName("shortname");
+    trackedEntityTypeService.addTrackedEntityType(trackedEntityType1);
+
+    TrackedEntityType trackedEntityType2 = createTrackedEntityType('B');
+    trackedEntityType2.setShortName("shortname");
+    assertThrows(
+        DataIntegrityViolationException.class,
+        () -> trackedEntityTypeService.addTrackedEntityType(trackedEntityType2));
   }
 }
