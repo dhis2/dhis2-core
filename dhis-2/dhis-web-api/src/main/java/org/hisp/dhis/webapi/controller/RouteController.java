@@ -141,7 +141,7 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
 
   @Override
   protected void preUpdateEntity(Route route, Route newRoute) throws ConflictException {
-    routeService.validateRoute(route);
+    routeService.validateRoute(newRoute);
     removeOAuth2AuthorizedClient(route);
   }
 
