@@ -35,7 +35,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Async;

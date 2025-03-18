@@ -28,15 +28,12 @@
 package org.hisp.dhis.appmanager;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
-
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType.RESTRICTED;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -58,16 +55,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.cfg.annotations.Nullability;
 import org.hisp.dhis.apphub.AppHubService;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.cache.Cache;
@@ -399,7 +392,7 @@ public class DefaultAppManager implements AppManager {
   public Future<Boolean> deleteAppAsync(App app, boolean deleteAppData) {
     if (app != null) {
       Future<Boolean> promise = getAppStorageServiceByApp(app).deleteAppAsync(app);
-      
+
       // Await the result of the delete request
       boolean result;
       try {
@@ -408,7 +401,7 @@ public class DefaultAppManager implements AppManager {
         log.error("Interrupted while deleting app {}", app.getKey());
         return CompletableFuture.completedFuture(false);
       }
-      
+
       if (!result) {
         log.warn("Failed to delete app " + app.getKey());
         return CompletableFuture.completedFuture(false);
@@ -474,9 +467,9 @@ public class DefaultAppManager implements AppManager {
     // Only add bundled apps if an app with the same key hasn't been installed as an override
     bundledAppStorageService.discoverInstalledApps().values().stream()
         .forEach(app -> discoveredApps.putIfAbsent(app.getKey(), app));
-    
+
     log.info("Loaded {} apps from all sources", discoveredApps.size());
-    
+
     // Invalidate the previous app cache
     appCache.invalidateAll();
 

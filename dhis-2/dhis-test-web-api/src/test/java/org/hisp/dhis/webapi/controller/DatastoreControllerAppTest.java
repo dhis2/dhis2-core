@@ -28,14 +28,12 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.singletonList;
-
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.util.concurrent.Future;
-
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
@@ -157,9 +155,10 @@ class DatastoreControllerAppTest extends H2ControllerIntegrationTestBase {
   void testStoreIsUnprotectedAfterAppIsDeleted() {
     assertStatus(HttpStatus.CREATED, POST("/dataStore/test-app-ns/key1", "[]"));
     Future<Boolean> promise = appManager.deleteAppAsync(appManager.getApp("test"), false);
-    assertDoesNotThrow(() -> {
-      assertEquals(true, promise.get());
-    });
+    assertDoesNotThrow(
+        () -> {
+          assertEquals(true, promise.get());
+        });
     switchToNewUser("has-no-app-authority");
     assertEquals(singletonList("key1"), GET("/dataStore/test-app-ns").content().stringValues());
   }
@@ -168,9 +167,10 @@ class DatastoreControllerAppTest extends H2ControllerIntegrationTestBase {
   void testNamespaceIsDeletedWhenAppIsDeletedWithData() {
     assertStatus(HttpStatus.CREATED, POST("/dataStore/test-app-ns/key1", "[]"));
     Future<Boolean> promise = appManager.deleteAppAsync(appManager.getApp("test"), true);
-    assertDoesNotThrow(() -> {
-      assertEquals(true, promise.get());
-    });
+    assertDoesNotThrow(
+        () -> {
+          assertEquals(true, promise.get());
+        });
     assertStatus(HttpStatus.NOT_FOUND, GET("/dataStore/test-app-ns"));
   }
 }
