@@ -228,10 +228,11 @@ public class JCloudsAppStorageService implements AppStorageService {
       InputStream inputStream = zip.getInputStream(entry);
 
       app = jsonMapper.readValue(inputStream, App.class);
-
       app.setFolderName(
           APPS_DIR + File.separator + filename.substring(0, filename.lastIndexOf('.')));
       app.setAppStorageSource(AppStorageSource.JCLOUDS);
+
+      extractManifestTranslations(zip, prefix, app);
 
       if (!this.validateApp(app, appCache)) {
         return app;
@@ -306,6 +307,24 @@ public class JCloudsAppStorageService implements AppStorageService {
     }
 
     return app;
+  }
+
+  private static void extractManifestTranslations(ZipFile zip, String prefix, App app) {
+    try {
+      ZipEntry translationFiles = zip.getEntry(prefix + MANIFEST_TRANSLATION_FILENAME);
+      ObjectMapper objectMapper = new ObjectMapper();
+      objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+      List<AppManifestTranslation> appManifestTranslations =
+          objectMapper
+              .readerForListOf(AppManifestTranslation.class)
+              .readValue(zip.getInputStream(translationFiles));
+      app.setManifestTranslations(appManifestTranslations);
+    } catch (Exception e) {
+      log.debug(
+          "Failed to read manifest translations from file for {} {}",
+          app.getName(),
+          e.getMessage());
+    }
   }
 
   @Override
