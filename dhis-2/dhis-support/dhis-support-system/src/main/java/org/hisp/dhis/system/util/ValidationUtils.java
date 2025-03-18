@@ -474,16 +474,16 @@ public class ValidationUtils {
       return "data_element_or_type_null_or_empty";
     }
 
+    // note: avoid accessing options if not necessary for perf reasons
     if (valueType.isMultiText()) {
       OptionSet options = dataElement.getOptionSet();
       if (options == null) return "data_element_lacks_option_set";
-      if (!options.hasAllOptions(ValueType.splitMultiText(value))) return "value_not_valid_option";
-    } else {
-      if (validateOptions) {
-        OptionSet options = dataElement.getOptionSet();
-        if (options != null && options.getOptionByCode(value) == null)
-          return "value_not_valid_option";
-      }
+      if (validateOptions && !options.hasAllOptions(ValueType.splitMultiText(value)))
+        return "value_not_valid_option";
+    } else if (validateOptions) {
+      OptionSet options = dataElement.getOptionSet();
+      if (options != null && options.getOptionByCode(value) == null)
+        return "value_not_valid_option";
     }
 
     return valueIsValid(value, valueType);
