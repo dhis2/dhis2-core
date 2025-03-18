@@ -61,6 +61,8 @@ import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
@@ -120,6 +122,10 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private OrganisationUnitResolver organisationUnitResolver;
 
+  @Mock private PiDisagInfoInitializer piDisagInfoInitializer;
+
+  @Mock private PiDisagQueryGenerator piDisagQueryGenerator;
+
   @Spy
   private EnrollmentTimeFieldSqlRenderer enrollmentTimeFieldSqlRenderer =
       new EnrollmentTimeFieldSqlRenderer(sqlBuilder);
@@ -149,6 +155,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             jdbcTemplate,
             programIndicatorService,
             programIndicatorSubqueryBuilder,
+            piDisagInfoInitializer,
+            piDisagQueryGenerator,
             enrollmentTimeFieldSqlRenderer,
             executionPlanStore,
             systemSettingsService,

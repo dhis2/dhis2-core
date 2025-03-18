@@ -79,13 +79,16 @@ public class OpenApiGenerationParams {
   boolean includeXProperties = false;
 
   /**
-   * @return cache key to use for {@link Api} objects, null when no cache should be used
+   * @return cache key to use for {@link Api} objects
    */
   @OpenApi.Ignore
   String getApiCacheKey() {
     return expandedRefs ? "full-extended" : "full-default";
   }
 
+  /**
+   * @return cache key used for generated JSON/YAML documents
+   */
   @OpenApi.Ignore
   String getDocumentCacheKey() {
     return getApiCacheKey() + "-" + (includeXProperties ? "x" : "s");

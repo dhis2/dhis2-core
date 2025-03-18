@@ -889,4 +889,12 @@ class DataQueryParamsTest extends TestBase {
 
     assertEquals(getDate(2020, 3, 1), params.getLatestEndDate());
   }
+
+  @Test
+  void testHasDimensionId() {
+    DataQueryParams params = DataQueryParams.newBuilder().addDimension(caA).build();
+    assertTrue(params.hasDimensionId(caA.getUid()));
+    assertFalse(params.hasDimensionId(coA.getUid()));
+    assertFalse(params.hasDimensionId("xyzzy"));
+  }
 }

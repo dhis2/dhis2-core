@@ -29,7 +29,6 @@ package org.hisp.dhis.program;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.category.CategoryOption;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -39,8 +38,6 @@ class ProgramCategoryOptionMappingTest {
 
   private static final String OPTION_ID = "Wluthah6aeC";
 
-  private static final CategoryOption OPTION = new CategoryOption("Option Name");
-
   private static final String FILTER = "A filter";
 
   @Test
@@ -48,13 +45,6 @@ class ProgramCategoryOptionMappingTest {
     ProgramCategoryOptionMapping mapping = new ProgramCategoryOptionMapping();
     mapping.setOptionId(OPTION_ID);
     assertEquals(OPTION_ID, mapping.getOptionId());
-  }
-
-  @Test
-  void testSetGetOption() {
-    ProgramCategoryOptionMapping mapping = new ProgramCategoryOptionMapping();
-    mapping.setOption(OPTION);
-    assertEquals(OPTION, mapping.getOption());
   }
 
   @Test

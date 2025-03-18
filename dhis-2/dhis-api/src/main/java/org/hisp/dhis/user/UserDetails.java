@@ -28,6 +28,7 @@
 package org.hisp.dhis.user;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -123,6 +124,7 @@ public interface UserDetails
             .isTwoFactorEnabled(user.isTwoFactorEnabled())
             .twoFactorType(user.getTwoFactorType())
             .secret(user.getSecret())
+            .email(user.getEmail())
             .isEmailVerified(user.isEmailVerified())
             .firstName(user.getFirstName())
             .surname(user.getSurname())
@@ -132,11 +134,15 @@ public interface UserDetails
             .credentialsNonExpired(credentialsNonExpired)
             .authorities(user.getAuthorities())
             .allAuthorities(
-                Set.copyOf(
-                    user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList()))
+                new HashSet<>(
+                    Set.copyOf(
+                        user.getAuthorities().stream()
+                            .map(GrantedAuthority::getAuthority)
+                            .toList())))
             .isSuper(user.isSuper())
-            .userRoleIds(setOfIds(user.getUserRoles()))
-            .userGroupIds(user.getUid() == null ? Set.of() : setOfIds(user.getGroups()));
+            .userRoleIds(new HashSet<>(setOfIds(user.getUserRoles())))
+            .userGroupIds(
+                new HashSet<>(user.getUid() == null ? Set.of() : setOfIds(user.getGroups())));
 
     if (loadOrgUnits) {
 
@@ -160,19 +166,19 @@ public interface UserDetails
               : (dataViewUnitUids.isEmpty() ? orgUnitUids : dataViewUnitUids);
 
       userDetailsImplBuilder
-          .userOrgUnitIds(userOrgUnitIds)
-          .userSearchOrgUnitIds(userSearchOrgUnitIds)
-          .userEffectiveSearchOrgUnitIds(userEffectiveSearchOrgUnitIds)
-          .userDataOrgUnitIds(userDataOrgUnitIds)
-          .allRestrictions(user.getAllRestrictions());
+          .userOrgUnitIds(new HashSet<>(userOrgUnitIds))
+          .userSearchOrgUnitIds(new HashSet<>(userSearchOrgUnitIds))
+          .userEffectiveSearchOrgUnitIds(new HashSet<>(userEffectiveSearchOrgUnitIds))
+          .userDataOrgUnitIds(new HashSet<>(userDataOrgUnitIds))
+          .allRestrictions(new HashSet<>(user.getAllRestrictions()));
 
     } else {
       userDetailsImplBuilder
-          .userOrgUnitIds(Set.of())
-          .userSearchOrgUnitIds(Set.of())
-          .userEffectiveSearchOrgUnitIds(Set.of())
-          .userDataOrgUnitIds(Set.of())
-          .allRestrictions(Set.of());
+          .userOrgUnitIds(new HashSet<>())
+          .userSearchOrgUnitIds(new HashSet<>())
+          .userEffectiveSearchOrgUnitIds(new HashSet<>())
+          .userDataOrgUnitIds(new HashSet<>())
+          .allRestrictions(new HashSet<>());
     }
 
     return userDetailsImplBuilder.build();

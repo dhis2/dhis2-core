@@ -170,9 +170,7 @@ public class Dhis2JwtAuthenticationManagerResolver
                 mappingClaimKey, mappingValue));
       }
 
-      //      CurrentUserDetails currentUserDetails = userService.createUserDetails(user);
       UserDetails currentUserDetails = UserDetails.fromUser(user);
-
       Collection<GrantedAuthority> grantedAuthorities = user.getAuthorities();
 
       return new DhisJwtAuthenticationToken(

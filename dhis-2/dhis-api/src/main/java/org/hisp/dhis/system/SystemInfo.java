@@ -136,4 +136,12 @@ public final class SystemInfo {
         .databaseInfo(databaseInfo.withoutSensitiveInfo())
         .build();
   }
+
+  public record SystemInfoForMetadataExport(
+      String id, String revision, String version, Date serverDate) {}
+
+  public record SystemInfoForDataStats(
+      String version, String revision, Date buildTime, String id, Date serverDate) {}
+
+  public record SystemInfoForAppCacheFilter(String revision, String version, String calendar) {}
 }
