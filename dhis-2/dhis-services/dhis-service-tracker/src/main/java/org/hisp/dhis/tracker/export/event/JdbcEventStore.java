@@ -108,7 +108,6 @@ import org.springframework.stereotype.Repository;
  */
 @Slf4j
 @Repository("org.hisp.dhis.tracker.export.event.EventStore")
-@RequiredArgsConstructor
 class JdbcEventStore {
   private static final String EVENT_NOTE_QUERY =
       """
@@ -232,23 +231,14 @@ class JdbcEventStore {
 
   private final IdentifiableObjectManager manager;
 
-  @Autowired
   public JdbcEventStore(
-      NamedParameterJdbcTemplate namedParameterJdbcTemplate,
       @Qualifier("readOnlyNamedParameterJdbcTemplate")
           NamedParameterJdbcTemplate readOnlyNamedParameterJdbcTemplate,
       @Qualifier("dataValueJsonMapper") ObjectMapper jsonMapper,
       UserService userService,
-      IdentifiableObjectManager manager,
-      DhisConfigurationProvider configurationProvider) {
+      IdentifiableObjectManager manager) {
 
-    if (configurationProvider.isTrackerReadReplicaEnabled()) {
-      log.info("Tracker Event read queries directed to read replica database");
-      this.jdbcTemplate = readOnlyNamedParameterJdbcTemplate;
-    } else {
-      log.info("Tracker Event read queries directed to main database");
-      this.jdbcTemplate = namedParameterJdbcTemplate;
-    }
+    this.jdbcTemplate = readOnlyNamedParameterJdbcTemplate;
     this.jsonMapper = jsonMapper;
     this.userService = userService;
     this.manager = manager;

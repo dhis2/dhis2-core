@@ -105,6 +105,9 @@ public enum ConfigurationKey {
   /** Tracker Read Replica Database connection URL. */
   TRACKER_READ_REPLICA_CONNECTION_URL("tracker.read_replica.connection.url", "", false),
 
+  /** Use read replica database for tracker queries. (default: false) */
+  TRACKER_READ_REPLICA_ENABLED("tracker.read_replica.enabled", Constants.OFF, false),
+
   /** Database username. */
   CONNECTION_USERNAME("connection.username", "", false),
 
@@ -712,9 +715,6 @@ public enum ConfigurationKey {
 
   /** Enable TOTP-based 2FA authentication. (default: true) */
   TOTP_2FA_ENABLED("login.security.totp_2fa.enabled", Constants.ON, false),
-
-  /** Use read replica database for tracker queries. (default: false) */
-  TRACKER_READ_REPLICA_ENABLED("tracker.read_replica.enabled", Constants.OFF, false),
 
   SESSION_COOKIE_SAME_SITE("session.cookie.samesite", "Lax", false);
 
