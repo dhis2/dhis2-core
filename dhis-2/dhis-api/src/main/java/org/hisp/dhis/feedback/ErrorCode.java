@@ -317,10 +317,14 @@ public enum ErrorCode {
   E4071("Program indicator `{0}` category mapping `{1}` not found in program `{2}`"),
   E4072("Program `{0}` category mapping `{1}` category `{2}` not found"),
   E4073("Program `{0}` category `{1}` mapping `{2}` option `{3}` not found"),
-  E4074("Program indicator `{0}` `{1}` category needs a category mapping"),
+  E4074("Program indicator `{0}` {1} category `{2}` needs a category mapping in the program"),
   E4075("Program `{0}` has an invalid category mapping `{1}`"),
   E4076("Program `{0}` has duplicate category mapping `{1}`"),
   E4077("Program `{0}` category `{1}` has duplicate category mapping name `{2}`"),
+  E4078(
+      "Multiple Category Options `{0}` while disaggregating Program Indicator `{1}`-`{2}` Category Combo `{3}`-`{4}` Category `{5}`-`{6}`"),
+  E4079(
+      "Program `{0}` category mapping `{1}` has multiple option mappings for Category Option `{2}`"),
 
   /* SQL views */
   E4300("SQL query is null"),

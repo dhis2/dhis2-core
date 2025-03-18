@@ -201,6 +201,12 @@ class PostgreSqlBuilderTest {
   }
 
   @Test
+  void testConcat_FromList() {
+    String result = sqlBuilder.concat(List.of("column1", "column2", "column3"));
+    assertEquals("concat(column1, column2, column3)", result);
+  }
+
+  @Test
   void testTrim() {
     assertEquals("trim(ax.value)", sqlBuilder.trim("ax.value"));
   }

@@ -48,4 +48,17 @@ public class OpenApiRenderingParams {
     Values of a shared enum with less than the limit values will show the first n values up to limit
     directly where the type is used""")
   int inlineEnumsLimit = 0;
+
+  /**
+   * @return part of the overall cache key added to reflect the rendering parameters for the HTML
+   *     document cache
+   */
+  @OpenApi.Ignore
+  String getCacheKey() {
+    String key = "";
+    if (source) key += "-s";
+    if (inlineEnumsLimit != 0) key += "-e" + inlineEnumsLimit;
+    if (sortEndpointsByMethod) key += "-s";
+    return key;
+  }
 }

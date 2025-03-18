@@ -60,7 +60,7 @@ import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.EventProgramEnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramCategoryMapping;
-import org.hisp.dhis.program.ProgramCategoryMappingResolver;
+import org.hisp.dhis.program.ProgramCategoryMappingValidator;
 import org.hisp.dhis.program.ProgramCategoryOptionMapping;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStage;
@@ -93,13 +93,13 @@ class ProgramObjectBundleHookTest {
 
   @Mock private ProgramIndicatorService programIndicatorService;
 
-  private ProgramCategoryMappingResolver categoryMappingResolver;
+  private ProgramCategoryMappingValidator categoryMappingResolver;
 
   private Program programA;
 
   @BeforeEach
   public void setUp() {
-    categoryMappingResolver = new ProgramCategoryMappingResolver(identifiableObjectManager);
+    categoryMappingResolver = new ProgramCategoryMappingValidator(identifiableObjectManager);
 
     this.subject =
         new ProgramObjectBundleHook(
@@ -108,8 +108,7 @@ class ProgramObjectBundleHookTest {
             organisationUnitService,
             aclService,
             identifiableObjectManager,
-            categoryMappingResolver,
-            programIndicatorService);
+            categoryMappingResolver);
 
     programA = createProgram('A');
     programA.setId(100);
@@ -202,7 +201,7 @@ class ProgramObjectBundleHookTest {
                 .categoryId("mGeengien2R")
                 .mappingName("Mapping 1")
                 .optionMappings(
-                    Set.of(
+                    List.of(
                         ProgramCategoryOptionMapping.builder()
                             .optionId("sephoo5OWah")
                             .filter("true")
@@ -217,7 +216,7 @@ class ProgramObjectBundleHookTest {
                 .categoryId("uweesh3Do7e")
                 .mappingName("Mapping 2")
                 .optionMappings(
-                    Set.of(
+                    List.of(
                         ProgramCategoryOptionMapping.builder()
                             .optionId("hohngoo6aiV")
                             .filter("true")
@@ -230,13 +229,13 @@ class ProgramObjectBundleHookTest {
     programA.setCategoryMappings(goodCategoryMappings);
 
     // Note: any() is used for list matching because the list order may vary.
-    when(identifiableObjectManager.getByUid(eq(Category.class), any()))
+    when(identifiableObjectManager.getByUidWithoutTransaction(eq(Category.class), any()))
         .thenReturn(
             List.of(
                 createCategory("Category A", "mGeengien2R"),
                 createCategory("Category B", "uweesh3Do7e")));
 
-    when(identifiableObjectManager.getByUid(eq(CategoryOption.class), any()))
+    when(identifiableObjectManager.getByUidWithoutTransaction(eq(CategoryOption.class), any()))
         .thenReturn(
             List.of(
                 createCategoryOption("Option A", "sephoo5OWah"),
@@ -256,7 +255,7 @@ class ProgramObjectBundleHookTest {
                 .categoryId("vaiZahCei7P")
                 .mappingName("Mapping 1")
                 .optionMappings(
-                    Set.of(
+                    List.of(
                         ProgramCategoryOptionMapping.builder()
                             .optionId("zmeiNahdow2")
                             .filter("true")
@@ -265,7 +264,8 @@ class ProgramObjectBundleHookTest {
 
     programA.setCategoryMappings(unresolvableCategoryMappings);
 
-    when(identifiableObjectManager.getByUid(Category.class, List.of("vaiZahCei7P")))
+    when(identifiableObjectManager.getByUidWithoutTransaction(
+            Category.class, List.of("vaiZahCei7P")))
         .thenReturn(emptyList());
 
     List<ErrorReport> errors = subject.validate(programA, null);
@@ -283,7 +283,7 @@ class ProgramObjectBundleHookTest {
                 .categoryId("daihai8Vee4")
                 .mappingName("Mapping 1")
                 .optionMappings(
-                    Set.of(
+                    List.of(
                         ProgramCategoryOptionMapping.builder()
                             .optionId("Ueeth6egaeH")
                             .filter("true")
@@ -292,10 +292,12 @@ class ProgramObjectBundleHookTest {
 
     programA.setCategoryMappings(categoryMappingsWithInvalidId);
 
-    when(identifiableObjectManager.getByUid(Category.class, List.of("daihai8Vee4")))
+    when(identifiableObjectManager.getByUidWithoutTransaction(
+            Category.class, List.of("daihai8Vee4")))
         .thenReturn(List.of(createCategory("Category A", "daihai8Vee4")));
 
-    when(identifiableObjectManager.getByUid(CategoryOption.class, List.of("Ueeth6egaeH")))
+    when(identifiableObjectManager.getByUidWithoutTransaction(
+            CategoryOption.class, List.of("Ueeth6egaeH")))
         .thenReturn(List.of(createCategoryOption("Option A", "Ueeth6egaeH")));
 
     List<ErrorReport> errors = subject.validate(programA, null);
@@ -313,7 +315,7 @@ class ProgramObjectBundleHookTest {
                 .categoryId("Zhoo0oTaej2")
                 .mappingName("Mapping 1")
                 .optionMappings(
-                    Set.of(
+                    List.of(
                         ProgramCategoryOptionMapping.builder()
                             .optionId("gvieJuud0Ro")
                             .filter("true")
@@ -324,7 +326,7 @@ class ProgramObjectBundleHookTest {
                 .categoryId("IaD3eey1wee")
                 .mappingName("Mapping 2")
                 .optionMappings(
-                    Set.of(
+                    List.of(
                         ProgramCategoryOptionMapping.builder()
                             .optionId("prah3dao8Ra")
                             .filter("true")
@@ -334,13 +336,13 @@ class ProgramObjectBundleHookTest {
     programA.setCategoryMappings(categoryMappingsWithDuplicateId);
 
     // Note: any() is used for list matching because the list order may vary.
-    when(identifiableObjectManager.getByUid(eq(Category.class), any()))
+    when(identifiableObjectManager.getByUidWithoutTransaction(eq(Category.class), any()))
         .thenReturn(
             List.of(
                 createCategory("Category A", "Zhoo0oTaej2"),
                 createCategory("Category B", "IaD3eey1wee")));
 
-    when(identifiableObjectManager.getByUid(eq(CategoryOption.class), any()))
+    when(identifiableObjectManager.getByUidWithoutTransaction(eq(CategoryOption.class), any()))
         .thenReturn(
             List.of(
                 createCategoryOption("Option A", "gvieJuud0Ro"),
@@ -361,7 +363,7 @@ class ProgramObjectBundleHookTest {
                 .categoryId("zceth5Ia2oh")
                 .mappingName("Same mapping name for same category")
                 .optionMappings(
-                    Set.of(
+                    List.of(
                         ProgramCategoryOptionMapping.builder()
                             .optionId("oohX9vageij")
                             .filter("true")
@@ -372,7 +374,7 @@ class ProgramObjectBundleHookTest {
                 .categoryId("zceth5Ia2oh")
                 .mappingName("Same mapping name for same category")
                 .optionMappings(
-                    Set.of(
+                    List.of(
                         ProgramCategoryOptionMapping.builder()
                             .optionId("oohX9vageij")
                             .filter("false")
@@ -381,10 +383,12 @@ class ProgramObjectBundleHookTest {
 
     programA.setCategoryMappings(categoryMappingsWithDuplicateName);
 
-    when(identifiableObjectManager.getByUid(Category.class, List.of("zceth5Ia2oh")))
+    when(identifiableObjectManager.getByUidWithoutTransaction(
+            Category.class, List.of("zceth5Ia2oh")))
         .thenReturn(List.of(createCategory("Category A", "zceth5Ia2oh")));
 
-    when(identifiableObjectManager.getByUid(CategoryOption.class, List.of("oohX9vageij")))
+    when(identifiableObjectManager.getByUidWithoutTransaction(
+            CategoryOption.class, List.of("oohX9vageij")))
         .thenReturn(List.of(createCategoryOption("Option A", "oohX9vageij")));
 
     List<ErrorReport> errors = subject.validate(programA, null);

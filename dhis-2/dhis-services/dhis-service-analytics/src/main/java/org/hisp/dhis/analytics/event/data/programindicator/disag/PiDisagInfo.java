@@ -25,39 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system;
+package org.hisp.dhis.analytics.event.data.programindicator.disag;
 
-import org.hisp.dhis.system.SystemInfo.SystemInfoForAppCacheFilter;
-import org.hisp.dhis.system.SystemInfo.SystemInfoForDataStats;
-import org.hisp.dhis.system.SystemInfo.SystemInfoForMetadataExport;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import lombok.Builder;
+import lombok.Getter;
+import org.hisp.dhis.program.ProgramCategoryMapping;
 
 /**
- * @author Lars Helge Overland
+ * Contextual information needed when disaggregating a {@link
+ * org.hisp.dhis.program.ProgramIndicator} during an analytics query
+ *
+ * @author Jim Grace
  */
-public interface SystemService {
+@Builder
+@Getter
+public class PiDisagInfo {
+
+  /** Category UIDs that are used as query dimensions */
+  Set<String> dimensionCategories;
 
   /**
-   * @return The system info summary for right now
+   * Additional category UIDs (that are not also dimensions) needed to assemble a
+   * categoryOptionCombo and/or attributeOptionCombo. (This is a list rather than a set for
+   * consistency in ordering the SQL columns, since it is traversed more than once.)
    */
-  SystemInfo getSystemInfo();
+  List<String> cocCategories;
+
+  /** All category mappings that are being used by the current query */
+  Map<String, ProgramCategoryMapping> categoryMappings;
+
+  /** Map of ordered option UIDs to categoryOptionCombo UID */
+  Map<String, String> cocResolver;
+
+  /** Map of ordered option UIDs to attributeOptionCombo UID */
+  Map<String, String> aocResolver;
 
   /**
-   * @return The system info version
+   * Tests to see if a dimension is provided by program indicator disaggregation logic.
+   *
+   * @param dimension the dimension to test
+   * @return true if a piDisag dimension, else false
    */
-  String getSystemInfoVersion();
-
-  /**
-   * @return SystemIdVersionDate
-   */
-  SystemInfoForMetadataExport getSystemInfoForMetadataExport();
-
-  /**
-   * @return SystemVersionBuildTime
-   */
-  SystemInfoForDataStats getSystemInfoForDataStats();
-
-  /**
-   * @return SystemVersionCalendar
-   */
-  SystemInfoForAppCacheFilter getSystemInfoForAppCacheFilter();
+  public boolean isPiDisagDimension(String dimension) {
+    return categoryMappings.containsKey(dimension);
+  }
 }

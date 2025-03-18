@@ -68,6 +68,8 @@ import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.DimensionType;
@@ -119,6 +121,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       ProgramIndicatorService programIndicatorService,
       ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
+      PiDisagInfoInitializer piDisagInfoInitializer,
+      PiDisagQueryGenerator piDisagQueryGenerator,
       EventTimeFieldSqlRenderer timeFieldSqlRenderer,
       ExecutionPlanStore executionPlanStore,
       SystemSettingsService settingsService,
@@ -129,6 +133,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         jdbcTemplate,
         programIndicatorService,
         programIndicatorSubqueryBuilder,
+        piDisagInfoInitializer,
+        piDisagQueryGenerator,
         executionPlanStore,
         sqlBuilder,
         settingsService,
@@ -519,7 +525,11 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
             Set.of(DimensionType.CATEGORY, DimensionType.CATEGORY_OPTION_GROUP_SET));
 
     for (DimensionalObject dim : dynamicDimensions) {
-      String col = quoteAlias(dim.getDimensionName());
+      String dimName = dim.getDimensionName();
+      String col =
+          params.isPiDisagDimension(dimName)
+              ? piDisagQueryGenerator.getColumnForWhereClause(params, dimName)
+              : quoteAlias(dimName);
 
       sql +=
           hlp.whereAnd()

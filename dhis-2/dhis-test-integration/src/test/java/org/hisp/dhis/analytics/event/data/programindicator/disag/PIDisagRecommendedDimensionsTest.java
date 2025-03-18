@@ -25,39 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system;
+package org.hisp.dhis.analytics.event.data.programindicator.disag;
 
-import org.hisp.dhis.system.SystemInfo.SystemInfoForAppCacheFilter;
-import org.hisp.dhis.system.SystemInfo.SystemInfoForDataStats;
-import org.hisp.dhis.system.SystemInfo.SystemInfoForMetadataExport;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.common.DimensionalObject;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @author Lars Helge Overland
+ * @author Jim Grace
  */
-public interface SystemService {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Transactional
+class PIDisagRecommendedDimensionsTest extends AbstractPIDisagTest {
 
-  /**
-   * @return The system info summary for right now
-   */
-  SystemInfo getSystemInfo();
+  @Override
+  @BeforeAll
+  protected void setUp() {
+    super.setUp();
+  }
 
-  /**
-   * @return The system info version
-   */
-  String getSystemInfoVersion();
+  @Test
+  void testGetRecommendedDimensions() {
 
-  /**
-   * @return SystemIdVersionDate
-   */
-  SystemInfoForMetadataExport getSystemInfoForMetadataExport();
+    // Given
+    Set<Category> expectedCategories = Set.of(category1, category2, category3);
 
-  /**
-   * @return SystemVersionBuildTime
-   */
-  SystemInfoForDataStats getSystemInfoForDataStats();
+    // When
+    List<? extends DimensionalObject> recommendations =
+        PiDisagRecommendedDimensions.getRecommendations(eventQueryParams, manager);
 
-  /**
-   * @return SystemVersionCalendar
-   */
-  SystemInfoForAppCacheFilter getSystemInfoForAppCacheFilter();
+    // Then (in any order)
+    assertEquals(expectedCategories, new HashSet<>(recommendations));
+  }
 }
