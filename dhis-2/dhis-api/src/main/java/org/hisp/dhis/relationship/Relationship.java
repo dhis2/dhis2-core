@@ -33,6 +33,9 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
@@ -40,6 +43,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.SoftDeletableObject;
+import org.hisp.dhis.common.UID;
 
 /**
  * @author Abyot Asalefew
@@ -84,6 +88,23 @@ public class Relationship extends SoftDeletableObject implements Serializable {
   // -------------------------------------------------------------------------
   // Getters and setters
   // -------------------------------------------------------------------------
+
+  @JsonIgnore
+  public Set<UID> getTrackedEntityOrigins() {
+    Set<UID> uids = new HashSet<>();
+
+    Optional.ofNullable(this.getFrom().getTrackedEntityInstance())
+        .map(UID::of)
+        .ifPresent(uids::add);
+
+    if (this.getRelationshipType().isBidirectional()) {
+      Optional.ofNullable(this.getTo().getTrackedEntityInstance())
+          .map(UID::of)
+          .ifPresent(uids::add);
+    }
+
+    return uids;
+  }
 
   /**
    * @return the relationshipType

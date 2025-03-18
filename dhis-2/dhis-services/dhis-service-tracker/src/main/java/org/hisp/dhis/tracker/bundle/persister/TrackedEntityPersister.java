@@ -29,8 +29,10 @@ package org.hisp.dhis.tracker.bundle.persister;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hibernate.Session;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
@@ -48,7 +50,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class TrackedEntityPersister
-    extends AbstractTrackerPersister<TrackedEntity, TrackedEntityInstance> {
+    extends AbstractTrackerPersister<
+        TrackedEntity, org.hisp.dhis.trackedentity.TrackedEntityInstance> {
   @Nonnull private final TrackerConverterService<TrackedEntity, TrackedEntityInstance> teConverter;
 
   public TrackedEntityPersister(
@@ -122,8 +125,8 @@ public class TrackedEntityPersister
   }
 
   @Override
-  protected String getUpdatedTrackedEntity(TrackedEntityInstance entity) {
-    return null; // We don't need to keep track, Tei has already been
+  protected Set<UID> getUpdatedTrackedEntities(TrackedEntityInstance entity) {
+    return Set.of(); // We don't need to keep track, Tei has already been
     // updated
   }
 }
