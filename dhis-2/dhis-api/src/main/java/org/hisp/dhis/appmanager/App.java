@@ -40,6 +40,7 @@ import java.util.*;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.datastore.DatastoreNamespace;
+import org.hisp.dhis.util.ObjectUtils;
 
 /**
  * @author Saptarshi
@@ -519,5 +520,64 @@ public class App implements Serializable {
     return additionalNamespaces.stream()
         .flatMap(ns -> ns.getAllAuthorities().stream())
         .collect(toUnmodifiableSet());
+  }
+
+  private transient List<AppManifestTranslation> manifestTranslations = new ArrayList<>();
+
+  public void setManifestTranslations(List<AppManifestTranslation> translations) {
+    if (translations == null) {
+      return;
+    }
+
+    manifestTranslations = translations;
+  }
+
+  public void localise(Locale userLocale) {
+    if (!manifestTranslations.isEmpty()) {
+      for (AppShortcut shortcut : this.shortcuts) {
+        shortcut.setDisplayName(getTranslations(userLocale, shortcut.getName()));
+      }
+    }
+  }
+
+  private String getTranslations(Locale locale, String shortcutName) {
+    if (this.manifestTranslations == null) {
+      return shortcutName;
+    }
+
+    String language = locale.getLanguage();
+    String country = locale.getCountry();
+    String script = locale.getScript();
+
+    Optional<AppManifestTranslation> matchingLocale =
+        manifestTranslations.stream()
+            .filter(
+                tf ->
+                    language.equals(tf.getLanguageCode())
+                        && country.equals(tf.getCountryCode())
+                        && (script.isEmpty() || script.equals(tf.getScriptCode())))
+            .findFirst();
+
+    Optional<AppManifestTranslation> matchingLanguage =
+        manifestTranslations.stream()
+            .filter(tf -> language.equals(tf.getLanguageCode()))
+            .findFirst();
+
+    if (matchingLocale.isEmpty() && matchingLanguage.isEmpty()) {
+      return shortcutName;
+    }
+
+    String key = "SHORTCUT_" + shortcutName;
+
+    String result = null;
+    if (matchingLocale.isPresent()) {
+      result = matchingLocale.get().getTranslations().get(key);
+    }
+
+    if (result == null && matchingLanguage.isPresent()) {
+      result = matchingLanguage.get().getTranslations().get(key);
+    }
+
+    return ObjectUtils.firstNonNull(result, shortcutName);
   }
 }
