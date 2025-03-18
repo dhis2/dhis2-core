@@ -166,7 +166,7 @@ public class AppController {
   public void renderApp(
       @PathVariable("app") String appName, HttpServletRequest request, HttpServletResponse response)
       throws IOException, WebMessageException, ForbiddenException {
-    String contextPath = HttpServletRequestPaths.getContextPath(request);
+    String contextPath = request.getContextPath();
     App application = appManager.getApp(appName, contextPath);
 
     if (application == null) {
