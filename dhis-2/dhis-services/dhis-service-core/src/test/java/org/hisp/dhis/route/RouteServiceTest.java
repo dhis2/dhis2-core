@@ -48,18 +48,17 @@ class RouteServiceTest {
     protocolUnderTest = protocols[new Random().nextInt(protocols.length)];
   }
 
-  //  @Test
-  //  void testX() {
-  //    Properties properties = new Properties();
-  //    properties.setProperty(
-  //            ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getKey(), protocolUnderTest + "://*");
-  //    DhisConfigurationProvider dhisConfigurationProvider =
-  //            new TestDhisConfigurationProvider(properties);
-  //
-  //    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null,
-  // null);
-  //    assertThrows(IllegalStateException.class, routeService::postConstruct);
-  //  }
+  @Test
+  void testPostConstructThrowsExceptionWhenRouteRemoteServerAllowedEntryHasNonHttpProtocol() {
+    Properties properties = new Properties();
+    properties.setProperty(
+        ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getKey(), "ftp://foo.org/");
+    DhisConfigurationProvider dhisConfigurationProvider =
+        new TestDhisConfigurationProvider(properties);
+
+    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
+    assertThrows(IllegalStateException.class, routeService::postConstruct);
+  }
 
   @Test
   void testPostConstructThrowsExceptionWhenRouteRemoteServerAllowedEntryHasUrlPath() {

@@ -156,7 +156,7 @@ public class RouteService {
   }
 
   protected void validateHost(String host) {
-    if (!(host.startsWith("http:") || host.startsWith("https:"))) {
+    if (!(host.matches("^(https?:).*"))) {
       throw new IllegalStateException(
           "Allowed route URL scheme must be either http or https: " + host);
     }
@@ -180,7 +180,7 @@ public class RouteService {
     } catch (MalformedURLException e) {
       throw new IllegalStateException(e);
     }
-    if (!url.getPath().isEmpty()) {
+    if (!org.apache.commons.lang3.StringUtils.isNotEmpty(url.getPath())) {
       throw new IllegalStateException("Allowed route URL must not have a path: " + host);
     }
   }
