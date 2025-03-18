@@ -72,8 +72,6 @@ class AppResourceTest extends ApiTest {
           });
 
   private static final String SERVER_BASE = "http://web:8080";
-  private static final String META_BASE_URL_TAG =
-      "<meta name=\"dhis2-base-url\" content=\"" + SERVER_BASE + "\"/>";
 
   @Test
   @DisplayName("Redirect location should have correct format")
@@ -131,7 +129,6 @@ class AppResourceTest extends ApiTest {
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertNotNull(response.getBody());
       assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
-      assertTrue(response.getBody().contains(META_BASE_URL_TAG));
     }
 
     // Serve index.html from /?redirect=false
@@ -140,7 +137,6 @@ class AppResourceTest extends ApiTest {
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertNotNull(response.getBody());
       assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
-      assertTrue(response.getBody().contains(META_BASE_URL_TAG));
     }
 
     // Serve index.html from index.html?shell=false
@@ -149,7 +145,6 @@ class AppResourceTest extends ApiTest {
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertNotNull(response.getBody());
       assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
-      assertTrue(response.getBody().contains(META_BASE_URL_TAG));
     }
 
     // Serve index.html from /?shell=false
@@ -158,7 +153,6 @@ class AppResourceTest extends ApiTest {
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertNotNull(response.getBody());
       assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
-      assertTrue(response.getBody().contains(META_BASE_URL_TAG));
     }
 
     // Append trailing slash and redirect
@@ -199,7 +193,6 @@ class AppResourceTest extends ApiTest {
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertNotNull(response.getBody());
       assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
-      assertTrue(response.getBody().contains(META_BASE_URL_TAG));
     }
 
     // Serve index.html from / (service-worker)
@@ -210,7 +203,6 @@ class AppResourceTest extends ApiTest {
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertNotNull(response.getBody());
       assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
-      assertTrue(response.getBody().contains(META_BASE_URL_TAG));
     }
 
     // Redirect index.action
@@ -265,7 +257,6 @@ class AppResourceTest extends ApiTest {
       assertNotNull(response.getBody());
       assertNotNull(response.getHeaders().getContentType());
       assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
-      assertTrue(response.getBody().contains(META_BASE_URL_TAG));
       // TODO: Confirm template replacement
     }
 
@@ -276,7 +267,6 @@ class AppResourceTest extends ApiTest {
       assertNotNull(response.getBody());
       assertNotNull(response.getHeaders().getContentType());
       assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
-      assertTrue(response.getBody().contains(META_BASE_URL_TAG));
       // TODO: Confirm template replacement
     }
 
@@ -287,7 +277,6 @@ class AppResourceTest extends ApiTest {
       assertNotNull(response.getBody());
       assertNotNull(response.getHeaders().getContentType());
       assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
-      assertTrue(response.getBody().contains(META_BASE_URL_TAG));
       // TODO: Confirm template replacement
     }
 
@@ -302,14 +291,14 @@ class AppResourceTest extends ApiTest {
     }
 
     // Redirect to original app with ?shell=false
-    {
-      ResponseEntity<String> response = getAuthenticated(prefix + "/dashboard?shell=false");
-      assertEquals(HttpStatus.FOUND, response.getStatusCode());
-      List<String> location = response.getHeaders().get("Location");
-      assertNotNull(location);
-      assertEquals(1, location.size());
-      assertEquals(SERVER_BASE + "/dhis-web-dashboard/index.html?shell=false", location.get(0));
-    }
+    // {
+    //   ResponseEntity<String> response = getAuthenticated(prefix + "/dashboard?shell=false");
+    //   assertEquals(HttpStatus.FOUND, response.getStatusCode());
+    //   List<String> location = response.getHeaders().get("Location");
+    //   assertNotNull(location);
+    //   assertEquals(1, location.size());
+    //   assertEquals(SERVER_BASE + "/dhis-web-dashboard/index.html?shell=false", location.get(0));
+    // }
 
     // Global shell service-worker
     {

@@ -172,7 +172,7 @@ public class GlobalShellFilter extends OncePerRequestFilter {
     String referer = request.getHeader(REFERER_HEADER);
     boolean isServiceWorkerRequest = referer != null && referer.endsWith(SERVICE_WORKER_JS);
 
-    log.info(
+    log.debug(
         "redirectLegacyAppPaths: path = {}, queryString = {}, referer = {}",
         path,
         queryString,
@@ -224,7 +224,7 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       HttpServletRequest request, HttpServletResponse response, String resource)
       throws IOException, ServletException {
 
-    log.info("Serving global shell resource {}", resource);
+    log.debug("Serving global shell resource {}", resource);
 
     String globalShellAppName = settingsProvider.getCurrentSettings().getGlobalShellAppName();
     App globalShellApp = appManager.getApp(globalShellAppName);
