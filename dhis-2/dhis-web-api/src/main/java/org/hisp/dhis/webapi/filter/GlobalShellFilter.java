@@ -168,7 +168,7 @@ public class GlobalShellFilter extends OncePerRequestFilter {
     boolean isNavigationRequest =
         secFetchMode != null && secFetchMode.equals(SEC_FETCH_MODE_NAVIGATE);
 
-    log.debug(
+    log.info(
         "redirectLegacyAppPaths: path = {}, queryString = {}, secFetchMode = {}",
         path,
         queryString,

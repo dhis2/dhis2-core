@@ -32,6 +32,7 @@ import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,13 +45,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
+
 import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.appmanager.ResourceResult.Redirect;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
@@ -273,7 +279,7 @@ public class JCloudsAppStorageService implements AppStorageService {
             if (key.equals(other.getKey()) && !version.equals(other.getVersion()))
               otherVersions.add(other);
           });
-      otherVersions.forEach(this::deleteApp);
+      otherVersions.forEach(this::deleteAppAsync);
 
       String namespace = app.getActivities().getDhis().getNamespace();
 
@@ -305,17 +311,18 @@ public class JCloudsAppStorageService implements AppStorageService {
   }
 
   @Override
-  public void deleteApp(App app) {
+  public Future<Boolean> deleteAppAsync(App app) {
     log.info("Deleting app {}", app.getName());
+
+    // delete the manifest file first in case the system crashes during deletion
+    // and the manifest file is not deleted, resulting in an app that can't be installed
+    jCloudsStore.removeBlob(app.getFolderName() + "manifest.webapp");
 
     if (jCloudsStore.isUsingFileSystem()) {
       // Delete all files related to app (works for local filestore):
       jCloudsStore.deleteDirectory(app.getFolderName());
     } else {
       // slower but works for S3:
-      // delete the manifest file first in case the system crashes during deletion
-      // and the manifest file is not deleted, resulting in an app that can't be installed
-      jCloudsStore.removeBlob(app.getFolderName() + "manifest.webapp");
       // Delete all files related to app
       ListContainerOptions options = prefix(app.getFolderName()).recursive();
       for (StorageMetadata resource : jCloudsStore.getBlobList(options)) {
@@ -324,6 +331,7 @@ public class JCloudsAppStorageService implements AppStorageService {
       }
     }
     log.info("Deleted app {}", app.getName());
+    return CompletableFuture.completedFuture(true);
   }
 
   @Override

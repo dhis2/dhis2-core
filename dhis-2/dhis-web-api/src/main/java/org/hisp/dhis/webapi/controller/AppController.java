@@ -239,8 +239,7 @@ public class AppController {
       throw new WebMessageException(conflict("App is already being deleted: " + app));
     }
 
-    appManager.markAppToDelete(appToDelete);
-    appManager.deleteApp(appToDelete, deleteAppData);
+    appManager.markAppToDelete(appToDelete, deleteAppData);
   }
 
   @SuppressWarnings("unchecked")

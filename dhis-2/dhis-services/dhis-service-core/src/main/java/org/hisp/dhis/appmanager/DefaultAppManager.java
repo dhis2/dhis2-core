@@ -28,12 +28,15 @@
 package org.hisp.dhis.appmanager;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
+
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType.RESTRICTED;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -44,19 +47,27 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.cfg.annotations.Nullability;
 import org.hisp.dhis.apphub.AppHubService;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.cache.Cache;
@@ -385,28 +396,46 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Override
-  public void deleteApp(App app, boolean deleteAppData) {
+  public Future<Boolean> deleteAppAsync(App app, boolean deleteAppData) {
     if (app != null) {
-      getAppStorageServiceByApp(app).deleteApp(app);
-      App otherVersionApp = getApp(app.getName());
+      Future<Boolean> promise = getAppStorageServiceByApp(app).deleteAppAsync(app);
+      
+      // Await the result of the delete request
+      boolean result;
+      try {
+        result = promise.get();
+      } catch (Exception e) {
+        log.error("Interrupted while deleting app {}", app.getKey());
+        return CompletableFuture.completedFuture(false);
+      }
+      
+      if (!result) {
+        log.warn("Failed to delete app " + app.getKey());
+        return CompletableFuture.completedFuture(false);
+      }
+
+      App otherVersionApp = getApp(app.getKey());
       if (otherVersionApp == null) {
         unregisterDatastoreProtection(app);
       }
       if (deleteAppData) {
         deleteAppData(app);
       }
+
       appCache.invalidate(app.getKey());
       reloadApps();
     }
+    return CompletableFuture.completedFuture(true);
   }
 
   @Override
-  public boolean markAppToDelete(App app) {
+  public boolean markAppToDelete(App app, boolean deleteAppData) {
     Optional<App> appOpt = appCache.get(app.getKey());
     if (appOpt.isEmpty()) return false;
     App appFromCache = appOpt.get();
     appFromCache.setAppState(AppStatus.DELETION_IN_PROGRESS);
     appCache.put(app.getKey(), appFromCache);
+    deleteAppAsync(app, deleteAppData);
     return true;
   }
 
@@ -429,23 +458,30 @@ public class DefaultAppManager implements AppManager {
   @Override
   @PostConstruct
   public void reloadApps() {
+    Map<String, App> discoveredApps = new HashMap<>();
+
     /*
      * DEPRECATED - local app storage is no longer used, but some implementations upgrading from 2.28
      * or earlier might still have app files in the local system.  To be removed in 2.43.
      */
     localAppStorageService.discoverInstalledApps().values().stream()
-        .filter(app -> !exists(app.getKey()))
-        .forEach(this::installApp);
+        .forEach(app -> discoveredApps.putIfAbsent(app.getKey(), app));
 
     // Install apps from jClouds (either local storage or a remote object store)
     jCloudsAppStorageService.discoverInstalledApps().values().stream()
-        .filter(app -> !exists(app.getKey()))
-        .forEach(this::installApp);
+        .forEach(app -> discoveredApps.putIfAbsent(app.getKey(), app));
 
     // Only add bundled apps if an app with the same key hasn't been installed as an override
     bundledAppStorageService.discoverInstalledApps().values().stream()
-        .filter(app -> !exists(app.getKey()))
-        .forEach(this::installApp);
+        .forEach(app -> discoveredApps.putIfAbsent(app.getKey(), app));
+    
+    log.info("Loaded {} apps from all sources", discoveredApps.size());
+    
+    // Invalidate the previous app cache
+    appCache.invalidateAll();
+
+    // Install all discovered apps
+    discoveredApps.values().forEach(this::installApp);
   }
 
   private void installApp(App app) {

@@ -33,9 +33,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
+
 import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.springframework.core.io.Resource;
+import org.springframework.scheduling.annotation.Async;
 
 /**
  * @author Saptarshi Purkayastha
@@ -183,12 +186,13 @@ public interface AppManager {
   boolean exists(String appName);
 
   /**
-   * Deletes the given app.
+   * Deletes the given app asynchronously, with the option to delete associated data in dataStore.
    *
    * @param app the app to delete.
    * @param deleteAppData decide if associated data in dataStore should be deleted or not.
    */
-  void deleteApp(App app, boolean deleteAppData);
+  @Async
+  Future<Boolean> deleteAppAsync(App app, boolean deleteAppData);
 
   /** Reload list of apps. */
   void reloadApps();
@@ -224,17 +228,19 @@ public interface AppManager {
    *
    * @param app the app to look up files for
    * @param pageName the page requested
+   * @param contextPath the context path of this instance.
    * @return the {@link ResourceResult}
    */
   ResourceResult getAppResource(App app, String pageName, String contextPath) throws IOException;
 
   /**
-   * Sets the app status to DELETION_IN_PROGRESS.
+   * Sets the app status to DELETION_IN_PROGRESS and trigger asynchronous deletion of the app.
    *
    * @param app The app that has to be marked as deleted.
+   * @param deleteAppData decide if associated data in dataStore should be deleted or not.
    * @return true if the status was changed in this method.
    */
-  boolean markAppToDelete(App app);
+  boolean markAppToDelete(App app, boolean deleteAppData);
 
   int getUriContentLength(Resource resource);
 

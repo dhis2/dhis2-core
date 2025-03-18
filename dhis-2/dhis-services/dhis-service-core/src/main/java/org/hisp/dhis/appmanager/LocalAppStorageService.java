@@ -30,6 +30,7 @@ package org.hisp.dhis.appmanager;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -37,9 +38,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.FileUtils;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.cache.Cache;
@@ -159,21 +164,27 @@ public class LocalAppStorageService implements AppStorageService {
   }
 
   @Override
-  public void deleteApp(App app) {
+  public Future<Boolean> deleteAppAsync(App app) {
     if (!apps.containsKey(app.getUrlFriendlyName())) {
       log.warn(String.format("Failed to delete app '%s': App not found", app.getName()));
+      return CompletableFuture.completedFuture(false);
     }
 
+    boolean success = true;
     try {
       String folderPath = getAppFolderPath() + File.separator + app.getFolderName();
       FileUtils.forceDelete(new File(folderPath));
     } catch (FileNotFoundException ex) {
       log.error(String.format("Failed to delete app '%s': Files not found", app.getName()), ex);
+      success = false;
     } catch (IOException ex) {
       log.error(String.format("Failed to delete app '%s'", app.getName()), ex);
+      success = false;
     } finally {
       discoverInstalledApps();
     }
+
+    return CompletableFuture.completedFuture(success);
   }
 
   private String getAppFolderPath() {
