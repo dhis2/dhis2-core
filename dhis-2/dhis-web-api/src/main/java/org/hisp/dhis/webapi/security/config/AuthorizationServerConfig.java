@@ -51,7 +51,6 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.KeyStoreUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -170,7 +169,7 @@ public class AuthorizationServerConfig {
     return new ImmutableJWKSet<>(new JWKSet(generateEphemeralKey()));
   }
 
-  private static @NotNull ImmutableJWKSet<SecurityContext> getSecurityContextImmutableJWKSet(
+  private static @Nonnull ImmutableJWKSet<SecurityContext> getSecurityContextImmutableJWKSet(
       KeyStore keyStore, String alias, char[] pin) {
     RSAKey rsaKey;
     try {
