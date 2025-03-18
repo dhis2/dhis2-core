@@ -352,6 +352,14 @@ public enum ConfigurationKey {
   META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC(
       "metadata.sync.retry.time.frequency.millisec", "30000", false),
 
+  /**
+   * Remote servers allowed to call. <br>
+   * Default is empty. <br>
+   * Servers should be in a comma-separated style and always end with '/' for security reasons <br>
+   * e.g. metadata.sync.remote_servers_allowed = https://server1.com/,https://server2.com/
+   */
+  META_DATA_SYNC_SERVERS_ALLOWED("metadata.sync.remote_servers_allowed", "", false),
+
   /** EHCache replication host. */
   CLUSTER_HOSTNAME("cluster.hostname", "", false),
 
@@ -480,11 +488,9 @@ public enum ConfigurationKey {
   SERVER_BASE_URL("server.base.url", "", false),
 
   /**
-   * Remote servers allowed to call. <br>
-   * Default is empty. <br>
-   * Servers should be in a comma-separated style and always end with '/' for security reasons <br>
-   * e.g. system.remote_servers_allowed = https://server1.com/,https://server2.com/
+   * @deprecated use META_DATA_SYNC_SERVERS_ALLOWED instead
    */
+  @Deprecated
   REMOTE_SERVERS_ALLOWED("system.remote_servers_allowed", "", false),
 
   /** Enable secure settings if system is deployed on HTTPS, can be 'off', 'on'. */
@@ -708,6 +714,14 @@ public enum ConfigurationKey {
   TOTP_2FA_ENABLED("login.security.totp_2fa.enabled", Constants.ON, false),
 
   SESSION_COOKIE_SAME_SITE("session.cookie.samesite", "Lax", false),
+
+  /**
+   * Remote servers allowed to call from the Route endpoint. <br>
+   * Default is 'https://*'. <br>
+   * Servers should be in a comma-separated style and always end with '/' for security reasons <br>
+   * e.g. route.remote_servers_allowed = https://server1.com/,https://server2.com/
+   */
+  ROUTE_REMOTE_SERVERS_ALLOWED("route.remote_servers_allowed", "https://*", false),
 
   /** Enable OAuth2 authentication server. (default: off) */
   OAUTH2_SERVER_ENABLED("oauth2.server.enabled", Constants.OFF, false),

@@ -84,10 +84,10 @@ class DhisConfigurationProviderTest {
 
   @Test
   @DisplayName("remote servers retrieved from config should have expected values")
-  void getRemoteServersAllowedTest() {
+  void getMetaDataSyncRemoteServersAllowedTest() {
     // given there are 2 remote servers in the test config allowed list
     // when we retrieve the remote servers allowed
-    List<String> remoteServersAllowed = configProvider.getRemoteServersAllowed();
+    List<String> remoteServersAllowed = configProvider.getMetaDataSyncRemoteServersAllowed();
 
     // then it should contain the expected values
     assertNotNull(remoteServersAllowed);
@@ -104,7 +104,7 @@ class DhisConfigurationProviderTest {
   void invalidUrlTest(String url) {
     // given there are 2 remote servers in the test config allowed list
     // when we check if an invalid url is in the allowed list
-    boolean urlIsAllowed = configProvider.remoteServerIsInAllowedList(url);
+    boolean urlIsAllowed = configProvider.isMetaDataSyncRemoteServerAllowed(url);
 
     // then it should be false
     assertFalse(urlIsAllowed);
@@ -116,7 +116,7 @@ class DhisConfigurationProviderTest {
     // given there are 2 remote servers in the test config allowed list
     // when we check if a valid url is in the allowed list
     boolean urlIsAllowed =
-        configProvider.remoteServerIsInAllowedList(
+        configProvider.isMetaDataSyncRemoteServerAllowed(
             "https://validtesturl.com/success/with/extra/path");
 
     // then it should be true

@@ -228,18 +228,23 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
   }
 
   @Override
-  public List<String> getRemoteServersAllowed() {
+  public List<String> getMetaDataSyncRemoteServersAllowed() {
     String remoteServers =
-        StringUtils.trimToEmpty(
-            properties.getProperty(ConfigurationKey.REMOTE_SERVERS_ALLOWED.getKey()));
+        properties
+            .getProperty(ConfigurationKey.META_DATA_SYNC_SERVERS_ALLOWED.getKey(), "")
+            .strip();
+    if (remoteServers.isEmpty()) {
+      remoteServers =
+          properties.getProperty(ConfigurationKey.REMOTE_SERVERS_ALLOWED.getKey(), "").strip();
+    }
     return Arrays.stream(remoteServers.split(",")).filter(StringUtils::isNotEmpty).toList();
   }
 
   @Override
-  public boolean remoteServerIsInAllowedList(String url) {
+  public boolean isMetaDataSyncRemoteServerAllowed(String url) {
     if (StringUtils.isNotBlank(url)) {
-      List<String> remoteServersAllowed = getRemoteServersAllowed();
-      return !getRemoteServersAllowed().isEmpty()
+      List<String> remoteServersAllowed = getMetaDataSyncRemoteServersAllowed();
+      return !getMetaDataSyncRemoteServersAllowed().isEmpty()
           && remoteServersAllowed.stream().anyMatch(url::startsWith);
     }
     return false;
