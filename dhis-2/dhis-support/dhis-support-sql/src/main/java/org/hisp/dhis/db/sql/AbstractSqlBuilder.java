@@ -28,8 +28,10 @@
 package org.hisp.dhis.db.sql;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.hibernate.internal.util.collections.ArrayHelper.toList;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -83,6 +85,11 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
 
   @Override
   public String concat(String... columns) {
+    return concat(toList(columns));
+  }
+
+  @Override
+  public String concat(List<String> columns) {
     return "concat(" + String.join(", ", columns) + ")";
   }
 

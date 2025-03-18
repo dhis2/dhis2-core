@@ -63,6 +63,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 import org.hisp.dhis.parser.expression.ExpressionItemMethod;
+import org.hisp.dhis.parser.expression.ExpressionState;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.parser.expression.literal.SqlLiteral;
 import org.hisp.dhis.system.util.SqlUtils;
@@ -221,7 +222,10 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
   public void validate(String expression, Class<?> clazz, Map<String, String> itemDescriptions) {
     CommonExpressionVisitor visitor =
         newVisitor(
-            ITEM_GET_DESCRIPTIONS, DEFAULT_EXPRESSION_PARAMS, DEFAULT_PROGRAM_EXPRESSION_PARAMS);
+            ITEM_GET_DESCRIPTIONS,
+            DEFAULT_EXPRESSION_PARAMS,
+            DEFAULT_PROGRAM_EXPRESSION_PARAMS,
+            false);
 
     castClass(clazz, Parser.visit(expression, visitor));
 
@@ -236,7 +240,20 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
       ProgramIndicator programIndicator,
       Date startDate,
       Date endDate) {
-    return getAnalyticsSqlCached(expression, dataType, programIndicator, startDate, endDate, null);
+    return getAnalyticsSqlCached(
+        expression, dataType, programIndicator, startDate, endDate, null, true);
+  }
+
+  @Override
+  // Not transactional, needed inside data exchange import
+  public String getAnalyticsSqlAllowingNulls(
+      String expression,
+      DataType dataType,
+      ProgramIndicator programIndicator,
+      Date startDate,
+      Date endDate) {
+    return getAnalyticsSqlCached(
+        expression, dataType, programIndicator, startDate, endDate, null, false);
   }
 
   @Override
@@ -249,7 +266,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
       Date endDate,
       String tableAlias) {
     return getAnalyticsSqlCached(
-        expression, dataType, programIndicator, startDate, endDate, tableAlias);
+        expression, dataType, programIndicator, startDate, endDate, tableAlias, true);
   }
 
   private String getAnalyticsSqlCached(
@@ -258,20 +275,27 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
       ProgramIndicator programIndicator,
       Date startDate,
       Date endDate,
-      String tableAlias) {
+      String tableAlias,
+      boolean replaceNulls) {
     if (expression == null) {
       return null;
     }
 
     String cacheKey =
         getAnalyticsSqlCacheKey(
-            expression, dataType, programIndicator, startDate, endDate, tableAlias);
+            expression, dataType, programIndicator, startDate, endDate, tableAlias, replaceNulls);
 
     return analyticsSqlCache.get(
         cacheKey,
         k ->
             getAnalyticsSqlInternal(
-                expression, dataType, programIndicator, startDate, endDate, tableAlias));
+                expression,
+                dataType,
+                programIndicator,
+                startDate,
+                endDate,
+                tableAlias,
+                replaceNulls));
   }
 
   private String getAnalyticsSqlCacheKey(
@@ -280,7 +304,8 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
       ProgramIndicator programIndicator,
       Date startDate,
       Date endDate,
-      String tableAlias) {
+      String tableAlias,
+      boolean replaceNulls) {
     return expression
         + "|"
         + dataType.name()
@@ -289,7 +314,8 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
         + dateIfPresent(startDate)
         + dateIfPresent(endDate)
         + "|"
-        + (tableAlias == null ? "" : tableAlias);
+        + (tableAlias == null ? "" : tableAlias)
+        + replaceNulls;
   }
 
   /**
@@ -311,7 +337,8 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
       ProgramIndicator programIndicator,
       Date startDate,
       Date endDate,
-      String tableAlias) {
+      String tableAlias,
+      boolean replaceNulls) {
     // Get the uids from the expression even if this is the filter
     Set<String> uids =
         getDataElementAndAttributeIdentifiers(
@@ -327,7 +354,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
             .dataElementAndAttributeIdentifiers(uids)
             .build();
 
-    CommonExpressionVisitor visitor = newVisitor(ITEM_GET_SQL, params, progParams);
+    CommonExpressionVisitor visitor = newVisitor(ITEM_GET_SQL, params, progParams, replaceNulls);
 
     visitor.setExpressionLiteral(new SqlLiteral());
 
@@ -413,7 +440,8 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
   private CommonExpressionVisitor newVisitor(
       ExpressionItemMethod itemMethod,
       ExpressionParams params,
-      ProgramExpressionParams progParams) {
+      ProgramExpressionParams progParams,
+      boolean replaceNulls) {
     return CommonExpressionVisitor.builder()
         .idObjectManager(idObjectManager)
         .dimensionService(dimensionService)
@@ -426,6 +454,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
         .params(params)
         .progParams(progParams)
         .sqlBuilder(sqlBuilder)
+        .state(ExpressionState.builder().replaceNulls(replaceNulls).build())
         .build();
   }
 

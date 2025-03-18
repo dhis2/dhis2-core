@@ -745,6 +745,11 @@ public class DataQueryParams {
     return !getDimensionsAndFilters(ORGANISATION_UNIT_GROUP_SET).isEmpty();
   }
 
+  /** Indicates whether categories are present as dimension or filter. */
+  public boolean hasCategories() {
+    return !getDimensionsAndFilters(CATEGORY).isEmpty();
+  }
+
   /**
    * Returns the period type of the first period specified as filter, or null if there is no period
    * filter.
@@ -1154,6 +1159,14 @@ public class DataQueryParams {
   /** Indicates whether a dimension with the given identifier exists. */
   public boolean hasDimension(String key) {
     return dimensions.contains(new BaseDimensionalObject(key));
+  }
+
+  /** Indicates whether a dimension with the given id exists (when the above doesn't work) */
+  public boolean hasDimensionId(String id) {
+    return dimensions.stream()
+        .map(DimensionalObject::getUid)
+        .collect(Collectors.toSet())
+        .contains(id);
   }
 
   /** Indicates whether a filter with the given identifier exists. */

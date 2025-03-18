@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.analytics.event.data.programindicator.disag;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import org.junit.jupiter.api.Test;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import lombok.Builder;
+import lombok.Getter;
+import org.hisp.dhis.program.ProgramCategoryMapping;
 
 /**
+ * Contextual information needed when disaggregating a {@link
+ * org.hisp.dhis.program.ProgramIndicator} during an analytics query
+ *
  * @author Jim Grace
  */
-class ProgramCategoryOptionMappingTest {
+@Builder
+@Getter
+public class PiDisagInfo {
 
-  private static final String OPTION_ID = "Wluthah6aeC";
+  /** Category UIDs that are used as query dimensions */
+  Set<String> dimensionCategories;
 
-  private static final String FILTER = "A filter";
+  /**
+   * Additional category UIDs (that are not also dimensions) needed to assemble a
+   * categoryOptionCombo and/or attributeOptionCombo. (This is a list rather than a set for
+   * consistency in ordering the SQL columns, since it is traversed more than once.)
+   */
+  List<String> cocCategories;
 
-  @Test
-  void testSetGetOptionId() {
-    ProgramCategoryOptionMapping mapping = new ProgramCategoryOptionMapping();
-    mapping.setOptionId(OPTION_ID);
-    assertEquals(OPTION_ID, mapping.getOptionId());
-  }
+  /** All category mappings that are being used by the current query */
+  Map<String, ProgramCategoryMapping> categoryMappings;
 
-  @Test
-  void testSetGetFilter() {
-    ProgramCategoryOptionMapping mapping = new ProgramCategoryOptionMapping();
-    mapping.setFilter(FILTER);
-    assertEquals(FILTER, mapping.getFilter());
+  /** Map of ordered option UIDs to categoryOptionCombo UID */
+  Map<String, String> cocResolver;
+
+  /** Map of ordered option UIDs to attributeOptionCombo UID */
+  Map<String, String> aocResolver;
+
+  /**
+   * Tests to see if a dimension is provided by program indicator disaggregation logic.
+   *
+   * @param dimension the dimension to test
+   * @return true if a piDisag dimension, else false
+   */
+  public boolean isPiDisagDimension(String dimension) {
+    return categoryMappings.containsKey(dimension);
   }
 }

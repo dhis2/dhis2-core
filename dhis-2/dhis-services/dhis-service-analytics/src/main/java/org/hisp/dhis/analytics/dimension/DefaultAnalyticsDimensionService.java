@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagRecommendedDimensions;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DimensionalObject;
@@ -85,6 +86,10 @@ public class DefaultAnalyticsDimensionService implements AnalyticsDimensionServi
               .flatMap(c -> c.stream())
               .filter(Category::isDataDimension)
               .collect(Collectors.toSet()));
+    }
+
+    if (!params.getProgramIndicators().isEmpty()) {
+      dimensions.addAll(PiDisagRecommendedDimensions.getRecommendations(params, idObjectManager));
     }
 
     dimensions.addAll(idObjectManager.getDataDimensions(OrganisationUnitGroupSet.class));
