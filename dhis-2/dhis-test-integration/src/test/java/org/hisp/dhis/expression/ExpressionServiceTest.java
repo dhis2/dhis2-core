@@ -1171,7 +1171,7 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase {
             dataElementOperandX, 11.0);
 
     assertEquals(
-        "2 DeX:[ case when value > 99::numeric then 1::numeric else 2::numeric end]",
+        "0 DeX:[ case when value > 99::numeric then 1::numeric else 2::numeric end]",
         evalIndicator("subExpression(if(#{dataElemenX}>99,1,2))", valueMap));
 
     assertEquals(

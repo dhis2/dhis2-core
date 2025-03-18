@@ -209,7 +209,7 @@ class ProgramIndicatorServiceD2FunctionTest extends SingleSetupIntegrationTestBa
         "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and \"DataElmentA\" = 10::numeric and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
         getSql("d2:countIfValue(#{ProgrmStagA.DataElmentA}, 10)"));
     assertEquals(
-        "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and \"DataElmentA\" = 10 and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
+        "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and \"DataElmentA\" = 10::numeric and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
         getSqlEnrollment("d2:countIfValue(#{ProgrmStagA.DataElmentA}, 10)"));
   }
 
