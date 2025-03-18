@@ -166,8 +166,9 @@ public class AppController {
   public void renderApp(
       @PathVariable("app") String appName, HttpServletRequest request, HttpServletResponse response)
       throws IOException, WebMessageException, ForbiddenException {
-    String contextPath = request.getContextPath();
-    App application = appManager.getApp(appName, contextPath);
+    String relativeContextPath = request.getServletPath();
+    String fullContextPath = HttpServletRequestPaths.getContextPath(request);
+    App application = appManager.getApp(appName, fullContextPath);
 
     if (application == null) {
       throw new WebMessageException(notFound("App '" + appName + "' not found."));
@@ -183,11 +184,11 @@ public class AppController {
     }
 
     // Get page requested
-    String resource = getResourcePath(request.getPathInfo(), application, contextPath);
+    String resource = getResourcePath(request.getPathInfo(), application, relativeContextPath);
 
     log.debug("Rendering resource {} from app {}", resource, application.getKey());
 
-    ResourceResult resourceResult = appManager.getAppResource(application, resource, contextPath);
+    ResourceResult resourceResult = appManager.getAppResource(application, resource, fullContextPath);
     if (resourceResult instanceof ResourceFound found) {
       serveResource(request, response, found.resource());
       return;
@@ -266,6 +267,8 @@ public class AppController {
   private String getResourcePath(String path, App app, String contextPath) {
     String resourcePath = path;
     String appPrefix = "/" + AppManager.INSTALLED_APP_PREFIX + app.getKey();
+
+    log.info("getResourcePath {} {} {}", path, contextPath, appPrefix);
 
     if (resourcePath.startsWith(contextPath)) {
       resourcePath = resourcePath.substring(contextPath.length());
