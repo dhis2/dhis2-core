@@ -65,7 +65,6 @@ import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -107,21 +106,21 @@ public class AppController {
 
   @GetMapping(value = "/menu", produces = ContextUtils.CONTENT_TYPE_JSON)
   public @ResponseBody Map<String, List<WebModule>> getWebModules(HttpServletRequest request) {
-    String contextPath = HttpServletRequestPaths.getContextPath(request);
+    String baseUrl = contextService.getContextPath();
 
-    List<WebModule> modules = appManager.getMenu(contextPath);
+    List<WebModule> modules = appManager.getMenu(baseUrl);
     return Map.of("modules", modules);
   }
 
   @GetMapping(produces = ContextUtils.CONTENT_TYPE_JSON)
   public ResponseEntity<List<App>> getApps(@RequestParam(required = false) String key) {
     List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
-    String contextPath = contextService.getContextPath();
+    String baseUrl = contextService.getContextPath();
 
     List<App> apps = new ArrayList<>();
 
     if (key != null) {
-      App app = appManager.getApp(key, contextPath);
+      App app = appManager.getApp(key, baseUrl);
 
       if (app == null) {
         return ResponseEntity.notFound().build();
@@ -129,9 +128,9 @@ public class AppController {
 
       apps.add(app);
     } else if (!filters.isEmpty()) {
-      apps = appManager.filterApps(filters, contextPath);
+      apps = appManager.filterApps(filters, baseUrl);
     } else {
-      apps = appManager.getApps(contextPath);
+      apps = appManager.getApps(baseUrl);
     }
     return ResponseEntity.ok(apps);
   }
@@ -166,9 +165,9 @@ public class AppController {
   public void renderApp(
       @PathVariable("app") String appName, HttpServletRequest request, HttpServletResponse response)
       throws IOException, WebMessageException, ForbiddenException {
-    String relativeContextPath = request.getContextPath();
-    String fullContextPath = HttpServletRequestPaths.getContextPath(request);
-    App application = appManager.getApp(appName, fullContextPath);
+    String contextPath = request.getContextPath();
+    String baseUrl = contextService.getContextPath();
+    App application = appManager.getApp(appName, baseUrl);
 
     if (application == null) {
       throw new WebMessageException(notFound("App '" + appName + "' not found."));
@@ -184,12 +183,12 @@ public class AppController {
     }
 
     // Get page requested
-    String resource = getResourcePath(request.getPathInfo(), application, relativeContextPath);
+    String resource = getResourcePath(request.getPathInfo(), application, contextPath);
 
     log.debug("Rendering resource {} from app {}", resource, application.getKey());
 
     ResourceResult resourceResult =
-        appManager.getAppResource(application, resource, fullContextPath);
+        appManager.getAppResource(application, resource, baseUrl);
     if (resourceResult instanceof ResourceFound found) {
       serveResource(request, response, found.resource());
       return;
@@ -268,8 +267,6 @@ public class AppController {
   private String getResourcePath(String path, App app, String contextPath) {
     String resourcePath = path;
     String appPrefix = "/" + AppManager.INSTALLED_APP_PREFIX + app.getKey();
-
-    log.info("getResourcePath {} {} {}", path, contextPath, appPrefix);
 
     if (resourcePath.startsWith(contextPath)) {
       resourcePath = resourcePath.substring(contextPath.length());

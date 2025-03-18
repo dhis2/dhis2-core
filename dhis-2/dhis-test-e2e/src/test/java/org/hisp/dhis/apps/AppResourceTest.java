@@ -33,6 +33,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -69,7 +70,9 @@ class AppResourceTest extends ApiTest {
               connection.setInstanceFollowRedirects(false);
             }
           });
+  
   private static final String SERVER_BASE = "http://web:8080";
+  private static final String META_BASE_URL_TAG = "<meta name=\"dhis2-base-url\" content=\"" +  SERVER_BASE + "\"/>";
 
   @Test
   @DisplayName("Redirect location should have correct format")
@@ -107,7 +110,7 @@ class AppResourceTest extends ApiTest {
       List<String> location = response.getHeaders().get("Location");
       assertNotNull(location);
       assertEquals(1, location.size());
-      assertEquals("/apps/" + app + "?answer=42", location.get(0));
+      assertEquals(SERVER_BASE + "/apps/" + app + "?answer=42", location.get(0));
     }
 
     // Redirect to global shell from / (default) with forwarded querystring
@@ -117,7 +120,7 @@ class AppResourceTest extends ApiTest {
       List<String> location = response.getHeaders().get("Location");
       assertNotNull(location);
       assertEquals(1, location.size());
-      assertEquals("/apps/" + app + "?answer=42", location.get(0));
+      assertEquals(SERVER_BASE + "/apps/" + app + "?answer=42", location.get(0));
     }
 
     // Serve index.html from index.html?redirect=false
@@ -126,7 +129,8 @@ class AppResourceTest extends ApiTest {
           getAuthenticated(prefix + app + "/index.html?redirect=false");
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertNotNull(response.getBody());
-      // TODO: Confirm content-type and template replacement
+      assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
+      assertTrue(response.getBody().contains(META_BASE_URL_TAG));
     }
 
     // Serve index.html from /?redirect=false
@@ -134,6 +138,8 @@ class AppResourceTest extends ApiTest {
       ResponseEntity<String> response = getAuthenticated(prefix + app + "/?redirect=false");
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertNotNull(response.getBody());
+      assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
+      assertTrue(response.getBody().contains(META_BASE_URL_TAG));
     }
 
     // Serve index.html from index.html?shell=false
@@ -141,7 +147,8 @@ class AppResourceTest extends ApiTest {
       ResponseEntity<String> response = getAuthenticated(prefix + app + "/index.html?shell=false");
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertNotNull(response.getBody());
-      // TODO: Confirm content-type and template replacement
+      assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
+      assertTrue(response.getBody().contains(META_BASE_URL_TAG));
     }
 
     // Serve index.html from /?shell=false
@@ -149,6 +156,8 @@ class AppResourceTest extends ApiTest {
       ResponseEntity<String> response = getAuthenticated(prefix + app + "/?shell=false");
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertNotNull(response.getBody());
+      assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
+      assertTrue(response.getBody().contains(META_BASE_URL_TAG));
     }
 
     // Append trailing slash and redirect
@@ -188,6 +197,8 @@ class AppResourceTest extends ApiTest {
       ResponseEntity<String> response = getAuthenticated(prefix + app + "/index.html", headers);
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertNotNull(response.getBody());
+      assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
+      assertTrue(response.getBody().contains(META_BASE_URL_TAG));
     }
 
     // Serve index.html from / (service-worker)
@@ -197,6 +208,8 @@ class AppResourceTest extends ApiTest {
       ResponseEntity<String> response = getAuthenticated(prefix + app + "/", headers);
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertNotNull(response.getBody());
+      assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
+      assertTrue(response.getBody().contains(META_BASE_URL_TAG));
     }
 
     // Redirect index.action
@@ -251,6 +264,7 @@ class AppResourceTest extends ApiTest {
       assertNotNull(response.getBody());
       assertNotNull(response.getHeaders().getContentType());
       assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
+      assertTrue(response.getBody().contains(META_BASE_URL_TAG));
       // TODO: Confirm template replacement
     }
 
@@ -261,6 +275,7 @@ class AppResourceTest extends ApiTest {
       assertNotNull(response.getBody());
       assertNotNull(response.getHeaders().getContentType());
       assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
+      assertTrue(response.getBody().contains(META_BASE_URL_TAG));
       // TODO: Confirm template replacement
     }
 
@@ -271,6 +286,7 @@ class AppResourceTest extends ApiTest {
       assertNotNull(response.getBody());
       assertNotNull(response.getHeaders().getContentType());
       assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
+      assertTrue(response.getBody().contains(META_BASE_URL_TAG));
       // TODO: Confirm template replacement
     }
 
@@ -285,14 +301,14 @@ class AppResourceTest extends ApiTest {
     }
 
     // Redirect to original app with ?shell=false
-    // {
-    //   ResponseEntity<String> response = getAuthenticated(prefix + "/dashboard?shell=false");
-    //   assertEquals(HttpStatus.FOUND, response.getStatusCode());
-    //   List<String> location = response.getHeaders().get("Location");
-    //   assertNotNull(location);
-    //   assertEquals(1, location.size());
-    //   assertEquals(SERVER_BASE + "/dhis-web-dashboard/index.html?shell=false", location.get(0));
-    // }
+    {
+      ResponseEntity<String> response = getAuthenticated(prefix + "/dashboard?shell=false");
+      assertEquals(HttpStatus.FOUND, response.getStatusCode());
+      List<String> location = response.getHeaders().get("Location");
+      assertNotNull(location);
+      assertEquals(1, location.size());
+      assertEquals(SERVER_BASE + "/dhis-web-dashboard/index.html?shell=false", location.get(0));
+    }
 
     // Global shell service-worker
     {
