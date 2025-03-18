@@ -636,7 +636,7 @@ public final class AnalyticsUtils {
 
       Assert.notNull(dx, "Data dimension item cannot be null");
 
-      DimensionalItemObject item = dimItemObjectMap.get(dx);
+      DimensionalItemObject item = getFromDimensionalItemObjectMap(dx, dimItemObjectMap);
 
       Assert.notNull(item, "Dimensional item cannot be null");
 
@@ -646,13 +646,28 @@ public final class AnalyticsUtils {
 
       String coc = null, aoc = null;
 
-      if (DataDimensionalItemObject.class.isAssignableFrom(item.getClass())) {
+      if (ProgramIndicator.class.isAssignableFrom(item.getClass())
+          && DimensionalObjectUtils.isCompositeDimensionalObject(dx)) {
+        row.set(dxInx, DimensionalObjectUtils.getFirstIdentifier(dx));
+        String id2 = DimensionalObjectUtils.getSecondIdentifier(dx);
+        String id3 = DimensionalObjectUtils.getThirdIdentifier(dx);
+        DataDimensionalItemObject dataItem = (DataDimensionalItemObject) item;
+        coc = getItemCoc(id2, dataItem.getAggregateExportCategoryOptionCombo());
+        aoc = getItemCoc(id3, dataItem.getAggregateExportAttributeOptionCombo());
+      } else if (DataDimensionalItemObject.class.isAssignableFrom(item.getClass())) {
         DataDimensionalItemObject dataItem = (DataDimensionalItemObject) item;
         coc = dataItem.getAggregateExportCategoryOptionCombo();
         aoc = dataItem.getAggregateExportAttributeOptionCombo();
       } else if (DataElementOperand.class.isAssignableFrom(item.getClass())) {
         row.set(dxInx, DimensionalObjectUtils.getFirstIdentifier(dx));
         coc = DimensionalObjectUtils.getSecondIdentifier(dx);
+      }
+
+      if (ProgramIndicator.class.isAssignableFrom(item.getClass())) {
+        ProgramIndicator pi = (ProgramIndicator) item;
+        if (pi.hasAggregateExportDataElement()) {
+          row.set(dxInx, pi.getAggregateExportDataElement());
+        }
       }
 
       cocCol.add(coc);
@@ -677,6 +692,11 @@ public final class AnalyticsUtils {
                 true))
         .addColumn(vlInx, aocCol)
         .addColumn(vlInx, cocCol);
+  }
+
+  /** Use dynamic COC or, if wild, the fixed COC */
+  private static String getItemCoc(String token, String fixed) {
+    return SYMBOL_WILDCARD.equals(token) ? fixed : token;
   }
 
   /**
@@ -728,6 +748,23 @@ public final class AnalyticsUtils {
     }
 
     return map;
+  }
+
+  public static DimensionalItemObject getFromDimensionalItemObjectMap(
+      String dx, Map<String, DimensionalItemObject> dimItemObjectMap) {
+    DimensionalItemObject item = dimItemObjectMap.get(dx);
+
+    if (item == null && DimensionalObjectUtils.isCompositeDimensionalObject(dx)) {
+      String id1 = DimensionalObjectUtils.getFirstIdentifier(dx);
+      item = dimItemObjectMap.get(id1);
+
+      if (item != null) {
+        Assert.isTrue(
+            ProgramIndicator.class.isAssignableFrom(item.getClass()),
+            "Compound dx not in itemObjectMap must be a PI");
+      }
+    }
+    return item;
   }
 
   /**

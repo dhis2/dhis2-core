@@ -494,6 +494,13 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> List<T> getByUid(
       @Nonnull Class<T> type, @Nonnull Collection<String> uids) {
+    return getByUidWithoutTransaction(type, uids);
+  }
+
+  @Nonnull
+  @Override
+  public <T extends IdentifiableObject> List<T> getByUidWithoutTransaction(
+      @Nonnull Class<T> type, @Nonnull Collection<String> uids) {
     IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
 
     if (store == null) {
