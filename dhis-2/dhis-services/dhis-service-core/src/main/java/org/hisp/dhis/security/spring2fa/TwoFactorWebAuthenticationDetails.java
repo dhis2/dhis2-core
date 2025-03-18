@@ -45,10 +45,6 @@ public class TwoFactorWebAuthenticationDetails extends ForwardedIpAwareWebAuthen
 
   private String code;
 
-  //  "remoteAddress": "0:0:0:0:0:0:0:1",
-  //      "sessionId": "725D20C5C7EF92267453400B7225372E",
-  //      "ip": "0:0:0:0:0:0:0:1",
-  //      "code": null
   @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
   public static TwoFactorWebAuthenticationDetails TwoFactorWebAuthenticationDetails(
       @JsonProperty("remoteAddress") String remoteAddress,

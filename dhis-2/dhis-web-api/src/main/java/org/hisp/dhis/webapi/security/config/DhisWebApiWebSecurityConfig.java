@@ -347,12 +347,6 @@ public class DhisWebApiWebSecurityConfig {
                   .permitAll()
                   .requestMatchers(new AntPathRequestMatcher("/oauth2/token"))
                   .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/login"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/loginAction"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/XXX.html"))
-                  .permitAll()
                   .requestMatchers(new AntPathRequestMatcher("/dhis-web-login/**"))
                   .permitAll()
                   .requestMatchers(new AntPathRequestMatcher("/login.html"))
@@ -456,12 +450,6 @@ public class DhisWebApiWebSecurityConfig {
                 return filter;
               }
             });
-
-    http.formLogin(
-        form ->
-            form.authenticationDetailsSource(twoFactorWebAuthenticationDetailsSource)
-                .loginPage("/XXX.html")
-                .loginProcessingUrl("/login"));
 
     /// OIDC /////////
     http.oauth2Login(
