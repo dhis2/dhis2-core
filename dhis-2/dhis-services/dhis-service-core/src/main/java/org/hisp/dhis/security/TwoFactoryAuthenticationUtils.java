@@ -60,8 +60,6 @@ public class TwoFactoryAuthenticationUtils {
     throw new IllegalStateException("Utility class");
   }
 
-  private static final String APP_NAME_PREFIX = "DHIS 2 ";
-
   /**
    * Generate QR code in PNG format based on given qrContent.
    *
