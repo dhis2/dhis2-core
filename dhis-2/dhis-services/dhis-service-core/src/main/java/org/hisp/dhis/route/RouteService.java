@@ -47,6 +47,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -90,7 +91,7 @@ import reactor.netty.http.client.HttpClientRequest;
 public class RouteService {
   private static final String HEADER_X_FORWARDED_USER = "X-Forwarded-User";
 
-  private static final String HTTP_OR_HTTPS_REGEX = "^(https?:).*";
+  private static final Pattern HTTP_OR_HTTPS_PATTERN = Pattern.compile("^(https?:).*");
 
   private final ApplicationContext applicationContext;
 
@@ -158,7 +159,7 @@ public class RouteService {
   }
 
   protected void validateHost(String host) {
-    if (!(host.matches(HTTP_OR_HTTPS_REGEX))) {
+    if (!(HTTP_OR_HTTPS_PATTERN.matcher(host).matches())) {
       throw new IllegalStateException(
           "Allowed route URL scheme must be either http or https: " + host);
     }
