@@ -28,6 +28,8 @@
 package org.hisp.dhis.common.auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Base64;
+import java.util.function.UnaryOperator;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -36,31 +38,55 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
 /**
- * Sets the Authorization header to 'ApiToken {apiToken}'. Generally to be used for dhis2 personal
- * access token, but can be used anywhere the format is accepted.
- *
  * @author Morten Olav Hansen
  */
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class ApiTokenAuth extends Auth {
-  public static final String TYPE = "api-token";
+public class HttpBasicAuthScheme extends AuthScheme {
+  public static final String HTTP_BASIC_TYPE = "http-basic";
 
   @JsonProperty(required = true)
-  private String token;
+  private String username;
 
-  public ApiTokenAuth() {
-    super(TYPE);
+  @JsonProperty(required = true, access = JsonProperty.Access.WRITE_ONLY)
+  private String password;
+
+  public HttpBasicAuthScheme() {
+    super(HTTP_BASIC_TYPE);
   }
 
   @Override
-  public void apply(MultiValueMap<String, String> headers) {
-    if (!StringUtils.hasText(token)) {
+  public void apply(
+      MultiValueMap<String, String> headers, MultiValueMap<String, String> queryParams) {
+    if (!(StringUtils.hasText(username) && StringUtils.hasText(password))) {
       return;
     }
 
-    headers.set("Authorization", "ApiToken " + token);
+    headers.add("Authorization", getBasicAuth(username, password));
+  }
+
+  @Override
+  public HttpBasicAuthScheme encrypt(UnaryOperator<String> encryptFunc) {
+    return copy(encryptFunc.apply(password));
+  }
+
+  @Override
+  public HttpBasicAuthScheme decrypt(UnaryOperator<String> decryptFunc) {
+    return copy(decryptFunc.apply(password));
+  }
+
+  protected HttpBasicAuthScheme copy(String password) {
+    HttpBasicAuthScheme newHttpBasicAuth = new HttpBasicAuthScheme();
+    newHttpBasicAuth.setUsername(username);
+    newHttpBasicAuth.setPassword(password);
+
+    return newHttpBasicAuth;
+  }
+
+  private String getBasicAuth(String username, String password) {
+    String string = String.format("%s:%s", username, password);
+    return "Basic " + Base64.getEncoder().encodeToString(string.getBytes());
   }
 }

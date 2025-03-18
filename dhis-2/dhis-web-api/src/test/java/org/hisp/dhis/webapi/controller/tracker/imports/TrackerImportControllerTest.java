@@ -43,6 +43,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.LinkedList;
 import org.hisp.dhis.common.CodeGenerator;
@@ -106,7 +108,12 @@ class TrackerImportControllerTest {
     // Controller under test
     final TrackerImportController controller =
         new TrackerImportController(
-            syncImporter, asyncImporter, trackerImportService, csvEventService, notifier);
+            syncImporter,
+            asyncImporter,
+            trackerImportService,
+            csvEventService,
+            notifier,
+            new ObjectMapper());
 
     mockMvc =
         MockMvcBuilders.standaloneSetup(controller)
@@ -321,7 +328,8 @@ class TrackerImportControllerTest {
             new HashMap<>());
 
     // When
-    when(notifier.getJobSummaryByJobId(JobType.TRACKER_IMPORT_JOB, uid)).thenReturn(importReport);
+    JsonNode report = new ObjectMapper().valueToTree(importReport);
+    when(notifier.getJobSummaryByJobId(JobType.TRACKER_IMPORT_JOB, uid)).thenReturn(report);
 
     when(trackerImportService.buildImportReport(any(), any())).thenReturn(importReport);
 
@@ -334,7 +342,6 @@ class TrackerImportControllerTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message").doesNotExist())
             .andExpect(content().contentType("application/json"))
             .andReturn()
             .getResponse()

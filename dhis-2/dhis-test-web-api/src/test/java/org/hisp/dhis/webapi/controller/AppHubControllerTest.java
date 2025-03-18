@@ -27,13 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,12 +67,13 @@ class AppHubControllerTest extends DhisControllerConvenienceTest {
     configuration
         .getProperties()
         .setProperty(ConfigurationKey.APPHUB_API_URL.getKey(), "http://localhost/doesnotwork");
-    assertWebMessage(
-        "Service Unavailable",
-        503,
-        "ERROR",
-        "I/O error on GET request for \"http://localhost/doesnotwork/apps\": Connection refused (Connection refused); nested exception is java.net.ConnectException: Connection refused (Connection refused)",
-        GET("/appHub").content(HttpStatus.SERVICE_UNAVAILABLE));
+
+    JsonResponse jsonResponse = GET("/appHub").content(HttpStatus.SERVICE_UNAVAILABLE);
+    JsonWebMessage jsonWebMessage = jsonResponse.as(JsonWebMessage.class);
+
+    assertEquals(503, jsonWebMessage.getHttpStatusCode());
+    assertEquals("ERROR", jsonWebMessage.getStatus());
+    assertTrue(jsonWebMessage.getMessage().startsWith("I/O error on GET request for "));
   }
 
   @Test

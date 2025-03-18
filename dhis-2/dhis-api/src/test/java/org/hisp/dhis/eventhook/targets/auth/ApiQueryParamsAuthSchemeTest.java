@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,16 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.config;
+package org.hisp.dhis.eventhook.targets.auth;
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import java.util.Map;
+import org.hisp.dhis.common.auth.ApiQueryParamsAuthScheme;
+import org.junit.jupiter.api.Test;
 
-@Configuration
-public class ConfigProviderConfiguration {
-  @Bean(name = "dhisConfigurationProvider")
-  public DhisConfigurationProvider dhisConfigurationProvider() {
-    return new H2DhisConfigurationProvider();
+class ApiQueryParamsAuthSchemeTest extends AbstractAuthSchemeTest {
+
+  @Test
+  void testEncrypt() {
+    assertEncrypt(
+        new ApiQueryParamsAuthScheme()
+            .setQueryParams(
+                Map.of(
+                    "token", "T5pvst37VedtsoD70KlbumzI30Mo4pzzyAY0M6Ia8uYyPBLPeXlYzr4d3LPQD6oS")),
+        apiQueryParamsAuthScheme -> apiQueryParamsAuthScheme.getQueryParams().get("token"));
+  }
+
+  @Test
+  void testDecrypt() {
+    assertDecrypt(
+        new ApiQueryParamsAuthScheme()
+            .setQueryParams(
+                Map.of(
+                    "token", "3PB06m2bcr0blf81OEpcIDUMUYQYHJcdQsBJyOwbmelTYBQ6fuskAGJReGgM30Cv")),
+        apiQueryParamsAuthScheme -> apiQueryParamsAuthScheme.getQueryParams().get("token"));
   }
 }

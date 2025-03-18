@@ -65,32 +65,38 @@ public class TimingsStats {
 
   private static final String DEFAULT_VALUE = "0.0 sec.";
 
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   public String getPrepareRequest() {
     return timers.getOrDefault(PREPARE_REQUEST_OPS, DEFAULT_VALUE);
   }
 
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   public String getValidation() {
     return timers.getOrDefault(VALIDATION_OPS, DEFAULT_VALUE);
   }
 
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   public String getCommit() {
     return timers.getOrDefault(COMMIT_OPS, DEFAULT_VALUE);
   }
 
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   public String getPreheat() {
     return timers.getOrDefault(PREHEAT_OPS, DEFAULT_VALUE);
   }
 
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   public String getProgramRule() {
     return timers.getOrDefault(PROGRAMRULE_OPS, DEFAULT_VALUE);
   }
 
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   public String getTotalImport() {
     return timers.getOrDefault(TOTAL_OPS, DEFAULT_VALUE);
   }
 
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   public String getTotalRequest() {
-
     return timers.getOrDefault(TOTAL_REQUEST_OPS, DEFAULT_VALUE);
   }
 

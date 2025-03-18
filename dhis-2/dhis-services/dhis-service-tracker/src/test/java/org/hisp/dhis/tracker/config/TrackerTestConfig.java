@@ -29,7 +29,7 @@ package org.hisp.dhis.tracker.config;
 
 import static org.mockito.Mockito.mock;
 
-import org.hisp.dhis.config.ConfigProviderConfiguration;
+import org.hisp.dhis.config.H2TestConfig;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -44,7 +44,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import({ConfigProviderConfiguration.class})
+@Import({H2TestConfig.class})
 @ComponentScan("org.hisp.dhis.tracker.validation")
 @ExtendWith(MockitoExtension.class)
 public class TrackerTestConfig {

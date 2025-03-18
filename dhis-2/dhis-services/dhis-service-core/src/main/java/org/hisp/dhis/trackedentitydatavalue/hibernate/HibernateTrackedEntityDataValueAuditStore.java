@@ -159,7 +159,7 @@ public class HibernateTrackedEntityDataValueAuditStore implements TrackedEntityD
         List<Predicate> orgUnitPredicates = new ArrayList<>();
 
         for (OrganisationUnit orgUnit : params.getOrgUnits()) {
-          orgUnitPredicates.add(builder.like(ou.get("path"), (orgUnit.getPath() + "%")));
+          orgUnitPredicates.add(builder.like(ou.get("path"), (orgUnit.getStoredPath() + "%")));
         }
 
         predicates.add(builder.or(orgUnitPredicates.toArray(Predicate[]::new)));

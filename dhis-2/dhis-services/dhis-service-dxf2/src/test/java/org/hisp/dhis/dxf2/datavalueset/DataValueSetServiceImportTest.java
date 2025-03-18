@@ -140,7 +140,6 @@ class DataValueSetServiceImportTest extends DhisConvenienceTest {
     when(batchHandlerFactory.createBatchHandler(DataValueAuditBatchHandler.class))
         .thenReturn(auditBatchHandler);
 
-    when(notifier.clear(any())).thenReturn(notifier);
     when(notifier.notify(any(), any(), anyString())).thenReturn(notifier);
     when(notifier.notify(any(), any(), anyString(), anyBoolean())).thenReturn(notifier);
 

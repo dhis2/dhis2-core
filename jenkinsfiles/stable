@@ -187,6 +187,7 @@ pipeline {
                             sh 'git push https://$GITHUB_TOKEN@github.com/$DHIS2_RELEASES_REPO'
 
                             sh "gh pr create --head $releasesBranch --fill-first --reviewer Philip-Larsen-Donnelly,dhis2/devops"
+                            sh "gh pr merge $releasesBranch"
                         }
                     }
                 }
@@ -212,6 +213,7 @@ pipeline {
                 LIVENESS_PROBE_TIMEOUT_SECONDS = "5"
                 READINESS_PROBE_TIMEOUT_SECONDS = "5"
                 CORE_RESOURCES_REQUESTS_MEMORY = "2500Mi"
+                PUBLIC = "true"
             }
 
             steps {
@@ -234,14 +236,31 @@ pipeline {
                             }
 
                             dir('scripts/databases') {
-                                env.DATABASE_ID = sh(
-                                        returnStdout: true,
-                                        script: "./list.sh | jq -r '.[] | select(.name == \"test-dbs\") | .databases[] | select(.name == \"sierra-leone/${version}.sql.gz\") | .slug'"
-                                ).trim()
-                            }
+                                DATABASE_GROUP_NAME = 'test-dbs'
+                                env.DATABASE_ID = im.findDatabaseId(DATABASE_GROUP_NAME, version)
 
-                            sh '[ -n "$DATABASE_ID" ]'
-                            echo "Database: ${env.DATABASE_ID}"
+                                if (!env.DATABASE_ID) {
+                                    echo "Couldn't find database for $version"
+
+                                    try {
+                                        env.DATABASE_ID = im.uploadNewDatabase(DATABASE_GROUP_NAME, version)
+                                    } catch (err) {
+                                        echo "Couldn't download database for ${version}: ${err}"
+
+                                        shortVersion = version.split('\\.').take(2).join('.')
+                                        env.DATABASE_ID = im.findDatabaseId(DATABASE_GROUP_NAME, shortVersion)
+
+                                        if (!env.DATABASE_ID) {
+                                            echo "Couldn't find database for $shortVersion"
+
+                                            env.DATABASE_ID = im.uploadNewDatabase(DATABASE_GROUP_NAME, shortVersion)
+                                        }
+                                    }
+                                }
+
+                                sh '[ -n "$DATABASE_ID" ]'
+                                echo "Database: ${env.DATABASE_ID}"
+                            }
 
                             dir('scripts/instances') {
                                 description = "DHIS 2 stable branch ${env.GIT_BRANCH}"

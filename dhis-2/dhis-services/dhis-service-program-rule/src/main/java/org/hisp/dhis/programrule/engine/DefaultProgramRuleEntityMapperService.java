@@ -313,6 +313,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
       ruleAttributeValues =
           enrollment.getEntityInstance().getTrackedEntityAttributeValues().stream()
               .filter(Objects::nonNull)
+              .filter(attr -> attr.getValue() != null)
               .map(
                   attr ->
                       RuleAttributeValue.create(
@@ -322,6 +323,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
       ruleAttributeValues =
           trackedEntityAttributeValues.stream()
               .filter(Objects::nonNull)
+              .filter(attr -> attr.getValue() != null)
               .map(
                   attr ->
                       RuleAttributeValue.create(

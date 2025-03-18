@@ -190,7 +190,7 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
     item.getFilters().add(queryFilter);
     item.setValueType(ValueType.PHONE_NUMBER);
 
-    params.setProgram(program);
+    params.setEnrolledInTrackerProgram(program);
     params.setOrganisationUnits(ous);
     params.getFilters().add(item);
 

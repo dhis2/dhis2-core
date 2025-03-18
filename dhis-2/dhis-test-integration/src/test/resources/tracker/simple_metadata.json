@@ -431,6 +431,30 @@
   ],
   "relationshipTypes": [
     {
+      "id": "m1575931405",
+      "bidirectional": true,
+      "displayFromToName": "Parent Of",
+      "displayName": "Parent to Child",
+      "fromConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "ja8NY4PW7Xm"
+        }
+      },
+      "fromToName": "Child Of",
+      "name": "Tracked entity to tracked entity",
+      "sharing": {
+        "owner": null,
+        "public": "r-------"
+      },
+      "toConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "ja8NY4PW7Xm"
+        }
+      }
+    },
+    {
       "created": "2019-04-23T09:20:41.834",
       "lastUpdated": "2019-04-23T09:21:18.063",
       "name": "TA Sibling",

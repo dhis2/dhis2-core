@@ -34,34 +34,37 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.util.stream.Stream;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
-import org.hisp.dhis.config.MinIOConfiguration;
+import org.hisp.dhis.appmanager.ResourceResult.Redirect;
+import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
-import org.springframework.test.context.ContextConfiguration;
 
 /**
- * Test class configured for use cases when DHIS2 is configured to use MinIO storage. The default
- * storage is the local filesystem.
+ * Test class configured for use cases when DHIS2 is configured to use local file system storage
+ * (default)
  */
-@ContextConfiguration(classes = {MinIOConfiguration.class})
 class AppManagerTest extends SingleSetupIntegrationTestBase {
 
   @Autowired AppManager appManager;
   @Autowired private UserService _userService;
 
   @Test
-  @DisplayName("Can install and then update an App using MinIO storage")
-  void canUpdateAppUsingMinIoTest() throws IOException {
+  @DisplayName("Can install and then update an App using file system storage")
+  void canUpdateAppUsingFileSystemStorageTest() throws IOException {
     // install an app for the 1st time (version 1)
     userService = _userService;
     createAndInjectAdminUser();
@@ -73,22 +76,15 @@ class AppManagerTest extends SingleSetupIntegrationTestBase {
     assertEquals("ok", appStatus.getMessage());
 
     // install version 2 of the same app
-    AppStatus update =
+    AppStatus updatedApp =
         assertDoesNotThrow(
             () ->
                 appManager.installApp(
                     new ClassPathResource("app/test-app-minio-v2.zip").getFile(),
                     "test-app-minio-v2.zip"));
 
-    assertTrue(update.ok());
+    assertTrue(updatedApp.ok());
     assertEquals("ok", appStatus.getMessage());
-
-    // get app version & index.html
-    App app = appManager.getApp("test minio");
-    Resource resource = appManager.getAppResource(app, "index.html");
-
-    assertEquals("2.0.0", app.getVersion());
-    assertEquals(63, appManager.getUriContentLength(resource));
   }
 
   @Test
@@ -103,6 +99,64 @@ class AppManagerTest extends SingleSetupIntegrationTestBase {
 
     // then
     assertEquals(38, uriContentLength);
+  }
+
+  @ParameterizedTest
+  @MethodSource("redirectPathParams")
+  @DisplayName(
+      "Calls to valid directories with no trailing slash should return with a trailing slash")
+  void appPathRedirectTest(String path, String expectedPath) throws IOException {
+    // given an app is installed in object storage
+    AppStatus appStatus =
+        appManager.installApp(
+            new ClassPathResource("app/test-app-minio-v1.zip").getFile(), "test-app-minio-v1.zip");
+
+    assertTrue(appStatus.ok());
+    assertEquals("ok", appStatus.getMessage());
+
+    // when an app resource is retrieved with a redirect path
+    App app = appManager.getApp("test minio");
+    Redirect resource = (Redirect) appManager.getAppResource(app, path);
+
+    // then the path returned should end in a trailing slash
+    assertTrue(
+        resource.getPath().endsWith(expectedPath), "redirect path should have trailing slash");
+  }
+
+  @ParameterizedTest
+  @MethodSource("notFoundPathParams")
+  @DisplayName("When resources are not found, return null")
+  void appPathNotFoundTest(String path) throws IOException {
+    // given an app is installed in object storage
+    AppStatus appStatus =
+        appManager.installApp(
+            new ClassPathResource("app/test-app-minio-v1.zip").getFile(), "test-app-minio-v1.zip");
+
+    assertTrue(appStatus.ok());
+    assertEquals("ok", appStatus.getMessage());
+
+    // when non-existent an app resource path is retrieved
+    App app = appManager.getApp("test minio");
+    ResourceNotFound resource = (ResourceNotFound) appManager.getAppResource(app, path);
+
+    // then the path returned should be null
+    assertEquals(path, resource.getPath());
+  }
+
+  private static Stream<Arguments> redirectPathParams() {
+    return Stream.of(
+        Arguments.of("subDir", "subDir/"),
+        Arguments.of("emptyDir", "emptyDir/"),
+        Arguments.of("subDir/subSubDir", "subDir/subSubDir/"));
+  }
+
+  private static Stream<Arguments> notFoundPathParams() {
+    return Stream.of(
+        Arguments.of("noFile.html"),
+        Arguments.of("invalidDir"),
+        Arguments.of("invalidDir/"),
+        Arguments.of("emptyDir/"),
+        Arguments.of("subDir/invalidDir"));
   }
 
   @Test

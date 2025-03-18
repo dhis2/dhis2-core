@@ -64,6 +64,7 @@ import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
@@ -168,15 +169,15 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
       TrackedEntityInstanceQueryParams params,
       boolean skipAccessValidation,
       boolean skipSearchScopeValidation) {
-    if (params.isOrQuery() && !params.hasAttributes() && !params.hasProgram()) {
+    if (params.isOrQuery() && !params.hasAttributes() && !params.hasEnrolledInTrackerProgram()) {
       Collection<TrackedEntityAttribute> attributes =
           attributeService.getTrackedEntityAttributesDisplayInListNoProgram();
       params.addAttributes(QueryItem.getQueryItems(attributes));
       params.addFiltersIfNotExist(QueryItem.getQueryItems(attributes));
     }
 
-    if (!params.hasProgram()) {
-      params.setPrograms(getTrackerPrograms(params.getUser()));
+    if (!params.hasEnrolledInTrackerProgram()) {
+      params.setAccessibleTrackerPrograms(getTrackerPrograms(params.getUser()));
     }
 
     decideAccess(params);
@@ -215,7 +216,7 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
       TrackedEntityInstanceQueryParams params,
       boolean skipAccessValidation,
       boolean skipSearchScopeValidation) {
-    if (params.isOrQuery() && !params.hasAttributes() && !params.hasProgram()) {
+    if (params.isOrQuery() && !params.hasAttributes() && !params.hasEnrolledInTrackerProgram()) {
       Collection<TrackedEntityAttribute> attributes =
           attributeService.getTrackedEntityAttributesDisplayInListNoProgram();
       params.addAttributes(QueryItem.getQueryItems(attributes));
@@ -224,8 +225,8 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
 
     handleSortAttributes(params);
 
-    if (!params.hasProgram()) {
-      params.setPrograms(getTrackerPrograms(params.getUser()));
+    if (!params.hasEnrolledInTrackerProgram()) {
+      params.setAccessibleTrackerPrograms(getTrackerPrograms(params.getUser()));
     }
 
     decideAccess(params);
@@ -278,8 +279,8 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
       boolean skipAccessValidation,
       boolean skipSearchScopeValidation) {
 
-    if (!params.hasProgram()) {
-      params.setPrograms(getTrackerPrograms(params.getUser()));
+    if (!params.hasEnrolledInTrackerProgram()) {
+      params.setAccessibleTrackerPrograms(getTrackerPrograms(params.getUser()));
     }
 
     decideAccess(params);
@@ -302,8 +303,8 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
   @Override
   @Transactional(readOnly = true)
   public Grid getTrackedEntityInstancesGrid(TrackedEntityInstanceQueryParams params) {
-    if (!params.hasProgram()) {
-      params.setPrograms(getTrackerPrograms(params.getUser()));
+    if (!params.hasEnrolledInTrackerProgram()) {
+      params.setAccessibleTrackerPrograms(getTrackerPrograms(params.getUser()));
     }
 
     decideAccess(params);
@@ -355,10 +356,11 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
       trackedEntityTypes.put(params.getTrackedEntityType().getUid(), params.getTrackedEntityType());
     }
 
-    if (params.hasProgram() && params.getProgram().getTrackedEntityType() != null) {
+    if (params.hasEnrolledInTrackerProgram()
+        && params.getEnrolledInTrackerProgram().getTrackedEntityType() != null) {
       trackedEntityTypes.put(
-          params.getProgram().getTrackedEntityType().getUid(),
-          params.getProgram().getTrackedEntityType());
+          params.getEnrolledInTrackerProgram().getTrackedEntityType().getUid(),
+          params.getEnrolledInTrackerProgram().getTrackedEntityType());
     }
 
     Set<String> tes = new HashSet<>();
@@ -366,13 +368,17 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
     for (Map<String, String> entity : entities) {
       if (params.getUser() != null
           && !params.getUser().isSuper()
-          && params.hasProgram()
-          && (params.getProgram().getAccessLevel().equals(AccessLevel.PROTECTED)
-              || params.getProgram().getAccessLevel().equals(AccessLevel.CLOSED))) {
+          && params.hasEnrolledInTrackerProgram()
+          && (params.getEnrolledInTrackerProgram().getAccessLevel().equals(AccessLevel.PROTECTED)
+              || params
+                  .getEnrolledInTrackerProgram()
+                  .getAccessLevel()
+                  .equals(AccessLevel.CLOSED))) {
         TrackedEntityInstance tei =
             trackedEntityInstanceStore.getByUid(entity.get(TRACKED_ENTITY_INSTANCE_ID));
 
-        if (!trackerOwnershipAccessManager.hasAccess(params.getUser(), tei, params.getProgram())) {
+        if (!trackerOwnershipAccessManager.hasAccess(
+            params.getUser(), tei, params.getEnrolledInTrackerProgram())) {
           continue;
         }
       }
@@ -450,14 +456,15 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
    * attributes + program
    */
   private void handleAttributes(TrackedEntityInstanceQueryParams params) {
-    if (params.isOrQuery() && !params.hasAttributes() && !params.hasProgram()) {
+    if (params.isOrQuery() && !params.hasAttributes() && !params.hasEnrolledInTrackerProgram()) {
       Collection<TrackedEntityAttribute> attributes =
           attributeService.getTrackedEntityAttributesDisplayInListNoProgram();
       params.addAttributes(QueryItem.getQueryItems(attributes));
       params.addFiltersIfNotExist(QueryItem.getQueryItems(attributes));
-    } else if (params.hasProgram()) {
+    } else if (params.hasEnrolledInTrackerProgram()) {
       params.addAttributesIfNotExist(
-          QueryItem.getQueryItems(params.getProgram().getTrackedEntityAttributes()));
+          QueryItem.getQueryItems(
+              params.getEnrolledInTrackerProgram().getTrackedEntityAttributes()));
     } else if (params.hasTrackedEntityType()) {
       params.addAttributesIfNotExist(
           QueryItem.getQueryItems(params.getTrackedEntityType().getTrackedEntityAttributes()));
@@ -477,18 +484,19 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
           "Current user is not authorized to query across all organisation units");
     }
 
-    if (params.hasProgram()) {
-      if (!aclService.canDataRead(user, params.getProgram())) {
+    if (params.hasEnrolledInTrackerProgram()) {
+      if (!aclService.canDataRead(user, params.getEnrolledInTrackerProgram())) {
         throw new IllegalQueryException(
             "Current user is not authorized to read data from selected program:  "
-                + params.getProgram().getUid());
+                + params.getEnrolledInTrackerProgram().getUid());
       }
 
-      if (params.getProgram().getTrackedEntityType() != null
-          && !aclService.canDataRead(user, params.getProgram().getTrackedEntityType())) {
+      if (params.getEnrolledInTrackerProgram().getTrackedEntityType() != null
+          && !aclService.canDataRead(
+              user, params.getEnrolledInTrackerProgram().getTrackedEntityType())) {
         throw new IllegalQueryException(
             "Current user is not authorized to read data from selected program's tracked entity type:  "
-                + params.getProgram().getTrackedEntityType().getUid());
+                + params.getEnrolledInTrackerProgram().getTrackedEntityType().getUid());
       }
     }
 
@@ -534,37 +542,37 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
           "Current user must be associated with at least one organisation unit with write access when selection mode is CAPTURE";
     }
 
-    if (params.hasProgram() && params.hasTrackedEntityType()) {
+    if (params.hasEnrolledInTrackerProgram() && params.hasTrackedEntityType()) {
       violation = "Program and tracked entity cannot be specified simultaneously";
     }
 
     if (!params.hasTrackedEntityInstances()
-        && !params.hasProgram()
+        && !params.hasEnrolledInTrackerProgram()
         && !params.hasTrackedEntityType()) {
       violation = "Either Program or Tracked entity type should be specified";
     }
 
-    if (params.hasProgramStatus() && !params.hasProgram()) {
+    if (params.hasProgramStatus() && !params.hasEnrolledInTrackerProgram()) {
       violation = "Program must be defined when program status is defined";
     }
 
-    if (params.hasFollowUp() && !params.hasProgram()) {
+    if (params.hasFollowUp() && !params.hasEnrolledInTrackerProgram()) {
       violation = "Program must be defined when follow up status is defined";
     }
 
-    if (params.hasProgramEnrollmentStartDate() && !params.hasProgram()) {
+    if (params.hasProgramEnrollmentStartDate() && !params.hasEnrolledInTrackerProgram()) {
       violation = "Program must be defined when program enrollment start date is specified";
     }
 
-    if (params.hasProgramEnrollmentEndDate() && !params.hasProgram()) {
+    if (params.hasProgramEnrollmentEndDate() && !params.hasEnrolledInTrackerProgram()) {
       violation = "Program must be defined when program enrollment end date is specified";
     }
 
-    if (params.hasProgramIncidentStartDate() && !params.hasProgram()) {
+    if (params.hasProgramIncidentStartDate() && !params.hasEnrolledInTrackerProgram()) {
       violation = "Program must be defined when program incident start date is specified";
     }
 
-    if (params.hasProgramIncidentEndDate() && !params.hasProgram()) {
+    if (params.hasProgramIncidentEndDate() && !params.hasEnrolledInTrackerProgram()) {
       violation = "Program must be defined when program incident end date is specified";
     }
 
@@ -630,7 +638,7 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
           "User need to be associated with at least one organisation unit.");
     }
 
-    if (!params.hasProgram()
+    if (!params.hasEnrolledInTrackerProgram()
         && !params.hasTrackedEntityType()
         && params.hasAttributesOrFilters()
         && !params.hasOrganisationUnits()) {
@@ -654,7 +662,7 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
         throw new IllegalQueryException("Query cannot be used during global search");
       }
 
-      if (params.hasProgram() && params.hasTrackedEntityType()) {
+      if (params.hasEnrolledInTrackerProgram() && params.hasTrackedEntityType()) {
         throw new IllegalQueryException(
             "Program and tracked entity cannot be specified simultaneously");
       }
@@ -662,15 +670,16 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
       if (params.hasAttributesOrFilters()) {
         List<String> searchableAttributeIds = new ArrayList<>();
 
-        if (params.hasProgram()) {
-          searchableAttributeIds.addAll(params.getProgram().getSearchableAttributeIds());
+        if (params.hasEnrolledInTrackerProgram()) {
+          searchableAttributeIds.addAll(
+              params.getEnrolledInTrackerProgram().getSearchableAttributeIds());
         }
 
         if (params.hasTrackedEntityType()) {
           searchableAttributeIds.addAll(params.getTrackedEntityType().getSearchableAttributeIds());
         }
 
-        if (!params.hasProgram() && !params.hasTrackedEntityType()) {
+        if (!params.hasEnrolledInTrackerProgram() && !params.hasTrackedEntityType()) {
           searchableAttributeIds.addAll(
               attributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream()
                   .map(TrackedEntityAttribute::getUid)
@@ -703,13 +712,13 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
         }
       }
 
-      if (params.hasProgram()) {
-        maxTeiLimit = params.getProgram().getMaxTeiCountToReturn();
+      if (params.hasEnrolledInTrackerProgram()) {
+        maxTeiLimit = params.getEnrolledInTrackerProgram().getMaxTeiCountToReturn();
 
         if (!params.hasTrackedEntityInstances() && isProgramMinAttributesViolated(params)) {
           throw new IllegalQueryException(
               "At least "
-                  + params.getProgram().getMinAttributesRequiredToSearch()
+                  + params.getEnrolledInTrackerProgram().getMinAttributesRequiredToSearch()
                   + " attributes should be mentioned in the search criteria.");
         }
       }
@@ -737,12 +746,13 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
 
     return (!params.hasFilters()
             && !params.hasAttributes()
-            && params.getProgram().getMinAttributesRequiredToSearch() > 0)
+            && params.getEnrolledInTrackerProgram().getMinAttributesRequiredToSearch() > 0)
         || (params.hasFilters()
-            && params.getFilters().size() < params.getProgram().getMinAttributesRequiredToSearch())
+            && params.getFilters().size()
+                < params.getEnrolledInTrackerProgram().getMinAttributesRequiredToSearch())
         || (params.hasAttributes()
             && params.getAttributes().size()
-                < params.getProgram().getMinAttributesRequiredToSearch());
+                < params.getEnrolledInTrackerProgram().getMinAttributesRequiredToSearch());
   }
 
   private boolean isTeTypeMinAttributesViolated(TrackedEntityInstanceQueryParams params) {
@@ -884,6 +894,10 @@ public class DefaultTrackedEntityInstanceService implements TrackedEntityInstanc
   }
 
   private boolean isLocalSearch(TrackedEntityInstanceQueryParams params, User user) {
+    if (OrganisationUnitSelectionMode.CAPTURE == params.getOrganisationUnitMode()) {
+      return true;
+    }
+
     Set<OrganisationUnit> localOrgUnits = user.getOrganisationUnits();
 
     Set<OrganisationUnit> searchOrgUnits = new HashSet<>();

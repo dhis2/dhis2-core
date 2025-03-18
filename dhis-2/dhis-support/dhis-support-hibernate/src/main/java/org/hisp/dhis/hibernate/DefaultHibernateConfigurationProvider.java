@@ -102,6 +102,23 @@ public class DefaultHibernateConfigurationProvider implements HibernateConfigura
 
   private DhisConfigurationProvider configProvider;
 
+  /** Value for {@link org.hibernate.cfg.AvailableSettings.HBM2DDL_AUTO} */
+  private final org.hibernate.tool.schema.Action hbm2ddlAuto;
+
+  public DefaultHibernateConfigurationProvider() {
+    // validate that the hibernate mappings match the DB schema managed using flyway
+    this(org.hibernate.tool.schema.Action.VALIDATE);
+  }
+
+  /**
+   * Only use this in H2 tests to set {@link org.hibernate.cfg.AvailableSettings.HBM2DDL_AUTO} to
+   * update the DB schema. Rely on the default {@link #DefaultHibernateConfigurationProvider()}
+   * setting it to "validate" in all other situations as flyway manages the DB schema!
+   */
+  public DefaultHibernateConfigurationProvider(org.hibernate.tool.schema.Action action) {
+    this.hbm2ddlAuto = action;
+  }
+
   public void setConfigProvider(DhisConfigurationProvider configProvider) {
     this.configProvider = configProvider;
   }
@@ -181,7 +198,8 @@ public class DefaultHibernateConfigurationProvider implements HibernateConfigura
 
     log.info(
         String.format(
-            "Hibernate configuration loaded: dialect: '%s', region factory: '%s', connection pool max size: %s",
+            "Hibernate configuration loaded: dialect: '%s', region factory: '%s', connection pool"
+                + " max size: %s",
             config.getProperty(DIALECT),
             config.getProperty(CACHE_REGION_FACTORY),
             config.getProperty(C3P0_MAX_SIZE)));
@@ -237,7 +255,8 @@ public class DefaultHibernateConfigurationProvider implements HibernateConfigura
         configProvider.getProperty(ConfigurationKey.USE_SECOND_LEVEL_CACHE),
         p);
     set(USE_QUERY_CACHE, configProvider.getProperty(ConfigurationKey.USE_QUERY_CACHE), p);
-    set(HBM2DDL_AUTO, configProvider.getProperty(ConfigurationKey.CONNECTION_SCHEMA), p);
+
+    set(HBM2DDL_AUTO, this.hbm2ddlAuto.getExternalHbm2ddlName(), p);
 
     // Enable Hibernate statistics if Hibernate Monitoring is enabled
     if (configProvider.isEnabled(ConfigurationKey.MONITORING_HIBERNATE_ENABLED)) {
