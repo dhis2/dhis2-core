@@ -37,10 +37,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.TimeZone;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.calendar.CalendarService;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
@@ -50,6 +52,9 @@ import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.system.SystemInfo.SystemInfoForAppCacheFilter;
+import org.hisp.dhis.system.SystemInfo.SystemInfoForDataStats;
+import org.hisp.dhis.system.SystemInfo.SystemInfoForMetadataExport;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -135,6 +140,49 @@ public class DefaultSystemService implements SystemService, InitializingBean {
             getLastMetadataVersionSyncAttempt(
                 settings.getLastMetaDataSyncSuccess(), settings.getMetadataLastFailedTime()))
         .build();
+  }
+
+  @Override
+  @CheckForNull
+  @NonTransactional
+  public SystemInfoForMetadataExport getSystemInfoForMetadataExport() {
+    if (systemInfo == null) return null;
+    Date now = new Date();
+    return new SystemInfoForMetadataExport(
+        systemInfo.getSystemId(), systemInfo.getRevision(), systemInfo.getVersion(), now);
+  }
+
+  @Override
+  @CheckForNull
+  @NonTransactional
+  public SystemInfoForDataStats getSystemInfoForDataStats() {
+    if (systemInfo == null) return null;
+    Date now = new Date();
+    return new SystemInfoForDataStats(
+        systemInfo.getVersion(),
+        systemInfo.getRevision(),
+        systemInfo.getBuildTime(),
+        systemInfo.getSystemId(),
+        now);
+  }
+
+  @Override
+  @CheckForNull
+  @Transactional(readOnly = true)
+  public SystemInfoForAppCacheFilter getSystemInfoForAppCacheFilter() {
+    if (systemInfo == null) return null;
+    return new SystemInfoForAppCacheFilter(
+        systemInfo.getRevision(),
+        systemInfo.getVersion(),
+        calendarService.getSystemCalendar().name());
+  }
+
+  @Override
+  @CheckForNull
+  @NonTransactional
+  public String getSystemInfoVersion() {
+    if (systemInfo == null) return null;
+    return systemInfo.getVersion();
   }
 
   /**

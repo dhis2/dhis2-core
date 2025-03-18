@@ -48,7 +48,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.statistics.StatisticsProvider;
-import org.hisp.dhis.system.SystemInfo;
+import org.hisp.dhis.system.SystemInfo.SystemInfoForDataStats;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInvitationStatus;
@@ -272,13 +272,13 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
   }
 
   private Dhis2Info getDhis2Info() {
-    SystemInfo system = systemService.getSystemInfo();
+    SystemInfoForDataStats system = systemService.getSystemInfoForDataStats();
 
     return new Dhis2Info()
-        .setVersion(system.getVersion())
-        .setRevision(system.getRevision())
-        .setBuildTime(system.getBuildTime())
-        .setSystemId(system.getSystemId())
-        .setServerDate(system.getServerDate());
+        .setVersion(system.version())
+        .setRevision(system.revision())
+        .setBuildTime(system.buildTime())
+        .setSystemId(system.id())
+        .setServerDate(system.serverDate());
   }
 }
