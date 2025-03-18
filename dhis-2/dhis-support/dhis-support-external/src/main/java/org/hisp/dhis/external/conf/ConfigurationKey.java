@@ -642,9 +642,6 @@ public enum ConfigurationKey {
    */
   AUDIT_ENABLED("system.audit.enabled", Constants.ON, false),
 
-  /** OAuth2 authorization server feature. Enable or disable. */
-  ENABLE_OAUTH2_AUTHORIZATION_SERVER("oauth2.authorization.server.enabled", Constants.ON, false),
-
   /** JWT OIDC token authentication feature. Enable or disable. */
   ENABLE_JWT_OIDC_TOKEN_AUTHENTICATION(
       "oidc.jwt.token.authentication.enabled", Constants.OFF, false),
@@ -725,6 +722,25 @@ public enum ConfigurationKey {
    * e.g. route.remote_servers_allowed = https://server1.com/,https://server2.com/
    */
   ROUTE_REMOTE_SERVERS_ALLOWED("route.remote_servers_allowed", "https://*", false);
+
+  /** Enable OAuth2 authentication server. (default: off) */
+  OAUTH2_SERVER_ENABLED("oauth2.server.enabled", Constants.OFF, false),
+
+  /** Path to the JWT keystore file. */
+  OAUTH2_JWT_KEYSTORE_PATH("oauth2.server.jwt.keystore.path", "", false),
+
+  /** Password for the JWT keystore. (sensitive) */
+  OAUTH2_JWT_KEYSTORE_PASSWORD("oauth2.server.jwt.keystore.password", "", true),
+
+  /** Alias for the JWT key in the keystore. */
+  OAUTH2_JWT_KEYSTORE_ALIAS("oauth2.server.jwt.keystore.alias", "", false),
+
+  /** Password for the JWT key in the keystore. (sensitive) */
+  OAUTH2_JWT_KEYSTORE_KEY_PASSWORD("oauth2.server.jwt.keystore.key-password", "", true),
+
+  /** Whether to generate a new JWT key if the keystore is missing. */
+  OAUTH2_JWT_KEYSTORE_GENERATE_IF_MISSING(
+      "oauth2.server.jwt.keystore.generate-if-missing", "true", false);
 
   private final String key;
 

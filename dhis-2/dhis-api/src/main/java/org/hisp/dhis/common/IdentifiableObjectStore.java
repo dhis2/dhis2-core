@@ -67,6 +67,14 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
   void update(@Nonnull T object, @Nonnull UserDetails userDetails);
 
   /**
+   * Merges the given object instance.
+   *
+   * @param object the object instance.
+   * @param userDetails User
+   */
+  void merge(@Nonnull T object, @Nonnull UserDetails userDetails);
+
+  /**
    * Update object. Bypasses the ACL system.
    *
    * @param object Object update

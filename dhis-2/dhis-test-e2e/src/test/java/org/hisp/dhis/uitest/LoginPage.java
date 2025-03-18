@@ -37,11 +37,11 @@ public class LoginPage {
   @FindBy(css = "input[id$='username']")
   public WebElement inputUsername;
 
-  @FindBy(css = "input[class='button']")
-  public WebElement inputSubmit;
-
   @FindBy(css = "input[id$='password']")
   public WebElement inputPassword;
+
+  @FindBy(css = "*[data-test=\"dhis2-uicore-button\"]")
+  public WebElement inputSubmit;
 
   public LoginPage(WebDriver driver) {
     PageFactory.initElements(driver, this);
