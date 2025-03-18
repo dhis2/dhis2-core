@@ -50,7 +50,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValues;
@@ -66,7 +65,6 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
 import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
 import org.hisp.dhis.jsontree.JsonMixed;
@@ -96,7 +94,6 @@ import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -133,8 +130,6 @@ class JdbcEventStore {
   private static final String EVENT_LASTUPDATED_GT = " ev.lastupdated >= ";
 
   private static final String SPACE = " ";
-
-  private static final String EQUALS = " = ";
 
   private static final String AND = " AND ";
 

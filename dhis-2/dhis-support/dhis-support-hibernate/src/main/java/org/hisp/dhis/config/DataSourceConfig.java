@@ -72,7 +72,7 @@ public class DataSourceConfig {
 
   @Bean
   public NamedParameterJdbcTemplate readOnlyNamedParameterJdbcTemplate(
-          @Qualifier("readReplicaDataSource") DataSource dataSource) {
+      @Qualifier("readReplicaDataSource") DataSource dataSource) {
     return new NamedParameterJdbcTemplate(dataSource);
   }
 
@@ -85,7 +85,8 @@ public class DataSourceConfig {
   }
 
   @Bean
-  public JdbcTemplate readOnlyJdbcTemplate(@Qualifier("readReplicaDataSource") DataSource dataSource) {
+  public JdbcTemplate readOnlyJdbcTemplate(
+      @Qualifier("readReplicaDataSource") DataSource dataSource) {
     JdbcTemplate readOnlyJdbcTemplate = new JdbcTemplate(dataSource);
     readOnlyJdbcTemplate.setFetchSize(1000);
     return readOnlyJdbcTemplate;
@@ -104,7 +105,8 @@ public class DataSourceConfig {
     String username = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
 
     if (!StringUtils.hasText(jdbcUrl)) {
-      throw new IllegalStateException("Tracker Read replica is enabled but read replica connection url not specified in dhis.conf.");
+      throw new IllegalStateException(
+          "Tracker Read replica is enabled but read replica connection url not specified in dhis.conf.");
     }
     log.info("Tracker Read replica is enabled");
     String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
