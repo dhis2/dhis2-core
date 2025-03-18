@@ -69,7 +69,7 @@ public class Dhis2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
   private RegisteredClient registeredClient;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     // Create and save a test client
     registeredClient =
         RegisteredClient.withId(CodeGenerator.generateUid())
@@ -88,7 +88,7 @@ public class Dhis2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
   }
 
   @Test
-  public void testSaveAndFindById() {
+  void testSaveAndFindById() {
     // Given
     OAuth2Authorization authorization =
         OAuth2Authorization.withRegisteredClient(registeredClient)
@@ -111,7 +111,7 @@ public class Dhis2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
   }
 
   @Test
-  public void testFindByAuthorizationCode() {
+  void testFindByAuthorizationCode() {
     // Given
     Instant now = Instant.now();
     Instant expiresAt = now.plusSeconds(300);
@@ -149,7 +149,7 @@ public class Dhis2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
   }
 
   @Test
-  public void testFindByAccessToken() {
+  void testFindByAccessToken() {
     // Given
     Instant now = Instant.now();
     Instant expiresAt = now.plusSeconds(3600);
@@ -188,7 +188,7 @@ public class Dhis2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
   }
 
   @Test
-  public void testFindByRefreshToken() {
+  void testFindByRefreshToken() {
     // Given
     Instant now = Instant.now();
     Instant expiresAt = now.plusSeconds(86400);
@@ -218,7 +218,7 @@ public class Dhis2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
   }
 
   @Test
-  public void testFindByState() {
+  void testFindByState() {
     // Given
     OAuth2Authorization authorization =
         OAuth2Authorization.withRegisteredClient(registeredClient)
@@ -241,7 +241,7 @@ public class Dhis2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
   }
 
   @Test
-  public void testTokenMetadataPersistence() {
+  void testTokenMetadataPersistence() {
     // Given
     Instant now = Instant.now();
     Instant expiresAt = now.plusSeconds(3600);
@@ -276,7 +276,7 @@ public class Dhis2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
   }
 
   @Test
-  public void testRemoveAuthorization() {
+  void testRemoveAuthorization() {
     // Given
     OAuth2Authorization authorization =
         OAuth2Authorization.withRegisteredClient(registeredClient)

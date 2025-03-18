@@ -51,6 +51,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.KeyStoreUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -87,12 +88,12 @@ public class AuthorizationServerConfig {
     http.securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
         .with(
             authorizationServerConfigurer,
-            (authorizationServer) ->
+            authorizationServer ->
                 authorizationServer.oidc(Customizer.withDefaults()) // Enable OpenID Connect 1.0
             )
-        .authorizeHttpRequests((authorize) -> authorize.anyRequest().authenticated())
+        .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
         .exceptionHandling(
-            (exceptions) ->
+            exceptions ->
                 exceptions.defaultAuthenticationEntryPointFor(
                     new LoginUrlAuthenticationEntryPoint("/dhis-web-login/"),
                     new MediaTypeRequestMatcher(MediaType.TEXT_HTML)));
@@ -102,7 +103,7 @@ public class AuthorizationServerConfig {
 
   @Bean
   public OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer(UserService userService) {
-    return (context) -> {
+    return context -> {
       Set<String> authorizedScopes = context.getAuthorizedScopes();
       if (authorizedScopes.contains("email")) {
         OAuth2TokenType tokenType = context.getTokenType();
@@ -125,7 +126,6 @@ public class AuthorizationServerConfig {
 
   @Bean
   public JWKSource<SecurityContext> jwkSource() {
-    RSAKey rsaKey;
     // Try to load key from keystore if configured
     String keystorePath = config.getProperty(ConfigurationKey.OAUTH2_JWT_KEYSTORE_PATH);
     boolean generateIfMissing =
@@ -148,15 +148,7 @@ public class AuthorizationServerConfig {
         String keystoreKeyPassword =
             config.getProperty(ConfigurationKey.OAUTH2_JWT_KEYSTORE_KEY_PASSWORD);
         char[] pin = keystoreKeyPassword != null ? keystoreKeyPassword.toCharArray() : null;
-        try {
-          rsaKey = KeyStoreUtil.loadRSAPublicKey(keyStore, alias, pin);
-          log.info("Successfully loaded JWK from keystore with key ID: {}", rsaKey.getKeyID());
-          return new ImmutableJWKSet<>(new JWKSet(rsaKey));
-        } catch (KeyStoreException | JOSEException e) {
-          String errorMessage = "Failed to load RSA key from keystore: " + e.getMessage();
-          log.error(errorMessage, e);
-          throw new IllegalStateException(errorMessage, e);
-        }
+        return getSecurityContextImmutableJWKSet(keyStore, alias, pin);
       } catch (KeyStoreException
           | IOException
           | NoSuchAlgorithmException
@@ -176,6 +168,20 @@ public class AuthorizationServerConfig {
       log.warn("No keystore configuration provided. Generating a new ephemeral RSA key pair.");
     }
     return new ImmutableJWKSet<>(new JWKSet(generateEphemeralKey()));
+  }
+
+  private static @NotNull ImmutableJWKSet<SecurityContext> getSecurityContextImmutableJWKSet(
+      KeyStore keyStore, String alias, char[] pin) {
+    RSAKey rsaKey;
+    try {
+      rsaKey = KeyStoreUtil.loadRSAPublicKey(keyStore, alias, pin);
+      log.info("Successfully loaded JWK from keystore with key ID: {}", rsaKey.getKeyID());
+      return new ImmutableJWKSet<>(new JWKSet(rsaKey));
+    } catch (KeyStoreException | JOSEException e) {
+      String errorMessage = "Failed to load RSA key from keystore: " + e.getMessage();
+      log.error(errorMessage, e);
+      throw new IllegalStateException(errorMessage, e);
+    }
   }
 
   private static @Nonnull RSAKey generateEphemeralKey() {

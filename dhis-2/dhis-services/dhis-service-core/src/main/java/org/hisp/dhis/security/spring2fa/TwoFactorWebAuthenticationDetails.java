@@ -46,7 +46,7 @@ public class TwoFactorWebAuthenticationDetails extends ForwardedIpAwareWebAuthen
   private String code;
 
   @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
-  public static TwoFactorWebAuthenticationDetails TwoFactorWebAuthenticationDetails(
+  public static TwoFactorWebAuthenticationDetails twoFactorWebAuthenticationDetails(
       @JsonProperty("remoteAddress") String remoteAddress,
       @JsonProperty("sessionId") String sessionId,
       @JsonProperty("ip") String ip,

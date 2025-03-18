@@ -52,7 +52,7 @@ import org.springframework.security.core.GrantedAuthority;
 public class UserDetailsImpl implements UserDetails {
 
   @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
-  public static UserDetailsImpl UserDetailsMixin(
+  public static UserDetailsImpl userDetailsMixin(
       @JsonProperty("id") String uid,
       @JsonProperty("code") String code,
       @JsonProperty("username") String username,

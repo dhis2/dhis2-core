@@ -155,9 +155,9 @@ public class Dhis2OAuth2ClientServiceImpl
                 (grantTypes) ->
                     authorizationGrantTypes.forEach(
                         grantType -> grantTypes.add(resolveAuthorizationGrantType(grantType))))
-            .redirectUris((uris) -> uris.addAll(redirectUris))
-            .postLogoutRedirectUris((uris) -> uris.addAll(postLogoutRedirectUris))
-            .scopes((scopes) -> scopes.addAll(clientScopes));
+            .redirectUris(uris -> uris.addAll(redirectUris))
+            .postLogoutRedirectUris(uris -> uris.addAll(postLogoutRedirectUris))
+            .scopes(scopes -> scopes.addAll(clientScopes));
 
     Map<String, Object> clientSettingsMap = parseMap(client.getClientSettings());
     builder.clientSettings(ClientSettings.withSettings(clientSettingsMap).build());
