@@ -39,10 +39,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -61,6 +64,13 @@ class AppTest {
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     this.app = mapper.readValue(appJson, App.class);
     this.app.init("https://example.com");
+
+    List<AppShortcut> shortcuts =
+        List.of(
+            new AppShortcut("help", "#/help"),
+            new AppShortcut("info", "#/info"),
+            new AppShortcut("exit", "#/exit"));
+    this.app.setShortcuts(shortcuts);
   }
 
   @AfterEach
@@ -160,5 +170,137 @@ class AppTest {
     assertEquals(
         "https://example.com/api/apps/Test-App/index.html", appWithoutPlugin.getLaunchUrl());
     assertNull(appWithoutPlugin.getPluginLaunchUrl());
+  }
+
+  List<AppManifestTranslation> getTranslation(String translationJSON) throws IOException {
+    ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    return objectMapper.readerForListOf(AppManifestTranslation.class).readValue(translationJSON);
+  }
+
+  @Test
+  void testShortcutTranslations() throws IOException {
+    String translationJSON =
+        """
+                [
+                {
+                      "locale": "es",
+                      "translations": {
+                        "APP_TITLE": "El App",
+                        "APP_DESCRIPTION": "App descripcion",
+                        "SHORTCUT_help": "ayuda",
+                        "SHORTCUT_info": "informacion"
+                      }
+                    }
+                ]
+                """;
+
+    var translationManifest = getTranslation(translationJSON);
+    app.setManifestTranslations(translationManifest);
+    app.localise(new Locale("es"));
+
+    assertEquals("ayuda", app.getShortcuts().get(0).getDisplayName());
+    assertEquals("informacion", app.getShortcuts().get(1).getDisplayName());
+  }
+
+  @Test
+  @DisplayName(
+      "Should match with the most specific locale if possible (country + language, i.e. es_CO) and fallback to the language if none exists (i.e. es), and to the default otherwise ")
+  void testShortcutTranslationsUsingLanguageWithCountryCode() throws IOException {
+    String translationJSON =
+        """
+                [
+                  {
+                      "locale": "es",
+                      "translations": {
+                        "APP_TITLE": "El App",
+                        "APP_DESCRIPTION": "App descripcion",
+                        "SHORTCUT_help": "ayuda",
+                        "SHORTCUT_info": "informacion"
+                      }
+                  },
+                  {
+                      "locale": "es_CO",
+                      "translations": {
+                        "SHORTCUT_help": "ayuda (Colombia)"
+                      }
+                  }
+                ]
+                """;
+
+    var translationManifest = getTranslation(translationJSON);
+    app.setManifestTranslations(translationManifest);
+    app.localise(new Locale("es", "CO"));
+
+    assertEquals("ayuda (Colombia)", app.getShortcuts().get(0).getDisplayName());
+    assertEquals("informacion", app.getShortcuts().get(1).getDisplayName());
+    assertEquals("exit", app.getShortcuts().get(2).getDisplayName());
+  }
+
+  @Test
+  void testShouldReturnDefaultIfNoMatch() throws IOException {
+    String translationJSON =
+        """
+                [
+                  {
+                      "locale": "es",
+                      "translations": {
+                        "APP_TITLE": "El App",
+                        "APP_DESCRIPTION": "App descripcion",
+                        "SHORTCUT_help": "ayuda",
+                        "SHORTCUT_info": "informacion"
+                      }
+                  }
+                ]
+                """;
+
+    var translationManifest = getTranslation(translationJSON);
+    app.setManifestTranslations(translationManifest);
+    app.localise(new Locale("de"));
+
+    assertEquals("help", app.getShortcuts().get(0).getDisplayName());
+    assertEquals("info", app.getShortcuts().get(1).getDisplayName());
+    assertEquals("exit", app.getShortcuts().get(2).getDisplayName());
+  }
+
+  @Test
+  void testShouldRespectLanguageScript() throws IOException {
+    String translationJSON =
+        """
+                [
+                    {
+                      "locale": "uz_Latn",
+                      "translations": {
+                        "SHORTCUT_help": "help (Uzbek Latin)"
+                      }
+                    },
+                    {
+                      "locale": "uz_UZ_Cyrl",
+                       "translations": {
+                        "SHORTCUT_help": "help (Uzbek Cyrillic)"
+                      }
+                    },
+                    {
+                      "locale": "uz_UZ_Latn",
+                       "translations": {
+                        "SHORTCUT_help": "help (Uzbek-Uzbekistan Latin)"
+                      }
+                    }
+                ]
+                """;
+
+    var translationManifest = getTranslation(translationJSON);
+    app.setManifestTranslations(translationManifest);
+
+    Locale locale =
+        new Locale.Builder().setLanguage("uz").setRegion("UZ").setScript("Cyrl").build();
+
+    app.localise(locale);
+    assertEquals("help (Uzbek Cyrillic)", app.getShortcuts().get(0).getDisplayName());
+
+    locale = new Locale.Builder().setLanguage("uz").setRegion("UZ").setScript("Latn").build();
+
+    app.localise(locale);
+    assertEquals("help (Uzbek-Uzbekistan Latin)", app.getShortcuts().get(0).getDisplayName());
   }
 }
