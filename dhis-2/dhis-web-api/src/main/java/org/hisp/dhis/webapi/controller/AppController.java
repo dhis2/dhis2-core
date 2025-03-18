@@ -265,7 +265,7 @@ public class AppController {
     String resourcePath = path;
     String appPrefix = "/" + AppManager.INSTALLED_APP_PREFIX + app.getKey();
 
-    log.info(
+    log.debug(
         "AppController::getResourcePath {} (contextPath {}, appPrefix {})",
         path,
         contextPath,
