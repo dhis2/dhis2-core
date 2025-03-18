@@ -136,8 +136,7 @@ class AppResourceTest extends ApiTest {
 
     // Serve index.html from index.html?shell=false
     {
-      ResponseEntity<String> response =
-          getAuthenticated(prefix + app + "/index.html?shell=false");
+      ResponseEntity<String> response = getAuthenticated(prefix + app + "/index.html?shell=false");
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertNotNull(response.getBody());
       // TODO: Confirm content-type and template replacement
@@ -149,7 +148,6 @@ class AppResourceTest extends ApiTest {
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertNotNull(response.getBody());
     }
-
 
     // Append trailing slash and redirect
     {
@@ -296,23 +294,20 @@ class AppResourceTest extends ApiTest {
 
     // Global shell service-worker
     {
-      ResponseEntity<String> response =
-          getAuthenticated(prefix + "/service-worker.js");
+      ResponseEntity<String> response = getAuthenticated(prefix + "/service-worker.js");
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertNotNull(response.getBody());
     }
 
     // Non-existant resource (at root)
     {
-      ResponseEntity<String> response =
-          getAuthenticated(prefix + "/nonexistent.txt");
+      ResponseEntity<String> response = getAuthenticated(prefix + "/nonexistent.txt");
       assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     // Non-existant resource (at sub-dir)
     {
-      ResponseEntity<String> response =
-          getAuthenticated(prefix + "/static/nonexistent.txt");
+      ResponseEntity<String> response = getAuthenticated(prefix + "/static/nonexistent.txt");
       assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
   }
