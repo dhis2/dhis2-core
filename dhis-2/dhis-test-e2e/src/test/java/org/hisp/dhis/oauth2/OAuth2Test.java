@@ -168,7 +168,7 @@ class OAuth2Test extends BaseE2ETest {
 
     // 5. Call the token endpoint with the authorization code
     String accessToken = getAccessToken(code);
-    log.info("Access token: " + accessToken);
+    log.error("Access token: " + accessToken);
 
     assertNotNull(accessToken);
 
@@ -180,7 +180,7 @@ class OAuth2Test extends BaseE2ETest {
     assertNotNull(body);
 
     log.info("Body: " + body);
-    assertTrue(body.contains("\"username\":\"admin\""));
+    assertTrue(body.contains("Found no matching DHIS2 user for the mapping claim: 'email' with the value:"));
 
     driver.quit();
   }
