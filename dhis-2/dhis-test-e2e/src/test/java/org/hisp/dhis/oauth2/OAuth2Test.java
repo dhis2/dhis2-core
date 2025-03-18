@@ -175,12 +175,14 @@ class OAuth2Test extends BaseE2ETest {
     // 6. Call the /me endpoint with the access token
     ResponseEntity<String> withBearerJwt = getWithBearerJwt(serverApiUrl + "/me", accessToken);
     HttpStatusCode statusCode = withBearerJwt.getStatusCode();
-    assertEquals(HttpStatus.OK, statusCode);
+    assertEquals(HttpStatus.UNAUTHORIZED, statusCode);
     String body = withBearerJwt.getBody();
     assertNotNull(body);
 
     log.info("Body: " + body);
-    assertTrue(body.contains("Found no matching DHIS2 user for the mapping claim: 'email' with the value:"));
+    assertTrue(
+        body.contains(
+            "Found no matching DHIS2 user for the mapping claim: 'email' with the value:"));
 
     driver.quit();
   }

@@ -262,7 +262,12 @@ public class BaseE2ETest {
 
   public static ResponseEntity<String> getWithBearerJwt(String fullUrl, String token) {
     RestTemplate rt = addBearerTokenAuthHeaders(new RestTemplate(), token);
-    return rt.exchange(fullUrl, HttpMethod.GET, new HttpEntity<>("", jsonHeaders()), String.class);
+    try {
+      return rt.exchange(
+          fullUrl, HttpMethod.GET, new HttpEntity<>("", jsonHeaders()), String.class);
+    } catch (HttpClientErrorException e) {
+      return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+    }
   }
 
   public static ResponseEntity<String> getWithAdminBasicAuth(String path, Map<String, Object> map) {
