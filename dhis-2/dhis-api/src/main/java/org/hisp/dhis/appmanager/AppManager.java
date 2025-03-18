@@ -47,7 +47,7 @@ public interface AppManager {
   static final String INSTALLED_APP_PREFIX = "api/apps/";
 
   /* To be removed in favor of dynamic ClassPath loading, see BundledAppStorageService */
-  @Deprecated(forRemoval=true)
+  @Deprecated(forRemoval = true)
   static final Set<String> BUNDLED_APPS =
       Set.of(
           "aggregate-data-entry",

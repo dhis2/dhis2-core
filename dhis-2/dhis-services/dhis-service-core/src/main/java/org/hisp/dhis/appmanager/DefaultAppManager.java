@@ -426,7 +426,7 @@ public class DefaultAppManager implements AppManager {
     App appFromCache = appOpt.get();
     appFromCache.setAppState(AppStatus.DELETION_IN_PROGRESS);
     appCache.put(app.getKey(), appFromCache);
-    
+
     deleteAppFromStorageAsync(app);
 
     boolean isBundledAppOverride = app.isBundled();
