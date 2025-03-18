@@ -114,10 +114,8 @@ public class DefaultSystemService implements SystemService, InitializingBean {
         settings.getLastSuccessfulLatestAnalyticsPartitionUpdate();
 
     Date now = new Date();
-    Configuration config = configurationService.getConfiguration();
 
     return systemInfo.toBuilder()
-        .systemId(config.getSystemId())
         .databaseInfo(databaseInfoProvider.getDatabaseInfo())
         .calendar(calendarService.getSystemCalendar().name())
         .dateFormat(calendarService.getSystemDateFormat().getJs())
@@ -149,10 +147,9 @@ public class DefaultSystemService implements SystemService, InitializingBean {
   @NonTransactional
   public SystemInfoForMetadataExport getSystemInfoForMetadataExport() {
     if (systemInfo == null) return null;
-    Configuration config = configurationService.getConfiguration();
     Date now = new Date();
     return new SystemInfoForMetadataExport(
-        config.getSystemId(), systemInfo.getRevision(), systemInfo.getVersion(), now);
+        systemInfo.getSystemId(), systemInfo.getRevision(), systemInfo.getVersion(), now);
   }
 
   @Override
@@ -160,13 +157,12 @@ public class DefaultSystemService implements SystemService, InitializingBean {
   @NonTransactional
   public SystemInfoForDataStats getSystemInfoForDataStats() {
     if (systemInfo == null) return null;
-    Configuration config = configurationService.getConfiguration();
     Date now = new Date();
     return new SystemInfoForDataStats(
         systemInfo.getVersion(),
         systemInfo.getRevision(),
         systemInfo.getBuildTime(),
-        config.getSystemId(),
+        systemInfo.getSystemId(),
         now);
   }
 
@@ -193,6 +189,7 @@ public class DefaultSystemService implements SystemService, InitializingBean {
    * @return A {@link SystemInfo} with all properties set that are stable (immutable) after start
    */
   private SystemInfo getStableSystemInfo() {
+    Configuration config = configurationService.getConfiguration();
     Properties props = System.getProperties();
     boolean redisEnabled = dhisConfig.isEnabled(ConfigurationKey.REDIS_ENABLED);
 
@@ -203,6 +200,7 @@ public class DefaultSystemService implements SystemService, InitializingBean {
         .readOnlyMode(dhisConfig.getProperty(ConfigurationKey.SYSTEM_READ_ONLY_MODE))
         .nodeId(dhisConfig.getProperty(ConfigurationKey.NODE_ID))
         .systemMonitoringUrl(dhisConfig.getProperty(ConfigurationKey.SYSTEM_MONITORING_URL))
+        .systemId(config.getSystemId())
         .clusterHostname(dhisConfig.getProperty(ConfigurationKey.CLUSTER_HOSTNAME))
         .redisEnabled(redisEnabled)
         .redisHostname(redisEnabled ? dhisConfig.getProperty(ConfigurationKey.REDIS_HOST) : null)
