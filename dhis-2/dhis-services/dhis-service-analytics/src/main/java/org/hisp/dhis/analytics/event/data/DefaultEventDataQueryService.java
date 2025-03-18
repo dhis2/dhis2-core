@@ -226,7 +226,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
             .withEnhancedConditions(request.isEnhancedConditions())
             .withEndpointItem(request.getEndpointItem())
             .withEndpointAction(request.getEndpointAction())
-            .withRowContext(request.isRowContext());
+            .withRowContext(request.isRowContext())
+            .withUserOrgUnits(userOrgUnits);
 
     if (analyzeOnly) {
       builder = builder.withSkipData(true).withAnalyzeOrderId();

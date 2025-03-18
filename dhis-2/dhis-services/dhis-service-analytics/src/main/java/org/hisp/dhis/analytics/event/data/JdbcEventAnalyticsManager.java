@@ -117,9 +117,14 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       ProgramIndicatorService programIndicatorService,
       ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
       EventTimeFieldSqlRenderer timeFieldSqlRenderer,
-      ExecutionPlanStore executionPlanStore) {
+      ExecutionPlanStore executionPlanStore,
+      OrganisationUnitResolver organisationUnitResolver) {
     super(
-        jdbcTemplate, programIndicatorService, programIndicatorSubqueryBuilder, executionPlanStore);
+        jdbcTemplate,
+        programIndicatorService,
+        programIndicatorSubqueryBuilder,
+        executionPlanStore,
+        organisationUnitResolver);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 

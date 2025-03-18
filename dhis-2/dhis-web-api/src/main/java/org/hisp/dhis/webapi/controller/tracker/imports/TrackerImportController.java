@@ -32,11 +32,13 @@ import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.R
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Deque;
 import java.util.List;
-import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -46,8 +48,8 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
@@ -96,6 +98,8 @@ public class TrackerImportController {
   private final CsvEventService<Event> csvEventService;
 
   private final Notifier notifier;
+
+  private final ObjectMapper jsonMapper;
 
   @PostMapping(value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
   @ResponseBody
@@ -216,11 +220,17 @@ public class TrackerImportController {
       @PathVariable String uid,
       @RequestParam(defaultValue = "errors", required = false) TrackerBundleReportMode reportMode,
       HttpServletResponse response)
-      throws HttpStatusCodeException, NotFoundException {
+      throws HttpStatusCodeException, NotFoundException, ConflictException {
     setNoStore(response);
 
-    return Optional.ofNullable(notifier.getJobSummaryByJobId(JobType.TRACKER_IMPORT_JOB, uid))
-        .map(report -> trackerImportService.buildImportReport((ImportReport) report, reportMode))
-        .orElseThrow(() -> new NotFoundException(JobConfiguration.class, uid));
+    JsonNode report = notifier.getJobSummaryByJobId(JobType.TRACKER_IMPORT_JOB, uid);
+    if (report == null) throw new NotFoundException("Summary for job " + uid + " does not exist");
+
+    try {
+      return trackerImportService.buildImportReport(
+          jsonMapper.treeToValue(report, ImportReport.class), reportMode);
+    } catch (JsonProcessingException e) {
+      throw new ConflictException("Failed to convert the import report: " + report);
+    }
   }
 }

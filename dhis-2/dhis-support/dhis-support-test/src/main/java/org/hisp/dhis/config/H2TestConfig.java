@@ -25,30 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets.auth;
+package org.hisp.dhis.config;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.hibernate.DefaultHibernateConfigurationProvider;
+import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
-import org.hisp.dhis.common.auth.ApiTokenAuth;
-import org.junit.jupiter.api.Test;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+@Profile({"test-h2"})
+@Configuration
+public class H2TestConfig {
+  @Bean
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    return new H2DhisConfigurationProvider();
+  }
 
-/**
- * @author Morten Olav Hansen
- */
-class ApiTokenAuthTest {
+  public static class NoOpFlyway {}
 
-  @Test
-  void testAuthorizationHeaderSet() {
-    ApiTokenAuth auth = new ApiTokenAuth().setToken("90619873-3287-4296-8C22-9E1D49C0201F");
+  @Bean("flyway")
+  public NoOpFlyway noFlyway() {
+    return new NoOpFlyway();
+  }
 
-    MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-    auth.apply(headers);
-
-    assertTrue(headers.containsKey("Authorization"));
-    assertFalse(headers.get("Authorization").isEmpty());
-    assertEquals(
-        "ApiToken 90619873-3287-4296-8C22-9E1D49C0201F", headers.get("Authorization").get(0));
+  @Bean
+  public HibernateConfigurationProvider hibernateConfigurationProvider(
+      DhisConfigurationProvider dhisConfigurationProvider) {
+    DefaultHibernateConfigurationProvider hibernateConfigurationProvider =
+        new DefaultHibernateConfigurationProvider(org.hibernate.tool.schema.Action.UPDATE);
+    hibernateConfigurationProvider.setConfigProvider(dhisConfigurationProvider);
+    return hibernateConfigurationProvider;
   }
 }

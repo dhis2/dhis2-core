@@ -43,6 +43,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
@@ -69,7 +70,7 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
     handleDataElementDimensions(session, schema, analyticalObject, bundle);
     handleAttributeDimensions(session, schema, analyticalObject, bundle);
     handleProgramIndicatorDimensions(session, schema, analyticalObject, bundle);
-    handleVisualizationLegendSet(schema, analyticalObject, bundle);
+    handleAnalyticalLegendSet(schema, analyticalObject, bundle);
     handleRelativePeriods(schema, analyticalObject);
   }
 
@@ -123,46 +124,45 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
    * @param analyticalObject the analytic object to be processed
    * @param bundle current {@link ObjectBundle}
    */
-  private void handleVisualizationLegendSet(
+  private void handleAnalyticalLegendSet(
       Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle) {
-    if (!schema.getKlass().isAssignableFrom(Visualization.class)) {
+    if (!EventVisualization.class.isAssignableFrom(schema.getKlass())
+        && !Visualization.class.isAssignableFrom(schema.getKlass())) {
       return;
     }
 
-    Visualization visualization = (Visualization) analyticalObject;
-
-    if (visualization.getLegendDefinitions() == null
-        || visualization.getLegendDefinitions().getLegendSet() == null) {
+    if (analyticalObject.getLegendDefinitions() == null
+        || analyticalObject.getLegendDefinitions().getLegendSet() == null) {
       return;
     }
 
-    String legendSetId = visualization.getLegendDefinitions().getLegendSet().getUid();
+    String legendSetId = analyticalObject.getLegendDefinitions().getLegendSet().getUid();
     LegendSet legendSet =
         bundle.getPreheat().get(bundle.getPreheatIdentifier(), LegendSet.class, legendSetId);
 
     if (legendSet != null) {
-      visualization.getLegendDefinitions().setLegendSet(legendSet);
+      analyticalObject.getLegendDefinitions().setLegendSet(legendSet);
       return;
     }
 
     legendSet = objectManager.get(LegendSet.class, legendSetId);
 
     if (legendSet != null) {
-      visualization.getLegendDefinitions().setLegendSet(legendSet);
+      analyticalObject.getLegendDefinitions().setLegendSet(legendSet);
       bundle.getPreheat().put(bundle.getPreheatIdentifier(), legendSet);
       return;
     }
 
     // Add new LegendSet
     preheatService.connectReferences(
-        visualization.getLegendDefinitions().getLegendSet(),
+        analyticalObject.getLegendDefinitions().getLegendSet(),
         bundle.getPreheat(),
         bundle.getPreheatIdentifier());
-    objectManager.save(visualization.getLegendDefinitions().getLegendSet());
+    objectManager.save(analyticalObject.getLegendDefinitions().getLegendSet());
 
     bundle
         .getPreheat()
-        .put(bundle.getPreheatIdentifier(), visualization.getLegendDefinitions().getLegendSet());
+        .put(bundle.getPreheatIdentifier(), analyticalObject.getLegendDefinitions().getLegendSet());
   }
 
   private void handleDataDimensionItems(

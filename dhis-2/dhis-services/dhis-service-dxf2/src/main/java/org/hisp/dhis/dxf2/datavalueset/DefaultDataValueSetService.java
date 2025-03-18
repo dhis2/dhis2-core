@@ -625,7 +625,7 @@ public class DefaultDataValueSetService implements DataValueSetService {
       ImportOptions options, JobConfiguration id, Callable<DataValueSetReader> createReader) {
     options = ObjectUtils.firstNonNull(options, ImportOptions.getDefaultImportOptions());
 
-    notifier.clear(id);
+    if (id != null) notifier.clear(id);
 
     try (BatchHandler<DataValue> dvBatch =
             batchHandlerFactory.createBatchHandler(DataValueBatchHandler.class);

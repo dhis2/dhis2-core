@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,11 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.migration.helper;
+package org.hisp.dhis.eventhook.targets.auth;
 
-/**
- * A no operation flyway that is used for unit tests. Disabling flyway migrations during unit tests.
- *
- * @author Ameen Mohamed
- */
-public class NoOpFlyway {}
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.function.Function;
+import org.hisp.dhis.common.auth.AuthScheme;
+
+public abstract class AbstractAuthSchemeTest {
+
+  protected <T extends AuthScheme> void assertEncrypt(
+      T authScheme, Function<T, String> secretProvider) {
+    T encryptedAuthScheme =
+        (T)
+            authScheme.encrypt(
+                value -> {
+                  assertEquals(secretProvider.apply(authScheme), value);
+                  return "bar";
+                });
+    assertEquals("bar", secretProvider.apply(encryptedAuthScheme));
+  }
+
+  protected <T extends AuthScheme> void assertDecrypt(
+      T authScheme, Function<T, String> secretProvider) {
+    T decryptedAuthScheme =
+        (T)
+            authScheme.decrypt(
+                value -> {
+                  assertEquals(secretProvider.apply(authScheme), value);
+                  return "foo";
+                });
+    assertEquals("foo", secretProvider.apply(decryptedAuthScheme));
+  }
+}

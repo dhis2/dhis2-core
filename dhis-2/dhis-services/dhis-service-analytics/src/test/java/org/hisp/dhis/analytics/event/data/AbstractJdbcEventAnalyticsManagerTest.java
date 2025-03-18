@@ -43,6 +43,7 @@ import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationTy
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NE;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.hisp.dhis.common.QueryOperator.NIEQ;
@@ -53,6 +54,7 @@ import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -116,6 +118,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private ExecutionPlanStore executionPlanStore;
 
+  @Mock private OrganisationUnitResolver organisationUnitResolver;
+
   private JdbcEventAnalyticsManager eventSubject;
 
   private Program programA;
@@ -139,7 +143,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             programIndicatorService,
             programIndicatorSubqueryBuilder,
             new EventTimeFieldSqlRenderer(statementBuilder),
-            executionPlanStore);
+            executionPlanStore,
+            organisationUnitResolver);
 
     programA = createProgram('A');
 
@@ -792,6 +797,24 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     eventSubject.addGridValue(grid, header, index, sqlRowSet, queryParams);
 
     assertTrue(grid.getColumn(0).contains(EMPTY), "Should contain empty value");
+  }
+
+  @Test
+  void testItemsInFilterAreQuotedForOrganisationUnit() {
+    // Given
+    QueryItem queryItem = mock(QueryItem.class);
+    QueryFilter queryFilter = new QueryFilter(IN, "A;B;C");
+    EventQueryParams params =
+        new EventQueryParams.Builder().withStartDate(new Date()).withEndDate(new Date()).build();
+    when(queryItem.getItemName()).thenReturn("anyItem");
+    when(queryItem.getValueType()).thenReturn(ValueType.ORGANISATION_UNIT);
+    when(organisationUnitResolver.resolveOrgUnits(any(), any())).thenReturn("A;B;C");
+
+    // When
+    String sql = eventSubject.toSql(queryItem, queryFilter, params).trim();
+
+    // Then
+    assertEquals("ax.\"anyItem\" in ('A','B','C')", sql);
   }
 
   private QueryFilter buildQueryFilter(QueryOperator operator, String filter) {

@@ -33,8 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.common.auth.ApiTokenAuth;
-import org.hisp.dhis.common.auth.HttpBasicAuth;
+import org.hisp.dhis.common.auth.ApiTokenAuthScheme;
+import org.hisp.dhis.common.auth.HttpBasicAuthScheme;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -80,7 +80,7 @@ class EventHookControllerTest extends DhisControllerIntegrationTest {
 
     JsonObject auth = target.getObject("auth");
     assertFalse(auth.has("token"));
-    assertEquals(ApiTokenAuth.TYPE, auth.getString("type").string());
+    assertEquals(ApiTokenAuthScheme.API_TOKEN_TYPE, auth.getString("type").string());
   }
 
   @Test
@@ -107,7 +107,7 @@ class EventHookControllerTest extends DhisControllerIntegrationTest {
     JsonObject auth = target.getObject("auth");
     assertTrue(auth.has("type", "username"));
     assertFalse(auth.has("password"));
-    assertEquals(HttpBasicAuth.TYPE, auth.getString("type").string());
+    assertEquals(HttpBasicAuthScheme.HTTP_BASIC_TYPE, auth.getString("type").string());
     assertEquals("admin", auth.getString("username").string());
   }
 
@@ -136,7 +136,7 @@ class EventHookControllerTest extends DhisControllerIntegrationTest {
     JsonObject auth = target.getObject("auth");
     assertTrue(auth.has("type", "username"));
     assertFalse(auth.has("password"));
-    assertEquals(HttpBasicAuth.TYPE, auth.getString("type").string());
+    assertEquals(HttpBasicAuthScheme.HTTP_BASIC_TYPE, auth.getString("type").string());
     assertEquals("admin", auth.getString("username").string());
   }
 

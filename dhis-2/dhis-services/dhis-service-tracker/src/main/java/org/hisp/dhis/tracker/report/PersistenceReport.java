@@ -60,6 +60,7 @@ public class PersistenceReport {
     return stats;
   }
 
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   public boolean isEmpty() {
     return typeReportMap.values().stream().allMatch(TrackerTypeReport::isEmpty);
   }

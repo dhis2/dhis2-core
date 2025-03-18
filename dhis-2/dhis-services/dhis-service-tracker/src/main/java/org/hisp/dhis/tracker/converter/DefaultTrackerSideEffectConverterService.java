@@ -140,7 +140,7 @@ public class DefaultTrackerSideEffectConverterService implements TrackerSideEffe
 
     return TrackerScheduleMessageSideEffect.builder()
         .notification(ruleActionScheduleMessage.notification())
-        .data(ruleActionScheduleMessage.data())
+        .data(ruleEffect.data())
         .build();
   }
 

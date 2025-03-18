@@ -92,6 +92,8 @@ class DefaultEventAnalyticsServiceTest {
 
   @Mock private SchemaIdResponseMapper schemaIdResponseMapper;
 
+  @Mock private OrganisationUnitResolver organisationUnitResolver;
+
   @BeforeEach
   public void setUp() {
     defaultEventAnalyticsService =
@@ -106,7 +108,8 @@ class DefaultEventAnalyticsServiceTest {
             databaseInfo,
             analyticsCache,
             enrollmentAnalyticsManager,
-            schemaIdResponseMapper);
+            schemaIdResponseMapper,
+            organisationUnitResolver);
   }
 
   @Test
