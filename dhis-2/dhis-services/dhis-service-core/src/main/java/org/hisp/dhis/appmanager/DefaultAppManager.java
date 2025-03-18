@@ -334,8 +334,7 @@ public class DefaultAppManager implements AppManager {
             "Installed App with ID %s (status: %s)", app.getAppHubId(), app.getAppState()));
 
     if (app.getAppState().ok()) {
-      appCache.put(app.getKey(), app);
-      registerDatastoreProtection(app);
+      installApp(app);
     }
 
     return app;
@@ -403,7 +402,8 @@ public class DefaultAppManager implements AppManager {
       }
 
       if (!result) {
-        log.warn("Failed to delete app " + app.getKey());
+        log.warn("Deleting app {} is not allowed", app.getKey());
+        app.setAppState(AppStatus.OK);
         return CompletableFuture.completedFuture(false);
       }
 
@@ -425,6 +425,10 @@ public class DefaultAppManager implements AppManager {
   public boolean markAppToDelete(App app, boolean deleteAppData) {
     Optional<App> appOpt = appCache.get(app.getKey());
     if (appOpt.isEmpty()) return false;
+    
+    // Bundled apps cannot be deleted
+    if (appOpt.get().getAppStorageSource() == AppStorageSource.BUNDLED) return false;
+
     App appFromCache = appOpt.get();
     appFromCache.setAppState(AppStatus.DELETION_IN_PROGRESS);
     appCache.put(app.getKey(), appFromCache);
@@ -458,13 +462,18 @@ public class DefaultAppManager implements AppManager {
      * or earlier might still have app files in the local system.  To be removed in 2.43.
      */
     localAppStorageService.discoverInstalledApps().values().stream()
-        .forEach(app -> discoveredApps.putIfAbsent(app.getKey(), app));
+        .forEach(app -> {
+          discoveredApps.putIfAbsent(app.getKey(), app);
+          log.warn(
+              "App {} uses local app storage is deprecated and will be removed in DHIS2 version 43.  Please delete this app and re-install it to migrate to the new JClouds app storage service.",
+              app.getKey());
+        });
 
     // Install apps from jClouds (either local storage or a remote object store)
     jCloudsAppStorageService.discoverInstalledApps().values().stream()
         .forEach(app -> discoveredApps.putIfAbsent(app.getKey(), app));
 
-    // Only add bundled apps if an app with the same key hasn't been installed as an override
+    // Only add bundled apps if an override with the same key hasn't already been installed
     bundledAppStorageService.discoverInstalledApps().values().stream()
         .forEach(app -> discoveredApps.putIfAbsent(app.getKey(), app));
 
@@ -478,6 +487,9 @@ public class DefaultAppManager implements AppManager {
   }
 
   private void installApp(App app) {
+    if (AppManager.BUNDLED_APPS.contains(app.getKey())) {
+      app.setBundled(true);
+    }
     appCache.put(app.getKey(), app);
     registerDatastoreProtection(app);
   }

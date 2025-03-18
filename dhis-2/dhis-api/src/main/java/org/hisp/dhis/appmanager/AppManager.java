@@ -48,9 +48,10 @@ public interface AppManager {
   static final String BUNDLED_APP_PREFIX = "dhis-web-";
   static final String INSTALLED_APP_PREFIX = "api/apps/";
 
+  /* To be removed in favor of dynamic ClassPath loading, see BundledAppStorageService */
+  @Deprecated
   static final Set<String> BUNDLED_APPS =
       Set.of(
-          // Javascript apps
           "aggregate-data-entry",
           "approval",
           "app-management",
