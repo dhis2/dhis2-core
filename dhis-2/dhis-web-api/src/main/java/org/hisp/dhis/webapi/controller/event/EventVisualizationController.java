@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getQualifiedDimensions;
+import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 import static org.hisp.dhis.commons.collection.ListUtils.union;
@@ -54,7 +56,9 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
+import org.hisp.dhis.analytics.event.data.OrganisationUnitResolver;
 import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.OpenApi;
@@ -104,6 +108,8 @@ public class EventVisualizationController
   private final LegendSetService legendSetService;
 
   private final OrganisationUnitService organisationUnitService;
+
+  private final OrganisationUnitResolver organisationUnitResolver;
 
   private final EventVisualizationService eventVisualizationService;
 
@@ -224,7 +230,9 @@ public class EventVisualizationController
           && dimensionalObject.getValueType() == ORGANISATION_UNIT) {
 
         List<String> orgUnitUids = fromFilter(dimensionalObject.getFilter());
+
         processOrganisationUnits(orgUnitUids, eventVisualization, roots);
+        processOrganisationUnitLevelsGroups(orgUnitUids, eventVisualization);
       }
     }
   }
@@ -234,7 +242,6 @@ public class EventVisualizationController
       List<String> orgUnitUids,
       EventVisualization eventVisualization,
       Set<OrganisationUnit> roots) {
-
     if (!orgUnitUids.isEmpty()) {
       List<OrganisationUnit> units = organisationUnitService.getOrganisationUnitsByUid(orgUnitUids);
 
@@ -243,6 +250,24 @@ public class EventVisualizationController
         eventVisualization
             .getMetaData()
             .put(ou.getUid(), new MetadataItem(ou.getDisplayName(), ou.getUid(), ou.getCode()));
+      }
+    }
+  }
+
+  /** Common method to process organization units once UIDs are extracted. */
+  private void processOrganisationUnitLevelsGroups(
+      List<String> levelGroupsuids, EventVisualization eventVisualization) {
+    if (!levelGroupsuids.isEmpty()) {
+      for (String levelGroupUid : levelGroupsuids) {
+        DimensionalItemObject ou =
+            organisationUnitResolver.loadOrgUnitDimensionalItem(levelGroupUid, UID);
+
+        if (ou != null) {
+          eventVisualization.getParentGraphMap().put(ou.getUid(), EMPTY);
+          eventVisualization
+              .getMetaData()
+              .put(ou.getUid(), new MetadataItem(ou.getDisplayName(), ou.getUid(), ou.getCode()));
+        }
       }
     }
   }
