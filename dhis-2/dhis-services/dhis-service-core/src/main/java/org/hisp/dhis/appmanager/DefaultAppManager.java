@@ -425,7 +425,7 @@ public class DefaultAppManager implements AppManager {
   public boolean markAppToDelete(App app, boolean deleteAppData) {
     Optional<App> appOpt = appCache.get(app.getKey());
     if (appOpt.isEmpty()) return false;
-    
+
     // Bundled apps cannot be deleted
     if (appOpt.get().getAppStorageSource() == AppStorageSource.BUNDLED) return false;
 
@@ -462,12 +462,13 @@ public class DefaultAppManager implements AppManager {
      * or earlier might still have app files in the local system.  To be removed in 2.43.
      */
     localAppStorageService.discoverInstalledApps().values().stream()
-        .forEach(app -> {
-          discoveredApps.putIfAbsent(app.getKey(), app);
-          log.warn(
-              "App {} uses local app storage is deprecated and will be removed in DHIS2 version 43.  Please delete this app and re-install it to migrate to the new JClouds app storage service.",
-              app.getKey());
-        });
+        .forEach(
+            app -> {
+              discoveredApps.putIfAbsent(app.getKey(), app);
+              log.warn(
+                  "App {} uses local app storage is deprecated and will be removed in DHIS2 version 43.  Please delete this app and re-install it to migrate to the new JClouds app storage service.",
+                  app.getKey());
+            });
 
     // Install apps from jClouds (either local storage or a remote object store)
     jCloudsAppStorageService.discoverInstalledApps().values().stream()
