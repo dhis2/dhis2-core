@@ -90,6 +90,8 @@ import reactor.netty.http.client.HttpClientRequest;
 public class RouteService {
   private static final String HEADER_X_FORWARDED_USER = "X-Forwarded-User";
 
+  private static final String HTTP_OR_HTTPS_REGEX = "^(https?:).*";
+
   private final ApplicationContext applicationContext;
 
   private final RouteStore routeStore;
@@ -156,7 +158,7 @@ public class RouteService {
   }
 
   protected void validateHost(String host) {
-    if (!(host.matches("^(https?:).*"))) {
+    if (!(host.matches(HTTP_OR_HTTPS_REGEX))) {
       throw new IllegalStateException(
           "Allowed route URL scheme must be either http or https: " + host);
     }
