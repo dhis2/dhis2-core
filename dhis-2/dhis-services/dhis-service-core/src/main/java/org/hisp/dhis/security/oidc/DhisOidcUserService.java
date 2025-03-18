@@ -92,7 +92,6 @@ public class DhisOidcUserService extends OidcUserService {
             userDetails, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken());
       }
     }
-    ////// SPRINGAUTHSERVER
 
     String errorMessage =
         String.format(
