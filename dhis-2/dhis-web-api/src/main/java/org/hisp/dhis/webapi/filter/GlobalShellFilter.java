@@ -58,8 +58,8 @@ public class GlobalShellFilter extends OncePerRequestFilter {
   public static final String BUNDLED_GLOBAL_SHELL_NAME = "global-shell";
   public static final String BUNDLED_GLOBAL_SHELL_PATH = "dhis-web-" + BUNDLED_GLOBAL_SHELL_NAME;
   public static final String GLOBAL_SHELL_PATH_PREFIX = "/apps/";
-  public static final String SEC_FETCH_MODE = "Sec-Fetch-Mode";
-  public static final String SEC_FETCH_MODE_NAVIGATE = "navigate";
+  public static final String REFERER_HEADER = "Referer";
+  public static final String SERVICE_WORKER_JS = "/service-worker.js";
   public static final String REDIRECT_FALSE = "redirect=false";
   public static final String SHELL_FALSE = "shell=false";
 
@@ -165,18 +165,13 @@ public class GlobalShellFilter extends OncePerRequestFilter {
         queryString != null
             && (queryString.contains(REDIRECT_FALSE) || queryString.contains(SHELL_FALSE));
 
-    // Only redirect browser navigation requests
-    String secFetchMode = request.getHeader(SEC_FETCH_MODE);
-    // boolean isNavigationRequest =
-    //     secFetchMode != null && secFetchMode.equals(SEC_FETCH_MODE_NAVIGATE);
-    String referer = request.getHeader("Referer");
-    boolean isServiceWorkerRequest = referer != null && referer.endsWith("/service-worker.js");
+    String referer = request.getHeader(REFERER_HEADER);
+    boolean isServiceWorkerRequest = referer != null && referer.endsWith(SERVICE_WORKER_JS);
 
     log.info(
-        "redirectLegacyAppPaths: path = {}, queryString = {}, secFetchMode = {}, referer = {}",
+        "redirectLegacyAppPaths: path = {}, queryString = {}, referer = {}",
         path,
         queryString,
-        secFetchMode,
         referer);
 
     if (isIndexPath && !isServiceWorkerRequest && !hasRedirectFalse) {
