@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.bundle.persister;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -101,8 +100,6 @@ public abstract class AbstractTrackerPersister<
     //
     List<T> dtos = getByType(getType(), bundle);
 
-    Set<String> updatedTrackedEntities = new HashSet<>(bundle.getUpdatedTrackedEntities());
-
     for (T trackerDto : dtos) {
       TrackerObjectReport objectReport =
           new TrackerObjectReport(getType(), trackerDto.getUid(), dtos.indexOf(trackerDto));
@@ -136,14 +133,14 @@ public abstract class AbstractTrackerPersister<
           typeReport.getStats().incCreated();
           typeReport.addObjectReport(objectReport);
           updateAttributes(session, bundle.getPreheat(), trackerDto, convertedDto);
+          bundle.addUpdatedTrackedEntities(getUpdatedTrackedEntities(convertedDto));
         } else {
           if (isUpdatable()) {
             updateAttributes(session, bundle.getPreheat(), trackerDto, convertedDto);
             session.merge(convertedDto);
             typeReport.getStats().incUpdated();
             typeReport.addObjectReport(objectReport);
-            Optional.ofNullable(getUpdatedTrackedEntity(convertedDto))
-                .ifPresent(updatedTrackedEntities::add);
+            bundle.addUpdatedTrackedEntities(getUpdatedTrackedEntities(convertedDto));
           } else {
             typeReport.getStats().incIgnored();
           }
@@ -161,8 +158,6 @@ public abstract class AbstractTrackerPersister<
         if (FlushMode.OBJECT == bundle.getFlushMode()) {
           session.flush();
         }
-
-        bundle.setUpdatedTrackedEntities(updatedTrackedEntities);
       } catch (Exception e) {
         final String msg =
             "A Tracker Entity of type '"
@@ -195,8 +190,10 @@ public abstract class AbstractTrackerPersister<
   // // // // // // // //
   // // // // // // // //
 
-  /** Get Tracked Entity for enrollments or events that have been updated */
-  protected abstract String getUpdatedTrackedEntity(V entity);
+  /**
+   * Get Tracked Entities for enrollments, events or relationships that have been created or updated
+   */
+  protected abstract Set<String> getUpdatedTrackedEntities(V entity);
 
   /**
    * Converts an object implementing the {@link TrackerDto} interface into the corresponding

@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import org.hibernate.Session;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
@@ -195,7 +196,7 @@ public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, Pr
   }
 
   @Override
-  protected String getUpdatedTrackedEntity(ProgramInstance entity) {
-    return entity.getEntityInstance().getUid();
+  protected Set<String> getUpdatedTrackedEntities(ProgramInstance entity) {
+    return Set.of(entity.getEntityInstance().getUid());
   }
 }
