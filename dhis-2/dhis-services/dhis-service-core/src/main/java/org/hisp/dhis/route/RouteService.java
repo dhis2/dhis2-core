@@ -182,7 +182,7 @@ public class RouteService {
     } catch (MalformedURLException e) {
       throw new IllegalStateException(e);
     }
-    if (!org.apache.commons.lang3.StringUtils.isNotEmpty(url.getPath())) {
+    if (org.apache.commons.lang3.StringUtils.isNotEmpty(url.getPath())) {
       throw new IllegalStateException("Allowed route URL must not have a path: " + host);
     }
   }
