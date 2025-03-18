@@ -229,9 +229,24 @@ public class JCloudsAppStorageService implements AppStorageService {
 
       app = jsonMapper.readValue(inputStream, App.class);
 
-      app.setFolderName(
-          APPS_DIR + File.separator + filename.substring(0, filename.lastIndexOf('.')));
-      app.setAppStorageSource(AppStorageSource.JCLOUDS);
+      try {
+        ZipEntry translationFiles = zip.getEntry(prefix + MANIFEST_TRANSLATION_FILENAME);
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        List<AppManifestTranslation> appManifestTranslations =
+            objectMapper
+                .readerForListOf(AppManifestTranslation.class)
+                .readValue(zip.getInputStream(translationFiles));
+        app.setManifestTranslations(appManifestTranslations);
+        app.setFolderName(
+            APPS_DIR + File.separator + filename.substring(0, filename.lastIndexOf('.')));
+        app.setAppStorageSource(AppStorageSource.JCLOUDS);
+      } catch (Exception e) {
+        log.debug(
+            "Failed to read manifest translations from file for {} {}",
+            app.getName(),
+            e.getMessage());
+      }
 
       if (!this.validateApp(app, appCache)) {
         return app;

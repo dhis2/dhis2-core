@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -76,6 +77,8 @@ public class BundledAppStorageService implements AppStorageService {
               CLASSPATH_PREFIX + STATIC_DIR + BUNDLED_APP_PREFIX + "*/manifest.webapp");
       for (Resource resource : resources) {
         App app = readAppManifest(resource);
+        // ClassPathResource cpr = new ClassPathResource(CLASSPATH_PREFIX + STATIC_DIR +
+        // BUNDLED_APP_PREFIX  + app.getKey() + "/manifest.webapp");
         if (app != null) {
           String path =
               CLASSPATH_PREFIX
@@ -92,6 +95,7 @@ public class BundledAppStorageService implements AppStorageService {
           app.setAppStorageSource(AppStorageSource.BUNDLED);
           app.setFolderName(path.replaceAll("/manifest.webapp$", ""));
 
+          checkManifestTranslations(app);
           log.info("Discovered bundled app {} ({})", app.getKey(), app.getFolderName());
           apps.put(app.getKey(), app);
         }
@@ -104,6 +108,23 @@ public class BundledAppStorageService implements AppStorageService {
     return apps;
   }
 
+  private void checkManifestTranslations(App app) {
+    try {
+      // Read translations for possible manifest translations
+      String resourceName = app.getFolderName() + "/manifest.webapp.translations.json";
+      Resource appManifestTranslation = resourcePatternResolver.getResource(resourceName);
+
+      if (appManifestTranslation.exists()) {
+        List<AppManifestTranslation> manifestTranslations =
+            readAppManifestTranslation(appManifestTranslation);
+
+        app.setManifestTranslations(manifestTranslations);
+      }
+    } catch (Exception ex) {
+      log.debug("Error reading manifest translation file for {}", app.getKey());
+    }
+  }
+
   private App readAppManifest(Resource resource) {
     try {
       InputStream inputStream = resource.getInputStream();
@@ -113,6 +134,18 @@ public class BundledAppStorageService implements AppStorageService {
       log.error(e.getLocalizedMessage(), e);
     }
     return null;
+  }
+
+  private List<AppManifestTranslation> readAppManifestTranslation(Resource resource) {
+    try {
+      InputStream inputStream = resource.getInputStream();
+      ObjectMapper objectMapper = new ObjectMapper();
+      objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+      return objectMapper.readerForListOf(AppManifestTranslation.class).readValue(inputStream);
+    } catch (IOException e) {
+      log.error(e.getLocalizedMessage(), e);
+      return null;
+    }
   }
 
   @Override

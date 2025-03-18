@@ -29,47 +29,14 @@
  */
 package org.hisp.dhis.appmanager;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.io.Serializable;
-import lombok.Getter;
-import lombok.Setter;
-import org.hisp.dhis.common.DxfNamespaces;
+import java.util.HashMap;
+import lombok.*;
 
-@JacksonXmlRootElement(localName = "shortcut", namespace = DxfNamespaces.DXF_2_0)
-public class AppShortcut implements Serializable {
-  /** Determines if a de-serialized file is compatible with this class. */
-  private static final long serialVersionUID = -8865601558938806456L;
+@Setter
+@Getter
+@NoArgsConstructor
+public class AppManifestTranslation {
+  private String locale;
 
-  /** Required. */
-  @Getter
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  private String name;
-
-  /** Required. */
-  @Getter
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  private String url;
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Setter
-  private String displayName;
-
-  public AppShortcut() {}
-
-  public AppShortcut(String name, String url) {
-    this.name = name;
-    this.url = url;
-  }
-
-  public String getDisplayName() {
-    if (displayName == null) {
-      return name;
-    }
-    return displayName;
-  }
+  private HashMap<String, String> translations;
 }

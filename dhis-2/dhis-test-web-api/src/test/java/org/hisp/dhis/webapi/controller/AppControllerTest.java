@@ -71,7 +71,6 @@ import org.springframework.transaction.annotation.Transactional;
     })
 @Transactional
 class AppControllerTest extends H2ControllerIntegrationTestBase {
-
   static class DhisConfig {
     @Bean
     public DhisConfigurationProvider dhisConfigurationProvider() {
@@ -182,18 +181,93 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
         mapper.readValue(
             response.content().get("modules").toJson(), new TypeReference<List<App>>() {});
 
-    // TODO
-    // assertEquals(BUNDLED_APPS.size() + 1, modules.size());
-
     App installedApp = modules.get(modules.size() - 1);
     AppShortcut firstShortcut = installedApp.getShortcuts().get(0);
     AppShortcut secondShortcut = installedApp.getShortcuts().get(1);
 
     assertEquals(2, installedApp.getShortcuts().size());
     assertEquals("Category section", firstShortcut.getName());
+    assertEquals("Category section", firstShortcut.getDisplayName());
     assertEquals("#/overview/categories", firstShortcut.getUrl());
 
     assertEquals("Category", secondShortcut.getName());
+    assertEquals("Category section", firstShortcut.getDisplayName());
     assertEquals("#/categories", secondShortcut.getUrl());
+  }
+
+  @Test
+  void testInstalledAppReturnsTranslatedShortcuts() throws IOException {
+    POST("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID + "&value=es");
+
+    appManager.installApp(
+        new ClassPathResource("app/test-app-with-translated-manifest.zip").getFile(),
+        "test-app-with-translated-manifest.zip");
+
+    HttpResponse response = GET("/apps/menu");
+    assertEquals(HttpStatus.OK, response.status());
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+    List<App> modules =
+        mapper.readValue(response.content().get("modules").toJson(), new TypeReference<>() {});
+
+    App installedApp = modules.get(modules.size() - 1);
+    AppShortcut firstShortcut = installedApp.getShortcuts().get(0);
+    AppShortcut secondShortcut = installedApp.getShortcuts().get(1);
+
+    assertEquals("Seccion de categorías", firstShortcut.getDisplayName());
+    assertEquals("Categoría", secondShortcut.getDisplayName());
+  }
+
+  @Test
+  @DisplayName(
+      "Should fallback to the language if the language + country combination does not match")
+  void testInstalledAppReturnsTranslatedShortcuts_WithFallbackToRootLanguage() throws IOException {
+    POST("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID + "&value=es_CO");
+
+    appManager.installApp(
+        new ClassPathResource("app/test-app-with-translated-manifest.zip").getFile(),
+        "test-app-with-translated-manifest.zip");
+
+    HttpResponse response = GET("/apps/menu");
+    assertEquals(HttpStatus.OK, response.status());
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+    List<App> modules =
+        mapper.readValue(response.content().get("modules").toJson(), new TypeReference<>() {});
+
+    App installedApp = modules.get(modules.size() - 1);
+    AppShortcut firstShortcut = installedApp.getShortcuts().get(0);
+    AppShortcut secondShortcut = installedApp.getShortcuts().get(1);
+
+    assertEquals("Seccion de categorías", firstShortcut.getDisplayName());
+    assertEquals("Categoría", secondShortcut.getDisplayName());
+  }
+
+  @Test
+  @DisplayName(
+      "Should return the most specific language match, i.e. if the user has ar_IQ as locale, we should retrieve ar_IQ first, then ar then default (english) in this order")
+  void testInstalledAppReturnsTranslatedShortcuts_WithLanguageFallback() throws IOException {
+    POST("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID + "&value=ar_IQ");
+
+    appManager.installApp(
+        new ClassPathResource("app/test-app-with-translated-manifest.zip").getFile(),
+        "test-app-with-translated-manifest.zip");
+
+    HttpResponse response = GET("/apps/menu");
+    assertEquals(HttpStatus.OK, response.status());
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+    List<App> modules =
+        mapper.readValue(response.content().get("modules").toJson(), new TypeReference<>() {});
+
+    App installedApp = modules.get(modules.size() - 1);
+    AppShortcut firstShortcut = installedApp.getShortcuts().get(0);
+    AppShortcut secondShortcut = installedApp.getShortcuts().get(1);
+
+    assertEquals("فسم اﻷنواع", firstShortcut.getDisplayName());
+    assertEquals("Iraqi Arabic نوع", secondShortcut.getDisplayName());
   }
 }
