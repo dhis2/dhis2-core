@@ -32,6 +32,7 @@ package org.hisp.dhis.appmanager;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.Future;
 import org.hisp.dhis.appmanager.ResourceResult.Redirect;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
@@ -72,7 +73,7 @@ public interface AppStorageService {
    * @return true if app is deleted, false if something fails
    */
   @Async
-  void deleteApp(App app);
+  Future<Boolean> deleteAppAsync(App app);
 
   /**
    * Try to retrieve the requested app resource. The returned {@link ResourceResult} value will be

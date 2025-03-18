@@ -60,6 +60,8 @@ import org.springframework.core.io.UrlResource;
  */
 class AppManagerTest extends PostgresIntegrationTestBase {
 
+  private static final String MOCK_CONTEXT_PATH = "/context";
+
   @Autowired AppManager appManager;
 
   @Test
@@ -118,7 +120,7 @@ class AppManagerTest extends PostgresIntegrationTestBase {
 
     // when an app resource is retrieved with a redirect path
     App app = appManager.getApp("test minio");
-    Redirect resource = (Redirect) appManager.getAppResource(app, path);
+    Redirect resource = (Redirect) appManager.getAppResource(app, path, MOCK_CONTEXT_PATH);
 
     // then the path returned should end in a trailing slash
     assertTrue(resource.path().endsWith(expectedPath), "redirect path should have trailing slash");
@@ -140,7 +142,8 @@ class AppManagerTest extends PostgresIntegrationTestBase {
 
     // when non-existent an app resource path is retrieved
     App app = appManager.getApp("test minio");
-    ResourceNotFound resource = (ResourceNotFound) appManager.getAppResource(app, path);
+    ResourceNotFound resource =
+        (ResourceNotFound) appManager.getAppResource(app, path, MOCK_CONTEXT_PATH);
 
     // then the path returned should be null
     assertEquals(path, resource.path());

@@ -269,7 +269,7 @@ public class LoginTest extends BaseE2ETest {
 
   @Test
   void testRedirectMissingEndingSlash() {
-    testRedirectWhenLoggedIn("/dhis-web-dashboard", "/dhis-web-dashboard/");
+    testRedirectWhenLoggedIn("dhis-web-dashboard", "dhis-web-dashboard/");
   }
 
   // --------------------------------------------------------------------------------------------
@@ -462,7 +462,7 @@ public class LoginTest extends BaseE2ETest {
     HttpEntity<String> entity = new HttpEntity<>(headers);
     ResponseEntity<String> redirResp =
         restTemplateNoRedirects.exchange(
-            serverHostUrl + "/dhis-web-dashboard", HttpMethod.GET, entity, String.class);
+            serverHostUrl + "dhis-web-dashboard", HttpMethod.GET, entity, String.class);
     List<String> location = redirResp.getHeaders().get("Location");
     assertNotNull(location);
     assertEquals(1, location.size());

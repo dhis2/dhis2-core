@@ -90,9 +90,6 @@ public class AuthoritiesController {
     Collection<String> appAuthorities = getAppAuthorities();
     authorities.addAll(appAuthorities);
 
-    List<String> bundledAppsAuthorities = getBundledAppsAuthorities();
-    authorities.addAll(bundledAppsAuthorities);
-
     List<Map<String, String>> entries = new ArrayList<>();
     for (String auth : authorities) {
       Map<String, String> authority = new LinkedHashMap<>();
@@ -108,7 +105,7 @@ public class AuthoritiesController {
   public Collection<String> getAppAuthorities() {
     Set<String> authorities = new HashSet<>();
     appManager.getApps(null).stream()
-        .filter(app -> !StringUtils.isEmpty(app.getShortName()) && !app.isBundled())
+        .filter(app -> !StringUtils.isEmpty(app.getShortName()))
         .forEach(
             app -> {
               authorities.add(app.getSeeAppAuthority());
@@ -116,16 +113,6 @@ public class AuthoritiesController {
               authorities.addAll(app.getAdditionalAuthorities());
             });
     authorities.add(AndroidSettingsApp.AUTHORITY);
-    return authorities;
-  }
-
-  private List<String> getBundledAppsAuthorities() {
-    List<String> authorities = new ArrayList<>();
-    Set<String> bundledApps = AppManager.BUNDLED_APPS;
-    for (String app : bundledApps) {
-      String key = "M_dhis-web-" + app;
-      authorities.add(key);
-    }
     return authorities;
   }
 
