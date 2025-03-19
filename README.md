@@ -114,8 +114,8 @@ To build using a custom tag.
 
 ```sh
 mvn clean package -DskipTests -Dmaven.test.skip=true --file dhis-2/pom.xml \
-    --projects dhis-web-server --also-make --activate-profiles jibDockerBuild \
-    -Djib.to.image=dhis2/core-dev:mytag
+  --projects dhis-web-server --also-make --activate-profiles jibDockerBuild \
+  -Djib.to.image=dhis2/core-dev:mytag
 ```
 
 For more configuration options related to Jib or Docker go to the [Jib documentation](https://github.com/GoogleContainerTools/jib/tree/master/jib-maven-plugin).
@@ -146,11 +146,11 @@ services:
 
 ##### DHIS2_HOME
 
-[Previously](https://github.com/dhis2/dhis2-core/blob/b4d4242fb30d974254de2a72b86cc5511f70c9c0/docker/tomcat-debian/Dockerfile#L9) the Docker image was built with environment variable `DHIS2_HOME` set to `/DHIS2_home`. This is not the case anymore, instead `DHIS2_HOME` will fallback to `/opt/dhis2`. You can still run the Docker image with the old behavior by setting the environment variable `DHIS2_HOME` in a `docker-compose.override.yml` file.
+Previously, the Docker image was built with environment variable `DHIS2_HOME` set to `/DHIS2_home`. This is not the case anymore, instead `DHIS2_HOME` will fallback to `/opt/dhis2`. You can still run the Docker image with the old behavior by setting the environment variable `DHIS2_HOME` in a `docker-compose.override.yml` file.
 
 ```yaml
 environment:
   DHIS2_HOME: /DHIS2_home
 ```
 
-Alternatively, you can pass the system property `-Ddhis2.home` directly from the command line. You need to ensure that this `DHIS2_HOME` is writeable.
+Alternatively, you can pass the system property `-Ddhis2.home` from the command line. You need to ensure that the `DHIS2_HOME` directory is writeable by the DHIS2 process.
