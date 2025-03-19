@@ -33,6 +33,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -71,6 +72,7 @@ class AppResourceTest extends ApiTest {
           });
 
   private static final String SERVER_BASE = "http://web:8080";
+  private static final String META_TAG_DHIS2_BASE_URL = "<meta name=\"dhis2-base-url\" content=\"" + SERVER_BASE + "\">";
 
   @Test
   @DisplayName("Redirect location should have correct format")
@@ -128,6 +130,7 @@ class AppResourceTest extends ApiTest {
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertNotNull(response.getBody());
       assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
+      assertTrue(response.getHeaders().getContentLength() > 0);
     }
 
     // Serve index.html from /?redirect=false
@@ -136,6 +139,7 @@ class AppResourceTest extends ApiTest {
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertNotNull(response.getBody());
       assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
+      assertTrue(response.getHeaders().getContentLength() > 0);
     }
 
     // Serve index.html from index.html?shell=false
@@ -144,6 +148,7 @@ class AppResourceTest extends ApiTest {
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertNotNull(response.getBody());
       assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
+      assertTrue(response.getHeaders().getContentLength() > 0);
     }
 
     // Serve index.html from /?shell=false
@@ -152,6 +157,7 @@ class AppResourceTest extends ApiTest {
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertNotNull(response.getBody());
       assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
+      assertTrue(response.getHeaders().getContentLength() > 0);
     }
 
     // Append trailing slash and redirect
@@ -192,6 +198,7 @@ class AppResourceTest extends ApiTest {
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertNotNull(response.getBody());
       assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
+      assertTrue(response.getHeaders().getContentLength() > 0);
     }
 
     // Serve index.html from / (service-worker)
@@ -202,6 +209,7 @@ class AppResourceTest extends ApiTest {
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertNotNull(response.getBody());
       assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
+      assertTrue(response.getHeaders().getContentLength() > 0);
     }
 
     // Redirect index.action
@@ -217,6 +225,7 @@ class AppResourceTest extends ApiTest {
       ResponseEntity<String> response = getAuthenticated(prefix + app + "/manifest.webapp");
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertNotNull(response.getBody());
+      assertTrue(response.getHeaders().getContentLength() > 0);
     }
 
     // another resource should return with 200
@@ -224,6 +233,7 @@ class AppResourceTest extends ApiTest {
       ResponseEntity<String> response = getAuthenticated(prefix + app + "/package.json");
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertNotNull(response.getBody());
+      assertTrue(response.getHeaders().getContentLength() > 0);
     }
 
     // non-existent resource should give 404
@@ -256,6 +266,7 @@ class AppResourceTest extends ApiTest {
       assertNotNull(response.getBody());
       assertNotNull(response.getHeaders().getContentType());
       assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
+      assertTrue(response.getHeaders().getContentLength() > 0);
       // TODO: Confirm template replacement
     }
 
@@ -266,6 +277,7 @@ class AppResourceTest extends ApiTest {
       assertNotNull(response.getBody());
       assertNotNull(response.getHeaders().getContentType());
       assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
+      assertTrue(response.getHeaders().getContentLength() > 0);
       // TODO: Confirm template replacement
     }
 
@@ -276,6 +288,7 @@ class AppResourceTest extends ApiTest {
       assertNotNull(response.getBody());
       assertNotNull(response.getHeaders().getContentType());
       assertEquals("text/html;charset=UTF-8", response.getHeaders().getContentType().toString());
+      assertTrue(response.getHeaders().getContentLength() > 0);
       // TODO: Confirm template replacement
     }
 
@@ -304,6 +317,7 @@ class AppResourceTest extends ApiTest {
       ResponseEntity<String> response = getAuthenticated(prefix + "/service-worker.js");
       assertEquals(HttpStatus.OK, response.getStatusCode());
       assertNotNull(response.getBody());
+      assertTrue(response.getHeaders().getContentLength() > 0);
     }
 
     // Non-existant resource (at root)
@@ -320,6 +334,7 @@ class AppResourceTest extends ApiTest {
   }
 
   // TODO: Installed apps
+  // TODO: Inaccessible apps
   // TODO: Test when global shell disabled
 
   private ResponseEntity<String> get(String path, HttpHeaders headers) {

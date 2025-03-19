@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.security.Authorities.M_DHIS_WEB_APP_MANAGEMENT;
 
@@ -58,7 +59,6 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
@@ -164,20 +164,23 @@ public class AppController {
   @GetMapping("/{app}/**")
   public void renderApp(
       @PathVariable("app") String appName, HttpServletRequest request, HttpServletResponse response)
-      throws IOException, WebMessageException, ForbiddenException {
+      throws IOException, WebMessageException {
     String contextPath = request.getContextPath();
     String baseUrl = contextService.getContextPath();
     App application = appManager.getApp(appName, baseUrl);
 
     if (application == null) {
+      log.info("App not found: {}", appName);
       throw new WebMessageException(notFound("App '" + appName + "' not found."));
     }
 
     if (!appManager.isAccessible(application)) {
-      throw new ForbiddenException("You don't have access to application " + appName + ".");
+      log.info("User does not have access to app: {}", appName);
+      throw new WebMessageException(forbidden("User does not have access to app '" + appName + "'."));
     }
 
     if (application.getAppState() == AppStatus.DELETION_IN_PROGRESS) {
+      log.info("App deletion in progress: {}", appName);
       throw new WebMessageException(
           conflict("App '" + appName + "' deletion is still in progress."));
     }
@@ -185,45 +188,53 @@ public class AppController {
     // Get page requested
     String resource = getResourcePath(request.getPathInfo(), application, contextPath);
 
-    log.debug("Rendering resource {} from app {}", resource, application.getKey());
+    log.info("Rendering resource {} from app {}", resource, application.getKey());
 
     ResourceResult resourceResult = appManager.getAppResource(application, resource, baseUrl);
     if (resourceResult instanceof ResourceFound found) {
-      serveResource(request, response, found.resource());
-      return;
-    }
-    if (resourceResult instanceof Redirect redirect) {
+      serveResource(request, response, found);
+    } else if (resourceResult instanceof Redirect redirect) {
       String redirectUrl = TextUtils.cleanUrlPathOnly(application.getBaseUrl(), redirect.path());
       String queryString = request.getQueryString();
       if (queryString != null) {
         redirectUrl += "?" + queryString;
       }
-      log.debug(String.format("App resource redirected to: %s", redirectUrl));
+      log.info(String.format("App resource redirected to: %s", redirectUrl));
       response.sendRedirect(redirectUrl);
-    }
-    if (resourceResult instanceof ResourceNotFound) {
+    } else if (resourceResult instanceof ResourceNotFound) {
+      log.info("Resource not found: {}", resource);
       response.sendError(HttpServletResponse.SC_NOT_FOUND);
+    } else {
+      log.info("Internal server error - no resource result");
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }
   }
 
   private void serveResource(
-      HttpServletRequest request, HttpServletResponse response, Resource resource)
+      HttpServletRequest request, HttpServletResponse response, ResourceFound resourceResult)
       throws IOException {
-    String filename = resource.getFilename();
-    log.debug("App filename: '{}'", filename);
+    String filename = resourceResult.resource().getFilename();
+    log.info("App filename: '{}'", filename);
 
-    if (new ServletWebRequest(request, response).checkNotModified(resource.lastModified())) {
+    if (new ServletWebRequest(request, response).checkNotModified(resourceResult.resource().lastModified())) {
+      log.info("Resource not modified: {}", filename);
+      response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
       return;
     }
 
-    String mimeType = request.getSession().getServletContext().getMimeType(filename);
+    String mimeType = resourceResult.mimeType() == null 
+      ? request.getSession().getServletContext().getMimeType(filename) 
+      : resourceResult.mimeType();
 
     if (mimeType != null) {
       response.setContentType(mimeType);
     }
 
-    response.setContentLengthLong(resource.contentLength());
-    StreamUtils.copyThenCloseInputStream(resource.getInputStream(), response.getOutputStream());
+    long contentLength = appManager.getUriContentLength(resourceResult.resource());
+
+    response.setContentLengthLong(contentLength);
+    log.info("Serving resource: {} (contentType: {}, contentLength: {})", filename, mimeType, contentLength);
+    StreamUtils.copyThenCloseInputStream(resourceResult.resource().getInputStream(), response.getOutputStream());
   }
 
   @DeleteMapping("/{app}")
@@ -280,6 +291,8 @@ public class AppController {
     // if path is prefixed by any protocol, clear it out (this is to ensure
     // that only files inside app directory can be resolved)
     resourcePath = REGEX_REMOVE_PROTOCOL.matcher(resourcePath).replaceAll("");
+
+    log.info("Resource path: {} => {}", path, resourcePath);
 
     return resourcePath;
   }
