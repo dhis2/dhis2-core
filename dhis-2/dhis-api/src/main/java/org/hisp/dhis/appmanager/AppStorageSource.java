@@ -39,5 +39,6 @@ public enum AppStorageSource {
   // JCLOUDS
   // If DHIS2 is used to install.
   LOCAL,
-  JCLOUDS
+  JCLOUDS,
+  BUNDLED
 }

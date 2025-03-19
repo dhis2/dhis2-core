@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,33 +27,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.appmanager;
+package org.hisp.dhis.util;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.io.Serializable;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.common.DxfNamespaces;
+import com.google.common.base.Strings;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.LineIterator;
+import org.hisp.dhis.appmanager.App;
 
-/**
- * @author Saptarshi
- */
-@JacksonXmlRootElement(localName = "appActivities", namespace = DxfNamespaces.DXF_2_0)
-public class AppActivities implements Serializable {
-  /** Determines if a de-serialized file is compatible with this class. */
-  private static final long serialVersionUID = 7530768303537807631L;
+@RequiredArgsConstructor
+public class AppHtmlTemplate {
 
-  @JsonProperty("dhis")
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  private AppDhis dhis = new AppDhis();
+  private final String contextPath;
+  private final App app;
 
-  @Nonnull
-  public AppDhis getDhis() {
-    return dhis;
+  public void apply(InputStream inputStream, OutputStream outputStream) throws IOException {
+    PrintWriter output = new PrintWriter(outputStream, true, StandardCharsets.UTF_8);
+    try (LineIterator iterator = IOUtils.lineIterator(inputStream, StandardCharsets.UTF_8)) {
+      while (iterator.hasNext()) {
+        String line = iterator.next();
+        output.println(replaceLine(line));
+      }
+    }
   }
 
-  public void setDhis(@Nonnull AppDhis dhis) {
-    this.dhis = dhis;
+  private String replaceLine(String line) {
+    return line.replace("__DHIS2_BASE_URL__", this.contextPath)
+        .replace("__DHIS2_APP_ROOT_URL__", Strings.nullToEmpty(this.app.getBaseUrl()));
   }
 }

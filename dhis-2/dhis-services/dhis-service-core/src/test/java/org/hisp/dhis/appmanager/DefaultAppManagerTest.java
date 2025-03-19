@@ -42,6 +42,7 @@ import org.hisp.dhis.cache.CacheBuilder;
 import org.hisp.dhis.cache.DefaultCacheBuilderProvider;
 import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.i18n.I18nManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,12 +62,13 @@ class DefaultAppManagerTest {
   @Mock private AppHubService appHubService;
   @Mock private AppStorageService localAppStorageService;
   @Mock private AppStorageService jCloudsAppStorageService;
+  @Mock private BundledAppStorageService bundledAppStorageService;
   @Mock private DatastoreService datastoreService;
   @Mock private Cache<App> appCache;
   @Mock private DefaultCacheBuilderProvider cacheBuilderProvider;
   @Mock private CacheBuilder cacheBuilder;
+  @Mock private I18nManager i18nManager;
 
-  @Mock private AppMenuManager appMenuManager;
   private AppManager appManager;
 
   @BeforeEach
@@ -122,9 +124,10 @@ class DefaultAppManagerTest {
             appHubService,
             localAppStorageService,
             jCloudsAppStorageService,
+            bundledAppStorageService,
             datastoreService,
             cacheBuilderProvider,
-            appMenuManager);
+            i18nManager);
   }
 
   /**
