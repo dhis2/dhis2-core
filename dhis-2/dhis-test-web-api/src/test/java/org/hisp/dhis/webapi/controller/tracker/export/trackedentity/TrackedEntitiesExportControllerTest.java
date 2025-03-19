@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -28,14 +30,15 @@
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.http.HttpClientAdapter.Accept;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.webapi.controller.tracker.Assertions.*;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
-import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertFirstRelationship;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOnlyMembers;
@@ -47,30 +50,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Supplier;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.http.HttpStatus;
-import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -78,8 +73,6 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.render.RenderFormat;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -87,13 +80,14 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.report.ImportReport;
-import org.hisp.dhis.tracker.imports.report.Status;
-import org.hisp.dhis.tracker.imports.report.ValidationReport;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.tracker.JsonAttribute;
@@ -102,68 +96,43 @@ import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationshipItem;
 import org.hisp.dhis.webapi.controller.tracker.JsonTrackedEntity;
+import org.hisp.dhis.webapi.controller.tracker.TestSetup;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.transaction.annotation.Transactional;
 
-@Transactional
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationTestBase {
   // Used to generate unique chars for creating test objects like TEA, ...
   private static final String UNIQUE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-  @Autowired private RenderService renderService;
-
-  @Autowired private ObjectBundleService objectBundleService;
-
-  @Autowired private ObjectBundleValidationService objectBundleValidationService;
-
   @Autowired private TrackerImportService trackerImportService;
+
+  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   @Autowired private IdentifiableObjectManager manager;
 
+  private TrackerObjects trackerObjects;
+
   private User importUser;
 
-  protected ObjectBundle setUpMetadata(String path) throws IOException {
-    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
-        renderService.fromMetadata(new ClassPathResource(path).getInputStream(), RenderFormat.JSON);
-    ObjectBundleParams params = new ObjectBundleParams();
-    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
-    params.setImportStrategy(ImportStrategy.CREATE);
-    params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
-    assertNoErrors(objectBundleValidationService.validate(bundle));
-    objectBundleService.commit(bundle);
-    return bundle;
-  }
+  @Autowired private TestSetup testSetup;
 
-  protected TrackerObjects fromJson(String path) throws IOException {
-    return renderService.fromJson(
-        new ClassPathResource(path).getInputStream(), TrackerObjects.class);
-  }
-
-  @BeforeAll
+  @BeforeEach
   void setUp() throws IOException {
-    setUpMetadata("tracker/simple_metadata.json");
+    testSetup.importMetadata();
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    TrackerImportParams params = TrackerImportParams.builder().build();
-    assertNoErrors(
-        trackerImportService.importTracker(params, fromJson("tracker/event_and_enrollment.json")));
+    trackerObjects = testSetup.importTrackerData();
 
     manager.flush();
     manager.clear();
-  }
 
-  @BeforeEach
-  void setUpUser() {
+    deleteTrackedEntity(UID.of("woitxQbWYNq"));
     switchContextToUser(importUser);
   }
 
@@ -182,8 +151,6 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   private User owner;
 
   private User user;
-
-  private TrackedEntity softDeletedTrackedEntity;
 
   // Used to generate unique chars for creating TEA in test setup
   private int uniqueAttributeCharCounter = 0;
@@ -219,10 +186,6 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     trackedEntityType = trackedEntityTypeAccessible();
     program.setTrackedEntityType(trackedEntityType);
     manager.save(program, false);
-
-    softDeletedTrackedEntity = createTrackedEntity(orgUnit, trackedEntityType);
-    softDeletedTrackedEntity.setDeleted(true);
-    manager.save(softDeletedTrackedEntity, false);
   }
 
   @Test
@@ -338,6 +301,73 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   }
 
   @Test
+  void
+      shouldGetTrackedEntityWithoutRelationshipsWhenRelationshipIsDeletedAndIncludeDeletedIsFalse() {
+    TrackedEntity from = get(TrackedEntity.class, "mHWCacsGYYn");
+    assertHasSize(
+        1, from.getRelationshipItems(), "test expects a tracked entity with one relationship");
+    RelationshipItem relItem = from.getRelationshipItems().iterator().next();
+    Relationship r = get(Relationship.class, relItem.getRelationship().getUid());
+    manager.delete(r);
+
+    JsonList<JsonRelationship> rels =
+        GET(
+                "/tracker/trackedEntities?trackedEntities={id}&fields=relationships&includeDeleted=false",
+                from.getUid())
+            .content(HttpStatus.OK)
+            .getList("trackedEntities", JsonTrackedEntity.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    assertIsEmpty(rels.stream().toList());
+  }
+
+  @Test
+  void shouldGetTrackedEntityWithRelationshipsWhenRelationshipIsDeletedAndIncludeDeletedIsTrue() {
+    TrackedEntity from = get(TrackedEntity.class, "mHWCacsGYYn");
+    assertHasSize(
+        1, from.getRelationshipItems(), "test expects a tracked entity with one relationship");
+    RelationshipItem relItem = from.getRelationshipItems().iterator().next();
+    Relationship r = get(Relationship.class, relItem.getRelationship().getUid());
+    manager.delete(r);
+    Event to = r.getTo().getEvent();
+
+    JsonList<JsonRelationship> rels =
+        GET(
+                "/tracker/trackedEntities?trackedEntities={id}&fields=relationships&includeDeleted=true",
+                from.getUid())
+            .content(HttpStatus.OK)
+            .getList("trackedEntities", JsonTrackedEntity.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    JsonRelationship relationship = assertFirstRelationship(r, rels);
+    assertTrackedEntityWithinRelationship(from, relationship.getFrom());
+    assertTrackedEntityWithinRelationship(to, relationship.getTo());
+  }
+
+  @Test
+  void
+      shouldGetTrackedEntityWithNoRelationshipsWhenTrackedEntityIsOnTheToSideOfAUnidirectionalRelationship() {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "m1575931405");
+    relationshipType.setBidirectional(false);
+    manager.update(relationshipType);
+
+    TrackedEntity to = get(TrackedEntity.class, "QesgJkTyTCk");
+    assertHasSize(
+        1, to.getRelationshipItems(), "test expects a tracked entity with one relationship");
+
+    JsonList<JsonRelationship> rels =
+        GET("/tracker/trackedEntities?trackedEntities={id}&fields=relationships", to.getUid())
+            .content(HttpStatus.OK)
+            .getList("trackedEntities", JsonTrackedEntity.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    assertIsEmpty(rels.stream().toList());
+  }
+
+  @Test
   void getTrackedEntityByIdWithFieldsRelationships() {
     TrackedEntity from = get(TrackedEntity.class, "mHWCacsGYYn");
     assertHasSize(
@@ -425,7 +455,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     this.switchContextToUser(user);
 
     GET("/tracker/trackedEntities/{id}?fields=relationships", from.getUid())
-        .error(HttpStatus.FORBIDDEN);
+        .error(HttpStatus.NOT_FOUND);
   }
 
   @Test
@@ -437,9 +467,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
 
   @Test
   void shouldReturnNotFoundWhenGettingASoftDeletedTrackedEntityById() {
-    assertEquals(
-        HttpStatus.NOT_FOUND,
-        GET("/tracker/trackedEntities/" + softDeletedTrackedEntity.getUid()).status());
+    assertEquals(HttpStatus.NOT_FOUND, GET("/tracker/trackedEntities/" + "woitxQbWYNq").status());
   }
 
   @Test
@@ -464,6 +492,27 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   }
 
   @Test
+  void shouldGetTrackedEntitiesDisregardingSearchScope() {
+    // Create a user with a distinct search scope, separate from capture scope
+    User testUser = createAndAddUser("testingUser");
+    testUser.setOrganisationUnits(Set.of(get(OrganisationUnit.class, "RojfDTBhoGC")));
+    testUser.setTeiSearchOrganisationUnits(Set.of(get(OrganisationUnit.class, "h4w96yEMlzO")));
+    testUser.setUserRoles(Set.of(get(UserRole.class, "nJ4Ml8ads4M")));
+
+    this.switchContextToUser(testUser);
+
+    Program program = get(Program.class, "BFcipDERJnf");
+
+    HttpResponse response =
+        GET(
+            "/tracker/trackedEntities?program={programId}&orgUnitMode={orgUnitMode}",
+            program.getUid(),
+            CAPTURE);
+
+    assertEquals(HttpStatus.OK, response.status());
+  }
+
+  @Test
   void getTrackedEntityCsvById() {
     TrackedEntity te = get(TrackedEntity.class, "QS6w44flWAf");
     List<TrackedEntityAttributeValue> trackedEntityTypeAttributeValues =
@@ -484,8 +533,8 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     assertTrue(response.header("content-disposition").contains("filename=trackedEntity.csv"));
     assertStartsWith(
         """
-trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtClient,orgUnit,inactive,deleted,potentialDuplicate,geometry,latitude,longitude,storedBy,createdBy,updatedBy,attrCreatedAt,attrUpdatedAt,attribute,displayName,value,valueType
-""",
+    trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtClient,orgUnit,inactive,deleted,potentialDuplicate,geometry,latitude,longitude,storedBy,createdBy,updatedBy,attrCreatedAt,attrUpdatedAt,attribute,displayName,value,valueType
+    """,
         csvResponse);
     // TEAV order is not deterministic
     assertContains(trackedEntityToCsv(te, trackedEntityTypeAttributeValues.get(0)), csvResponse);
@@ -566,6 +615,26 @@ trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtCli
             assertTrue(
                 response.header("content-disposition").contains("filename=trackedEntities.csv.gz")),
         () -> assertNotNull(response.content(ContextUtils.CONTENT_TYPE_CSV_GZIP)));
+  }
+
+  @Test
+  void shouldGetSoftDeletedEnrollmentsWhenIncludeDeletedIsTrue() {
+    JsonList<JsonTrackedEntity> json =
+        GET(
+                "/tracker/trackedEntities?trackedEntities={id}&fields=enrollments&includeDeleted=true",
+                "woitxQbWYNq")
+            .content(HttpStatus.OK)
+            .getList("trackedEntities", JsonTrackedEntity.class);
+
+    JsonList<JsonEnrollment> enrollments = json.get(0).getEnrollments();
+    enrollments.forEach(
+        en -> {
+          assertEquals(EnrollmentStatus.CANCELLED.name(), en.getStatus());
+          assertTrue(en.getDeleted());
+        });
+    enrollments.stream()
+        .flatMap(en -> en.getEvents().stream())
+        .forEach(ev -> assertTrue(ev.getDeleted()));
   }
 
   @Test
@@ -729,15 +798,19 @@ trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtCli
 
     this.switchContextToUser(user);
 
-    assertStartsWith(
-        "TrackedEntityAttribute with id " + tetTea.getUid(),
+    HttpResponse response =
         GET(
-                "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
-                trackedEntity.getUid(),
-                tetTea.getUid(),
-                program.getUid())
-            .error(HttpStatus.NOT_FOUND)
-            .getMessage());
+            "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
+            trackedEntity.getUid(),
+            tetTea.getUid(),
+            program.getUid());
+
+    assertEquals(HttpStatus.OK, response.status());
+    assertEquals("\"" + file1.getUid() + "\"", response.header("Etag"));
+    assertEquals("no-cache, private", response.header("Cache-Control"));
+    assertEquals(Long.toString(file1.getContentLength()), response.header("Content-Length"));
+    assertEquals("filename=" + file1.getName(), response.header("Content-Disposition"));
+    assertEquals("file content", response.content("text/plain"));
   }
 
   @Test
@@ -785,7 +858,7 @@ trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtCli
     addProgramAttributeValue(trackedEntity, program, ValueType.FILE_RESOURCE, file.getUid());
 
     String attributeUid = CodeGenerator.generateUid();
-
+    this.switchContextToUser(user);
     assertStartsWith(
         "TrackedEntityAttribute with id " + attributeUid,
         GET(
@@ -832,6 +905,7 @@ trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtCli
 
     TrackedEntityAttribute tea =
         addProgramAttributeValue(trackedEntity, program, ValueType.BOOLEAN, "true");
+    this.switchContextToUser(user);
 
     assertStartsWith(
         "Tracked entity attribute " + tea.getUid() + " is not a file",
@@ -854,7 +928,7 @@ trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtCli
         addProgramAttributeValue(trackedEntity, program, ValueType.FILE_RESOURCE, file.getUid());
 
     String programUid = CodeGenerator.generateUid();
-
+    this.switchContextToUser(user);
     assertStartsWith(
         "Program",
         GET(
@@ -885,13 +959,13 @@ trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtCli
     this.switchContextToUser(user);
 
     assertStartsWith(
-        "TrackedEntity ",
+        "User is not authorized to read data from selected program's tracked entity type",
         GET(
                 "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
                 trackedEntity.getUid(),
                 tea.getUid(),
                 program.getUid())
-            .error(HttpStatus.NOT_FOUND)
+            .error(HttpStatus.FORBIDDEN)
             .getMessage());
   }
 
@@ -929,9 +1003,9 @@ trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtCli
     TrackedEntityAttribute tea = programAttribute(program, ValueType.FILE_RESOURCE);
 
     enroll(trackedEntity, program, orgUnit);
-
+    this.switchContextToUser(user);
     assertStartsWith(
-        "Attribute value for tracked entity attribute " + tea.getUid(),
+        "TrackedEntityAttribute with id " + tea.getUid(),
         GET(
                 "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
                 trackedEntity.getUid(),
@@ -950,7 +1024,7 @@ trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtCli
     manager.save(file, false);
     TrackedEntityAttribute tea =
         addProgramAttributeValue(trackedEntity, program, ValueType.FILE_RESOURCE, file.getUid());
-
+    this.switchContextToUser(user);
     GET(
             "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
             trackedEntity.getUid(),
@@ -963,13 +1037,14 @@ trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtCli
   void getAttributeValuesFileByAttributeAndProgramIfFileIsNotFound() {
     TrackedEntity trackedEntity = trackedEntity();
     enroll(trackedEntity, program, orgUnit);
-
-    String fileUid = CodeGenerator.generateUid();
+    FileResource file = createFileResource('B', "file content".getBytes());
+    manager.save(file, false);
     TrackedEntityAttribute tea =
-        addProgramAttributeValue(trackedEntity, program, ValueType.FILE_RESOURCE, fileUid);
-
+        addProgramAttributeValue(trackedEntity, program, ValueType.FILE_RESOURCE, file.getUid());
+    manager.delete(file);
+    this.switchContextToUser(user);
     assertStartsWith(
-        "FileResource with id " + fileUid,
+        "FileResource with id " + file.getUid(),
         GET(
                 "/tracker/trackedEntities/{trackedEntityUid}/attributes/{attributeUid}/file?program={programUid}",
                 trackedEntity.getUid(),
@@ -1003,6 +1078,25 @@ trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtCli
     assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
     assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
     assertEquals("file content", response.content("image/png"));
+  }
+
+  private TrackedEntity deleteTrackedEntity(UID uid) {
+    TrackedEntity trackedEntity = get(TrackedEntity.class, uid.getValue());
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity deletedTrackedEntity =
+        trackerObjects.getTrackedEntities().stream()
+            .filter(te -> te.getTrackedEntity().equals(uid))
+            .findFirst()
+            .get();
+
+    TrackerObjects deleteTrackerObjects =
+        TrackerObjects.builder().trackedEntities(List.of(deletedTrackedEntity)).build();
+    assertNoErrors(
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build(),
+            deleteTrackerObjects));
+    manager.clear();
+    manager.flush();
+    return trackedEntity;
   }
 
   private JsonEnrollment assertDefaultEnrollmentResponse(
@@ -1078,7 +1172,8 @@ trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtCli
   }
 
   private TrackedEntity trackedEntity() {
-    TrackedEntity te = trackedEntity(orgUnit);
+    TrackedEntity te = trackedEntity(orgUnit, trackedEntityType);
+    te.setTrackedEntityType(trackedEntityType);
     manager.save(te, false);
     return te;
   }
@@ -1089,14 +1184,10 @@ trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtCli
     return te;
   }
 
-  private TrackedEntity trackedEntity(OrganisationUnit orgUnit) {
-    return trackedEntity(orgUnit, trackedEntityType);
-  }
-
   private TrackedEntity trackedEntity(
       OrganisationUnit orgUnit, TrackedEntityType trackedEntityType) {
     TrackedEntity te = createTrackedEntity(orgUnit, trackedEntityType);
-    te.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    te.getSharing().setPublicAccess(AccessStringHelper.READ);
     te.getSharing().setOwner(owner);
     return te;
   }
@@ -1107,6 +1198,8 @@ trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtCli
     manager.save(enrollment);
     trackedEntity.getEnrollments().add(enrollment);
     manager.update(trackedEntity);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        trackedEntity, program, orgUnit);
 
     return enrollment;
   }
@@ -1221,16 +1314,22 @@ trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtCli
       TrackedEntity trackedEntity, ValueType type, String value) {
     TrackedEntityAttribute tea =
         trackedEntityTypeAttribute(trackedEntity.getTrackedEntityType(), type);
-    trackedEntity.addAttributeValue(attributeValue(tea, trackedEntity, value));
+    TrackedEntityAttributeValue attributeValue = attributeValue(tea, trackedEntity, value);
+    trackedEntity.addAttributeValue(attributeValue);
     manager.save(trackedEntity, false);
+    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(attributeValue);
+    manager.flush();
+    manager.clear();
     return tea;
   }
 
   private TrackedEntityAttribute addProgramAttributeValue(
       TrackedEntity trackedEntity, Program program, ValueType type, String value) {
     TrackedEntityAttribute tea = programAttribute(program, type);
-    trackedEntity.addAttributeValue(attributeValue(tea, trackedEntity, value));
+    TrackedEntityAttributeValue attributeValue = attributeValue(tea, trackedEntity, value);
+    trackedEntity.addAttributeValue(attributeValue);
     manager.save(trackedEntity, false);
+    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(attributeValue);
     return tea;
   }
 
@@ -1288,36 +1387,27 @@ trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtCli
     return t;
   }
 
-  public static void assertNoErrors(ImportReport report) {
-    assertNotNull(report);
+  public static JsonRelationship assertFirstRelationship(
+      Relationship expected, JsonList<JsonRelationship> actual) {
+    assertFalse(actual.isEmpty(), "relationships should not be empty");
+    assertTrue(
+        actual.size() >= 0,
+        String.format("element %d does not exist in %d relationships elements", 0, actual.size()));
+    JsonRelationship jsonRelationship = actual.get(0);
+    assertRelationship(expected, jsonRelationship);
+    return jsonRelationship;
+  }
+
+  public static void assertRelationship(Relationship expected, JsonRelationship actual) {
+    assertFalse(actual.isEmpty(), "relationship should not be empty");
+    assertEquals(expected.getUid(), actual.getRelationship(), "relationship UID");
     assertEquals(
-        Status.OK,
-        report.getStatus(),
-        errorMessage(
-            "Expected import with status OK, instead got:%n", report.getValidationReport()));
-  }
-
-  private static Supplier<String> errorMessage(String errorTitle, ValidationReport report) {
-    return () -> {
-      StringBuilder msg = new StringBuilder(errorTitle);
-      report
-          .getErrors()
-          .forEach(
-              e -> {
-                msg.append(e.getErrorCode());
-                msg.append(": ");
-                msg.append(e.getMessage());
-                msg.append('\n');
-              });
-      return msg.toString();
-    };
-  }
-
-  public static void assertNoErrors(ObjectBundleValidationReport report) {
-    assertNotNull(report);
-    List<String> errors = new ArrayList<>();
-    report.forEachErrorReport(err -> errors.add(err.toString()));
-    assertFalse(
-        report.hasErrorReports(), String.format("Expected no errors, instead got: %s%n", errors));
+        DateUtils.toIso8601NoTz(expected.getCreatedAtClient()),
+        actual.getCreatedAtClient(),
+        "createdAtClient date");
+    assertEquals(
+        expected.getRelationshipType().getUid(),
+        actual.getRelationshipType(),
+        "relationshipType UID");
   }
 }

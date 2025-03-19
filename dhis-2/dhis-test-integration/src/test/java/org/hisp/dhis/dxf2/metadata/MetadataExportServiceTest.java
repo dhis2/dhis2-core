@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -38,9 +40,9 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.query.Disjunction;
+import org.hisp.dhis.query.Filters;
+import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.query.Query;
-import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
@@ -134,13 +136,11 @@ class MetadataExportServiceTest extends PostgresIntegrationTestBase {
     deg1.addDataElement(de3);
     deg1.setCreatedBy(user);
     manager.save(deg1);
-    Query deQuery = Query.from(schemaService.getDynamicSchema(DataElement.class));
-    Disjunction disjunction = deQuery.disjunction();
-    disjunction.add(Restrictions.eq("id", de1.getUid()));
-    disjunction.add(Restrictions.eq("id", de2.getUid()));
-    deQuery.add(disjunction);
-    Query degQuery = Query.from(schemaService.getDynamicSchema(DataElementGroup.class));
-    degQuery.add(Restrictions.eq("id", "INVALID UID"));
+    Query<DataElement> deQuery = Query.of(DataElement.class, Junction.Type.OR);
+    deQuery.add(Filters.eq("id", de1.getUid()));
+    deQuery.add(Filters.eq("id", de2.getUid()));
+    Query<DataElementGroup> degQuery = Query.of(DataElementGroup.class);
+    degQuery.add(Filters.eq("id", "INVALID UID"));
     MetadataExportParams params = new MetadataExportParams();
     params.addQuery(deQuery);
     params.addQuery(degQuery);

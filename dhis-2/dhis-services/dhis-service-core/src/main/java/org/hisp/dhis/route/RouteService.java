@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -29,44 +31,58 @@ package org.hisp.dhis.route;
 
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.netty.handler.timeout.ReadTimeoutException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
+import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.hc.client5.http.config.ConnectionConfig;
-import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
-import org.apache.hc.core5.http.io.SocketConfig;
-import org.apache.hc.core5.util.Timeout;
-import org.hisp.dhis.common.auth.ApiTokenAuth;
-import org.hisp.dhis.common.auth.Auth;
-import org.hisp.dhis.common.auth.HttpBasicAuth;
+import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.BadGatewayException;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.user.UserDetails;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpEntity;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.security.core.Authentication;
+import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import org.springframework.web.util.UriComponentsBuilder;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClientRequest;
 
 /**
  * @author Morten Olav Hansen
@@ -77,14 +93,22 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class RouteService {
   private static final String HEADER_X_FORWARDED_USER = "X-Forwarded-User";
 
+  private static final Pattern HTTP_OR_HTTPS_PATTERN = Pattern.compile("^(https?:).*");
+
+  private final ApplicationContext applicationContext;
+
   private final RouteStore routeStore;
 
-  private final ObjectMapper objectMapper;
+  private final DhisConfigurationProvider configuration;
 
   @Qualifier(AES_128_STRING_ENCRYPTOR)
   private final PBEStringCleanablePasswordEncryptor encryptor;
 
-  private static final RestTemplate restTemplate = new RestTemplate();
+  private final ClientHttpConnector clientHttpConnector;
+
+  private DataBufferFactory dataBufferFactory;
+
+  private WebClient webClient;
 
   private static final Set<String> ALLOWED_REQUEST_HEADERS =
       Set.of(
@@ -117,30 +141,51 @@ public class RouteService {
           "last-modified",
           "etag");
 
-  static {
-    // Connect timeout
-    ConnectionConfig connectionConfig =
-        ConnectionConfig.custom().setConnectTimeout(Timeout.ofMilliseconds(5_000)).build();
+  private final List<String> allowedRouteRegexRemoteServers = new ArrayList<>();
 
-    // Socket timeout
-    SocketConfig socketConfig =
-        SocketConfig.custom().setSoTimeout(Timeout.ofMilliseconds(10_000)).build();
+  @PostConstruct
+  public void postConstruct() {
+    String routeRemoteServersAllowed =
+        configuration.getProperty(ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED).strip();
+    if (!routeRemoteServersAllowed.isEmpty()) {
+      for (String host : routeRemoteServersAllowed.split(",")) {
+        validateHost(host);
+        allowedRouteRegexRemoteServers.add(TextUtils.createRegexFromGlob(host));
+      }
+    }
 
-    // Connection request timeout
-    RequestConfig requestConfig =
-        RequestConfig.custom().setConnectionRequestTimeout(Timeout.ofMilliseconds(1_000)).build();
+    webClient = WebClient.builder().clientConnector(clientHttpConnector).build();
+    dataBufferFactory = new DefaultDataBufferFactory();
+  }
 
-    PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
-    connectionManager.setDefaultSocketConfig(socketConfig);
-    connectionManager.setDefaultConnectionConfig(connectionConfig);
-
-    org.apache.hc.client5.http.classic.HttpClient httpClient =
-        org.apache.hc.client5.http.impl.classic.HttpClientBuilder.create()
-            .setConnectionManager(connectionManager)
-            .setDefaultRequestConfig(requestConfig)
-            .build();
-
-    restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory(httpClient));
+  protected void validateHost(String host) {
+    if (!(HTTP_OR_HTTPS_PATTERN.matcher(host).matches())) {
+      throw new IllegalStateException(
+          "Allowed route URL scheme must be either http or https: " + host);
+    }
+    if ((host.startsWith("http:"))) {
+      log.warn("Allowed route URL is insecure: {}. You should change the protocol to HTTPS", host);
+    }
+    if ((host.equals("https://*"))) {
+      log.warn(
+          "Default allowed route URL {} is vulnerable to server-side request forgery (SSRF) attacks. You should further restrict the default allowed route URL such that it contains no wildcards",
+          host);
+    } else if (host.contains("*")) {
+      log.warn(
+          "Allowed route URL is vulnerable to server-side request forgery (SSRF) attacks: {}. You should further restrict the allowed route URL such that it contains no wildcards",
+          host);
+    }
+    String urlWithoutPortNo =
+        host.substring(0, host.lastIndexOf(":") > 5 ? host.lastIndexOf(":") : host.length());
+    URL url;
+    try {
+      url = new URL(urlWithoutPortNo);
+    } catch (MalformedURLException e) {
+      throw new IllegalStateException(e);
+    }
+    if (org.apache.commons.lang3.StringUtils.isNotEmpty(url.getPath())) {
+      throw new IllegalStateException("Allowed route URL must not have a path: " + host);
+    }
   }
 
   /**
@@ -151,7 +196,7 @@ public class RouteService {
    * @param id the route UID or code.
    * @return {@link Route}.
    */
-  public Route getRouteWithDecryptedAuth(@Nonnull String id) {
+  public Route getRoute(@Nonnull String id) {
     Route route = routeStore.getByUidNoAcl(id);
 
     if (route == null) {
@@ -162,16 +207,39 @@ public class RouteService {
       return null;
     }
 
+    return route;
+  }
+
+  protected boolean isRouteUrlAllowed(Route route) {
+    for (String regexRemoteServer : allowedRouteRegexRemoteServers) {
+      if (route.getUrl().matches(regexRemoteServer)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public void validateRoute(Route route) throws ConflictException {
+    URL url;
     try {
-      route = objectMapper.readValue(objectMapper.writeValueAsString(route), Route.class);
-    } catch (JsonProcessingException ex) {
-      log.error("Unable to create copy of route: '{}'", route.getUid());
-      return null;
+      url = new URL(route.getUrl());
+    } catch (MalformedURLException e) {
+      throw new ConflictException("Malformed route URL");
     }
 
-    decryptAuthentication(route.getAuth());
+    if (!(url.getProtocol().equalsIgnoreCase("http")
+        || url.getProtocol().equalsIgnoreCase("https"))) {
+      throw new ConflictException("Route URL scheme must be either http or https");
+    }
 
-    return route;
+    if (!isRouteUrlAllowed(route)) {
+      throw new ConflictException("Route URL is not permitted");
+    }
+
+    if (route.getResponseTimeoutSeconds() < 1 || route.getResponseTimeoutSeconds() > 60) {
+      throw new ConflictException(
+          "Route response timeout must be greater than 0 seconds and less than or equal to 60 seconds");
+    }
   }
 
   /**
@@ -185,64 +253,172 @@ public class RouteService {
    * @throws IOException
    * @throws BadRequestException
    */
-  public ResponseEntity<String> execute(
+  public ResponseEntity<StreamingResponseBody> execute(
       Route route, UserDetails userDetails, Optional<String> subPath, HttpServletRequest request)
-      throws IOException, BadRequestException {
+      throws BadGatewayException {
+
+    if (!isRouteUrlAllowed(route)) {
+      return new ResponseEntity<>(HttpStatusCode.valueOf(503));
+    }
+
     HttpHeaders headers = filterRequestHeaders(request);
-
     route.getHeaders().forEach(headers::add);
-
     addForwardedUserHeader(userDetails, headers);
 
-    if (route.getAuth() != null) {
-      route.getAuth().apply(headers);
-    }
+    Map<String, List<String>> queryParameters = new HashMap<>();
+    request
+        .getParameterMap()
+        .forEach(
+            (key, value) ->
+                queryParameters
+                    .computeIfAbsent(key, k -> new LinkedList<>())
+                    .addAll(Arrays.asList(value)));
 
-    HttpHeaders queryParameters = new HttpHeaders();
-    request.getParameterMap().forEach((key, value) -> queryParameters.addAll(key, List.of(value)));
-
-    UriComponentsBuilder uriComponentsBuilder =
-        UriComponentsBuilder.fromHttpUrl(route.getBaseUrl()).queryParams(queryParameters);
-
-    if (subPath.isPresent()) {
-      if (!route.allowsSubpaths()) {
-        throw new BadRequestException(
-            String.format("Route '%s' does not allow subpaths", route.getId()));
-      }
-      uriComponentsBuilder.path(subPath.get());
-    }
-
-    String body = StreamUtils.copyToString(request.getInputStream(), StandardCharsets.UTF_8);
-
-    HttpEntity<String> entity = new HttpEntity<>(body, headers);
-
+    applyAuthScheme(route, headers, queryParameters);
+    String targetUri = createTargetUri(route, subPath, queryParameters);
     HttpMethod httpMethod =
         Objects.requireNonNullElse(HttpMethod.valueOf(request.getMethod()), HttpMethod.GET);
-    String targetUri = uriComponentsBuilder.toUriString();
+    WebClient.RequestHeadersSpec<?> requestHeadersSpec =
+        buildRequestSpec(headers, httpMethod, targetUri, route, request);
 
-    log.info(
+    log.debug(
         "Sending '{}' '{}' with route '{}' ('{}')",
         httpMethod,
         targetUri,
         route.getName(),
         route.getUid());
 
-    ResponseEntity<String> response =
-        restTemplate.exchange(targetUri, httpMethod, entity, String.class);
+    ResponseEntity<Flux<DataBuffer>> responseEntityFlux = retrieve(requestHeadersSpec);
 
-    HttpHeaders responseHeaders = filterResponseHeaders(response.getHeaders());
-
-    String responseBody = response.getBody();
-
-    log.info(
+    log.debug(
         "Request '{}' '{}' responded with status '{}' for route '{}' ('{}')",
         httpMethod,
         targetUri,
-        response.getStatusCode(),
+        responseEntityFlux.getStatusCode(),
         route.getName(),
         route.getUid());
 
-    return new ResponseEntity<>(responseBody, responseHeaders, response.getStatusCode());
+    return new ResponseEntity<>(
+        streamResponseBody(responseEntityFlux),
+        filterResponseHeaders(responseEntityFlux.getHeaders()),
+        responseEntityFlux.getStatusCode());
+  }
+
+  protected ResponseEntity<Flux<DataBuffer>> retrieve(
+      WebClient.RequestHeadersSpec<?> requestHeadersSpec) {
+    WebClient.ResponseSpec responseSpec =
+        requestHeadersSpec
+            .retrieve()
+            .onStatus(httpStatusCode -> true, clientResponse -> Mono.empty());
+
+    return responseSpec
+        .toEntityFlux(DataBuffer.class)
+        .onErrorReturn(
+            throwable -> throwable.getCause() instanceof ReadTimeoutException,
+            new ResponseEntity<>(HttpStatus.GATEWAY_TIMEOUT))
+        .block();
+  }
+
+  protected String createTargetUri(
+      Route route, Optional<String> subPath, Map<String, List<String>> queryParameters)
+      throws BadGatewayException {
+    UriComponentsBuilder uriComponentsBuilder =
+        UriComponentsBuilder.fromHttpUrl(route.getBaseUrl());
+
+    for (Map.Entry<String, List<String>> queryParameter : queryParameters.entrySet()) {
+      uriComponentsBuilder =
+          uriComponentsBuilder.queryParam(queryParameter.getKey(), queryParameter.getValue());
+    }
+
+    uriComponentsBuilder.path(getSubPath(route, subPath));
+
+    return uriComponentsBuilder.toUriString();
+  }
+
+  protected WebClient.RequestHeadersSpec<?> buildRequestSpec(
+      HttpHeaders headers,
+      HttpMethod httpMethod,
+      String targetUri,
+      Route route,
+      HttpServletRequest request)
+      throws BadGatewayException {
+
+    final Flux<DataBuffer> requestBodyFlux;
+    try {
+      requestBodyFlux =
+          DataBufferUtils.read(
+                  new InputStreamResource(request.getInputStream()), dataBufferFactory, 8192)
+              .doOnNext(DataBufferUtils.releaseConsumer());
+    } catch (IOException e) {
+      log.error(e.getMessage(), e);
+      throw new BadGatewayException("An error occurred while reading the upstream response");
+    }
+
+    WebClient.RequestHeadersSpec<?> requestHeadersSpec =
+        webClient
+            .method(httpMethod)
+            .uri(targetUri)
+            .httpRequest(
+                clientHttpRequest -> {
+                  Object nativeRequest = clientHttpRequest.getNativeRequest();
+                  if (nativeRequest instanceof HttpClientRequest httpClientRequest) {
+                    httpClientRequest.responseTimeout(
+                        Duration.ofSeconds(route.getResponseTimeoutSeconds()));
+                  }
+                })
+            .body(requestBodyFlux, DataBuffer.class);
+
+    for (Map.Entry<String, List<String>> header : headers.entrySet()) {
+      requestHeadersSpec =
+          requestHeadersSpec.header(header.getKey(), header.getValue().toArray(new String[0]));
+    }
+
+    return requestHeadersSpec;
+  }
+
+  protected StreamingResponseBody streamResponseBody(
+      ResponseEntity<Flux<DataBuffer>> responseEntityFlux) {
+    return out -> {
+      if (responseEntityFlux.getBody() != null) {
+        try {
+          Flux<DataBuffer> dataBufferFlux =
+              DataBufferUtils.write(responseEntityFlux.getBody(), out)
+                  .doOnNext(DataBufferUtils.releaseConsumer());
+          dataBufferFlux.blockLast(Duration.ofMinutes(5));
+        } catch (Exception e) {
+          out.close();
+          throw e;
+        }
+      }
+    };
+  }
+
+  protected void applyAuthScheme(
+      Route route, Map<String, List<String>> headers, Map<String, List<String>> queryParameters)
+      throws BadGatewayException {
+    if (route.getAuth() != null) {
+      try {
+        route
+            .getAuth()
+            .decrypt(encryptor::decrypt)
+            .apply(applicationContext, headers, queryParameters);
+      } catch (Exception e) {
+        log.error(e.getMessage(), e);
+        throw new BadGatewayException("An error occurred during authentication");
+      }
+    }
+  }
+
+  protected String getSubPath(Route route, Optional<String> subPath) throws BadGatewayException {
+    if (subPath.isPresent()) {
+      if (!route.allowsSubpaths()) {
+        throw new BadGatewayException(
+            String.format("Route '%s' does not allow sub-paths", route.getId()));
+      }
+      return subPath.get();
+    } else {
+      return "";
+    }
   }
 
   /**
@@ -305,24 +481,5 @@ public class RouteService {
           headers.addAll(name, values);
         });
     return headers;
-  }
-
-  /**
-   * Decrypts the secrets on the given authentication.
-   *
-   * @param auth the {@link Authentication}.
-   */
-  private void decryptAuthentication(Auth auth) {
-    if (auth == null) {
-      return;
-    }
-
-    if (auth.getType().equals(ApiTokenAuth.TYPE)) {
-      ApiTokenAuth apiTokenAuth = (ApiTokenAuth) auth;
-      apiTokenAuth.setToken(encryptor.decrypt(apiTokenAuth.getToken()));
-    } else if (auth.getType().equals(HttpBasicAuth.TYPE)) {
-      HttpBasicAuth httpBasicAuth = (HttpBasicAuth) auth;
-      httpBasicAuth.setPassword(encryptor.decrypt(httpBasicAuth.getPassword()));
-    }
   }
 }

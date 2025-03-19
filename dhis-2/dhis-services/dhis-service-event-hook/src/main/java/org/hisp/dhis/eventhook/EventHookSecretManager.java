@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -31,9 +33,7 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 
 import java.util.function.UnaryOperator;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.auth.ApiTokenAuth;
-import org.hisp.dhis.common.auth.Auth;
-import org.hisp.dhis.common.auth.HttpBasicAuth;
+import org.hisp.dhis.common.auth.AuthScheme;
 import org.hisp.dhis.eventhook.targets.JmsTarget;
 import org.hisp.dhis.eventhook.targets.KafkaTarget;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
@@ -52,49 +52,37 @@ public class EventHookSecretManager {
   private final PBEStringCleanablePasswordEncryptor encryptor;
 
   public void encrypt(EventHook eventHook) {
-    handleSecrets(eventHook, encryptor::encrypt);
+    handleSecrets(eventHook, true);
   }
 
   public void decrypt(EventHook eventHook) {
-    handleSecrets(eventHook, encryptor::decrypt);
+    handleSecrets(eventHook, false);
   }
 
-  private void handleSecrets(EventHook eventHook, UnaryOperator<String> callback) {
+  private void handleSecrets(EventHook eventHook, boolean encrypt) {
     for (Target target : eventHook.getTargets()) {
       if (target.getType().equals(WebhookTarget.TYPE)) {
-        handleWebhook((WebhookTarget) target, callback);
-      } else if (target.getType().equals(JmsTarget.TYPE)) {
-        handleJms((JmsTarget) target, callback);
-      } else if (target.getType().equals(KafkaTarget.TYPE)) {
-        handleKafka((KafkaTarget) target, callback);
+        handleWebhook((WebhookTarget) target, encrypt);
+      } else {
+        UnaryOperator<String> callback = encrypt ? encryptor::encrypt : encryptor::decrypt;
+        if (target.getType().equals(JmsTarget.TYPE)) {
+          handleJms((JmsTarget) target, callback);
+        } else if (target.getType().equals(KafkaTarget.TYPE)) {
+          handleKafka((KafkaTarget) target, callback);
+        }
       }
     }
   }
 
-  private void handleWebhook(WebhookTarget target, UnaryOperator<String> callback) {
-    Auth auth = target.getAuth();
+  private void handleWebhook(WebhookTarget target, boolean encrypt) {
+    AuthScheme auth = target.getAuth();
 
-    if (auth == null) {
-      return;
-    }
-
-    switch (auth.getType()) {
-      case HttpBasicAuth.TYPE:
-        HttpBasicAuth httpBasicAuth = (HttpBasicAuth) auth;
-
-        if (StringUtils.hasText(httpBasicAuth.getPassword())) {
-          httpBasicAuth.setPassword(callback.apply(httpBasicAuth.getPassword()));
-        }
-        break;
-      case ApiTokenAuth.TYPE:
-        ApiTokenAuth apiTokenAuth = (ApiTokenAuth) auth;
-
-        if (StringUtils.hasText(apiTokenAuth.getToken())) {
-          apiTokenAuth.setToken(callback.apply(apiTokenAuth.getToken()));
-        }
-        break;
-      default:
-        break;
+    if (auth != null) {
+      if (encrypt) {
+        target.setAuth(auth.encrypt(encryptor::encrypt));
+      } else {
+        target.setAuth(auth.decrypt(encryptor::decrypt));
+      }
     }
   }
 

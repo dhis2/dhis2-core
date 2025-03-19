@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -28,8 +30,10 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.http.HttpClientAdapter.Header;
+import static org.hisp.dhis.http.HttpStatus.BAD_REQUEST;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
@@ -171,28 +175,6 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
-  void getEventsFailsIfGivenAttributeCategoryOptionsAndDeprecatedAttributeCos() {
-    switchContextToUser(user);
-
-    assertStartsWith(
-        "Only one parameter of 'attributeCos' (deprecated",
-        GET("/tracker/events?attributeCategoryOptions=Hq3Kc6HK4OZ&attributeCos=Hq3Kc6HK4OZ")
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
-  }
-
-  @Test
-  void getEventsFailsIfGivenAttributeCcAndAttributeCategoryCombo() {
-    switchContextToUser(user);
-
-    assertStartsWith(
-        "Only one parameter of 'attributeCc' and 'attributeCategoryCombo'",
-        GET("/tracker/events?attributeCc=FQnYqKlIHxd&attributeCategoryCombo=YApXsOpwiXk")
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
-  }
-
-  @Test
   void getEventByPathIsIdenticalToQueryParam() {
     TrackedEntity to = trackedEntity();
     Event event = event(enrollment(to));
@@ -278,6 +260,81 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertHasMember(dataValue, "createdAt");
     assertHasMember(dataValue, "updatedAt");
     assertHasMember(dataValue, "storedBy");
+  }
+
+  @Test
+  void shouldGetEventWithoutRelationshipsWhenRelationshipIsDeletedAndIncludeDeletedIsFalse() {
+    TrackedEntity to = trackedEntity();
+    Event from = event(enrollment(to));
+    Relationship relationship = relationship(from, to);
+    manager.delete(relationship);
+    switchContextToUser(user);
+
+    JsonList<JsonRelationship> relationships =
+        GET("/tracker/events/?events={id}&fields=relationships&includeDeleted=false", from.getUid())
+            .content(HttpStatus.OK)
+            .getList("events", JsonEvent.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    assertIsEmpty(relationships.stream().toList());
+  }
+
+  @Test
+  void shouldGetEventWithRelationshipsWhenRelationshipIsDeletedAndIncludeDeletedIsTrue() {
+    TrackedEntity to = trackedEntity();
+    Event from = event(enrollment(to));
+    Relationship relationship = relationship(from, to);
+    manager.delete(relationship);
+    switchContextToUser(user);
+
+    JsonList<JsonRelationship> relationships =
+        GET("/tracker/events/?events={id}&fields=relationships&includeDeleted=true", from.getUid())
+            .content(HttpStatus.OK)
+            .getList("events", JsonEvent.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    JsonRelationship jsonRelationship = relationships.get(0);
+    assertEquals(relationship.getUid(), jsonRelationship.getRelationship());
+
+    JsonRelationshipItem.JsonEvent event = jsonRelationship.getFrom().getEvent();
+    assertEquals(relationship.getFrom().getEvent().getUid(), event.getEvent());
+    assertEquals(relationship.getFrom().getEvent().getEnrollment().getUid(), event.getEnrollment());
+
+    JsonRelationshipItem.JsonTrackedEntity trackedEntity =
+        jsonRelationship.getTo().getTrackedEntity();
+    assertEquals(
+        relationship.getTo().getTrackedEntity().getUid(), trackedEntity.getTrackedEntity());
+
+    assertHasMember(jsonRelationship, "relationshipName");
+    assertHasMember(jsonRelationship, "relationshipType");
+    assertHasMember(jsonRelationship, "createdAt");
+    assertHasMember(jsonRelationship, "updatedAt");
+    assertHasMember(jsonRelationship, "bidirectional");
+  }
+
+  @Test
+  void shouldGetEventWithNoRelationshipsWhenEventIsOnTheToSideOfAUnidirectionalRelationship() {
+    TrackedEntity from = trackedEntity();
+    Event to = event(enrollment(from));
+    Relationship relationship = relationship(from, to);
+
+    RelationshipType relationshipType =
+        manager.get(RelationshipType.class, relationship.getRelationshipType().getUid());
+    relationshipType.setBidirectional(false);
+    manager.update(relationshipType);
+
+    switchContextToUser(user);
+
+    JsonList<JsonRelationship> relationships =
+        GET("/tracker/events/?events={id}&fields=relationships", to.getUid())
+            .content(HttpStatus.OK)
+            .getList("events", JsonEvent.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    assertIsEmpty(relationships.stream().toList());
   }
 
   @Test
@@ -370,6 +427,41 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
             .getList("relationships", JsonRelationship.class);
 
     assertEquals(0, relationships.size());
+  }
+
+  @Test
+  void shouldGetEventsByTrackedEntityWhenTrackedEntityIsDeletedAndIncludeDeletedIsTrue() {
+    TrackedEntity te = trackedEntity();
+    Event event = event(enrollment(te));
+    manager.delete(te);
+    manager.delete(event);
+    manager.flush();
+    switchContextToUser(user);
+
+    JsonList<JsonEvent> events =
+        GET(
+                "/tracker/events?trackedEntity={te}&includeDeleted=true&fields=deleted,trackedEntity",
+                te.getUid())
+            .content(HttpStatus.OK)
+            .getList("events", JsonEvent.class);
+
+    events.forEach(
+        ev -> {
+          assertTrue(ev.getDeleted());
+          assertEquals(te.getUid(), ev.getTrackedEntity());
+        });
+  }
+
+  @Test
+  void
+      shouldGetNotFoundWhenGettingEventsByTrackedEntityAndTrackedEntityIsDeletedAndIncludeDeletedIsFalse() {
+    TrackedEntity te = trackedEntity();
+    event(enrollment(te));
+    manager.delete(te);
+    manager.flush();
+    switchContextToUser(user);
+
+    GET("/tracker/events?trackedEntity={te}&includeDeleted=false", te.getUid()).error(BAD_REQUEST);
   }
 
   @Test
@@ -941,7 +1033,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     return r;
   }
 
-  private void relationship(TrackedEntity from, Event to) {
+  private Relationship relationship(TrackedEntity from, Event to) {
     Relationship r = new Relationship();
 
     RelationshipItem fromItem = new RelationshipItem();
@@ -966,6 +1058,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     r.setAutoFields();
     r.getSharing().setOwner(owner);
     manager.save(r, false);
+    return r;
   }
 
   private Note note(String uid, String value, String storedBy) {
@@ -988,7 +1081,6 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertEquals(event.getEnrollment().getUid(), json.getString("enrollment").string());
     assertEquals(orgUnit.getUid(), json.getString("orgUnit").string());
     assertFalse(json.getBoolean("followUp").booleanValue());
-    assertFalse(json.getBoolean("followup").booleanValue());
     assertFalse(json.getBoolean("deleted").booleanValue());
     assertHasMember(json, "createdAt");
     assertHasMember(json, "createdAtClient");

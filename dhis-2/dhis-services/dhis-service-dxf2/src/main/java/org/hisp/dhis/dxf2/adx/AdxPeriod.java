@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -82,11 +84,11 @@ public class AdxPeriod {
     P1Y // yearly, financialApril, financialJuly, financialOctober
   }
 
-  public static Period parse(String periodString) throws AdxException {
+  public static Period parse(String periodString) throws IllegalArgumentException {
     String[] tokens = periodString.split("/");
 
     if (tokens.length != 2) {
-      throw new AdxException(periodString + " not in valid <date>/<duration> format");
+      throw new IllegalArgumentException(periodString + " not in valid <date>/<duration> format");
     }
 
     try {
@@ -119,7 +121,7 @@ public class AdxPeriod {
               periodType = new WeeklySundayPeriodType();
               break;
             default:
-              throw new AdxException(periodString + " is invalid weekly type");
+              throw new IllegalArgumentException(periodString + " is invalid weekly type");
           }
           break;
         case P14D:
@@ -149,7 +151,7 @@ public class AdxPeriod {
               periodType = new SixMonthlyNovemberPeriodType();
               break;
             default:
-              throw new AdxException(periodString + " is invalid sixmonthly type");
+              throw new IllegalArgumentException(periodString + " is invalid sixmonthly type");
           }
           break;
         case P1Y:
@@ -170,7 +172,7 @@ public class AdxPeriod {
               periodType = new FinancialNovemberPeriodType();
               break;
             default:
-              throw new AdxException(periodString + " is invalid yearly type");
+              throw new IllegalArgumentException(periodString + " is invalid yearly type");
           }
           break;
       }
@@ -178,13 +180,13 @@ public class AdxPeriod {
       if (periodType != null) {
         period = periodType.createPeriod(startDate);
       } else {
-        throw new AdxException("Failed to create period type from " + duration);
+        throw new IllegalArgumentException("Failed to create period type from " + duration);
       }
 
       return period;
 
     } catch (IllegalArgumentException ex) {
-      throw new AdxException(tokens[1] + " is not a supported duration type");
+      throw new IllegalArgumentException(tokens[1] + " is not a supported duration type");
     }
   }
 

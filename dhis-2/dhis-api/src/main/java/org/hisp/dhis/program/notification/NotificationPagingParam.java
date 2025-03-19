@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,26 +29,30 @@
  */
 package org.hisp.dhis.program.notification;
 
-import lombok.AllArgsConstructor;
+import java.util.Objects;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * @author Zubair Asghar
  */
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class NotificationPagingParam {
-  public static final int DEFAULT_PAGE_SIZE = 50;
-
   public static final int DEFAULT_PAGE = 1;
+  public static final int DEFAULT_PAGE_SIZE = 50;
 
   private Integer page;
 
   private Integer pageSize;
 
-  private boolean skipPaging;
+  private boolean paging;
 
-  private boolean paged;
+  /**
+   * This assumes that the parameters have been validated. Disabling pagination and setting a page
+   * or pageSize does not make sense.
+   */
+  public NotificationPagingParam(Integer page, Integer pageSize, boolean paging) {
+    this.page = Objects.requireNonNullElse(page, DEFAULT_PAGE);
+    this.pageSize = Objects.requireNonNullElse(pageSize, DEFAULT_PAGE_SIZE);
+    this.paging = paging;
+  }
 }

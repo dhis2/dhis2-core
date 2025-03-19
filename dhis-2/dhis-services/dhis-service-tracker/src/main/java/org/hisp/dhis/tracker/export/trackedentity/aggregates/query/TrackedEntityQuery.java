@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -45,6 +47,7 @@ public class TrackedEntityQuery {
     INACTIVE,
     DELETED,
     GEOMETRY,
+    TYPE_ID,
     TYPE_UID,
     TYPE_CODE,
     TYPE_NAME,
@@ -71,6 +74,7 @@ public class TrackedEntityQuery {
           .put(COLUMNS.INACTIVE, new TableColumn("te", "inactive"))
           .put(COLUMNS.DELETED, new TableColumn("te", "deleted"))
           .put(COLUMNS.GEOMETRY, new Function("ST_AsBinary", "te", "geometry", "geometry"))
+          .put(COLUMNS.TYPE_ID, new TableColumn("tet", "trackedentitytypeid", "type_id"))
           .put(COLUMNS.TYPE_UID, new TableColumn("tet", "uid", "type_uid"))
           .put(COLUMNS.TYPE_CODE, new TableColumn("tet", "code", "type_code"))
           .put(COLUMNS.TYPE_NAME, new TableColumn("tet", "name", "type_name"))

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -28,6 +30,7 @@
 package org.hisp.dhis.db.sql;
 
 import java.util.Collection;
+import java.util.List;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Index;
@@ -263,7 +266,7 @@ public interface SqlBuilder {
   String regexpMatch(String value, String pattern);
 
   /**
-   * Creates a SQL concatenation function that combines multiple columns or expressions.
+   * Concatenates multiple columns or expressions.
    *
    * @param columns the column names or expressions to concatenate.
    * @return the SQL function for concatenation.
@@ -271,7 +274,15 @@ public interface SqlBuilder {
   String concat(String... columns);
 
   /**
-   * Creates a SQL trim function that removes leading and trailing spaces from an expression.
+   * Concatenates list of columns or expressions.
+   *
+   * @param columns a list of column names or expressions to concatenate.
+   * @return the SQL function for concatenation.
+   */
+  String concat(List<String> columns);
+
+  /**
+   * Trims the given column or expression by removing leading and trailing spaces.
    *
    * @param expression the expression to trim.
    * @return the SQL function for trimming.
@@ -279,12 +290,12 @@ public interface SqlBuilder {
   String trim(String expression);
 
   /**
-   * Creates a SQL COALESCE function that returns the first non-null expression from the provided
+   * Creates a coalesce function that returns the first non-null expression from the provided
    * expressions. If the first expression is null, it returns the default expression.
    *
    * @param expression the expression to check for null.
    * @param defaultValue the value to return if the first expression is null.
-   * @return the SQL function for coalescing.
+   * @return the coalesce function.
    */
   String coalesce(String expression, String defaultValue);
 
@@ -293,7 +304,7 @@ public interface SqlBuilder {
    *
    * @param json the JSON column name or value to extract from.
    * @param property the JSON property to extract.
-   * @return the SQL function for JSON value extraction.
+   * @return a function for JSON value extraction.
    */
   String jsonExtract(String json, String property);
 
@@ -303,31 +314,42 @@ public interface SqlBuilder {
    * @param json the JSON column name or object to extract from.
    * @param key the object key.
    * @param property the JSON property to extract.
-   * @return a SQL expression to extract the specified nested value from the JSON column.
+   * @return a function for JSON value extraction.
    */
   String jsonExtract(String json, String key, String property);
 
   /**
-   * Generates a SQL casting expression for the given column or expression.
+   * Casts the given column or expression to the given data type.
    *
-   * @param column The column or expression to be cast. Must not be null.
-   * @param dataType The target data type for the cast operation. Must not be null.
+   * @param column The column or expression to be cast, must not be null.
+   * @param dataType the {@link DataType} data type for the cast operation, must not be null.
    * @return A String containing the database-specific SQL casting expression.
-   * @see DataType
    */
   String cast(String column, DataType dataType);
 
   /**
-   * Generates SQL to calculate the difference between two dates based on the specified date part.
+   * Calculates the difference between two dates based on the specified date part.
    *
    * @param startDate the start date expression (can be a date literal or a column reference)
-   * @param endDate the end date expression (can be a date literal or a column reference)
-   * @param dateUnit the unit of time to calculate the difference in (e.g., DAYS, MONTHS, YEARS)
-   * @return a String containing the database-specific SQL expression for calculating the date
-   *     difference
-   * @see DateUnit
+   * @param endDate the end date expression (can be a date literal or a column reference).
+   * @param dateUnit the {@link DateUnit} to calculate the difference in.
+   * @return the database-specific SQL expression for calculating the date difference.
    */
   String dateDifference(String startDate, String endDate, DateUnit dateUnit);
+
+  /**
+   * @param alias the table alias, not quoted, not null.
+   * @param column the column name, not quoted, not null.
+   * @return a false predicate.
+   */
+  String isTrue(String alias, String column);
+
+  /**
+   * @param alias the table alias, not quoted, not null.
+   * @param column the column name, not quoted, not null.
+   * @return a false predicate.
+   */
+  String isFalse(String alias, String column);
 
   /**
    * Returns a conditional statement.
@@ -337,6 +359,14 @@ public interface SqlBuilder {
    * @return a conditional statement.
    */
   String ifThen(String condition, String result);
+
+  /**
+   * Generates a SQL fragment that computes the base-10 logarithm of the specified expression.
+   *
+   * @param expression a numeric expression or column name for which to compute the logarithm.
+   * @return a SQL fragment that calculates the base-10 logarithm of the given expression.
+   */
+  String log10(String expression);
 
   /**
    * Returns a conditional statement.
@@ -483,13 +513,4 @@ public interface SqlBuilder {
    * @return in insert into select from statement.
    */
   String insertIntoSelectFrom(Table intoTable, String fromTable);
-
-  /** Enumeration of time units. */
-  enum DateUnit {
-    DAYS,
-    WEEKS,
-    MONTHS,
-    MINUTES,
-    YEARS
-  }
 }

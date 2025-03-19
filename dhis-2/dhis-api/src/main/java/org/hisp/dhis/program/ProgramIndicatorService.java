@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -157,8 +159,8 @@ public interface ProgramIndicatorService {
   void validate(String expression, Class<?> clazz, Map<String, String> itemDescriptions);
 
   /**
-   * Gets the the analytics SQL clause of an expression. Does not ignore missing numeric values for
-   * data elements and attributes.
+   * Gets the analytics SQL clause of an expression. Does not ignore missing numeric values for data
+   * elements and attributes.
    *
    * @param expression the expression.
    * @param dataType the data type to return.
@@ -175,8 +177,25 @@ public interface ProgramIndicatorService {
       Date endDate);
 
   /**
-   * Gets the the analytics SQL clause of an expression. Does not ignore missing numeric values for
-   * data elements and attributes.
+   * Gets the analytics SQL clause of an expression. The SQL does not substitute null values.
+   *
+   * @param expression the expression.
+   * @param dataType the data type to return.
+   * @param programIndicator the program indicator to evaluate.
+   * @param startDate the start date.
+   * @param endDate the end date.
+   * @return the SQL string.
+   */
+  String getAnalyticsSqlAllowingNulls(
+      String expression,
+      DataType dataType,
+      ProgramIndicator programIndicator,
+      Date startDate,
+      Date endDate);
+
+  /**
+   * Gets the analytics SQL clause of an expression. Does not ignore missing numeric values for data
+   * elements and attributes.
    *
    * @param expression the expression.
    * @param dataType the data type to return.

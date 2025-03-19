@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,37 +29,34 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.security.Authorities.M_DHIS_WEB_APP_MANAGEMENT;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import com.nimbusds.jose.util.StandardCharset;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.LineIterator;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
-import org.hisp.dhis.appmanager.AppMenuManager;
 import org.hisp.dhis.appmanager.AppStatus;
-import org.hisp.dhis.appmanager.AppType;
+import org.hisp.dhis.appmanager.AppStorageSource;
+import org.hisp.dhis.appmanager.ResourceResult;
+import org.hisp.dhis.appmanager.ResourceResult.Redirect;
+import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
+import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.i18n.I18nManager;
@@ -66,7 +65,6 @@ import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -95,13 +93,10 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class AppController {
-  public static final String RESOURCE_PATH = "/api/apps";
 
   public static final Pattern REGEX_REMOVE_PROTOCOL = Pattern.compile(".+:/+");
 
   @Autowired private AppManager appManager;
-
-  @Autowired private AppMenuManager appMenuManager;
 
   @Autowired private RenderService renderService;
 
@@ -109,38 +104,23 @@ public class AppController {
 
   @Autowired private ContextService contextService;
 
-  @Autowired private ObjectMapper jsonMapper;
-
   @GetMapping(value = "/menu", produces = ContextUtils.CONTENT_TYPE_JSON)
   public @ResponseBody Map<String, List<WebModule>> getWebModules(HttpServletRequest request) {
-    String contextPath = HttpServletRequestPaths.getContextPath(request);
-    return Map.of("modules", getAccessibleAppMenu(contextPath));
-  }
+    String baseUrl = contextService.getContextPath();
 
-  private List<WebModule> getAccessibleAppMenu(String contextPath) {
-    List<WebModule> modules = appMenuManager.getAccessibleWebModules();
-
-    List<App> apps =
-        appManager.getApps(contextPath).stream()
-            .filter(
-                app ->
-                    app.getAppType() == AppType.APP && app.hasAppEntrypoint() && !app.isBundled())
-            .collect(Collectors.toList());
-
-    modules.addAll(apps.stream().map(WebModule::getModule).collect(Collectors.toList()));
-
-    return modules;
+    List<WebModule> modules = appManager.getMenu(baseUrl);
+    return Map.of("modules", modules);
   }
 
   @GetMapping(produces = ContextUtils.CONTENT_TYPE_JSON)
   public ResponseEntity<List<App>> getApps(@RequestParam(required = false) String key) {
     List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
-    String contextPath = contextService.getContextPath();
+    String baseUrl = contextService.getContextPath();
 
     List<App> apps = new ArrayList<>();
 
     if (key != null) {
-      App app = appManager.getApp(key, contextPath);
+      App app = appManager.getApp(key, baseUrl);
 
       if (app == null) {
         return ResponseEntity.notFound().build();
@@ -148,9 +128,9 @@ public class AppController {
 
       apps.add(app);
     } else if (!filters.isEmpty()) {
-      apps = appManager.filterApps(filters, contextPath);
+      apps = appManager.filterApps(filters, baseUrl);
     } else {
-      apps = appManager.getApps(contextPath);
+      apps = appManager.getApps(baseUrl);
     }
     return ResponseEntity.ok(apps);
   }
@@ -183,97 +163,67 @@ public class AppController {
 
   @GetMapping("/{app}/**")
   public void renderApp(
-      @PathVariable("app") String app, HttpServletRequest request, HttpServletResponse response)
+      @PathVariable("app") String appName, HttpServletRequest request, HttpServletResponse response)
       throws IOException, WebMessageException, ForbiddenException {
-    String contextPath = HttpServletRequestPaths.getContextPath(request);
-    App application = appManager.getApp(app, contextPath);
-
-    // Get page requested
-    String pageName = getUrl(request.getPathInfo(), app);
+    String contextPath = request.getContextPath();
+    String baseUrl = contextService.getContextPath();
+    App application = appManager.getApp(appName, baseUrl);
 
     if (application == null) {
-      throw new WebMessageException(notFound("App '" + app + "' not found."));
-    }
-
-    if (application.isBundled()) {
-      String redirectPath = application.getBaseUrl() + "/" + pageName;
-
-      log.info(String.format("Redirecting to bundled app: %s", redirectPath));
-
-      response.sendRedirect(redirectPath);
-      return;
+      throw new WebMessageException(notFound("App '" + appName + "' not found."));
     }
 
     if (!appManager.isAccessible(application)) {
-      throw new ForbiddenException("You don't have access to application " + app + ".");
+      throw new ForbiddenException("You don't have access to application " + appName + ".");
     }
 
     if (application.getAppState() == AppStatus.DELETION_IN_PROGRESS) {
-      throw new WebMessageException(conflict("App '" + app + "' deletion is still in progress."));
+      throw new WebMessageException(
+          conflict("App '" + appName + "' deletion is still in progress."));
     }
 
-    log.debug(String.format("App page name: '%s'", pageName));
+    // Get page requested
+    String resource = getResourcePath(request.getPathInfo(), application, contextPath);
 
-    // Handling of 'manifest.webapp'
-    if ("manifest.webapp".equals(pageName)) {
-      // If request was for manifest.webapp, check for * and replace with
-      // host
-      if (application.getActivities() != null
-          && application.getActivities().getDhis() != null
-          && "*".equals(application.getActivities().getDhis().getHref())) {
-        log.debug(String.format("Manifest context path: '%s'", contextPath));
+    log.debug("Rendering resource {} from app {}", resource, application.getKey());
 
-        application.getActivities().getDhis().setHref(contextPath);
-      }
-
-      jsonMapper.writeValue(response.getOutputStream(), application);
+    ResourceResult resourceResult = appManager.getAppResource(application, resource, baseUrl);
+    if (resourceResult instanceof ResourceFound found) {
+      serveResource(request, response, found.resource());
+      return;
     }
-    // Any other page
-    else {
-      // Retrieve file
-      Resource resource = appManager.getAppResource(application, pageName);
-
-      if (resource == null) {
-        response.sendError(HttpServletResponse.SC_NOT_FOUND);
-        return;
+    if (resourceResult instanceof Redirect redirect) {
+      String redirectUrl = TextUtils.cleanUrlPathOnly(application.getBaseUrl(), redirect.path());
+      String queryString = request.getQueryString();
+      if (queryString != null) {
+        redirectUrl += "?" + queryString;
       }
-
-      String filename = resource.getFilename();
-      log.debug(String.format("App filename: '%s'", filename));
-
-      if (new ServletWebRequest(request, response).checkNotModified(resource.lastModified())) {
-        return;
-      }
-
-      String mimeType = request.getSession().getServletContext().getMimeType(filename);
-
-      if (mimeType != null) {
-        response.setContentType(mimeType);
-      }
-
-      if (filename.endsWith("index.html") || filename.endsWith("plugin.html")) {
-        LineIterator iterator =
-            IOUtils.lineIterator(resource.getInputStream(), StandardCharsets.UTF_8);
-        ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        PrintWriter output = new PrintWriter(bout, true, StandardCharset.UTF_8);
-        try {
-          while (iterator.hasNext()) {
-            String line = iterator.nextLine();
-            output.println(
-                line.replace("__DHIS2_BASE_URL__", contextPath)
-                    .replace("__DHIS2_APP_ROOT_URL__", application.getBaseUrl()));
-          }
-        } finally {
-          iterator.close();
-          response.setContentLength(bout.size());
-          response.setHeader("Content-Encoding", StandardCharsets.UTF_8.toString());
-          bout.writeTo(response.getOutputStream());
-        }
-      } else {
-        response.setContentLengthLong(resource.contentLength());
-        StreamUtils.copyThenCloseInputStream(resource.getInputStream(), response.getOutputStream());
-      }
+      log.debug(String.format("App resource redirected to: %s", redirectUrl));
+      response.sendRedirect(redirectUrl);
     }
+    if (resourceResult instanceof ResourceNotFound) {
+      response.sendError(HttpServletResponse.SC_NOT_FOUND);
+    }
+  }
+
+  private void serveResource(
+      HttpServletRequest request, HttpServletResponse response, Resource resource)
+      throws IOException {
+    String filename = resource.getFilename();
+    log.debug("App filename: '{}'", filename);
+
+    if (new ServletWebRequest(request, response).checkNotModified(resource.lastModified())) {
+      return;
+    }
+
+    String mimeType = request.getSession().getServletContext().getMimeType(filename);
+
+    if (mimeType != null) {
+      response.setContentType(mimeType);
+    }
+
+    response.setContentLengthLong(resource.contentLength());
+    StreamUtils.copyThenCloseInputStream(resource.getInputStream(), response.getOutputStream());
   }
 
   @DeleteMapping("/{app}")
@@ -291,7 +241,10 @@ public class AppController {
       throw new WebMessageException(conflict("App is already being deleted: " + app));
     }
 
-    appManager.markAppToDelete(appToDelete);
+    if (appToDelete.getAppStorageSource() == AppStorageSource.BUNDLED) {
+      throw new WebMessageException(badRequest("Bundled apps cannot be deleted."));
+    }
+
     appManager.deleteApp(appToDelete, deleteAppData);
   }
 
@@ -310,18 +263,24 @@ public class AppController {
   // --------------------------------------------------------------------------
   // Helpers
   // --------------------------------------------------------------------------
+  private String getResourcePath(String path, App app, String contextPath) {
+    String resourcePath = path;
+    String appPrefix = "/" + AppManager.INSTALLED_APP_PREFIX + app.getKey();
 
-  private String getUrl(String path, String app) {
-    String prefix = RESOURCE_PATH + "/" + app + "/";
+    if (resourcePath.startsWith(contextPath)) {
+      resourcePath = resourcePath.substring(contextPath.length());
+    }
 
-    if (path.startsWith(prefix)) {
-      path = path.substring(prefix.length());
+    if (resourcePath.startsWith(appPrefix)) {
+      resourcePath = resourcePath.substring(appPrefix.length());
+    } else if (resourcePath.equals(appPrefix)) {
+      resourcePath = "";
     }
 
     // if path is prefixed by any protocol, clear it out (this is to ensure
     // that only files inside app directory can be resolved)
-    path = REGEX_REMOVE_PROTOCOL.matcher(path).replaceAll("");
+    resourcePath = REGEX_REMOVE_PROTOCOL.matcher(resourcePath).replaceAll("");
 
-    return path;
+    return resourcePath;
   }
 }

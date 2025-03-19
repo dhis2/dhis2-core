@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -151,7 +153,7 @@ class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
     assertFalse(responseDefaultLocale.getBoolean("selfRegistrationEnabled").booleanValue());
     assertFalse(responseDefaultLocale.getBoolean("emailConfigured").booleanValue());
     assertEquals(
-        systemService.getSystemInfo().getVersion(),
+        systemService.getSystemInfoVersion(),
         responseDefaultLocale.getString("apiVersion").string());
 
     assertEquals(
@@ -204,21 +206,6 @@ class LoginConfigControllerTest extends PostgresControllerIntegrationTestBase {
     POST("/systemSettings/recaptchaSite", "test_recaptcha_stie").content(HttpStatus.OK);
     response = GET("/loginConfig").content();
     assertEquals("test_recaptcha_stie", response.getString("recaptchaSite").string());
-  }
-
-  @Test
-  void testPasswordValidationPattern() {
-    JsonObject response = GET("/loginConfig").content();
-    assertEquals(
-        "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[\\W_])[A-Za-z\\d\\W_]{8,72}$",
-        response.getString("passwordValidationPattern").string());
-
-    POST("/systemSettings/passwordValidationPattern", "test_password_validation_pattern")
-        .content(HttpStatus.OK);
-    response = GET("/loginConfig").content();
-    assertEquals(
-        "test_password_validation_pattern",
-        response.getString("passwordValidationPattern").string());
   }
 
   @Test

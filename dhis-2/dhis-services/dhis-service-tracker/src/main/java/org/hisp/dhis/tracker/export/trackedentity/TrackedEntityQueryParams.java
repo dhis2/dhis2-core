@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -38,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetUtils;
@@ -68,11 +71,17 @@ public class TrackedEntityQueryParams {
    */
   private Set<OrganisationUnit> orgUnits = new HashSet<>();
 
-  /** Program for which instances in the response must be enrolled in. */
-  private Program program;
+  /**
+   * Tracker program the tracked entity must be enrolled in. This should not be set when {@link
+   * #accessibleTrackerPrograms} is set. The user must have data read access to this program.
+   */
+  private Program enrolledInTrackerProgram;
 
-  /** Programs to fetch. */
-  private List<Program> programs = List.of();
+  /**
+   * Tracker programs the user has data read access to. This should not be set when {@link
+   * #enrolledInTrackerProgram} is set.
+   */
+  private List<Program> accessibleTrackerPrograms = List.of();
 
   /** Status of a tracked entities enrollment into a given program. */
   private EnrollmentStatus enrollmentStatus;
@@ -127,9 +136,6 @@ public class TrackedEntityQueryParams {
   /** End date for event for the given program. */
   private Date eventEndDate;
 
-  /** Indicates if there is a maximum te retrieval limit. 0 no limit. */
-  private int maxTeLimit;
-
   /** Indicates whether to include soft-deleted elements. Default to false */
   private boolean includeDeleted = false;
 
@@ -140,6 +146,8 @@ public class TrackedEntityQueryParams {
   private Boolean potentialDuplicate;
 
   private final List<Order> order = new ArrayList<>();
+
+  @Setter private boolean isSearchOutsideCaptureScope = false;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -172,8 +180,8 @@ public class TrackedEntityQueryParams {
   }
 
   /** Indicates whether these parameters specify a program. */
-  public boolean hasProgram() {
-    return program != null;
+  public boolean hasEnrolledInTrackerProgram() {
+    return enrolledInTrackerProgram != null;
   }
 
   /** Indicates whether these parameters specify an enrollment status. */
@@ -287,7 +295,7 @@ public class TrackedEntityQueryParams {
 
   /** Returns attributes that are only ordered by and not present in any filter. */
   public Set<TrackedEntityAttribute> getLeftJoinAttributes() {
-    return SetUtils.difference(getOrderAttributes(), filters.keySet());
+    return SetUtils.union(getOrderAttributes(), filters.keySet());
   }
 
   public Map<TrackedEntityAttribute, List<QueryFilter>> getFilters() {
@@ -308,21 +316,22 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public Program getProgram() {
-    return program;
+  public Program getEnrolledInTrackerProgram() {
+    return enrolledInTrackerProgram;
   }
 
-  public TrackedEntityQueryParams setProgram(Program program) {
-    this.program = program;
+  public TrackedEntityQueryParams setEnrolledInTrackerProgram(Program enrolledInTrackerProgram) {
+    this.enrolledInTrackerProgram = enrolledInTrackerProgram;
     return this;
   }
 
-  public List<Program> getPrograms() {
-    return programs;
+  public List<Program> getAccessibleTrackerPrograms() {
+    return accessibleTrackerPrograms;
   }
 
-  public TrackedEntityQueryParams setPrograms(List<Program> programs) {
-    this.programs = programs;
+  public TrackedEntityQueryParams setAccessibleTrackerPrograms(
+      List<Program> accessibleTrackerPrograms) {
+    this.accessibleTrackerPrograms = accessibleTrackerPrograms;
     return this;
   }
 
@@ -480,15 +489,6 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public int getMaxTeLimit() {
-    return maxTeLimit;
-  }
-
-  public TrackedEntityQueryParams setMaxTeLimit(int maxTeLimit) {
-    this.maxTeLimit = maxTeLimit;
-    return this;
-  }
-
   public boolean isIncludeDeleted() {
     return includeDeleted;
   }
@@ -502,18 +502,9 @@ public class TrackedEntityQueryParams {
    * Filter the given tracked entity attribute {@code tea} using the specified {@link QueryFilter}
    * that consist of an operator and a value.
    */
-  public TrackedEntityQueryParams filterBy(TrackedEntityAttribute tea, QueryFilter filter) {
+  public TrackedEntityQueryParams filterBy(TrackedEntityAttribute tea, List<QueryFilter> filter) {
     this.filters.putIfAbsent(tea, new ArrayList<>());
-    this.filters.get(tea).add(filter);
-    return this;
-  }
-
-  /**
-   * Filter out any tracked entity that have no value for the given tracked entity attribute {@code
-   * tea}.
-   */
-  public TrackedEntityQueryParams filterBy(TrackedEntityAttribute tea) {
-    this.filters.putIfAbsent(tea, new ArrayList<>());
+    this.filters.get(tea).addAll(filter);
     return this;
   }
 
@@ -561,5 +552,9 @@ public class TrackedEntityQueryParams {
       List<TrackedEntityType> trackedEntityTypes) {
     this.trackedEntityTypes = trackedEntityTypes;
     return this;
+  }
+
+  public boolean isSearchOutsideCaptureScope() {
+    return isSearchOutsideCaptureScope;
   }
 }

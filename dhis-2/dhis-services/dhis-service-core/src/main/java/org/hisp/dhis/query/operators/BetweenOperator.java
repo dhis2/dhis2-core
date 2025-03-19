@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -32,28 +34,21 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.Date;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
+import java.util.List;
 import org.hisp.dhis.query.Type;
-import org.hisp.dhis.query.Typed;
-import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.query.planner.PropertyPath;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class BetweenOperator<T extends Comparable<? super T>> extends Operator<T> {
+public class BetweenOperator<T extends Comparable<T>> extends Operator<T> {
   public BetweenOperator(T arg0, T arg1) {
-    super("between", Typed.from(String.class, Number.class, Date.class), arg0, arg1);
+    super("between", List.of(String.class, Number.class, Date.class), arg0, arg1);
   }
 
   @Override
-  public Criterion getHibernateCriterion(QueryPath queryPath) {
-    return Restrictions.between(queryPath.getPath(), args.get(0), args.get(1));
-  }
-
-  @Override
-  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, QueryPath queryPath) {
-    return builder.between(root.get(queryPath.getPath()), getArgs().get(0), getArgs().get(1));
+  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, PropertyPath path) {
+    return builder.between(root.get(path.getPath()), getArgs().get(0), getArgs().get(1));
   }
 
   @Override

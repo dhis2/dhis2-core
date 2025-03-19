@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -53,8 +55,6 @@ import org.springframework.transaction.annotation.Transactional;
 class CategoryComboServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
-
-  @Autowired private CategoryManager categoryManager;
 
   private CategoryOption categoryOptionA;
 
@@ -224,7 +224,7 @@ class CategoryComboServiceTest extends PostgresIntegrationTestBase {
     categoryComboA =
         new CategoryCombo("CategoryComboA", DataDimensionType.DISAGGREGATION, categories);
     categoryService.addCategoryCombo(categoryComboA);
-    categoryService.generateOptionCombos(categoryComboA);
+    categoryService.addAndPruneOptionCombos(categoryComboA);
     Set<CategoryOptionCombo> optionCombos = categoryComboA.getOptionCombos();
     assertEquals(8, optionCombos.size());
     assertOptionCombos(optionCombos);
@@ -235,13 +235,13 @@ class CategoryComboServiceTest extends PostgresIntegrationTestBase {
     categoryComboA =
         new CategoryCombo("CategoryComboA", DataDimensionType.DISAGGREGATION, categories);
     categoryService.addCategoryCombo(categoryComboA);
-    categoryService.generateOptionCombos(categoryComboA);
+    categoryService.addAndPruneOptionCombos(categoryComboA);
     assertNotNull(categoryComboA.getOptionCombos());
     assertEquals(8, categoryComboA.getOptionCombos().size());
     assertOptionCombos(categoryComboA.getOptionCombos());
     categoryC.addCategoryOption(categoryOptionG);
     categoryService.updateCategory(categoryC);
-    categoryService.updateOptionCombos(categoryComboA);
+    categoryService.addAndPruneOptionCombos(categoryComboA);
     assertNotNull(categoryComboA.getOptionCombos());
     assertEquals(12, categoryComboA.getOptionCombos().size());
     assertOptionCombos(categoryComboA.getOptionCombos());
@@ -276,11 +276,11 @@ class CategoryComboServiceTest extends PostgresIntegrationTestBase {
     categoryComboA =
         new CategoryCombo("CategoryComboA", DataDimensionType.DISAGGREGATION, categories);
     categoryService.addCategoryCombo(categoryComboA);
-    categoryService.generateOptionCombos(categoryComboA);
+    categoryService.addAndPruneOptionCombos(categoryComboA);
     assertNotNull(categoryComboA.getOptionCombos());
     assertEquals(8, categoryComboA.getOptionCombos().size());
     assertOptionCombos(categoryComboA.getOptionCombos());
-    categoryService.updateOptionCombos(categoryComboA);
+    categoryService.addAndPruneOptionCombos(categoryComboA);
     assertNotNull(categoryComboA.getOptionCombos());
     assertEquals(8, categoryComboA.getOptionCombos().size());
     assertOptionCombos(categoryComboA.getOptionCombos());
@@ -291,7 +291,7 @@ class CategoryComboServiceTest extends PostgresIntegrationTestBase {
     categoryComboA =
         new CategoryCombo("CategoryComboA", DataDimensionType.DISAGGREGATION, categories);
     categoryService.addCategoryCombo(categoryComboA);
-    categoryService.generateOptionCombos(categoryComboA);
+    categoryService.addAndPruneOptionCombos(categoryComboA);
     assertNotNull(categoryComboA.getOptionCombos());
     assertEquals(8, categoryComboA.getOptionCombos().size());
     assertOptionCombos(categoryComboA.getOptionCombos());
@@ -338,7 +338,7 @@ class CategoryComboServiceTest extends PostgresIntegrationTestBase {
     categoryComboT = categoryService.getCategoryCombo(id);
     assertNotNull(categoryComboT);
     assertEquals(categories, categoryComboT.getCategories());
-    categoryManager.addAndPruneAllOptionCombos();
+    categoryService.addAndPruneAllOptionCombos();
     assertTrue(
         categoryComboT
             .getOptionCombos()
@@ -350,7 +350,7 @@ class CategoryComboServiceTest extends PostgresIntegrationTestBase {
     categoryB.removeCategoryOption(categoryOptionC);
     categoryB.addCategoryOption(categoryOptionE);
     categoryService.updateCategory(categoryB);
-    categoryManager.addAndPruneAllOptionCombos();
+    categoryService.addAndPruneAllOptionCombos();
     categoryComboT = categoryService.getCategoryCombo(id);
     assertFalse(
         categoryComboT

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -29,11 +31,8 @@ package org.hisp.dhis.query;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.Date;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.query.operators.MatchMode;
-import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.schema.Schema;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -41,35 +40,12 @@ import org.junit.jupiter.api.Test;
  */
 class QueryTest {
 
-  private Property createProperty(Class<?> klazz, String name, boolean simple, boolean persisted) {
-    Property property = new Property(klazz);
-    property.setName(name);
-    property.setFieldName(name);
-    property.setSimple(simple);
-    property.setPersisted(persisted);
-    return property;
-  }
-
-  private Schema createSchema() {
-    Schema schema = new Schema(DataElement.class, "dataElement", "dataElements");
-    schema.addProperty(createProperty(String.class, "id", true, true));
-    schema.addProperty(createProperty(String.class, "name", true, true));
-    schema.addProperty(createProperty(String.class, "code", true, true));
-    schema.addProperty(createProperty(Date.class, "created", true, true));
-    schema.addProperty(createProperty(Date.class, "lastUpdated", true, true));
-    schema.addProperty(createProperty(Integer.class, "int", true, true));
-    schema.addProperty(createProperty(Long.class, "long", true, true));
-    schema.addProperty(createProperty(Float.class, "float", true, true));
-    schema.addProperty(createProperty(Double.class, "double", true, true));
-    return schema;
-  }
-
   @Test
-  void validRestrictionParameters() {
-    Query query = Query.from(createSchema());
-    query.add(Restrictions.eq("id", "anc"));
-    query.add(Restrictions.like("name", "anc", MatchMode.ANYWHERE));
-    query.add(Restrictions.eq("code", "anc"));
-    assertEquals(3, query.getCriterions().size());
+  void validFilterParameters() {
+    Query<?> query = Query.of(DataElement.class);
+    query.add(Filters.eq("id", "anc"));
+    query.add(Filters.like("name", "anc", MatchMode.ANYWHERE));
+    query.add(Filters.eq("code", "anc"));
+    assertEquals(3, query.getFilters().size());
   }
 }

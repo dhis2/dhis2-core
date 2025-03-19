@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -33,6 +35,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.gist.GistLogic.effectiveTransform;
 import static org.hisp.dhis.gist.GistLogic.isAttributePath;
+import static org.hisp.dhis.gist.GistLogic.isAttributeValuesAttributePropertyPath;
 import static org.hisp.dhis.gist.GistLogic.isCollectionSizeFilter;
 import static org.hisp.dhis.gist.GistLogic.isIncludedField;
 import static org.hisp.dhis.gist.GistLogic.isNonNestedPath;
@@ -98,17 +101,31 @@ class GistPlanner {
 
   private List<Filter> planFilters() {
     List<Filter> filters = query.getFilters();
-    filters = withAttributeFilters(filters); // 1:1
+    filters = withAttributeIdAsPropertyFilters(filters); // 1:1
+    filters = withAttributeIdEqAsNotNullFilters(filters); // 1:1
     filters = withIdentifiableCollectionAutoIdFilters(filters); // 1:1
     filters = withCurrentUserDefaultForAccessFilters(filters); // 1:1
     return filters;
   }
 
-  private List<Filter> withAttributeFilters(List<Filter> filters) {
+  private List<Filter> withAttributeIdAsPropertyFilters(List<Filter> filters) {
     return map1to1(
         filters,
         f -> isAttributePath(f.getPropertyPath()) && context.resolve(f.getPropertyPath()) == null,
         Filter::asAttribute);
+  }
+
+  /**
+   * Checking for {@code attributeValues.attribute.id=<uid>} can be done by checking that {@code
+   * <uid>:!null} using the UID as property name.
+   */
+  private List<Filter> withAttributeIdEqAsNotNullFilters(List<Filter> filters) {
+    return map1to1(
+        filters,
+        f ->
+            f.getPropertyPath().equals("attributeValues.attribute.id")
+                && f.getOperator() == Comparison.EQ,
+        f -> new Filter(f.getValue()[0], Comparison.NOT_NULL).asAttribute());
   }
 
   /** Understands {@code collection} property as synonym for {@code collection.id} */
@@ -120,7 +137,7 @@ class GistPlanner {
   }
 
   private boolean isCollectionFilterWithoutIdField(Filter f) {
-    if (f.isAttribute()) {
+    if (f.isAttribute() || isAttributeValuesAttributePropertyPath(f.getPropertyPath())) {
       return false;
     }
     Property p = context.resolveMandatory(f.getPropertyPath());

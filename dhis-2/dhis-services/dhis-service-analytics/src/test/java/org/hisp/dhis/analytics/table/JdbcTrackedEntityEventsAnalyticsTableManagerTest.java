@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -166,15 +168,15 @@ class JdbcTrackedEntityEventsAnalyticsTableManagerTest {
         %s,
         ev.geometry,case when 'POINT' = GeometryType(ev.geometry) then ST_X(ev.geometry) end,case when 'POINT' = GeometryType(ev.geometry) then ST_Y(ev.geometry) end,concat_ws(' / ',) as ounamehierarchy
         from "event" ev inner join "enrollment" en on en.enrollmentid=ev.enrollmentid
-        and en.deleted = false inner join "trackedentity" te on te.trackedentityid=en.trackedentityid
-        and te.deleted = false and te.trackedentitytypeid = 0
+        and en."deleted" = false inner join "trackedentity" te on te.trackedentityid=en.trackedentityid
+        and te."deleted" = false and te.trackedentitytypeid = 0
         and te.lastupdated < '2019-08-01T00:00:00' left join "programstage" ps on ev.programstageid=ps.programstageid
         left join "program" p on ps.programid=p.programid
         left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid
         where ev.status in ('COMPLETED','ACTIVE','SCHEDULE')
         and (CASE WHEN 'SCHEDULE' = ev.status THEN ev.scheduleddate ELSE ev.occurreddate END) >= 'null'
         and (CASE WHEN 'SCHEDULE' = ev.status THEN ev.scheduleddate ELSE ev.occurreddate END) < 'null'
-        and ev.deleted = false"""
+        and ev."deleted" = false"""
             .formatted(subQuery);
 
     ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -142,8 +144,8 @@ class Property {
         .filter(f -> includeByDefault || isExplicitlyIncluded(f))
         .forEach(addField);
     methodsIn(object)
-        .filter(method -> Property.isGetter(method) || Property.isSetter(method))
         .filter(Property::isExplicitlyIncluded)
+        .filter(Property::isAccessor)
         .filter(method -> !ignoredFields.contains(getJavaPropertyName(method)))
         .forEach(
             method ->
@@ -151,7 +153,7 @@ class Property {
                     method, fieldsByJavaPropertyName.get(getJavaPropertyName(method))));
     if (properties.isEmpty() || includeByDefault) {
       methodsIn(object)
-          .filter(Property::isGetter)
+          .filter(Property::isAccessor)
           .filter(method -> !ignoredFields.contains(getJavaPropertyName(method)))
           .forEach(
               method ->
@@ -197,6 +199,10 @@ class Property {
         && !source.getType().isAnnotationPresent(OpenApi.Ignore.class);
   }
 
+  private static boolean isAccessor(Method source) {
+    return isGetter(source) || isSetter(source);
+  }
+
   private static boolean isSetter(Method source) {
     String name = source.getName();
     return !isExplicitlyExcluded(source)
@@ -225,7 +231,8 @@ class Property {
     return source.isSynthetic()
         || isStatic(source.getModifiers())
         || source.isAnnotationPresent(OpenApi.Ignore.class)
-        || source.isAnnotationPresent(JsonIgnore.class);
+        || (source.isAnnotationPresent(JsonIgnore.class)
+            && !source.isAnnotationPresent(OpenApi.Property.class));
   }
 
   private static boolean isExplicitlyIncluded(AnnotatedElement source) {

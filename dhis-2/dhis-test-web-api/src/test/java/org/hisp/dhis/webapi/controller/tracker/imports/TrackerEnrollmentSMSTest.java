@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -84,6 +86,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
@@ -98,7 +101,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests tracker compression and command based SMS
@@ -112,7 +114,6 @@ import org.springframework.transaction.annotation.Transactional;
  *       org.hisp.dhis.tracker.imports.sms.TrackedEntityRegistrationSMSListener}
  * </ul>
  */
-@Transactional
 class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
@@ -121,6 +122,8 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
   @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private IncomingSmsService incomingSmsService;
+
+  @Autowired TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   @Autowired
   @Qualifier("smsMessageSender")
@@ -180,10 +183,12 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     teaC.setConfidential(false);
     manager.save(teaC, false);
 
-    trackedEntityType.setTrackedEntityTypeAttributes(
-        List.of(
-            new TrackedEntityTypeAttribute(trackedEntityType, teaA),
-            new TrackedEntityTypeAttribute(trackedEntityType, teaB)));
+    trackedEntityType
+        .getTrackedEntityTypeAttributes()
+        .addAll(
+            List.of(
+                new TrackedEntityTypeAttribute(trackedEntityType, teaA),
+                new TrackedEntityTypeAttribute(trackedEntityType, teaB)));
     manager.save(trackedEntityType, false);
 
     trackerProgram = createProgram('A');
@@ -219,7 +224,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void shouldCreateTrackedEntityAndEnrollIt()
-      throws SmsCompressionException, ForbiddenException, NotFoundException, BadRequestException {
+      throws SmsCompressionException, ForbiddenException, NotFoundException {
     EnrollmentSmsSubmission submission = new EnrollmentSmsSubmission();
     int submissionId = 1;
     submission.setSubmissionId(submissionId);
@@ -262,7 +267,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEquals(SmsMessageStatus.PROCESSED, sms.getStatus()),
         () ->
             assertSmsResponse(submissionId + ":" + SmsResponse.SUCCESS, originator, messageSender));
-    assertDoesNotThrow(() -> enrollmentService.getEnrollment(enrollmentUid));
+    assertTrue(enrollmentService.findEnrollment(enrollmentUid).isPresent());
     Enrollment actual = enrollmentService.getEnrollment(enrollmentUid);
     assertAll(
         "created enrollment",
@@ -301,7 +306,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   void shouldEnrollExistingTrackedEntityAndAddUpdateAndDeleteAttributes()
-      throws SmsCompressionException, ForbiddenException, NotFoundException, BadRequestException {
+      throws SmsCompressionException, ForbiddenException, NotFoundException {
     TrackedEntity trackedEntity = trackedEntity();
     // add two tracked entity type value to the TE (one will be updated, the other deleted)
     TrackedEntityAttributeValue teavA = createTrackedEntityAttributeValue('A', trackedEntity, teaA);
@@ -364,7 +369,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
             assertSmsResponse(submissionId + ":" + SmsResponse.SUCCESS, originator, messageSender));
     Enrollment actual =
         enrollmentService.getEnrollment(
-            UID.of(enrollment), EnrollmentParams.FALSE.withIncludeAttributes(true), false);
+            UID.of(enrollment), EnrollmentParams.FALSE.withIncludeAttributes(true));
     assertAll(
         "update enrollment and program attributes",
         () -> assertEqualUids(submission.getTrackedEntityInstance(), actual.getTrackedEntity()));
@@ -441,7 +446,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
                 "Command has been processed successfully", originator, messageSender));
 
     List<Enrollment> enrollments =
-        enrollmentService.getEnrollments(
+        enrollmentService.findEnrollments(
             EnrollmentOperationParams.builder()
                 .program(trackerProgram)
                 .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
@@ -495,6 +500,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     manager.save(enrollment);
     te.getEnrollments().add(enrollment);
     manager.save(te);
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(te, trackerProgram, orgUnit);
     return enrollment;
   }
 

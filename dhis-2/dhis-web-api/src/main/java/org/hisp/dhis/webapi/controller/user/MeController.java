@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -72,6 +74,7 @@ import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
+import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
@@ -225,6 +228,15 @@ public class MeController {
     List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
     User user = renderService.fromJson(request.getInputStream(), User.class);
+
+    if (currentUser.getTwoFactorType() != null
+        && currentUser.getTwoFactorType().equals(TwoFactorType.EMAIL_ENABLED)
+        && currentUser.isEmailVerified()
+        && user.getEmail() != null
+        && !currentUser.getVerifiedEmail().equals(user.getEmail())) {
+      throw new ConflictException(
+          "Email address cannot be changed, when email-based 2FA is enabled, please disable 2FA first");
+    }
 
     merge(currentUser, user);
 

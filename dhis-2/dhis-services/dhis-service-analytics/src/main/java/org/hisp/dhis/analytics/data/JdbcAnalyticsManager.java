@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -73,7 +75,6 @@ import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
-import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
@@ -177,15 +178,14 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
                 .withDataPeriodsForAggregationPeriods(dataPeriodAggregationPeriodMap)
                 .build();
 
-        params = queryPlanner.assignPartitionsFromQueryPeriods(params, tableType);
+        params = queryPlanner.withPartitionsFromQueryPeriods(params, tableType);
       }
 
       if (params.hasSubexpressions() && params.getSubexpression().hasPeriodOffsets()) {
         params = getParamsWithOffsetPartitions(params, tableType);
       }
 
-      final String sql = getSql(params, tableType);
-
+      final String sql = getSqlQuery(params, tableType);
       final DataQueryParams immutableParams = DataQueryParams.newBuilder(params).build();
 
       if (params.analyzeOnly()) {
@@ -293,9 +293,10 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
 
     DataQueryParams paramsWithOffsetPeriods = getParamsWithOffsetPeriods(params);
     DataQueryParams paramsWithOffsetPartitions =
-        queryPlanner.assignPartitionsFromQueryPeriods(paramsWithOffsetPeriods, tableType);
-    Partitions offsetParitions = paramsWithOffsetPartitions.getPartitions();
-    return DataQueryParams.newBuilder(params).withPartitions(offsetParitions).build();
+        queryPlanner.withPartitionsFromQueryPeriods(paramsWithOffsetPeriods, tableType);
+    return DataQueryParams.newBuilder(params)
+        .withPartitions(paramsWithOffsetPartitions.getPartitions())
+        .build();
   }
 
   /**
@@ -305,7 +306,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
    * @param tableType the type of analytics table.
    * @return the query SQL.
    */
-  private String getSql(DataQueryParams params, AnalyticsTableType tableType) {
+  private String getSqlQuery(DataQueryParams params, AnalyticsTableType tableType) {
     if (params.hasSubexpressions()) {
       return new JdbcSubexpressionQueryGenerator(this, params, tableType).getSql();
     }
@@ -371,10 +372,8 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
    * @return a SQL numeric value column.
    */
   protected String getAggregateValueColumn(DataQueryParams params) {
-    String sql = null;
-
+    String sql;
     AnalyticsAggregationType aggType = params.getAggregationType();
-
     String valueColumn = params.getValueColumn();
 
     if (aggType.isAggregationType(SUM)
@@ -428,13 +427,17 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
    * @return a SQL from source clause.
    */
   protected String getFromSourceClause(DataQueryParams params) {
-    if (!params.isSkipPartitioning() && params.hasPartitions() && params.getPartitions().hasOne()) {
+    if (!params.isSkipPartitioning()
+        && params.hasPartitions()
+        && params.getPartitions().hasOne()
+        && isExplicitPartitioning()) {
       Integer partition = params.getPartitions().getAny();
 
       return PartitionUtils.getPartitionName(params.getTableName(), partition);
     } else if (!params.isSkipPartitioning()
         && params.hasPartitions()
-        && params.getPartitions().hasMultiple()) {
+        && params.getPartitions().hasMultiple()
+        && isExplicitPartitioning()) {
       String sql = "(";
 
       for (Integer partition : params.getPartitions().getPartitions()) {
@@ -1007,6 +1010,13 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
         !(params.getAggregationType().isFirstOrLastPeriodAggregationType()
             && params.getPeriods().size() > 1),
         "Max one dimension period can be present per query for last period aggregation");
+  }
+
+  /**
+   * @return true if explicit partitioning is used by the DBMS.
+   */
+  private boolean isExplicitPartitioning() {
+    return !sqlBuilder.supportsDeclarativePartitioning();
   }
 
   /**

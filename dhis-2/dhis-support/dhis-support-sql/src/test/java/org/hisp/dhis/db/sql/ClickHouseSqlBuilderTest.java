@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -177,6 +179,12 @@ class ClickHouseSqlBuilderTest {
   }
 
   @Test
+  void testConcat_FromList() {
+    String result = sqlBuilder.concat(List.of("column1", "column2", "column3"));
+    assertEquals("concat(column1, column2, column3)", result);
+  }
+
+  @Test
   void testTrim() {
     assertEquals("trim(ax.value)", sqlBuilder.trim("ax.value"));
   }
@@ -215,6 +223,18 @@ class ClickHouseSqlBuilderTest {
         "(toUnixTimestamp(a.\"startdate\") - toUnixTimestamp(b.\"enddate\"))",
         sqlBuilder.differenceInSeconds(
             sqlBuilder.quote("a", "startdate"), sqlBuilder.quote("b", "enddate")));
+  }
+
+  @Test
+  void testIsTrue() {
+    assertEquals("dv.\"deleted\"", sqlBuilder.isTrue("dv", "deleted"));
+    assertEquals("tei.\"followup\"", sqlBuilder.isTrue("tei", "followup"));
+  }
+
+  @Test
+  void testIsFalse() {
+    assertEquals("not dv.\"deleted\"", sqlBuilder.isFalse("dv", "deleted"));
+    assertEquals("not tei.\"followup\"", sqlBuilder.isFalse("tei", "followup"));
   }
 
   @Test
@@ -285,6 +305,11 @@ class ClickHouseSqlBuilderTest {
             "a.status = 'SCHEDULED'",
             "a.scheduleddate",
             "a.incidentdate"));
+  }
+
+  @Test
+  void testLog10() {
+    assertEquals("log10(value)", sqlBuilder.log10("value"));
   }
 
   // Statements

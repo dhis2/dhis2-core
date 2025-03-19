@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -84,19 +86,19 @@ public class OpenApiRenderer {
        --percent-op-bg-aside: 10%;
        --p-op-bg: 15%;
        --color-delete: tomato;
-       --color-patch: mediumorchid;
-       --color-post: seagreen;
-       --color-put: darkcyan;
+       --color-patch: orchid;
+       --color-post: lightskyblue;
+       --color-put: sienna;
        --color-options: rosybrown;
-       --color-get: steelblue;
+       --color-get: #147cd7;
        --color-trace: palevioletred;
        --color-head: thistle;
        --color-dep: khaki;
-       --color-schema: slategray;
+       --color-schema: #4E4F4E;
        --color-tooltip: #444;
        --color-tooltiptext: #eee;
        --color-tooltipborder: lightgray;
-       --color-target: black;
+       --color-target: blue;
        --width-nav: 360px;
    }
   html {
@@ -112,20 +114,23 @@ public class OpenApiRenderer {
     font-size: 16px;
     text-rendering: optimizespeed;
   }
-  nav h1 { margin: 0.5rem; color: rgb(33, 41, 52); font-size: 110%; text-align: left; }
+  nav h1 { font-size: 110%; text-align: right; }
   h2 { display: inline; font-size: 110%; font-weight: normal; text-transform: capitalize; }
   h3 { font-size: 105%; display: inline-block; text-transform: capitalize; font-weight: normal; min-width: 21rem; margin: 0; }
 
   h4 { font-weight: normal; padding: 0 1em; }
   nav > summary { margin: 1em 0 0.5em 0; font-weight: normal; font-size: 85%; }
 
-  h2 a[target="_blank"] { text-decoration: none; margin-right: 2em; float: right; }
+  h2 a[onclick] { text-decoration: none; margin-right: 2em; float: right; }
   a[href^="#"] { text-decoration: none; }
   a[title="permalink"] { position: absolute;  right: 1em; display: inline-block; width: 24px; height: 24px;
     text-align: center; vertical-align: middle; border-radius: 50%; line-height: 24px; color: dimgray; margin-top: -0.125rem; }
   a:not([href]) { color: blue; cursor: pointer; }
-  #hotkeys a { color: black; display: block; margin-top: 2px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; font-size: 75%; }
-  #hotkeys a:visited { color: black; }
+  a.gh { display: inline-block; width: 24px; height: 24px; color: transparent; background-size: 24px 24px;
+  background-image: url(data:image/png;base64,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); }
+  #hotkeys a { color: #eee; display: block; margin-top: 2px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; font-size: 75%; }
+  #hotkeys a:visited { color: #eee; }
+  button, input { font-family: inherit; }
 
   pre { background-color: floralwhite; color: #222; margin-right: 2em; padding: 0.5rem; }
   pre, code { font-family: "Noto Sans Mono", "Liberation Mono", monospace; }
@@ -157,12 +162,11 @@ public class OpenApiRenderer {
       height: 60px;
       box-sizing: border-box;
       padding: 10px;
-      text-align: center;
-      background-color: snow;
-      background-image: url('/../favicon.ico');
+      text-align: right;
+      background-image: url(data:image/png;base64,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);
       background-repeat: no-repeat;
       padding-left: 60px;
-      background-position: 5px 5px;
+      background-position: 10px 10px;
   }
   nav {
         position: fixed;
@@ -171,6 +175,9 @@ public class OpenApiRenderer {
         display: inline-block;
         padding-right: 1rem;
         box-sizing: border-box;
+        background-color: #4E4F4E;
+        color: #ddd;
+        min-height: 100%;
   }
   #scope div { display: inline-grid; grid-template-columns: 4fr 6fr 1fr 1fr; padding: 0.25em 0.5em; }
   #scope select { max-width: 140px; }
@@ -178,7 +185,7 @@ public class OpenApiRenderer {
   #scope input { margin-left: 0.5em; }
 
   body > section { margin-left: var(--width-nav); position: relative; }
-  body > section > header { margin-left: 1rem; }
+  body > section > header { padding-left: 4rem; padding-bottom: 0.5rem; border-bottom: 7px solid #4E4F4E; color: #666; }
   body > section > header > h1 { margin-top: 0; padding-top: 1em; }
   body > section > details { margin-top: 10px; }
   body > section > details > summary { padding: 0.5em 1em; }
@@ -193,7 +200,7 @@ public class OpenApiRenderer {
     padding: 0.5rem 0 0 0.5rem;
   }
   body > nav > details > summary {
-      background-color: #147cd7;
+      background-color: #2A303A;
       color: snow;
       margin-left: -1rem;
       padding-left: 1rem;
@@ -203,6 +210,9 @@ public class OpenApiRenderer {
       content: '⊕';
       float: left;
       margin-left: calc(-1rem - 10px);
+  }
+  body > section details.op:not(.button) > summary:before, body > section details.schema:not(.button) > summary:before {
+      margin-left: calc(-1rem - 20px);
   }
   body > section details > summary:last-child:before { content: ''; }
 
@@ -218,35 +228,37 @@ public class OpenApiRenderer {
       list-style-type: none;
       cursor: pointer;
   }
+  details.op, details.schema { margin-bottom: 1rem;  border-style: solid; border-width: 1px; border-left-width: 7px; border-radius: 2px; }
   details.op[open], details.schema[open] { padding-bottom: 1rem; }
-  details.op > summary, details.schema > summary { padding: 0.5rem; }
+  details.op > summary, details.schema > summary { padding: 0.5rem; margin-top: 0; }
   details > header { padding: 0.5rem 1rem; font-size: 95%; }
-  details > aside { padding: 0.5rem 1rem; margin-bottom: 1em; }
+  details > aside { padding: 0.5rem 1rem; margin-bottom: 0.5rem; }
 
   /* colors and emphasis effects */
   code.http { display: inline-block; padding: 0 0.5em; font-weight: bold; }
   code.http.content { margin-top: -2px; color: #aaa; display: inline-grid; grid-template-columns: 1fr 1fr 1fr; vertical-align: top; text-align: center; }
   code.http.content > span { font-size: 70%; font-weight: normal; padding: 0 0.25em; margin: 1px; }
   code.http.content > span.status4xx { background: color-mix(in srgb, tomato 75%, transparent); color: snow; }
-  code.http.content > span.status2xx { background: color-mix(in srgb, seagreen 75%, transparent); color: snow; }
+  code.http.content > span.status2xx { color: black; }
+  body:not([content-]) code.http.content > span.status2xx { background: color-mix(in srgb, seagreen 75%, transparent); color: snow; }
   code.http.content .on { color: black; }
   code.http.method { width: 4rem; text-align: right; color: dimgray; }
   .desc code { background: color-mix(in srgb, snow 70%, transparent); padding: 0.125em 0.25em; }
-  code.property { padding: 0.25em 0.5em; background: color-mix(in srgb, powderblue 70%, transparent); }
-  code.property.secondary, code.property.secondary ~ code.type { background: color-mix(in srgb, lemonchiffon 70%, transparent); }
-  code.url, .desc code.keyword { padding: 0.25em 0.5em; background-color: snow; }
-  code.url.path { font-weight: bold; }
-  code.url em, code.url.secondary, code.url.secondary + code.type { color: darkslateblue; font-style: normal; font-weight: normal; background: color-mix(in srgb, snow 70%, transparent); }
+  code.property { padding: 0.25em 0.5em; background-color:  #eee; }
+  code.property.secondary, code.property.secondary ~ code.type { background-color: #f6f6f6; }
+  code.url, .desc code.keyword { padding: 0.25em 0.5em; background-color: #eee; }
+  code.url.path { font-weight: bold; border-radius: 4px; }
+  code.url em, code.url.secondary, code.url.secondary + code.type { color: darkslateblue; font-style: normal; font-weight: normal; background-color: #f6f6f6; }
   code.url small { color: gray; }
   code.tag { color: dimgray; margin-left: 2em; }
-  code.tag > span + span { color: darkblue; padding: 0.25em; background: color-mix(in srgb, lemonchiffon 65%, transparent); }
+  code.tag > span + span { color: darkblue; padding: 0.25em; background-color: #eee; }
   code.tag.columns { display: inline-block; padding-left: 100px; }
   code.tag.columns > span:first-of-type { margin-left: -100px; padding-right: 1em; }
   code.secondary ~ code.type { color: darkslateblue; padding: 0.25em 0.5em; }
   code.url.secondary + code.url.secondary { padding-left: 0; }
   code.request, code.response { padding: 0.25em 0.5em; color: dimgray; font-weight: bold; }
-  code.mime { background-color: ivory; font-style: italic; padding: 0.25em 0.5em; }
-  code.mime.secondary, code.mime.secondary + code.type { background: color-mix(in srgb, ivory 70%, transparent); }
+  code.mime { background-color: #ddd; font-style: italic; padding: 0.25em 0.5em; }
+  code.mime.secondary, code.mime.secondary + code.type { background-color: #f0f0f0; }
 
   code.status { padding: 0.25em 0.5em; font-weight: bold; }
   code.status2xx { background: color-mix(in srgb, seagreen 70%, transparent); color: snow; }
@@ -260,20 +272,20 @@ public class OpenApiRenderer {
   .op:not([open]) code.url small > span { font-size: 2px; }
   .op:not([open]) code.url small:hover > span { font-size: inherit; }
 
-  .GET > summary, button.GET, code.GET { background: color-mix(in srgb, var(--color-get) var(--percent-op-bg-summary), transparent); }
-  .POST > summary, button.POST, code.POST { background: color-mix(in srgb, var(--color-post) var(--percent-op-bg-summary), transparent); }
-  .PUT > summary, button.PUT, code.PUT { background: color-mix(in srgb, var(--color-put) var(--percent-op-bg-summary), transparent); }
-  .PATCH > summary, button.PATCH, code.PATCH { background: color-mix(in srgb, var(--color-patch) var(--percent-op-bg-summary), transparent); }
-  .DELETE > summary, button.DELETE, code.DELETE { background: color-mix(in srgb, var(--color-delete) var(--percent-op-bg-summary), transparent); }
-  .OPTIONS > summary, code.OPTIONS { background: color-mix(in srgb, var(--color-options) var(--percent-op-bg-summary), transparent); }
-  .HEAD > summary, code.HEAD { background: color-mix(in srgb, var(--color-head) var(--percent-op-bg-summary), transparent); }
-  .TRACE > summary, code.TRACE { background: color-mix(in srgb, var(--color-trace) var(--percent-op-bg-summary), transparent); }
-  .schema > summary { background: color-mix(in srgb, var(--color-schema) var(--percent-op-bg-summary), transparent); }
+  .GET, button.GET, code.GET { border-color: var(--color-get); }
+  .POST, button.POST, code.POST { border-color: var(--color-post); }
+  .PUT, button.PUT, code.PUT { border-color: var(--color-put); }
+  .PATCH, button.PATCH, code.PATCH { border-color: var(--color-patch); }
+  .DELETE, button.DELETE, code.DELETE { border-color: var(--color-delete); }
+  .OPTIONS, code.OPTIONS { border-color: var(--color-options); }
+  .HEAD, code.HEAD { border-color: var(--color-head); }
+  .TRACE, code.TRACE { border-color: var(--color-trace); }
+  .schema { border-color: var(--color-schema); }
 
 
   /* target highlighting */
-  details.op:target > summary,
-  details.schema:target > summary,
+  details.op:target > summary code.url.path,
+  details.schema:target > summary code.type,
   details.param:target > summary > code:first-of-type,
   details.property:target > summary > code:first-of-type,
   details.request:target > summary > code:first-of-type,
@@ -284,12 +296,12 @@ public class OpenApiRenderer {
     animation: spin 2s linear 0s infinite reverse; font-weight: bold; }
 
   /* operation background colors */
-  details[open].GET { background: color-mix(in srgb, var(--color-get) var(--p-op-bg), transparent); }
-  details[open].POST { background: color-mix(in srgb, var(--color-post) var(--p-op-bg), transparent); }
-  details[open].PUT { background: color-mix(in srgb, var(--color-put) var(--p-op-bg), transparent); }
-  details[open].PATCH { background: color-mix(in srgb, var(--color-patch) var(--p-op-bg), transparent); }
-  details[open].DELETE { background: color-mix(in srgb, var(--color-delete) var(--p-op-bg), transparent); }
-  details[open].schema { background: color-mix(in srgb, var(--color-schema) var(--p-op-bg), transparent); }
+  details.GET > summary .http.method { color: var(--color-get); }
+  details.POST > summary .http.method { color: var(--color-post); }
+  details.PUT > summary .http.method { color: var(--color-put); }
+  details.PATCH > summary .http.method { color: var(--color-patch); }
+  details.DELETE > summary .http.method { color: var(--color-delete); }
+  details.schema > summary .http.method { color: var(--color-schema); }
 
   details[open].GET > aside { background: color-mix(in srgb, var(--color-get) var(--percent-op-bg-aside), transparent); }
   details[open].POST > aside { background: color-mix(in srgb, var(--color-post) var(--percent-op-bg-aside), transparent); }
@@ -320,11 +332,14 @@ public class OpenApiRenderer {
   #body[request-] .op > summary > code.request + code.type,
   #body[response-] .op > summary > code.response,
   #body[response-] .op > summary > code.response + code.type,
-  #body[content-] .op > summary > code.http.content { display: none; }
+  #body[content-] .op > summary > code.http.content:first-of-type,
+  #body[content-] .op > summary > code.http.content:not(:first-of-type) span:not(:first-child) { display: none; }
+  #body[content-] .op > summary > code.http.content { display: inline-block; }
 
   nav button {
       border: none;
       background-color: transparent;
+      color: #eee;
       font-weight: bold;
       border-left: 4px solid transparent;
       cursor: pointer;
@@ -334,7 +349,7 @@ public class OpenApiRenderer {
   nav button:before { content: '🞕'; margin-right: 0.5rem;font-weight: normal; }
 
   details.box aside button,
-  details.box aside .button { background-color: #444; color: white; border: none; display: inline-block;
+  details.box aside .button { background-color: #2A303A; color: white; border: none; display: inline-block;
     cursor: pointer; margin: 0 1em 0 0; padding: 0.25em 0.5em; font-size: 90%;
     box-shadow: 1px 1px 0 0, 2px 2px 0 0, 3px 3px 0 0, 4px 4px 0 0, 5px 5px 0 0;}
   details.box aside .button > summary { display: inline-block; margin: 0; padding: 0; }
@@ -444,14 +459,14 @@ public class OpenApiRenderer {
     window.location.pathname = base + '/'+name;
   }
 
-  function setLocationSearch(name, value) {
+  function setLocationSearch(name, value, blank) {
     const searchParams = new URLSearchParams(window.location.search)
     if (value === '' || value == null) {
       searchParams.delete(name);
     } else {
       searchParams.set(name, value);
     }
-    setLocationSearchParams(searchParams);
+    setLocationSearchParams(searchParams, blank);
   }
 
   function removeLocationSearch(name, value) {
@@ -476,9 +491,17 @@ public class OpenApiRenderer {
     setLocationSearchParams(params);
   }
 
-  function setLocationSearchParams(params) {
+  function setLocationSearchParams(params, blank) {
     // undo : and / escaping for URL readability
-    window.location.search = params.toString().replaceAll('%3A', ':').replaceAll('%2F', '/');
+    const search = params.toString().replaceAll('%3A', ':').replaceAll('%2F', '/');
+    if (blank) {
+      let currentUrl = window.location.href;
+      let updatedUrl = new URL(currentUrl);
+      updatedUrl.search = search;
+      window.open(updatedUrl.href, '_blank');
+    } else {
+      window.location.search = search;
+    }
   }
 
   function addHashHotkey() {
@@ -636,7 +659,7 @@ public class OpenApiRenderer {
               });
           appendTag(
               "body",
-              Map.of("id", "body"),
+              Map.of("id", "body", "content-", ""),
               () -> {
                 renderPageMenu();
                 renderPageHeader();
@@ -658,7 +681,7 @@ public class OpenApiRenderer {
   }
 
   private void renderMenuHeader() {
-    appendTag("header", () -> appendTag("h1", api.info().title() + " " + api.info().version()));
+    appendTag("header", () -> appendTag("h1", api.info().version()));
   }
 
   private void renderMenuScope() {
@@ -716,7 +739,7 @@ public class OpenApiRenderer {
                 for (int statusCode : new int[] {200, 201, 202, 204}) {
                   renderToggleButton(
                       statusCode + " " + statusCodeName(statusCode),
-                      "status status2xx status" + statusCode,
+                      "",
                       "status" + statusCode + "-",
                       true);
                 }
@@ -868,7 +891,10 @@ public class OpenApiRenderer {
         "h2",
         () -> {
           appendRaw(toWords(op.entity()));
-          appendA("/api/openapi/openapi.html?scope=entity:" + op.entity, true, "&#x1F5D7;");
+          appendA(
+              "setLocationSearch('scope', 'entity:%s', true)".formatted(op.entity),
+              "&#x1F5D7;",
+              "");
         });
   }
 
@@ -915,7 +941,16 @@ public class OpenApiRenderer {
         operationStyle(op),
         () -> {
           appendSummary(id, op.summary(), () -> renderOperationSummary(op));
-          renderBoxToolbar(null);
+          renderBoxToolbar(
+              () -> {
+                String declaringClass = op.x_class();
+                if (declaringClass != null) {
+                  String url =
+                      "https://github.com/dhis2/dhis2-core/blob/master/dhis-2/dhis-web-api/src/main/java/%s.java"
+                          .formatted(declaringClass.replace('.', '/'));
+                  appendTag("a", Map.of("href", url, "target", "_blank", "class", "gh"), "GH");
+                }
+              });
           appendTag("header", markdownToHTML(op.description(), op.parameterNames()));
           renderLabelledValue("operationId", op.operationId());
           renderLabelledValue("since", op.x_since());
@@ -1216,7 +1251,7 @@ public class OpenApiRenderer {
 
   private void renderSchemaSignatureType(SchemaObject schema) {
     if (schema.isShared()) {
-      appendA("#" + schema.getSharedName(), false, schema.getSharedName());
+      appendA("#" + schema.getSharedName(), schema.getSharedName());
       return;
     }
     renderSchemaSignatureTypeAny(schema);
@@ -1472,7 +1507,7 @@ public class OpenApiRenderer {
         "summary",
         attrs,
         () -> {
-          if (id != null) appendA("#" + id, false, "#");
+          if (id != null) appendA("#" + id, "#");
           body.run();
         });
   }
@@ -1481,10 +1516,9 @@ public class OpenApiRenderer {
     appendTag("input", Map.of("type", "button", "value", text, "onclick", onclick));
   }
 
-  private void appendA(String href, boolean blank, String text) {
-    String target = blank ? "_blank" : "";
+  private void appendA(String href, String text) {
     String title = "#".equals(text) ? "permalink" : "";
-    appendTag("a", Map.of("href", href, "target", target, "title", title), text);
+    appendTag("a", Map.of("href", href, "title", title), text);
   }
 
   private void appendA(String onclick, String text, String title) {

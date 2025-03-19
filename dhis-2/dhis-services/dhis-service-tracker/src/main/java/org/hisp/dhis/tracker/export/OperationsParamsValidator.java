@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -175,7 +177,7 @@ public class OperationsParamsValidator {
    * @throws BadRequestException if the tracked entity uid does not exist
    * @throws ForbiddenException if the user has no data read access to type of the tracked entity
    */
-  public TrackedEntity validateTrackedEntity(UID uid, UserDetails user)
+  public TrackedEntity validateTrackedEntity(UID uid, UserDetails user, boolean includeDeleted)
       throws BadRequestException, ForbiddenException {
     if (uid == null) {
       return null;
@@ -183,7 +185,7 @@ public class OperationsParamsValidator {
 
     // TODO(tracker) Are these validations enough? Should we check for ownership too?
     TrackedEntity trackedEntity = manager.get(TrackedEntity.class, uid.getValue());
-    if (trackedEntity == null) {
+    if (trackedEntity == null || (trackedEntity.isDeleted() && !includeDeleted)) {
       throw new BadRequestException("Tracked entity is specified but does not exist: " + uid);
     }
     trackedEntityAuditService.addTrackedEntityAudit(READ, user.getUsername(), trackedEntity);

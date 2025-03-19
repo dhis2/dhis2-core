@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -72,7 +74,9 @@ import static org.hisp.dhis.common.DataDimensionItemType.DATA_ELEMENT_OPERAND;
 import static org.hisp.dhis.common.DataDimensionItemType.EXPRESSION_DIMENSION_ITEM;
 import static org.hisp.dhis.common.DataDimensionItemType.INDICATOR;
 import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_ATTRIBUTE;
+import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_ATTRIBUTE_OPTION;
 import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_DATA_ELEMENT;
+import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_DATA_ELEMENT_OPTION;
 import static org.hisp.dhis.common.DataDimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DataDimensionItemType.VALIDATION_RULE;
 import static org.hisp.dhis.common.DimensionType.ATTRIBUTE_OPTION_COMBO;
@@ -415,12 +419,18 @@ public class DataHandler {
    */
   @Transactional(readOnly = true)
   public void addProgramDataElementAttributeIndicatorValues(DataQueryParams params, Grid grid) {
-    if ((!params.getAllProgramDataElementsAndAttributes().isEmpty()
-            || !params.getProgramIndicators().isEmpty())
+    if ((isNotEmpty(params.getAllProgramDataElementsAndAttributes())
+            || isNotEmpty(params.getAllProgramDataElementsAndAttributesOptions())
+            || isNotEmpty(params.getProgramIndicators()))
         && !params.isSkipData()) {
       DataQueryParams dataSourceParams =
           newBuilder(params)
-              .retainDataDimensions(PROGRAM_DATA_ELEMENT, PROGRAM_ATTRIBUTE, PROGRAM_INDICATOR)
+              .retainDataDimensions(
+                  PROGRAM_DATA_ELEMENT,
+                  PROGRAM_DATA_ELEMENT_OPTION,
+                  PROGRAM_ATTRIBUTE,
+                  PROGRAM_ATTRIBUTE_OPTION,
+                  PROGRAM_INDICATOR)
               .build();
 
       EventQueryParams eventQueryParams =

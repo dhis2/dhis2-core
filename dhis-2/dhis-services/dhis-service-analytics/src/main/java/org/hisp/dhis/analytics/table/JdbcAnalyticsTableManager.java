@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -170,7 +172,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
+      @Qualifier("analyticsReadOnlyJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
@@ -275,7 +277,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     String doubleDataType = sqlBuilder.dataTypeDouble();
     String numericClause =
         skipDataTypeValidation ? "" : "and " + sqlBuilder.regexpMatch("dv.value", NUMERIC_REGEXP);
-    String zeroValueCondition = includeZeroValues ? " or des.zeroissignificant = true" : "";
+    String zeroValueCondition =
+        includeZeroValues ? " or " + sqlBuilder.isTrue("des", "zeroissignificant") : "";
     String zeroValueClause =
         replace(
             """
@@ -386,12 +389,13 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             and (ougs.startdate is null or ps.monthstartdate=ougs.startdate) \
             and dv.lastupdated < '${startTime}' \
             and dv.value is not null \
-            and dv.deleted = false\s""",
+            and ${deletedClause} """,
             Map.of(
                 "approvalClause", approvalClause,
                 "valTypes", valTypes,
                 "partitionClause", partitionClause,
-                "startTime", toLongDate(params.getStartTime()))));
+                "startTime", toLongDate(params.getStartTime()),
+                "deletedClause", sqlBuilder.isFalse("dv", "deleted"))));
 
     if (respectStartEndDates) {
       sql.append(

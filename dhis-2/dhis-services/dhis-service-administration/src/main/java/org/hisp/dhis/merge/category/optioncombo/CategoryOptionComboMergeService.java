@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -73,7 +75,27 @@ public class CategoryOptionComboMergeService implements MergeService {
     if (params.getDataMergeStrategy() == null) {
       mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1534));
     }
+
+    if (mergeReport.hasErrorMessages()) return request;
+
+    // only allow merge if COCs are duplicate
+    List<CategoryOptionCombo> sources =
+        categoryService.getCategoryOptionCombosByUid(request.getSources());
+    CategoryOptionCombo target =
+        categoryService.getCategoryOptionCombo(request.getTarget().getValue());
+    if (!catOptCombosAreDuplicates(sources, target)) {
+      mergeReport.addErrorMessage(new ErrorMessage(ErrorCode.E1540));
+    }
     return request;
+  }
+
+  protected static boolean catOptCombosAreDuplicates(
+      List<CategoryOptionCombo> sources, CategoryOptionCombo target) {
+    boolean allSourcesEqualTarget = sources.stream().allMatch(source -> source.equals(target));
+    boolean allSourceUidsAreDifferentThanTarget =
+        sources.stream().noneMatch(source -> source.getUid().equals(target.getUid()));
+
+    return allSourcesEqualTarget && allSourceUidsAreDifferentThanTarget;
   }
 
   @Override
@@ -96,17 +118,23 @@ public class CategoryOptionComboMergeService implements MergeService {
     // see the most up-to-date state, including merges done using Hibernate.
     entityManager.flush();
 
-    // handle deletes
-    if (request.isDeleteSources()) handleDeleteSources(sources, mergeReport);
+    handleDeleteSources(sources, mergeReport);
 
     return mergeReport;
   }
 
+  /**
+   * {@link CategoryOptionCombo}s are created/deleted by the system. Due to this fact, they can be
+   * deleted as part of the merge process.
+   *
+   * @param sources sources to delete
+   * @param mergeReport report to update with deleted refs
+   */
   private void handleDeleteSources(List<CategoryOptionCombo> sources, MergeReport mergeReport) {
     log.info("Deleting source CategoryOptionCombos");
     for (CategoryOptionCombo source : sources) {
-      mergeReport.addDeletedSource(source.getUid());
       categoryService.deleteCategoryOptionCombo(source);
+      mergeReport.addDeletedSource(source.getUid());
     }
   }
 
@@ -114,8 +142,8 @@ public class CategoryOptionComboMergeService implements MergeService {
   private void initMergeHandlers() {
     metadataMergeHandlers =
         List.of(
-            metadataMergeHandler::handleCategoryOptions,
-            metadataMergeHandler::handleCategoryCombos,
+            (sources, target) -> metadataMergeHandler.handleCategoryOptions(sources),
+            (sources, target) -> metadataMergeHandler.handleCategoryCombos(),
             metadataMergeHandler::handlePredictors,
             metadataMergeHandler::handleDataElementOperands,
             metadataMergeHandler::handleMinMaxDataElements,
@@ -132,7 +160,8 @@ public class CategoryOptionComboMergeService implements MergeService {
 
     auditMergeHandlers =
         List.of(
-            dataMergeHandler::handleDataValueAudits, dataMergeHandler::handleDataApprovalAudits);
+            (sources, target) -> dataMergeHandler.handleDataValueAudits(sources),
+            (sources, target) -> dataMergeHandler.handleDataApprovalAudits(sources));
   }
 
   /**

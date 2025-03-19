@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -133,7 +135,7 @@ class EventRequestParamsMapperTest {
   private TrackerIdSchemeParams idSchemeParams;
 
   @BeforeEach
-  public void setUp() throws ForbiddenException, NotFoundException, BadRequestException {
+  void setUp() throws ForbiddenException, NotFoundException {
     User user = new User();
 
     when(userService.getUserByUsername(null)).thenReturn(user);
@@ -203,19 +205,6 @@ class EventRequestParamsMapperTest {
     EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
 
     assertEquals(SELECTED, params.getOrgUnitMode());
-  }
-
-  @Test
-  void shouldFailIfDeprecatedAndNewOrgUnitModeParameterIsSet() {
-    EventRequestParams eventRequestParams = new EventRequestParams();
-    eventRequestParams.setOuMode(SELECTED);
-    eventRequestParams.setOrgUnitMode(SELECTED);
-
-    BadRequestException exception =
-        assertThrows(
-            BadRequestException.class, () -> mapper.map(eventRequestParams, idSchemeParams));
-
-    assertStartsWith("Only one parameter of 'ouMode' and 'orgUnitMode'", exception.getMessage());
   }
 
   @Test
@@ -370,16 +359,6 @@ class EventRequestParamsMapperTest {
   }
 
   @Test
-  void testMappingEvent() throws BadRequestException {
-    EventRequestParams eventRequestParams = new EventRequestParams();
-    eventRequestParams.setEvent("XKrcfuM4Hcw;M4pNmLabtXl");
-
-    EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
-
-    assertEquals(UID.of("XKrcfuM4Hcw", "M4pNmLabtXl"), params.getEvents());
-  }
-
-  @Test
   void testMappingEvents() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
     eventRequestParams.setEvents(UID.of("XKrcfuM4Hcw", "M4pNmLabtXl"));
@@ -399,18 +378,6 @@ class EventRequestParamsMapperTest {
   }
 
   @Test
-  void testMappingAssignedUser() throws BadRequestException {
-    EventRequestParams eventRequestParams = new EventRequestParams();
-    eventRequestParams.setAssignedUser("IsdLBTOBzMi;l5ab8q5skbB");
-    eventRequestParams.setAssignedUserMode(AssignedUserSelectionMode.PROVIDED);
-
-    EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
-
-    assertContainsOnly(UID.of("IsdLBTOBzMi", "l5ab8q5skbB"), params.getAssignedUsers());
-    assertEquals(AssignedUserSelectionMode.PROVIDED, params.getAssignedUserMode());
-  }
-
-  @Test
   void testMappingAssignedUsers() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
     eventRequestParams.setAssignedUsers(UID.of("IsdLBTOBzMi", "l5ab8q5skbB"));
@@ -426,7 +393,7 @@ class EventRequestParamsMapperTest {
   void testMutualExclusionOfEventsAndFilter() {
     EventRequestParams eventRequestParams = new EventRequestParams();
     eventRequestParams.setFilter(DE_1_UID + ":ge:1:le:2");
-    eventRequestParams.setEvent(DE_1_UID + ";" + DE_2_UID);
+    eventRequestParams.setEvents(UID.of("XKrcfuM4Hcw", "M4pNmLabtXl"));
 
     Exception exception =
         assertThrows(
@@ -467,6 +434,20 @@ class EventRequestParamsMapperTest {
             DE_1_UID,
             List.of(
                 new QueryFilter(QueryOperator.GT, "10"), new QueryFilter(QueryOperator.LT, "20")));
+    assertEquals(expected, dataElementFilters);
+  }
+
+  @Test
+  void shouldMapDataElementFiltersWhenQueryFilterHasUIDOnly() throws BadRequestException {
+    EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setFilter(DE_1_UID.getValue());
+
+    EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
+
+    Map<UID, List<QueryFilter>> dataElementFilters = params.getDataElementFilters();
+    assertNotNull(dataElementFilters);
+    Map<UID, List<QueryFilter>> expected =
+        Map.of(DE_1_UID, List.of(new QueryFilter(QueryOperator.NNULL)));
     assertEquals(expected, dataElementFilters);
   }
 
@@ -526,7 +507,8 @@ class EventRequestParamsMapperTest {
 
     Map<UID, List<QueryFilter>> attributeFilters = params.getAttributeFilters();
     assertNotNull(attributeFilters);
-    Map<UID, List<QueryFilter>> expected = Map.of(TEA_1_UID, List.of());
+    Map<UID, List<QueryFilter>> expected =
+        Map.of(TEA_1_UID, List.of(new QueryFilter(QueryOperator.NNULL)));
     assertEquals(expected, attributeFilters);
   }
 

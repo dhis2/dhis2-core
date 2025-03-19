@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -28,10 +30,17 @@
 package org.hisp.dhis.mapgeneration;
 
 import static org.hisp.dhis.mapgeneration.MapUtils.getWidthHeight;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import org.hisp.dhis.i18n.I18nFormat;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 /** Lars Helge Overland */
 class MapUtilsTest {
@@ -57,5 +66,38 @@ class MapUtilsTest {
   @Test
   void testGetWidthHeightIllegalArgument() {
     assertThrows(IllegalArgumentException.class, () -> getWidthHeight(null, null, 0, 0, 0.5));
+  }
+
+  @Test
+  @DisplayName("Should not throw null pointer exception when drawing legend with null name")
+  void testLegendDrawWithNullName() {
+    InternalMapLayer mapLayer = Mockito.mock(InternalMapLayer.class);
+    when(mapLayer.getName()).thenReturn(null);
+    when(mapLayer.getLayer()).thenReturn("layer");
+    when(mapLayer.getIntervalSet()).thenReturn(new IntervalSet());
+
+    BufferedImage image = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D graphics = (Graphics2D) image.getGraphics();
+
+    Legend legend = new Legend(mapLayer);
+    I18nFormat i18nFormat = new I18nFormat();
+    assertDoesNotThrow(() -> legend.draw(graphics, i18nFormat));
+  }
+
+  @Test
+  @DisplayName(
+      "Should not throw null pointer exception when drawing legend with null layer and name")
+  void testLegendDrawWithNullLayerAndName() {
+    InternalMapLayer mapLayer = Mockito.mock(InternalMapLayer.class);
+    when(mapLayer.getName()).thenReturn(null);
+    when(mapLayer.getLayer()).thenReturn(null);
+    when(mapLayer.getIntervalSet()).thenReturn(new IntervalSet());
+
+    BufferedImage image = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB);
+    Graphics2D graphics = (Graphics2D) image.getGraphics();
+
+    Legend legend = new Legend(mapLayer);
+    I18nFormat i18nFormat = new I18nFormat();
+    assertDoesNotThrow(() -> legend.draw(graphics, i18nFormat));
   }
 }

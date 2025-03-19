@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -28,6 +30,7 @@
 package org.hisp.dhis.tracker.export.event;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
@@ -36,12 +39,11 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.FileResourceStream;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -62,26 +64,37 @@ public interface EventService {
       throws NotFoundException, ForbiddenException;
 
   /**
+   * Finds the event that matches the given {@code UID} based on the privileges of the currently
+   * authenticated user. Returns an {@link Optional} indicating whether the event was found.
+   *
+   * @return an {@link Optional} containing the event if found, or an empty {@link Optional} if not
+   */
+  @Nonnull
+  Optional<Event> findEvent(@Nonnull UID uid);
+
+  /**
    * Get event matching given {@code UID} under the privileges of the currently authenticated user.
    * Metadata identifiers will use the {@code idScheme} {@link TrackerIdSchemeParam#UID}. Use {@link
    * #getEvent(UID, TrackerIdSchemeParams, EventParams)} instead to also get the events
    * relationships and specify different {@code idSchemes}.
    */
-  Event getEvent(UID uid) throws NotFoundException, ForbiddenException;
+  @Nonnull
+  Event getEvent(UID uid) throws NotFoundException;
 
   /**
    * Get event matching given {@code UID} and params under the privileges of the currently
    * authenticated user. Metadata identifiers will use the {@code idScheme} defined by {@link
    * TrackerIdSchemeParams}.
    */
+  @Nonnull
   Event getEvent(UID uid, @Nonnull TrackerIdSchemeParams idSchemeParams, EventParams eventParams)
-      throws NotFoundException, ForbiddenException;
+      throws NotFoundException;
 
   /**
-   * Get all events matching given params under the privileges of the currently authenticated user.
+   * Find all events matching given params under the privileges of the currently authenticated user.
    */
   @Nonnull
-  List<Event> getEvents(@Nonnull EventOperationParams params)
+  List<Event> findEvents(@Nonnull EventOperationParams params)
       throws BadRequestException, ForbiddenException;
 
   /**
@@ -89,16 +102,15 @@ public interface EventService {
    * user.
    */
   @Nonnull
-  Page<Event> getEvents(@Nonnull EventOperationParams params, @Nonnull PageParams pageParams)
+  Page<Event> findEvents(@Nonnull EventOperationParams params, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException;
 
-  RelationshipItem getEventInRelationshipItem(UID uid) throws NotFoundException;
-
   /**
-   * Fields the {@link #getEvents(EventOperationParams)} and {@link #getEvents(EventOperationParams,
-   * PageParams)} can order events by. Ordering by fields other than these is considered a
-   * programmer error. Validation of user provided field names should occur before calling {@link
-   * #getEvents(EventOperationParams)} or {@link #getEvents(EventOperationParams, PageParams)}.
+   * Fields the {@link #findEvents(EventOperationParams)} and {@link
+   * #findEvents(EventOperationParams, PageParams)} can order events by. Ordering by fields other
+   * than these is considered a programmer error. Validation of user provided field names should
+   * occur before calling {@link #findEvents(EventOperationParams)} or {@link
+   * #findEvents(EventOperationParams, PageParams)}.
    */
   Set<String> getOrderableFields();
 }

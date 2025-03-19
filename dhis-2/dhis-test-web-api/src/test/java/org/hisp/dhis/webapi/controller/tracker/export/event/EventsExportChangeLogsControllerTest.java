@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,14 +29,14 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 import static org.hisp.dhis.security.Authorities.ALL;
-import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
-import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertPagerLink;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
@@ -48,6 +50,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -84,6 +87,8 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
 
   @Autowired private CategoryService categoryService;
 
+  @Autowired private DhisConfigurationProvider config;
+
   private CategoryOptionCombo coc;
 
   private User user;
@@ -102,8 +107,12 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
 
   private DataElement dataElement;
 
+  private EventDataValue dataValue;
+
   @BeforeEach
   void setUp() {
+    config.getProperties().put(CHANGELOG_TRACKER.getKey(), "on");
+
     owner = makeUser("owner");
 
     coc = categoryService.getDefaultCategoryOptionCombo();
@@ -136,7 +145,7 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
     programStage.setProgramStageDataElements(Sets.newHashSet(programStageDataElement));
     manager.save(programStage);
 
-    EventDataValue dataValue = new EventDataValue();
+    dataValue = new EventDataValue();
     dataValue.setDataElement(dataElement.getUid());
     dataValue.setStoredBy("user");
     dataValue.setValue(DATA_ELEMENT_VALUE);
@@ -145,23 +154,9 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
     event.getEventDataValues().add(dataValue);
     manager.update(event);
 
-    JsonWebMessage importResponse =
-        POST("/tracker?async=false&importStrategy=UPDATE", createJson(event, "value 2"))
-            .content(HttpStatus.OK)
-            .as(JsonWebMessage.class);
-    assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
-
-    importResponse =
-        POST("/tracker?async=false&importStrategy=UPDATE", createJson(event, "value 3"))
-            .content(HttpStatus.OK)
-            .as(JsonWebMessage.class);
-    assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
-
-    importResponse =
-        POST("/tracker?async=false&importStrategy=UPDATE", createJson(event, ""))
-            .content(HttpStatus.OK)
-            .as(JsonWebMessage.class);
-    assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
+    updateDataValue("value 2");
+    updateDataValue("value 3");
+    updateDataValue("");
   }
 
   @Test
@@ -253,7 +248,7 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
     assertAll(
         () -> assertEquals(1, pager.getPage()),
         () -> assertEquals(1, pager.getPageSize()),
-        () -> assertHasNoMember(pager, "prevPage"),
+        () -> assertHasNoMember(pager, "prevPage", "total", "pageCount"),
         () ->
             assertPagerLink(
                 pager.getNextPage(),
@@ -279,6 +274,7 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
     assertAll(
         () -> assertEquals(2, pager.getPage()),
         () -> assertEquals(1, pager.getPageSize()),
+        () -> assertHasNoMember(pager, "total", "pageCount"),
         () ->
             assertPagerLink(
                 pager.getPrevPage(),
@@ -316,7 +312,7 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
                 4,
                 1,
                 String.format("http://localhost/api/tracker/events/%s/changeLogs", event.getUid())),
-        () -> assertHasNoMember(pager, "nextPage"));
+        () -> assertHasNoMember(pager, "nextPage", "total", "pageCount"));
   }
 
   @Test
@@ -335,8 +331,56 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
     assertAll(
         () -> assertEquals(1, pagerObject.getPage()),
         () -> assertEquals(5, pagerObject.getPageSize()),
-        () -> assertHasNoMember(pagerObject, "prevPage"),
-        () -> assertHasNoMember(pagerObject, "nextPage"));
+        () -> assertHasNoMember(pagerObject, "prevPage", "nextPage", "total", "pageCount"));
+  }
+
+  @Test
+  void shouldNotLogChangesWhenChangeLogConfigDisabled() {
+    config.getProperties().put(CHANGELOG_TRACKER.getKey(), "off");
+
+    event = event(enrollment(trackedEntity()));
+    event.getEventDataValues().add(dataValue);
+    manager.update(event);
+
+    updateDataValue("new value");
+    updateDataValue("updated value");
+    updateDataValue("");
+    updateScheduledAtEventField("2025-01-10");
+
+    JsonList<JsonEventChangeLog> changeLogs =
+        GET("/tracker/events/{id}/changeLogs?order=createdAt:asc", event.getUid())
+            .content(HttpStatus.OK)
+            .getList("changeLogs", JsonEventChangeLog.class);
+
+    List<JsonEventChangeLog> dataValueChangeLogs =
+        changeLogs.stream()
+            .filter(log -> log.getChange().getDataValue().getDataElement() != null)
+            .toList();
+    List<JsonEventChangeLog> eventFieldChangeLogs =
+        changeLogs.stream()
+            .filter(log -> log.getChange().getEventField().getField() != null)
+            .toList();
+
+    assertIsEmpty(dataValueChangeLogs);
+    assertIsEmpty(eventFieldChangeLogs);
+  }
+
+  private void updateDataValue(String value) {
+    JsonWebMessage importResponse =
+        POST("/tracker?async=false&importStrategy=UPDATE", createDataValueJson(event, value))
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class);
+    assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
+  }
+
+  private void updateScheduledAtEventField(String value) {
+    JsonWebMessage importResponse =
+        POST(
+                "/tracker?async=false&importStrategy=UPDATE",
+                createScheduledAtEventFieldJson(event, value))
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class);
+    assertEquals(HttpStatus.OK.toString(), importResponse.getStatus());
   }
 
   private TrackedEntity trackedEntity() {
@@ -395,7 +439,7 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
     return eventA;
   }
 
-  private String createJson(Event event, String value) {
+  private String createDataValueJson(Event event, String value) {
     return """
            {
              "events": [
@@ -434,6 +478,40 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
             event.getOrganisationUnit().getUid(),
             event.getEventDataValues().iterator().next().getDataElement(),
             value);
+  }
+
+  private String createScheduledAtEventFieldJson(Event event, String scheduledAt) {
+    return """
+           {
+             "events": [
+               {
+                 "event": "%s",
+                 "status": "COMPLETED",
+                 "program": "%s",
+                 "programStage": "%s",
+                 "enrollment": "%s",
+                 "trackedEntity": "%s",
+                 "orgUnit": "%s",
+                 "occurredAt": "2023-01-10",
+                 "scheduledAt": "%s",
+                 "storedBy": "tracker",
+                 "followUp": false,
+                 "createdAtClient": "2017-01-20T10:44:03.222",
+                 "completedBy": "tracker",
+                 "completedAt": "2023-01-20",
+                 "notes": []
+               }
+             ]
+           }}
+           """
+        .formatted(
+            event.getUid(),
+            program.getUid(),
+            programStage.getUid(),
+            event.getEnrollment().getUid(),
+            event.getEnrollment().getTrackedEntity().getUid(),
+            event.getOrganisationUnit().getUid(),
+            scheduledAt);
   }
 
   private static void assertUser(JsonEventChangeLog changeLog) {
@@ -476,14 +554,6 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
         () -> assertEquals(previousValue, actual.getChange().getDataValue().getPreviousValue()),
         () -> assertEquals(currentValue, actual.getChange().getDataValue().getCurrentValue()),
         () -> JsonAssertions.assertHasNoMember(actual.getChange(), "eventField"));
-  }
-
-  private static void assertPagerLink(String actual, int page, int pageSize, String start) {
-    assertNotNull(actual);
-    assertAll(
-        () -> assertStartsWith(start, actual),
-        () -> assertContains("page=" + page, actual),
-        () -> assertContains("pageSize=" + pageSize, actual));
   }
 
   private static void assertFieldCreateExists(

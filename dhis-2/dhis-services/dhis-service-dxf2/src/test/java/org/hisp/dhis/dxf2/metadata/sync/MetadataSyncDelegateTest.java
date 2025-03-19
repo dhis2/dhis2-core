@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -40,7 +42,6 @@ import java.io.IOException;
 import org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -66,7 +67,7 @@ class MetadataSyncDelegateTest {
   void testShouldVerifyIfStopSyncReturnFalseIfNoSystemVersionInLocal() {
     String versionSnapshot =
         "{\"system:\": {\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
-    when(systemService.getSystemInfo()).thenReturn(SystemInfo.builder().build());
+    when(systemService.getSystemInfoVersion()).thenReturn(null);
     boolean shouldStopSync = metadataSyncDelegate.shouldStopSync(versionSnapshot);
     assertFalse(shouldStopSync);
   }
@@ -75,7 +76,7 @@ class MetadataSyncDelegateTest {
   void testShouldVerifyIfStopSyncReturnFalseIfNoSystemVersionInRemote() {
     String versionSnapshot =
         "{\"system:\": {\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
-    when(systemService.getSystemInfo()).thenReturn(SystemInfo.builder().version("2.26").build());
+    when(systemService.getSystemInfoVersion()).thenReturn("2.26");
     boolean shouldStopSync = metadataSyncDelegate.shouldStopSync(versionSnapshot);
     assertFalse(shouldStopSync);
   }
@@ -86,7 +87,7 @@ class MetadataSyncDelegateTest {
         "{\"system:\": {\"date\":\"2016-06-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\","
             + "\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
     String systemNodeString = "{\"date\":\"2016-06-24T05:27:25.128+0000\", \"version\": \"2.26\"}";
-    when(systemService.getSystemInfo()).thenReturn(SystemInfo.builder().version("2.25").build());
+    when(systemService.getSystemInfoVersion()).thenReturn("2.25");
     when(metadataSystemSettingService.getStopMetadataSyncSetting()).thenReturn(true);
     ObjectMapper mapper = new ObjectMapper();
     JsonNode jsonNode = mapper.readTree(systemNodeString);
@@ -102,7 +103,7 @@ class MetadataSyncDelegateTest {
     String versionSnapshot =
         "{\"system:\": {\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
     String systemNodeString = "{\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}";
-    when(systemService.getSystemInfo()).thenReturn(SystemInfo.builder().version("2.26").build());
+    when(systemService.getSystemInfoVersion()).thenReturn("2.26");
     when(metadataSystemSettingService.getStopMetadataSyncSetting()).thenReturn(true);
     ObjectMapper mapper = new ObjectMapper();
     JsonNode jsonNode = mapper.readTree(systemNodeString);
@@ -117,7 +118,7 @@ class MetadataSyncDelegateTest {
   void testShouldVerifyIfStopSyncReturnFalseIfStopSyncIsNotSet() {
     String versionSnapshot =
         "{\"system:\": {\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
-    when(systemService.getSystemInfo()).thenReturn(SystemInfo.builder().version("2.26").build());
+    when(systemService.getSystemInfoVersion()).thenReturn("2.26");
     when(metadataSystemSettingService.getStopMetadataSyncSetting()).thenReturn(false);
     boolean shouldStopSync = metadataSyncDelegate.shouldStopSync(versionSnapshot);
     assertFalse(shouldStopSync);

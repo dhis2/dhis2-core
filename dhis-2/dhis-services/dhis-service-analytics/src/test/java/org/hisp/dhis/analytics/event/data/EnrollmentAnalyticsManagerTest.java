@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -39,7 +41,6 @@ import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramIndicator;
@@ -62,6 +63,8 @@ import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
@@ -69,9 +72,9 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -114,16 +117,22 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
+  @Spy
+  private PostgreSqlAnalyticsSqlBuilder analyticsSqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
+
   @Mock private SystemSettingsService systemSettingsService;
 
   @Mock private OrganisationUnitResolver organisationUnitResolver;
+
+  @Mock private PiDisagInfoInitializer piDisagInfoInitializer;
+
+  @Mock private PiDisagQueryGenerator piDisagQueryGenerator;
 
   @Spy
   private EnrollmentTimeFieldSqlRenderer enrollmentTimeFieldSqlRenderer =
       new EnrollmentTimeFieldSqlRenderer(sqlBuilder);
 
   @Spy private SystemSettings systemSettings;
-  @Mock private DhisConfigurationProvider config;
 
   @Captor private ArgumentCaptor<String> sql;
 
@@ -137,10 +146,9 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   private final BeanRandomizer rnd = BeanRandomizer.create();
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
     when(systemSettingsService.getCurrentSettings()).thenReturn(systemSettings);
-    when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
         new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService, systemSettingsService);
 
@@ -149,11 +157,13 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             jdbcTemplate,
             programIndicatorService,
             programIndicatorSubqueryBuilder,
+            piDisagInfoInitializer,
+            piDisagQueryGenerator,
             enrollmentTimeFieldSqlRenderer,
             executionPlanStore,
             systemSettingsService,
-            config,
             sqlBuilder,
+            analyticsSqlBuilder,
             organisationUnitResolver);
   }
 
@@ -601,14 +611,14 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programA.getUid().toLowerCase()
             + " as subax WHERE  "
             + "subax.trackedentity in (select te.uid from trackedentity te "
-            + "LEFT JOIN relationshipitem ri on te.trackedentityid = ri.trackedentityid  "
-            + "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
-            + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
-            + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
-            + "LEFT JOIN trackedentity te on te.trackedentityid = ri2.trackedentityid "
+            + "left join relationshipitem ri on te.trackedentityid = ri.trackedentityid  "
+            + "left join relationship r on r.from_relationshipitemid = ri.relationshipitemid "
+            + "left join relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
+            + "left join relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
+            + "left join trackedentity te2 on te2.trackedentityid = ri2.trackedentityid "
             + "WHERE rty.relationshiptypeid = "
             + relationshipTypeA.getId()
-            + " AND te.uid = ax.trackedentity )) as \""
+            + " and te2.uid = ax.trackedentity )) as \""
             + programIndicatorA.getUid()
             + "\"  "
             + "from analytics_enrollment_"
@@ -649,14 +659,15 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + ") FROM analytics_event_"
             + programA.getUid().toLowerCase()
             + " as subax WHERE "
-            + " subax.trackedentity in (select te.uid from trackedentity te LEFT JOIN relationshipitem ri on te.trackedentityid = ri.trackedentityid  "
-            + "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
-            + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
-            + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
-            + "LEFT JOIN enrollment en on en.enrollmentid = ri2.enrollmentid WHERE rty.relationshiptypeid "
+            + " subax.trackedentity in (select te.uid from trackedentity te "
+            + "left join relationshipitem ri on te.trackedentityid = ri.trackedentityid  "
+            + "left join relationship r on r.from_relationshipitemid = ri.relationshipitemid "
+            + "left join relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
+            + "left join relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
+            + "left join enrollment en2 on en2.enrollmentid = ri2.enrollmentid WHERE rty.relationshiptypeid "
             + "= "
             + relationshipTypeA.getId()
-            + " AND en.uid = ax.enrollment ))"
+            + " and en2.uid = ax.enrollment ))"
             + " as \""
             + programIndicatorA.getUid()
             + "\"  "
@@ -725,14 +736,14 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + programB.getUid().toLowerCase()
             + " as subax WHERE  "
             + "subax.trackedentity in (select te.uid from trackedentity te "
-            + "LEFT JOIN relationshipitem ri on te.trackedentityid = ri.trackedentityid  "
-            + "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
-            + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
-            + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
-            + "LEFT JOIN trackedentity te on te.trackedentityid = ri2.trackedentityid "
+            + "left join relationshipitem ri on te.trackedentityid = ri.trackedentityid  "
+            + "left join relationship r on r.from_relationshipitemid = ri.relationshipitemid "
+            + "left join relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
+            + "left join relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
+            + "left join trackedentity te2 on te2.trackedentityid = ri2.trackedentityid "
             + "WHERE rty.relationshiptypeid = "
             + relationshipTypeA.getId()
-            + " AND te.uid = ax.trackedentity )) as \""
+            + " and te2.uid = ax.trackedentity )) as \""
             + programIndicatorA.getUid()
             + "\"  "
             + "from analytics_enrollment_"

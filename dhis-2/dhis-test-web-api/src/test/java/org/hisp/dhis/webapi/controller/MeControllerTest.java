@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -47,6 +49,7 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
 import org.hisp.dhis.security.apikey.ApiTokenStore;
+import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonMeDto;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -283,5 +286,11 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
 
     assertEquals(
         "myvalue", GET("/me").content().as(JsonMeDto.class).getAttributeValues().get(0).getValue());
+  }
+
+  @Test
+  void testGetTwoFactorType() {
+    JsonMeDto jsonMeDto = GET("/me").content().as(JsonMeDto.class);
+    assertEquals(TwoFactorType.NOT_ENABLED.toString(), jsonMeDto.getTwoFactorType());
   }
 }

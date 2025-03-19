@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -28,12 +30,11 @@
 package org.hisp.dhis.program;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
-import static org.apache.commons.lang3.StringUtils.SPACE;
+import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_DATA_ELEMENT_OPTION;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
-import static org.hisp.dhis.schema.PropertyType.CONSTANT;
 import static org.hisp.dhis.schema.PropertyType.REFERENCE;
 import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
 import static org.hisp.dhis.schema.annotation.Property.Value.TRUE;
@@ -44,8 +45,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.Objects;
 import java.util.List;
+import javax.annotation.Nonnull;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.analytics.Aggregation;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -62,10 +63,9 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.schema.annotation.Property;
 
 /**
- * This class represents the junction of a {@link Program}, {@link DataElement}, {@link Option} and
- * the respective {@link Aggregation}. It's mainly used as a dimensional item ({@link
- * DimensionalItemObject}), in visualization objects. ie: {@link
- * org.hisp.dhis.visualization.Visualization}
+ * This class represents the junction of a {@link Program}, {@link DataElement} and {@link Option}.
+ * It's mainly used as a dimensional item ({@link DimensionalItemObject}), in visualization objects.
+ * ie: {@link org.hisp.dhis.visualization.Visualization}
  */
 @NoArgsConstructor
 @JacksonXmlRootElement(localName = "programDataElementOptionDimension", namespace = DXF_2_0)
@@ -74,29 +74,28 @@ public class ProgramDataElementOptionDimensionItem extends BaseDimensionalItemOb
   private Program program;
   private DataElement dataElement;
   private Option option;
-  private Aggregation aggregation;
 
   public ProgramDataElementOptionDimensionItem(
-      Program program, DataElement dataElement, Option option, Aggregation aggregation) {
+      @Nonnull Program program, @Nonnull DataElement dataElement, @Nonnull Option option) {
     this.program = program;
     this.dataElement = dataElement;
     this.option = option;
-    this.aggregation = aggregation;
   }
 
   @Override
   public String getName() {
-    return joinWith(
-        SPACE, program.getDisplayName(), dataElement.getDisplayName(), option.getDisplayName());
+    return format(
+        "%s (%s, %s)",
+        option.getDisplayName(), dataElement.getDisplayName(), program.getDisplayName());
   }
 
   @Override
   public String getShortName() {
-    return joinWith(
-        SPACE,
-        program.getDisplayShortName(),
+    return format(
+        "%s (%s, %s)",
+        option.getDisplayShortName(),
         dataElement.getDisplayShortName(),
-        option.getDisplayShortName());
+        program.getDisplayShortName());
   }
 
   @Override
@@ -122,13 +121,12 @@ public class ProgramDataElementOptionDimensionItem extends BaseDimensionalItemOb
         .add("program", program)
         .add("dataElement", dataElement)
         .add("option", option)
-        .add("aggregation", aggregation)
         .toString();
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(program, dataElement, option, aggregation);
+    return Objects.hashCode(program, dataElement, option);
   }
 
   @Override
@@ -140,18 +138,13 @@ public class ProgramDataElementOptionDimensionItem extends BaseDimensionalItemOb
   private boolean objectEquals(ProgramDataElementOptionDimensionItem other) {
     return Objects.equal(program, other.program)
         && Objects.equal(dataElement, other.dataElement)
-        && Objects.equal(option, other.option)
-        && Objects.equal(aggregation, other.aggregation);
+        && Objects.equal(option, other.option);
   }
 
   @Override
   public String getDimensionItem() {
     return joinWith(
-        COMPOSITE_DIM_OBJECT_PLAIN_SEP,
-        program.getUid(),
-        dataElement.getUid(),
-        option.getUid(),
-        aggregation);
+        COMPOSITE_DIM_OBJECT_PLAIN_SEP, program.getUid(), dataElement.getUid(), option.getUid());
   }
 
   @Override
@@ -210,16 +203,5 @@ public class ProgramDataElementOptionDimensionItem extends BaseDimensionalItemOb
 
   public void setOption(Option option) {
     this.option = option;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  @Property(value = CONSTANT, required = TRUE)
-  public Aggregation getAggregation() {
-    return aggregation;
-  }
-
-  public void setAggregation(Aggregation aggregation) {
-    this.aggregation = aggregation;
   }
 }

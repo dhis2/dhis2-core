@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -101,6 +103,10 @@ public enum ErrorCode {
   E1532("Target {0} cannot be a source {1}"),
   E1533("{0} {1} does not exist: `{2}`"),
   E1534("dataMergeStrategy field must be specified. With value `DISCARD` or `LAST_UPDATED`"),
+
+  /* CategoryOptionCombo merge */
+  E1540(
+      "CategoryOptionCombos must be duplicates (same cat combo, same cat options, different UID) in order to merge"),
 
   /* DataElement merge */
   E1550("All source ValueTypes must match target ValueType: `{0}`. Other ValueTypes found: `{1}`"),
@@ -217,13 +223,14 @@ public enum ErrorCode {
   E3043(
       "User does not have a verified email, please verify your email before you try to enable 2FA"),
   E3044("TOTP 2FA is not enabled"),
-  E3045("Email based 2FA is not enabled in the system settings"),
-  E3046("TOTP 2FA is not enabled in the system settings"),
+  E3045("Email based 2FA is not enabled"),
+  E3046("TOTP 2FA is not enabled"),
   E3047("User is not in TOTP 2FA enrollment mode"),
   E3048("User does not have email 2FA enabled"),
   E3049("Sending 2FA code with email failed"),
   E3050("2FA code can not be null or empty"),
   E3051("2FA code was sent to the user's email"),
+  E3052("Email 2FA is enabled on user, can not change email. Disable 2FA first"),
 
   /* Metadata Validation */
   E4000("Missing required property `{0}`"),
@@ -309,6 +316,17 @@ public enum ErrorCode {
   E4068("No tracked entity attribute found for attribute: `{0}`"),
   E4069("DashboardItem `{0}` object reference `{1}` with id `{2}` not accessible"),
   E4070("Dashboard `{0}` has a layout with more than 60 columns. `{1}` columns found"),
+  E4071("Program indicator `{0}` category mapping `{1}` not found in program `{2}`"),
+  E4072("Program `{0}` category mapping `{1}` category `{2}` not found"),
+  E4073("Program `{0}` category `{1}` mapping `{2}` option `{3}` not found"),
+  E4074("Program indicator `{0}` {1} category `{2}` needs a category mapping in the program"),
+  E4075("Program `{0}` has an invalid category mapping `{1}`"),
+  E4076("Program `{0}` has duplicate category mapping `{1}`"),
+  E4077("Program `{0}` category `{1}` has duplicate category mapping name `{2}`"),
+  E4078(
+      "Multiple Category Options `{0}` while disaggregating Program Indicator `{1}`-`{2}` Category Combo `{3}`-`{4}` Category `{5}`-`{6}`"),
+  E4079(
+      "Program `{0}` category mapping `{1}` has multiple option mappings for Category Option `{2}`"),
 
   /* SQL views */
   E4300("SQL query is null"),
@@ -469,6 +487,8 @@ public enum ErrorCode {
   E7146("A {0} date was not specified in periods, dimensions, filters"),
   E7147("Query failed because of a missing column: `{0}`"),
   E7148("Could not create CTE SQL query, unexpected error: `{0}`"),
+  E7149("Invalid measure filter operator: `{0}`"),
+  E7150("No periods found for subexpression query"),
   /* Analytics outliers */
 
   E7180(

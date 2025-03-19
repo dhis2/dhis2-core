@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,13 +29,14 @@
  */
 package org.hisp.dhis.expression.dataitem;
 
+import static java.lang.String.format;
 import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Expression item OrganisationUnitGroup
@@ -48,7 +51,7 @@ public class ItemOrgUnitGroupCount implements ExpressionItem {
 
     if (orgUnitGroup == null) {
       throw new ParserExceptionWithoutContext(
-          "No organization unit group defined for " + ctx.uid0.getText());
+          format("No organization unit group defined for %s", ctx.uid0.getText()));
     }
 
     visitor.getItemDescriptions().put(ctx.getText(), orgUnitGroup.getDisplayName());
@@ -70,7 +73,7 @@ public class ItemOrgUnitGroupCount implements ExpressionItem {
     if (count == null) // Shouldn't happen for a valid expression.
     {
       throw new ParserExceptionWithoutContext(
-          "Can't find count for organisation unit " + ctx.uid0.getText());
+          format("Cannot find count for organisation unit: %s", ctx.uid0.getText()));
     }
 
     return count.doubleValue();

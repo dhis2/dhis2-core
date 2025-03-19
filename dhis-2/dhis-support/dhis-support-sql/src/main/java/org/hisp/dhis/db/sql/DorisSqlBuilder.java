@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -30,6 +32,7 @@ package org.hisp.dhis.db.sql;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.DataType;
@@ -215,6 +218,15 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public String concat(List<String> columns) {
+    return "concat("
+        + columns.stream()
+            .map(this::wrapTrimNullIf) // Adjust wrapping logic
+            .collect(Collectors.joining(", "))
+        + ")";
+  }
+
+  @Override
   public String differenceInSeconds(String columnA, String columnB) {
     return String.format("(unix_timestamp(%s) - unix_timestamp(%s))", columnA, columnB);
   }
@@ -261,6 +273,16 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public String isTrue(String alias, String column) {
+    return String.format("%s.%s = true", alias, quote(column));
+  }
+
+  @Override
+  public String isFalse(String alias, String column) {
+    return String.format("%s.%s = false", alias, quote(column));
+  }
+
+  @Override
   public String ifThen(String condition, String result) {
     return String.format("case when %s then %s end", condition, result);
   }
@@ -280,6 +302,11 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return String.format(
         "case when %s then %s when %s then %s else %s end",
         conditionA, thenResultA, conditionB, thenResultB, elseResult);
+  }
+
+  @Override
+  public String log10(String expression) {
+    return String.format("log(%s, 10)", expression);
   }
 
   // Statements
@@ -445,6 +472,8 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   /**
+   * Returns a create catalog statement.
+   *
    * @param connectionUrl the JDBC connection URL.
    * @param username the JDBC connection username.
    * @param password the JDBC connection password.
@@ -468,6 +497,28 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
             "password", password,
             "connection_url", connectionUrl,
             "driver_filename", driverFilename));
+  }
+
+  /**
+   * Ensures {@code trim(nullif(...))} regardless of incoming column formatting.
+   *
+   * @param column the column to be wrapped.
+   * @return the wrapped column.
+   */
+  private String wrapTrimNullIf(String column) {
+    // If the column is a literal, return it as is
+    if (isSingleQuoted(column)) {
+      return column;
+    }
+
+    // If the column already contains 'trim', insert 'nullif' inside 'trim'
+    if (column.startsWith("trim(")) {
+      String innerValue = column.substring(5, column.length() - 1);
+      return "trim(nullif('', " + innerValue + "))";
+    }
+
+    // For other cases, apply both 'trim' and 'nullif'
+    return "trim(nullif('', " + column + "))";
   }
 
   /**

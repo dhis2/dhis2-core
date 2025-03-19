@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -28,8 +30,11 @@
 package org.hisp.dhis.appmanager.webmodules;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 import lombok.Data;
 import org.hisp.dhis.appmanager.App;
+import org.hisp.dhis.appmanager.AppManager;
+import org.hisp.dhis.appmanager.AppShortcut;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -47,6 +52,10 @@ public class WebModule {
   @JsonProperty private String icon;
 
   @JsonProperty private String description;
+
+  @JsonProperty private String version;
+
+  @JsonProperty private List<AppShortcut> shortcuts;
 
   public WebModule() {}
 
@@ -73,10 +82,16 @@ public class WebModule {
 
     String description = subString(app.getDescription(), 0, 80);
 
-    WebModule module = new WebModule(app.getShortName(), app.getShortName(), defaultAction);
+    String key = app.isBundled() ? AppManager.BUNDLED_APP_PREFIX + app.getKey() : app.getKey();
+
+    WebModule module = new WebModule(key, app.getBasePath(), defaultAction);
     module.setIcon(icon);
     module.setDescription(description);
     module.setDisplayName(app.getName());
+    module.setVersion(app.getVersion());
+
+    List<AppShortcut> shortcuts = app.getShortcuts();
+    module.setShortcuts(shortcuts);
 
     return module;
   }

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -29,6 +31,19 @@ package org.hisp.dhis.support.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.reactive.ClientHttpConnector;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
+import org.springframework.security.oauth2.client.InMemoryOAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProvider;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProviderBuilder;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.AuthenticatedPrincipalOAuth2AuthorizedClientRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -43,7 +58,59 @@ public class ServiceConfig {
   }
 
   @Bean
+  public ClientHttpConnector clientHttpConnector() {
+    return new ReactorClientHttpConnector();
+  }
+
+  @Bean
   public UriComponentsBuilder uriComponentsBuilder() {
     return UriComponentsBuilder.newInstance();
+  }
+
+  @Bean
+  public OAuth2AuthorizedClientService oAuth2AuthorizedClientService() {
+    ClientRegistrationRepository anyclientRegistrationRepository =
+        registrationId ->
+            ClientRegistration.withRegistrationId(registrationId)
+                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                .clientId("*")
+                .clientSecret("*")
+                .tokenUri("*")
+                .build();
+
+    return new InMemoryOAuth2AuthorizedClientService(anyclientRegistrationRepository);
+  }
+
+  @Bean
+  public OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository(
+      OAuth2AuthorizedClientService oAuth2AuthorizedClientService) {
+    return new AuthenticatedPrincipalOAuth2AuthorizedClientRepository(
+        oAuth2AuthorizedClientService);
+  }
+
+  @Bean
+  public OAuth2AuthorizedClientManager oAuth2AuthorizedClientManager(
+      OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository) {
+    OAuth2AuthorizedClientProvider authorizedClientProvider =
+        OAuth2AuthorizedClientProviderBuilder.builder()
+            .clientCredentials()
+            .authorizationCode()
+            .refreshToken()
+            .build();
+
+    DefaultOAuth2AuthorizedClientManager authorizedClientManager =
+        new DefaultOAuth2AuthorizedClientManager(
+            registrationId -> {
+              throw new UnsupportedOperationException();
+            },
+            oAuth2AuthorizedClientRepository);
+    authorizedClientManager.setAuthorizedClientProvider(authorizedClientProvider);
+
+    return authorizedClientManager;
+  }
+
+  @Bean
+  public OAuth2AuthorizedClientProvider oAuth2AuthorizedClientProvider() {
+    return OAuth2AuthorizedClientProviderBuilder.builder().clientCredentials().build();
   }
 }

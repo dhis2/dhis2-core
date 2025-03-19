@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -30,12 +32,8 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.AbstractMapper;
-import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.RelationshipRowCallbackHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -45,33 +43,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
  */
 abstract class AbstractStore {
   protected static final int PARITITION_SIZE = 20000;
-  private static final String GET_RELATIONSHIP_ID_BY_ENTITY_ID_SQL =
-      "select ri.%s as id, r.relationshipid "
-          + "FROM relationshipitem ri left join relationship r on ri.relationshipid = r.relationshipid "
-          + "where ri.%s in (:ids)";
-  private static final String GET_RELATIONSHIP_BY_RELATIONSHIP_ID =
-      "select "
-          + "r.uid as rel_uid, r.created, r.createdatclient, r.lastupdated, rst.name as reltype_name, rst.uid as reltype_uid, rst.bidirectional as reltype_bi, "
-          + "coalesce((select 'te|' || te.uid from trackedentity te "
-          + "join relationshipitem ri on te.trackedentityid = ri.trackedentityid "
-          + "where ri.relationshipitemid = r.to_relationshipitemid) , (select 'en|' || en.uid "
-          + "from enrollment en "
-          + "join relationshipitem ri on en.enrollmentid = ri.enrollmentid "
-          + "where ri.relationshipitemid = r.to_relationshipitemid), (select 'ev|' || ev.uid "
-          + "from event ev "
-          + "join relationshipitem ri on ev.eventid = ri.eventid "
-          + "where ri.relationshipitemid = r.to_relationshipitemid)) to_uid, "
-          + "coalesce((select 'te|' || te.uid from trackedentity te "
-          + "join relationshipitem ri on te.trackedentityid = ri.trackedentityid "
-          + "where ri.relationshipitemid = r.from_relationshipitemid) , (select 'en|' || en.uid "
-          + "from enrollment en "
-          + "join relationshipitem ri on en.enrollmentid = ri.enrollmentid "
-          + "where ri.relationshipitemid = r.from_relationshipitemid), (select 'ev|' || ev.uid "
-          + "from event ev "
-          + "join relationshipitem ri on ev.eventid = ri.eventid "
-          + "where ri.relationshipitemid = r.from_relationshipitemid)) from_uid "
-          + "from relationship r join relationshiptype rst on r.relationshiptypeid = rst.relationshiptypeid "
-          + "where r.relationshipid in (:ids)";
+
   protected final NamedParameterJdbcTemplate jdbcTemplate;
 
   protected AbstractStore(JdbcTemplate jdbcTemplate) {
@@ -83,47 +55,6 @@ abstract class AbstractStore {
     parameters.addValue("ids", ids);
     return parameters;
   }
-
-  public Multimap<String, RelationshipItem> getRelationships(List<Long> ids, Context ctx) {
-    List<List<Long>> partitionedIds = Lists.partition(ids, PARITITION_SIZE);
-
-    Multimap<String, RelationshipItem> relationshipMultimap = ArrayListMultimap.create();
-
-    partitionedIds.forEach(
-        partition -> relationshipMultimap.putAll(getRelationshipsPartitioned(partition, ctx)));
-
-    return relationshipMultimap;
-  }
-
-  private Multimap<String, RelationshipItem> getRelationshipsPartitioned(
-      List<Long> ids, Context ctx) {
-    StringBuilder getRelationshipsHavingIdSQL =
-        new StringBuilder(
-            String.format(
-                GET_RELATIONSHIP_ID_BY_ENTITY_ID_SQL,
-                getRelationshipEntityColumn(),
-                getRelationshipEntityColumn()));
-
-    if (!ctx.getQueryParams().isIncludeDeleted()) {
-      getRelationshipsHavingIdSQL.append(" AND r.deleted is false");
-    }
-    // Get all the relationship ids that have at least one relationship item
-    // having
-    // the ids in the te|en|ev column (depending on the subclass)
-
-    List<Long> relationshipIds =
-        getRelationshipIds(getRelationshipsHavingIdSQL.toString(), createIdsParam(ids));
-
-    if (!relationshipIds.isEmpty()) {
-      RelationshipRowCallbackHandler handler = new RelationshipRowCallbackHandler();
-      jdbcTemplate.query(
-          GET_RELATIONSHIP_BY_RELATIONSHIP_ID, createIdsParam(relationshipIds), handler);
-      return handler.getItems();
-    }
-    return ArrayListMultimap.create();
-  }
-
-  abstract String getRelationshipEntityColumn();
 
   protected String applySortOrder(String sql, String sortOrderIds) {
     String trackedentityid = "trackedentityid";
@@ -160,16 +91,5 @@ abstract class AbstractStore {
       String sql, AbstractMapper<T> handler, List<Long> ids) {
     jdbcTemplate.query(sql, createIdsParam(ids), handler);
     return handler.getItems();
-  }
-
-  private List<Long> getRelationshipIds(String sql, MapSqlParameterSource parameterSource) {
-    List<Map<String, Object>> relationshipIdsList = jdbcTemplate.queryForList(sql, parameterSource);
-
-    List<Long> relationshipIds = new ArrayList<>();
-    for (Map<String, Object> relationshipIdsMap : relationshipIdsList) {
-      relationshipIds.add((Long) relationshipIdsMap.get("relationshipid"));
-    }
-
-    return relationshipIds;
   }
 }

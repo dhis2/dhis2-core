@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -36,17 +38,12 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
-import org.hisp.dhis.common.auth.ApiTokenAuth;
-import org.hisp.dhis.common.auth.HttpBasicAuth;
-import org.hisp.dhis.eventhook.targets.JmsTarget;
-import org.hisp.dhis.eventhook.targets.KafkaTarget;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.system.util.AnnotationUtils;
 
@@ -64,19 +61,6 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
   private final List<FieldPath> fieldPaths;
   private final boolean skipSharing;
   private final boolean excludeDefaults;
-
-  /**
-   * Field filtering ignore list. This is mainly because we don't want to inject custom serializers
-   * into the ObjectMapper, and we don't want to expose sensitive information. This is useful for
-   * when you are using JSONB to store the data but still want secrets hidden when doing field
-   * filtering.
-   */
-  private static final Map<Class<?>, Set<String>> IGNORE_LIST =
-      Map.of(
-          HttpBasicAuth.class, Set.of("auth.password", "targets.auth.password"),
-          ApiTokenAuth.class, Set.of("auth.token", "targets.auth.token"),
-          JmsTarget.class, Set.of("targets.password"),
-          KafkaTarget.class, Set.of("targets.password"));
 
   /** Cache that contains true/false for classes that should always be expanded. */
   private static final Map<Class<?>, Boolean> ALWAYS_EXPAND_CACHE = new ConcurrentHashMap<>();
@@ -100,10 +84,6 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 
     if (log.isDebugEnabled()) {
       log.debug(ctx.getCurrentValue().getClass().getSimpleName() + ": " + ctx.getFullPath());
-    }
-
-    if (isIgnoredProperty(ctx.getFullPath(), ctx.getCurrentValue().getClass())) {
-      return false;
     }
 
     if (excludeDefaults && object instanceof SystemDefaultMetadataObject sdmo && sdmo.isDefault()) {
@@ -133,10 +113,6 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
     }
 
     return false;
-  }
-
-  private static boolean isIgnoredProperty(String property, Class<?> type) {
-    return IGNORE_LIST.getOrDefault(type, Set.of()).contains(property);
   }
 
   private PathContext getPath(PropertyWriter writer, JsonGenerator jgen) {

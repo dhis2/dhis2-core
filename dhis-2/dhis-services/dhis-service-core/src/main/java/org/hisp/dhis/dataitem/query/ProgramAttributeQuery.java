@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -84,7 +86,10 @@ public class ProgramAttributeQuery implements DataItemQuery {
               Pair.of("item_domaintype", CAST_NULL_AS_TEXT),
               Pair.of("item_type", "cast ('PROGRAM_ATTRIBUTE' as text)"),
               Pair.of("expression", CAST_NULL_AS_TEXT),
-              Pair.of("optionset_uid", "optionset.uid"))
+              Pair.of("optionset_uid", "optionset.uid"),
+              Pair.of("optionvalue_uid", CAST_NULL_AS_TEXT),
+              Pair.of("optionvalue_name", CAST_NULL_AS_TEXT),
+              Pair.of("optionvalue_code", CAST_NULL_AS_TEXT))
           .stream()
           .map(pair -> pair.getRight() + " as " + pair.getLeft())
           .collect(joining(", "));
@@ -208,7 +213,7 @@ public class ProgramAttributeQuery implements DataItemQuery {
     return new StringBuilder()
         .append(SPACED_SELECT + COMMON_COLUMNS)
         .append(
-            ", program.name as i18n_first_name, trackedentityattribute.name as i18n_second_name")
+            ", program.name as i18n_first_name, trackedentityattribute.name as i18n_second_name, cast (null as text) as i18n_third_name")
         .append(
             ", program.shortname as i18n_first_shortname, trackedentityattribute.shortname as i18n_second_shortname")
         .append(SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE)

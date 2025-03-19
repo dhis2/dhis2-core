@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -42,6 +44,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
@@ -281,11 +284,11 @@ public class EventPersister
   }
 
   @Override
-  protected String getUpdatedTrackedEntity(Event entity) {
-    return Optional.ofNullable(entity.getEnrollment())
+  protected Set<UID> getUpdatedTrackedEntities(Event entity) {
+    return Stream.of(entity.getEnrollment())
         .filter(e -> e.getTrackedEntity() != null)
-        .map(e -> e.getTrackedEntity().getUid())
-        .orElse(null);
+        .map(e -> UID.of(e.getTrackedEntity()))
+        .collect(Collectors.toSet());
   }
 
   private boolean isNewDataValue(

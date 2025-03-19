@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -34,15 +36,10 @@ import static org.hisp.dhis.util.DateUtils.toLongDateWithMillis;
 import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.function.Function;
-import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -59,16 +56,17 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
-@Repository("org.hisp.dhis.tracker.export.enrollment.EnrollmentStore")
-class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment>
-    implements EnrollmentStore {
+// This class is annotated with @Component instead of @Repository because @Repository creates a
+// proxy that can't be used to inject the class.
+@Component("org.hisp.dhis.tracker.export.enrollment.EnrollmentStore")
+class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment> {
 
   private static final String DEFAULT_ORDER = "id desc";
 
@@ -101,43 +99,27 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
         .replaceFirst("from Enrollment en", "select count(distinct uid) from Enrollment en");
   }
 
-  @Override
   public List<Enrollment> getEnrollments(EnrollmentQueryParams params) {
     String hql = buildEnrollmentHql(params).getFullQuery();
-
     Query<Enrollment> query = getQuery(hql);
-
     return query.list();
   }
 
-  @Override
   public Page<Enrollment> getEnrollments(EnrollmentQueryParams params, PageParams pageParams) {
     String hql = buildEnrollmentHql(params).getFullQuery();
-
     Query<Enrollment> query = getQuery(hql);
-    query.setFirstResult((pageParams.getPage() - 1) * pageParams.getPageSize());
-    query.setMaxResults(pageParams.getPageSize());
 
-    LongSupplier enrollmentCount = () -> countEnrollments(params);
-    return getPage(pageParams, query.list(), enrollmentCount);
+    query.setFirstResult(pageParams.getOffset());
+    query.setMaxResults(
+        pageParams.getPageSize() + 1); // get extra enrollment to determine if there is a nextPage
+
+    return new Page<>(query.list(), pageParams, () -> countEnrollments(params));
   }
 
   private long countEnrollments(EnrollmentQueryParams params) {
     String hql = buildCountEnrollmentHql(params);
-
     Query<Long> query = getTypedQuery(hql);
-
-    return query.getSingleResult().longValue();
-  }
-
-  private Page<Enrollment> getPage(
-      PageParams pageParams, List<Enrollment> enrollments, LongSupplier enrollmentCount) {
-    if (pageParams.isPageTotal()) {
-      return Page.withTotals(
-          enrollments, pageParams.getPage(), pageParams.getPageSize(), enrollmentCount.getAsLong());
-    }
-
-    return Page.withoutTotals(enrollments, pageParams.getPage(), pageParams.getPageSize());
+    return query.getSingleResult();
   }
 
   private QueryWithOrderBy buildEnrollmentHql(EnrollmentQueryParams params) {
@@ -297,18 +279,6 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
     }
   }
 
-  @Override
-  protected void preProcessPredicates(
-      CriteriaBuilder builder, List<Function<Root<Enrollment>, Predicate>> predicates) {
-    predicates.add(root -> builder.equal(root.get("deleted"), false));
-  }
-
-  @Override
-  protected Enrollment postProcessObject(Enrollment enrollment) {
-    return (enrollment == null || enrollment.isDeleted()) ? null : enrollment;
-  }
-
-  @Override
   public Set<String> getOrderableFields() {
     return ORDERABLE_FIELDS;
   }

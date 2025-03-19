@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,13 +29,15 @@
  */
 package org.hisp.dhis.tablereplication.jdbc;
 
+import java.util.List;
+import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.analytics.AnalyticsDataSourceFactory;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.tablereplication.TableReplicationStore;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -45,21 +49,33 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class JdbcTableReplicationStore implements TableReplicationStore {
 
-  @Qualifier("analyticsJdbcTemplate")
-  private final JdbcTemplate jdbcTemplate;
+  private JdbcTemplate jdbcTemplate;
+  private final AnalyticsDataSourceFactory dataSourceFactory;
 
   private final SqlBuilder sqlBuilder;
 
   @Override
-  public void replicateAnalyticsDatabaseTable(Table table) {
-    final Clock clock = new Clock().startClock();
-    final String tableName = table.getName();
+  public void replicateAnalyticsDatabaseTables(List<Table> tables) {
+    try (AnalyticsDataSourceFactory.TemporaryDataSourceWrapper wrapper =
+        dataSourceFactory.createTemporaryAnalyticsDataSource()) {
 
-    dropTable(table);
-    createTable(table);
-    replicateTable(table);
+      // Get the DataSource correctly through the wrapper
+      DataSource dataSource = wrapper.dataSource();
+      this.jdbcTemplate = new JdbcTemplate(dataSource);
+      for (Table table : tables) {
+        final Clock clock = new Clock().startClock();
+        final String tableName = table.getName();
 
-    log.info("Analytics database table replicated: '{}' '{}'", tableName, clock.time());
+        dropTable(table);
+        createTable(table);
+        replicateTable(table);
+
+        log.info("Analytics database table replicated: '{}' '{}'", tableName, clock.time());
+      }
+
+    } catch (Exception e) {
+      log.error("Failed to initialize analytics database", e);
+    }
   }
 
   /**

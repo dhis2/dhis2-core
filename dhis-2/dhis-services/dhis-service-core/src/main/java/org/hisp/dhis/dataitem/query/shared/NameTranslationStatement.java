@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -110,6 +112,33 @@ public class NameTranslationStatement {
   }
 
   /**
+   * This method will join the translations column for the given table. Depending on the program
+   * flag it will also join the program table.
+   *
+   * @param table the table containing the translation columns
+   * @param includeProgram if true, it will also join the program table
+   * @param includeOption if true, it will also join the option table
+   * @return the joins responsible to bring translated names
+   */
+  public static String translationNamesJoinsOn(
+      String table, boolean includeProgram, boolean includeOption) {
+    if (isNotBlank(table)) {
+      StringBuilder joins = new StringBuilder(translationNamesJoinsOn(table, includeProgram));
+
+      if (includeOption) {
+        joins.append(
+            " left join jsonb_to_recordset(optionvalue.translations) as o_displayname(value TEXT, locale TEXT, property TEXT) on o_displayname.locale = :"
+                + LOCALE
+                + " and o_displayname.property = 'NAME'");
+      }
+
+      return joins.toString();
+    }
+
+    return EMPTY;
+  }
+
+  /**
    * This method defines the values for the translatable columns, for the given table.
    *
    * @param table the table containing the translation columns
@@ -132,7 +161,7 @@ public class NameTranslationStatement {
    * @return the columns containing the translated names
    */
   public static String translationNamesColumnsFor(String table, boolean includeProgram) {
-    return translationNamesColumnsFor(table, includeProgram, true);
+    return translationNamesColumnsFor(table, includeProgram, false, true);
   }
 
   /**
@@ -145,7 +174,7 @@ public class NameTranslationStatement {
    * @return the columns containing the translated names
    */
   public static String translationNamesColumnsFor(
-      String table, boolean includeProgram, boolean hasShortName) {
+      String table, boolean includeProgram, boolean includeOption, boolean hasShortName) {
     StringBuilder columns = new StringBuilder();
 
     if (isNotBlank(table)) {
@@ -161,6 +190,17 @@ public class NameTranslationStatement {
             .append(translationNamesColumnsForItem(table, "i18n_first", hasShortName))
             .append(", cast (null as text) as i18n_second_name")
             .append(", cast (null as text) as i18n_second_shortname");
+      }
+
+      if (includeOption) {
+        columns
+            .append(
+                ", (case when o_displayname.value is not null then o_displayname.value else optionvalue.name end) as i18n_third_name")
+            .append(", cast (null as text) as i18n_third_shortname");
+      } else {
+        columns
+            .append(", cast (null as text) as i18n_third_name")
+            .append(", cast (null as text) as i18n_third_shortname");
       }
     }
 

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -67,6 +69,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -112,9 +115,11 @@ class TrackedEntityOperationParamsMapperTest {
 
   @Mock private AclService aclService;
 
-  @Mock private TrackedEntityStore trackedEntityStore;
+  @Mock private HibernateTrackedEntityStore trackedEntityStore;
 
   @Mock private OperationsParamsValidator paramsValidator;
+
+  @Mock private SystemSettingsService systemSettingsService;
 
   @InjectMocks private TrackedEntityOperationParamsMapper mapper;
 
@@ -270,12 +275,8 @@ class TrackedEntityOperationParamsMapperTest {
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
             .program(program)
-            .filters(
-                Map.of(
-                    TEA_1_UID,
-                    List.of(new QueryFilter(QueryOperator.EQ, "2")),
-                    TEA_2_UID,
-                    List.of(new QueryFilter(QueryOperator.LIKE, "foo"))))
+            .filterBy(TEA_1_UID, List.of(new QueryFilter(QueryOperator.EQ, "2")))
+            .filterBy(TEA_2_UID, List.of(new QueryFilter(QueryOperator.LIKE, "foo")))
             .build();
 
     TrackedEntityQueryParams params = mapper.map(operationParams, user);
@@ -325,12 +326,11 @@ class TrackedEntityOperationParamsMapperTest {
         TrackedEntityOperationParams.builder()
             .orgUnitMode(ACCESSIBLE)
             .program(program)
-            .filters(
-                Map.of(
-                    TEA_1_UID,
-                    List.of(
-                        new QueryFilter(QueryOperator.GT, "10"),
-                        new QueryFilter(QueryOperator.LT, "20"))))
+            .filterBy(
+                TEA_1_UID,
+                List.of(
+                    new QueryFilter(QueryOperator.GT, "10"),
+                    new QueryFilter(QueryOperator.LT, "20")))
             .build();
 
     TrackedEntityQueryParams params = mapper.map(operationParams, user);
@@ -361,7 +361,7 @@ class TrackedEntityOperationParamsMapperTest {
 
     TrackedEntityQueryParams params = mapper.map(operationParams, user);
 
-    assertEquals(program, params.getProgram());
+    assertEquals(program, params.getEnrolledInTrackerProgram());
   }
 
   @Test
@@ -516,44 +516,14 @@ class TrackedEntityOperationParamsMapperTest {
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder().orgUnitMode(ACCESSIBLE).program(PROGRAM_UID).build();
 
-    Exception illegalQueryException =
+    Exception exception =
         assertThrows(
             IllegalQueryException.class,
             () -> mapper.map(operationParams, currentUserWithOrgUnits));
 
     assertEquals(
         "At least 1 attributes should be mentioned in the search criteria.",
-        illegalQueryException.getMessage());
-  }
-
-  @Test
-  void shouldFailWhenGlobalSearchAndMaxTeLimitReached()
-      throws ForbiddenException, BadRequestException {
-    User userWithOrgUnits = new User();
-    userWithOrgUnits.setTeiSearchOrganisationUnits(Set.of(orgUnit1, orgUnit2));
-    userWithOrgUnits.setOrganisationUnits(emptySet());
-    UserDetails currentUserWithOrgUnits = UserDetails.fromUser(userWithOrgUnits);
-
-    when(aclService.canDataRead(any(UserDetails.class), any(Program.class))).thenReturn(true);
-    program.setMinAttributesRequiredToSearch(0);
-    program.setMaxTeiCountToReturn(1);
-    when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
-    when(paramsValidator.validateTrackerProgram(UID.of(program), currentUserWithOrgUnits))
-        .thenReturn(program);
-
-    when(trackedEntityStore.getTrackedEntityCountWithMaxTrackedEntityLimit(any())).thenReturn(100);
-    when(organisationUnitService.getOrganisationUnitsByUid(
-            Set.of(orgUnit1.getUid(), orgUnit2.getUid())))
-        .thenReturn(List.of(orgUnit1, orgUnit2));
-
-    TrackedEntityOperationParams operationParams =
-        TrackedEntityOperationParams.builder().orgUnitMode(ACCESSIBLE).program(PROGRAM_UID).build();
-
-    Exception illegalQueryException =
-        assertThrows(
-            IllegalQueryException.class,
-            () -> mapper.map(operationParams, currentUserWithOrgUnits));
-    assertEquals("maxteicountreached", illegalQueryException.getMessage());
+        exception.getMessage());
   }
 
   @Test
@@ -567,15 +537,13 @@ class TrackedEntityOperationParamsMapperTest {
     program.setMaxTeiCountToReturn(1);
     when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
 
-    when(trackedEntityStore.getTrackedEntityCountWithMaxTrackedEntityLimit(any())).thenReturn(100);
-
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder().orgUnitMode(ACCESSIBLE).build();
 
-    Exception badRequestException =
+    Exception exception =
         assertThrows(
-            BadRequestException.class, () -> mapper.map(operationParams, currentUserWithOrgUnits));
+            ForbiddenException.class, () -> mapper.map(operationParams, currentUserWithOrgUnits));
 
-    assertEquals("User has no access to any Tracked Entity Type", badRequestException.getMessage());
+    assertEquals("User has no access to any Tracked Entity Type", exception.getMessage());
   }
 }

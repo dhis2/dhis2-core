@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -31,7 +33,8 @@ import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 
 import java.io.IOException;
-import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -40,16 +43,22 @@ import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class TeTaEncryptionValidationTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class TeTaEncryptionValidationTest extends PostgresIntegrationTestBase {
+  @Autowired private TestSetup testSetup;
+
   @Autowired private TrackerImportService trackerImportService;
 
   private User importUser;
 
   @BeforeAll
   void setUp() throws IOException {
-    setUpMetadata("tracker/validations/te-program_with_tea_encryption_metadata.json");
+    testSetup.importMetadata("tracker/validations/te-program_with_tea_encryption_metadata.json");
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
@@ -59,20 +68,21 @@ class TeTaEncryptionValidationTest extends TrackerTest {
   void testUniqueFailInOrgUnit() throws IOException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
-        fromJson("tracker/validations/te-program_with_tea_unique_data_in_country.json");
+        testSetup.fromJson("tracker/validations/te-program_with_tea_unique_data_in_country.json");
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertNoErrors(importReport);
 
     trackerObjects =
-        fromJson("tracker/validations/te-program_with_tea_unique_data_in_country.json");
+        testSetup.fromJson("tracker/validations/te-program_with_tea_unique_data_in_country.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertNoErrors(importReport);
-    trackerObjects = fromJson("tracker/validations/te-program_with_tea_unique_data_in_region.json");
+    trackerObjects =
+        testSetup.fromJson("tracker/validations/te-program_with_tea_unique_data_in_region.json");
 
     importReport = trackerImportService.importTracker(params, trackerObjects);
 
@@ -83,13 +93,14 @@ class TeTaEncryptionValidationTest extends TrackerTest {
   void testUniqueFail() throws IOException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
-        fromJson("tracker/validations/te-program_with_tea_unique_data.json");
+        testSetup.fromJson("tracker/validations/te-program_with_tea_unique_data.json");
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertNoErrors(importReport);
 
-    trackerObjects = fromJson("tracker/validations/te-program_with_tea_unique_data2.json");
+    trackerObjects =
+        testSetup.fromJson("tracker/validations/te-program_with_tea_unique_data2.json");
 
     importReport = trackerImportService.importTracker(params, trackerObjects);
 

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -35,6 +37,7 @@ import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import jakarta.persistence.EntityManagerFactory;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -53,11 +56,13 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.query.planner.PropertyPath;
 import org.hisp.dhis.schema.descriptors.AccessSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.AggregateDataExchangeSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.AnalyticsPeriodBoundarySchemaDescriptor;
@@ -119,6 +124,9 @@ import org.hisp.dhis.schema.descriptors.MapViewSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.MessageConversationSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.MetadataVersionSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.MinMaxDataElementSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.OAuth2AuthorizationConsentSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.OAuth2AuthorizationSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.OAuth2ClientSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ObjectStyleSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.OptionGroupSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.OptionGroupSetSchemaDescriptor;
@@ -316,6 +324,9 @@ public class DefaultSchemaService implements SchemaService {
     register(new ItemConfigSchemaDescriptor());
     register(new LayoutSchemaDescriptor());
     register(new RouteSchemaDescriptor());
+    register(new OAuth2ClientSchemaDescriptor());
+    register(new OAuth2AuthorizationSchemaDescriptor());
+    register(new OAuth2AuthorizationConsentSchemaDescriptor());
   }
 
   private final Map<Class<?>, Schema> classSchemaMap = new HashMap<>();
@@ -516,5 +527,56 @@ public class DefaultSchemaService implements SchemaService {
     String[] camelCaseWords =
         org.apache.commons.lang3.StringUtils.capitalize(schema.getPlural()).split("(?=[A-Z])");
     return org.apache.commons.lang3.StringUtils.join(camelCaseWords, " ").trim();
+  }
+
+  @Override
+  public PropertyPath getPropertyPath(Class<?> klass, String path) {
+    Schema curSchema = getDynamicSchema(klass);
+    Property curProperty = null;
+    boolean persisted = true;
+    List<String> alias = new ArrayList<>();
+    String[] pathComponents = path.split("\\.");
+
+    if (pathComponents.length == 0) {
+      return null;
+    }
+
+    for (int idx = 0; idx < pathComponents.length; idx++) {
+      String name = pathComponents[idx];
+      curProperty = curSchema.getProperty(name);
+
+      if (isFilterByAttributeId(curProperty, name)) {
+        // filter by Attribute Uid
+        persisted = false;
+        curProperty = curSchema.getProperty("attributeValues");
+      }
+
+      if (curProperty == null) {
+        throw new RuntimeException("Invalid path property: " + name);
+      }
+
+      if (!curProperty.isPersisted()) {
+        persisted = false;
+      }
+
+      if ((!curProperty.isSimple() && idx == pathComponents.length - 1)) {
+        return new PropertyPath(curProperty, persisted, alias.toArray(new String[] {}));
+      }
+
+      if (curProperty.isCollection()) {
+        curSchema = getDynamicSchema(curProperty.getItemKlass());
+        alias.add(curProperty.getFieldName());
+      } else if (!curProperty.isSimple()) {
+        curSchema = getDynamicSchema(curProperty.getKlass());
+        alias.add(curProperty.getFieldName());
+      } else {
+        return new PropertyPath(curProperty, persisted, alias.toArray(new String[] {}));
+      }
+    }
+    return new PropertyPath(curProperty, persisted, alias.toArray(new String[] {}));
+  }
+
+  private boolean isFilterByAttributeId(Property curProperty, String propertyName) {
+    return curProperty == null && CodeGenerator.isValidUid(propertyName);
   }
 }

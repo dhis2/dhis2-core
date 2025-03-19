@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -54,12 +56,12 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
-import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -69,12 +71,17 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class EventSecurityImportValidationTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class EventSecurityImportValidationTest extends PostgresIntegrationTestBase {
+  @Autowired private TestSetup testSetup;
 
   @Autowired private TrackerImportService trackerImportService;
 
@@ -89,8 +96,6 @@ class EventSecurityImportValidationTest extends TrackerTest {
   @Autowired private TrackedEntityTypeService trackedEntityTypeService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
-
-  @Autowired private TrackerOwnershipManager trackerOwnershipAccessManager;
 
   private TrackedEntity maleA;
 
@@ -120,7 +125,7 @@ class EventSecurityImportValidationTest extends TrackerTest {
 
   @BeforeAll
   void setUp() throws IOException {
-    setUpMetadata("tracker/tracker_basic_metadata.json");
+    testSetup.importMetadata("tracker/tracker_basic_metadata.json");
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
@@ -128,10 +133,11 @@ class EventSecurityImportValidationTest extends TrackerTest {
     TrackerImportParams params = TrackerImportParams.builder().build();
     assertNoErrors(
         trackerImportService.importTracker(
-            params, fromJson("tracker/validations/enrollments_te_te-data.json")));
+            params, testSetup.fromJson("tracker/validations/enrollments_te_te-data.json")));
     assertNoErrors(
         trackerImportService.importTracker(
-            params, fromJson("tracker/validations/enrollments_te_enrollments-data.json")));
+            params,
+            testSetup.fromJson("tracker/validations/enrollments_te_enrollments-data.json")));
     manager.flush();
 
     organisationUnitA = createOrganisationUnit('A');
@@ -223,7 +229,7 @@ class EventSecurityImportValidationTest extends TrackerTest {
   @Test
   void testNoWriteAccessToProgramStage() throws IOException {
     TrackerObjects trackerObjects =
-        fromJson("tracker/validations/events_error-no-programStage-access.json");
+        testSetup.fromJson("tracker/validations/events_error-no-programStage-access.json");
     TrackerImportParams params = new TrackerImportParams();
     User user = userService.getUser(USER_3);
     user.addOrganisationUnit(organisationUnitA);
@@ -237,7 +243,8 @@ class EventSecurityImportValidationTest extends TrackerTest {
 
   @Test
   void testNoUncompleteEventAuth() throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/validations/events_error-no-uncomplete.json");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/validations/events_error-no-uncomplete.json");
     TrackerImportParams params = TrackerImportParams.builder().build();
     params.setImportStrategy(TrackerImportStrategy.CREATE);
 
@@ -269,7 +276,7 @@ class EventSecurityImportValidationTest extends TrackerTest {
   @Test
   void shouldSucceedWhenCreatingScheduledEventFromInsideSearchOrgUnit() throws IOException {
     TrackerObjects trackerObjects =
-        fromJson("tracker/validations/events-scheduled-with-registration.json");
+        testSetup.fromJson("tracker/validations/events-scheduled-with-registration.json");
     TrackerImportParams params = TrackerImportParams.builder().build();
     params.setImportStrategy(TrackerImportStrategy.CREATE);
     OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit("QfUVllTs6cS");
@@ -285,7 +292,7 @@ class EventSecurityImportValidationTest extends TrackerTest {
   @Test
   void shouldFailWhenCreatingScheduledEventFromOutsideSearchOrgUnit() throws IOException {
     TrackerObjects trackerObjects =
-        fromJson("tracker/validations/events-scheduled-with-registration.json");
+        testSetup.fromJson("tracker/validations/events-scheduled-with-registration.json");
     TrackerImportParams params = TrackerImportParams.builder().build();
     params.setImportStrategy(TrackerImportStrategy.CREATE);
     injectSecurityContextUser(userService.getUser(USER_5));

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -32,30 +34,37 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
 
 public interface DeduplicationService {
-  PotentialDuplicate getPotentialDuplicateById(long id);
+  @Nonnull
+  PotentialDuplicate getPotentialDuplicate(@Nonnull UID uid) throws NotFoundException;
 
-  PotentialDuplicate getPotentialDuplicateByUid(@Nonnull UID uid);
-
-  int countPotentialDuplicates(PotentialDuplicateCriteria criteria);
-
-  boolean exists(PotentialDuplicate potentialDuplicate) throws PotentialDuplicateConflictException;
-
-  List<PotentialDuplicate> getPotentialDuplicates(PotentialDuplicateCriteria criteria);
-
-  void addPotentialDuplicate(PotentialDuplicate potentialDuplicate)
+  boolean exists(@Nonnull PotentialDuplicate potentialDuplicate)
       throws PotentialDuplicateConflictException;
 
-  void updatePotentialDuplicate(PotentialDuplicate potentialDuplicate);
+  /** Get all potential duplicates matching given criteria. */
+  @Nonnull
+  List<PotentialDuplicate> getPotentialDuplicates(@Nonnull PotentialDuplicateCriteria criteria);
 
-  void autoMerge(DeduplicationMergeParams deduplicationRequest)
+  /** Get a page of duplicates matching given criteria. */
+  @Nonnull
+  Page<PotentialDuplicate> getPotentialDuplicates(
+      @Nonnull PotentialDuplicateCriteria criteria, @Nonnull PageParams pageParams);
+
+  void addPotentialDuplicate(@Nonnull PotentialDuplicate potentialDuplicate)
+      throws PotentialDuplicateConflictException;
+
+  void updatePotentialDuplicate(@Nonnull PotentialDuplicate potentialDuplicate);
+
+  void autoMerge(@Nonnull DeduplicationMergeParams deduplicationRequest)
       throws PotentialDuplicateConflictException,
           PotentialDuplicateForbiddenException,
           ForbiddenException,
           NotFoundException;
 
-  void manualMerge(DeduplicationMergeParams deduplicationRequest)
+  void manualMerge(@Nonnull DeduplicationMergeParams deduplicationRequest)
       throws PotentialDuplicateConflictException,
           PotentialDuplicateForbiddenException,
           ForbiddenException,

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,6 +29,7 @@
  */
 package org.hisp.dhis.program;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.program.Program.DEFAULT_PREFIX;
 import static org.hisp.dhis.program.Program.PREFIX_KEY;
 
@@ -44,6 +47,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseDataDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
@@ -118,6 +122,18 @@ public class ProgramIndicator extends BaseDataDimensionalItemObject implements M
 
   private ObjectStyle style;
 
+  /** Data Element ID (of some ID Type) for export to aggregate data exchange */
+  private String aggregateExportDataElement;
+
+  /** {@link CategoryCombo} for COC mappings for PI disaggregation */
+  private CategoryCombo categoryCombo;
+
+  /** {@link CategoryCombo} for AOC mappings for PI disaggregation */
+  private CategoryCombo attributeCombo;
+
+  /** Category mapping UIDs for both COC and AOC PI disaggregation */
+  private Set<String> categoryMappingIds = new HashSet<>();
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -138,6 +154,10 @@ public class ProgramIndicator extends BaseDataDimensionalItemObject implements M
 
   public boolean hasZeroDecimals() {
     return decimals != null && decimals == 0;
+  }
+
+  public boolean hasAggregateExportDataElement() {
+    return !isEmpty(aggregateExportDataElement);
   }
 
   /**
@@ -418,6 +438,48 @@ public class ProgramIndicator extends BaseDataDimensionalItemObject implements M
     this.orgUnitField = orgUnitField;
   }
 
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getAggregateExportDataElement() {
+    return aggregateExportDataElement;
+  }
+
+  public void setAggregateExportDataElement(String aggregateExportDataElement) {
+    this.aggregateExportDataElement = aggregateExportDataElement;
+  }
+
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public CategoryCombo getCategoryCombo() {
+    return categoryCombo;
+  }
+
+  public void setCategoryCombo(CategoryCombo categoryCombo) {
+    this.categoryCombo = categoryCombo;
+  }
+
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public CategoryCombo getAttributeCombo() {
+    return attributeCombo;
+  }
+
+  public void setAttributeCombo(CategoryCombo attributeCombo) {
+    this.attributeCombo = attributeCombo;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Set<String> getCategoryMappingIds() {
+    return categoryMappingIds;
+  }
+
+  public void setCategoryMappingIds(Set<String> categoryMappingIds) {
+    this.categoryMappingIds = categoryMappingIds;
+  }
+
   public static ProgramIndicator copyOf(
       ProgramIndicator original, Program program, Map<String, String> copyOptions) {
     ProgramIndicator copy = new ProgramIndicator();
@@ -431,9 +493,12 @@ public class ProgramIndicator extends BaseDataDimensionalItemObject implements M
       ProgramIndicator copy, ProgramIndicator original, Map<String, String> copyOptions) {
     String prefix = copyOptions.getOrDefault(PREFIX_KEY, DEFAULT_PREFIX);
     copy.setAccess(original.getAccess());
+    copy.setAttributeCombo(original.getAttributeCombo());
     copy.setAttributeValues(original.getAttributeValues());
     copy.setAnalyticsPeriodBoundaries(ObjectUtils.copyOf(original.getAnalyticsPeriodBoundaries()));
     copy.setAnalyticsType(original.getAnalyticsType());
+    copy.setCategoryCombo(original.getCategoryCombo());
+    copy.setCategoryMappingIds(original.getCategoryMappingIds());
     copy.setDecimals(original.getDecimals());
     copy.setDescription(original.getDescription());
     copy.setDisplayInForm(original.getDisplayInForm());

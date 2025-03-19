@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,7 +29,6 @@
  */
 package org.hisp.dhis.system.util;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -35,9 +36,7 @@ import java.util.Base64;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -57,7 +56,6 @@ import org.hisp.dhis.user.User;
  */
 @Slf4j
 public class SmsUtils {
-  private static final int MAX_CHAR = 160;
 
   private static final String COMMAND_PATTERN = "([A-Za-z])\\w+";
 
@@ -95,23 +93,18 @@ public class SmsUtils {
 
   public static byte[] getBytes(IncomingSms sms) {
     try {
-      byte[] bytes = Base64.getDecoder().decode(sms.getText());
-      return bytes;
+      return Base64.getDecoder().decode(sms.getText());
     } catch (IllegalArgumentException e) {
       return null;
     }
   }
 
   public static String encode(String value) {
-    if (!StringUtils.isBlank(value)) {
-      try {
-        return URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
-      } catch (UnsupportedEncodingException e) {
-        log.error("SMS text encoding failed: ", e);
-      }
+    if (StringUtils.isBlank(value)) {
+      return value;
     }
 
-    return value;
+    return URLEncoder.encode(value, StandardCharsets.UTF_8);
   }
 
   public static Date lookForDate(String message) {
@@ -151,47 +144,11 @@ public class SmsUtils {
     return date;
   }
 
-  public static List<String> splitLongUnicodeString(String message, List<String> result) {
-    String firstTempString = null;
-    String secondTempString = null;
-    int indexToCut = 0;
-
-    firstTempString = message.substring(0, MAX_CHAR);
-
-    indexToCut = firstTempString.lastIndexOf(" ");
-
-    firstTempString = firstTempString.substring(0, indexToCut);
-
-    result.add(firstTempString);
-
-    secondTempString = message.substring(indexToCut + 1, message.length());
-
-    if (secondTempString.length() <= MAX_CHAR) {
-      result.add(secondTempString);
-      return result;
-    } else {
-      return splitLongUnicodeString(secondTempString, result);
-    }
-  }
-
   public static Set<String> getRecipientsPhoneNumber(Collection<User> users) {
     return users.parallelStream()
         .filter(u -> u.getPhoneNumber() != null && !u.getPhoneNumber().isEmpty())
-        .map(u -> u.getPhoneNumber())
+        .map(User::getPhoneNumber)
         .collect(Collectors.toSet());
-  }
-
-  public static Set<String> getRecipientsEmail(Collection<User> users) {
-    Set<String> recipients = new HashSet<>();
-
-    for (User user : users) {
-      String email = user.getEmail();
-
-      if (StringUtils.trimToNull(email) != null) {
-        recipients.add(email);
-      }
-    }
-    return recipients;
   }
 
   public static OrganisationUnit selectOrganisationUnit(
@@ -234,9 +191,9 @@ public class SmsUtils {
     }
 
     if (number.startsWith("00")) {
-      number = number.substring(2, number.length());
+      number = number.substring(2);
     } else if (number.startsWith("+")) {
-      number = number.substring(1, number.length());
+      number = number.substring(1);
     }
 
     return number;

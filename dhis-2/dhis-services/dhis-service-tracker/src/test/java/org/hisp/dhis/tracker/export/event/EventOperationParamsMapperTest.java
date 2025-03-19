@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -131,7 +133,7 @@ class EventOperationParamsMapperTest {
       EventOperationParams.builder();
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     OrganisationUnit orgUnit = createOrganisationUnit('A');
     orgUnit.setChildren(Set.of(createOrganisationUnit('B'), createOrganisationUnit('C')));
 
@@ -248,12 +250,9 @@ class EventOperationParamsMapperTest {
 
     EventOperationParams operationParams =
         eventBuilder
-            .attributeFilters(
-                Map.of(
-                    UID.of(TEA_1_UID),
-                    List.of(new QueryFilter(QueryOperator.EQ, "2")),
-                    UID.of(TEA_2_UID),
-                    List.of(new QueryFilter(QueryOperator.LIKE, "foo"))))
+            .filterByAttribute(UID.of(TEA_1_UID), List.of(new QueryFilter(QueryOperator.EQ, "2")))
+            .filterByAttribute(
+                UID.of(TEA_2_UID), List.of(new QueryFilter(QueryOperator.LIKE, "foo")))
             .build();
 
     EventQueryParams queryParams = mapper.map(operationParams, user);
@@ -272,8 +271,7 @@ class EventOperationParamsMapperTest {
   @Test
   void shouldFailWhenAttributeInGivenAttributeFilterDoesNotExist() {
     UID filterName = UID.generate();
-    EventOperationParams operationParams =
-        eventBuilder.attributeFilters(Map.of(filterName, List.of())).build();
+    EventOperationParams operationParams = eventBuilder.filterByAttribute(filterName).build();
 
     when(trackedEntityAttributeService.getTrackedEntityAttribute(filterName.getValue()))
         .thenReturn(null);
@@ -361,12 +359,12 @@ class EventOperationParamsMapperTest {
 
     EventOperationParams operationParams =
         eventBuilder
-            .dataElementFilters(
-                Map.of(
-                    UID.of(DE_1_UID),
-                    List.of(new QueryFilter(QueryOperator.EQ, "2")),
-                    UID.of(DE_2_UID),
-                    List.of(new QueryFilter(QueryOperator.LIKE, "foo"))))
+            .filterByDataElement(
+                UID.of(DE_1_UID),
+                List.of(
+                    new QueryFilter(QueryOperator.EQ, "2"), new QueryFilter(QueryOperator.NNULL)))
+            .filterByDataElement(
+                UID.of(DE_2_UID), List.of(new QueryFilter(QueryOperator.LIKE, "foo")))
             .build();
 
     EventQueryParams queryParams = mapper.map(operationParams, user);
@@ -376,7 +374,7 @@ class EventOperationParamsMapperTest {
     Map<DataElement, List<QueryFilter>> expected =
         Map.of(
             de1,
-            List.of(new QueryFilter(QueryOperator.EQ, "2")),
+            List.of(new QueryFilter(QueryOperator.EQ, "2"), new QueryFilter(QueryOperator.NNULL)),
             de2,
             List.of(new QueryFilter(QueryOperator.LIKE, "foo")));
     assertEquals(expected, dataElements);
@@ -385,8 +383,7 @@ class EventOperationParamsMapperTest {
   @Test
   void shouldFailWhenDataElementInGivenDataElementFilterDoesNotExist() {
     UID filterName = UID.generate();
-    EventOperationParams operationParams =
-        eventBuilder.dataElementFilters(Map.of(filterName, List.of())).build();
+    EventOperationParams operationParams = eventBuilder.filterByDataElement(filterName).build();
 
     when(dataElementService.getDataElement(filterName.getValue())).thenReturn(null);
 

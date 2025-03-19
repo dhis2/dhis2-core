@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -33,7 +35,9 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType.RESTRICTED;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -42,19 +46,25 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.apphub.AppHubService;
+import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheBuilderProvider;
 import org.hisp.dhis.datastore.DatastoreNamespace;
@@ -63,13 +73,18 @@ import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.util.AppHtmlTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
@@ -86,7 +101,12 @@ public class DefaultAppManager implements AppManager {
   private final AppHubService appHubService;
   private final AppStorageService localAppStorageService;
   private final AppStorageService jCloudsAppStorageService;
+  private final AppStorageService bundledAppStorageService;
   private final DatastoreService datastoreService;
+
+  private final I18nManager i18nManager;
+
+  @Autowired private ObjectMapper jsonMapper;
 
   /**
    * In-memory storage of installed apps. Initially loaded on startup. Should not be cleared during
@@ -101,20 +121,27 @@ public class DefaultAppManager implements AppManager {
           AppStorageService localAppStorageService,
       @Qualifier("org.hisp.dhis.appmanager.JCloudsAppStorageService")
           AppStorageService jCloudsAppStorageService,
+      @Qualifier("org.hisp.dhis.appmanager.BundledAppStorageService")
+          AppStorageService bundledAppStorageService,
       DatastoreService datastoreService,
-      CacheBuilderProvider cacheBuilderProvider) {
+      CacheBuilderProvider cacheBuilderProvider,
+      I18nManager i18nManager) {
     checkNotNull(dhisConfigurationProvider);
     checkNotNull(localAppStorageService);
     checkNotNull(jCloudsAppStorageService);
+    checkNotNull(bundledAppStorageService);
     checkNotNull(datastoreService);
     checkNotNull(cacheBuilderProvider);
+    checkNotNull(i18nManager);
 
     this.dhisConfigurationProvider = dhisConfigurationProvider;
     this.appHubService = appHubService;
     this.localAppStorageService = localAppStorageService;
     this.jCloudsAppStorageService = jCloudsAppStorageService;
+    this.bundledAppStorageService = bundledAppStorageService;
     this.datastoreService = datastoreService;
     this.appCache = cacheBuilderProvider.<App>newCacheBuilder().forRegion("appCache").build();
+    this.i18nManager = i18nManager;
   }
 
   // -------------------------------------------------------------------------
@@ -213,6 +240,35 @@ public class DefaultAppManager implements AppManager {
         .orElse(null);
   }
 
+  @Override
+  public List<WebModule> getMenu(String contextPath) {
+    return getAccessibleAppMenu(contextPath);
+  }
+
+  private List<WebModule> getAccessibleAppMenu(String contextPath) {
+    List<WebModule> modules = new ArrayList<>();
+    List<App> apps =
+        getApps(contextPath).stream()
+            .filter(app -> app.getAppType() == AppType.APP && app.hasAppEntrypoint())
+            .toList();
+
+    // map installed apps to the WebModule object
+    modules.addAll(
+        apps.stream()
+            .filter(app -> !MENU_APP_EXCLUSIONS.contains(app.getKey()))
+            .map(WebModule::getModule)
+            .map(
+                module -> {
+                  String bundledAppNameTranslation =
+                      i18nManager.getI18n().getString(module.getName());
+                  module.setDisplayName(bundledAppNameTranslation);
+                  return module;
+                })
+            .toList());
+
+    return modules;
+  }
+
   private void applyFilter(Set<App> apps, String key, String operator, String value) {
     if ("appType".equalsIgnoreCase(key)) {
       String appType = value != null ? value.toUpperCase() : null;
@@ -281,8 +337,7 @@ public class DefaultAppManager implements AppManager {
             "Installed App with ID %s (status: %s)", app.getAppHubId(), app.getAppState()));
 
     if (app.getAppState().ok()) {
-      appCache.put(app.getKey(), app);
-      registerDatastoreProtection(app);
+      installApp(app);
     }
 
     return app;
@@ -335,28 +390,57 @@ public class DefaultAppManager implements AppManager {
     return getApp(appName) != null;
   }
 
-  @Override
-  public void deleteApp(App app, boolean deleteAppData) {
+  @Async
+  public Future<Boolean> deleteAppFromStorageAsync(App app) {
     if (app != null) {
-      getAppStorageServiceByApp(app).deleteApp(app);
-      App otherVersionApp = getApp(app.getName());
-      if (otherVersionApp == null) {
-        unregisterDatastoreProtection(app);
+      Future<Boolean> promise = getAppStorageServiceByApp(app).deleteAppAsync(app);
+
+      // Await the result of the delete request
+      boolean result;
+      try {
+        result = promise.get();
+      } catch (Exception e) {
+        log.error("Interrupted while deleting app {}", app.getKey());
+        app.setAppState(AppStatus.INSTALLATION_FAILED);
+        appCache.put(app.getKey(), app);
+        return CompletableFuture.completedFuture(false);
       }
-      if (deleteAppData) {
-        deleteAppData(app);
+
+      if (!result) {
+        log.warn("Deleting app {} is not allowed", app.getKey());
+        app.setAppState(AppStatus.OK);
+        appCache.put(app.getKey(), app);
+        return CompletableFuture.completedFuture(false);
       }
-      appCache.invalidate(app.getKey());
     }
+    reloadApps();
+    return CompletableFuture.completedFuture(true);
   }
 
   @Override
-  public boolean markAppToDelete(App app) {
+  public boolean deleteApp(App app, boolean deleteAppData) {
     Optional<App> appOpt = appCache.get(app.getKey());
     if (appOpt.isEmpty()) return false;
+
+    // Bundled apps cannot be deleted
+    if (appOpt.get().getAppStorageSource() == AppStorageSource.BUNDLED) return false;
+
     App appFromCache = appOpt.get();
     appFromCache.setAppState(AppStatus.DELETION_IN_PROGRESS);
     appCache.put(app.getKey(), appFromCache);
+
+    deleteAppFromStorageAsync(app);
+
+    boolean isBundledAppOverride = app.isBundled();
+    // If a bundled version exists it will replace the deleted override.
+    // In that case, deleting the app should not remove the namespace protection
+    if (!isBundledAppOverride) {
+      unregisterDatastoreProtection(app);
+    }
+    if (deleteAppData) {
+      deleteAppData(app);
+    }
+
     return true;
   }
 
@@ -379,14 +463,42 @@ public class DefaultAppManager implements AppManager {
   @Override
   @PostConstruct
   public void reloadApps() {
-    localAppStorageService.discoverInstalledApps().values().stream()
-        .filter(app -> !exists(app.getKey()))
-        .forEach(this::installApp);
+    Map<String, App> discoveredApps = new HashMap<>();
 
-    jCloudsAppStorageService.discoverInstalledApps().values().forEach(this::installApp);
+    /*
+     * DEPRECATED - local app storage is no longer used, but some implementations upgrading from 2.28
+     * or earlier might still have app files in the local system.  To be removed in 2.43.
+     */
+    localAppStorageService.discoverInstalledApps().values().stream()
+        .forEach(
+            app -> {
+              discoveredApps.putIfAbsent(app.getKey(), app);
+              log.warn(
+                  "App {} uses local app storage is deprecated and will be removed in DHIS2 version 43.  Please delete this app and re-install it to migrate to the new JClouds app storage service.",
+                  app.getKey());
+            });
+
+    // Install apps from jClouds (either local storage or a remote object store)
+    jCloudsAppStorageService.discoverInstalledApps().values().stream()
+        .forEach(app -> discoveredApps.putIfAbsent(app.getKey(), app));
+
+    // Only add bundled apps if an override with the same key hasn't already been installed
+    bundledAppStorageService.discoverInstalledApps().values().stream()
+        .forEach(app -> discoveredApps.putIfAbsent(app.getKey(), app));
+
+    log.info("Loaded {} apps from all sources", discoveredApps.size());
+
+    // Invalidate the previous app cache
+    appCache.invalidateAll();
+
+    // Install all discovered apps
+    discoveredApps.values().forEach(this::installApp);
   }
 
   private void installApp(App app) {
+    if (AppManager.BUNDLED_APPS.contains(app.getKey())) {
+      app.setBundled(true);
+    }
     appCache.put(app.getKey(), app);
     registerDatastoreProtection(app);
   }
@@ -402,19 +514,66 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Override
-  public Resource getAppResource(App app, String pageName) throws IOException {
+  public ResourceResult getRawAppResource(App app, String pageName) throws IOException {
     return getAppStorageServiceByApp(app).getAppResource(app, pageName);
   }
 
+  @Override
+  public ResourceResult getAppResource(App app, String pageName, String contextPath)
+      throws IOException {
+    ResourceResult resource = getRawAppResource(app, pageName);
+
+    if (pageName.equals("/index.action")) {
+      return new ResourceResult.Redirect(app.getLaunchPath());
+    }
+
+    if (resource instanceof ResourceResult.ResourceFound resourceFound) {
+      if (pageName.equals("/manifest.webapp")) {
+        // If request was for manifest.webapp, check for * and replace with host
+        if (app.getActivities() != null
+            && app.getActivities().getDhis() != null
+            && "*".equals(app.getActivities().getDhis().getHref())) {
+          app.getActivities().getDhis().setHref(contextPath);
+        }
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        jsonMapper.writeValue(bout, app);
+        ByteArrayResource byteArrayResource =
+            toByteArrayResource(bout.toByteArray(), resourceFound.resource());
+        return new ResourceResult.ResourceFound(byteArrayResource);
+      } else if (pageName.endsWith(".html")) {
+        AppHtmlTemplate template = new AppHtmlTemplate(contextPath, app);
+
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        template.apply(resourceFound.resource().getInputStream(), bout);
+
+        ByteArrayResource byteArrayResource =
+            toByteArrayResource(bout.toByteArray(), resourceFound.resource());
+        return new ResourceResult.ResourceFound(byteArrayResource);
+      }
+    }
+
+    return resource;
+  }
+
   /**
+   * We need to handle scenarios when the Resource is a File (knowing the content length) or when
+   * it's URL (not knowing the content length and having to make a call, e.g. remote web link in AWS
+   * S3/MinIO) - otherwise content length can be set to 0 which causes issues at the front-end,
+   * returning an empty body. If it's a URL resource, an underlying HEAD request is made to get the
+   * content length.
+   *
    * @param resource resource to check content length
    * @return the content length or -1 (unknown size) if exception caught
    */
   @Override
-  public int getUriContentLength(Resource resource) {
+  public int getUriContentLength(@Nonnull Resource resource) {
     try {
-      URLConnection urlConnection = resource.getURL().openConnection();
-      return urlConnection.getContentLength();
+      if (resource.isFile()) {
+        return (int) resource.contentLength();
+      } else {
+        URLConnection urlConnection = resource.getURL().openConnection();
+        return urlConnection.getContentLength();
+      }
     } catch (IOException e) {
       log.error("Error trying to retrieve content length of Resource: {}", e.getMessage());
       e.printStackTrace();
@@ -429,6 +588,8 @@ public class DefaultAppManager implements AppManager {
   private AppStorageService getAppStorageServiceByApp(App app) {
     if (app != null && app.getAppStorageSource() == AppStorageSource.LOCAL) {
       return localAppStorageService;
+    } else if (app != null && app.getAppStorageSource() == AppStorageSource.BUNDLED) {
+      return bundledAppStorageService;
     }
     return jCloudsAppStorageService;
   }
@@ -497,5 +658,24 @@ public class DefaultAppManager implements AppManager {
       IOUtils.copy(in, out);
     }
     return tempFile;
+  }
+
+  private ByteArrayResource toByteArrayResource(byte[] bytes, Resource resource) {
+    return new ByteArrayResource(bytes, resource.getDescription()) {
+      @Override
+      public String getFilename() {
+        return resource.getFilename();
+      }
+
+      @Override
+      public URL getURL() throws IOException {
+        return resource.getURL();
+      }
+
+      @Override
+      public long lastModified() throws IOException {
+        return resource.lastModified();
+      }
+    };
   }
 }

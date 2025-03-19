@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -31,8 +33,10 @@ import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
+import static org.springframework.util.MimeTypeUtils.TEXT_PLAIN_VALUE;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -58,6 +62,7 @@ import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.utils.PrometheusTextBuilder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -80,6 +85,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class DataIntegrityController {
 
   private final DataIntegrityService dataIntegrityService;
+
   private final JobExecutionService jobExecutionService;
 
   @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
@@ -150,6 +156,72 @@ public class DataIntegrityController {
       @CheckForNull @RequestParam(required = false) Set<String> checks,
       @RequestParam(required = false, defaultValue = "0") long timeout) {
     return dataIntegrityService.getSummaries(getCheckNames(checks), timeout);
+  }
+
+  /**
+   * Handles the GET request to retrieve data integrity check metrics in Prometheus format. All
+   * checks present in the cache are returned.
+   *
+   * @return A string containing the metrics in Prometheus format.
+   */
+  @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
+  @GetMapping(value = "/metrics", produces = TEXT_PLAIN_VALUE)
+  @ResponseBody
+  public String getSummariesMetrics() {
+    // Get everything which is in the cache
+    Map<String, DataIntegritySummary> summaries = dataIntegrityService.getSummaries(Set.of(), 0);
+    PrometheusTextBuilder metrics = new PrometheusTextBuilder();
+
+    Map<String, Integer> countMetrics = new HashMap<>();
+    Map<String, Double> percentMetrics = new HashMap<>();
+    Map<String, Long> durationMetrics = new HashMap<>();
+    Map<String, String> metricLabels = new HashMap<>();
+
+    Collection<DataIntegrityCheck> checks = dataIntegrityService.getDataIntegrityChecks(Set.of());
+
+    summaries.forEach(
+        (key, summary) -> {
+          DataIntegrityCheck check =
+              checks.stream().filter(c -> c.getName().equals(key)).findFirst().orElse(null);
+          if (check != null) {
+            String severity = check.getSeverity().name();
+            String objectType = check.getIssuesIdType();
+            StringBuilder metricLabel = new StringBuilder();
+            metricLabel.append(
+                "check=\"%s\",severity=\"%s\",object_type=\"%s\""
+                    .formatted(key, severity, objectType));
+            countMetrics.put(key, summary.getCount());
+            metricLabels.put(key, metricLabel.toString());
+            // Percentage might not be present
+            if (summary.getPercentage() != null) {
+              percentMetrics.put(key, summary.getPercentage());
+            }
+            long duration = summary.getFinishedTime().getTime() - summary.getStartTime().getTime();
+            durationMetrics.put(key, duration);
+          }
+        });
+    metrics.updateMetricsWithLabelsMap(
+        countMetrics,
+        "dhis_data_integrity_issues_count_total",
+        metricLabels,
+        "Data integrity check counts",
+        "gauge");
+
+    metrics.updateMetricsWithLabelsMap(
+        percentMetrics,
+        "dhis_data_integrity_issues_percentage",
+        metricLabels,
+        "Data integrity check percentages",
+        "gauge");
+
+    metrics.updateMetricsWithLabelsMap(
+        durationMetrics,
+        "dhis_data_integrity_check_duration_milliseconds",
+        metricLabels,
+        "Data integrity check durations",
+        "gauge");
+
+    return metrics.getMetrics();
   }
 
   @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)

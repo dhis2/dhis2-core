@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -30,29 +32,22 @@ package org.hisp.dhis.query.operators;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryUtils;
-import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.query.planner.PropertyPath;
 import org.hisp.dhis.schema.Property;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class NotEqualOperator<T extends Comparable<? super T>> extends EqualOperator<T> {
+public class NotEqualOperator<T extends Comparable<T>> extends EqualOperator<T> {
   public NotEqualOperator(T arg) {
     super("ne", arg);
   }
 
   @Override
-  public Criterion getHibernateCriterion(QueryPath queryPath) {
-    return Restrictions.not(super.getHibernateCriterion(queryPath));
-  }
-
-  @Override
-  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, QueryPath queryPath) {
-    Property property = queryPath.getProperty();
+  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, PropertyPath path) {
+    Property property = path.getProperty();
 
     if (property.isCollection()) {
       Integer value = QueryUtils.parseValue(Integer.class, args.get(0));
@@ -62,9 +57,9 @@ public class NotEqualOperator<T extends Comparable<? super T>> extends EqualOper
             "Left-side is collection, and right-side is not a valid integer, so can't compare by size.");
       }
 
-      return builder.notEqual(builder.size(root.get(queryPath.getPath())), value);
+      return builder.notEqual(builder.size(root.get(path.getPath())), value);
     }
-    return builder.notEqual(root.get(queryPath.getPath()), args.get(0));
+    return builder.notEqual(root.get(path.getPath()), args.get(0));
   }
 
   @Override

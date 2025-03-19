@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -43,7 +45,6 @@ import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnitGroup;
@@ -51,6 +52,7 @@ import static org.hisp.dhis.test.TestBase.createPeriod;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramIndicator;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -67,6 +69,8 @@ import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.Grid;
@@ -77,9 +81,9 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -96,6 +100,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -113,6 +118,10 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private OrganisationUnitResolver organisationUnitResolver;
 
+  @Mock private PiDisagInfoInitializer piDisagInfoInitializer;
+
+  @Mock private PiDisagQueryGenerator piDisagQueryGenerator;
+
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   private JdbcEventAnalyticsManager subject;
@@ -122,7 +131,9 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   private static final String TABLE_NAME = "analytics_event";
 
   @Mock private SystemSettingsService systemSettingsService;
-  @Mock private DhisConfigurationProvider config;
+
+  @Spy
+  private PostgreSqlAnalyticsSqlBuilder analyticsSqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
 
   private static final String DEFAULT_COLUMNS_WITH_REGISTRATION =
       "event,ps,occurreddate,storedby,"
@@ -144,15 +155,16 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             jdbcTemplate,
             programIndicatorService,
             programIndicatorSubqueryBuilder,
+            piDisagInfoInitializer,
+            piDisagQueryGenerator,
             timeCoordinateSelector,
             executionPlanStore,
             systemSettingsService,
-            config,
             sqlBuilder,
+            analyticsSqlBuilder,
             organisationUnitResolver);
 
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
-    when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
   }
 
   @Test
@@ -482,6 +494,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     mockRowSet();
 
     when(rowSet.getString("fWIAEtYVEGk")).thenReturn("2000");
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
 
     Grid resultGrid =
         subject.getAggregatedEventData(
@@ -510,6 +524,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   void verifyGetAggregatedEventQueryWithFilter() {
 
     when(rowSet.getString("fWIAEtYVEGk")).thenReturn("2000");
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
 
     mockRowSet();
 
@@ -537,16 +553,23 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Test
   void verifyFirstAggregationTypeSubquery() {
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
     verifyFirstOrLastAggregationTypeSubquery(AnalyticsAggregationType.FIRST);
   }
 
   @Test
   void verifyLastAggregationTypeSubquery() {
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
     verifyFirstOrLastAggregationTypeSubquery(AnalyticsAggregationType.LAST);
   }
 
   @Test
   void verifyLastLastOrgUnitAggregationTypeSubquery() {
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+
     DataElement deX = createDataElement('X');
 
     EventQueryParams params =
@@ -638,6 +661,36 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
                 + "\" asc nulls last,\""
                 + piB.getUid()
                 + "\""));
+  }
+
+  @Test
+  void verifyGetAggregatedEventQueryWithMeasureCriteria() {
+
+    when(rowSet.getString("fWIAEtYVEGk")).thenReturn("2000");
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+
+    mockRowSet();
+
+    Grid resultGrid =
+        subject.getAggregatedEventData(
+            createRequestParamsMeasureCriteria(programStage, ValueType.TEXT), createGrid(), 200000);
+
+    assertThat(resultGrid.getRows(), hasSize(1));
+    assertThat(resultGrid.getRow(0), hasSize(4));
+    assertThat(resultGrid.getRow(0).get(0), is("2000"));
+    assertThat(resultGrid.getRow(0).get(1), is("2017Q1"));
+    assertThat(resultGrid.getRow(0).get(2), is("Sierra Leone"));
+    assertThat(resultGrid.getRow(0).get(3), is(100));
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    // Verify that the Measure criteria is applied to the query
+    assertThat(sql.getValue().trim(), containsString("having"));
+    assertThat(
+        sql.getValue().trim(), containsString("round(count(ax.\"event\")::numeric, 10) > 10.0"));
+    assertThat(
+        sql.getValue().trim(), containsString("round(count(ax.\"event\")::numeric, 10) < 20.0"));
   }
 
   private void verifyFirstOrLastAggregationTypeSubquery(

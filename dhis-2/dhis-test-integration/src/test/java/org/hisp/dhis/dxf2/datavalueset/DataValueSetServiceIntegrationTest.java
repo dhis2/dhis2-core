@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -90,6 +92,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -951,7 +954,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportDataValuesCsv() {
     ImportSummary summary =
         dataValueSetService.importDataValueSetCsv(
-            readFile("dxf2/datavalueset/dataValueSetB.csv"), null, null);
+            readFile("dxf2/datavalueset/dataValueSetB.csv"), null, JobProgress.noop());
 
     assertSuccessWithImportedUpdatedDeleted(12, 0, 0, summary);
   }
@@ -964,7 +967,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
         dataValueSetService.importDataValueSetCsv(
             readFile("dxf2/datavalueset/dataValueSetWithDataSetHeader.csv"),
             new ImportOptions().setDataSet("pBOMPrpg1QX"),
-            null);
+            JobProgress.noop());
 
     assertSuccessWithImportedUpdatedDeleted(3, 0, 0, summary);
     assertDataValuesCount(3);
@@ -978,7 +981,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
         dataValueSetService.importDataValueSetCsv(
             readFile("dxf2/datavalueset/dataValueSetBNoHeader.csv"),
             new ImportOptions().setFirstRowIsHeader(false),
-            null);
+            JobProgress.noop());
 
     assertSuccessWithImportedUpdatedDeleted(12, 0, 0, summary);
     assertDataValuesCount(12);
@@ -988,7 +991,7 @@ class DataValueSetServiceIntegrationTest extends PostgresIntegrationTestBase {
   void testImportDataValuesBooleanCsv() {
     ImportConflicts summary =
         dataValueSetService.importDataValueSetCsv(
-            readFile("dxf2/datavalueset/dataValueSetBooleanTest.csv"), null, null);
+            readFile("dxf2/datavalueset/dataValueSetBooleanTest.csv"), null, JobProgress.noop());
 
     String description = summary.getConflictsDescription();
     assertEquals(4, summary.getTotalConflictOccurrenceCount(), description);

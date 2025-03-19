@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -42,18 +44,24 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionService;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
-import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.SystemUser;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class TrackerProgramRuleBundleServiceTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class TrackerProgramRuleBundleServiceTest extends PostgresIntegrationTestBase {
+  @Autowired private TestSetup testSetup;
 
   @Autowired private TrackerBundleService trackerBundleService;
 
@@ -73,7 +81,7 @@ class TrackerProgramRuleBundleServiceTest extends TrackerTest {
             ProgramNotificationRecipient.USER_GROUP);
     notificationTemplateService.save(pnt);
 
-    ObjectBundle bundle = setUpMetadata("tracker/event_metadata.json");
+    ObjectBundle bundle = testSetup.importMetadata("tracker/event_metadata.json");
     ProgramRule programRule =
         createProgramRule(
             'A', bundle.getPreheat().get(PreheatIdentifier.UID, Program.class, "BFcipDERJwr"));
@@ -90,7 +98,7 @@ class TrackerProgramRuleBundleServiceTest extends TrackerTest {
   @Test
   void testRunRuleEngineForEventOnBundleCreate() throws IOException {
     injectSecurityContextUser(userService.getUser("tTgjgobT1oS"));
-    TrackerObjects trackerObjects = fromJson("tracker/event_events_and_enrollment.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/event_events_and_enrollment.json");
     assertEquals(8, trackerObjects.getEvents().size());
     TrackerBundle trackerBundle =
         trackerBundleService.create(new TrackerImportParams(), trackerObjects, new SystemUser());

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -43,6 +45,8 @@ import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.hisp.dhis.common.QueryOperator.NIEQ;
 import static org.hisp.dhis.common.QueryOperator.NILIKE;
 import static org.hisp.dhis.common.QueryOperator.NLIKE;
+import static org.hisp.dhis.common.QueryOperator.NNULL;
+import static org.hisp.dhis.common.QueryOperator.NULL;
 import static org.hisp.dhis.common.QueryOperator.SW;
 
 import com.google.common.collect.ImmutableMap;
@@ -80,6 +84,8 @@ public class QueryFilter {
           .put(EW, unused -> "like")
           .put(NLIKE, unused -> "not like")
           .put(IN, unused -> "in")
+          .put(NULL, unused -> NULL.getValue())
+          .put(NNULL, unused -> NNULL.getValue())
           .build();
 
   protected QueryOperator operator;
@@ -92,6 +98,10 @@ public class QueryFilter {
 
   public QueryFilter() {}
 
+  public QueryFilter(QueryOperator operator) {
+    this.operator = operator;
+  }
+
   public QueryFilter(QueryOperator operator, String filter) {
     this.operator = operator;
     this.filter = filter;
@@ -103,10 +113,6 @@ public class QueryFilter {
 
   public boolean isFilter() {
     return operator != null && filter != null && !filter.isEmpty();
-  }
-
-  public boolean isOperator(QueryOperator op) {
-    return operator != null && operator.equals(op);
   }
 
   public String getSqlOperator() {

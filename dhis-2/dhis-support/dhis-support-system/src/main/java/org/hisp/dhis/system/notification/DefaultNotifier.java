@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -32,7 +34,6 @@ import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toCollection;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Date;
 import java.util.Deque;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
@@ -126,9 +127,9 @@ public class DefaultNotifier implements Notifier {
           Notification n = e.getValue();
           // make sure notifications are at least 1ms apart
           // also, make sure the time is actually reflecting the insert order
-          if (n.getTime().getTime() <= lastTime) n.setTime(new Date(lastTime + 1));
+          if (n.getTimestamp() <= lastTime) n.setTimestamp(lastTime + 1);
           asyncPushToStore(e.getKey(), n);
-          lastTime = n.getTime().getTime();
+          lastTime = n.getTimestamp();
         } else {
           // when there hasn't been any notifications lately
           // the poll times out; it is a good time to run some cleanup
@@ -160,7 +161,18 @@ public class DefaultNotifier implements Notifier {
       }
     }
     list.add(n);
-    NotificationLoggerUtil.log(log, n.getLevel(), n.getMessage());
+    logNotificationAdded(n);
+  }
+
+  private static void logNotificationAdded(Notification n) {
+    String message = n.getMessage();
+    if (message == null || message.isEmpty()) return;
+    switch (n.getLevel()) {
+      case LOOP, DEBUG -> log.debug(message);
+      case INFO -> log.info(message);
+      case WARN -> log.warn(message);
+      case ERROR -> log.error(message);
+    }
   }
 
   private void asyncAutomaticCleanup() {
@@ -196,9 +208,9 @@ public class DefaultNotifier implements Notifier {
       JsonValue data) {
     if (id == null || level.isOff()) return this;
 
-    Date now = new Date(clock.getAsLong());
     Notification n =
-        new Notification(level, id.getJobType(), now, message, completed, dataType, data);
+        new Notification(
+            level, id.getJobType(), clock.getAsLong(), message, completed, dataType, data);
 
     try {
       if (!pushToStore.offer(Map.entry(UID.of(id.getUid()), n), 50, TimeUnit.MILLISECONDS))

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -28,6 +30,7 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import java.util.Set;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorGroup;
@@ -99,12 +102,13 @@ class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest
 
   public void setUpTest() {
 
+    CategoryCombo defaultCategoryCombo = categoryService.getCategoryCombo(getDefaultCatCombo());
+
     Program programA = new Program();
     programA.setName("Program A");
     programA.setShortName("Program A");
     programA.setProgramType(ProgramType.WITHOUT_REGISTRATION);
-    categoryService.getCategoryCombo(getDefaultCatCombo());
-    programA.setCategoryCombo(categoryService.getCategoryCombo(getDefaultCatCombo()));
+    programA.setCategoryCombo(defaultCategoryCombo);
     programService.addProgram(programA);
 
     ProgramIndicatorGroup programIndicatorGroupA = new ProgramIndicatorGroup("Test PI Group A");
@@ -116,6 +120,8 @@ class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest
     testPIa.setName("Test PI A");
     testPIa.setShortName("Test PI A");
     testPIa.setProgram(programA);
+    testPIa.setCategoryCombo(defaultCategoryCombo);
+    testPIa.setAttributeCombo(defaultCategoryCombo);
     programIndicatorService.addProgramIndicator(testPIa);
 
     testPIb = new ProgramIndicator();
@@ -123,6 +129,8 @@ class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest
     testPIb.setName("Test PI B");
     testPIb.setShortName("Test PI B");
     testPIb.setProgram(programA);
+    testPIb.setCategoryCombo(defaultCategoryCombo);
+    testPIb.setAttributeCombo(defaultCategoryCombo);
     programIndicatorService.addProgramIndicator(testPIb);
 
     // Add two indicators to this group

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -35,7 +37,6 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
-import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -58,21 +59,23 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.TrackerTest;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.function.Executable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class AclEventExporterTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class AclEventExporterTest extends PostgresIntegrationTestBase {
+  @Autowired private TestSetup testSetup;
 
   @Autowired private EventService eventService;
-
-  @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -84,14 +87,12 @@ class AclEventExporterTest extends TrackerTest {
 
   @BeforeAll
   void setUp() throws IOException {
-    setUpMetadata("tracker/simple_metadata.json");
+    testSetup.importMetadata();
 
     User userA = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(userA);
 
-    TrackerImportParams params = TrackerImportParams.builder().build();
-    assertNoErrors(
-        trackerImportService.importTracker(params, fromJson("tracker/event_and_enrollment.json")));
+    testSetup.importTrackerData();
     orgUnit = get(OrganisationUnit.class, "h4w96yEMlzO");
     ProgramStage programStage = get(ProgramStage.class, "NpsdDv6kKSO");
     program = programStage.getProgram();
@@ -123,7 +124,7 @@ class AclEventExporterTest extends TrackerTest {
             .orgUnitMode(DESCENDANTS)
             .build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -145,7 +146,7 @@ class AclEventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder.orgUnit(orgUnit).orgUnitMode(DESCENDANTS).build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -173,7 +174,7 @@ class AclEventExporterTest extends TrackerTest {
             .orgUnitMode(CHILDREN)
             .build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -195,7 +196,7 @@ class AclEventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder.orgUnit(orgUnit).orgUnitMode(CHILDREN).build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -216,7 +217,7 @@ class AclEventExporterTest extends TrackerTest {
             .build();
 
     ForbiddenException exception =
-        assertThrows(ForbiddenException.class, () -> eventService.getEvents(params));
+        assertThrows(ForbiddenException.class, () -> eventService.findEvents(params));
     assertEquals(
         "Organisation unit is not part of your search scope: DiszpKrYNg8", exception.getMessage());
   }
@@ -232,7 +233,7 @@ class AclEventExporterTest extends TrackerTest {
             .build();
 
     ForbiddenException exception =
-        assertThrows(ForbiddenException.class, () -> eventService.getEvents(params));
+        assertThrows(ForbiddenException.class, () -> eventService.findEvents(params));
     assertEquals(
         "Organisation unit is not part of your search scope: DiszpKrYNg8", exception.getMessage());
   }
@@ -248,7 +249,7 @@ class AclEventExporterTest extends TrackerTest {
             .orgUnitMode(SELECTED)
             .build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -270,7 +271,7 @@ class AclEventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder.orgUnit(UID.of("DiszpKrYNg8")).orgUnitMode(SELECTED).build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -288,7 +289,7 @@ class AclEventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder.orgUnit(UID.of("RojfDTBhoGC")).orgUnitMode(SELECTED).build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -310,7 +311,7 @@ class AclEventExporterTest extends TrackerTest {
             .orgUnitMode(SELECTED)
             .build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertTrue(events.isEmpty(), "Expected to find no events, but found: " + events.size());
   }
@@ -322,7 +323,7 @@ class AclEventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder.program(UID.of("pcxIanBWlSY")).orgUnitMode(ACCESSIBLE).build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(), "Expected to find events when ou mode accessible and program closed");
@@ -343,7 +344,7 @@ class AclEventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder.program(program).orgUnitMode(ACCESSIBLE).build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(), "Expected to find events when ou mode accessible and program open");
@@ -364,7 +365,7 @@ class AclEventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder.program(UID.of("pcxIanBWlSY")).orgUnitMode(CAPTURE).build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(), "Expected to find events when ou mode capture and program closed");
@@ -385,7 +386,7 @@ class AclEventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder.program(UID.of("pcxIanBWlSY")).orgUnitMode(ACCESSIBLE).build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -414,7 +415,7 @@ class AclEventExporterTest extends TrackerTest {
             .events(UID.of("lumVtWwwy0O", "cadc5eGj0j7"))
             .build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertContainsOnly(List.of("lumVtWwwy0O", "cadc5eGj0j7"), uids(events));
     List<Executable> executables =
@@ -460,7 +461,7 @@ class AclEventExporterTest extends TrackerTest {
 
     EventOperationParams params = operationParamsBuilder.orgUnitMode(ALL).build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -485,7 +486,7 @@ class AclEventExporterTest extends TrackerTest {
     EventOperationParams params =
         operationParamsBuilder.orgUnit(UID.of("uoNW0E3xXUy")).orgUnitMode(ALL).build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(),
@@ -510,7 +511,7 @@ class AclEventExporterTest extends TrackerTest {
 
     EventOperationParams params = operationParamsBuilder.orgUnitMode(ACCESSIBLE).build();
 
-    List<Event> events = eventService.getEvents(params);
+    List<Event> events = eventService.findEvents(params);
 
     assertFalse(
         events.isEmpty(), "Expected to find events when ou mode ACCESSIBLE and events visible");
@@ -536,6 +537,6 @@ class AclEventExporterTest extends TrackerTest {
 
   private List<String> getEvents(EventOperationParams params)
       throws ForbiddenException, BadRequestException {
-    return uids(eventService.getEvents(params));
+    return uids(eventService.findEvents(params));
   }
 }

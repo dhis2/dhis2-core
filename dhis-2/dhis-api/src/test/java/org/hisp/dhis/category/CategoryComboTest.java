@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,9 +29,16 @@
  */
 package org.hisp.dhis.category;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.stream.Stream;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Unit tests for {@link CategoryCombo}.
@@ -55,5 +64,39 @@ class CategoryComboTest {
     CategoryCombo category = new CategoryCombo();
     category.setName(CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME + "x");
     Assertions.assertFalse(category.isDefault());
+  }
+
+  @ParameterizedTest
+  @MethodSource("categoryComboEqualsParams")
+  @DisplayName("Category Combo equals check has expected result")
+  void categoryComboEqualsTest(String name, String uid, String code, boolean expectedResult) {
+    CategoryCombo ccParams = new CategoryCombo();
+    ccParams.setName(name);
+    ccParams.setUid(uid);
+    ccParams.setCode(code);
+
+    assertEquals(
+        expectedResult,
+        getCategoryCombo().equals(ccParams),
+        "Category Combo equals check has expected result");
+  }
+
+  private static Stream<Arguments> categoryComboEqualsParams() {
+    boolean isEqual = true;
+    boolean isNotEqual = false;
+
+    return Stream.of(
+        Arguments.of("name", "uid", "code", isEqual),
+        Arguments.of("name diff", "uid", "code", isNotEqual),
+        Arguments.of("name", "uid diff", "code", isNotEqual),
+        Arguments.of("name", "uid", "code diff", isNotEqual));
+  }
+
+  private CategoryCombo getCategoryCombo() {
+    CategoryCombo cc = new CategoryCombo();
+    cc.setName("name");
+    cc.setUid("uid");
+    cc.setCode("code");
+    return cc;
   }
 }

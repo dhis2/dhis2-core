@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -51,6 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.EnumUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.Category;
@@ -67,6 +70,7 @@ import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -78,6 +82,8 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.FinancialAprilPeriodType;
@@ -88,11 +94,17 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramDataElementOptionDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeOptionDimensionItem;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.test.TestBase;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.jdbc.UncategorizedSQLException;
 
 /**
@@ -429,6 +441,61 @@ class AnalyticsUtilsTest extends TestBase {
     assertEquals("ceabcdefghA", grid.getRow(5).get(3));
     assertNull(grid.getRow(5).get(4));
     assertEquals(0.01, (Double) grid.getRow(5).get(5), 6d);
+  }
+
+  @Test
+  void testHandleGridForDataValueSetWithProgramIndicatorDisaggregation() {
+    Program program = createProgram('A');
+    ProgramIndicator programIndicator = createProgramIndicator('A', program, ".", ".");
+    programIndicator.setUid("programIndA");
+    programIndicator.setAggregateExportCategoryOptionCombo("AggExporCOC");
+    programIndicator.setAggregateExportAttributeOptionCombo("AggExporAOC");
+    programIndicator.setAggregateExportDataElement("AggExportDE");
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject(
+                    DATA_X_DIM_ID, DimensionType.DATA_X, List.of(programIndicator)))
+            .build();
+
+    Grid grid = new ListGrid();
+    grid.addHeader(new GridHeader(DimensionalObject.DATA_X_DIM_ID));
+    grid.addHeader(new GridHeader(DimensionalObject.ORGUNIT_DIM_ID));
+    grid.addHeader(new GridHeader(DimensionalObject.PERIOD_DIM_ID));
+    grid.addHeader(new GridHeader(VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, false, false));
+    grid.addRow().addValuesAsList(List.of("programIndA", "ouA", "peA", 1d));
+    grid.addRow().addValuesAsList(List.of("programIndA.CatOptCombo.*", "ouA", "peA", 2d));
+    grid.addRow().addValuesAsList(List.of("programIndA.*.AttOptCombo", "ouA", "peA", 3d));
+    grid.addRow().addValuesAsList(List.of("programIndA.CatOptCombo.AttOptCombo", "ouA", "peA", 4d));
+
+    assertEquals(4, grid.getWidth());
+    assertEquals(4, grid.getHeight());
+
+    AnalyticsUtils.handleGridForDataValueSet(params, grid);
+
+    assertEquals(6, grid.getWidth());
+    assertEquals(4, grid.getHeight());
+
+    assertEquals("AggExportDE", grid.getRow(0).get(0));
+    assertEquals("AggExporCOC", grid.getRow(0).get(3));
+    assertEquals("AggExporAOC", grid.getRow(0).get(4));
+    assertEquals(1.0, grid.getRow(0).get(5));
+
+    assertEquals("AggExportDE", grid.getRow(1).get(0));
+    assertEquals("CatOptCombo", grid.getRow(1).get(3));
+    assertEquals("AggExporAOC", grid.getRow(1).get(4));
+    assertEquals(2.0, grid.getRow(1).get(5));
+
+    assertEquals("AggExportDE", grid.getRow(2).get(0));
+    assertEquals("AggExporCOC", grid.getRow(2).get(3));
+    assertEquals("AttOptCombo", grid.getRow(2).get(4));
+    assertEquals(3.0, grid.getRow(2).get(5));
+
+    assertEquals("AggExportDE", grid.getRow(3).get(0));
+    assertEquals("CatOptCombo", grid.getRow(3).get(3));
+    assertEquals("AttOptCombo", grid.getRow(3).get(4));
+    assertEquals(4.0, grid.getRow(3).get(5));
   }
 
   @Test
@@ -784,5 +851,98 @@ class AnalyticsUtilsTest extends TestBase {
 
     Optional<String> result = AnalyticsUtils.withExceptionHandling(supplier, true);
     assertFalse(result.isPresent());
+  }
+
+  @ParameterizedTest
+  @MethodSource("metadataDetailsProvider")
+  void testGetDimensionMetadataMap_with_ProgramDataElement_withOptions(
+      boolean includeMetadataDetails) {
+    DisplayProperty displayProperty = DisplayProperty.NAME;
+
+    Program program = createProgram('A');
+    Option option = createOption('A');
+    OptionSet optionSet = createOptionSet('B', option);
+
+    DataElement dataElement = createDataElement('D');
+    dataElement.setOptionSet(optionSet);
+
+    ProgramDataElementOptionDimensionItem pdoItem = new ProgramDataElementOptionDimensionItem();
+    pdoItem.setDimensionItemType(DimensionItemType.PROGRAM_DATA_ELEMENT_OPTION);
+    pdoItem.setProgram(program);
+    pdoItem.setDataElement(dataElement);
+    pdoItem.setOption(option);
+
+    List<DimensionalItemObject> items = List.of(pdoItem);
+    DimensionalObject programDimension =
+        new BaseDimensionalObject("program", DimensionType.DATA_X, items);
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addDimension(programDimension)
+            .withDisplayProperty(displayProperty)
+            .withIncludeMetadataDetails(includeMetadataDetails)
+            .build();
+
+    Map<String, MetadataItem> result = AnalyticsUtils.getDimensionMetadataItemMap(params);
+    String key = "%s.%s".formatted(dataElement.getUid(), optionSet.getUid());
+
+    assertNotNull(result);
+    assertEquals("OptionSetB", result.get(key).getName());
+
+    if (includeMetadataDetails) {
+      assertEquals(1, result.get(key).getOptions().size());
+      assertEquals(option.getUid(), result.get(key).getOptions().get(0).get("uid"));
+      assertEquals(option.getCode(), result.get(key).getOptions().get(0).get("code"));
+    } else {
+      assertNull(result.get(key).getOptions());
+    }
+  }
+
+  private static Stream<Arguments> metadataDetailsProvider() {
+    return Stream.of(
+        Arguments.of(true), // with metadata details
+        Arguments.of(false) // without metadata details
+        );
+  }
+
+  @Test
+  void testGetDimensionMetadataMap_with_ProgramTrackedAttribute_withOptions() {
+    DisplayProperty displayProperty = DisplayProperty.NAME;
+    boolean includeMetadataDetails = true;
+
+    Program program = createProgram('A');
+    Option option = createOption('A');
+    OptionSet optionSet = createOptionSet('B', option);
+
+    DataElement dataElement = createDataElement('D');
+    dataElement.setOptionSet(optionSet);
+
+    TrackedEntityAttribute tea = createTrackedEntityAttribute('A');
+
+    ProgramTrackedEntityAttributeOptionDimensionItem pteaoItem =
+        new ProgramTrackedEntityAttributeOptionDimensionItem();
+    pteaoItem.setDimensionItemType(DimensionItemType.PROGRAM_ATTRIBUTE_OPTION);
+    pteaoItem.setProgram(program);
+    pteaoItem.setAttribute(tea);
+    pteaoItem.setOption(option);
+
+    List<DimensionalItemObject> items = List.of(pteaoItem);
+    DimensionalObject programDimension =
+        new BaseDimensionalObject("program", DimensionType.DATA_X, items);
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addDimension(programDimension)
+            .withDisplayProperty(displayProperty)
+            .withIncludeMetadataDetails(includeMetadataDetails)
+            .build();
+
+    Map<String, MetadataItem> result = AnalyticsUtils.getDimensionMetadataItemMap(params);
+    String key = "%s.%s".formatted(tea.getUid(), optionSet.getUid());
+    assertNotNull(result);
+    assertEquals("OptionSetB", result.get(key).getName());
+    assertEquals(1, result.get(key).getOptions().size());
+    assertEquals(option.getUid(), result.get(key).getOptions().get(0).get("uid"));
+    assertEquals(option.getCode(), result.get(key).getOptions().get(0).get("code"));
   }
 }

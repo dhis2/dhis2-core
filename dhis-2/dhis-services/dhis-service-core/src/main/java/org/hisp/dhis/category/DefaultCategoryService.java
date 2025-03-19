@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -28,11 +30,14 @@
 package org.hisp.dhis.category;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiPredicate;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +52,9 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
@@ -426,6 +434,37 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional
+  public ImportSummaries addAndPruneOptionCombosWithSummary(@Nonnull CategoryCombo categoryCombo) {
+    ImportSummaries importSummaries = new ImportSummaries();
+    if (!categoryCombo.isValid()) {
+      String msg =
+          "Category combo %s is invalid, could not update option combos"
+              .formatted(categoryCombo.getUid());
+      log.warn(msg);
+      importSummaries.addImportSummary(new ImportSummary(ImportStatus.ERROR, msg));
+      return importSummaries;
+    }
+    return addAndPruneOptionCombo(categoryCombo, importSummaries);
+  }
+
+  @Override
+  @Transactional
+  public void addAndPruneOptionCombos(CategoryCombo categoryCombo) {
+    addAndPruneOptionCombo(categoryCombo, null);
+  }
+
+  @Override
+  @Transactional
+  public void addAndPruneAllOptionCombos() {
+    List<CategoryCombo> categoryCombos = getAllCategoryCombos();
+
+    for (CategoryCombo categoryCombo : categoryCombos) {
+      addAndPruneOptionCombo(categoryCombo, null);
+    }
+  }
+
+  @Override
+  @Transactional
   public long addCategoryOptionCombo(CategoryOptionCombo dataElementCategoryOptionCombo) {
     categoryOptionComboStore.save(dataElementCategoryOptionCombo);
 
@@ -583,57 +622,11 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional
-  public void generateOptionCombos(CategoryCombo categoryCombo) {
-    categoryCombo.generateOptionCombos();
-
-    for (CategoryOptionCombo optionCombo : categoryCombo.getOptionCombos()) {
-      categoryCombo.getOptionCombos().add(optionCombo);
-      addCategoryOptionCombo(optionCombo);
-    }
-
-    updateCategoryCombo(categoryCombo);
-  }
-
-  @Override
-  @Transactional
   public void updateOptionCombos(Category category) {
     for (CategoryCombo categoryCombo : getAllCategoryCombos()) {
       if (categoryCombo.getCategories().contains(category)) {
-        updateOptionCombos(categoryCombo);
+        addAndPruneOptionCombos(categoryCombo);
       }
-    }
-  }
-
-  @Override
-  @Transactional
-  public void updateOptionCombos(CategoryCombo categoryCombo) {
-    if (categoryCombo == null || !categoryCombo.isValid()) {
-      log.warn(
-          "Category combo is null or invalid, could not update option combos: " + categoryCombo);
-      return;
-    }
-
-    List<CategoryOptionCombo> generatedOptionCombos = categoryCombo.generateOptionCombosList();
-    Set<CategoryOptionCombo> persistedOptionCombos = categoryCombo.getOptionCombos();
-
-    boolean modified = false;
-
-    for (CategoryOptionCombo optionCombo : generatedOptionCombos) {
-      if (!persistedOptionCombos.contains(optionCombo)) {
-        categoryCombo.getOptionCombos().add(optionCombo);
-        addCategoryOptionCombo(optionCombo);
-
-        log.info(
-            "Added missing category option combo: "
-                + optionCombo
-                + " for category combo: "
-                + categoryCombo.getName());
-        modified = true;
-      }
-    }
-
-    if (modified) {
-      updateCategoryCombo(categoryCombo);
     }
   }
 
@@ -866,5 +859,115 @@ public class DefaultCategoryService implements CategoryService {
   public SetValuedMap<String, String> getCategoryOptionOrganisationUnitsAssociations(
       Set<String> uids) {
     return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser(uids);
+  }
+
+  /**
+   * Aligns the persisted state (DB) of COCs with the generated state (in-memory) of COCs for a CC.
+   * The generated state is treated as the most up-to-date state of the COCs. This method does the
+   * following: <br>
+   *
+   * <ol>
+   *   <li>Delete a persisted COC if it is not present in the generated COCs
+   *   <li>Updates a persisted COC name if it is present and has a different name to its generated
+   *       COC match
+   *   <li>Add a generated COC if it is not present in the persisted COCs
+   * </ol>
+   *
+   * @param categoryCombo the CategoryCombo
+   * @param importSummaries pass in an instantiated Import Summary if a report of the process is
+   *     required valid one
+   * @return returns an Import Summary if one was provided
+   */
+  @CheckForNull
+  private ImportSummaries addAndPruneOptionCombo(
+      @Nonnull CategoryCombo categoryCombo, ImportSummaries importSummaries) {
+    List<CategoryOptionCombo> generatedCocs = categoryCombo.generateOptionCombosList();
+    Set<CategoryOptionCombo> persistedCocs =
+        Sets.newHashSet(categoryComboStore.getByUid(categoryCombo.getUid()).getOptionCombos());
+
+    // Persisted COC checks (update name or delete)
+    for (CategoryOptionCombo persistedCoc : persistedCocs) {
+      generatedCocs.stream()
+          .filter(generatedCoc -> equalOrSameUid.test(persistedCoc, generatedCoc))
+          .findFirst()
+          .ifPresentOrElse(
+              generatedCoc -> updateNameIfNotEqual(persistedCoc, generatedCoc, importSummaries),
+              () -> deleteObsoleteCoc(persistedCoc, categoryCombo, importSummaries));
+    }
+
+    // Generated COC check (add if missing and not empty)
+    for (CategoryOptionCombo generatedCoc : generatedCocs) {
+      if (generatedCoc.getCategoryOptions().isEmpty()) {
+        log.warn(
+            "Generated category option combo %S has 0 options, skip adding for category combo `%s` as this is an invalid category option combo. Consider cleaning up the metadata model."
+                .formatted(generatedCoc.getName(), categoryCombo.getName()));
+      } else if (!persistedCocs.contains(generatedCoc)) {
+        categoryCombo.getOptionCombos().add(generatedCoc);
+        addCategoryOptionCombo(generatedCoc);
+
+        String msg =
+            "Added missing category option combo: `%s` for category combo: `%s`"
+                .formatted(generatedCoc.getName(), categoryCombo.getName());
+        log.info(msg);
+        if (importSummaries != null) {
+          ImportSummary importSummary = new ImportSummary();
+          importSummary.setDescription(msg);
+          importSummary.incrementImported();
+          importSummaries.addImportSummary(importSummary);
+        }
+      }
+    }
+    return importSummaries;
+  }
+
+  private void deleteObsoleteCoc(
+      CategoryOptionCombo coc, CategoryCombo cc, ImportSummaries summaries) {
+    try {
+      String cocName = coc.getName();
+      cc.getOptionCombos().remove(coc);
+      deleteCategoryOptionComboNoRollback(coc);
+
+      String msg =
+          ("Deleted obsolete category option combo: `%s` for category combo: `%s`"
+              .formatted(cocName, cc.getName()));
+      log.info(msg);
+      if (summaries != null) {
+        ImportSummary importSummary = new ImportSummary();
+        importSummary.setDescription(msg);
+        importSummary.incrementDeleted();
+        summaries.addImportSummary(importSummary);
+      }
+    } catch (DeleteNotAllowedException ex) {
+      String msg =
+          "Could not delete category option combo: `%s` due to `%s`"
+              .formatted(coc.getName(), ex.getMessage());
+      log.warn(msg);
+
+      if (summaries != null) {
+        ImportSummary importSummary = new ImportSummary();
+        importSummary.setStatus(ImportStatus.WARNING);
+        importSummary.setDescription(msg);
+        importSummary.incrementIgnored();
+        summaries.addImportSummary(importSummary);
+      }
+    }
+  }
+
+  private final BiPredicate<CategoryOptionCombo, CategoryOptionCombo> equalOrSameUid =
+      (coc1, coc2) -> coc1.equals(coc2) || coc1.getUid().equals(coc2.getUid());
+
+  private void updateNameIfNotEqual(
+      CategoryOptionCombo coc1, CategoryOptionCombo coc2, ImportSummaries summaries) {
+    if (!coc1.getName().equals(coc2.getName())) {
+      coc1.setName(coc2.getName());
+      if (summaries != null) {
+        ImportSummary importSummary = new ImportSummary();
+        importSummary.setDescription(
+            "Update category option combo `%S` name to `%s`"
+                .formatted(coc1.getUid(), coc1.getName()));
+        importSummary.incrementUpdated();
+        summaries.addImportSummary(importSummary);
+      }
+    }
   }
 }

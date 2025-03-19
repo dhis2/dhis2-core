@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -38,6 +40,7 @@ import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_SHORT_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.IDENTIFIABLE_TOKEN_COMPARISON;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.OPTION_ID;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.OPTION_SET_ID;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.PROGRAM_ID;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.ROOT_JUNCTION;
@@ -107,6 +110,22 @@ public class FilteringStatement {
   public static String optionSetIdFiltering(String column, MapSqlParameterSource paramsMap) {
     if (hasNonBlankStringPresence(paramsMap, OPTION_SET_ID)) {
       return equalsFiltering(column, OPTION_SET_ID);
+    }
+
+    return EMPTY;
+  }
+
+  /**
+   * Returns a SQL string related to optionId equality to be reused as part of data items optionId
+   * filtering.
+   *
+   * @param column the uid column
+   * @param paramsMap
+   * @return the uid SQL comparison
+   */
+  public static String optionIdFiltering(String column, MapSqlParameterSource paramsMap) {
+    if (hasNonBlankStringPresence(paramsMap, OPTION_ID)) {
+      return equalsFiltering(column, OPTION_ID);
     }
 
     return EMPTY;
@@ -214,6 +233,27 @@ public class FilteringStatement {
       String columnOne, String columnTwo, MapSqlParameterSource paramsMap) {
     if (hasStringPresence(paramsMap, DISPLAY_NAME)) {
       return ilikeOrFiltering(columnOne, columnTwo, DISPLAY_NAME);
+    }
+
+    return EMPTY;
+  }
+
+  /**
+   * Returns a SQL string related to 'displayName' "ilike" comparison to be reused as part of data
+   * items 'displayName' filtering. It required two columns so it can compare two different
+   * displayNames. It will always use 'or' condition, which translates to "columnOne ilike
+   * :displayName OR columnTwo ilike :displayName".
+   *
+   * @param columnOne the displayName's first column
+   * @param columnTwo the displayName's second column
+   * @param columnThree the displayName's three column
+   * @param paramsMap
+   * @return the uid SQL comparison
+   */
+  public static String displayNameFiltering(
+      String columnOne, String columnTwo, String columnThree, MapSqlParameterSource paramsMap) {
+    if (hasStringPresence(paramsMap, DISPLAY_NAME)) {
+      return ilikeOrFiltering(columnOne, columnTwo, columnThree, DISPLAY_NAME);
     }
 
     return EMPTY;

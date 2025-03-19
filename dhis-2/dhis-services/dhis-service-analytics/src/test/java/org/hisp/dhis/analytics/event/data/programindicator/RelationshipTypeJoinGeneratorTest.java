@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -38,6 +40,7 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.test.random.BeanRandomizer;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -47,33 +50,34 @@ class RelationshipTypeJoinGeneratorTest {
   private static final String ALIAS = "subax";
 
   private static final String RELATIONSHIP_JOIN =
-      " LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
-          + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
-          + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid ";
+      " left join relationship r on r.from_relationshipitemid = ri.relationshipitemid "
+          + "left join relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
+          + "left join relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid ";
 
   private static final String TRACKED_ENTITY_JOIN_START =
       ALIAS
-          + ".trackedentity in (select te.uid from trackedentity te LEFT JOIN relationshipitem ri on te.trackedentityid = ri.trackedentityid ";
+          + ".trackedentity in (select te.uid from trackedentity te left join relationshipitem ri on te.trackedentityid = ri.trackedentityid ";
 
   private static final String ENROLLMENT_JOIN_START =
       ALIAS
-          + ".enrollment in (select en.uid from enrollment en LEFT JOIN relationshipitem ri on en.enrollmentid = ri.enrollmentid ";
+          + ".enrollment in (select en.uid from enrollment en left join relationshipitem ri on en.enrollmentid = ri.enrollmentid ";
 
   private static final String EVENT_JOIN_START =
       ALIAS
-          + ".event in (select ev.uid from event ev LEFT JOIN relationshipitem ri on ev.eventid = ri.eventid ";
+          + ".event in (select ev.uid from event ev left join relationshipitem ri on ev.eventid = ri.eventid ";
 
   private static final String TRACKED_ENTITY_RELTO_JOIN =
-      "LEFT JOIN trackedentity te on te.trackedentityid = ri2.trackedentityid";
+      "left join trackedentity te2 on te2.trackedentityid = ri2.trackedentityid";
 
   private static final String ENROLLMENT_RELTO_JOIN =
-      "LEFT JOIN enrollment en on en.enrollmentid = ri2.enrollmentid";
+      "left join enrollment en2 on en2.enrollmentid = ri2.enrollmentid";
 
-  private static final String EVENT_RELTO_JOIN = "LEFT JOIN event ev on ev.eventid = ri2.eventid";
+  private static final String EVENT_RELTO_JOIN = "left join event ev2 on ev2.eventid = ri2.eventid";
 
   private final BeanRandomizer rnd = BeanRandomizer.create();
 
   @Test
+  @DisplayName("Should generate correct join for tracked entity to tracked entity")
   void verifyTrackedEntityToTrackedEntity() {
     RelationshipType relationshipType =
         createRelationshipType(
@@ -83,6 +87,7 @@ class RelationshipTypeJoinGeneratorTest {
   }
 
   @Test
+  @DisplayName("Should generate correct join for program to program")
   void verifyEnrollmentToEnrollment() {
     RelationshipType relationshipType =
         createRelationshipType(PROGRAM_INSTANCE.getName(), PROGRAM_INSTANCE.getName());
@@ -91,6 +96,7 @@ class RelationshipTypeJoinGeneratorTest {
   }
 
   @Test
+  @DisplayName("Should generate correct join for program stage to program stage")
   void verifyEventToEvent() {
     RelationshipType relationshipType =
         createRelationshipType(PROGRAM_STAGE_INSTANCE.getName(), PROGRAM_STAGE_INSTANCE.getName());
@@ -99,6 +105,7 @@ class RelationshipTypeJoinGeneratorTest {
   }
 
   @Test
+  @DisplayName("Should generate correct join for tracked entity to program")
   void verifyTrackedEntityToEnrollment() {
     RelationshipType relationshipType =
         createRelationshipType(TRACKED_ENTITY_INSTANCE.getName(), PROGRAM_INSTANCE.getName());
@@ -107,6 +114,7 @@ class RelationshipTypeJoinGeneratorTest {
   }
 
   @Test
+  @DisplayName("Should generate correct join for tracked entity to program stage instance")
   void verifyTrackedEntityToEvent() {
     RelationshipType relationshipType =
         createRelationshipType(TRACKED_ENTITY_INSTANCE.getName(), PROGRAM_STAGE_INSTANCE.getName());
@@ -115,6 +123,7 @@ class RelationshipTypeJoinGeneratorTest {
   }
 
   @Test
+  @DisplayName("Should generate correct join for program to tracked entity")
   void verifyEnrollmentToTrackedEntity() {
     RelationshipType relationshipType =
         createRelationshipType(PROGRAM_INSTANCE.getName(), TRACKED_ENTITY_INSTANCE.getName());
@@ -123,6 +132,7 @@ class RelationshipTypeJoinGeneratorTest {
   }
 
   @Test
+  @DisplayName("Should generate correct join for program to program stage instance")
   void verifyEnrollmentToEvent() {
     RelationshipType relationshipType =
         createRelationshipType(PROGRAM_INSTANCE.getName(), PROGRAM_STAGE_INSTANCE.getName());
@@ -131,6 +141,7 @@ class RelationshipTypeJoinGeneratorTest {
   }
 
   @Test
+  @DisplayName("Should generate correct join for program stage instance to tracked entity")
   void verifyEventToTrackedEntity() {
     RelationshipType relationshipType =
         createRelationshipType(PROGRAM_STAGE_INSTANCE.getName(), TRACKED_ENTITY_INSTANCE.getName());
@@ -139,6 +150,7 @@ class RelationshipTypeJoinGeneratorTest {
   }
 
   @Test
+  @DisplayName("Should generate correct join for program stage instance to program")
   void verifyEventToEnrollment() {
     RelationshipType relationshipType =
         createRelationshipType(PROGRAM_STAGE_INSTANCE.getName(), PROGRAM_INSTANCE.getName());
@@ -170,36 +182,30 @@ class RelationshipTypeJoinGeneratorTest {
     expected += addWhere(relationshipType);
     expected +=
         (to.equals(TRACKED_ENTITY_INSTANCE)
-            ? " AND te.uid = ax.trackedentity )"
+            ? " and te2.uid = ax.trackedentity )"
             : (to.equals(PROGRAM_INSTANCE)
-                ? " AND en.uid = ax.enrollment )"
-                : " AND ev.uid = ax.event )"));
+                ? " and en2.uid = ax.enrollment )"
+                : " and ev2.uid = ax.event )"));
+
     assertEquals(expected, RelationshipTypeJoinGenerator.generate(ALIAS, relationshipType, type));
   }
 
   private static String getFromRelationshipEntity(
       RelationshipEntity relationshipEntity, AnalyticsType programIndicatorType) {
-    switch (relationshipEntity) {
-      case TRACKED_ENTITY_INSTANCE:
-        return TRACKED_ENTITY_JOIN_START;
-      case PROGRAM_STAGE_INSTANCE:
-      case PROGRAM_INSTANCE:
-        return (programIndicatorType.equals(AnalyticsType.EVENT)
-            ? EVENT_JOIN_START
-            : ENROLLMENT_JOIN_START);
-    }
-    return "";
+    return switch (relationshipEntity) {
+      case TRACKED_ENTITY_INSTANCE -> TRACKED_ENTITY_JOIN_START;
+      case PROGRAM_STAGE_INSTANCE, PROGRAM_INSTANCE ->
+          (programIndicatorType.equals(AnalyticsType.EVENT)
+              ? EVENT_JOIN_START
+              : ENROLLMENT_JOIN_START);
+    };
   }
 
   private static String getToRelationshipEntity(RelationshipEntity relationshipEntity) {
-    switch (relationshipEntity) {
-      case TRACKED_ENTITY_INSTANCE:
-        return TRACKED_ENTITY_RELTO_JOIN;
-      case PROGRAM_STAGE_INSTANCE:
-        return EVENT_RELTO_JOIN;
-      case PROGRAM_INSTANCE:
-        return ENROLLMENT_RELTO_JOIN;
-    }
-    return "";
+    return switch (relationshipEntity) {
+      case TRACKED_ENTITY_INSTANCE -> TRACKED_ENTITY_RELTO_JOIN;
+      case PROGRAM_STAGE_INSTANCE -> EVENT_RELTO_JOIN;
+      case PROGRAM_INSTANCE -> ENROLLMENT_RELTO_JOIN;
+    };
   }
 }

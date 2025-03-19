@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -30,8 +32,11 @@ package org.hisp.dhis.appmanager;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.Future;
+import org.hisp.dhis.appmanager.ResourceResult.Redirect;
+import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
+import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.hisp.dhis.cache.Cache;
-import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Async;
 
 /**
@@ -68,15 +73,21 @@ public interface AppStorageService {
    * @return true if app is deleted, false if something fails
    */
   @Async
-  void deleteApp(App app);
+  Future<Boolean> deleteAppAsync(App app);
 
   /**
-   * Looks up and returns a resource representing the page for the app requested. If the resource is
-   * not found, return null.
+   * Try to retrieve the requested app resource. The returned {@link ResourceResult} value will be
+   * one of :
+   *
+   * <ul>
+   *   <li>{@link ResourceFound} - when the resource exists
+   *   <li>{@link ResourceNotFound} - when no resource found
+   *   <li>{@link Redirect} - when a directory is found without a trailing '/'
+   * </ul>
    *
    * @param app the app to look up
-   * @param pageName the name of the page to look up
-   * @return The resource representing the page, or null if not found
+   * @param resource the name of the resource to look up (can be directory or file)
+   * @return {@link ResourceResult}
    */
-  Resource getAppResource(App app, String pageName) throws IOException;
+  ResourceResult getAppResource(App app, String resource) throws IOException;
 }

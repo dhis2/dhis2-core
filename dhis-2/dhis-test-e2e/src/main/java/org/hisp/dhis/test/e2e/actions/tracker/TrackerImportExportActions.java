@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -176,23 +178,21 @@ public class TrackerImportExportActions extends RestApiActions {
   public void overrideOwnership(String te, String program, String reason) {
     this.post(
             String.format(
-                "/ownership/override?trackedEntityInstance=%s&program=%s&reason=%s",
-                te, program, reason),
+                "/ownership/override?trackedEntity=%s&program=%s&reason=%s", te, program, reason),
             new JsonObject())
         .validateStatus(200);
   }
 
   public void transferOwnership(String te, String program, String ou) {
     this.update(
-            String.format(
-                "/ownership/transfer?trackedEntityInstance=%s&program=%s&ou=%s", te, program, ou),
+            String.format("/ownership/transfer?trackedEntity=%s&program=%s&ou=%s", te, program, ou),
             new JsonObject())
         .validateStatus(200);
   }
 
   private void saveCreatedData(ApiResponse response) {
     String[] val = {
-      "TRACKED_ENTITY,/trackedEntityInstances",
+      "TRACKED_ENTITY,/trackedEntities",
       "EVENT,/events",
       "ENROLLMENT,/enrollments",
       "RELATIONSHIP,/relationships"

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,9 +29,17 @@
  */
 package org.hisp.dhis.test.config;
 
+import static org.hisp.dhis.config.HibernateConfig.getAdditionalProperties;
+import static org.hisp.dhis.config.HibernateConfig.loadResources;
+
+import jakarta.persistence.EntityManagerFactory;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
+import java.util.Properties;
 import javax.sql.DataSource;
+import org.hibernate.cfg.AvailableSettings;
+import org.hibernate.jpa.HibernatePersistenceProvider;
+import org.hibernate.tool.schema.Action;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -38,8 +48,11 @@ import org.hisp.dhis.test.h2.H2SqlFunction;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 
 /** Use this Spring configuration for tests relying on the H2 in-memory DB. */
 @Configuration
@@ -54,6 +67,29 @@ public class H2TestConfig {
   @Bean
   public NoOpFlyway flyway() {
     return new NoOpFlyway();
+  }
+
+  // NOTE: this must stay in sync with HibernateConfig.entityManagerFactory apart from the
+  // HB2DDL_AUTO override, only then do we also test the actual EntityManagerFactory
+  @Bean
+  @DependsOn({"flyway"})
+  public EntityManagerFactory entityManagerFactory(
+      DhisConfigurationProvider dhisConfig, @Qualifier("actualDataSource") DataSource dataSource) {
+    HibernateJpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
+    adapter.setDatabasePlatform(dhisConfig.getProperty(ConfigurationKey.CONNECTION_DIALECT));
+    LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
+    factory.setJpaVendorAdapter(adapter);
+    factory.setPersistenceUnitName("dhis");
+    factory.setPersistenceProviderClass(HibernatePersistenceProvider.class);
+    factory.setDataSource(dataSource);
+    factory.setPackagesToScan("org.hisp.dhis");
+    factory.setMappingResources(loadResources());
+    Properties jpaProperties = getAdditionalProperties(dhisConfig);
+    // let hibernate create the DB schema for H2 tests as no flyway migrations are run
+    jpaProperties.put(AvailableSettings.HBM2DDL_AUTO, Action.UPDATE.getExternalHbm2ddlName());
+    factory.setJpaProperties(jpaProperties);
+    factory.afterPropertiesSet();
+    return factory.getObject();
   }
 
   @Bean(name = {"namedParameterJdbcTemplate", "analyticsNamedParameterJdbcTemplate"})

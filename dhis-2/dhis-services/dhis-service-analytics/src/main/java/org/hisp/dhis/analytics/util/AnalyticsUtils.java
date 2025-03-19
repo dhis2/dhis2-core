@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -30,6 +32,7 @@ package org.hisp.dhis.analytics.util;
 import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
@@ -55,9 +58,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -66,7 +71,6 @@ import java.util.regex.Pattern;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -74,6 +78,7 @@ import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DataDimensionItemType;
 import org.hisp.dhis.common.DataDimensionalItemObject;
@@ -105,13 +110,17 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.FinancialPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramDataElementOptionDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeOptionDimensionItem;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
@@ -629,7 +638,7 @@ public final class AnalyticsUtils {
 
       Assert.notNull(dx, "Data dimension item cannot be null");
 
-      DimensionalItemObject item = dimItemObjectMap.get(dx);
+      DimensionalItemObject item = getFromDimensionalItemObjectMap(dx, dimItemObjectMap);
 
       Assert.notNull(item, "Dimensional item cannot be null");
 
@@ -639,13 +648,28 @@ public final class AnalyticsUtils {
 
       String coc = null, aoc = null;
 
-      if (DataDimensionalItemObject.class.isAssignableFrom(item.getClass())) {
+      if (ProgramIndicator.class.isAssignableFrom(item.getClass())
+          && DimensionalObjectUtils.isCompositeDimensionalObject(dx)) {
+        row.set(dxInx, DimensionalObjectUtils.getFirstIdentifier(dx));
+        String id2 = DimensionalObjectUtils.getSecondIdentifier(dx);
+        String id3 = DimensionalObjectUtils.getThirdIdentifier(dx);
+        DataDimensionalItemObject dataItem = (DataDimensionalItemObject) item;
+        coc = getItemCoc(id2, dataItem.getAggregateExportCategoryOptionCombo());
+        aoc = getItemCoc(id3, dataItem.getAggregateExportAttributeOptionCombo());
+      } else if (DataDimensionalItemObject.class.isAssignableFrom(item.getClass())) {
         DataDimensionalItemObject dataItem = (DataDimensionalItemObject) item;
         coc = dataItem.getAggregateExportCategoryOptionCombo();
         aoc = dataItem.getAggregateExportAttributeOptionCombo();
       } else if (DataElementOperand.class.isAssignableFrom(item.getClass())) {
-        row.set(dxInx, DimensionalObjectUtils.getFirstIdentifer(dx));
-        coc = DimensionalObjectUtils.getSecondIdentifer(dx);
+        row.set(dxInx, DimensionalObjectUtils.getFirstIdentifier(dx));
+        coc = DimensionalObjectUtils.getSecondIdentifier(dx);
+      }
+
+      if (ProgramIndicator.class.isAssignableFrom(item.getClass())) {
+        ProgramIndicator pi = (ProgramIndicator) item;
+        if (pi.hasAggregateExportDataElement()) {
+          row.set(dxInx, pi.getAggregateExportDataElement());
+        }
       }
 
       cocCol.add(coc);
@@ -670,6 +694,11 @@ public final class AnalyticsUtils {
                 true))
         .addColumn(vlInx, aocCol)
         .addColumn(vlInx, cocCol);
+  }
+
+  /** Use dynamic COC or, if wild, the fixed COC */
+  private static String getItemCoc(String token, String fixed) {
+    return SYMBOL_WILDCARD.equals(token) ? fixed : token;
   }
 
   /**
@@ -721,6 +750,23 @@ public final class AnalyticsUtils {
     }
 
     return map;
+  }
+
+  public static DimensionalItemObject getFromDimensionalItemObjectMap(
+      String dx, Map<String, DimensionalItemObject> dimItemObjectMap) {
+    DimensionalItemObject item = dimItemObjectMap.get(dx);
+
+    if (item == null && DimensionalObjectUtils.isCompositeDimensionalObject(dx)) {
+      String id1 = DimensionalObjectUtils.getFirstIdentifier(dx);
+      item = dimItemObjectMap.get(id1);
+
+      if (item != null) {
+        Assert.isTrue(
+            ProgramIndicator.class.isAssignableFrom(item.getClass()),
+            "Compound dx not in itemObjectMap must be a PI");
+      }
+    }
+    return item;
   }
 
   /**
@@ -778,7 +824,6 @@ public final class AnalyticsUtils {
    *
    * @param params the {@link DataQueryParams}.
    * @param grid the {@link Grid}.
-   * @return
    */
   public static Map<String, MetadataItem> getDimensionMetadataItemMap(
       DataQueryParams params, Grid grid) {
@@ -791,6 +836,8 @@ public final class AnalyticsUtils {
     boolean includeMetadataDetails = params.isIncludeMetadataDetails();
 
     List<OrganisationUnit> organisationUnitList = new ArrayList<>();
+
+    Map<ElementWithOptionSet, Set<Option>> optionSetMap = new HashMap<>();
 
     for (DimensionalObject dimension : dimensions) {
       for (DimensionalItemObject item : dimension.getItems()) {
@@ -824,6 +871,30 @@ public final class AnalyticsUtils {
                 new MetadataItem(
                     coc.getDisplayProperty(params.getDisplayProperty()),
                     includeMetadataDetails ? coc : null));
+          }
+        }
+
+        if (DimensionItemType.PROGRAM_DATA_ELEMENT_OPTION == item.getDimensionItemType()
+            && item instanceof ProgramDataElementOptionDimensionItem dimensionItem) {
+          if (dimensionItem.getProgram() != null
+              && dimensionItem.getOptionSet() != null
+              && dimensionItem.getOption() != null) {
+            ElementWithOptionSet key =
+                new ElementWithOptionSet(
+                    dimensionItem.getDataElement(), dimensionItem.getOptionSet());
+            optionSetMap.computeIfAbsent(key, k -> new HashSet<>()).add(dimensionItem.getOption());
+          }
+        }
+
+        if (DimensionItemType.PROGRAM_ATTRIBUTE_OPTION == item.getDimensionItemType()
+            && item instanceof ProgramTrackedEntityAttributeOptionDimensionItem dimensionItem) {
+          if (dimensionItem.getProgram() != null
+              && dimensionItem.getOption() != null
+              && dimensionItem.getOption().getOptionSet() != null) {
+            ElementWithOptionSet key =
+                new ElementWithOptionSet(
+                    dimensionItem.getAttribute(), dimensionItem.getOption().getOptionSet());
+            optionSetMap.computeIfAbsent(key, k -> new HashSet<>()).add(dimensionItem.getOption());
           }
         }
       }
@@ -862,7 +933,7 @@ public final class AnalyticsUtils {
     Program program = params.getProgram();
     ProgramStage stage = params.getProgramStage();
 
-    if (ObjectUtils.allNotNull(program)) {
+    if (program != null) {
       map.put(
           program.getUid(),
           new MetadataItem(
@@ -885,6 +956,21 @@ public final class AnalyticsUtils {
         }
       }
     }
+
+    optionSetMap.forEach(
+        (key, options) -> {
+          BaseIdentifiableObject prg = key.bio();
+          OptionSet optionSet = key.optionSet();
+
+          String metadataKey = prg.getUid() + DIMENSION_IDENTIFIER_SEP + optionSet.getUid();
+          MetadataItem metadataItem =
+              includeMetadataDetails
+                  ? new MetadataItem(
+                      optionSet.getName(), optionSet.getUid(), new LinkedHashSet<>(options))
+                  : new MetadataItem(optionSet.getName());
+
+          map.put(metadataKey, metadataItem);
+        });
 
     return map;
   }
@@ -1200,5 +1286,25 @@ public final class AnalyticsUtils {
         Pattern.compile(Pattern.quote(startToken) + "(.*?)" + Pattern.quote(endToken));
     Matcher matcher = pattern.matcher(original);
     return matcher.replaceAll(startToken + replacement + endToken);
+  }
+
+  private record ElementWithOptionSet(BaseIdentifiableObject bio, OptionSet optionSet) {
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      ElementWithOptionSet that = (ElementWithOptionSet) o;
+      return Objects.equals(
+              bio != null ? bio.getUid() : null, that.bio != null ? that.bio.getUid() : null)
+          && Objects.equals(
+              optionSet != null ? optionSet.getUid() : null,
+              that.optionSet != null ? that.optionSet.getUid() : null);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(
+          bio != null ? bio.getUid() : null, optionSet != null ? optionSet.getUid() : null);
+    }
   }
 }

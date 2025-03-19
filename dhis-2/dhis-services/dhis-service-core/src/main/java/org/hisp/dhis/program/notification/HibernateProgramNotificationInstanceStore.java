@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -37,7 +39,6 @@ import java.util.function.Function;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -73,18 +74,26 @@ public class HibernateProgramNotificationInstanceStore
             .addPredicates(getPredicates(params, builder))
             .addOrder(root -> builder.desc(root.get("created")));
 
-    if (!params.isSkipPaging()) {
+    return getList(builder, jpaParameters);
+  }
+
+  @Override
+  public List<ProgramNotificationInstance> getProgramNotificationInstancesPage(
+      ProgramNotificationInstanceParam params) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+
+    JpaQueryParameters<ProgramNotificationInstance> jpaParameters =
+        newJpaParameters()
+            .addPredicates(getPredicates(params, builder))
+            .addOrder(root -> builder.desc(root.get("created")));
+
+    if (params.isPaging()) {
       // javax.persistence.TypedQuery position of the first result is numbered from 0 while
       // user-facing pagination parameters start at 1
-      int firstResult =
-          ObjectUtils.firstNonNull(params.getPage(), ProgramNotificationInstanceParam.DEFAULT_PAGE)
-              - 1;
       jpaParameters
-          .setFirstResult(firstResult)
+          .setFirstResult((params.getPage() - 1) * params.getPageSize())
           .setMaxResults(
-              params.getPageSize() != null
-                  ? params.getPageSize()
-                  : ProgramNotificationInstanceParam.DEFAULT_PAGE_SIZE);
+              params.getPageSize() + 1); // get extra item to determine if there is a nextPage
     }
 
     return getList(builder, jpaParameters);

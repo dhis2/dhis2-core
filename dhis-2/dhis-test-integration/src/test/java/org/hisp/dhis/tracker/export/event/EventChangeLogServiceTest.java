@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -40,12 +42,13 @@ import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.tracker.TrackerTest;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
@@ -57,12 +60,16 @@ import org.joda.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class EventChangeLogServiceTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private EventChangeLogService eventChangeLogService;
 
@@ -74,28 +81,27 @@ class EventChangeLogServiceTest extends TrackerTest {
 
   private User importUser;
 
-  private TrackerImportParams importParams;
-
   private final EventChangeLogOperationParams defaultOperationParams =
       EventChangeLogOperationParams.builder().build();
-  private final PageParams defaultPageParams = new PageParams(null, null, false);
+  private final PageParams defaultPageParams;
 
   private final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
   private TrackerObjects trackerObjects;
+  @Autowired private TestSetup testSetup;
+
+  EventChangeLogServiceTest() throws BadRequestException {
+    defaultPageParams = PageParams.of(1, 10, false);
+  }
 
   @BeforeAll
   void setUp() throws IOException {
-    injectSecurityContextUser(getAdminUser());
-    setUpMetadata("tracker/simple_metadata.json");
+    testSetup.importMetadata();
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    importParams = TrackerImportParams.builder().build();
-    trackerObjects = fromJson("tracker/event_and_enrollment.json");
-
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+    trackerObjects = testSetup.importTrackerData();
   }
 
   @BeforeEach
@@ -156,7 +162,7 @@ class EventChangeLogServiceTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnChangeLogsWhenDataValueIsCreated() throws NotFoundException, ForbiddenException {
+  void shouldReturnChangeLogsWhenDataValueIsCreated() throws NotFoundException {
     String event = "QRYjLTiJTrA";
     String dataElement = getDataElement(event);
 
@@ -170,7 +176,7 @@ class EventChangeLogServiceTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnChangeLogsWhenDataValueIsDeleted() throws NotFoundException, ForbiddenException {
+  void shouldReturnChangeLogsWhenDataValueIsDeleted() throws NotFoundException {
     String event = "QRYjLTiJTrA";
     String dataElement = getDataElement(event);
 
@@ -188,8 +194,7 @@ class EventChangeLogServiceTest extends TrackerTest {
   }
 
   @Test
-  void shouldNotUpdateChangeLogsWhenDataValueIsDeletedTwiceInARow()
-      throws NotFoundException, ForbiddenException {
+  void shouldNotUpdateChangeLogsWhenDataValueIsDeletedTwiceInARow() throws NotFoundException {
     String event = "QRYjLTiJTrA";
     String dataElement = getDataElement(event);
 
@@ -208,7 +213,7 @@ class EventChangeLogServiceTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnChangeLogsWhenDataValueIsUpdated() throws NotFoundException, ForbiddenException {
+  void shouldReturnChangeLogsWhenDataValueIsUpdated() throws NotFoundException {
     String event = "QRYjLTiJTrA";
     String dataElement = getDataElement(event);
 
@@ -226,8 +231,7 @@ class EventChangeLogServiceTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnChangeLogsWhenDataValueIsUpdatedTwiceInARow()
-      throws NotFoundException, ForbiddenException {
+  void shouldReturnChangeLogsWhenDataValueIsUpdatedTwiceInARow() throws NotFoundException {
     String event = "QRYjLTiJTrA";
     String dataElement = getDataElement(event);
 
@@ -247,8 +251,7 @@ class EventChangeLogServiceTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnChangeLogsWhenDataValueIsCreatedUpdatedAndDeleted()
-      throws NotFoundException, ForbiddenException {
+  void shouldReturnChangeLogsWhenDataValueIsCreatedUpdatedAndDeleted() throws NotFoundException {
     String event = "QRYjLTiJTrA";
     String dataElement = getDataElement(event);
 
@@ -268,8 +271,7 @@ class EventChangeLogServiceTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnOnlyUserNameWhenUserDoesNotExistInDatabase()
-      throws ForbiddenException, NotFoundException {
+  void shouldReturnOnlyUserNameWhenUserDoesNotExistInDatabase() throws NotFoundException {
     Event event = getEvent("QRYjLTiJTrA");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
     DataElement dataElement = manager.get(DataElement.class, dataElementUid);
@@ -292,8 +294,7 @@ class EventChangeLogServiceTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnEventFieldChangeLogWhenNewDateFieldValueAdded()
-      throws ForbiddenException, NotFoundException {
+  void shouldReturnEventFieldChangeLogWhenNewDateFieldValueAdded() throws NotFoundException {
     String event = "QRYjLTiJTrA";
 
     Page<EventChangeLog> changeLogs =
@@ -311,7 +312,7 @@ class EventChangeLogServiceTest extends TrackerTest {
 
   @Test
   void shouldReturnEventFieldChangeLogWhenExistingDateFieldUpdated()
-      throws IOException, ForbiddenException, NotFoundException {
+      throws IOException, NotFoundException {
     UID event = UID.of("QRYjLTiJTrA");
     LocalDateTime currentTime = LocalDateTime.now();
 
@@ -342,8 +343,7 @@ class EventChangeLogServiceTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnEventFieldChangeLogWhenExistingDateFieldDeleted()
-      throws ForbiddenException, NotFoundException {
+  void shouldReturnEventFieldChangeLogWhenExistingDateFieldDeleted() throws NotFoundException {
     UID event = UID.of("QRYjLTiJTrA");
 
     deleteScheduledAtDate(event);
@@ -363,7 +363,7 @@ class EventChangeLogServiceTest extends TrackerTest {
 
   @Test
   void shouldReturnEventFieldChangeLogWhenNewGeometryPointFieldValueAdded()
-      throws ForbiddenException, NotFoundException {
+      throws NotFoundException {
     String event = "QRYjLTiJTrA";
 
     Page<EventChangeLog> changeLogs =
@@ -378,7 +378,7 @@ class EventChangeLogServiceTest extends TrackerTest {
 
   @Test
   void shouldReturnEventFieldChangeLogWhenNewGeometryPolygonFieldValueAdded()
-      throws ForbiddenException, NotFoundException {
+      throws NotFoundException {
     String event = "YKmfzHdjUDL";
 
     Page<EventChangeLog> changeLogs =
@@ -397,7 +397,7 @@ class EventChangeLogServiceTest extends TrackerTest {
 
   @Test
   void shouldReturnEventFieldChangeLogWhenExistingGeometryPointFieldUpdated()
-      throws ForbiddenException, NotFoundException {
+      throws NotFoundException {
     UID event = UID.of("QRYjLTiJTrA");
 
     Geometry geometry = createGeometryPoint(16.435547, 49.26422);
@@ -420,7 +420,7 @@ class EventChangeLogServiceTest extends TrackerTest {
 
   @Test
   void shouldReturnEventFieldChangeLogWhenExistingGeometryPointFieldDeleted()
-      throws ForbiddenException, NotFoundException {
+      throws NotFoundException {
     UID event = UID.of("QRYjLTiJTrA");
 
     deleteEventGeometry(event);
@@ -449,12 +449,13 @@ class EventChangeLogServiceTest extends TrackerTest {
 
               assertNoErrors(
                   trackerImportService.importTracker(
-                      importParams, TrackerObjects.builder().events(List.of(e)).build()));
+                      TrackerImportParams.builder().build(),
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 
   private void updateEventDates(UID event, Instant newDate) throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/base_data.json");
 
     trackerObjects.getEvents().stream()
         .filter(e -> e.getEvent().equals(event))
@@ -466,7 +467,8 @@ class EventChangeLogServiceTest extends TrackerTest {
 
               assertNoErrors(
                   trackerImportService.importTracker(
-                      importParams, TrackerObjects.builder().events(List.of(e)).build()));
+                      TrackerImportParams.builder().build(),
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 
@@ -480,7 +482,8 @@ class EventChangeLogServiceTest extends TrackerTest {
 
               assertNoErrors(
                   trackerImportService.importTracker(
-                      importParams, TrackerObjects.builder().events(List.of(e)).build()));
+                      TrackerImportParams.builder().build(),
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 
@@ -494,7 +497,8 @@ class EventChangeLogServiceTest extends TrackerTest {
 
               assertNoErrors(
                   trackerImportService.importTracker(
-                      importParams, TrackerObjects.builder().events(List.of(e)).build()));
+                      TrackerImportParams.builder().build(),
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 
@@ -508,7 +512,8 @@ class EventChangeLogServiceTest extends TrackerTest {
 
               assertNoErrors(
                   trackerImportService.importTracker(
-                      importParams, TrackerObjects.builder().events(List.of(e)).build()));
+                      TrackerImportParams.builder().build(),
+                      TrackerObjects.builder().events(List.of(e)).build()));
             });
   }
 

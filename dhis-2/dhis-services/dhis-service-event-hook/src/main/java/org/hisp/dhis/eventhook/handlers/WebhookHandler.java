@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -40,50 +42,68 @@ import org.hisp.dhis.eventhook.EventHook;
 import org.hisp.dhis.eventhook.Handler;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
 import org.hisp.dhis.system.util.HttpUtils;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 
 /**
  * @author Morten Olav Hansen
  */
 @Slf4j
 public class WebhookHandler implements Handler {
+  private final ApplicationContext applicationContext;
+
   private final WebhookTarget webhookTarget;
 
   private final RestTemplate restTemplate;
 
-  public WebhookHandler(WebhookTarget target) {
+  public WebhookHandler(ApplicationContext applicationContext, WebhookTarget target) {
     this.webhookTarget = target;
+    this.applicationContext = applicationContext;
     this.restTemplate = new RestTemplate();
     configure(this.restTemplate);
   }
 
+  // Exceptions thrown in this method cannot be handled in a meaningful way other than logging
+  @SuppressWarnings("java:S112")
   @Override
   public void run(EventHook eventHook, Event event, String payload) {
     HttpHeaders httpHeaders = new HttpHeaders();
     httpHeaders.setContentType(MediaType.parseMediaType(webhookTarget.getContentType()));
     httpHeaders.setAll(webhookTarget.getHeaders());
 
+    MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
     if (webhookTarget.getAuth() != null) {
-      webhookTarget.getAuth().apply(httpHeaders);
+      try {
+        webhookTarget.getAuth().apply(applicationContext, httpHeaders, queryParams);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
     }
 
     HttpEntity<String> httpEntity = new HttpEntity<>(payload, httpHeaders);
+    String webhookUri =
+        new DefaultUriBuilderFactory(webhookTarget.getUrl())
+            .builder()
+            .queryParams(queryParams)
+            .toUriString();
 
     try {
       ResponseEntity<String> response =
-          restTemplate.postForEntity(webhookTarget.getUrl(), httpEntity, String.class);
+          restTemplate.postForEntity(webhookUri, httpEntity, String.class);
 
       log.info(
-          "EventHook '{}' response status '{}' and body: {}",
+          "EventHook '{}' response status '{}'",
           eventHook.getUid(),
-          HttpUtils.resolve(response.getStatusCode()).name(),
-          response.getBody());
+          HttpUtils.resolve(response.getStatusCode()).name());
     } catch (RestClientException ex) {
       log.error(ex.getMessage());
     }

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -55,7 +57,7 @@ public class MetadataExportParams {
   private Set<Class<? extends IdentifiableObject>> classes = new HashSet<>();
 
   /** Contains a set of queries that allows for filtered export. */
-  private Map<Class<? extends IdentifiableObject>, Query> queries = new HashMap<>();
+  private Map<Class<? extends IdentifiableObject>, Query<?>> queries = new HashMap<>();
 
   /**
    * Contains a set of field filters that allows the default field filter (:owner) to be overridden.
@@ -106,20 +108,16 @@ public class MetadataExportParams {
     return this;
   }
 
-  @SuppressWarnings("unchecked")
-  public MetadataExportParams addQuery(Query query) {
-    if (!query.getSchema().isIdentifiableObject()) return this;
-
-    Class<? extends IdentifiableObject> klass =
-        (Class<? extends IdentifiableObject>) query.getSchema().getKlass();
-    classes.add(klass);
-    queries.put(klass, query);
-
+  public MetadataExportParams addQuery(Query<?> query) {
+    Class<? extends IdentifiableObject> objectType = query.getObjectType();
+    classes.add(objectType);
+    queries.put(objectType, query);
     return this;
   }
 
-  public Query getQuery(Class<? extends IdentifiableObject> klass) {
-    return queries.get(klass);
+  @SuppressWarnings("unchecked")
+  public <T extends IdentifiableObject> Query<T> getQuery(Class<T> klass) {
+    return (Query<T>) queries.get(klass);
   }
 
   public MetadataExportParams addFields(

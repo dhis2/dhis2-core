@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -93,12 +95,12 @@ public interface DimensionalObject extends NameableObject, GroupableItem {
 
   List<String> STATIC_DIMS = List.of(LONGITUDE_DIM_ID, LATITUDE_DIM_ID);
 
-  Map<String, String> PRETTY_NAMES =
+  Map<String, MetadataItem> PRETTY_NAMES =
       Map.of(
-          DATA_X_DIM_ID, "Data",
-          CATEGORYOPTIONCOMBO_DIM_ID, "Data details",
-          PERIOD_DIM_ID, "Period",
-          ORGUNIT_DIM_ID, "Organisation unit");
+          DATA_X_DIM_ID, new MetadataItem("Data"),
+          CATEGORYOPTIONCOMBO_DIM_ID, new MetadataItem("Data details"),
+          PERIOD_DIM_ID, new MetadataItem("Period"),
+          ORGUNIT_DIM_ID, new MetadataItem("Organisation unit"));
 
   Set<Class<? extends BaseDimensionalObject>> DYNAMIC_DIMENSION_CLASSES =
       Set.of(

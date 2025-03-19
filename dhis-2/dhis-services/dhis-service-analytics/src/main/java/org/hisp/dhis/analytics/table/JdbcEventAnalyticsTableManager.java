@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,7 +29,9 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static java.lang.String.join;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
@@ -50,6 +54,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -112,7 +117,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      SqlBuilder sqlBuilder) {
+      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -335,8 +340,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             \sfrom ${event} ev \
             inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
             inner join ${programstage} ps on ev.programstageid=ps.programstageid \
-            inner join ${program} pr on en.programid=pr.programid and en.deleted = false \
-            left join ${trackedentity} te on en.trackedentityid=te.trackedentityid and te.deleted = false \
+            inner join ${program} pr on en.programid=pr.programid and ${enDeletedClause} \
+            left join ${trackedentity} te on en.trackedentityid=te.trackedentityid and ${teDeletedClause} \
             left join ${organisationunit} registrationou on te.organisationunitid=registrationou.organisationunitid \
             inner join ${organisationunit} ou on ev.organisationunitid=ou.organisationunitid \
             left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod \
@@ -360,9 +365,11 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 "attributeJoinClause", attributeJoinClause,
                 "startTime", toLongDate(params.getStartTime()),
                 "programId", String.valueOf(program.getId()),
+                "enDeletedClause", sqlBuilder.isFalse("en", "deleted"),
+                "teDeletedClause", sqlBuilder.isFalse("te", "deleted"),
                 "firstDataYear", String.valueOf(firstDataYear),
                 "latestDataYear", String.valueOf(latestDataYear),
-                "exportableEventStatues", String.join(",", EXPORTABLE_EVENT_STATUSES)));
+                "exportableEventStatues", join(",", EXPORTABLE_EVENT_STATUSES)));
 
     populateTableInternal(partition, fromClause);
   }
@@ -462,11 +469,15 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    */
   private List<AnalyticsTableColumn> getDataElementColumns(Program program) {
     List<AnalyticsTableColumn> columns = new ArrayList<>();
+    Set<DataElement> dataElements =
+        program.getAnalyticsDataElements().stream().filter(Objects::nonNull).collect(toSet());
+
     columns.addAll(
-        program.getAnalyticsDataElements().stream()
+        dataElements.stream()
             .map(de -> getColumnForDataElement(de, false))
             .flatMap(Collection::stream)
             .toList());
+
     columns.addAll(
         program.getAnalyticsDataElementsWithLegendSet().stream()
             .map(de -> getColumnForDataElement(de, true))
@@ -530,7 +541,6 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * Returns a list of columns.
    *
    * @param dataElement the {@link DataElement}.
-   * @param dataFilterClause the data filter SQL clause.
    * @return a list of {@link AnalyticsTableColumn}.
    */
   private List<AnalyticsTableColumn> getColumnForOrgUnitDataElement(DataElement dataElement) {
@@ -660,7 +670,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @param dataElement the {@link DataElement}.
    * @param selectExpression the select expression.
    * @param dataFilterClause the data filter clause.
-   * @return a list of {@link AnayticsTableColumn}.
+   * @return a list of {@link AnalyticsTableColumn}.
    */
   private List<AnalyticsTableColumn> getColumnFromDataElementWithLegendSet(
       DataElement dataElement, String selectExpression, String dataFilterClause) {
@@ -774,7 +784,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
    * @param value the value.
    * @return a numeric regexp match expression.
    */
-  private final String getNumericClause(String value) {
+  private String getNumericClause(String value) {
     return " and " + sqlBuilder.regexpMatch(value, "'" + NUMERIC_LENIENT_REGEXP + "'");
   }
 

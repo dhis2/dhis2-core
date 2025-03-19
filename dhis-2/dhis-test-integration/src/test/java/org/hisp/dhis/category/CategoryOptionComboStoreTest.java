@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -210,18 +212,9 @@ class CategoryOptionComboStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGenerateCategoryOptionCombos() {
-    categoryService.generateOptionCombos(categoryComboA);
-    categoryService.generateOptionCombos(categoryComboB);
-    List<CategoryOptionCombo> optionCombos = categoryService.getAllCategoryOptionCombos();
-    // Including default
-    assertEquals(7, optionCombos.size());
-  }
-
-  @Test
   void testGetCategoryOptionCombo() {
-    categoryService.generateOptionCombos(categoryComboA);
-    categoryService.generateOptionCombos(categoryComboB);
+    categoryService.addAndPruneOptionCombos(categoryComboA);
+    categoryService.addAndPruneOptionCombos(categoryComboB);
     Set<CategoryOption> categoryOptions1 = new HashSet<>();
     categoryOptions1.add(categoryOptionA);
     categoryOptions1.add(categoryOptionC);
@@ -258,8 +251,8 @@ class CategoryOptionComboStoreTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetCategoryOptionComboNotFound() {
-    categoryService.generateOptionCombos(categoryComboA);
-    categoryService.generateOptionCombos(categoryComboB);
+    categoryService.addAndPruneOptionCombos(categoryComboA);
+    categoryService.addAndPruneOptionCombos(categoryComboB);
     CategoryOption co = new CategoryOption("10000");
     categoryService.addCategoryOption(co);
     Set<CategoryOption> options = new HashSet<>();
@@ -270,8 +263,8 @@ class CategoryOptionComboStoreTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetCategoryOptionComboGivenSubsetOfCategoryOptions() {
-    categoryService.generateOptionCombos(categoryComboA);
-    categoryService.generateOptionCombos(categoryComboB);
+    categoryService.addAndPruneOptionCombos(categoryComboA);
+    categoryService.addAndPruneOptionCombos(categoryComboB);
     Set<CategoryOption> options = new HashSet<>();
     options.add(categoryOptionA);
 
@@ -280,8 +273,8 @@ class CategoryOptionComboStoreTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetCategoryOptionComboByOptionGroup() {
-    categoryService.generateOptionCombos(categoryComboA);
-    categoryService.generateOptionCombos(categoryComboB);
+    categoryService.addAndPruneOptionCombos(categoryComboA);
+    categoryService.addAndPruneOptionCombos(categoryComboB);
     CategoryOptionGroup catOptionGroup = createCategoryOptionGroup('A');
     catOptionGroup.addCategoryOption(categoryOptionA);
     catOptionGroup.addCategoryOption(categoryOptionB);
@@ -312,7 +305,7 @@ class CategoryOptionComboStoreTest extends PostgresIntegrationTestBase {
 
     CategoryCombo categoryCombo = createCategoryCombo('Z', c1, c2);
     categoryService.addCategoryCombo(categoryCombo);
-    categoryService.updateOptionCombos(categoryCombo);
+    categoryService.addAndPruneOptionCombos(categoryCombo);
 
     List<CategoryOptionCombo> cocsByCategoryOption =
         categoryOptionComboStore.getCategoryOptionCombosByCategoryOption(

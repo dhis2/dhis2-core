@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -189,7 +191,8 @@ public class DimensionController
     int totalOfItems = 0;
     if (paging) {
       params.setPaging(false);
-      Query queryForCount = queryService.getQueryFromUrl(DimensionalItemObject.class, params);
+      Query<DimensionalItemObject> queryForCount =
+          queryService.getQueryFromUrl(DimensionalItemObject.class, params);
       queryForCount.setObjects(readableItems);
 
       List<?> totalItems = queryService.query(queryForCount);
@@ -197,13 +200,12 @@ public class DimensionController
       params.setPaging(true);
     }
 
-    Query query = queryService.getQueryFromUrl(DimensionalItemObject.class, params);
+    Query<DimensionalItemObject> query =
+        queryService.getQueryFromUrl(DimensionalItemObject.class, params);
     query.setObjects(readableItems);
     query.setDefaultOrder();
 
-    @SuppressWarnings("unchecked")
-    List<DimensionalItemObject> paginatedItems =
-        (List<DimensionalItemObject>) queryService.query(query);
+    List<DimensionalItemObject> paginatedItems = queryService.query(query);
     if (!paging) totalOfItems = paginatedItems.size();
 
     RootNode rootNode = NodeUtils.createMetadata();
@@ -310,13 +312,12 @@ public class DimensionController
   }
 
   private PagedEntities<DimensionalObject> getPagedEntities(GetObjectListParams params) {
-    Query filteredQuery = queryService.getQueryFromUrl(DimensionalObject.class, params);
+    Query<DimensionalObject> filteredQuery =
+        queryService.getQueryFromUrl(DimensionalObject.class, params);
     filteredQuery.setObjects(dimensionService.getAllDimensions());
 
     filteredQuery.setSkipPaging(true); // paging is done post
-    @SuppressWarnings("unchecked")
-    List<DimensionalObject> filteredNotPaged =
-        (List<DimensionalObject>) queryService.query(filteredQuery);
+    List<DimensionalObject> filteredNotPaged = queryService.query(filteredQuery);
     return PaginationUtils.addPagingIfEnabled(params, filteredNotPaged);
   }
 }

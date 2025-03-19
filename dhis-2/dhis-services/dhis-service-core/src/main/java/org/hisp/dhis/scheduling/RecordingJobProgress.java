@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -41,6 +43,8 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.system.notification.NotificationLevel;
+import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
@@ -66,7 +70,15 @@ public class RecordingJobProgress implements JobProgress {
    *     recoding objects
    */
   public static JobProgress transitory() {
-    return new RecordingJobProgress(null, null, JobProgress.noop(), true, () -> {}, false, true);
+    return transitory(null, null);
+  }
+
+  public static JobProgress transitory(JobConfiguration job, Notifier notifier) {
+    JobProgress track =
+        notifier == null
+            ? JobProgress.noop()
+            : new NotifierJobProgress(notifier, job, NotificationLevel.INFO);
+    return new RecordingJobProgress(null, null, track, true, () -> {}, false, true);
   }
 
   @CheckForNull private final MessageService messageService;
@@ -86,6 +98,9 @@ public class RecordingJobProgress implements JobProgress {
   private final AtomicReference<Stage> incompleteStage = new AtomicReference<>();
   private final ThreadLocal<Item> incompleteItem = new ThreadLocal<>();
   private final boolean usingErrorNotification;
+
+  private int bucketingSize;
+  private int bucketed;
 
   public RecordingJobProgress(JobConfiguration configuration) {
     this(null, configuration, JobProgress.noop(), true, () -> {}, false, false);
@@ -295,6 +310,8 @@ public class RecordingJobProgress implements JobProgress {
     skipCurrentStage.set(false);
     tracker.startingStage(description, workItems);
     incompleteItem.remove();
+    bucketingSize = 1;
+    bucketed = 0;
     Stage stage =
         addStageRecord(getOrAddLastIncompleteProcess(), description, workItems, onFailure);
     logInfo(stage, "", description);
@@ -315,6 +332,7 @@ public class RecordingJobProgress implements JobProgress {
     String message = format(summary, args);
     tracker.completedStage(message);
     Stage stage = getOrAddLastIncompleteStage();
+    autoCompleteWorkItemBucket();
     stage.complete(message);
     logInfo(stage, "completed", message);
   }
@@ -326,6 +344,7 @@ public class RecordingJobProgress implements JobProgress {
     String message = format(error, args);
     tracker.failedStage(message);
     Stage stage = getOrAddLastIncompleteStage();
+    autoCompleteWorkItemBucket();
     stage.completeExceptionally(message, null);
     if (stage.getOnFailure() != FailurePolicy.SKIP_STAGE) {
       automaticAbort(message, null);
@@ -341,6 +360,7 @@ public class RecordingJobProgress implements JobProgress {
     tracker.failedStage(cause);
     String message = getMessage(cause);
     Stage stage = getOrAddLastIncompleteStage();
+    autoCompleteWorkItemBucket();
     stage.completeExceptionally(message, cause);
     if (stage.getOnFailure() != FailurePolicy.SKIP_STAGE) {
       automaticAbort(message, cause);
@@ -350,27 +370,56 @@ public class RecordingJobProgress implements JobProgress {
   }
 
   @Override
-  public void startingWorkItem(@Nonnull String description, @Nonnull FailurePolicy onFailure) {
-    observer.run();
+  public void setWorkItemBucketing(int size) {
+    bucketingSize = Math.max(1, size);
+  }
 
-    tracker.startingWorkItem(description, onFailure);
-    Item item = addItemRecord(getOrAddLastIncompleteStage(), description, onFailure);
-    logDebug(item, "started", description);
+  @Override
+  public void startingWorkItem(@Nonnull String description, @Nonnull FailurePolicy onFailure) {
+    if (bucketed % bucketingSize == 0) {
+      observer.run();
+
+      tracker.startingWorkItem(description, onFailure);
+      Item item = addItemRecord(getOrAddLastIncompleteStage(), description, onFailure);
+      logDebug(item, "started", description);
+    }
+    bucketed++;
   }
 
   @Override
   public void completedWorkItem(String summary, Object... args) {
+    if (bucketed % bucketingSize == 0) {
+      completeWorkItemBucket(summary, args);
+    }
+  }
+
+  private void completeWorkItemBucket(String summary, Object... args) {
     observer.run();
 
-    String message = format(summary, args);
-    tracker.completedWorkItem(message);
     Item item = getOrAddLastIncompleteItem();
+    String message =
+        summary == null && bucketingSize > 1 ? getBucketSummary(item) : format(summary, args);
+    tracker.completedWorkItem(message);
     item.complete(message);
     logDebug(item, "completed", message);
   }
 
+  @Nonnull
+  private String getBucketSummary(Item item) {
+    int n = bucketed % bucketingSize;
+    return item.getDescription() + " +" + (n == 0 ? bucketingSize : n);
+  }
+
+  private void autoCompleteWorkItemBucket() {
+    if (bucketingSize > 1) {
+      Item item = incompleteItem.get();
+      if (item != null && !item.isComplete()) completeWorkItemBucket(null);
+    }
+  }
+
   @Override
   public void failedWorkItem(@Nonnull String error, Object... args) {
+    bucketed = 0; // reset to restart bucketing on next item
     observer.run();
 
     String message = format(error, args);
@@ -385,6 +434,7 @@ public class RecordingJobProgress implements JobProgress {
 
   @Override
   public void failedWorkItem(@Nonnull Exception cause) {
+    bucketed = 0; // reset to restart bucketing on next item
     observer.run();
 
     tracker.failedWorkItem(cause);

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -30,9 +32,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
 import lombok.AllArgsConstructor;
-import org.hisp.dhis.common.auth.ApiTokenAuth;
-import org.hisp.dhis.common.auth.Auth;
-import org.hisp.dhis.common.auth.HttpBasicAuth;
+import org.hisp.dhis.common.auth.AuthScheme;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.route.Route;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
@@ -60,24 +60,20 @@ public class RouteObjectBundleHook extends AbstractObjectBundleHook<Route> {
   }
 
   private void encrypt(Route route) {
-    Auth auth = route.getAuth();
+    AuthScheme auth = route.getAuth();
 
     if (auth == null) {
       return;
     }
 
-    if (auth.getType().equals(ApiTokenAuth.TYPE)) {
-      ApiTokenAuth apiTokenAuth = (ApiTokenAuth) auth;
-
-      if (StringUtils.hasText(apiTokenAuth.getToken())) {
-        apiTokenAuth.setToken(encryptor.encrypt(apiTokenAuth.getToken()));
-      }
-    } else if (auth.getType().equals(HttpBasicAuth.TYPE)) {
-      HttpBasicAuth httpBasicAuth = (HttpBasicAuth) auth;
-
-      if (StringUtils.hasText(httpBasicAuth.getPassword())) {
-        httpBasicAuth.setPassword(encryptor.encrypt(httpBasicAuth.getPassword()));
-      }
-    }
+    route.setAuth(
+        auth.encrypt(
+            secret -> {
+              if (StringUtils.hasText(secret)) {
+                return encryptor.encrypt(secret);
+              } else {
+                return secret;
+              }
+            }));
   }
 }

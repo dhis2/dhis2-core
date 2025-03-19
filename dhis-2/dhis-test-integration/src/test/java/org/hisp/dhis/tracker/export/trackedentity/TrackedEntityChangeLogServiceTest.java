@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -40,9 +42,10 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.tracker.TrackerTest;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -50,9 +53,14 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class TrackedEntityChangeLogServiceTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
+  @Autowired private TestSetup testSetup;
   @Autowired private TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   @Autowired private TrackerImportService trackerImportService;
@@ -61,26 +69,24 @@ class TrackedEntityChangeLogServiceTest extends TrackerTest {
 
   private User importUser;
 
-  private TrackerImportParams importParams;
-
   private final TrackedEntityChangeLogOperationParams defaultOperationParams =
       TrackedEntityChangeLogOperationParams.builder().build();
-  private final PageParams defaultPageParams = new PageParams(null, null, false);
+  private final PageParams defaultPageParams;
 
   private TrackerObjects trackerObjects;
 
+  TrackedEntityChangeLogServiceTest() throws BadRequestException {
+    defaultPageParams = PageParams.of(1, 10, false);
+  }
+
   @BeforeAll
   void setUp() throws IOException {
-    injectSecurityContextUser(getAdminUser());
-    setUpMetadata("tracker/simple_metadata.json");
+    testSetup.importMetadata();
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    importParams = TrackerImportParams.builder().build();
-    trackerObjects = fromJson("tracker/event_and_enrollment.json");
-
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+    trackerObjects = testSetup.importTrackerData();
   }
 
   @BeforeEach
@@ -128,6 +134,7 @@ class TrackedEntityChangeLogServiceTest extends TrackerTest {
 
   @Test
   void shouldFailWhenUserHasNoAccessToTET() {
+    injectSecurityContextUser(manager.get(User.class, "o1HMTIzBGo7"));
     String trackedEntity = "XUitxQbWYNq";
 
     Exception exception =
@@ -144,18 +151,18 @@ class TrackedEntityChangeLogServiceTest extends TrackerTest {
 
   @Test
   void shouldFailWhenUserHasNoAccessToOrgUnitScope() {
-    injectSecurityContextUser(manager.get(User.class, "o1HMTIzBGo7"));
+    injectSecurityContextUser(manager.get(User.class, "FIgVWzUCkpw"));
     String trackedEntity = "XUitxQbWYNq";
 
     Exception exception =
         assertThrows(
-            ForbiddenException.class,
+            NotFoundException.class,
             () ->
                 trackedEntityChangeLogService.getTrackedEntityChangeLog(
                     UID.of(trackedEntity), null, defaultOperationParams, defaultPageParams));
 
     assertEquals(
-        String.format("User has no access to TrackedEntity:%s", trackedEntity),
+        String.format("TrackedEntity with id %s could not be found.", trackedEntity),
         exception.getMessage());
   }
 
@@ -260,17 +267,29 @@ class TrackedEntityChangeLogServiceTest extends TrackerTest {
   }
 
   @Test
-  void shouldReturnChangeLogsFromSpecifiedProgramOnlyWhenMultipleLogsExist()
+  void shouldReturnChangeLogsFromSpecifiedProgram()
       throws NotFoundException, ForbiddenException, BadRequestException {
+    String trackedEntity = "dUE514NMOlo";
+    String program = "BFcipDERJnf";
+    String programAttribute = "fRGt4l6yIRb";
+
+    updateAttributeValue(trackedEntity, programAttribute, "updated program attribute value");
+
     Page<TrackedEntityChangeLog> changeLogs =
         trackedEntityChangeLogService.getTrackedEntityChangeLog(
-            UID.of("QS6w44flWAf"),
-            UID.of("BFcipDERJnf"),
-            defaultOperationParams,
-            defaultPageParams);
+            UID.of(trackedEntity), UID.of(program), defaultOperationParams, defaultPageParams);
 
-    assertNumberOfChanges(1, changeLogs.getItems());
-    assertAll(() -> assertCreate("dIVt4l5vIOa", "Value", changeLogs.getItems().get(0)));
+    assertNumberOfChanges(2, changeLogs.getItems());
+    assertAll(
+        () ->
+            assertUpdate(
+                programAttribute,
+                "program attribute value",
+                "updated program attribute value",
+                changeLogs.getItems().get(0)),
+        () ->
+            assertCreate(
+                programAttribute, "program attribute value", changeLogs.getItems().get(1)));
   }
 
   private static void assertNumberOfChanges(int expected, List<TrackedEntityChangeLog> changeLogs) {
@@ -346,7 +365,8 @@ class TrackedEntityChangeLogServiceTest extends TrackerTest {
 
               assertNoErrors(
                   trackerImportService.importTracker(
-                      importParams, TrackerObjects.builder().trackedEntities(List.of(t)).build()));
+                      TrackerImportParams.builder().build(),
+                      TrackerObjects.builder().trackedEntities(List.of(t)).build()));
             });
   }
 

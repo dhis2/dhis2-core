@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -51,12 +53,14 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
@@ -65,12 +69,18 @@ import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class EnrollmentSecurityImportValidationTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class EnrollmentSecurityImportValidationTest extends PostgresIntegrationTestBase {
+  @Autowired private TestSetup testSetup;
+
   @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private IdentifiableObjectManager manager;
@@ -107,7 +117,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
 
   @BeforeAll
   void setUp() throws IOException {
-    setUpMetadata("tracker/tracker_basic_metadata.json");
+    testSetup.importMetadata("tracker/tracker_basic_metadata.json");
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
@@ -115,7 +125,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
     TrackerImportParams params = TrackerImportParams.builder().build();
     assertNoErrors(
         trackerImportService.importTracker(
-            params, fromJson("tracker/validations/enrollments_te_te-data.json")));
+            params, testSetup.fromJson("tracker/validations/enrollments_te_te-data.json")));
   }
 
   private void setup() {
@@ -184,7 +194,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
 
     ImportReport importReport =
         trackerImportService.importTracker(
-            params, fromJson("tracker/validations/enrollments_te_enrollments-data.json"));
+            params, testSetup.fromJson("tracker/validations/enrollments_te_enrollments-data.json"));
 
     assertHasErrors(importReport, 4, ValidationCode.E1000);
   }
@@ -204,7 +214,8 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
             .setOrganisationUnits(Sets.newHashSet(orgUnit, organisationUnitA));
     userService.addUser(user);
     injectSecurityContextUser(user);
-    TrackerObjects trackerObjects = fromJson("tracker/validations/enrollments_no-access-te.json");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/validations/enrollments_no-access-te.json");
     TrackerImportParams params = new TrackerImportParams();
     params.setImportStrategy(CREATE);
 
@@ -231,7 +242,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
     userService.addUser(user);
     injectSecurityContextUser(user);
     TrackerObjects trackerObjects =
-        fromJson("tracker/validations/enrollments_no-access-program.json");
+        testSetup.fromJson("tracker/validations/enrollments_no-access-program.json");
     TrackerImportParams params = new TrackerImportParams();
     params.setImportStrategy(CREATE);
 
@@ -254,7 +265,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
     userService.addUser(user);
     injectSecurityContextUser(user);
     TrackerObjects trackerObjects =
-        fromJson("tracker/validations/enrollments_no-access-program.json");
+        testSetup.fromJson("tracker/validations/enrollments_no-access-program.json");
     TrackerImportParams params = new TrackerImportParams();
     params.setImportStrategy(CREATE);
 
@@ -276,7 +287,7 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
         createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(organisationUnitA));
     injectSecurityContextUser(user);
     TrackerObjects trackerObjects =
-        fromJson("tracker/validations/enrollments_program-tetype-missmatch.json");
+        testSetup.fromJson("tracker/validations/enrollments_program-tetype-missmatch.json");
     TrackerImportParams params = new TrackerImportParams();
     params.setImportStrategy(CREATE);
 
@@ -355,10 +366,10 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest {
     return trackedEntity;
   }
 
-  private List<org.hisp.dhis.tracker.imports.domain.Enrollment> createEnrollment(
+  private List<Enrollment> createEnrollment(
       TrackedEntity trackedEntity, OrganisationUnit orgUnit, Program program) {
     return List.of(
-        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+        Enrollment.builder()
             .program(MetadataIdentifier.ofUid(program.getUid()))
             .orgUnit(MetadataIdentifier.ofUid(orgUnit.getUid()))
             .trackedEntity(UID.of(trackedEntity))

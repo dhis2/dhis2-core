@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -42,6 +44,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
@@ -443,7 +446,7 @@ class EventQueryParams {
 
   /** Returns attributes that are only ordered by and not present in any filter. */
   public Set<TrackedEntityAttribute> leftJoinAttributes() {
-    return SetUtils.difference(getOrderAttributes().keySet(), this.attributes.keySet());
+    return SetUtils.union(getOrderAttributes().keySet(), this.attributes.keySet());
   }
 
   public Map<TrackedEntityAttribute, List<QueryFilter>> getAttributes() {
@@ -473,7 +476,7 @@ class EventQueryParams {
   }
 
   public EventQueryParams filterBy(DataElement de) {
-    this.dataElements.putIfAbsent(de, new ArrayList<>());
+    this.dataElements.putIfAbsent(de, List.of(new QueryFilter(QueryOperator.NNULL)));
     return this;
   }
 

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -34,17 +36,16 @@ import static org.hisp.dhis.security.Authorities.ALL;
 import static org.hisp.dhis.security.Authorities.F_PERFORM_MAINTENANCE;
 
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryManager;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.dxf2.util.CategoryUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.maintenance.MaintenanceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -53,7 +54,6 @@ import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -72,29 +72,19 @@ import org.springframework.web.bind.annotation.ResponseStatus;
     classifiers = {"team:platform", "purpose:support"})
 @Controller
 @RequestMapping("/api/maintenance")
+@RequiredArgsConstructor
 @RequiresAuthority(anyOf = F_PERFORM_MAINTENANCE)
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class MaintenanceController {
 
-  @Autowired private MaintenanceService maintenanceService;
-
-  @Autowired private ResourceTableService resourceTableService;
-
-  @Autowired private AnalyticsTableGenerator analyticsTableGenerator;
-
-  @Autowired private OrganisationUnitService organisationUnitService;
-
-  @Autowired private DataElementService dataElementService;
-
-  @Autowired private List<AnalyticsTableService> analyticsTableService;
-
-  @Autowired private CategoryManager categoryManager;
-
-  @Autowired private CategoryUtils categoryUtils;
-
-  @Autowired private AppManager appManager;
-
-  @Autowired private CategoryService categoryService;
+  private final MaintenanceService maintenanceService;
+  private final ResourceTableService resourceTableService;
+  private final AnalyticsTableGenerator analyticsTableGenerator;
+  private final OrganisationUnitService organisationUnitService;
+  private final DataElementService dataElementService;
+  private final List<AnalyticsTableService> analyticsTableService;
+  private final AppManager appManager;
+  private final CategoryService categoryService;
 
   @RequestMapping(
       value = "/analyticsTablesClear",
@@ -152,18 +142,6 @@ public class MaintenanceController {
     maintenanceService.deleteSoftDeletedDataValues();
   }
 
-  /**
-   * @deprecated use {@link #deleteSoftDeletedEvents()} instead
-   */
-  @Deprecated(since = "2.41", forRemoval = true)
-  @RequestMapping(
-      value = "/softDeletedProgramStageInstanceRemoval",
-      method = {RequestMethod.PUT, RequestMethod.POST})
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void deleteSoftDeletedEventsDeprecated() {
-    maintenanceService.deleteSoftDeletedEvents();
-  }
-
   @RequestMapping(
       value = "/softDeletedEventRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
@@ -180,36 +158,12 @@ public class MaintenanceController {
     maintenanceService.deleteSoftDeletedRelationships();
   }
 
-  /**
-   * @deprecated use {@link #deleteSoftDeletedEnrollments()} instead
-   */
-  @Deprecated(since = "2.41", forRemoval = true)
-  @RequestMapping(
-      value = "/softDeletedProgramInstanceRemoval",
-      method = {RequestMethod.PUT, RequestMethod.POST})
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void deleteSoftDeletedEnrollmentsDeprecated() {
-    maintenanceService.deleteSoftDeletedEnrollments();
-  }
-
   @RequestMapping(
       value = "/softDeletedEnrollmentRemoval",
       method = {RequestMethod.PUT, RequestMethod.POST})
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteSoftDeletedEnrollments() {
     maintenanceService.deleteSoftDeletedEnrollments();
-  }
-
-  /**
-   * @deprecated use {@link #deleteSoftDeletedTrackedEntities()}
-   */
-  @Deprecated(since = "2.41", forRemoval = true)
-  @RequestMapping(
-      value = "/softDeletedTrackedEntityInstanceRemoval",
-      method = {RequestMethod.PUT, RequestMethod.POST})
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void deleteSoftDeletedTrackedEntityInstancesDeprecated() {
-    maintenanceService.deleteSoftDeletedTrackedEntities();
   }
 
   @RequestMapping(
@@ -241,7 +195,7 @@ public class MaintenanceController {
       method = {RequestMethod.PUT, RequestMethod.POST})
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void updateCategoryOptionCombos() {
-    categoryManager.addAndPruneAllOptionCombos();
+    categoryService.addAndPruneAllOptionCombos();
   }
 
   @RequestMapping(
@@ -255,7 +209,7 @@ public class MaintenanceController {
       return conflict("CategoryCombo does not exist: " + uid);
     }
 
-    return importSummaries(categoryUtils.addAndPruneOptionCombos(categoryCombo));
+    return importSummaries(categoryService.addAndPruneOptionCombosWithSummary(categoryCombo));
   }
 
   @RequestMapping(
@@ -320,9 +274,6 @@ public class MaintenanceController {
       @RequestParam(required = false) boolean softDeletedRelationshipRemoval,
       @RequestParam(required = false) boolean softDeletedEventRemoval,
       @RequestParam(required = false) boolean softDeletedEnrollmentRemoval,
-      @Deprecated(since = "2.41", forRemoval = true) // use softDeletedTrackedEntityRemoval instead
-          @RequestParam(required = false)
-          boolean softDeletedTrackedEntityInstanceRemoval,
       @RequestParam(required = false) boolean softDeletedTrackedEntityRemoval,
       @RequestParam(required = false) boolean sqlViewsDrop,
       @RequestParam(required = false) boolean sqlViewsCreate,
@@ -370,7 +321,7 @@ public class MaintenanceController {
       deleteSoftDeletedEnrollments();
     }
 
-    if (softDeletedTrackedEntityRemoval || softDeletedTrackedEntityInstanceRemoval) {
+    if (softDeletedTrackedEntityRemoval) {
       deleteSoftDeletedTrackedEntities();
     }
 

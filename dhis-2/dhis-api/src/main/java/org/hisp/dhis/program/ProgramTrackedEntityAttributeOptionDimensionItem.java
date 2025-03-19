@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -28,7 +30,7 @@
 package org.hisp.dhis.program;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
-import static org.apache.commons.lang3.StringUtils.SPACE;
+import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE_OPTION;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
@@ -43,8 +45,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.Objects;
 import java.util.List;
+import javax.annotation.Nonnull;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.analytics.Aggregation;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -58,10 +60,9 @@ import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
- * This class represents the junction of a {@link Program}, {@link TrackedEntityAttribute}, {@link
- * Option} and the respective {@link Aggregation}. It's mainly used as a dimensional item ({@link
- * DimensionalItemObject}), in visualization objects. ie: {@link
- * org.hisp.dhis.visualization.Visualization}
+ * This class represents the junction of a {@link Program}, {@link TrackedEntityAttribute} and
+ * {@link Option}. It's mainly used as a dimensional item ({@link DimensionalItemObject}), in
+ * visualization objects. ie: {@link org.hisp.dhis.visualization.Visualization}
  */
 @NoArgsConstructor
 @JacksonXmlRootElement(localName = "programAttributeOptionDimension", namespace = DXF_2_0)
@@ -70,39 +71,34 @@ public class ProgramTrackedEntityAttributeOptionDimensionItem extends BaseDimens
   private Program program;
   private TrackedEntityAttribute attribute;
   private Option option;
-  private Aggregation aggregation;
 
   public ProgramTrackedEntityAttributeOptionDimensionItem(
-      Program program, TrackedEntityAttribute attribute, Option option, Aggregation aggregation) {
+      @Nonnull Program program, @Nonnull TrackedEntityAttribute attribute, @Nonnull Option option) {
     this.program = program;
     this.attribute = attribute;
     this.option = option;
-    this.aggregation = aggregation;
   }
 
   @Override
   public String getName() {
-    return joinWith(
-        SPACE, program.getDisplayName(), attribute.getDisplayName(), option.getDisplayName());
+    return format(
+        "%s (%s, %s)",
+        option.getDisplayName(), attribute.getDisplayName(), program.getDisplayName());
   }
 
   @Override
   public String getShortName() {
-    return joinWith(
-        SPACE,
-        program.getDisplayShortName(),
+    return format(
+        "%s (%s, %s)",
+        option.getDisplayShortName(),
         attribute.getDisplayShortName(),
-        option.getDisplayShortName());
+        program.getDisplayShortName());
   }
 
   @Override
   public String getDimensionItem() {
     return joinWith(
-        COMPOSITE_DIM_OBJECT_PLAIN_SEP,
-        program.getUid(),
-        attribute.getUid(),
-        option.getUid(),
-        aggregation);
+        COMPOSITE_DIM_OBJECT_PLAIN_SEP, program.getUid(), attribute.getUid(), option.getUid());
   }
 
   @Override
@@ -133,13 +129,12 @@ public class ProgramTrackedEntityAttributeOptionDimensionItem extends BaseDimens
         .add("program", program)
         .add("attribute", attribute)
         .add("option", option)
-        .add("aggregation", aggregation)
         .toString();
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(program, attribute, option, aggregation);
+    return Objects.hashCode(program, attribute, option);
   }
 
   @Override
@@ -152,8 +147,7 @@ public class ProgramTrackedEntityAttributeOptionDimensionItem extends BaseDimens
   private boolean objectEquals(ProgramTrackedEntityAttributeOptionDimensionItem other) {
     return Objects.equal(attribute, other.attribute)
         && Objects.equal(program, other.program)
-        && Objects.equal(option, other.option)
-        && Objects.equal(aggregation, other.aggregation);
+        && Objects.equal(option, other.option);
   }
 
   @JsonProperty
@@ -190,16 +184,5 @@ public class ProgramTrackedEntityAttributeOptionDimensionItem extends BaseDimens
 
   public void setOption(Option option) {
     this.option = option;
-  }
-
-  @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
-  @JacksonXmlProperty(namespace = DXF_2_0)
-  public Aggregation getAggregation() {
-    return aggregation;
-  }
-
-  public void setAggregation(Aggregation aggregation) {
-    this.aggregation = aggregation;
   }
 }

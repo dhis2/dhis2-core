@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -1283,6 +1285,25 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         }
         """;
     assertErrorMandatoryAttributeRequired(attrId, POST("/users", user));
+  }
+
+  @Test
+  void testSortIAscending() {
+    POST(
+            "/categories/",
+            "{'name':'Child Health', 'shortName':'CAT1','dataDimensionType':'DISAGGREGATION'}")
+        .content(HttpStatus.CREATED);
+    POST(
+            "/categories/",
+            "{'name':'births attended by', 'shortName':'CAT2','dataDimensionType':'DISAGGREGATION'}")
+        .content(HttpStatus.CREATED);
+
+    JsonList<JsonIdentifiableObject> response =
+        GET("/categories?order=name:iasc")
+            .content()
+            .getList("categories", JsonIdentifiableObject.class);
+    assertEquals("births attended by", response.get(0).getDisplayName());
+    assertEquals("Child Health", response.get(1).getDisplayName());
   }
 
   private void assertErrorMandatoryAttributeRequired(String attrId, HttpResponse response) {

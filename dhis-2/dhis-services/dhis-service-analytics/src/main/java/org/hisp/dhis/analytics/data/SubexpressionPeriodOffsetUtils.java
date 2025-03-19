@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -40,6 +42,9 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.period.Period;
 
 /**
@@ -95,17 +100,17 @@ public class SubexpressionPeriodOffsetUtils {
             format("(%s,'%s','%s'),", delta, reportPeriod.getIsoDate(), dataPeriod.getIsoDate()));
       }
     }
-    sb.setLength(sb.length() - 1); // Remove final ","
 
-    sb.append(
-        format(
-            ") as %s (%s, %s, %s) on %s = %s",
-            SHIFT,
-            DELTA,
-            REPORTPERIOD,
-            DATAPERIOD,
-            DATAPERIOD,
-            quote(params.getPeriodType().toLowerCase())));
+    TextUtils.removeLastComma(sb)
+        .append(
+            format(
+                ") as %s (%s, %s, %s) on %s = %s",
+                SHIFT,
+                DELTA,
+                REPORTPERIOD,
+                DATAPERIOD,
+                DATAPERIOD,
+                quote(params.getPeriodType().toLowerCase())));
 
     return sb.toString();
   }
@@ -159,9 +164,23 @@ public class SubexpressionPeriodOffsetUtils {
   // Supportive methods
   // -------------------------------------------------------------------------
 
-  /** Gets the report periods from paramms as a list of Periods. */
+  /**
+   * Gets the report periods from the parameters, or if there are no report periods, gets the filter
+   * periods.
+   *
+   * @param params parameters with reporting periods
+   * @return the report periods
+   */
   private static List<Period> getReportPeriods(DataQueryParams params) {
-    return params.getPeriods().stream().map(Period.class::cast).toList();
+    List<Period> periods = params.getPeriods().stream().map(Period.class::cast).toList();
+
+    if (periods.isEmpty()) {
+      periods = params.getFilterPeriods().stream().map(Period.class::cast).toList();
+    }
+    if (periods.isEmpty()) {
+      throw new IllegalQueryException(ErrorCode.E7150);
+    }
+    return periods;
   }
 
   /** Gets the sorted, distinct period offsets from items within the subexpression. */

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -28,17 +30,16 @@
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitModeForTrackedEntities;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.parseFilters;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateDeprecatedParameter;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrderParams;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrgUnitModeForTrackedEntities;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -80,32 +81,11 @@ class TrackedEntityRequestParamsMapper {
       List<FieldPath> fields,
       UserDetails user)
       throws BadRequestException {
-    validateRemovedParameters(trackedEntityRequestParams);
-
-    Set<UID> assignedUsers =
-        validateDeprecatedUidsParameter(
-            "assignedUser",
-            trackedEntityRequestParams.getAssignedUser(),
-            "assignedUsers",
-            trackedEntityRequestParams.getAssignedUsers());
-
-    Set<UID> orgUnitUids =
-        validateDeprecatedUidsParameter(
-            "orgUnit",
-            trackedEntityRequestParams.getOrgUnit(),
-            "orgUnits",
-            trackedEntityRequestParams.getOrgUnits());
-
     OrganisationUnitSelectionMode orgUnitMode =
-        validateDeprecatedParameter(
-            "ouMode",
-            trackedEntityRequestParams.getOuMode(),
-            "orgUnitMode",
-            trackedEntityRequestParams.getOrgUnitMode());
-
-    orgUnitMode =
         validateOrgUnitModeForTrackedEntities(
-            orgUnitUids, orgUnitMode, trackedEntityRequestParams.getTrackedEntities());
+            trackedEntityRequestParams.getOrgUnits(),
+            trackedEntityRequestParams.getOrgUnitMode(),
+            trackedEntityRequestParams.getTrackedEntities());
 
     EnrollmentStatus enrollmentStatus =
         validateDeprecatedParameter(
@@ -114,14 +94,9 @@ class TrackedEntityRequestParamsMapper {
             "enrollmentStatus",
             trackedEntityRequestParams.getEnrollmentStatus());
 
-    Set<UID> trackedEntities =
-        validateDeprecatedUidsParameter(
-            "trackedEntity",
-            trackedEntityRequestParams.getTrackedEntity(),
-            "trackedEntities",
-            trackedEntityRequestParams.getTrackedEntities());
     validateOrderParams(trackedEntityRequestParams.getOrder(), ORDERABLE_FIELD_NAMES, "attribute");
-    validateRequestParams(trackedEntityRequestParams, trackedEntities);
+    validateRequestParams(
+        trackedEntityRequestParams, trackedEntityRequestParams.getTrackedEntities());
 
     Map<UID, List<QueryFilter>> filters = parseFilters(trackedEntityRequestParams.getFilter());
 
@@ -149,7 +124,7 @@ class TrackedEntityRequestParamsMapper {
                 applyIfNotNull(
                     trackedEntityRequestParams.getEnrollmentOccurredBefore(), EndDateTime::toDate))
             .trackedEntityType(trackedEntityRequestParams.getTrackedEntityType())
-            .organisationUnits(orgUnitUids)
+            .organisationUnits(trackedEntityRequestParams.getOrgUnits())
             .orgUnitMode(orgUnitMode)
             .eventStatus(trackedEntityRequestParams.getEventStatus())
             .eventStartDate(
@@ -160,14 +135,16 @@ class TrackedEntityRequestParamsMapper {
                     trackedEntityRequestParams.getEventOccurredBefore(), EndDateTime::toDate))
             .assignedUserQueryParam(
                 new AssignedUserQueryParam(
-                    trackedEntityRequestParams.getAssignedUserMode(), assignedUsers, UID.of(user)))
-            .trackedEntities(trackedEntities)
-            .filters(filters)
+                    trackedEntityRequestParams.getAssignedUserMode(),
+                    trackedEntityRequestParams.getAssignedUsers(),
+                    UID.of(user)))
+            .trackedEntities(trackedEntityRequestParams.getTrackedEntities())
             .includeDeleted(trackedEntityRequestParams.isIncludeDeleted())
             .potentialDuplicate(trackedEntityRequestParams.getPotentialDuplicate())
             .trackedEntityParams(fieldsParamMapper.map(fields));
 
     mapOrderParam(builder, trackedEntityRequestParams.getOrder());
+    mapFilterParam(builder, filters);
 
     return builder.build();
   }
@@ -244,20 +221,6 @@ class TrackedEntityRequestParamsMapper {
     }
   }
 
-  private void validateRemovedParameters(TrackedEntityRequestParams trackedEntityRequestParams)
-      throws BadRequestException {
-    if (StringUtils.isNotBlank(trackedEntityRequestParams.getQuery())) {
-      throw new BadRequestException("`query` parameter was removed in v41. Use `filter` instead.");
-    }
-    if (StringUtils.isNotBlank(trackedEntityRequestParams.getAttribute())) {
-      throw new BadRequestException(
-          "`attribute` parameter was removed in v41. Use `filter` instead.");
-    }
-    if (StringUtils.isNotBlank(trackedEntityRequestParams.getIncludeAllAttributes())) {
-      throw new BadRequestException("`includeAllAttributes` parameter was removed in v41.");
-    }
-  }
-
   private void mapOrderParam(
       TrackedEntityOperationParamsBuilder builder, List<OrderCriteria> orders) {
     if (orders == null || orders.isEmpty()) {
@@ -270,6 +233,21 @@ class TrackedEntityRequestParamsMapper {
             TrackedEntityMapper.ORDERABLE_FIELDS.get(order.getField()), order.getDirection());
       } else {
         builder.orderBy(UID.of(order.getField()), order.getDirection());
+      }
+    }
+  }
+
+  private void mapFilterParam(
+      TrackedEntityOperationParamsBuilder builder, Map<UID, List<QueryFilter>> filters) {
+    if (filters == null || filters.isEmpty()) {
+      return;
+    }
+
+    for (Entry<UID, List<QueryFilter>> entry : filters.entrySet()) {
+      if (entry.getValue().isEmpty()) {
+        builder.filterBy(entry.getKey());
+      } else {
+        builder.filterBy(entry.getKey(), entry.getValue());
       }
     }
   }

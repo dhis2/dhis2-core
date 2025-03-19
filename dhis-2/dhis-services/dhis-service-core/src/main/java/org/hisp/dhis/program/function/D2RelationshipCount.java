@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -69,17 +71,20 @@ public class D2RelationshipCount extends ProgramExpressionItem {
 
     if (ctx.QUOTED_UID() != null) {
       String relationshipId = trimQuotes(ctx.QUOTED_UID().getText());
-
-      relationshipIdConstraint =
-          " join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and rt.uid = '"
-              + relationshipId
-              + "'";
+      relationshipIdConstraint = "and relationshiptypeuid = '%s'".formatted(relationshipId);
     }
 
-    return "(select count(*) from relationship r"
-        + relationshipIdConstraint
-        + " join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid"
-        + " join trackedentity te on rifrom.trackedentityid = te.trackedentityid and te.uid = ax.trackedentity"
-        + " where r.deleted is false)";
+    return relationshipIdConstraint.isEmpty()
+        ? """
+            (select sum(relationship_count)
+             from analytics_rs_relationship arr
+             where arr.trackedentityid = ax.trackedentity)
+            """
+        : """
+            (select relationship_count
+             from analytics_rs_relationship arr
+             where arr.trackedentityid = ax.trackedentity %s)
+            """
+            .formatted(relationshipIdConstraint);
   }
 }

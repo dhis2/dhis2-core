@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -35,12 +37,11 @@ import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.asser
 import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.encodeSms;
 import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.getSms;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
@@ -313,7 +314,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () ->
             assertSmsResponse(
                 submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
-    assertThrows(NotFoundException.class, () -> eventService.getEvent(UID.of(event.getUid())));
+    assertFalse(eventService.findEvent(UID.of(event.getUid())).isPresent());
   }
 
   @Test
@@ -357,7 +358,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () ->
             assertSmsResponse(
                 submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
-    assertThrows(NotFoundException.class, () -> eventService.getEvent(UID.of(event.getUid())));
+    assertFalse(eventService.findEvent(UID.of(event.getUid())).isPresent());
   }
 
   @Test
@@ -374,8 +375,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     String originator = user1.getPhoneNumber();
 
     switchContextToUser(user1);
-    assertThrows(
-        NotFoundException.class, () -> eventService.getEvent(uid), "event should not exist");
+    assertFalse(eventService.findEvent(uid).isPresent());
 
     JsonWebMessage response =
         POST(
@@ -405,7 +405,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
-  void shouldCreateEvent() throws SmsCompressionException, ForbiddenException, NotFoundException {
+  void shouldCreateEvent() throws SmsCompressionException, NotFoundException {
     Enrollment enrollment = enrollment(trackedEntity());
 
     TrackerEventSmsSubmission submission = new TrackerEventSmsSubmission();
@@ -451,7 +451,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () ->
             assertSmsResponse(
                 submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
-    assertDoesNotThrow(() -> eventService.getEvent(UID.of(eventUid)));
+    assertTrue(eventService.findEvent(UID.of(eventUid)).isPresent());
     Event actual = eventService.getEvent(UID.of(eventUid));
     assertAll(
         "created event",
@@ -471,7 +471,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
-  void shouldUpdateEvent() throws SmsCompressionException, ForbiddenException, NotFoundException {
+  void shouldUpdateEvent() throws SmsCompressionException, NotFoundException {
     Enrollment enrollment = enrollment(trackedEntity());
     Event event = event(enrollment);
 
@@ -519,7 +519,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () ->
             assertSmsResponse(
                 submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
-    assertDoesNotThrow(() -> eventService.getEvent(UID.of(event.getUid())));
+    assertTrue(eventService.findEvent(UID.of(event)).isPresent());
     Event actual = eventService.getEvent(UID.of(event.getUid()));
     assertAll(
         "updated event",
@@ -543,8 +543,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
   }
 
   @Test
-  void shouldCreateEventInEventProgram()
-      throws SmsCompressionException, ForbiddenException, NotFoundException {
+  void shouldCreateEventInEventProgram() throws SmsCompressionException, NotFoundException {
     SimpleEventSmsSubmission submission = new SimpleEventSmsSubmission();
     int submissionId = 6;
     submission.setSubmissionId(submissionId);
@@ -590,7 +589,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () ->
             assertSmsResponse(
                 submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
-    assertDoesNotThrow(() -> eventService.getEvent(UID.of(eventUid)));
+    assertTrue(eventService.findEvent(UID.of(eventUid)).isPresent());
     Event actual = eventService.getEvent(UID.of(eventUid));
     assertAll(
         "created event",
@@ -656,7 +655,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
                 "Command has been processed successfully", originator, smsMessageSender));
 
     List<Event> events =
-        eventService.getEvents(
+        eventService.findEvents(
             EventOperationParams.builder()
                 .program(eventProgram)
                 .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
@@ -723,7 +722,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
                 "Command has been processed successfully", originator, smsMessageSender));
 
     List<Enrollment> enrollments =
-        enrollmentService.getEnrollments(
+        enrollmentService.findEnrollments(
             EnrollmentOperationParams.builder()
                 .trackedEntity(trackedEntity)
                 .program(trackerProgram)
@@ -739,7 +738,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEquals(EnrollmentStatus.ACTIVE, actualEnrollment.getStatus()));
 
     List<Event> events =
-        eventService.getEvents(
+        eventService.findEvents(
             EventOperationParams.builder()
                 .trackedEntity(trackedEntity)
                 .program(trackerProgram)
@@ -809,7 +808,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
                 "Command has been processed successfully", originator, smsMessageSender));
 
     List<Event> events =
-        eventService.getEvents(
+        eventService.findEvents(
             EventOperationParams.builder()
                 .trackedEntity(trackedEntity)
                 .program(trackerProgram)

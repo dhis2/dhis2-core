@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -37,6 +39,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -243,8 +246,16 @@ public class Section extends BaseIdentifiableObject implements MetadataObject {
     this.indicators.remove(i);
   }
 
-  public boolean addIndicator(Indicator i) {
-    return this.indicators.add(i);
+  /**
+   * Add an Indicator if it is not already present. This helps prevent duplicates in the list.
+   *
+   * @param i Indicator
+   * @return whether the Indicator was added or not
+   */
+  public boolean addIndicator(@Nonnull Indicator i) {
+    if (!this.indicators.contains(i)) {
+      return this.indicators.add(i);
+    } else return false;
   }
 
   public void removeIndicators(List<Indicator> sources) {

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -34,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
+import org.hisp.dhis.http.HttpClientAdapter;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -137,5 +140,34 @@ class DataIntegritySummaryControllerTest extends AbstractDataIntegrityIntegratio
             .content()
             .stringValues()
             .contains("indicator_no_analysis"));
+  }
+
+  @Test
+  void testGetSummaryMetrics() {
+    postSummary("categories-no-options");
+    HttpResponse response =
+        GET("/api/dataIntegrity/metrics", HttpClientAdapter.Accept("text/plain"));
+    assertEquals(HttpStatus.OK, response.status());
+    String content = response.content("text/plain");
+    assertFalse(content.isEmpty(), "Response content should not be empty");
+    assertTrue(
+        content.contains(
+            "# HELP dhis_data_integrity_issues_count_total Data integrity check counts"),
+        "Data integrity check help text is missing");
+    assertTrue(
+        content.contains("# TYPE dhis_data_integrity_issues_count_total gauge"),
+        "Data integrity check type is missing");
+    assertTrue(
+        content.contains(
+            "dhis_data_integrity_issues_count_total{check=\"categories_no_options\",severity=\"WARNING\",object_type=\"categories\"}"),
+        "Data integrity check count is missing");
+    assertTrue(
+        content.contains(
+            "dhis_data_integrity_issues_percentage{check=\"categories_no_options\",severity=\"WARNING\",object_type=\"categories\"}"),
+        "Data integrity check percentage is missing");
+    assertTrue(
+        content.contains(
+            "dhis_data_integrity_check_duration_milliseconds{check=\"categories_no_options\",severity=\"WARNING\",object_type=\"categories\"}"),
+        "Data integrity check duration is missing");
   }
 }

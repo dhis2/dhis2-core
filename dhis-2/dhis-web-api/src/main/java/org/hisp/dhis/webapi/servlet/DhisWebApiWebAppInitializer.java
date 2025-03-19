@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -57,15 +59,20 @@ import org.springframework.web.servlet.DispatcherServlet;
 public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
   @Override
   public void onStartup(ServletContext context) {
+    context.getSessionCookieConfig().setName("JSESSIONID");
+    context.getSessionCookieConfig().setHttpOnly(true);
+
     boolean httpsOnly = getConfig().isEnabled(ConfigurationKey.SERVER_HTTPS);
-
-    log.debug(String.format("Configuring cookies, HTTPS only: %b", httpsOnly));
-
+    log.info(String.format("Configuring cookies, HTTPS only: %b", httpsOnly));
     if (httpsOnly) {
       context.getSessionCookieConfig().setSecure(true);
-      context.getSessionCookieConfig().setHttpOnly(true);
-
       log.info("HTTPS only is enabled, cookies configured as secure");
+    }
+
+    String sameSite = getConfig().getProperty(ConfigurationKey.SESSION_COOKIE_SAME_SITE);
+    log.info("SameSite cookie attribute set to: " + sameSite);
+    if (sameSite != null) {
+      context.getSessionCookieConfig().setAttribute("SameSite", sameSite);
     }
 
     context.setSessionTrackingModes(EnumSet.of(SessionTrackingMode.COOKIE));
@@ -147,11 +154,11 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
         .addMappingForUrlPatterns(null, true, "/*");
 
     context
-        .addFilter("AppOverrideFilter", new DelegatingFilterProxy("appOverrideFilter"))
+        .addFilter("GlobalShellFilter", new DelegatingFilterProxy("globalShellFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
 
     context
-        .addFilter("GlobalShellFilter", new DelegatingFilterProxy("globalShellFilter"))
+        .addFilter("AppOverrideFilter", new DelegatingFilterProxy("appOverrideFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
 
     context

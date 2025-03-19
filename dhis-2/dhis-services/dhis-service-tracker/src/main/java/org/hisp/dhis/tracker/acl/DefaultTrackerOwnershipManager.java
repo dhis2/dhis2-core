@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,8 +29,7 @@
  */
 package org.hisp.dhis.tracker.acl;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
-
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
@@ -37,7 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -49,6 +50,7 @@ import org.hisp.dhis.program.ProgramTempOwnerService;
 import org.hisp.dhis.program.ProgramTempOwnershipAudit;
 import org.hisp.dhis.program.ProgramTempOwnershipAuditService;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -69,9 +71,10 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   private final ProgramTempOwnershipAuditService programTempOwnershipAuditService;
   private final ProgramTempOwnerService programTempOwnerService;
   private final ProgramOwnershipHistoryService programOwnershipHistoryService;
-  private final DhisConfigurationProvider config;
   private final UserService userService;
   private final ProgramService programService;
+  private final IdentifiableObjectManager manager;
+  private final AclService aclService;
 
   public DefaultTrackerOwnershipManager(
       UserService userService,
@@ -81,7 +84,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       ProgramTempOwnerService programTempOwnerService,
       ProgramOwnershipHistoryService programOwnershipHistoryService,
       ProgramService programService,
-      DhisConfigurationProvider config) {
+      IdentifiableObjectManager manager,
+      AclService aclService) {
 
     this.userService = userService;
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
@@ -89,9 +93,10 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     this.programOwnershipHistoryService = programOwnershipHistoryService;
     this.programTempOwnerService = programTempOwnerService;
     this.programService = programService;
-    this.config = config;
+    this.manager = manager;
     this.ownerCache = cacheProvider.createProgramOwnerCache();
     this.tempOwnerCache = cacheProvider.createProgramTempOwnerCache();
+    this.aclService = aclService;
   }
 
   /** Cache for storing recent ownership checks */
@@ -126,17 +131,20 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       TrackedEntityProgramOwner teProgramOwner =
           trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(trackedEntity, program);
 
+      // TODO(tracker) jdbc-hibernate: check the impact on performance
+      TrackedEntity hibernateTrackedEntity =
+          manager.get(TrackedEntity.class, trackedEntity.getUid());
       if (teProgramOwner != null && !teProgramOwner.getOrganisationUnit().equals(orgUnit)) {
         ProgramOwnershipHistory programOwnershipHistory =
             new ProgramOwnershipHistory(
                 program,
-                trackedEntity,
+                hibernateTrackedEntity,
                 teProgramOwner.getOrganisationUnit(),
                 teProgramOwner.getLastUpdated(),
                 teProgramOwner.getCreatedBy());
         programOwnershipHistoryService.addProgramOwnershipHistory(programOwnershipHistory);
         trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
-            trackedEntity, program, orgUnit);
+            hibernateTrackedEntity, program, orgUnit);
       }
 
       ownerCache.invalidate(getOwnershipCacheKey(trackedEntity::getId, program));
@@ -154,7 +162,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       throws ForbiddenException {
     validateGrantTemporaryOwnershipInputs(trackedEntity, program, user);
 
-    if (config.isEnabled(CHANGELOG_TRACKER)) {
+    if (trackedEntity.getTrackedEntityType().isAllowAuditLog()) {
       programTempOwnershipAuditService.addProgramTempOwnershipAudit(
           new ProgramTempOwnershipAudit(program, trackedEntity, reason, user.getUsername()));
     }
@@ -178,6 +186,11 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
           "Temporary ownership not created. Program supplied does not exist.");
     }
 
+    if (trackedEntity == null) {
+      throw new ForbiddenException(
+          "Temporary ownership not created. Tracked entity supplied does not exist.");
+    }
+
     if (user.isSuper()) {
       throw new ForbiddenException("Temporary ownership not created. Current user is a superuser.");
     }
@@ -190,13 +203,34 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     if (!program.isProtected()) {
       throw new ForbiddenException(
           String.format(
-              "Temporary ownership can only be granted to protected programs. %s access level is %s.",
+              "Temporary ownership not created. Temporary ownership can only be granted to protected programs. %s access level is %s.",
               program.getUid(), program.getAccessLevel().name()));
     }
 
     if (!isOwnerInUserSearchScope(user, trackedEntity, program)) {
       throw new ForbiddenException(
-          "The owner of the entity-program combination is not in the user's search scope.");
+          "Temporary ownership not created. The owner of the entity-program combination is not in the user's search scope.");
+    }
+
+    if (!aclService.canDataRead(user, program)) {
+      throw new ForbiddenException(
+          "Temporary ownership not created. User has no data read access to program: "
+              + program.getUid());
+    }
+
+    if (!aclService.canDataRead(user, trackedEntity.getTrackedEntityType())) {
+      throw new ForbiddenException(
+          "Temporary ownership not created. User has no data read access to tracked entity type: "
+              + trackedEntity.getTrackedEntityType().getUid());
+    }
+
+    if (!Objects.equals(
+        program.getTrackedEntityType().getUid(), trackedEntity.getTrackedEntityType().getUid())) {
+      throw new ForbiddenException(
+          String.format(
+              "Temporary ownership not created. The tracked entity type of the program %s differs from that of the tracked entity %s.",
+              program.getTrackedEntityType().getUid(),
+              trackedEntity.getTrackedEntityType().getUid()));
     }
   }
 

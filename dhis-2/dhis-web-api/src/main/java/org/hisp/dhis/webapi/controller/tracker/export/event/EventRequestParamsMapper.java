@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -29,14 +31,14 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static java.util.Collections.emptySet;
 import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.parseFilters;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedUidsParameter;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.parseFilters;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateDeprecatedParameter;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrderParams;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -70,18 +72,11 @@ class EventRequestParamsMapper {
       EventRequestParams eventRequestParams, TrackerIdSchemeParams idSchemeParams)
       throws BadRequestException {
     OrganisationUnitSelectionMode orgUnitMode =
-        validateDeprecatedParameter(
-            "ouMode",
-            eventRequestParams.getOuMode(),
-            "orgUnitMode",
-            eventRequestParams.getOrgUnitMode());
-
-    orgUnitMode =
         validateOrgUnitModeForEnrollmentsAndEvents(
             eventRequestParams.getOrgUnit() != null
                 ? Set.of(eventRequestParams.getOrgUnit())
                 : emptySet(),
-            orgUnitMode);
+            eventRequestParams.getOrgUnitMode());
 
     EnrollmentStatus enrollmentStatus =
         validateDeprecatedParameter(
@@ -90,35 +85,10 @@ class EventRequestParamsMapper {
             "enrollmentStatus",
             eventRequestParams.getEnrollmentStatus());
 
-    UID attributeCategoryCombo =
-        validateDeprecatedParameter(
-            "attributeCc",
-            eventRequestParams.getAttributeCc(),
-            "attributeCategoryCombo",
-            eventRequestParams.getAttributeCategoryCombo());
-
-    Set<UID> attributeCategoryOptions =
-        validateDeprecatedUidsParameter(
-            "attributeCos",
-            eventRequestParams.getAttributeCos(),
-            "attributeCategoryOptions",
-            eventRequestParams.getAttributeCategoryOptions());
-
-    Set<UID> eventUids =
-        validateDeprecatedUidsParameter(
-            "event", eventRequestParams.getEvent(), "events", eventRequestParams.getEvents());
-
-    validateFilter(eventRequestParams.getFilter(), eventUids);
+    validateFilter(eventRequestParams.getFilter(), eventRequestParams.getEvents());
     Map<UID, List<QueryFilter>> dataElementFilters = parseFilters(eventRequestParams.getFilter());
     Map<UID, List<QueryFilter>> attributeFilters =
         parseFilters(eventRequestParams.getFilterAttributes());
-
-    Set<UID> assignedUsers =
-        validateDeprecatedUidsParameter(
-            "assignedUser",
-            eventRequestParams.getAssignedUser(),
-            "assignedUsers",
-            eventRequestParams.getAssignedUsers());
 
     validateUpdateDurationParams(eventRequestParams);
     validateOrderParams(
@@ -134,7 +104,7 @@ class EventRequestParamsMapper {
             .followUp(eventRequestParams.getFollowUp())
             .orgUnitMode(orgUnitMode)
             .assignedUserMode(eventRequestParams.getAssignedUserMode())
-            .assignedUsers(assignedUsers)
+            .assignedUsers(eventRequestParams.getAssignedUsers())
             .occurredAfter(
                 applyIfNotNull(eventRequestParams.getOccurredAfter(), StartDateTime::toDate))
             .occurredBefore(
@@ -161,17 +131,17 @@ class EventRequestParamsMapper {
                 applyIfNotNull(
                     eventRequestParams.getEnrollmentOccurredAfter(), StartDateTime::toDate))
             .eventStatus(eventRequestParams.getStatus())
-            .attributeCategoryCombo(attributeCategoryCombo)
-            .attributeCategoryOptions(attributeCategoryOptions)
-            .dataElementFilters(dataElementFilters)
-            .attributeFilters(attributeFilters)
-            .events(eventUids)
+            .attributeCategoryCombo(eventRequestParams.getAttributeCategoryCombo())
+            .attributeCategoryOptions(eventRequestParams.getAttributeCategoryOptions())
+            .events(eventRequestParams.getEvents())
             .enrollments(eventRequestParams.getEnrollments())
             .includeDeleted(eventRequestParams.isIncludeDeleted())
             .eventParams(eventsMapper.map(eventRequestParams.getFields()))
             .idSchemeParams(idSchemeParams);
 
     mapOrderParam(builder, eventRequestParams.getOrder());
+    mapDataElementFilterParam(builder, dataElementFilters);
+    mapAttributeFilterParam(builder, attributeFilters);
 
     return builder.build();
   }
@@ -192,6 +162,36 @@ class EventRequestParamsMapper {
         builder.orderBy(EventMapper.ORDERABLE_FIELDS.get(order.getField()), order.getDirection());
       } else {
         builder.orderBy(UID.of(order.getField()), order.getDirection());
+      }
+    }
+  }
+
+  private void mapDataElementFilterParam(
+      EventOperationParamsBuilder builder, Map<UID, List<QueryFilter>> dataElementFilters) {
+    if (dataElementFilters == null || dataElementFilters.isEmpty()) {
+      return;
+    }
+
+    for (Entry<UID, List<QueryFilter>> entry : dataElementFilters.entrySet()) {
+      if (entry.getValue().isEmpty()) {
+        builder.filterByDataElement(entry.getKey());
+      } else {
+        builder.filterByDataElement(entry.getKey(), entry.getValue());
+      }
+    }
+  }
+
+  private void mapAttributeFilterParam(
+      EventOperationParamsBuilder builder, Map<UID, List<QueryFilter>> attributeFilters) {
+    if (attributeFilters == null || attributeFilters.isEmpty()) {
+      return;
+    }
+
+    for (Entry<UID, List<QueryFilter>> entry : attributeFilters.entrySet()) {
+      if (entry.getValue().isEmpty()) {
+        builder.filterByAttribute(entry.getKey());
+      } else {
+        builder.filterByAttribute(entry.getKey(), entry.getValue());
       }
     }
   }

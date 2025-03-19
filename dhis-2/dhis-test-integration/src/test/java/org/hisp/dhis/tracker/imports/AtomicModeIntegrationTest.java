@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -32,22 +34,32 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.IOException;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class AtomicModeIntegrationTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class AtomicModeIntegrationTest extends PostgresIntegrationTestBase {
+  @Autowired private TestSetup testSetup;
+
+  @Autowired private IdentifiableObjectManager manager;
+
   @Autowired private TrackerImportService trackerImportService;
 
   @BeforeAll
   void setUp() throws IOException {
-    setUpMetadata("tracker/simple_metadata.json");
+    testSetup.importMetadata();
 
     User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
@@ -55,7 +67,7 @@ class AtomicModeIntegrationTest extends TrackerTest {
 
   @Test
   void testImportSuccessWithAtomicModeObjectIfThereIsAnErrorInOneTE() throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/one_valid_te_and_one_invalid.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/one_valid_te_and_one_invalid.json");
     TrackerImportParams params =
         TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
 
@@ -70,7 +82,7 @@ class AtomicModeIntegrationTest extends TrackerTest {
 
   @Test
   void testImportFailWithAtomicModeAllIfThereIsAnErrorInOneTE() throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/one_valid_te_and_one_invalid.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/one_valid_te_and_one_invalid.json");
     TrackerImportParams params = TrackerImportParams.builder().atomicMode(AtomicMode.ALL).build();
 
     ImportReport trackerImportTeReport = trackerImportService.importTracker(params, trackerObjects);

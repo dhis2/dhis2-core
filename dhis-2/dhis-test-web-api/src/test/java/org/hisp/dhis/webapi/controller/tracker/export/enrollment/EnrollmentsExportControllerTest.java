@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,8 +29,10 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
+import static org.hisp.dhis.http.HttpStatus.BAD_REQUEST;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
-import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.webapi.controller.tracker.Assertions.*;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContains;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
@@ -40,38 +44,27 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.function.BiFunction;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.http.HttpStatus;
-import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.render.RenderFormat;
-import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.report.ImportReport;
-import org.hisp.dhis.tracker.imports.report.Status;
-import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.JsonAttribute;
 import org.hisp.dhis.webapi.controller.tracker.JsonDataValue;
@@ -79,6 +72,7 @@ import org.hisp.dhis.webapi.controller.tracker.JsonEnrollment;
 import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
 import org.hisp.dhis.webapi.controller.tracker.JsonNote;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
+import org.hisp.dhis.webapi.controller.tracker.TestSetup;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -87,56 +81,36 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestBase {
+  private static final String DELETE_TRACKED_ENTITY_UID = "mHWCacsGYYn";
 
-  @Autowired private RenderService renderService;
-
-  @Autowired private ObjectBundleService objectBundleService;
-
-  @Autowired private ObjectBundleValidationService objectBundleValidationService;
+  @Autowired private TestSetup testSetup;
 
   @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private IdentifiableObjectManager manager;
 
+  private TrackerObjects trackerObjects;
+
   private User importUser;
-
-  protected ObjectBundle setUpMetadata(String path) throws IOException {
-    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
-        renderService.fromMetadata(new ClassPathResource(path).getInputStream(), RenderFormat.JSON);
-    ObjectBundleParams params = new ObjectBundleParams();
-    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
-    params.setImportStrategy(ImportStrategy.CREATE);
-    params.setObjects(metadata);
-    ObjectBundle bundle = objectBundleService.create(params);
-    assertNoErrors(objectBundleValidationService.validate(bundle));
-    objectBundleService.commit(bundle);
-    return bundle;
-  }
-
-  protected TrackerObjects fromJson(String path) throws IOException {
-    return renderService.fromJson(
-        new ClassPathResource(path).getInputStream(), TrackerObjects.class);
-  }
 
   @BeforeAll
   void setUp() throws IOException {
-    setUpMetadata("tracker/simple_metadata.json");
+    testSetup.importMetadata();
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    TrackerImportParams params = TrackerImportParams.builder().build();
-    assertNoErrors(
-        trackerImportService.importTracker(params, fromJson("tracker/event_and_enrollment.json")));
+    trackerObjects = testSetup.importTrackerData();
 
     manager.flush();
     manager.clear();
+
+    deleteTrackedEntity(UID.of(DELETE_TRACKED_ENTITY_UID));
   }
 
   @BeforeEach
@@ -189,18 +163,130 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
     assertNotEmpty(
         enrollment.getTrackedEntity().getTrackedEntityAttributeValues(),
         "test expects an enrollment with attribute values");
-    TrackedEntityAttribute ptea = get(TrackedEntityAttribute.class, "dIVt4l5vIOa");
+    TrackedEntityAttribute ptea = get(TrackedEntityAttribute.class, "fRGt4l6yIRb");
 
     JsonEnrollment jsonEnrollment = getEnrollment.apply(enrollment, "attributes");
     assertHasOnlyMembers(jsonEnrollment, "attributes");
     JsonAttribute attribute = jsonEnrollment.getAttributes().get(0);
     assertEquals(ptea.getUid(), attribute.getAttribute());
-    assertEquals("Frank PTEA", attribute.getValue());
+    assertEquals("Test PTEA", attribute.getValue());
     assertEquals(ValueType.TEXT.name(), attribute.getValueType());
     assertHasMember(attribute, "createdAt");
     assertHasMember(attribute, "updatedAt");
     assertHasMember(attribute, "displayName");
     assertHasMember(attribute, "code");
+  }
+
+  @Test
+  void shouldGetEnrollmentWithoutRelationshipsWhenRelationshipIsDeletedAndIncludeDeletedIsFalse() {
+    Relationship relationship = get(Relationship.class, "p53a6314631");
+    manager.delete(relationship);
+
+    assertNotNull(
+        relationship.getTo().getEnrollment(),
+        "test expects relationship to have a 'to' enrollment");
+    Enrollment enrollment = relationship.getTo().getEnrollment();
+
+    JsonList<JsonRelationship> jsonRelationships =
+        GET(
+                "/tracker/enrollments?enrollments={id}&fields=*&includeDeleted=false",
+                enrollment.getUid())
+            .content(HttpStatus.OK)
+            .getList("enrollments", JsonEnrollment.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    assertIsEmpty(jsonRelationships.stream().toList());
+  }
+
+  @Test
+  void shouldGetEnrollmentWithRelationshipsWhenRelationshipIsDeletedAndIncludeDeletedIsTrue() {
+    Relationship relationship = get(Relationship.class, "p53a6314631");
+    manager.delete(relationship);
+
+    assertNotNull(
+        relationship.getTo().getEnrollment(),
+        "test expects relationship to have a 'to' enrollment");
+    Enrollment enrollment = relationship.getTo().getEnrollment();
+
+    JsonList<JsonRelationship> jsonRelationships =
+        GET(
+                "/tracker/enrollments?enrollments={id}&fields=*&includeDeleted=true",
+                enrollment.getUid())
+            .content(HttpStatus.OK)
+            .getList("enrollments", JsonEnrollment.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    JsonRelationship jsonRelationship =
+        assertContains(
+            jsonRelationships,
+            re -> relationship.getUid().equals(re.getRelationship()),
+            relationship.getUid());
+
+    assertAll(
+        "relationship JSON",
+        () ->
+            assertEquals(
+                relationship.getFrom().getTrackedEntity().getUid(),
+                jsonRelationship.getFrom().getTrackedEntity().getTrackedEntity()),
+        () -> assertHasNoMember(jsonRelationship.getFrom().getTrackedEntity(), "relationships"),
+        () -> assertHasMember(jsonRelationship.getFrom().getTrackedEntity(), "enrollments"),
+        () ->
+            assertHasNoMember(
+                jsonRelationship.getFrom().getTrackedEntity().getEnrollments().get(0),
+                "relationships"),
+        () ->
+            assertHasMember(
+                jsonRelationship.getFrom().getTrackedEntity().getEnrollments().get(0), "events"),
+        () ->
+            assertHasNoMember(
+                jsonRelationship
+                    .getFrom()
+                    .getTrackedEntity()
+                    .getEnrollments()
+                    .get(0)
+                    .getEvents()
+                    .get(0),
+                "relationships"),
+        () ->
+            assertEquals(
+                relationship.getTo().getEnrollment().getUid(),
+                jsonRelationship.getTo().getEnrollment().getEnrollment()),
+        () -> assertHasNoMember(jsonRelationship.getTo().getEnrollment(), "relationships"),
+        () -> assertHasMember(jsonRelationship.getTo().getEnrollment(), "events"),
+        () ->
+            assertHasNoMember(
+                jsonRelationship.getTo().getEnrollment().getEvents().get(0), "relationships"),
+        () -> assertHasMember(jsonRelationship, "relationshipName"),
+        () -> assertHasMember(jsonRelationship, "relationshipType"),
+        () -> assertHasMember(jsonRelationship, "createdAt"),
+        () -> assertHasMember(jsonRelationship, "updatedAt"),
+        () -> assertHasMember(jsonRelationship, "bidirectional"));
+  }
+
+  @Test
+  void
+      shouldGetEnrollmentWithNoRelationshipsWhenEnrollmentIsOnTheToSideOfAUnidirectionalRelationship() {
+    Relationship relationship = get(Relationship.class, "p53a6314631");
+
+    assertNotNull(
+        relationship.getTo().getEnrollment(),
+        "test expects relationship to have a 'to' enrollment");
+    RelationshipType relationshipType = relationship.getRelationshipType();
+    relationshipType.setBidirectional(false);
+    manager.save(relationshipType);
+
+    JsonList<JsonRelationship> jsonRelationships =
+        GET(
+                "/tracker/enrollments?enrollments={id}&fields=*&includeDeleted=true",
+                relationship.getTo().getEnrollment().getUid())
+            .content(HttpStatus.OK)
+            .getList("enrollments", JsonEnrollment.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    assertIsEmpty(jsonRelationships.stream().toList());
   }
 
   @ParameterizedTest
@@ -300,8 +386,49 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
         },
         () -> assertHasMember(jsonEvent, "status"),
         () -> assertHasMember(jsonEvent, "followUp"),
-        () -> assertHasMember(jsonEvent, "followup"),
         () -> assertEquals(event.isDeleted(), jsonEvent.getDeleted()));
+  }
+
+  @Test
+  void shouldGetSoftDeletedEnrollmentWithEventsWhenIncludeDeletedIsTrue() {
+    Event event = get(Event.class, "pTzf9KYMk72");
+    assertNotNull(event.getEnrollment(), "test expects an event with an enrollment");
+    manager.delete(get(Enrollment.class, event.getEnrollment().getUid()));
+
+    JsonList<JsonEvent> jsonEvents =
+        GET(
+                "/tracker/enrollments?enrollments={id}&fields=events[event]&includeDeleted=true",
+                event.getEnrollment().getUid())
+            .content(HttpStatus.OK)
+            .getList("enrollments", JsonEnrollment.class)
+            .get(0)
+            .getList("events", JsonEvent.class);
+
+    JsonEvent jsonEvent = jsonEvents.get(0);
+    assertEquals(event.getUid(), jsonEvent.getEvent());
+  }
+
+  @Test
+  void shouldGetEnrollmentsByTrackedEntityWhenTrackedEntityIsDeletedAndIncludeDeletedIsTrue() {
+    JsonList<JsonEnrollment> enrollments =
+        GET(
+                "/tracker/enrollments?trackedEntity={te}&includeDeleted=true&fields=deleted,trackedEntity",
+                DELETE_TRACKED_ENTITY_UID)
+            .content(HttpStatus.OK)
+            .getList("enrollments", JsonEnrollment.class);
+
+    enrollments.forEach(
+        en -> {
+          assertTrue(en.getDeleted());
+          assertEquals(DELETE_TRACKED_ENTITY_UID, en.getTrackedEntity());
+        });
+  }
+
+  @Test
+  void
+      shouldGetNotFoundWhenGettingEnrollmentsByTrackedEntityAndTrackedEntityIsDeletedAndIncludeDeletedIsFalse() {
+    GET("/tracker/enrollments?trackedEntity={te}&includeDeleted=false", DELETE_TRACKED_ENTITY_UID)
+        .error(BAD_REQUEST);
   }
 
   @Test
@@ -324,15 +451,6 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
     assertEquals(
         "Enrollment with id Hq3Kc6HK4OZ could not be found.",
         GET("/tracker/enrollments/Hq3Kc6HK4OZ").error(HttpStatus.NOT_FOUND).getMessage());
-  }
-
-  @Test
-  void getEnrollmentsFailsIfGivenEnrollmentAndEnrollmentsParameters() {
-    assertStartsWith(
-        "Only one parameter of 'enrollment' (deprecated",
-        GET("/tracker/enrollments?enrollment=IsdLBTOBzMi&enrollments=IsdLBTOBzMi")
-            .error(HttpStatus.BAD_REQUEST)
-            .getMessage());
   }
 
   private Stream<Arguments> getEnrollment() {
@@ -377,6 +495,25 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
     assertHasNoMember(actual, "attributes");
   }
 
+  private TrackedEntity deleteTrackedEntity(UID uid) {
+    TrackedEntity trackedEntity = get(TrackedEntity.class, uid.getValue());
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity deletedTrackedEntity =
+        trackerObjects.getTrackedEntities().stream()
+            .filter(te -> te.getTrackedEntity().equals(uid))
+            .findFirst()
+            .get();
+
+    TrackerObjects deleteTrackerObjects =
+        TrackerObjects.builder().trackedEntities(List.of(deletedTrackedEntity)).build();
+    assertNoErrors(
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build(),
+            deleteTrackerObjects));
+    manager.clear();
+    manager.flush();
+    return trackedEntity;
+  }
+
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {
     T t = manager.get(type, uid);
     assertNotNull(
@@ -385,38 +522,5 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
             String.format(
                 "'%s' with uid '%s' should have been created", type.getSimpleName(), uid));
     return t;
-  }
-
-  public static void assertNoErrors(ImportReport report) {
-    assertNotNull(report);
-    assertEquals(
-        Status.OK,
-        report.getStatus(),
-        errorMessage(
-            "Expected import with status OK, instead got:%n", report.getValidationReport()));
-  }
-
-  private static Supplier<String> errorMessage(String errorTitle, ValidationReport report) {
-    return () -> {
-      StringBuilder msg = new StringBuilder(errorTitle);
-      report
-          .getErrors()
-          .forEach(
-              e -> {
-                msg.append(e.getErrorCode());
-                msg.append(": ");
-                msg.append(e.getMessage());
-                msg.append('\n');
-              });
-      return msg.toString();
-    };
-  }
-
-  public static void assertNoErrors(ObjectBundleValidationReport report) {
-    assertNotNull(report);
-    List<String> errors = new ArrayList<>();
-    report.forEachErrorReport(err -> errors.add(err.toString()));
-    assertFalse(
-        report.hasErrorReports(), String.format("Expected no errors, instead got: %s%n", errors));
   }
 }

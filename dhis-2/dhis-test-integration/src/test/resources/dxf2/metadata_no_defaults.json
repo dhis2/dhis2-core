@@ -11,6 +11,7 @@
       "code": "Person",
       "created": "2017-07-27T00:00:00.000",
       "name": "Person",
+      "shortName": "Person",
       "id": "MCPQUTHX1Ze",
       "description": "Person"
     }

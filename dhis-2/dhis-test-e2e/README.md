@@ -152,9 +152,25 @@ For convenience, every REST endpoint should be represented by object of type Res
 
  > private RestApiActions optionSetActions = new RestApiActions("/optionSets");
 
-### Connecting to Selenium Grid (for debugging)
+## Test with Selenium Grid locally on MacOS (using Docker) native silicon M1/M2/M3... image
 
-http://selenium:7900/?autoconnect=1&resize=scale&password=secret
+1. Start the DHIS2 server locally on port 8080
+
+2. Start the Selenium Grid locally on port 4444 and 7900:
+
+```
+docker run -d \
+-p 4444:4444 -p 7900:7900 \
+--shm-size="2g" \
+seleniarm/standalone-chromium
+```
+
+3. In the tests you must substitute the host URL with "http://host.docker.internal:8080/" instead
+   of "http://localhost:8080/", since the DHIS2 server is running outside the container, on the host.
+
+### Connecting to Selenium Grid VNC (for debugging)
+
+http://localhost:7900/?autoconnect=1&resize=scale&password=secret
 
 ## Auto-generating analytics tests
 

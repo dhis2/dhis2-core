@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,12 +29,17 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import static org.hisp.dhis.common.CodeGenerator.isValidUid;
+
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -41,6 +48,8 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.EventProgramEnrollmentService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramCategoryMapping;
+import org.hisp.dhis.program.ProgramCategoryMappingValidator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramType;
@@ -64,6 +73,8 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
   private final AclService aclService;
 
   private final IdentifiableObjectManager identifiableObjectManager;
+
+  private final ProgramCategoryMappingValidator categoryMappingValidator;
 
   @Override
   public void postCreate(Program object, ObjectBundle bundle) {
@@ -98,6 +109,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
               ProgramType.WITHOUT_REGISTRATION.name()));
     }
     validateAttributeSecurity(program, bundle, addReports);
+    validateCategoryMappings(program, addReports);
   }
 
   private void syncSharingForEventProgram(Program program) {
@@ -171,5 +183,58 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
                         identifier.getIdentifiersWithName(programAttr.getAttribute())));
               }
             });
+  }
+
+  /** Validates program category mappings. */
+  private void validateCategoryMappings(Program program, Consumer<ErrorReport> addReports) {
+    validateCategoryMappingObjects(program, addReports);
+    validateCategoryMappingUids(program, addReports);
+    validateCategoryMappingNameUniqueness(program, addReports);
+  }
+
+  /** Validates that program category mappings reference to valid objects. */
+  private void validateCategoryMappingObjects(Program program, Consumer<ErrorReport> addReports) {
+    try {
+      categoryMappingValidator.validateProgramCategoryMappings(program);
+    } catch (ConflictException ex) {
+      addReports.accept(new ErrorReport(Program.class, ex.getCode(), ex.getArgs()));
+    }
+  }
+
+  /** Checks that mapping UIDs are valid and are unique within the program. */
+  private void validateCategoryMappingUids(Program program, Consumer<ErrorReport> addReports) {
+    Set<String> uniqueUids = new HashSet<>();
+
+    for (ProgramCategoryMapping mapping : program.getCategoryMappings()) {
+      String uid = mapping.getId();
+      if (!isValidUid(uid))
+        addReports.accept(new ErrorReport(Program.class, ErrorCode.E4075, program.getUid(), uid));
+
+      if (uniqueUids.contains(uid)) {
+        addReports.accept(new ErrorReport(Program.class, ErrorCode.E4076, program.getUid(), uid));
+      }
+      uniqueUids.add(uid);
+    }
+  }
+
+  /** Checks that mapping names are unique within each category. */
+  private void validateCategoryMappingNameUniqueness(
+      Program program, Consumer<ErrorReport> addReports) {
+
+    Set<String> uniqueMappingNames = new HashSet<>();
+    for (ProgramCategoryMapping mapping : program.getCategoryMappings()) {
+      // Ensure category mapping has a valid UID
+      String categoryAndMappingName = mapping.getCategoryId() + mapping.getMappingName();
+      if (uniqueMappingNames.contains(categoryAndMappingName)) {
+        addReports.accept(
+            new ErrorReport(
+                Program.class,
+                ErrorCode.E4077,
+                program.getUid(),
+                mapping.getCategoryId(),
+                mapping.getMappingName()));
+      }
+      uniqueMappingNames.add(categoryAndMappingName);
+    }
   }
 }

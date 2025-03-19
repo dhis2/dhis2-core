@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -100,7 +102,7 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
+      @Qualifier("analyticsReadOnlyJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
@@ -218,12 +220,11 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
             ${partitionClause} \
             and (ougs.startdate is null or ps.monthstartdate=ougs.startdate) \
             and cdr.lastupdated < '${startTime}' \
-            and cdr.completed = true""",
+            and ${completedClause}""",
             Map.of(
-                "partitionClause",
-                partitionClause,
-                "startTime",
-                toLongDate(params.getStartTime())));
+                "partitionClause", partitionClause,
+                "startTime", toLongDate(params.getStartTime()),
+                "completedClause", sqlBuilder.isTrue("cdr", "completed")));
 
     invokeTimeAndLog(sql, "Populating table: '{}'", tableName);
   }
@@ -249,7 +250,9 @@ public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
         "concat(ds.uid,'-',ps.iso,'-',ous.organisationunituid,'-',acs.categoryoptioncombouid) as id ";
     String diffInSeconds = sqlBuilder.differenceInSeconds("cdr.date", "ps.enddate");
     String timelyDateDiff = diffInSeconds + " / (" + SECONDS_PER_DAY + ")";
-    String timelyAlias = "((" + timelyDateDiff + ") <= ds.timelydays) as timely";
+    // Since the end date is reported with a time of 00:00:00, we add 1 day to the timely days
+    // so that the calculations starts at 00:00:00 of the day after the end date.
+    String timelyAlias = "((" + timelyDateDiff + ") <= (ds.timelydays + 1)) as timely";
 
     List<AnalyticsTableColumn> columns = new ArrayList<>();
     columns.addAll(FIXED_COLS);

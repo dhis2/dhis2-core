@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,11 +29,13 @@
  */
 package org.hisp.dhis.dataset;
 
-import static org.hisp.dhis.util.DateUtils.addDays;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.function.Function;
 import org.hisp.dhis.dataelement.DataElement;
@@ -123,29 +127,34 @@ class DataSetTest {
     assertIsLocked(false, Period::getEndDate);
   }
 
-  @Test
-  void testIsLocked_AfterLastDayOfPeriod() {
-    // 12 hours after the end is still ok (12/24 = 0.5 days)
-    assertIsLocked(false, period -> addDays(period.getEndDate(), 0.5));
-
-    // expiryDays is 1 so 1 extra day after the end is still ok
-    assertIsLocked(false, period -> addDays(period.getEndDate(), 1));
-
-    // 1.5 days after the end is too much
-    assertIsLocked(true, period -> addDays(period.getEndDate(), 1.5));
-
-    // 2 days after the end is too much
-    assertIsLocked(true, period -> addDays(period.getEndDate(), 2));
-
-    // 60 hours is 2.5 days (60 / 24) which is too much
-    assertIsLocked(true, period -> addDays(period.getEndDate(), 2.5));
-  }
-
   private static void assertIsLocked(boolean expected, Function<Period, Date> actual) {
     Date now = new Date();
     Period thisMonth = PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY).createPeriod(now);
     DataSet ds = new DataSet();
     ds.setExpiryDays(1);
     assertEquals(expected, ds.isLocked(null, thisMonth, actual.apply(thisMonth)));
+  }
+
+  private static Date createDateFromSimpleDateFormat(String date) {
+    try {
+      return new SimpleDateFormat("MMM d yyyy HH:mm:ss").parse(date);
+    } catch (ParseException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Test
+  void isLockedAtCertainTime() {
+    Date someTimeAgo = createDateFromSimpleDateFormat("Jan 1 2022 12:15:56");
+    Period thisMonth = PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY).createPeriod(someTimeAgo);
+    Date periodEndDate = createDateFromSimpleDateFormat("Jan 31 2022 00:00:00");
+    assertEquals("202201", thisMonth.getIsoDate());
+    assertEquals(periodEndDate, thisMonth.getEndDate());
+    DataSet ds = new DataSet();
+    ds.setExpiryDays(1.5);
+    Date dataEntryClosed = createDateFromSimpleDateFormat("Feb 2 2022 12:00:01");
+    assertTrue(ds.isLocked(null, thisMonth, dataEntryClosed));
+    Date dataEntryOpen = createDateFromSimpleDateFormat("Feb 2 2022 12:00:00");
+    assertFalse(ds.isLocked(null, thisMonth, dataEntryOpen));
   }
 }

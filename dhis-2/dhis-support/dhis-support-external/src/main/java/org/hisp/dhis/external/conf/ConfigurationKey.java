@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -59,12 +61,6 @@ public enum ConfigurationKey {
 
   /** SQL view write enabled, can be 'on', 'off'. (default: off) */
   SYSTEM_SQL_VIEW_WRITE_ENABLED("system.sql_view_write_enabled", Constants.OFF, false),
-
-  /**
-   * Disable server-side program rule execution, can be 'on', 'off'. <br>
-   * (default: on)
-   */
-  SYSTEM_PROGRAM_RULE_SERVER_EXECUTION("system.program_rule.server_execution", Constants.ON, false),
 
   /**
    * Set the maximum size for the cache instance to be built. If set to 0, no caching will take
@@ -134,13 +130,6 @@ public enum ConfigurationKey {
 
   /** Sets 'hibernate.cache.use_query_cache'. (default: true) */
   USE_QUERY_CACHE("hibernate.cache.use_query_cache", "true", false),
-
-  /**
-   * Sets 'hibernate.hbm2ddl.auto' (default: validate). This can be overridden by the same property
-   * loaded by any class implementing {@link DhisConfigurationProvider} like {@link
-   * DefaultDhisConfigurationProvider} from dhis.conf at runtime
-   */
-  CONNECTION_SCHEMA("connection.schema", "validate", false),
 
   /** Max size of connection pool (default: 80). */
   CONNECTION_POOL_MAX_SIZE("connection.pool.max_size", "80", false),
@@ -344,6 +333,7 @@ public enum ConfigurationKey {
   /** Datacenter location (not required). */
   FILESTORE_LOCATION("filestore.location", "", false),
 
+  /** URL where the S3 compatible API can be accessed (only for provider 's3') */
   FILESTORE_ENDPOINT("filestore.endpoint", "", false),
 
   /** Public identity / username. */
@@ -352,13 +342,25 @@ public enum ConfigurationKey {
   /** Secret key / password (sensitive). */
   FILESTORE_SECRET("filestore.secret", "", true),
 
+  /** The Google service account client id. */
   GOOGLE_SERVICE_ACCOUNT_CLIENT_ID("google.service.account.client.id", "", false),
 
+  /**
+   * Maximum number of retries (if any of the steps fail) for the metadata sync task. (default: 3)
+   */
   META_DATA_SYNC_RETRY("metadata.sync.retry", "3", false),
 
-  /** Sets up {@see RetryTemplate} retry frequency. */
+  /** Sets up {@see RetryTemplate} retry frequency. (default: 30000) */
   META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC(
       "metadata.sync.retry.time.frequency.millisec", "30000", false),
+
+  /**
+   * Remote servers allowed to call. <br>
+   * Default is empty. <br>
+   * Servers should be in a comma-separated style and always end with '/' for security reasons <br>
+   * e.g. metadata.sync.remote_servers_allowed = https://server1.com/,https://server2.com/
+   */
+  META_DATA_SYNC_SERVERS_ALLOWED("metadata.sync.remote_servers_allowed", "", false),
 
   /** EHCache replication host. */
   CLUSTER_HOSTNAME("cluster.hostname", "", false),
@@ -381,7 +383,7 @@ public enum ConfigurationKey {
   /** Redis port to use for cache. (default: 6379) */
   REDIS_PORT("redis.port", "6379", false),
 
-  /** Redis password to use for cache. */
+  /** Redis password to use for cache. (sensitive) */
   REDIS_PASSWORD("redis.password", "", true),
 
   /** Use SSL for connecting to redis. (default: false) */
@@ -434,10 +436,16 @@ public enum ConfigurationKey {
   /** Artemis port to use for connection (only relevant for NATIVE mode). (default: 25672) */
   ARTEMIS_PORT("artemis.port", "25672"),
 
-  /** Artemis username to use for connection (only relevant for NATIVE mode). (default: guest) */
+  /**
+   * Artemis username to use for connection (only relevant for NATIVE mode). (default: guest)
+   * (sensitive)
+   */
   ARTEMIS_USERNAME("artemis.username", "guest", true),
 
-  /** Artemis password to use for connection (only relevant for NATIVE mode). (default: guest) */
+  /**
+   * Artemis password to use for connection (only relevant for NATIVE mode). (default: guest)
+   * (sensitive)
+   */
   ARTEMIS_PASSWORD("artemis.password", "guest", true),
 
   /**
@@ -482,11 +490,9 @@ public enum ConfigurationKey {
   SERVER_BASE_URL("server.base.url", "", false),
 
   /**
-   * Remote servers allowed to call. <br>
-   * Default is empty. <br>
-   * Servers should be in a comma-separated style and always end with '/' for security reasons <br>
-   * e.g. system.remote_servers_allowed = https://server1.com/,https://server2.com/
+   * @deprecated use META_DATA_SYNC_SERVERS_ALLOWED instead
    */
+  @Deprecated
   REMOTE_SERVERS_ALLOWED("system.remote_servers_allowed", "", false),
 
   /** Enable secure settings if system is deployed on HTTPS, can be 'off', 'on'. */
@@ -561,22 +567,22 @@ public enum ConfigurationKey {
 
   /**
    * Google IdP specific parameters. Provider client ID: This is the identifier that the IdP
-   * assigned to your application.
+   * assigned to your application. (sensitive)
    */
   OIDC_PROVIDER_GOOGLE_CLIENT_ID("oidc.provider.google.client_id", "", true),
 
   /**
    * Google IdP specific parameters. Provider client secret: This value is a secret and should be
-   * kept secure.
+   * kept secure. (sensitive)
    */
   OIDC_PROVIDER_GOOGLE_CLIENT_SECRET("oidc.provider.google.client_secret", "", true),
 
-  /** Google IdP specific parameters. Mapping claim: *Optional. (default: email). */
+  /** Google IdP specific parameters. Mapping claim: *Optional. (default: email). (sensitive) */
   OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM("oidc.provider.google.mapping_claim", "email", true),
 
   /**
-   * Google IdP specific parameters. Redirect URL: DHIS 2 instance URL, do not end with a slash,
-   * <br>
+   * Google IdP specific parameters. Redirect URL: DHIS 2 instance URL, do not end with a slash.
+   * (sensitive) <br>
    * e.g. https://dhis2.org/demo.
    */
   OIDC_PROVIDER_GOOGLE_REDIRECT_URI("oidc.provider.google.redirect_url", "", true),
@@ -627,6 +633,9 @@ public enum ConfigurationKey {
   /** Database datasource pool type. Supported pool types are: c3p0 (default), hikari, unpooled */
   DB_POOL_TYPE("db.pool.type", "c3p0", false),
 
+  /**
+   * @TODO
+   */
   ACTIVE_READ_REPLICAS("active.read.replicas", "0", false),
 
   /**
@@ -634,9 +643,6 @@ public enum ConfigurationKey {
    * true)
    */
   AUDIT_ENABLED("system.audit.enabled", Constants.ON, false),
-
-  /** OAuth2 authorization server feature. Enable or disable. */
-  ENABLE_OAUTH2_AUTHORIZATION_SERVER("oauth2.authorization.server.enabled", Constants.ON, false),
 
   /** JWT OIDC token authentication feature. Enable or disable. */
   ENABLE_JWT_OIDC_TOKEN_AUTHENTICATION(
@@ -658,10 +664,10 @@ public enum ConfigurationKey {
   /** Redis based cache invalidation feature. Enable or disable. */
   REDIS_CACHE_INVALIDATION_ENABLED("redis.cache.invalidation.enabled", Constants.OFF, false),
 
-  /** Content Security Policy feature. Enable or disable the feature. */
+  /** Content Security Policy feature. Enable or disable the feature. (sensitive) */
   CSP_ENABLED("csp.enabled", Constants.ON, true),
 
-  /** CSP upgrade insecure connections. Enable or disable the feature. */
+  /** CSP upgrade insecure connections. Enable or disable the feature. (sensitive) */
   CSP_UPGRADE_INSECURE_ENABLED("csp.upgrade.insecure.enabled", Constants.OFF, true),
 
   /** CSP default header value/string. Enable or disable the feature. */
@@ -673,17 +679,24 @@ public enum ConfigurationKey {
   /** Linked accounts via OpenID mapping. Enable or disable the feature. */
   LINKED_ACCOUNTS_ENABLED("linked_accounts.enabled", Constants.OFF, false),
 
+  /**
+   * @TODO
+   */
   LINKED_ACCOUNTS_RELOGIN_URL("linked_accounts.relogin_url", "", false),
 
   LINKED_ACCOUNTS_LOGOUT_URL("linked_accounts.logout_url", "", false),
 
+  /** User impersonation, also known as user switching. */
   SWITCH_USER_FEATURE_ENABLED("switch_user_feature.enabled", Constants.OFF, false),
+
+  /** The list of IP address from which you will be calling the user impersonation feature. */
   SWITCH_USER_ALLOW_LISTED_IPS(
       "switch_user_allow_listed_ips", "localhost,127.0.0.1,[0:0:0:0:0:0:0:1]", false),
 
+  /** Maximun size for files uploaded as fileResources. */
   MAX_FILE_UPLOAD_SIZE_BYTES("max.file_upload_size", Integer.toString(10_000_000), false),
 
-  /** CSRF feature. Enable or disable the feature. */
+  /** CSRF feature. Enable or disable the feature. (sensitive) */
   CSRF_ENABLED("http.security.csrf.enabled", Constants.OFF, true),
 
   /** The maximum number of category options in a single category */
@@ -694,7 +707,42 @@ public enum ConfigurationKey {
    * The maximum number of possible category combination. This is computed by multiplying the number
    * of options in each category in a category combo with each other.
    */
-  METADATA_CATEGORIES_MAX_COMBINATIONS("metadata.categories.max_combinations", "500", false);
+  METADATA_CATEGORIES_MAX_COMBINATIONS("metadata.categories.max_combinations", "500", false),
+
+  /** Enable email-based 2FA authentication. (default: false) */
+  EMAIL_2FA_ENABLED("login.security.email_2fa.enabled", Constants.OFF, false),
+
+  /** Enable TOTP-based 2FA authentication. (default: true) */
+  TOTP_2FA_ENABLED("login.security.totp_2fa.enabled", Constants.ON, false),
+
+  SESSION_COOKIE_SAME_SITE("session.cookie.samesite", "Lax", false),
+
+  /**
+   * Remote servers allowed to call from the Route endpoint. <br>
+   * Default is 'https://*'. <br>
+   * Servers should be in a comma-separated style and always end with '/' for security reasons <br>
+   * e.g. route.remote_servers_allowed = https://server1.com/,https://server2.com/
+   */
+  ROUTE_REMOTE_SERVERS_ALLOWED("route.remote_servers_allowed", "https://*", false),
+
+  /** Enable OAuth2 authentication server. (default: off) */
+  OAUTH2_SERVER_ENABLED("oauth2.server.enabled", Constants.OFF, false),
+
+  /** Path to the JWT keystore file. */
+  OAUTH2_JWT_KEYSTORE_PATH("oauth2.server.jwt.keystore.path", "", false),
+
+  /** Password for the JWT keystore. (sensitive) */
+  OAUTH2_JWT_KEYSTORE_PASSWORD("oauth2.server.jwt.keystore.password", "", true),
+
+  /** Alias for the JWT key in the keystore. */
+  OAUTH2_JWT_KEYSTORE_ALIAS("oauth2.server.jwt.keystore.alias", "", false),
+
+  /** Password for the JWT key in the keystore. (sensitive) */
+  OAUTH2_JWT_KEYSTORE_KEY_PASSWORD("oauth2.server.jwt.keystore.key-password", "", true),
+
+  /** Whether to generate a new JWT key if the keystore is missing. */
+  OAUTH2_JWT_KEYSTORE_GENERATE_IF_MISSING(
+      "oauth2.server.jwt.keystore.generate-if-missing", "true", false);
 
   private final String key;
 

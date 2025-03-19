@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -77,30 +79,29 @@ public class DataValueSetImportJob implements Job {
     try (InputStream input =
         progress.runStage(() -> fileResourceService.getFileResourceContent(data))) {
       String contentType = data.getContentType();
-      progress.startingStage("Importing data...");
+      boolean unknownFormat = false;
       ImportSummary summary =
           switch (contentType) {
             case "application/json" ->
-                progress.runStage(
-                    () -> dataValueSetService.importDataValueSetJson(input, options, jobId));
+                dataValueSetService.importDataValueSetJson(input, options, progress);
             case "application/csv" ->
-                progress.runStage(
-                    () -> dataValueSetService.importDataValueSetCsv(input, options, jobId));
+                dataValueSetService.importDataValueSetCsv(input, options, progress);
             case "application/pdf" ->
-                progress.runStage(
-                    () -> dataValueSetService.importDataValueSetPdf(input, options, jobId));
-            case "application/adx+xml" ->
-                progress.runStage(() -> adxDataService.saveDataValueSet(input, options, jobId));
+                dataValueSetService.importDataValueSetPdf(input, options, progress);
             case "application/xml" ->
-                progress.runStage(
-                    () -> dataValueSetService.importDataValueSetXml(input, options, jobId));
+                dataValueSetService.importDataValueSetXml(input, options, progress);
+            case "application/adx+xml" -> adxDataService.saveDataValueSet(input, options, progress);
             default -> {
-              progress.failedStage("Unknown format: {}", contentType);
+              unknownFormat = true;
               yield null;
             }
           };
       if (summary == null) {
-        progress.failedProcess("Import failed, no summary available");
+        String error =
+            unknownFormat
+                ? "Unknown format: " + contentType
+                : "Import failed, no summary available";
+        progress.failedProcess(error);
         return;
       }
 

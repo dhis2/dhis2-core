@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -29,12 +31,13 @@ package org.hisp.dhis.webapi.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.auth.OAuth2ClientCredentialsAuthScheme;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.BadGatewayException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -48,12 +51,14 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 /**
  * @author Morten Olav Hansen
@@ -66,6 +71,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class RouteController extends AbstractCrudController<Route, GetObjectListParams> {
   private final RouteService routeService;
 
+  private final OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository;
+
   @RequestMapping(
       value = "/{id}/run",
       method = {
@@ -75,11 +82,11 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
         RequestMethod.DELETE,
         RequestMethod.PATCH
       })
-  public ResponseEntity<String> run(
+  public ResponseEntity<StreamingResponseBody> run(
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
-      throws IOException, ForbiddenException, NotFoundException, BadRequestException {
+      throws BadGatewayException, ForbiddenException, NotFoundException {
     return runWithSubpath(id, currentUser, request);
   }
 
@@ -92,13 +99,13 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
         RequestMethod.DELETE,
         RequestMethod.PATCH
       })
-  public ResponseEntity<String> runWithSubpath(
+  public ResponseEntity<StreamingResponseBody> runWithSubpath(
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
-      throws IOException, ForbiddenException, NotFoundException, BadRequestException {
+      throws NotFoundException, ForbiddenException, BadGatewayException {
 
-    Route route = routeService.getRouteWithDecryptedAuth(id);
+    Route route = routeService.getRoute(id);
 
     if (route == null) {
       throw new NotFoundException(String.format("Route not found: '%s'", id));
@@ -129,6 +136,22 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
     return Optional.empty();
   }
 
+  @Override
+  protected void preCreateEntity(Route route) throws ConflictException {
+    routeService.validateRoute(route);
+  }
+
+  @Override
+  protected void preUpdateEntity(Route route, Route newRoute) throws ConflictException {
+    routeService.validateRoute(newRoute);
+    removeOAuth2AuthorizedClient(route);
+  }
+
+  @Override
+  protected void preDeleteEntity(Route route) {
+    removeOAuth2AuthorizedClient(route);
+  }
+
   /**
    * Disable the collection API for /api/routes endpoint. This conflicts with sub-path based routes
    * and is not supported by the Route API (no identifiable object collections).
@@ -148,5 +171,22 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
       String pvUid, String pvProperty, String pvItemId, HttpServletResponse response)
       throws NotFoundException, ForbiddenException, ConflictException, BadRequestException {
     throw new NotFoundException("Method not allowed");
+  }
+
+  protected void removeOAuth2AuthorizedClient(Route route) {
+    if (route.getAuth() != null
+        && route
+            .getAuth()
+            .getType()
+            .equals(OAuth2ClientCredentialsAuthScheme.OAUTH2_CLIENT_CREDENTIALS_TYPE)) {
+      OAuth2ClientCredentialsAuthScheme oAuth2ClientCredentialsAuthScheme =
+          (OAuth2ClientCredentialsAuthScheme) route.getAuth();
+
+      oAuth2AuthorizedClientRepository.removeAuthorizedClient(
+          oAuth2ClientCredentialsAuthScheme.getRegistrationId(),
+          OAuth2ClientCredentialsAuthScheme.ANONYMOUS_AUTHENTICATION,
+          contextService.getRequest(),
+          null);
+    }
   }
 }

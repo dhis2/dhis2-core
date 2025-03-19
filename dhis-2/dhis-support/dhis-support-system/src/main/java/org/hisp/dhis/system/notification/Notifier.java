@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -67,26 +69,6 @@ public interface Notifier {
       boolean completed,
       NotificationDataType dataType,
       JsonValue data);
-
-  default Notifier update(JobConfiguration id, String message) {
-    return update(id, NotificationLevel.INFO, message, false);
-  }
-
-  default Notifier update(JobConfiguration id, String message, boolean completed) {
-    return update(id, NotificationLevel.INFO, message, completed);
-  }
-
-  default Notifier update(JobConfiguration id, @Nonnull NotificationLevel level, String message) {
-    return update(id, level, message, false);
-  }
-
-  default Notifier update(
-      JobConfiguration id, @Nonnull NotificationLevel level, String message, boolean completed) {
-    if (id != null && !level.isOff()) {
-      notify(id, level, message, completed);
-    }
-    return this;
-  }
 
   /**
    * @param gist when true, only the first and last message are included for each job. When {@code

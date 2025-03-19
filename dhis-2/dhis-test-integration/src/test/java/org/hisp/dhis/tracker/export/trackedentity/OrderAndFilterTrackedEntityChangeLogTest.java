@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -45,9 +47,10 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.tracker.TrackerTest;
-import org.hisp.dhis.tracker.export.Page;
-import org.hisp.dhis.tracker.export.PageParams;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
+import org.hisp.dhis.tracker.Page;
+import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -55,36 +58,38 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class OrderAndFilterTrackedEntityChangeLogTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class OrderAndFilterTrackedEntityChangeLogTest extends PostgresIntegrationTestBase {
+  @Autowired private TestSetup testSetup;
   @Autowired private TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   @Autowired private TrackerImportService trackerImportService;
 
   private User importUser;
 
-  private TrackerImportParams importParams;
-
-  private final PageParams defaultPageParams = new PageParams(null, null, false);
-
+  private final PageParams defaultPageParams;
   private TrackerObjects trackerObjects;
+
+  OrderAndFilterTrackedEntityChangeLogTest() throws BadRequestException {
+    defaultPageParams = PageParams.of(1, 10, false);
+  }
 
   @BeforeAll
   void setUp() throws IOException {
-    injectSecurityContextUser(getAdminUser());
-    setUpMetadata("tracker/simple_metadata.json");
+    testSetup.importMetadata();
 
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    importParams = TrackerImportParams.builder().build();
-    trackerObjects = fromJson("tracker/event_and_enrollment.json");
-
-    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+    trackerObjects = testSetup.importTrackerData();
   }
 
   @BeforeEach
@@ -164,17 +169,16 @@ class OrderAndFilterTrackedEntityChangeLogTest extends TrackerTest {
 
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
 
-    Page<TrackedEntityChangeLog> changeLogs =
-        trackedEntityChangeLogService.getTrackedEntityChangeLog(
-            UID.of(trackedEntity), null, params, defaultPageParams);
+    List<String> changeLogs =
+        trackedEntityChangeLogService
+            .getTrackedEntityChangeLog(UID.of(trackedEntity), null, params, defaultPageParams)
+            .getItems()
+            .stream()
+            .map(this::getDisplayName)
+            .toList();
 
-    assertNumberOfChanges(3, changeLogs.getItems());
-
-    assertAll(
-        () ->
-            assertUpdate(trackedEntityAttribute, "88", updatedValue, changeLogs.getItems().get(0)),
-        () -> assertCreate(trackedEntityAttribute, "88", changeLogs.getItems().get(1)),
-        () -> assertCreate("toUpdate000", "summer day", changeLogs.getItems().get(2)));
+    assertEquals(
+        List.of("numeric-attribute", "numeric-attribute", "to-update-tei-attribute"), changeLogs);
   }
 
   @Test
@@ -190,17 +194,16 @@ class OrderAndFilterTrackedEntityChangeLogTest extends TrackerTest {
 
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
 
-    Page<TrackedEntityChangeLog> changeLogs =
-        trackedEntityChangeLogService.getTrackedEntityChangeLog(
-            UID.of(trackedEntity), null, params, defaultPageParams);
+    List<String> changeLogs =
+        trackedEntityChangeLogService
+            .getTrackedEntityChangeLog(UID.of(trackedEntity), null, params, defaultPageParams)
+            .getItems()
+            .stream()
+            .map(this::getDisplayName)
+            .toList();
 
-    assertNumberOfChanges(3, changeLogs.getItems());
-
-    assertAll(
-        () -> assertCreate("toUpdate000", "summer day", changeLogs.getItems().get(0)),
-        () ->
-            assertUpdate(trackedEntityAttribute, "88", updatedValue, changeLogs.getItems().get(1)),
-        () -> assertCreate(trackedEntityAttribute, "88", changeLogs.getItems().get(2)));
+    assertEquals(
+        List.of("to-update-tei-attribute", "numeric-attribute", "numeric-attribute"), changeLogs);
   }
 
   @Test
@@ -260,7 +263,8 @@ class OrderAndFilterTrackedEntityChangeLogTest extends TrackerTest {
 
               assertNoErrors(
                   trackerImportService.importTracker(
-                      importParams, TrackerObjects.builder().trackedEntities(List.of(t)).build()));
+                      TrackerImportParams.builder().build(),
+                      TrackerObjects.builder().trackedEntities(List.of(t)).build()));
             });
   }
 
@@ -316,5 +320,13 @@ class OrderAndFilterTrackedEntityChangeLogTest extends TrackerTest {
     return changeLogs.getItems().stream()
         .filter(cl -> cl.getTrackedEntityAttribute().getUid().equalsIgnoreCase(attribute))
         .toList();
+  }
+
+  private String getDisplayName(TrackedEntityChangeLog cl) {
+    if (cl.getTrackedEntityAttribute().getFormName() != null) {
+      return cl.getTrackedEntityAttribute().getFormName();
+    } else {
+      return cl.getTrackedEntityAttribute().getName();
+    }
   }
 }

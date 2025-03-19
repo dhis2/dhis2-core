@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -28,11 +30,14 @@
 package org.hisp.dhis.gist;
 
 import static java.util.Arrays.stream;
+import static org.hisp.dhis.gist.GistLogic.attributePath;
 import static org.hisp.dhis.gist.GistLogic.getBaseType;
+import static org.hisp.dhis.gist.GistLogic.isAttributeValuesAttributePropertyPath;
 import static org.hisp.dhis.gist.GistLogic.isNonNestedPath;
 
 import java.util.List;
 import lombok.AllArgsConstructor;
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
@@ -184,13 +189,24 @@ final class GistValidator {
     if (f.isAttribute()) {
       return;
     }
-    Property filter = context.resolveMandatory(f.getPropertyPath());
-    if (!filter.isPersisted()) {
-      throw createIllegalProperty(filter, "Property `%s` cannot be used as filter property.");
-    }
-
+    validateFilterPath(f, context);
     validateFilterArgument(f);
     validateFilterAccess(f);
+  }
+
+  private void validateFilterPath(Filter f, RelativePropertyContext context) {
+    String propertyPath = f.getPropertyPath();
+    if (isAttributeValuesAttributePropertyPath(propertyPath)) {
+      Property p =
+          context.switchedTo(Attribute.class).resolveMandatory(attributePath(propertyPath));
+      if (!p.isPersisted())
+        throw createIllegalProperty(
+            p, "Property `%s` cannot be used as an attribute filter property");
+      return;
+    }
+    Property filter = context.resolveMandatory(propertyPath);
+    if (!filter.isPersisted())
+      throw createIllegalProperty(filter, "Property `%s` cannot be used as filter property.");
   }
 
   private void validateFilterAccess(Filter f) {

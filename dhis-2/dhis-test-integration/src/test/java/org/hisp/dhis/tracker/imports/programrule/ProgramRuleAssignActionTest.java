@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -32,13 +34,16 @@ import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyWarnings;
+import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1307;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1308;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1310;
 
 import java.io.IOException;
 import java.util.List;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -55,8 +60,9 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.TrackerTest;
+import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -67,11 +73,19 @@ import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-class ProgramRuleAssignActionTest extends TrackerTest {
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class ProgramRuleAssignActionTest extends PostgresIntegrationTestBase {
+  @Autowired private TestSetup testSetup;
+
+  @Autowired private IdentifiableObjectManager manager;
+
   @Autowired private TrackerImportService trackerImportService;
 
   @Autowired private ProgramRuleService programRuleService;
@@ -92,7 +106,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
 
   @BeforeAll
   void setUp() throws IOException {
-    ObjectBundle bundle = setUpMetadata("tracker/simple_metadata.json");
+    ObjectBundle bundle = testSetup.importMetadata();
 
     User importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
@@ -117,9 +131,13 @@ class ProgramRuleAssignActionTest extends TrackerTest {
         ProgramRuleVariableSourceType.DATAELEMENT_PREVIOUS_EVENT);
     programRuleVariableService.addProgramRuleVariable(programRuleVariablePreviousEvent);
 
-    trackerImportService.importTracker(
-        new TrackerImportParams(),
-        fromJson("tracker/programrule/te_enrollment_completed_event.json"));
+    ProgramRuleVariable calculatedValuePRV = createProgramRuleVariable('I', program);
+    calculatedValuePRV.setName("prv_cal_val");
+    calculatedValuePRV.setSourceType(ProgramRuleVariableSourceType.CALCULATED_VALUE);
+    calculatedValuePRV.setValueType(ValueType.TEXT);
+    programRuleVariableService.addProgramRuleVariable(calculatedValuePRV);
+
+    testSetup.importTrackerData("tracker/programrule/te_enrollment_completed_event.json");
   }
 
   @Test
@@ -128,7 +146,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     assignProgramRule();
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
-        fromJson("tracker/programrule/te_enrollment_update_attribute_same_value.json");
+        testSetup.fromJson("tracker/programrule/te_enrollment_update_attribute_same_value.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -142,14 +160,14 @@ class ProgramRuleAssignActionTest extends TrackerTest {
       String eventOccurredDate, String previousEventDataValue) throws IOException {
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
-        fromJson("tracker/programrule/three_events_with_different_dates.json");
+        testSetup.fromJson("tracker/programrule/three_events_with_different_dates.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     trackerImportService.importTracker(params, trackerObjects);
 
     assignPreviousEventProgramRule();
 
-    trackerObjects = fromJson("tracker/programrule/event_with_data_value.json");
+    trackerObjects = testSetup.fromJson("tracker/programrule/event_with_data_value.json");
 
     trackerObjects
         .getEvents()
@@ -226,7 +244,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     assignProgramRule();
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
-        fromJson("tracker/programrule/event_update_datavalue_same_value.json");
+        testSetup.fromJson("tracker/programrule/event_update_datavalue_same_value.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -239,7 +257,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     assignProgramRule();
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
-        fromJson("tracker/programrule/event_update_datavalue_different_value.json");
+        testSetup.fromJson("tracker/programrule/event_update_datavalue_different_value.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -256,7 +274,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     settingsService.clearCurrentSettings();
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
-        fromJson("tracker/programrule/event_update_datavalue_different_value.json");
+        testSetup.fromJson("tracker/programrule/event_update_datavalue_different_value.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -273,7 +291,7 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     settingsService.clearCurrentSettings();
     TrackerImportParams params = new TrackerImportParams();
     TrackerObjects trackerObjects =
-        fromJson("tracker/programrule/event_update_datavalue_empty_value.json");
+        testSetup.fromJson("tracker/programrule/event_update_datavalue_empty_value.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
@@ -281,9 +299,23 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     assertHasOnlyWarnings(importReport, E1308);
   }
 
+  @Test
+  void shouldImportWhenAssigningToCalculatedValueProgramRuleVariable() throws IOException {
+    assignToCalculatedValueProgramRule();
+    TrackerImportParams params = new TrackerImportParams();
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/programrule/event_update_datavalue_different_value.json");
+    params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
+
+    ImportReport report = trackerImportService.importTracker(params, trackerObjects);
+
+    assertNoErrors(report);
+  }
+
   private TrackerObjects getEvent(UID eventUid, String occurredDate, String value)
       throws IOException {
-    TrackerObjects trackerObjects = fromJson("tracker/programrule/event_without_date.json");
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/programrule/event_without_date.json");
     trackerObjects
         .getEvents()
         .get(0)
@@ -312,6 +344,21 @@ class ProgramRuleAssignActionTest extends TrackerTest {
     programRuleActionService.addProgramRuleAction(programRuleActionAttribute);
     programRule.getProgramRuleActions().add(programRuleAction);
     programRule.getProgramRuleActions().add(programRuleActionAttribute);
+    programRuleService.updateProgramRule(programRule);
+  }
+
+  private void assignToCalculatedValueProgramRule() {
+    ProgramRule programRule = createProgramRule('I', program, null, "true");
+    programRuleService.addProgramRule(programRule);
+    ProgramRuleAction programRuleAction = createProgramRuleAction('Z', programRule);
+    programRuleAction.setProgramRuleActionType(ASSIGN);
+    programRuleAction.setDataElement(null);
+    programRuleAction.setAttribute(null);
+    programRuleAction.setData("1");
+    programRuleAction.setContent("#{prv_cal_val}");
+
+    programRuleActionService.addProgramRuleAction(programRuleAction);
+    programRule.getProgramRuleActions().add(programRuleAction);
     programRuleService.updateProgramRule(programRule);
   }
 

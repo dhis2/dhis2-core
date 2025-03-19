@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -45,6 +47,7 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.apikey.ApiToken;
+import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
@@ -86,6 +89,7 @@ public class MeDto {
     this.name = user.getName();
     this.email = user.getEmail();
     this.emailVerified = user.isEmailVerified();
+    this.twoFactorType = user.getTwoFactorType();
     this.phoneNumber = user.getPhoneNumber();
     this.introduction = user.getIntroduction();
     this.birthday = user.getBirthday();
@@ -97,8 +101,8 @@ public class MeDto {
     this.skype = user.getSkype();
     this.telegram = user.getTelegram();
     this.twitter = user.getTwitter();
-    this.userRoles = user.getUserRoles();
 
+    this.userRoles = user.getUserRoles();
     this.authorities = new ArrayList<>(user.getAllAuthorities());
 
     this.settings = settings;
@@ -206,6 +210,8 @@ public class MeDto {
   @JsonProperty private String impersonation;
 
   @JsonProperty private List<ApiToken> patTokens;
+
+  @JsonProperty private TwoFactorType twoFactorType;
 
   @JsonProperty
   @JsonDeserialize(using = AttributeValuesDeserializer.class)

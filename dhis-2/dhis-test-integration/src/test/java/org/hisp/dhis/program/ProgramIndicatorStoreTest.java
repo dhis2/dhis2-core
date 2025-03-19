@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -31,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
@@ -96,5 +99,24 @@ class ProgramIndicatorStoreTest extends PostgresIntegrationTestBase {
     assertTrue(
         programIndicators.containsAll(List.of(pi1, pi2)),
         "retrieved result set should contain 2 program indicators");
+  }
+
+  @Test
+  @DisplayName("retrieving ProgramIndicator with category mapping IDs returns expected entries")
+  void programIndicatorWithCategoryMappingIdsTest() {
+    // given
+    Program program = createProgram('p');
+    identifiableObjectManager.save(program);
+
+    Set<String> ids = Set.of("OIR9ahphaec", "IOhquup3yoo", "Sasiayi0Jee", "QUfahM4tho3");
+    ProgramIndicator pi = createProgramIndicator('1', program, "#{999999.de1}", "");
+    pi.setCategoryMappingIds(ids);
+    programIndicatorStore.save(pi);
+
+    // when
+    ProgramIndicator result = programIndicatorStore.getByUid(pi.getUid());
+
+    // then
+    assertEquals(ids, result.getCategoryMappingIds());
   }
 }

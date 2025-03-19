@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -217,10 +219,11 @@ class OperationsParamsValidatorTest {
 
   @Test
   void shouldReturnTrackedEntityWhenTrackedEntityUidExists()
-      throws ForbiddenException, BadRequestException {
+      throws BadRequestException, ForbiddenException {
     when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID.getValue())).thenReturn(trackedEntity);
 
-    assertEquals(trackedEntity, paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user));
+    assertEquals(
+        trackedEntity, paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user, false));
   }
 
   @Test
@@ -230,7 +233,7 @@ class OperationsParamsValidatorTest {
     Exception exception =
         assertThrows(
             BadRequestException.class,
-            () -> paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user));
+            () -> paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user, false));
 
     assertEquals(
         String.format("Tracked entity is specified but does not exist: %s", TRACKED_ENTITY_UID),
@@ -246,7 +249,8 @@ class OperationsParamsValidatorTest {
     when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID.getValue())).thenReturn(trackedEntity);
     when(aclService.canDataRead(user, trackedEntity.getTrackedEntityType())).thenReturn(true);
 
-    assertEquals(trackedEntity, paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user));
+    assertEquals(
+        trackedEntity, paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user, false));
   }
 
   @Test
@@ -260,13 +264,43 @@ class OperationsParamsValidatorTest {
     Exception exception =
         assertThrows(
             ForbiddenException.class,
-            () -> paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user));
+            () -> paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user, false));
 
     assertEquals(
         String.format(
             "User is not authorized to read data from type of selected tracked entity: %s",
             trackedEntity.getUid()),
         exception.getMessage());
+  }
+
+  @Test
+  void shouldThrowBadRequestExceptionWhenTrackedEntityIsSoftDeletedAndIncludeDeletedIsFalse() {
+    TrackedEntity softDeletedTrackedEntity = new TrackedEntity();
+    softDeletedTrackedEntity.setDeleted(true);
+    when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID.getValue()))
+        .thenReturn(softDeletedTrackedEntity);
+
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user, false));
+
+    assertEquals(
+        String.format("Tracked entity is specified but does not exist: %s", TRACKED_ENTITY_UID),
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldReturnTrackedEntityWhenTrackedEntityIsSoftDeletedAndIncludeDeletedIsTrue()
+      throws BadRequestException, ForbiddenException {
+    TrackedEntity softDeletedTrackedEntity = new TrackedEntity();
+    softDeletedTrackedEntity.setDeleted(true);
+    when(manager.get(TrackedEntity.class, TRACKED_ENTITY_UID.getValue()))
+        .thenReturn(softDeletedTrackedEntity);
+
+    assertEquals(
+        softDeletedTrackedEntity,
+        paramsValidator.validateTrackedEntity(TRACKED_ENTITY_UID, user, true));
   }
 
   @Test

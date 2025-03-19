@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -34,6 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,6 +44,7 @@ import lombok.Getter;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
@@ -49,7 +53,6 @@ import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.Order;
 
@@ -62,9 +65,6 @@ public class TrackedEntityOperationParams {
   public static final int DEFAULT_PAGE_SIZE = 50;
 
   @Builder.Default private TrackedEntityParams trackedEntityParams = TrackedEntityParams.FALSE;
-
-  /** Tracked entity attribute filters per attribute UID. */
-  @Builder.Default private Map<UID, List<QueryFilter>> filters = new HashMap<>();
 
   /**
    * Organisation units for which instances in the response were registered at. Is related to the
@@ -126,15 +126,6 @@ public class TrackedEntityOperationParams {
   /** End date for event for the given program. */
   private Date eventEndDate;
 
-  /** Page number. */
-  private Integer page;
-
-  /** Page size. */
-  private Integer pageSize;
-
-  /** Indicates whether to include the total number of pages in the paging response. */
-  private boolean totalPages;
-
   /** Indicates whether paging should be skipped. */
   private boolean skipPaging;
 
@@ -171,9 +162,14 @@ public class TrackedEntityOperationParams {
    */
   private List<Order> order;
 
+  /** Tracked entity attribute filters per attribute UID. */
+  private final Map<UID, List<QueryFilter>> filters;
+
   public static class TrackedEntityOperationParamsBuilder {
 
     private final List<Order> order = new ArrayList<>();
+
+    private Map<UID, List<QueryFilter>> filters = new HashMap<>();
 
     // Do not remove this unused method. This hides the order field from the builder which Lombok
     // does not support. The repeated order field and private order method prevent access to order
@@ -249,10 +245,23 @@ public class TrackedEntityOperationParams {
       return this;
     }
 
-    public TrackedEntityOperationParamsBuilder filter(
-        TrackedEntityAttribute attribute, List<QueryFilter> queryFilters) {
-      this.filters$value = Map.of(UID.of(attribute), queryFilters);
-      this.filters$set = true;
+    // Do not remove this unused method. This hides the filters field from the builder which Lombok
+    // does not support. The repeated filters field and private filters method prevent access to
+    // the filter map via the builder.
+    // Filters should be added via the filterBy builder methods.
+    private TrackedEntityOperationParamsBuilder filters(Map<UID, List<QueryFilter>> filters) {
+      return this;
+    }
+
+    public TrackedEntityOperationParamsBuilder filterBy(
+        @Nonnull UID attribute, @Nonnull List<QueryFilter> queryFilters) {
+      this.filters.putIfAbsent(attribute, new ArrayList<>());
+      this.filters.get(attribute).addAll(queryFilters);
+      return this;
+    }
+
+    public TrackedEntityOperationParamsBuilder filterBy(@Nonnull UID attribute) {
+      this.filters.putIfAbsent(attribute, List.of(new QueryFilter(QueryOperator.NNULL)));
       return this;
     }
   }

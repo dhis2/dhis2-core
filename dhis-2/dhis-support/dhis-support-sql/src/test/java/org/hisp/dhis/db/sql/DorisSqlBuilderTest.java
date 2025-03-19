@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -93,7 +95,7 @@ class DorisSqlBuilderTest {
 
   @Test
   void testIndexTypes() {
-    assertThrows(UnsupportedOperationException.class, () -> sqlBuilder.indexTypeBtree());
+    assertThrows(UnsupportedOperationException.class, sqlBuilder::indexTypeBtree);
   }
 
   // Capabilities
@@ -157,7 +159,85 @@ class DorisSqlBuilderTest {
 
   @Test
   void testConcat() {
-    assertEquals("concat(de.uid, pe.iso, ou.uid)", sqlBuilder.concat("de.uid", "pe.iso", "ou.uid"));
+    assertEquals(
+        "concat(trim(nullif('', de.uid)), trim(nullif('', pe.iso)), trim(nullif('', ou.uid)))",
+        sqlBuilder.concat("de.uid", "pe.iso", "ou.uid"));
+  }
+
+  @Test
+  void testConcat_WithRawColumns() {
+    String result =
+        sqlBuilder.concat(
+            "json_unquote(json_extract(ev.createdbyuserinfo, '$.surname'))",
+            "json_unquote(json_extract(ev.createdbyuserinfo, '$.firstName'))");
+    assertEquals(
+        "concat(trim(nullif('', json_unquote(json_extract(ev.createdbyuserinfo, '$.surname')))), "
+            + "trim(nullif('', json_unquote(json_extract(ev.createdbyuserinfo, '$.firstName')))))",
+        result);
+  }
+
+  @Test
+  void testConcat_WithTrimmedColumns() {
+    String result =
+        sqlBuilder.concat(
+            "trim(json_unquote(json_extract(ev.createdbyuserinfo, '$.surname')))",
+            "trim(json_unquote(json_extract(ev.createdbyuserinfo, '$.firstName')))");
+    assertEquals(
+        "concat(trim(nullif('', json_unquote(json_extract(ev.createdbyuserinfo, '$.surname')))), "
+            + "trim(nullif('', json_unquote(json_extract(ev.createdbyuserinfo, '$.firstName')))))",
+        result);
+  }
+
+  @Test
+  void testConcat_WithLiteralsAndRawColumns() {
+    String result =
+        sqlBuilder.concat(
+            "json_unquote(json_extract(ev.createdbyuserinfo, '$.surname'))",
+            "', '",
+            "json_unquote(json_extract(ev.createdbyuserinfo, '$.firstName'))",
+            "' ('",
+            "json_unquote(json_extract(ev.createdbyuserinfo, '$.username'))",
+            "')'");
+    assertEquals(
+        "concat(trim(nullif('', json_unquote(json_extract(ev.createdbyuserinfo, '$.surname')))), ', ', "
+            + "trim(nullif('', json_unquote(json_extract(ev.createdbyuserinfo, '$.firstName')))), ' (', "
+            + "trim(nullif('', json_unquote(json_extract(ev.createdbyuserinfo, '$.username')))), ')')",
+        result);
+  }
+
+  @Test
+  void testConcat_WithLiteralsOnly() {
+    String result = sqlBuilder.concat("', '", "' ('", "')'");
+    assertEquals("concat(', ', ' (', ')')", result);
+  }
+
+  @Test
+  void testConcat_WithMixedInputs() {
+    String result =
+        sqlBuilder.concat(
+            "trim(json_unquote(json_extract(ev.createdbyuserinfo, '$.surname')))",
+            "trim(json_unquote(json_extract(ev.createdbyuserinfo, '$.firstName')))",
+            "', '",
+            "'Unknown'");
+    assertEquals(
+        "concat(trim(nullif('', json_unquote(json_extract(ev.createdbyuserinfo, '$.surname')))), "
+            + "trim(nullif('', json_unquote(json_extract(ev.createdbyuserinfo, '$.firstName')))), ', ', "
+            + "'Unknown')",
+        result);
+  }
+
+  @Test
+  void testConcat_WithEdgeCaseEmptyInput() {
+    String result = sqlBuilder.concat();
+    assertEquals("concat()", result);
+  }
+
+  @Test
+  void testConcat_FromList() {
+    String result = sqlBuilder.concat(List.of("column1", "column2", "column3"));
+    assertEquals(
+        "concat(trim(nullif('', column1)), trim(nullif('', column2)), trim(nullif('', column3)))",
+        result);
   }
 
   @Test
@@ -198,6 +278,18 @@ class DorisSqlBuilderTest {
         "(unix_timestamp(a.`startdate`) - unix_timestamp(b.`enddate`))",
         sqlBuilder.differenceInSeconds(
             sqlBuilder.quote("a", "startdate"), sqlBuilder.quote("b", "enddate")));
+  }
+
+  @Test
+  void testIsTrue() {
+    assertEquals("dv.`deleted` = true", sqlBuilder.isTrue("dv", "deleted"));
+    assertEquals("tei.`followup` = true", sqlBuilder.isTrue("tei", "followup"));
+  }
+
+  @Test
+  void testIsFalse() {
+    assertEquals("dv.`deleted` = false", sqlBuilder.isFalse("dv", "deleted"));
+    assertEquals("tei.`followup` = false", sqlBuilder.isFalse("tei", "followup"));
   }
 
   @Test
@@ -273,6 +365,11 @@ class DorisSqlBuilderTest {
             "a.status = 'SCHEDULED'",
             "a.scheduleddate",
             "a.incidentdate"));
+  }
+
+  @Test
+  void testLog10() {
+    assertEquals("log(value, 10)", sqlBuilder.log10("value"));
   }
 
   // Statements

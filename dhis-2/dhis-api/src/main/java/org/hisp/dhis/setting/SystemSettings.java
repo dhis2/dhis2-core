@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -676,14 +678,6 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   /**
-   * @deprecated use {@link #getTrackedEntityMaxLimit()} instead
-   */
-  @Deprecated(forRemoval = true, since = "2.41")
-  default int getTrackedEntityInstanceMaxLimit() {
-    return asInt("KeyTrackedEntityInstanceMaxLimit", 50000);
-  }
-
-  /**
    * @return Max tracked entity records that can be retrieved from database.
    */
   default int getTrackedEntityMaxLimit() {
@@ -719,15 +713,14 @@ public non-sealed interface SystemSettings extends Settings {
    *     or if the app does not exist *
    */
   default String getGlobalShellAppName() {
-    return asString("globalShellAppName", "global-app-shell");
+    return asString("globalShellAppName", "global-shell");
   }
 
-  default boolean getEmail2FAEnabled() {
-    return asBoolean("email2FAEnabled", false);
-  }
-
-  default boolean getTOTP2FAEnabled() {
-    return asBoolean("totp2FAEnabled", true);
+  /**
+   * @return true if apps should be served within a global shell.
+   */
+  default boolean getGlobalShellEnabled() {
+    return asBoolean("globalShellEnabled", true);
   }
 
   /**
@@ -797,18 +790,6 @@ public non-sealed interface SystemSettings extends Settings {
    */
   default long getNotifierCleanAfterIdleTime() {
     return asInt("notifierCleanAfterIdleTime", 60_0000); // 1 minute
-  }
-
-  /**
-   * @since 2.42
-   * @return A regex pattern string that enforces the current password validation rules
-   */
-  default String getPasswordValidationPattern() {
-    return asString(
-        "passwordValidationPattern",
-        String.format(
-            "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[\\W_])[A-Za-z\\d\\W_]{%d,%d}$",
-            getMinPasswordLength(), getMaxPasswordLength()));
   }
 
   default boolean getUseExperimentalAnalyticsQueryEngine() {

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -35,6 +37,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,25 +46,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.appmanager.ResourceResult.Redirect;
+import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
+import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.datastore.DatastoreNamespace;
 import org.hisp.dhis.external.location.LocationManager;
-import org.hisp.dhis.external.location.LocationManagerException;
+import org.hisp.dhis.fileresource.FileResourceContentStore;
 import org.hisp.dhis.jclouds.JCloudsStore;
 import org.hisp.dhis.util.ZipFileUtils;
-import org.jclouds.blobstore.BlobRequestSigner;
-import org.jclouds.blobstore.LocalBlobRequestSigner;
 import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.blobstore.domain.StorageMetadata;
-import org.jclouds.blobstore.internal.RequestSigningUnsupported;
 import org.jclouds.blobstore.options.ListContainerOptions;
-import org.jclouds.http.HttpRequest;
 import org.joda.time.Minutes;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -83,6 +88,7 @@ public class JCloudsAppStorageService implements AppStorageService {
   private final LocationManager locationManager;
 
   private final ObjectMapper jsonMapper;
+  private final FileResourceContentStore fileResourceContentStore;
 
   private void discoverInstalledApps(Consumer<App> handler) {
     ObjectMapper mapper = new ObjectMapper();
@@ -119,7 +125,7 @@ public class JCloudsAppStorageService implements AppStorageService {
   @Override
   public Map<String, App> discoverInstalledApps() {
     Map<String, App> apps = new HashMap<>();
-    discoverInstalledApps(app -> apps.put(app.getUrlFriendlyName(), app));
+    discoverInstalledApps(app -> apps.put(app.getKey(), app));
 
     if (apps.isEmpty()) {
       log.info("No apps found during JClouds discovery.");
@@ -271,18 +277,15 @@ public class JCloudsAppStorageService implements AppStorageService {
             if (key.equals(other.getKey()) && !version.equals(other.getVersion()))
               otherVersions.add(other);
           });
-      otherVersions.forEach(this::deleteApp);
+      otherVersions.forEach(this::deleteAppAsync);
 
       String namespace = app.getActivities().getDhis().getNamespace();
 
       log.info(
-          String.format(
-              "New app '%s' installed"
-                  + "\n\tInstall path: %s"
-                  + (namespace != null && !namespace.isEmpty() ? "\n\tNamespace reserved: %s" : ""),
-              app.getName(),
-              dest,
-              namespace));
+          "New app {} installed, Install path: {}, Namespace reserved: {}",
+          app.getName(),
+          dest,
+          (namespace != null && !namespace.isEmpty() ? namespace : "no namespace reserved"));
 
       // -----------------------------------------------------------------
       // Installation complete.
@@ -306,17 +309,18 @@ public class JCloudsAppStorageService implements AppStorageService {
   }
 
   @Override
-  public void deleteApp(App app) {
+  public Future<Boolean> deleteAppAsync(App app) {
     log.info("Deleting app {}", app.getName());
+
+    // delete the manifest file first in case the system crashes during deletion
+    // and the manifest file is not deleted, resulting in an app that can't be installed
+    jCloudsStore.removeBlob(app.getFolderName() + "manifest.webapp");
 
     if (jCloudsStore.isUsingFileSystem()) {
       // Delete all files related to app (works for local filestore):
       jCloudsStore.deleteDirectory(app.getFolderName());
     } else {
       // slower but works for S3:
-      // delete the manifest file first in case the system crashes during deletion
-      // and the manifest file is not deleted, resulting in an app that can't be installed
-      jCloudsStore.removeBlob(app.getFolderName() + "manifest.webapp");
       // Delete all files related to app
       ListContainerOptions options = prefix(app.getFolderName()).recursive();
       for (StorageMetadata resource : jCloudsStore.getBlobList(options)) {
@@ -325,67 +329,72 @@ public class JCloudsAppStorageService implements AppStorageService {
       }
     }
     log.info("Deleted app {}", app.getName());
+    return CompletableFuture.completedFuture(true);
   }
 
   @Override
-  public Resource getAppResource(App app, String pageName) throws IOException {
+  public ResourceResult getAppResource(App app, @Nonnull String resource) throws IOException {
     if (app == null || !app.getAppStorageSource().equals(AppStorageSource.JCLOUDS)) {
       log.warn(
           "Can't look up resource {}. The specified app was not found in JClouds storage.",
-          pageName);
-      return null;
+          resource);
+      return new ResourceNotFound(resource);
+    }
+    if (resource.isBlank()) {
+      return new Redirect("/");
     }
 
-    String key = (app.getFolderName() + ("/" + pageName)).replaceAll("//", "/");
-    URI uri = getSignedGetContentUri(key);
+    String resolvedFileResource = useIndexHtmlIfDirCall(resource);
+    String key = app.getFolderName() + ("/" + resolvedFileResource);
+    String cleanedKey = key.replaceAll("/+", "/");
 
-    if (uri == null) {
-
-      String filepath = jCloudsStore.getBlobContainer() + "/" + key;
-      filepath = filepath.replaceAll("//", "/");
-      File res;
-
-      try {
-        res = locationManager.getFileForReading(filepath);
-      } catch (LocationManagerException e) {
-        return null;
-      }
-
-      if (res.isDirectory()) {
-        String indexPath = pageName.replaceAll("/+$", "") + "/index.html";
-        log.info("Resource {} ({} is a directory, serving {}", pageName, filepath, indexPath);
-        return getAppResource(app, indexPath);
-      } else if (res.exists()) {
-        return new FileSystemResource(res);
-      } else {
-        return null;
-      }
+    log.debug("Checking if blob exists {} for App {}", cleanedKey, app.getName());
+    if (jCloudsStore.blobExists(cleanedKey)) {
+      return new ResourceFound(getResource(cleanedKey));
     }
-
-    return new UrlResource(uri);
+    if (keyExistsAsDirectory(cleanedKey)) {
+      return new Redirect(resource + "/");
+    }
+    log.debug("ResourceNotFound {} for App {}", cleanedKey, app.getName());
+    return new ResourceNotFound(resource);
   }
 
-  public URI getSignedGetContentUri(String key) {
-    BlobRequestSigner signer = jCloudsStore.getBlobRequestSigner();
-
-    if (!requestSigningSupported(signer)) {
-      return null;
-    }
-
-    HttpRequest httpRequest;
-
-    try {
-      httpRequest =
-          signer.signGetBlob(jCloudsStore.getBlobContainer(), key, FIVE_MINUTES_IN_SECONDS);
-    } catch (UnsupportedOperationException uoe) {
-      return null;
-    }
-
-    return httpRequest.getEndpoint();
+  private boolean keyExistsAsDirectory(String cleanedKey) {
+    return !jCloudsStore.getBlobList(prefix(cleanedKey)).isEmpty();
   }
 
-  private boolean requestSigningSupported(BlobRequestSigner signer) {
-    return !(signer instanceof RequestSigningUnsupported)
-        && !(signer instanceof LocalBlobRequestSigner);
+  private Resource getResource(@Nonnull String filePath) throws MalformedURLException {
+    if (jCloudsStore.isUsingFileSystem()) {
+      String cleanedFilepath = jCloudsStore.getBlobContainer() + "/" + filePath;
+      return new FileSystemResource(
+          locationManager.getFileForReading((cleanedFilepath).replaceAll("/+", "/")));
+    } else {
+      URI uri = fileResourceContentStore.getSignedGetContentUri(filePath);
+      return new UrlResource(uri);
+    }
+  }
+
+  /**
+   * The server is expected to return the 'index.html' for calls made to resources ending in '/'<br>
+   *
+   * <p>Examples: <br>
+   * <li>'' -> ''
+   * <li>'index.html' ->'index.html'
+   * <li>'subDir/index.html' ->'subDir/index.html'
+   * <li>'baseDir/' ->'baseDir/index.html'
+   * <li>'baseDir/subDir/' ->'baseDir/subDir/index.html'
+   * <li>'subDir' ->'subDir'
+   * <li>'static/js/138.af8b0ff6.chunk.js' ->'static/js/138.af8b0ff6.chunk.js'
+   *
+   * @param resource app resource
+   * @return potentially-updated app resource
+   */
+  private String useIndexHtmlIfDirCall(@Nonnull String resource) {
+    if (resource.endsWith("/")) {
+      log.debug("Resource ends with '/', appending 'index.html' to {}", resource);
+      return resource + "index.html";
+    }
+    // any other resource, no special handling required, return as is
+    return resource;
   }
 }

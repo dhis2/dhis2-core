@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -30,44 +32,34 @@ package org.hisp.dhis.query.operators;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Restrictions;
+import java.util.List;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
-import org.hisp.dhis.query.Typed;
-import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.query.planner.PropertyPath;
 
 /**
  * @author Henning Håkonsen
  */
-public class NotTokenOperator<T extends Comparable<? super T>> extends Operator<T> {
-  private final boolean caseSensitive;
+public class NotTokenOperator<T extends Comparable<T>> extends Operator<T> {
 
+  private final boolean caseSensitive;
   private final org.hibernate.criterion.MatchMode matchMode;
 
   public NotTokenOperator(
       T arg, boolean caseSensitive, org.hisp.dhis.query.operators.MatchMode matchMode) {
-    super("!token", Typed.from(String.class), arg);
+    super("!token", List.of(String.class), arg);
     this.caseSensitive = caseSensitive;
     this.matchMode = getMatchMode(matchMode);
   }
 
   @Override
-  public Criterion getHibernateCriterion(QueryPath queryPath) {
-    String value = caseSensitive ? getValue(String.class) : getValue(String.class).toLowerCase();
-
-    return Restrictions.sqlRestriction(
-        "c_." + queryPath.getPath() + " !~* '" + TokenUtils.createRegex(value) + "' ");
-  }
-
-  @Override
-  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, QueryPath queryPath) {
+  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, PropertyPath path) {
     String value = caseSensitive ? getValue(String.class) : getValue(String.class).toLowerCase();
 
     return builder.equal(
         builder.function(
             JsonbFunctions.REGEXP_SEARCH,
             Boolean.class,
-            root.get(queryPath.getPath()),
+            root.get(path.getPath()),
             builder.literal(TokenUtils.createRegex(value).toString())),
         false);
   }

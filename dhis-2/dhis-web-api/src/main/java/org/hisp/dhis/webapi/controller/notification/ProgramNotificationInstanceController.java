@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -28,15 +30,17 @@
 package org.hisp.dhis.webapi.controller.notification;
 
 import static org.hisp.dhis.security.Authorities.ALL;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationParameters;
+import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
 
-import java.util.Date;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.OpenApi.Response.Status;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -45,15 +49,16 @@ import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.schema.descriptors.ProgramNotificationInstanceSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
+import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
@@ -61,10 +66,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Document(
     entity = ProgramNotificationInstance.class,
-    classifiers = {"team:tracker", "purpose:metadata"})
+    classifiers = {"team:tracker", "purpose:data"})
 @Controller
 @RequestMapping("/api/programNotificationInstances")
 @ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@RequiredArgsConstructor
 public class ProgramNotificationInstanceController {
   private final ProgramNotificationInstanceService programNotificationInstanceService;
 
@@ -72,90 +78,71 @@ public class ProgramNotificationInstanceController {
 
   private final EventService eventService;
 
-  public ProgramNotificationInstanceController(
-      ProgramNotificationInstanceService programNotificationInstanceService,
-      EnrollmentService enrollmentService,
-      EventService eventService) {
-    this.programNotificationInstanceService = programNotificationInstanceService;
-    this.enrollmentService = enrollmentService;
-    this.eventService = eventService;
-  }
+  private final IdentifiableObjectManager manager;
 
+  @OpenApi.Response(status = Status.OK, value = Page.class)
   @RequiresAuthority(anyOf = ALL)
   @GetMapping(produces = {"application/json"})
-  public @ResponseBody Page<ProgramNotificationInstance> getScheduledMessage(
-      @Deprecated(since = "2.41") @RequestParam(required = false) UID programInstance,
-      @RequestParam(required = false) UID enrollment,
-      @Deprecated(since = "2.41") @RequestParam(required = false) UID programStageInstance,
-      @RequestParam(required = false) UID event,
-      @RequestParam(required = false) Date scheduledAt,
-      // @deprecated use {@code paging} instead
-      @Deprecated(since = "2.41") @RequestParam(required = false) Boolean skipPaging,
-      // TODO(tracker): set paging=true once skipPaging is removed. Both cannot have a default right
-      // now. This would lead to invalid parameters if the user passes the other param i.e.
-      // skipPaging==paging.
-      @RequestParam(required = false) Boolean paging,
-      @RequestParam(required = false, defaultValue = "1") int page,
-      @RequestParam(required = false, defaultValue = "50") int pageSize)
-      throws BadRequestException, ForbiddenException, NotFoundException {
-    if (paging != null && skipPaging != null && paging.equals(skipPaging)) {
-      throw new BadRequestException(
-          "Paging can either be enabled or disabled. Prefer 'paging' as 'skipPaging' will be removed.");
-    }
-    boolean isPaged = isPaged(paging, skipPaging);
-
-    UID enrollmentUid =
-        validateDeprecatedParameter("programInstance", programInstance, "enrollment", enrollment);
-    UID eventUid =
-        validateDeprecatedParameter("programStageInstance", programStageInstance, "event", event);
+  public @ResponseBody ResponseEntity<Page<ProgramNotificationInstance>> getScheduledMessage(
+      ProgramNotificationInstanceRequestParams requestParams, HttpServletRequest request)
+      throws NotFoundException, BadRequestException {
+    validatePaginationParameters(requestParams);
 
     Event storedEvent = null;
-    if (eventUid != null) {
-      storedEvent = eventService.getEvent(eventUid);
+    if (requestParams.getEvent() != null) {
+      eventService.getEvent(requestParams.getEvent());
+      // TODO(tracker) jdbc-hibernate: check the impact on performance
+      storedEvent = manager.get(Event.class, requestParams.getEvent());
     }
     Enrollment storedEnrollment = null;
-    if (enrollmentUid != null) {
-      storedEnrollment =
-          enrollmentService.getEnrollment(enrollmentUid, EnrollmentParams.FALSE, false);
+    if (requestParams.getEnrollment() != null) {
+      enrollmentService.getEnrollment(requestParams.getEnrollment());
+      // TODO(tracker) jdbc-hibernate: check the impact on performance
+      storedEnrollment = manager.get(Enrollment.class, requestParams.getEnrollment());
     }
+
+    if (requestParams.isPaging()) {
+      PageParams pageParams =
+          PageParams.of(
+              requestParams.getPage(), requestParams.getPageSize(), requestParams.isTotalPages());
+      ProgramNotificationInstanceParam params =
+          ProgramNotificationInstanceParam.builder()
+              .enrollment(storedEnrollment)
+              .event(storedEvent)
+              .scheduledAt(requestParams.getScheduledAt())
+              .paging(true)
+              .page(pageParams.getPage())
+              .pageSize(pageParams.getPageSize())
+              .build();
+      List<ProgramNotificationInstance> instances =
+          programNotificationInstanceService.getProgramNotificationInstancesPage(params);
+      org.hisp.dhis.tracker.Page<ProgramNotificationInstance> page =
+          new org.hisp.dhis.tracker.Page<>(
+              instances,
+              pageParams,
+              () -> programNotificationInstanceService.countProgramNotificationInstances(params));
+
+      return ResponseEntity.ok()
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(
+              Page.withPager(
+                  ProgramNotificationInstanceSchemaDescriptor.PLURAL,
+                  page,
+                  getRequestURL(request)));
+    }
+
     ProgramNotificationInstanceParam params =
         ProgramNotificationInstanceParam.builder()
             .enrollment(storedEnrollment)
             .event(storedEvent)
-            .skipPaging(!isPaged)
-            .page(page)
-            .pageSize(pageSize)
-            .scheduledAt(scheduledAt)
+            .scheduledAt(requestParams.getScheduledAt())
+            .paging(false)
             .build();
-
     List<ProgramNotificationInstance> instances =
         programNotificationInstanceService.getProgramNotificationInstances(params);
 
-    if (isPaged) {
-      long total = programNotificationInstanceService.countProgramNotificationInstances(params);
-      return Page.withPager(
-          ProgramNotificationInstanceSchemaDescriptor.PLURAL,
-          org.hisp.dhis.tracker.export.Page.withTotals(instances, page, pageSize, total));
-    }
-
-    return Page.withoutPager(ProgramNotificationInstanceSchemaDescriptor.PLURAL, instances);
-  }
-
-  /**
-   * Indicates whether to return a page of items or all items. By default, responses are paginated.
-   *
-   * <p>Note: this assumes {@code paging} and {@code skipPaging} have been validated. Preference is
-   * given to {@code paging} as the other parameter is deprecated.
-   */
-  private static boolean isPaged(Boolean paging, Boolean skipPaging) {
-    if (paging != null) {
-      return Boolean.TRUE.equals(paging);
-    }
-
-    if (skipPaging != null) {
-      return Boolean.FALSE.equals(skipPaging);
-    }
-
-    return true;
+    return ResponseEntity.ok()
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(Page.withoutPager(ProgramNotificationInstanceSchemaDescriptor.PLURAL, instances));
   }
 }

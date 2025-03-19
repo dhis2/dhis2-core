@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -51,7 +53,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.QueryParser;
 import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -67,8 +68,6 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
     implements MinMaxDataElementStore {
   private final QueryParser queryParser;
 
-  private final QueryPlanner queryPlanner;
-
   private final SchemaService schemaService;
 
   public HibernateMinMaxDataElementStore(
@@ -76,16 +75,13 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       QueryParser queryParser,
-      QueryPlanner queryPlanner,
       SchemaService schemaService) {
     super(entityManager, jdbcTemplate, publisher, MinMaxDataElement.class, false);
 
     checkNotNull(queryParser);
-    checkNotNull(queryPlanner);
     checkNotNull(schemaService);
 
     this.queryParser = queryParser;
-    this.queryPlanner = queryPlanner;
     this.schemaService = schemaService;
   }
 
@@ -221,7 +217,7 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
           throw new QueryParserException("Invalid filter: " + filter);
         }
 
-        Path<?> queryPath = queryPlanner.getQueryPath(root, schema, split[0]);
+        Path<?> queryPath = getQueryPath(root, schema, split[0]);
 
         Property property = queryParser.getProperty(schema, split[0]);
 
@@ -235,5 +231,42 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
     }
 
     return conjunction;
+  }
+
+  private Path<?> getQueryPath(Root<?> root, Schema schema, String path) {
+    Schema curSchema = schema;
+    Property curProperty;
+    String[] pathComponents = path.split("\\.");
+
+    Path<?> currentPath = root;
+
+    if (pathComponents.length == 0) {
+      return null;
+    }
+
+    for (int idx = 0; idx < pathComponents.length; idx++) {
+      String name = pathComponents[idx];
+      curProperty = curSchema.getProperty(name);
+
+      if (curProperty == null) {
+        throw new RuntimeException("Invalid path property: " + name);
+      }
+
+      if ((!curProperty.isSimple() && idx == pathComponents.length - 1)) {
+        return root.join(curProperty.getFieldName());
+      }
+
+      if (curProperty.isCollection()) {
+        currentPath = root.join(curProperty.getFieldName());
+        curSchema = schemaService.getDynamicSchema(curProperty.getItemKlass());
+      } else if (!curProperty.isSimple()) {
+        curSchema = schemaService.getDynamicSchema(curProperty.getKlass());
+        currentPath = root.join(curProperty.getFieldName());
+      } else {
+        return currentPath.get(curProperty.getFieldName());
+      }
+    }
+
+    return currentPath;
   }
 }

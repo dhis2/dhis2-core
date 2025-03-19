@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -29,7 +31,6 @@ package org.hisp.dhis.system.notification;
 
 import static java.lang.System.currentTimeMillis;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -184,14 +185,12 @@ public class RedisNotifierStore implements NotifierStore {
       JsonString level = src.getString("level");
       dest.setLevel(
           level.isUndefined() ? NotificationLevel.INFO : level.parsed(NotificationLevel::valueOf));
-      String id = src.getString("id").string();
-      dest.setUid(id);
       dest.setCompleted(src.getBoolean("completed").booleanValue(false));
       JsonValue time = src.get("time");
-      dest.setTime(
+      dest.setTimestamp(
           time.isNumber()
-              ? new Date(time.as(JsonNumber.class).longValue())
-              : DateUtils.parseDate(time.as(JsonString.class).string()));
+              ? time.as(JsonNumber.class).longValue()
+              : DateUtils.parseDate(time.as(JsonString.class).string()).getTime());
       dest.setMessage(src.getString("message").string());
       dest.setDataType(src.getString("dataType").parsed(NotificationDataType::valueOf));
       JsonValue data = src.get("data");
@@ -211,9 +210,7 @@ public class RedisNotifierStore implements NotifierStore {
     private String toJson(Notification n) {
       return Json.object(
               obj -> {
-                obj.addString("id", n.getId())
-                    .addNumber("time", n.getTime().getTime())
-                    .addString("message", n.getMessage());
+                obj.addNumber("time", n.getTimestamp()).addString("message", n.getMessage());
                 if (n.getLevel() != NotificationLevel.INFO)
                   obj.addString("level", n.getLevel().name());
                 if (n.isCompleted()) obj.addBoolean("completed", true);

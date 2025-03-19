@@ -72,12 +72,6 @@ Get events owned by given `orgUnit`.
 
 Get events using given organisation unit mode.
 
-### `*.parameter.EventRequestParams.ouMode`
-
-**DEPRECATED as of 2.41:** Use parameter `orgUnitMode` instead.
-
-Get events using given organisation unit mode.
-
 ### `*.parameter.EventRequestParams.assignedUserMode`
 
 Get events assigned to users according to the specified user mode. By default,
@@ -88,16 +82,6 @@ all events will be retrieved, regardless of whether a user is assigned.
 `<user1-uid>[,<user2-uid>...]`
 
 Get events that are assigned to the given user(s). Specifying `assignedUsers` is only valid
-if `assignedUserMode` is either `PROVIDED` or not specified.
-
-### `*.parameter.EventRequestParams.assignedUser`
-
-**DEPRECATED as of 2.41:** Use parameter `assignedUsers` instead where UIDs have to be separated by
-comma!
-
-`<user1-uid>[;<user2-uid>...]`
-
-Get events that are assigned to the given user(s). Specifying `assignedUser` is only valid
 if `assignedUserMode` is either `PROVIDED` or not specified.
 
 ### `*.parameter.EventRequestParams.occurredAfter`
@@ -143,20 +127,9 @@ This parameter is inclusive, so results with the exact date and time specified w
 
 ### `*.parameter.EventRequestParams.attributeCategoryCombo`
 
-### `*.parameter.EventRequestParams.attributeCc`
-
-**DEPRECATED as of 2.41:** Use parameter `attributeCategoryCombo` instead.
-
 ### `*.parameter.EventRequestParams.attributeCategoryOptions`
 
 `<attributeCategoryOption1-uid>[,<attributeCategoryOption2-uid>...]`
-
-### `*.parameter.EventRequestParams.attributeCos`
-
-`<attributeCategoryOption1-uid>[;<attributeCategoryOption2-uid>...]`
-
-**DEPRECATED as of 2.41:** Use parameter `attributeCategoryOptions` instead where UIDs have to be
-separated by comma!
 
 ### `*.parameter.EventRequestParams.includeDeleted`
 
@@ -166,14 +139,6 @@ default.
 ### `*.parameter.EventRequestParams.events`
 
 `<event1-uid>[,<event2-uid>...]`
-
-Get events with given UID(s).
-
-### `*.parameter.EventRequestParams.event`
-
-**DEPRECATED as of 2.41:** Use parameter `events` instead where UIDs have to be separated by comma!
-
-`<event1-uid>[;<event2-uid>...]`
 
 Get events with given UID(s).
 
@@ -199,7 +164,6 @@ case-sensitive properties
 * `enrollment`
 * `enrollmentStatus`
 * `event`
-* `followup` (deprecated)
 * `followUp`
 * `occurredAt`
 * `orgUnit`
@@ -232,63 +196,82 @@ NOTE: this query parameter has no effect on a CSV response!
 
 `<filter1>[,<filter2>...]`
 
-Get events matching given filters on data values. A filter is a colon separated data element UID
-with operator and value pairs. Example: `filter=H9IlTX2X6SL:sw:A` with operator starts with `sw`
-followed by a value. Special characters like `+` need to be percent-encoded so `%2B` instead of `+`.
-Multiple operator/value pairs for the same data element as
-`filter=AuPLng5hLbE:gt:438901703:lt:448901704` are allowed. Operator and values are
+Get events matching the given filters on data values. A filter is a colon separated data element UID
+with optional operator and value pairs. 
+
+We differentiate between two types of operators: unary and 
+binary. Unary operators don't require a value, while binary operators do.
+- Unary: `filter=H9IlTX2X6SL:null`
+- Binary: `filter=H9IlTX2X6SL:sw:A` 
+
+Special characters like `+` must be percent-encoded (`%2B` instead of `+`). Characters like `:` and
+`,` in filter values must be escaped with `/`. Likewise, `/` needs to be escaped.
+Multiple operators are allowed for the same data element, e.g.,
+`filter=AuPLng5hLbE:gt:438901703:lt:448901704`. Operators and values are
 case-insensitive. A user needs metadata read access to the data element and data read access to the
 program (if the program is without registration) or the program stage (if the program is with
 registration).
 
-Valid operators are:
+Valid binary operators are:
+- `eq` - equal to
+- `ieq` - equal to
+- `ge` - greater than or equal to
+- `gt` - greater than
+- `le` - less than or equal to
+- `lt` - less than
+- `ne` - not equal to
+- `neq` - not equal to
+- `nieq` - not equal to
+- `in` - equal to one of the multiple values separated by semicolon ";"
+- `ilike` - is like (case-insensitive)
+- `like` - like (free text match)
+- `nilike` - not like
+- `nlike` - not like
+- `sw` - starts with
+- `ew` - ends with
 
-- `EQ` - equal to
-- `IEQ` - equal to
-- `GE` - greater than or equal to
-- `GT` - greater than
-- `LE` - less than or equal to
-- `LT` - less than
-- `NE` - not equal to
-- `NEQ` - not equal to
-- `NIEQ` - not equal to
-- `IN` - equal to one of the multiple values separated by semicolon ";"
-- `ILIKE` - is like (case-insensitive)
-- `LIKE` - like (free text match)
-- `NILIKE` - not like
-- `NLIKE` - not like
-- `SW` - starts with
-- `EW` - ends with
+Valid unary operators are:
+- `null` - has no value
+- `!null` - has a value
 
 ### `*.parameter.EventRequestParams.filterAttributes`
 
 `<filter1>[,<filter2>...]`
 
-Get events matching given filters on tracked entity attributes. A filter is a colon separated
-attribute UID with optional operator and value pairs. Example: `filter=H9IlTX2X6SL:sw:A` with
-operator starts with `sw` followed by a value. Special characters like `+` need to be
-percent-encoded so `%2B` instead of `+`. Characters such as `:` (colon) or `,` (comma), as part of
-the filter value, need to be escaped by / (slash). Likewise, `/` needs to be escaped. Multiple
-operator/value pairs for the same attribute as `filter=AuPLng5hLbE:gt:438901703:lt:448901704` are
-allowed. Repeating the same attribute UID is not allowed. Operator and values are case-insensitive.
-A user needs metadata read access to the attribute and data read access to the program (if the
-program is without registration) or to the program stage (if the program is with registration).
+Get events matching the given filters on tracked entity attributes. A filter is a colon separated 
+attribute UID with optional operator and value pairs. 
 
-Valid operators are:
+We differentiate between two types of
+operators: unary and binary. Unary operators don't require a value, while binary operators do.
+- Unary: `filterAttributes=H9IlTX2X6SL:null`
+- Binary: `filterAttributes=H9IlTX2X6SL:sw:A` 
 
-- `EQ` - equal to
-- `IEQ` - equal to
-- `GE` - greater than or equal to
-- `GT` - greater than
-- `LE` - less than or equal to
-- `LT` - less than
-- `NE` - not equal to
-- `NEQ` - not equal to
-- `NIEQ` - not equal to
-- `IN` - equal to one of the multiple values separated by semicolon ";"
-- `ILIKE` - is like (case-insensitive)
-- `LIKE` - like (free text match)
-- `NILIKE` - not like
-- `NLIKE` - not like
-- `SW` - starts with
-- `EW` - ends with
+Special characters like `+` must be percent-encoded (`%2B` instead of `+`). Characters like `:` and 
+`,` in filter values must be escaped with `/`. Likewise, `/` needs to be escaped.
+Multiple operators are allowed for the same attribute, e.g.,
+`filter=AuPLng5hLbE:gt:438901703:lt:448901704`. Operators and values are
+case-insensitive. A user needs metadata read access to the attribute and data read access to the
+program (if the program is without registration) or the program stage (if the program is with
+registration).
+
+Valid binary operators are:
+- `eq` - equal to
+- `ieq` - equal to
+- `ge` - greater than or equal to
+- `gt` - greater than
+- `le` - less than or equal to
+- `lt` - less than
+- `ne` - not equal to
+- `neq` - not equal to
+- `nieq` - not equal to
+- `in` - equal to one of the multiple values separated by semicolon ";"
+- `ilike` - is like (case-insensitive)
+- `like` - like (free text match)
+- `nilike` - not like
+- `nlike` - not like
+- `sw` - starts with
+- `ew` - ends with
+
+Valid unary operators are:
+- `null` - has no value
+- `!null` - has a value

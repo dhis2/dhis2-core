@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -72,16 +74,11 @@ public class TokenUtils {
   }
 
   private static boolean testToken(String searchToken, List<String> valueTokens, MatchMode mode) {
-    switch (mode) {
-      case EXACT:
-        return valueTokens.stream().anyMatch(token -> token.equals(searchToken));
-      case START:
-        return valueTokens.stream().anyMatch(token -> token.startsWith(searchToken));
-      case END:
-        return valueTokens.stream().anyMatch(token -> token.endsWith(searchToken));
-      default:
-      case ANYWHERE:
-        return valueTokens.stream().anyMatch(token -> token.contains(searchToken));
-    }
+    return switch (mode) {
+      case EXACT -> valueTokens.stream().anyMatch(token -> token.equals(searchToken));
+      case START -> valueTokens.stream().anyMatch(token -> token.startsWith(searchToken));
+      case END -> valueTokens.stream().anyMatch(token -> token.endsWith(searchToken));
+      default -> valueTokens.stream().anyMatch(token -> token.contains(searchToken));
+    };
   }
 }

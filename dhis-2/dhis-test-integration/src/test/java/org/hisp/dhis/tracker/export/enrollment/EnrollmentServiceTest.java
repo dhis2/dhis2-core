@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -33,13 +35,13 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourBefore;
 import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -234,6 +236,9 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     relationshipTypeA.getSharing().setOwner(user);
     manager.save(relationshipTypeA, false);
 
+    enrollmentA = createEnrollment(programA, trackedEntityA, orgUnitA);
+    manager.save(enrollmentA, false);
+
     relationshipA = new Relationship();
     relationshipA.setUid(CodeGenerator.generateUid());
     relationshipA.setRelationshipType(relationshipTypeA);
@@ -249,13 +254,11 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     relationshipA.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(relationshipA));
     manager.save(relationshipA, false);
 
-    enrollmentA = createEnrollment(programA, trackedEntityA, orgUnitA);
-    manager.save(enrollmentA, false);
     eventA = createEvent(programStageA, enrollmentA, orgUnitA);
     eventA.setOccurredDate(incidentDate);
     manager.save(eventA);
     enrollmentA.setEvents(Set.of(eventA));
-    enrollmentA.setRelationshipItems(Set.of(from, to));
+    enrollmentA.setRelationshipItems(Set.of(to));
     manager.update(enrollmentA);
 
     enrollmentB = createEnrollment(programB, trackedEntityB, orgUnitB);
@@ -273,12 +276,12 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldGetEnrollmentWhenUserHasReadWriteAccessToProgramAndAccessToOrgUnit()
-      throws ForbiddenException, NotFoundException {
+      throws NotFoundException {
     programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ_WRITE);
     manager.updateNoAcl(programA);
 
     Enrollment enrollment =
-        enrollmentService.getEnrollment(UID.of(enrollmentA), EnrollmentParams.FALSE, false);
+        enrollmentService.getEnrollment(UID.of(enrollmentA), EnrollmentParams.FALSE);
 
     assertNotNull(enrollment);
     assertEquals(enrollmentA.getUid(), enrollment.getUid());
@@ -286,24 +289,22 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldGetEnrollmentWhenUserHasReadAccessToProgramAndAccessToOrgUnit()
-      throws ForbiddenException, NotFoundException {
+      throws NotFoundException {
     programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
     manager.updateNoAcl(programA);
 
-    Enrollment enrollment =
-        enrollmentService.getEnrollment(UID.of(enrollmentA), EnrollmentParams.FALSE, false);
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA));
 
     assertNotNull(enrollment);
     assertEquals(enrollmentA.getUid(), enrollment.getUid());
   }
 
   @Test
-  void shouldGetEnrollmentWithEventsWhenUserHasAccessToEvent()
-      throws ForbiddenException, NotFoundException {
+  void shouldGetEnrollmentWithEventsWhenUserHasAccessToEvent() throws NotFoundException {
     EnrollmentParams params = EnrollmentParams.FALSE;
     params = params.withEnrollmentEventsParams(EnrollmentEventsParams.TRUE);
 
-    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params, false);
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params);
 
     assertNotNull(enrollment);
     assertContainsOnly(
@@ -312,7 +313,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldGetEnrollmentWithoutEventsWhenUserHasNoAccessToProgramStage()
-      throws ForbiddenException, NotFoundException {
+      throws NotFoundException {
     programStageA.getSharing().setOwner(admin);
     programStageA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.updateNoAcl(programStageA);
@@ -320,46 +321,43 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     EnrollmentParams params = EnrollmentParams.FALSE;
     params = params.withIncludeEvents(true);
 
-    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params, false);
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params);
 
     assertNotNull(enrollment);
     assertIsEmpty(enrollment.getEvents());
   }
 
   @Test
-  void shouldGetEnrollmentWithRelationshipsWhenUserHasAccessToThem()
-      throws ForbiddenException, NotFoundException {
+  void shouldGetEnrollmentWithRelationshipsWhenUserHasAccessToThem() throws NotFoundException {
     EnrollmentParams params = EnrollmentParams.FALSE;
     params = params.withIncludeRelationships(true);
 
-    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params, false);
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params);
 
     assertNotNull(enrollment);
     assertContainsOnly(Set.of(relationshipA.getUid()), relationshipUids(enrollment));
   }
 
   @Test
-  void shouldGetEnrollmentWithoutRelationshipsWhenUserHasAccessToThem()
-      throws ForbiddenException, NotFoundException {
+  void shouldGetEnrollmentWithoutRelationshipsWhenUserHasAccessToThem() throws NotFoundException {
     relationshipTypeA.getSharing().setOwner(admin);
     relationshipTypeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
 
     EnrollmentParams params = EnrollmentParams.FALSE;
     params = params.withIncludeRelationships(true);
 
-    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params, false);
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params);
 
     assertNotNull(enrollment);
     assertIsEmpty(enrollment.getRelationshipItems());
   }
 
   @Test
-  void shouldGetEnrollmentWithAttributesWhenUserHasAccessToThem()
-      throws ForbiddenException, NotFoundException {
+  void shouldGetEnrollmentWithAttributesWhenUserHasAccessToThem() throws NotFoundException {
     EnrollmentParams params = EnrollmentParams.FALSE;
     params = params.withIncludeAttributes(true);
 
-    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params, false);
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params);
 
     assertNotNull(enrollment);
     assertContainsOnly(List.of(trackedEntityAttributeA.getUid()), attributeUids(enrollment));
@@ -371,13 +369,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     trackedEntityTypeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.updateNoAcl(trackedEntityTypeA);
 
-    NotFoundException exception =
-        assertThrows(
-            NotFoundException.class,
-            () ->
-                enrollmentService.getEnrollment(
-                    UID.of(enrollmentA), EnrollmentParams.FALSE, false));
-    assertContains("could not be found", exception.getMessage());
+    assertFalse(enrollmentService.findEnrollment(UID.of(enrollmentA)).isPresent());
   }
 
   @Test
@@ -386,16 +378,9 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     trackedEntityTypeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.updateNoAcl(trackedEntityTypeA);
 
-    String nonExistentUid = CodeGenerator.generateUid();
+    UID nonExistentUid = UID.generate();
 
-    NotFoundException exception =
-        assertThrows(
-            NotFoundException.class,
-            () ->
-                enrollmentService.getEnrollment(
-                    UID.of(nonExistentUid), EnrollmentParams.FALSE, false));
-    assertContains(
-        "Enrollment with id " + nonExistentUid + " could not be found.", exception.getMessage());
+    assertFalse(enrollmentService.findEnrollment(nonExistentUid).isPresent());
   }
 
   @Test
@@ -405,13 +390,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     injectSecurityContextUser(userWithOrgUnitZ);
 
-    NotFoundException exception =
-        assertThrows(
-            NotFoundException.class,
-            () ->
-                enrollmentService.getEnrollment(
-                    UID.of(enrollmentA), EnrollmentParams.FALSE, false));
-    assertContains("could not be found", exception.getMessage());
+    assertFalse(enrollmentService.findEnrollment(UID.of(enrollmentA)).isPresent());
   }
 
   @Test
@@ -421,13 +400,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     injectSecurityContextUser(userWithOrgUnitZ);
 
-    NotFoundException exception =
-        assertThrows(
-            NotFoundException.class,
-            () ->
-                enrollmentService.getEnrollment(
-                    UID.of(enrollmentA), EnrollmentParams.FALSE, false));
-    assertContains("could not be found", exception.getMessage());
+    assertFalse(enrollmentService.findEnrollment(UID.of(enrollmentA)).isPresent());
   }
 
   @Test
@@ -435,13 +408,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     programA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.updateNoAcl(programA);
 
-    NotFoundException exception =
-        assertThrows(
-            NotFoundException.class,
-            () ->
-                enrollmentService.getEnrollment(
-                    UID.of(enrollmentA), EnrollmentParams.FALSE, false));
-    assertContains("could not be found", exception.getMessage());
+    assertFalse(enrollmentService.findEnrollment(UID.of(enrollmentA)).isPresent());
   }
 
   @Test
@@ -457,7 +424,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
             .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
             .build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(params);
 
     assertNotNull(enrollments);
     assertContainsOnly(
@@ -475,7 +442,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder().program(programA).orgUnitMode(ACCESSIBLE).build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(params);
 
     assertNotNull(enrollments);
     assertContainsOnly(
@@ -493,7 +460,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     EnrollmentOperationParams params =
         EnrollmentOperationParams.builder().orgUnitMode(CAPTURE).build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(params);
 
     assertNotNull(enrollments);
     assertContainsOnly(
@@ -515,7 +482,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
             .orgUnitMode(ACCESSIBLE)
             .build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(params);
 
     assertNotNull(enrollments);
     assertContainsOnly(List.of(enrollmentA.getUid()), uids(enrollments));
@@ -534,7 +501,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
             .trackedEntity(trackedEntityA)
             .build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(params);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(params);
 
     assertNotNull(enrollments);
     assertContainsOnly(List.of(enrollmentA.getUid()), uids(enrollments));
@@ -552,7 +519,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
             .lastUpdated(oneHourBeforeLastUpdated)
             .build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
 
     assertContainsOnly(List.of(enrollmentA), enrollments);
   }
@@ -569,7 +536,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
             .lastUpdated(oneHourAfterLastUpdated)
             .build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
 
     assertIsEmpty(enrollments);
   }
@@ -588,7 +555,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
             .programStartDate(oneHourBeforeEnrollmentDate)
             .build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
 
     assertContainsOnly(List.of(enrollmentA), enrollments);
   }
@@ -607,7 +574,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
             .programStartDate(oneHourAfterEnrollmentDate)
             .build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
 
     assertIsEmpty(enrollments);
   }
@@ -626,7 +593,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
             .programEndDate(oneHourAfterEnrollmentDate)
             .build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
 
     assertContainsOnly(List.of(enrollmentA), enrollments);
   }
@@ -645,7 +612,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
             .programEndDate(oneHourBeforeEnrollmentDate)
             .build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
 
     assertIsEmpty(enrollments);
   }
@@ -658,7 +625,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(ALL).build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
     assertContainsOnly(
         List.of(enrollmentA.getUid(), enrollmentChildA.getUid(), enrollmentGrandchildA.getUid()),
         uids(enrollments));
@@ -671,7 +638,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     ForbiddenException exception =
         assertThrows(
-            ForbiddenException.class, () -> enrollmentService.getEnrollments(operationParams));
+            ForbiddenException.class, () -> enrollmentService.findEnrollments(operationParams));
     assertEquals(
         "User is not authorized to query across all organisation units", exception.getMessage());
   }
@@ -685,7 +652,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     ForbiddenException exception =
         assertThrows(
-            ForbiddenException.class, () -> enrollmentService.getEnrollments(operationParams));
+            ForbiddenException.class, () -> enrollmentService.findEnrollments(operationParams));
     assertEquals(
         String.format("Organisation unit is not part of the search scope: %s", orgUnitA.getUid()),
         exception.getMessage());
@@ -699,7 +666,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnitMode(ALL).build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
     assertContainsOnly(
         List.of(enrollmentA, enrollmentB, enrollmentChildA, enrollmentGrandchildA), enrollments);
   }
@@ -711,7 +678,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnits(orgUnitA).orgUnitMode(DESCENDANTS).build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
     assertContainsOnly(
         List.of(enrollmentA.getUid(), enrollmentChildA.getUid(), enrollmentGrandchildA.getUid()),
         uids(enrollments));
@@ -724,7 +691,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnits(orgUnitA).orgUnitMode(CHILDREN).build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
     assertContainsOnly(List.of(enrollmentA.getUid(), enrollmentChildA.getUid()), uids(enrollments));
   }
 
@@ -735,7 +702,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     EnrollmentOperationParams operationParams =
         EnrollmentOperationParams.builder().orgUnits(orgUnitChildA).orgUnitMode(CHILDREN).build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
     assertContainsOnly(
         List.of(enrollmentChildA.getUid(), enrollmentGrandchildA.getUid()), uids(enrollments));
   }
@@ -751,7 +718,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
             .orgUnitMode(CHILDREN)
             .build();
 
-    List<Enrollment> enrollments = enrollmentService.getEnrollments(operationParams);
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
     assertContainsOnly(
         List.of(enrollmentA.getUid(), enrollmentChildA.getUid(), enrollmentGrandchildA.getUid()),
         uids(enrollments));
@@ -766,12 +733,12 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     injectSecurityContextUser(authorizedUser);
     List<Enrollment> enrollments =
-        enrollmentService.getEnrollments(UID.of(enrollmentA, enrollmentB));
+        enrollmentService.findEnrollments(UID.of(enrollmentA, enrollmentB));
     assertIsEmpty(enrollments);
   }
 
   @Test
-  void shouldNotDeleteNoteWhenDeletingEnrollment() throws ForbiddenException, NotFoundException {
+  void shouldNotDeleteNoteWhenDeletingEnrollment() {
     Note note = new Note();
     note.setCreator(CodeGenerator.generateUid());
     note.setNoteText("text");
@@ -780,12 +747,11 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     manager.save(enrollmentA);
 
-    assertNotNull(enrollmentService.getEnrollment(UID.of(enrollmentA)));
+    assertTrue(enrollmentService.findEnrollment(UID.of(enrollmentA)).isPresent());
 
     manager.delete(enrollmentA);
 
-    assertThrows(
-        NotFoundException.class, () -> enrollmentService.getEnrollment(UID.of(enrollmentA)));
+    assertFalse(enrollmentService.findEnrollment(UID.of(enrollmentA)).isPresent());
     assertTrue(manager.exists(Note.class, note.getUid()));
   }
 

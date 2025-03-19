@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -29,10 +31,12 @@ package org.hisp.dhis.program;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -109,5 +113,43 @@ class ProgramStoreTest extends PostgresIntegrationTestBase {
     List<Program> withFormY = programStore.getByDataEntryForm(formY);
     assertEquals(1, withFormY.size());
     assertEquals(programC, withFormY.get(0));
+  }
+
+  @Test
+  void testGetAndDeleteProgramWithCategoryMappings() {
+    ProgramCategoryOptionMapping omA =
+        ProgramCategoryOptionMapping.builder().optionId("PWoocil1Oof").filter("Filter A").build();
+    ProgramCategoryOptionMapping omB =
+        ProgramCategoryOptionMapping.builder().optionId("dEeluoqu2ai").filter("Filter B").build();
+    ProgramCategoryOptionMapping omC =
+        ProgramCategoryOptionMapping.builder().optionId("Oiewaenai0E").filter("Filter C").build();
+    ProgramCategoryOptionMapping omD =
+        ProgramCategoryOptionMapping.builder().optionId("lAedahy6eye").filter("Filter D").build();
+    List<ProgramCategoryOptionMapping> omList1 = List.of(omA, omB);
+    List<ProgramCategoryOptionMapping> omList2 = List.of(omC, omD);
+    ProgramCategoryMapping cm1 =
+        ProgramCategoryMapping.builder()
+            .id("iOChed1vei4")
+            .categoryId("Proh3kafa6K")
+            .mappingName("Mapping 1")
+            .optionMappings(omList1)
+            .build();
+    ProgramCategoryMapping cm2 =
+        ProgramCategoryMapping.builder()
+            .id("fshoocuL0sh")
+            .categoryId("Oieth9ahGhu")
+            .mappingName("Mapping 2")
+            .optionMappings(omList2)
+            .build();
+    Set<ProgramCategoryMapping> categoryMappings = Set.of(cm1, cm2);
+    programA.setCategoryMappings(categoryMappings);
+    programStore.save(programA);
+
+    Program result = programStore.getByUid(programA.getUid());
+    assertEquals(categoryMappings, result.getCategoryMappings());
+
+    programStore.delete(result);
+    Program result2 = programStore.getByUid(programA.getUid());
+    assertNull(result2);
   }
 }

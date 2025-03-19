@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -30,8 +32,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateOrderParams;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrderParams;
 
 import java.util.List;
 import java.util.Objects;
@@ -61,20 +62,7 @@ class RelationshipRequestParamsMapper {
 
   public RelationshipOperationParams map(RelationshipRequestParams relationshipRequestParams)
       throws BadRequestException {
-    UID trackedEntity =
-        validateDeprecatedParameter(
-            "tei",
-            relationshipRequestParams.getTei(),
-            "trackedEntity",
-            relationshipRequestParams.getTrackedEntity());
-
-    if (ObjectUtils.allNull(
-        trackedEntity,
-        relationshipRequestParams.getEnrollment(),
-        relationshipRequestParams.getEvent())) {
-      throw new BadRequestException(
-          "Missing required parameter 'trackedEntity', 'enrollment' or 'event'.");
-    }
+    UID trackedEntity = relationshipRequestParams.getTrackedEntity();
 
     if (hasMoreThanOneNotNull(
         trackedEntity,
@@ -84,27 +72,26 @@ class RelationshipRequestParamsMapper {
           "Only one of parameters 'trackedEntity', 'enrollment' or 'event' is allowed.");
     }
 
-    validateOrderParams(relationshipRequestParams.getOrder(), ORDERABLE_FIELD_NAMES);
-
     RelationshipOperationParamsBuilder builder =
-        RelationshipOperationParams.builder()
-            .type(
-                getTrackerType(
-                    trackedEntity,
-                    relationshipRequestParams.getEnrollment(),
-                    relationshipRequestParams.getEvent()))
-            .identifier(
-                ObjectUtils.firstNonNull(
-                    trackedEntity,
-                    relationshipRequestParams.getEnrollment(),
-                    relationshipRequestParams.getEvent()));
+        RelationshipOperationParams.builder(
+            getTrackerType(
+                trackedEntity,
+                relationshipRequestParams.getEnrollment(),
+                relationshipRequestParams.getEvent()),
+            ObjectUtils.firstNonNull(
+                trackedEntity,
+                relationshipRequestParams.getEnrollment(),
+                relationshipRequestParams.getEvent()));
+
+    validateOrderParams(relationshipRequestParams.getOrder(), ORDERABLE_FIELD_NAMES);
 
     mapOrderParam(builder, relationshipRequestParams.getOrder());
 
     return builder.includeDeleted(relationshipRequestParams.isIncludeDeleted()).build();
   }
 
-  private TrackerType getTrackerType(UID trackedEntity, UID enrollment, UID event) {
+  private TrackerType getTrackerType(UID trackedEntity, UID enrollment, UID event)
+      throws BadRequestException {
     if (Objects.nonNull(trackedEntity)) {
       return TRACKED_ENTITY;
     } else if (Objects.nonNull(enrollment)) {
@@ -112,7 +99,8 @@ class RelationshipRequestParamsMapper {
     } else if (Objects.nonNull(event)) {
       return EVENT;
     }
-    return null;
+    throw new BadRequestException(
+        "Missing required parameter 'trackedEntity', 'enrollment' or 'event'.");
   }
 
   private boolean hasMoreThanOneNotNull(Object... values) {

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -39,6 +41,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.common.RegexUtils;
@@ -641,10 +644,10 @@ public class TextUtils {
   /**
    * Method to remove a trailing '/' if it's the last char.
    *
-   * @param string
+   * @param string string to update if condition met
    * @return string with no trailing '/' or the string unchanged
    */
-  public static String removeAnyTrailingSlash(String string) {
+  public static String removeAnyTrailingSlash(@Nonnull String string) {
     return string.endsWith("/") ? StringUtils.chop(string) : string;
   }
 
@@ -668,5 +671,23 @@ public class TextUtils {
    */
   public static Set<String> getVariableNames(String input) {
     return RegexUtils.getMatches(VARIABLE_PATTERN, input, 1);
+  }
+
+  /**
+   * Provides the ability to form a valid URL, by providing a 'baseUrl' and a 'path'. The 'baseUrl'
+   * has any trailing slash '/' removed, keeping it's scheme (e.g. 'http://') with 2 '/'s . The
+   * remaining string concatenation is put together with a '/' and the remaining 'path', which has
+   * any extra '/'s replaced with a single '/'. <br>
+   * This method is useful when you are stitching together URL parts and are not sure if any of the
+   * params start or end with '/'.
+   *
+   * @param baseUrl base URL e.g. 'http://localhost'
+   * @param path the remaining path to concatenate with the base URL
+   * @return the fully-cleaned URl, meaning the URL will have a valid URL scheme included (if
+   *     provided) and the remaining path will only have single '/'s.
+   */
+  public static String cleanUrlPathOnly(@Nonnull String baseUrl, @Nonnull String path) {
+    String base = removeAnyTrailingSlash(baseUrl);
+    return base + ("/" + path).replaceAll("/+", "/");
   }
 }

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -63,9 +65,9 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodStore;
+import org.hisp.dhis.query.Filters;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.MetadataMergeParams;
 import org.hisp.dhis.schema.MetadataMergeService;
 import org.hisp.dhis.schema.Property;
@@ -151,10 +153,10 @@ public class DefaultPreheatService implements PreheatService {
 
         if (!identifiers.isEmpty()) {
           for (List<String> ids : identifiers) {
-            Query query = Query.from(schemaService.getDynamicSchema(klass));
+            Query<?> query = Query.of(klass);
             query.setCurrentUserDetails(UserDetails.fromUser(preheat.getUser()));
             query.setSkipSharing(true);
-            query.add(Restrictions.in("id", ids));
+            query.add(Filters.in("id", ids));
             List<? extends IdentifiableObject> objects = queryService.query(query);
             preheat.put(PreheatIdentifier.UID, objects);
           }
@@ -169,9 +171,9 @@ public class DefaultPreheatService implements PreheatService {
 
         if (!identifiers.isEmpty()) {
           for (List<String> ids : identifiers) {
-            Query query = Query.from(schemaService.getDynamicSchema(klass));
+            Query<?> query = Query.of(klass);
             query.setCurrentUserDetails(UserDetails.fromUser(preheat.getUser()));
-            query.add(Restrictions.in("code", ids));
+            query.add(Filters.in("code", ids));
             List<? extends IdentifiableObject> objects = queryService.query(query);
             preheat.put(PreheatIdentifier.CODE, objects);
           }
@@ -183,10 +185,10 @@ public class DefaultPreheatService implements PreheatService {
             Lists.partition(Lists.newArrayList(uidMap.get(User.class)), 20000);
 
         for (List<String> ids : identifiers) {
-          Query query = Query.from(schemaService.getDynamicSchema(User.class));
+          Query<User> query = Query.of(User.class);
           query.setCurrentUserDetails(UserDetails.fromUser(preheat.getUser()));
-          query.add(Restrictions.in("id", ids));
-          List<? extends IdentifiableObject> objects = queryService.query(query);
+          query.add(Filters.in("id", ids));
+          List<User> objects = queryService.query(query);
           preheat.put(PreheatIdentifier.UID, objects);
         }
       }
@@ -196,10 +198,10 @@ public class DefaultPreheatService implements PreheatService {
             Lists.partition(Lists.newArrayList(uidMap.get(UserRole.class)), 20000);
 
         for (List<String> ids : identifiers) {
-          Query query = Query.from(schemaService.getDynamicSchema(UserRole.class));
+          Query<UserRole> query = Query.of(UserRole.class);
           query.setCurrentUserDetails(UserDetails.fromUser(preheat.getUser()));
-          query.add(Restrictions.in("id", ids));
-          List<? extends IdentifiableObject> objects = queryService.query(query);
+          query.add(Filters.in("id", ids));
+          List<UserRole> objects = queryService.query(query);
           preheat.put(PreheatIdentifier.UID, objects);
         }
       }

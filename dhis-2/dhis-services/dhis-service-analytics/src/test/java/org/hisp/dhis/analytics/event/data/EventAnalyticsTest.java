@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -41,6 +43,7 @@ import static org.mockito.Mockito.when;
 import java.util.LinkedHashSet;
 import java.util.List;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -119,6 +122,16 @@ abstract class EventAnalyticsTest {
       ProgramStage withProgramStage, ValueType withQueryItemValueType) {
     return createRequestParamsWithFilter(
         withProgramStage, withQueryItemValueType, QueryOperator.GT, "10");
+  }
+
+  protected EventQueryParams createRequestParamsMeasureCriteria(
+      ProgramStage withProgramStage, ValueType withQueryItemValueType) {
+    EventQueryParams.Builder params =
+        new EventQueryParams.Builder(createRequestParams(withProgramStage, withQueryItemValueType));
+
+    params.addMeasureCriteria(MeasureFilter.GT, 10.0);
+    params.addMeasureCriteria(MeasureFilter.LT, 20.0);
+    return params.build();
   }
 
   protected EventQueryParams createRequestParamsWithFilter(

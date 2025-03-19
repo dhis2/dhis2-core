@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -70,7 +72,7 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
     handleDataElementDimensions(entityManager, schema, analyticalObject, bundle);
     handleAttributeDimensions(entityManager, schema, analyticalObject, bundle);
     handleProgramIndicatorDimensions(entityManager, schema, analyticalObject, bundle);
-    handleVisualizationLegendSet(schema, analyticalObject, bundle);
+    handleAnalyticalLegendSet(schema, analyticalObject, bundle);
     handleRelativePeriods(schema, analyticalObject);
   }
 
@@ -124,46 +126,44 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
    * @param analyticalObject the analytic object to be processed
    * @param bundle current {@link ObjectBundle}
    */
-  private void handleVisualizationLegendSet(
+  private void handleAnalyticalLegendSet(
       Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle) {
-    if (!schema.getKlass().isAssignableFrom(Visualization.class)) {
+    if (!BaseAnalyticalObject.class.isAssignableFrom(schema.getKlass())) {
       return;
     }
 
-    Visualization visualization = (Visualization) analyticalObject;
-
-    if (visualization.getLegendDefinitions() == null
-        || visualization.getLegendDefinitions().getLegendSet() == null) {
+    if (analyticalObject.getLegendDefinitions() == null
+        || analyticalObject.getLegendDefinitions().getLegendSet() == null) {
       return;
     }
 
-    String legendSetId = visualization.getLegendDefinitions().getLegendSet().getUid();
+    String legendSetId = analyticalObject.getLegendDefinitions().getLegendSet().getUid();
     LegendSet legendSet =
         bundle.getPreheat().get(bundle.getPreheatIdentifier(), LegendSet.class, legendSetId);
 
     if (legendSet != null) {
-      visualization.getLegendDefinitions().setLegendSet(legendSet);
+      analyticalObject.getLegendDefinitions().setLegendSet(legendSet);
       return;
     }
 
     legendSet = objectManager.get(LegendSet.class, legendSetId);
 
     if (legendSet != null) {
-      visualization.getLegendDefinitions().setLegendSet(legendSet);
+      analyticalObject.getLegendDefinitions().setLegendSet(legendSet);
       bundle.getPreheat().put(bundle.getPreheatIdentifier(), legendSet);
       return;
     }
 
     // Add new LegendSet
     preheatService.connectReferences(
-        visualization.getLegendDefinitions().getLegendSet(),
+        analyticalObject.getLegendDefinitions().getLegendSet(),
         bundle.getPreheat(),
         bundle.getPreheatIdentifier());
-    objectManager.save(visualization.getLegendDefinitions().getLegendSet());
+    objectManager.save(analyticalObject.getLegendDefinitions().getLegendSet());
 
     bundle
         .getPreheat()
-        .put(bundle.getPreheatIdentifier(), visualization.getLegendDefinitions().getLegendSet());
+        .put(bundle.getPreheatIdentifier(), analyticalObject.getLegendDefinitions().getLegendSet());
   }
 
   private void handleDataDimensionItems(

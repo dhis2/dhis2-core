@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -93,36 +95,11 @@ class SystemSettingsTest {
   @Test
   void testKeysWithDefaults() {
     Set<String> keys = SystemSettings.keysWithDefaults();
-    assertEquals(146, keys.size());
+    assertEquals(143, keys.size());
     // just check some at random
     assertTrue(keys.contains("syncSkipSyncForDataChangedBefore"));
     assertTrue(keys.contains("keyTrackerDashboardLayout"));
     assertTrue(keys.contains("experimentalAnalyticsSqlEngineEnabled"));
-  }
-
-  @Test
-  void testPasswordValidationPattern() {
-    // Test with default settings (min=8, max=72)
-    SystemSettings settings = SystemSettings.of(Map.of());
-    String pattern = settings.getPasswordValidationPattern();
-
-    // Test pattern structure
-    assertTrue(pattern.startsWith("^"));
-    assertTrue(pattern.endsWith("$"));
-    assertTrue(pattern.contains("(?=.*[A-Z])")); // At least one uppercase
-    assertTrue(pattern.contains("(?=.*[a-z])")); // At least one lowercase
-    assertTrue(pattern.contains("(?=.*\\d)")); // At least one digit
-    assertTrue(pattern.contains("(?=.*[\\W_])")); // At least one special char
-    assertTrue(pattern.contains("{8,72}")); // Default length constraints
-
-    // Test with custom settings
-    settings =
-        SystemSettings.of(
-            Map.of(
-                "minPasswordLength", "10",
-                "maxPasswordLength", "50"));
-    pattern = settings.getPasswordValidationPattern();
-    assertTrue(pattern.contains("{10,50}"));
   }
 
   @Test
@@ -251,6 +228,14 @@ class SystemSettingsTest {
     assertTrue(settings.isValid("keyLastMonitoringRun", date));
     assertFalse(settings.isValid("keyLastMonitoringRun", "hello"));
     assertFalse(settings.isValid("keyLastMonitoringRun", "true"));
+  }
+
+  @Test
+  void testIsValid_Reset() {
+    SystemSettings settings = SystemSettings.of(Map.of("keyCacheStrategy", "NO_CACHE"));
+    assertEquals(CacheStrategy.NO_CACHE, settings.getCacheStrategy());
+    assertTrue(settings.isValid("keyCacheStrategy", ""));
+    assertTrue(settings.isValid("keyCacheStrategy", null));
   }
 
   @Test

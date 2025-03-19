@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -1941,6 +1943,10 @@ public abstract class TestBase {
     indicator.setExpression(expression);
     indicator.setAnalyticsType(analyticsType);
     indicator.setFilter(filter);
+    if (categoryService != null) {
+      indicator.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+      indicator.setAttributeCombo(categoryService.getDefaultCategoryCombo());
+    }
 
     Set<AnalyticsPeriodBoundary> boundaries = new HashSet<>();
     if (analyticsType == AnalyticsType.EVENT) {
@@ -2015,7 +2021,9 @@ public abstract class TestBase {
     RelationshipItem riTo = new RelationshipItem();
 
     riFrom.setTrackedEntity(from);
+    riFrom.setRelationship(relationship);
     riTo.setTrackedEntity(to);
+    riTo.setRelationship(relationship);
 
     relationship.setRelationshipType(relationshipType);
     relationship.setFrom(riFrom);
@@ -2146,7 +2154,7 @@ public abstract class TestBase {
     relationshipType.setName("RelationshipType_" + relationshipType.getUid());
     relationshipType.setFromConstraint(fromRelationShipConstraint);
     relationshipType.setToConstraint(toRelationShipConstraint);
-
+    relationshipType.setBidirectional(true);
     return relationshipType;
   }
 
@@ -2164,6 +2172,7 @@ public abstract class TestBase {
     TrackedEntityType trackedEntityType = new TrackedEntityType();
     trackedEntityType.setAutoFields();
     trackedEntityType.setName("TrackedEntityType" + uniqueChar);
+    trackedEntityType.setShortName("TrackedEntityTypeShort" + uniqueChar);
     trackedEntityType.setDescription("TrackedEntityType" + uniqueChar + " description");
 
     return trackedEntityType;
@@ -3083,6 +3092,17 @@ public abstract class TestBase {
     return user;
   }
 
+  /**
+   * This test setup allows easy creation of more realistic {@link CategoryOptionCombo}s. It creates
+   * multiple {@link CategoryOptionCombo}s that mirror how they are created in live code, (creating
+   * {@link Category}s, {@link CategoryOption}s, {@link CategoryCombo}s and then invoking the
+   * generation of {@link CategoryOptionCombo}s through the service). {@link CategoryOptionCombo}s
+   * are always system-generated and never created in isolation, like most other resources. When
+   * system-generated, they always have a {@link CategoryCombo} and {@link CategoryOption}s.
+   *
+   * @param identifier unique identifier to create different objects
+   * @return record of created category types
+   */
   protected static TestCategoryMetadata setupCategoryMetadata(String identifier) {
     // 4 category options
     CategoryOption co1 =
@@ -3110,7 +3130,7 @@ public abstract class TestBase {
     categoryService.addCategoryCombo(cc1);
 
     // should generate 4 category option combos ([co1,co3], [co1,co4], [co2,co3], [co2,co4])
-    categoryService.generateOptionCombos(cc1);
+    categoryService.addAndPruneOptionCombos(cc1);
 
     CategoryOptionCombo coc1 = getCocWithOptions(co1.getName(), co3.getName());
     CategoryOptionCombo coc2 = getCocWithOptions(co1.getName(), co4.getName());

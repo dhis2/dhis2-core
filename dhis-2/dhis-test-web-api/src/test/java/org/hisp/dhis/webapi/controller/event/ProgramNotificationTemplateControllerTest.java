@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -121,12 +123,6 @@ class ProgramNotificationTemplateControllerTest extends H2ControllerIntegrationT
     assertEquals(50, page.getPager().getPageSize());
     assertEquals(4, page.getPager().getTotal());
     assertEquals(1, page.getPager().getPageCount());
-
-    // assert deprecated fields
-    assertEquals(1, page.getPage());
-    assertEquals(50, page.getPageSize());
-    assertEquals(4, page.getTotal());
-    assertEquals(1, page.getPageCount());
   }
 
   @Test
@@ -149,12 +145,6 @@ class ProgramNotificationTemplateControllerTest extends H2ControllerIntegrationT
     assertEquals(2, page.getPager().getPageSize());
     assertEquals(4, page.getPager().getTotal());
     assertEquals(2, page.getPager().getPageCount());
-
-    // assert deprecated fields
-    assertEquals(2, page.getPage());
-    assertEquals(2, page.getPageSize());
-    assertEquals(4, page.getTotal());
-    assertEquals(2, page.getPageCount());
   }
 
   @Test
@@ -178,37 +168,6 @@ class ProgramNotificationTemplateControllerTest extends H2ControllerIntegrationT
     assertEquals(50, page.getPager().getPageSize());
     assertEquals(4, page.getPager().getTotal());
     assertEquals(1, page.getPager().getPageCount());
-
-    // assert deprecated fields
-    assertEquals(1, page.getPage());
-    assertEquals(50, page.getPageSize());
-    assertEquals(4, page.getTotal());
-    assertEquals(1, page.getPageCount());
-  }
-
-  @Test
-  void shouldGetNonPaginatedItemsWithSkipPaging() {
-    JsonPage page =
-        GET("/programNotificationTemplates/filter?program={uid}&skipPaging=true", program.getUid())
-            .content(HttpStatus.OK)
-            .asA(JsonPage.class);
-
-    JsonList<JsonIdentifiableObject> list =
-        page.getList("programNotificationTemplates", JsonIdentifiableObject.class);
-    assertContainsOnly(
-        List.of(
-            programTemplate1.getName(),
-            programTemplate2.getName(),
-            programTemplate3.getName(),
-            programTemplate4.getName()),
-        list.toList(JsonIdentifiableObject::getName));
-    assertHasNoMember(page, "pager");
-
-    // assert deprecated fields
-    assertHasNoMember(page, "page");
-    assertHasNoMember(page, "pageSize");
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
   }
 
   @Test
@@ -228,38 +187,6 @@ class ProgramNotificationTemplateControllerTest extends H2ControllerIntegrationT
             programTemplate4.getName()),
         list.toList(JsonIdentifiableObject::getName));
     assertHasNoMember(page, "pager");
-
-    // assert deprecated fields
-    assertHasNoMember(page, "page");
-    assertHasNoMember(page, "pageSize");
-    assertHasNoMember(page, "total");
-    assertHasNoMember(page, "pageCount");
-  }
-
-  @Test
-  void shouldFailWhenSkipPagingAndPagingAreFalse() {
-    String message =
-        GET(
-                "/programNotificationTemplates/filter?program={uid}&paging=false&skipPaging=false",
-                program.getUid())
-            .content(HttpStatus.BAD_REQUEST)
-            .getString("message")
-            .string();
-
-    assertStartsWith("Paging can either be enabled or disabled", message);
-  }
-
-  @Test
-  void shouldFailWhenSkipPagingAndPagingAreTrue() {
-    String message =
-        GET(
-                "/programNotificationTemplates/filter?program={uid}&paging=true&skipPaging=true",
-                program.getUid())
-            .content(HttpStatus.BAD_REQUEST)
-            .getString("message")
-            .string();
-
-    assertStartsWith("Paging can either be enabled or disabled", message);
   }
 
   @Test

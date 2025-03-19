@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -413,17 +415,7 @@ public class RelationshipsTests extends TrackerApiTest {
         toInstanceId,
         createdRelationships.get(0));
 
-    ApiResponse entityResponse = getEntityInRelationship(toInstance, toInstanceId);
-    validateRelationship(
-        entityResponse,
-        relType,
-        fromInstance,
-        fromInstanceId,
-        toInstance,
-        toInstanceId,
-        createdRelationships.get(0));
-
-    entityResponse = getEntityInRelationship(fromInstance, fromInstanceId);
+    ApiResponse entityResponse = getEntityInRelationship(fromInstance, fromInstanceId);
     validateRelationship(
         entityResponse,
         relType,
@@ -491,6 +483,8 @@ public class RelationshipsTests extends TrackerApiTest {
                     .addAll(
                         "filter=fromConstraint.relationshipEntity:eq:TRACKED_ENTITY_INSTANCE",
                         "filter=toConstraint.relationshipEntity:eq:TRACKED_ENTITY_INSTANCE",
+                        "filter=toConstraint.trackedEntityType.id:eq:Q9GufDoplCL",
+                        "filter=fromConstraint.trackedEntityType.id:eq:Q9GufDoplCL",
                         "filter=bidirectional:eq:" + bidirectional,
                         "filter=name:like:TA"))
             .extractString("relationshipTypes.id[0]");
@@ -514,7 +508,9 @@ public class RelationshipsTests extends TrackerApiTest {
             .addArray("relationships", relationship1, relationship2)
             .build();
 
-    TrackerApiResponse response = trackerImportExportActions.postAndGetJobReport(payload);
+    TrackerApiResponse response =
+        trackerImportExportActions.postAndGetJobReport(
+            payload, new QueryParamsBuilder().add("async=false"));
 
     response.validateSuccessfulImport().validate().body("stats.created", equalTo(expectedCount));
 

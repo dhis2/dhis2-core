@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -154,7 +156,7 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
       TrackedEntityTypeService trackedEntityTypeService,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      SqlBuilder sqlBuilder) {
+      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -230,16 +232,18 @@ public class JdbcTrackedEntityEnrollmentsAnalyticsTableManager extends AbstractJ
             """
             \sfrom ${enrollment} en \
             inner join ${trackedentity} te on en.trackedentityid=te.trackedentityid \
-            and te.deleted = false and te.trackedentitytypeid = ${trackedEntityTypeId} \
+            and ${teDeletedClause} and te.trackedentitytypeid = ${trackedEntityTypeId} \
             and te.lastupdated < '${startTime}' \
             left join ${program} p on en.programid=p.programid \
             left join analytics_rs_orgunitstructure ous on en.organisationunitid=ous.organisationunitid \
             where en.occurreddate is not null \
-            and en.deleted = false\s""",
+            and ${enDeletedClause} """,
             Map.of(
                 "trackedEntityTypeId", valueOf(tetId),
+                "teDeletedClause", sqlBuilder.isFalse("te", "deleted"),
                 "startTime", toLongDate(params.getStartTime()),
-                "statuses", join(",", EXPORTABLE_EVENT_STATUSES))));
+                "statuses", join(",", EXPORTABLE_EVENT_STATUSES),
+                "enDeletedClause", sqlBuilder.isFalse("en", "deleted"))));
 
     invokeTimeAndLog(sql.toString(), "Populating table: '{}'", tableName);
   }

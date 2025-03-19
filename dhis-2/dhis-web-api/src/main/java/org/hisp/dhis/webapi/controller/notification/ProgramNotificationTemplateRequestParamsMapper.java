@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,11 +29,9 @@
  */
 package org.hisp.dhis.webapi.controller.notification;
 
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.program.notification.NotificationPagingParam;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateOperationParams;
 import org.springframework.stereotype.Component;
 
@@ -46,28 +46,17 @@ public class ProgramNotificationTemplateRequestParamsMapper {
       throws ConflictException, BadRequestException {
     validateRequestParams(requestParams);
 
-    boolean isPaged = determinePaging(requestParams);
-
     return ProgramNotificationTemplateOperationParams.builder()
         .program(requestParams.getProgram())
         .programStage(requestParams.getProgramStage())
-        .skipPaging(!isPaged)
-        .paged(isPaged)
-        .page(
-            isPaged
-                ? Objects.requireNonNullElse(
-                    requestParams.getPage(), NotificationPagingParam.DEFAULT_PAGE)
-                : null)
-        .pageSize(
-            isPaged
-                ? Objects.requireNonNullElse(
-                    requestParams.getPageSize(), NotificationPagingParam.DEFAULT_PAGE_SIZE)
-                : null)
+        .paged(requestParams.isPaging())
+        .page(requestParams.getPage())
+        .pageSize(requestParams.getPageSize())
         .build();
   }
 
   private void validateRequestParams(ProgramNotificationTemplateRequestParams requestParams)
-      throws ConflictException {
+      throws ConflictException, BadRequestException {
     if (requestParams.getProgram() == null && requestParams.getProgramStage() == null) {
       throw new ConflictException("`program` or `programStage` must be specified.");
     }
@@ -75,20 +64,21 @@ public class ProgramNotificationTemplateRequestParamsMapper {
     if (requestParams.getProgram() != null && requestParams.getProgramStage() != null) {
       throw new ConflictException("`program` and `programStage` cannot be processed together.");
     }
+
+    validatePaginationBounds(requestParams.getPage(), requestParams.getPageSize());
   }
 
-  private boolean determinePaging(ProgramNotificationTemplateRequestParams requestParams) {
-    Boolean paging = requestParams.getPaging();
-    Boolean skipPaging = requestParams.getSkipPaging();
-
-    if (paging != null) {
-      return Boolean.TRUE.equals(paging);
+  private void validatePaginationBounds(Integer page, Integer pageSize) throws BadRequestException {
+    if (lessThan(page, 1)) {
+      throw new BadRequestException("page must be greater than or equal to 1 if specified");
     }
 
-    if (skipPaging != null) {
-      return Boolean.FALSE.equals(skipPaging);
+    if (lessThan(pageSize, 1)) {
+      throw new BadRequestException("pageSize must be greater than or equal to 1 if specified");
     }
+  }
 
-    return true;
+  private static boolean lessThan(Integer a, int b) {
+    return a != null && a < b;
   }
 }

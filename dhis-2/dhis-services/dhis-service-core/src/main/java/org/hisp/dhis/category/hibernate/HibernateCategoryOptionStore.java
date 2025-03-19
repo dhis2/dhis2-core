@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -29,9 +31,7 @@ package org.hisp.dhis.category.hibernate;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
-import java.util.Collection;
 import java.util.List;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionStore;
@@ -94,18 +94,5 @@ public class HibernateCategoryOptionStore extends HibernateIdentifiableObjectSto
                 getDataSharingPredicates(builder, userDetails, AclService.LIKE_WRITE_DATA))
             .addPredicate(
                 root -> builder.equal(root.join("categories").get("id"), category.getId())));
-  }
-
-  @Override
-  public List<CategoryOption> getByCategoryOptionCombo(@Nonnull Collection<UID> uids) {
-    if (uids.isEmpty()) return List.of();
-    return getQuery(
-            """
-            select distinct co from CategoryOption co
-            join co.categoryOptionCombos coc
-            where coc.uid in :uids
-            """)
-        .setParameter("uids", UID.toValueList(uids))
-        .getResultList();
   }
 }

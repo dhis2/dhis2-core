@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -35,25 +37,20 @@ public class CspConstants {
 
   public static final String SCRIPT_SOURCE_DEFAULT = "script-src 'none'; ";
 
-  public static final Pattern P_1 = Pattern.compile("^.+/events/files$");
+  public static final Pattern P_1 = Pattern.compile("^.+/dataValues/files$");
 
   public static final Pattern P_2 =
-      Pattern.compile("^.+trackedEntityInstance/[a-zA-Z\\d]+/[a-zA-Z\\d]+/image$");
-
-  public static final Pattern P_3 = Pattern.compile("^.+/dataValues/files$");
-
-  public static final Pattern P_4 =
       Pattern.compile(
           "^.+messageConversations/[a-zA-Z\\d]+/[a-zA-Z\\d]+/attachments/[a-zA-Z\\d]+$");
 
-  public static final Pattern P_5 = Pattern.compile("^.+fileResources/[a-zA-Z\\d]+/data$");
+  public static final Pattern P_3 = Pattern.compile("^.+fileResources/[a-zA-Z\\d]+/data$");
 
-  public static final Pattern P_6 = Pattern.compile("^.+audits/files/[a-zA-Z\\d]+$");
+  public static final Pattern P_4 = Pattern.compile("^.+audits/files/[a-zA-Z\\d]+$");
 
-  public static final Pattern P_7 = Pattern.compile("^.+externalFileResources/[a-zA-Z\\d]+$");
+  public static final Pattern P_5 = Pattern.compile("^.+externalFileResources/[a-zA-Z\\d]+$");
 
   public static final List<Pattern> EXTERNAL_STATIC_CONTENT_URL_PATTERNS =
-      List.of(P_1, P_2, P_3, P_4, P_5, P_6, P_7);
+      List.of(P_1, P_2, P_2, P_4, P_5);
 
   public static final Pattern LOGIN_PATTERN = Pattern.compile("^.+/dhis-web-commons/security/.+$");
 }

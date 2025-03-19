@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,8 +29,6 @@
  */
 package org.hisp.dhis.webapi.controller.message;
 
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamsValidator.validateDeprecatedParameter;
-
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
@@ -42,13 +42,8 @@ import org.springframework.stereotype.Component;
 public class ProgramMessageRequestParamMapper {
   public ProgramMessageOperationParams map(ProgramMessageRequestParams params)
       throws ConflictException, BadRequestException {
-    UID enrollmentUid =
-        validateDeprecatedParameter(
-            "programInstance", params.getProgramInstance(), "enrollment", params.getEnrollment());
-
-    UID eventUid =
-        validateDeprecatedParameter(
-            "programStageInstance", params.getProgramStageInstance(), "event", params.getEvent());
+    UID enrollmentUid = params.getEnrollment();
+    UID eventUid = params.getEvent();
 
     if (enrollmentUid == null && eventUid == null) {
       throw new ConflictException("Enrollment or Event must be specified.");

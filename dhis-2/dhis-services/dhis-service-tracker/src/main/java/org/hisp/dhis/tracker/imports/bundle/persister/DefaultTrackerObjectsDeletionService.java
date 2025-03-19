@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -45,13 +47,12 @@ import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
-import org.hisp.dhis.tracker.export.relationship.RelationshipQueryParams;
-import org.hisp.dhis.tracker.export.relationship.RelationshipStore;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
@@ -67,8 +68,6 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   private final IdentifiableObjectManager manager;
 
   private final TrackedEntityAuditService trackedEntityAuditService;
-
-  private final RelationshipStore relationshipStore;
 
   private final TrackedEntityAttributeValueService attributeValueService;
 
@@ -96,10 +95,12 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
           enrollment.getEvents().stream().filter(event -> !event.isDeleted()).map(UID::of).toList();
       deleteEvents(events);
 
-      RelationshipQueryParams params = RelationshipQueryParams.builder().entity(enrollment).build();
       List<UID> relationships =
-          relationshipStore.getByEnrollment(enrollment, params).stream().map(UID::of).toList();
-
+          enrollment.getRelationshipItems().stream()
+              .map(RelationshipItem::getRelationship)
+              .filter(r -> !r.isDeleted())
+              .map(UID::of)
+              .toList();
       deleteRelationships(relationships);
 
       List<ProgramNotificationInstance> notificationInstances =
@@ -130,11 +131,17 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       Entity objectReport = new Entity(TrackerType.EVENT, uid);
 
       Event event = manager.get(Event.class, uid);
+      if (event == null) {
+        throw new NotFoundException(Event.class, uid);
+      }
       event.setLastUpdatedByUserInfo(userInfoSnapshot);
 
-      RelationshipQueryParams params = RelationshipQueryParams.builder().entity(event).build();
       List<UID> relationships =
-          relationshipStore.getByEvent(event, params).stream().map(UID::of).toList();
+          event.getRelationshipItems().stream()
+              .map(RelationshipItem::getRelationship)
+              .filter(r -> !r.isDeleted())
+              .map(UID::of)
+              .toList();
 
       deleteRelationships(relationships);
 
@@ -176,15 +183,15 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
     for (UID uid : trackedEntities) {
       Entity objectReport = new Entity(TrackerType.TRACKED_ENTITY, uid);
 
-      TrackedEntity entity = manager.get(TrackedEntity.class, uid);
-      if (entity == null) {
+      TrackedEntity trackedEntity = manager.get(TrackedEntity.class, uid);
+      if (trackedEntity == null) {
         throw new NotFoundException(TrackedEntity.class, uid);
       }
-      trackedEntityAuditService.addTrackedEntityAudit(DELETE, getCurrentUsername(), entity);
+      trackedEntityAuditService.addTrackedEntityAudit(DELETE, getCurrentUsername(), trackedEntity);
 
-      entity.setLastUpdatedByUserInfo(userInfoSnapshot);
+      trackedEntity.setLastUpdatedByUserInfo(userInfoSnapshot);
 
-      Set<Enrollment> daoEnrollments = entity.getEnrollments();
+      Set<Enrollment> daoEnrollments = trackedEntity.getEnrollments();
 
       List<UID> enrollments =
           daoEnrollments.stream()
@@ -193,22 +200,25 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
               .toList();
       deleteEnrollments(enrollments);
 
-      RelationshipQueryParams params = RelationshipQueryParams.builder().entity(entity).build();
       List<UID> relationships =
-          relationshipStore.getByTrackedEntity(entity, params).stream().map(UID::of).toList();
+          trackedEntity.getRelationshipItems().stream()
+              .map(RelationshipItem::getRelationship)
+              .filter(r -> !r.isDeleted())
+              .map(UID::of)
+              .toList();
 
       deleteRelationships(relationships);
 
       Collection<TrackedEntityAttributeValue> attributeValues =
-          attributeValueService.getTrackedEntityAttributeValues(entity);
+          attributeValueService.getTrackedEntityAttributeValues(trackedEntity);
 
       for (TrackedEntityAttributeValue attributeValue : attributeValues) {
         attributeValueService.deleteTrackedEntityAttributeValue(attributeValue);
       }
 
-      trackedEntityChangeLogService.deleteTrackedEntityChangeLogs(entity);
+      trackedEntityChangeLogService.deleteTrackedEntityChangeLogs(trackedEntity);
 
-      manager.delete(entity);
+      manager.delete(trackedEntity);
 
       typeReport.getStats().incDeleted();
       typeReport.addEntity(objectReport);
@@ -220,6 +230,7 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
   @Override
   public TrackerTypeReport deleteRelationships(List<UID> relationships) throws NotFoundException {
     TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.RELATIONSHIP);
+    UserInfoSnapshot userInfoSnapshot = UserInfoSnapshot.from(getCurrentUserDetails());
 
     for (UID uid : relationships) {
       Entity objectReport = new Entity(TrackerType.RELATIONSHIP, uid);
@@ -228,6 +239,16 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       if (relationship == null) {
         throw new NotFoundException(Relationship.class, uid);
       }
+
+      relationship
+          .getTrackedEntityOrigins()
+          .forEach(
+              teUid -> {
+                TrackedEntity trackedEntity = manager.get(TrackedEntity.class, teUid);
+                trackedEntity.setLastUpdatedByUserInfo(userInfoSnapshot);
+                manager.update(trackedEntity);
+              });
+
       manager.delete(relationship);
 
       typeReport.getStats().incDeleted();
