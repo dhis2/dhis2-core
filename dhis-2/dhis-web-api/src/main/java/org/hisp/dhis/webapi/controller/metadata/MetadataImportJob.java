@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -92,12 +92,10 @@ public class MetadataImportJob implements Job {
       String contentType = data.getContentType();
       ImportReport report =
           switch (contentType) {
-            case "application/json" ->
-                metadataImportService.importMetadata(
-                    params, jsonToMetadataObjects(input), progress);
-            case "application/csv" ->
-                metadataImportService.importMetadata(
-                    params, csvToMetadataObjects(params, input), progress);
+            case "application/json" -> metadataImportService.importMetadata(
+                params, jsonToMetadataObjects(input), progress);
+            case "application/csv" -> metadataImportService.importMetadata(
+                params, csvToMetadataObjects(params, input), progress);
             case "application/xml" -> gmlImportService.importGml(input, params, progress);
             default -> null;
           };
@@ -117,17 +115,17 @@ public class MetadataImportJob implements Job {
       }
 
       notifier.addJobSummary(config, report, ImportReport.class);
-      Stats count = report.getStats();
+      Stats count = report.getAccumulatedTypeReportStats();
       Consumer<String> endProcess =
           report.getStatus() == Status.ERROR ? progress::failedProcess : progress::completedProcess;
       endProcess.accept(
           "Import complete with status %s, %d created, %d updated, %d deleted, %d ignored"
               .formatted(
                   report.getStatus(),
-                  count.getCreated(),
-                  count.getUpdated(),
-                  count.getDeleted(),
-                  count.getIgnored()));
+                  count.created(),
+                  count.updated(),
+                  count.deleted(),
+                  count.ignored()));
     } catch (IOException ex) {
       progress.failedProcess(ex);
     }

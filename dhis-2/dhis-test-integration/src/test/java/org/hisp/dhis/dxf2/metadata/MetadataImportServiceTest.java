@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -999,12 +999,12 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
     ImportReport report = importService.importMetadata(params, new MetadataObjects(metadata));
     TypeReport typeReport = report.getTypeReport(AggregateDataExchange.class);
 
-    assertNotNull(report.getStats());
+    assertNotNull(report.getAccumulatedTypeReportStats());
     assertNotNull(typeReport);
     assertEquals(Status.OK, report.getStatus(), report.toString());
     assertEquals(0, report.getErrorReportsCount());
-    assertEquals(6, report.getStats().getCreated());
-    assertEquals(3, typeReport.getStats().getCreated());
+    assertEquals(6, report.getAccumulatedTypeReportStats().created());
+    assertEquals(3, typeReport.getStats().created());
 
     AggregateDataExchange aeA = manager.get(AggregateDataExchange.class, "iFOyIpQciyk");
     assertNotNull(aeA);

@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -86,17 +86,19 @@ public class ValidationFactory {
       ObjectBundle bundle,
       List<T> persistedObjects,
       List<T> nonPersistedObjects) {
-    if (bundle.getImportMode().isCreateAndUpdate()) {
-      typeReport.getStats().incCreated(nonPersistedObjects.size());
-      typeReport.getStats().incUpdated(persistedObjects.size());
+    if (bundle
+        .getImportMode()
+        .isCreateAndUpdate()) { // todo validation has already failed at this point
+      typeReport.withStatsIncCreated(nonPersistedObjects.size());
+      typeReport.withStatsIncUpdated(persistedObjects.size());
     } else if (bundle.getImportMode().isCreate()) {
-      typeReport.getStats().incCreated(nonPersistedObjects.size());
+      typeReport.withStatsIncCreated(nonPersistedObjects.size());
 
     } else if (bundle.getImportMode().isUpdate()) {
-      typeReport.getStats().incUpdated(persistedObjects.size());
+      typeReport.withStatsIncUpdated(persistedObjects.size());
 
     } else if (bundle.getImportMode().isDelete()) {
-      typeReport.getStats().incDeleted(persistedObjects.size());
+      typeReport.withStatsIncDeleted(persistedObjects.size());
     }
 
     return typeReport;

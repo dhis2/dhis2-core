@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -124,7 +124,7 @@ class UserControllerTest {
   void updateUserGroups() {
     when(userService.getUser("def2")).thenReturn(user);
 
-    if (isInStatusUpdatedOK(createReportWith(Status.OK, Stats::incUpdated))) {
+    if (isInStatusUpdatedOK(createReportWith(Status.OK, (stats) -> stats.withUpdated(1)))) {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
@@ -137,7 +137,7 @@ class UserControllerTest {
 
   @Test
   void updateUserGroupsNotOk() {
-    if (isInStatusUpdatedOK(createReportWith(Status.ERROR, Stats::incUpdated))) {
+    if (isInStatusUpdatedOK(createReportWith(Status.ERROR, (stats) -> stats.withUpdated(1)))) {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
@@ -147,7 +147,7 @@ class UserControllerTest {
 
   @Test
   void updateUserGroupsNotUpdated() {
-    if (isInStatusUpdatedOK(createReportWith(Status.OK, Stats::incCreated))) {
+    if (isInStatusUpdatedOK(createReportWith(Status.OK, (stats) -> stats.withCreated(1)))) {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
@@ -167,7 +167,7 @@ class UserControllerTest {
     when(userService.getUser("def2")).thenReturn(user);
     when(userService.getUserByUsername(any())).thenReturn(currentUser);
 
-    if (isInStatusUpdatedOK(createReportWith(Status.OK, Stats::incUpdated))) {
+    if (isInStatusUpdatedOK(createReportWith(Status.OK, (stats) -> stats.withUpdated(1)))) {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
@@ -184,7 +184,7 @@ class UserControllerTest {
   }
 
   private boolean isInStatusUpdatedOK(ImportReport report) {
-    return report.getStatus() == Status.OK && report.getStats().getUpdated() == 1;
+    return report.getStatus() == Status.OK && report.getAccumulatedTypeReportStats().updated() == 1;
   }
 
   public static void injectSecurityContext(UserDetails currentUserDetails) {

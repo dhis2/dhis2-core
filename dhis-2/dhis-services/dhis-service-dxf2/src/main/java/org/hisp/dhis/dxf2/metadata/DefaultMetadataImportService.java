@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -54,6 +54,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
@@ -129,8 +130,7 @@ public class DefaultMetadataImportService implements MetadataImportService {
 
       log.info("(" + bundle.getUsername() + ") Import:Commit took " + commitTimer.toString());
     } else {
-      report.getStats().ignored();
-      report.getTypeReports().forEach(tr -> tr.getStats().ignored());
+      report.getTypeReports().forEach(TypeReport::withAllStatsIgnored);
       report.setStatus(Status.ERROR);
     }
 

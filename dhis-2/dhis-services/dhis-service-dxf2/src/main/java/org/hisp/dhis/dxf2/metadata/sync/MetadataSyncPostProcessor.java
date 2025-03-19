@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -133,16 +133,16 @@ public class MetadataSyncPostProcessor {
                 .append("Stats: \n")
                 .append("total: " + stats.getTotal() + "\n");
 
-            if (stats.getCreated() > 0) {
-              text.append(" created: " + stats.getCreated() + "\n");
+            if (stats.created() > 0) {
+              text.append(" created: " + stats.created() + "\n");
             }
 
-            if (stats.getUpdated() > 0) {
-              text.append(" updated: " + stats.getUpdated() + "\n");
+            if (stats.updated() > 0) {
+              text.append(" updated: " + stats.updated() + "\n");
             }
 
-            if (stats.getIgnored() > 0) {
-              text.append(" ignored: " + stats.getIgnored() + "\n");
+            if (stats.ignored() > 0) {
+              text.append(" ignored: " + stats.ignored() + "\n");
             }
           });
 

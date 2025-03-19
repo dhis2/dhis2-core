@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -78,7 +78,7 @@ public interface ObjectValidationCheck extends ValidationCheck {
             reportBox[0] = report;
           }
           report.addObjectReport(objectReport);
-          report.getStats().incIgnored();
+          report.withStatsIncIgnored(1);
         });
     return reportBox[0] == null ? TypeReport.empty(klass) : reportBox[0];
   }

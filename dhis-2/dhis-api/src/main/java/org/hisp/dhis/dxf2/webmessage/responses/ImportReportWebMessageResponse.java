@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -67,7 +67,7 @@ public class ImportReportWebMessageResponse implements WebMessageResponse {
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Stats getStats() {
-    return importReport.getStats();
+    return importReport.getAccumulatedTypeReportStats();
   }
 
   @JsonProperty

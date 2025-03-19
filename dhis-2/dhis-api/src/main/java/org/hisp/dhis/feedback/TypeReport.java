@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -56,7 +56,7 @@ public class TypeReport implements ErrorReportContainer {
 
   private final boolean empty;
 
-  private final Stats stats = new Stats();
+  private Stats stats = new Stats(0, 0, 0, 0);
 
   private final Map<Integer, ObjectReport> objectReportMap = new HashMap<>();
 
@@ -100,7 +100,7 @@ public class TypeReport implements ErrorReportContainer {
     if (other.empty) {
       return; // done: nothing to merge with
     }
-    stats.merge(other.getStats());
+    stats = stats.withStats(other.getStats());
 
     other.objectReportMap.forEach(
         (index, objectReport) ->
@@ -212,5 +212,29 @@ public class TypeReport implements ErrorReportContainer {
         .add("stats", stats)
         .add("objectReports", getObjectReports())
         .toString();
+  }
+
+  public void withStatsIncCreated(int size) {
+    stats = stats.withCreated(size);
+  }
+
+  public void withStatsIncUpdated(int size) {
+    stats = stats.withUpdated(size);
+  }
+
+  public void withStatsIncDeleted(int size) {
+    stats = stats.withDeleted(size);
+  }
+
+  public void withStatsIncIgnored(int size) {
+    stats = stats.withIgnored(size);
+  }
+
+  public void withAllStatsIgnored() {
+    stats = stats.withIgnored(stats.created());
+    stats = stats.withIgnored(stats.updated());
+    stats = stats.withIgnored(stats.deleted());
+
+    stats = new Stats(0, 0, 0, stats.ignored());
   }
 }
