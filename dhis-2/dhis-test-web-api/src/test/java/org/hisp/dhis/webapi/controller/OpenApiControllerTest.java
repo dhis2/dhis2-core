@@ -59,7 +59,6 @@ import org.hisp.dhis.webapi.openapi.OpenApiObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.ParameterObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.ResponseObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.SchemaObject;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openapitools.codegen.DefaultGenerator;
 import org.openapitools.codegen.config.CodegenConfigurator;
@@ -90,7 +89,6 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  @Disabled("JB: temporary until we find the cause of flakiness")
   void testGetOpenApiDocumentJson_NoValidationErrors() {
     JsonObject doc =
         GET("/openapi/openapi.json?failOnNameClash=true&failOnInconsistency=true").content();
@@ -243,7 +241,6 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  @Disabled("JB: temporary until we find the cause of flakiness")
   void testGetOpenApiDocument_CodeGeneration() throws IOException {
     JsonObject doc = GET("/openapi/openapi.json?failOnNameClash=true").content();
 
