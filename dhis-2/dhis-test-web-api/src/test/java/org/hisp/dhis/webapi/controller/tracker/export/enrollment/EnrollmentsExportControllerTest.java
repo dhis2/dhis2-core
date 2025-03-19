@@ -27,12 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContains;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOnlyMembers;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
@@ -68,7 +72,6 @@ import org.hisp.dhis.webapi.controller.tracker.JsonEnrollment;
 import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
 import org.hisp.dhis.webapi.controller.tracker.JsonNote;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
-import org.hisp.dhis.webapi.controller.tracker.JsonRelationshipItem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,6 +83,8 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
   private OrganisationUnit orgUnit;
 
   private User owner;
+
+  private User user;
 
   private Program program;
 
@@ -111,7 +116,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
     orgUnit = createOrganisationUnit('A');
     manager.save(orgUnit);
 
-    User user = createUserWithId("tester", CodeGenerator.generateUid());
+    user = createUserWithId("tester", CodeGenerator.generateUid());
     user.addOrganisationUnit(orgUnit);
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
     this.userService.updateUser(user);
@@ -209,31 +214,89 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  void getEnrollmentByIdWithRelationshipsFields() {
-    JsonList<JsonRelationship> relationships =
-        GET("/tracker/enrollments/{id}?fields=relationships", enrollment.getUid())
+  void shouldGetEnrollmentWithRelationshipsFields() {
+    Relationship relationship = relationship(te, enrollment);
+    assertNotNull(
+        relationship.getTo().getEnrollment(),
+        "test expects relationship to have a 'to' enrollment");
+    Enrollment enrollment = relationship.getTo().getEnrollment();
+
+    JsonList<JsonRelationship> jsonRelationships =
+        GET("/tracker/enrollments/{id}?fields=*", enrollment.getUid())
             .content(HttpStatus.OK)
+            .as(JsonEnrollment.class)
             .getList("relationships", JsonRelationship.class);
 
-    JsonRelationship jsonRelationship = relationships.get(0);
-    assertEquals(relationship.getUid(), jsonRelationship.getRelationship());
+    JsonRelationship jsonRelationship =
+        assertContains(
+            jsonRelationships,
+            re -> relationship.getUid().equals(re.getRelationship()),
+            relationship.getUid());
 
-    JsonRelationshipItem.JsonEnrollment enrollment = jsonRelationship.getFrom().getEnrollment();
-    assertEquals(relationship.getFrom().getEnrollment().getUid(), enrollment.getEnrollment());
-    assertEquals(
-        relationship.getFrom().getEnrollment().getTrackedEntity().getUid(),
-        enrollment.getTrackedEntity());
+    assertAll(
+        "relationship JSON",
+        () ->
+            assertEquals(
+                relationship.getFrom().getTrackedEntity().getUid(),
+                jsonRelationship.getFrom().getTrackedEntity().getTrackedEntity()),
+        () -> assertHasNoMember(jsonRelationship.getFrom().getTrackedEntity(), "relationships"),
+        () -> assertHasMember(jsonRelationship.getFrom().getTrackedEntity(), "enrollments"),
+        () ->
+            assertHasNoMember(
+                jsonRelationship.getFrom().getTrackedEntity().getEnrollments().get(0),
+                "relationships"),
+        () ->
+            assertHasMember(
+                jsonRelationship.getFrom().getTrackedEntity().getEnrollments().get(0), "events"),
+        () ->
+            assertHasNoMember(
+                jsonRelationship
+                    .getFrom()
+                    .getTrackedEntity()
+                    .getEnrollments()
+                    .get(0)
+                    .getEvents()
+                    .get(0),
+                "relationships"),
+        () ->
+            assertEquals(
+                relationship.getTo().getEnrollment().getUid(),
+                jsonRelationship.getTo().getEnrollment().getEnrollment()),
+        () -> assertHasNoMember(jsonRelationship.getTo().getEnrollment(), "relationships"),
+        () -> assertHasMember(jsonRelationship.getTo().getEnrollment(), "events"),
+        () ->
+            assertHasNoMember(
+                jsonRelationship.getTo().getEnrollment().getEvents().get(0), "relationships"),
+        () -> assertHasMember(jsonRelationship, "relationshipName"),
+        () -> assertHasMember(jsonRelationship, "relationshipType"),
+        () -> assertHasMember(jsonRelationship, "createdAt"),
+        () -> assertHasMember(jsonRelationship, "updatedAt"),
+        () -> assertHasMember(jsonRelationship, "bidirectional"));
+  }
 
-    JsonRelationshipItem.JsonTrackedEntity trackedEntity =
-        jsonRelationship.getTo().getTrackedEntity();
-    assertEquals(
-        relationship.getTo().getTrackedEntity().getUid(), trackedEntity.getTrackedEntity());
+  @Test
+  void
+      shouldGetEnrollmentWithNoRelationshipsWhenEnrollmentIsOnTheToSideOfAUnidirectionalRelationship() {
+    Relationship relationship = relationship(te, enrollment);
 
-    assertHasMember(jsonRelationship, "relationshipName");
-    assertHasMember(jsonRelationship, "relationshipType");
-    assertHasMember(jsonRelationship, "createdAt");
-    assertHasMember(jsonRelationship, "updatedAt");
-    assertHasMember(jsonRelationship, "bidirectional");
+    assertNotNull(
+        relationship.getTo().getEnrollment(),
+        "test expects relationship to have a 'to' enrollment");
+    RelationshipType relationshipType = relationship.getRelationshipType();
+    relationshipType.setBidirectional(false);
+    manager.save(relationshipType);
+    this.switchContextToUser(user);
+
+    JsonList<JsonRelationship> jsonRelationships =
+        GET(
+                "/tracker/enrollments?enrollments={id}&fields=*&includeDeleted=true",
+                relationship.getTo().getEnrollment().getUid())
+            .content(HttpStatus.OK)
+            .getList("enrollments", JsonEnrollment.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    assertIsEmpty(jsonRelationships.stream().toList());
   }
 
   @Test
@@ -299,6 +362,36 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest {
     event.setEventDataValues(eventDataValues);
     manager.save(event);
     return event;
+  }
+
+  private Relationship relationship(TrackedEntity from, Enrollment to) {
+    relationship = new Relationship();
+
+    RelationshipItem fromItem = new RelationshipItem();
+    fromItem.setTrackedEntity(from);
+    from.getRelationshipItems().add(fromItem);
+    relationship.setFrom(fromItem);
+    fromItem.setRelationship(relationship);
+
+    RelationshipItem toItem = new RelationshipItem();
+    toItem.setEnrollment(to);
+    to.getRelationshipItems().add(toItem);
+    relationship.setTo(toItem);
+    toItem.setRelationship(relationship);
+
+    RelationshipType type = createRelationshipType('A');
+    type.getFromConstraint().setRelationshipEntity(RelationshipEntity.PROGRAM_INSTANCE);
+    type.getToConstraint().setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    type.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    manager.save(type, false);
+
+    relationship.setRelationshipType(type);
+    relationship.setKey(type.getUid());
+    relationship.setInvertedKey(type.getUid());
+    relationship.setAutoFields();
+
+    manager.save(relationship, false);
+    return relationship;
   }
 
   private Relationship relationship(Enrollment from, TrackedEntity to) {

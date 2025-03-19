@@ -184,7 +184,9 @@ class DefaultEnrollmentService
 
     for (RelationshipItem relationshipItem : enrollment.getRelationshipItems()) {
       org.hisp.dhis.relationship.Relationship daoRelationship = relationshipItem.getRelationship();
-      if (trackerAccessManager.canRead(user, daoRelationship).isEmpty()
+      if ((relationshipItem.getRelationship().getFrom().equals(relationshipItem)
+              || relationshipItem.getRelationship().getRelationshipType().isBidirectional())
+          && trackerAccessManager.canRead(user, daoRelationship).isEmpty()
           && (includeDeleted || !daoRelationship.isDeleted())) {
         relationshipItems.add(relationshipItem);
       }
