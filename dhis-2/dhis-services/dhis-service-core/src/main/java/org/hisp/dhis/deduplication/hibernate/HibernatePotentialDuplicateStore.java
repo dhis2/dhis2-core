@@ -61,7 +61,6 @@ import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.deduplication.PotentialDuplicateCriteria;
 import org.hisp.dhis.deduplication.PotentialDuplicateStore;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.UserInfoSnapshot;
@@ -89,8 +88,6 @@ public class HibernatePotentialDuplicateStore
 
   private final TrackedEntityAttributeValueChangeLogStore trackedEntityAttributeValueChangeLogStore;
 
-  private final DhisConfigurationProvider config;
-
   public HibernatePotentialDuplicateStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
@@ -98,13 +95,11 @@ public class HibernatePotentialDuplicateStore
       AclService aclService,
       TrackedEntityStore trackedEntityStore,
       AuditManager auditManager,
-      TrackedEntityAttributeValueChangeLogStore trackedEntityAttributeValueChangeLogStore,
-      DhisConfigurationProvider config) {
+      TrackedEntityAttributeValueChangeLogStore trackedEntityAttributeValueChangeLogStore) {
     super(entityManager, jdbcTemplate, publisher, PotentialDuplicate.class, aclService, false);
     this.trackedEntityStore = trackedEntityStore;
     this.auditManager = auditManager;
     this.trackedEntityAttributeValueChangeLogStore = trackedEntityAttributeValueChangeLogStore;
-    this.config = config;
   }
 
   @Override
