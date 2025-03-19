@@ -82,9 +82,8 @@ public interface AppManager {
           "usage-analytics",
           "user",
           "user-profile");
-  
-  static final Set<String> ALWAYS_ACCESSIBLE_APPS = 
-      Set.of("login", "global-shell", "user-profile");
+
+  static final Set<String> ALWAYS_ACCESSIBLE_APPS = Set.of("login", "global-shell", "user-profile");
 
   static final Set<String> MENU_APP_EXCLUSIONS =
       Set.of("login", "global-shell"); // TODO: instead filter by app type

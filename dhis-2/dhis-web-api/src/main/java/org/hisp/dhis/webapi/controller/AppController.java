@@ -66,7 +66,6 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -176,7 +175,8 @@ public class AppController {
 
     if (!appManager.isAccessible(application)) {
       log.info("User does not have access to app: {}", appName);
-      throw new WebMessageException(forbidden("User does not have access to app '" + appName + "'."));
+      throw new WebMessageException(
+          forbidden("User does not have access to app '" + appName + "'."));
     }
 
     if (application.getAppState() == AppStatus.DELETION_IN_PROGRESS) {
@@ -216,15 +216,17 @@ public class AppController {
     String filename = resourceResult.resource().getFilename();
     log.info("App filename: '{}'", filename);
 
-    if (new ServletWebRequest(request, response).checkNotModified(resourceResult.resource().lastModified())) {
+    if (new ServletWebRequest(request, response)
+        .checkNotModified(resourceResult.resource().lastModified())) {
       log.info("Resource not modified: {}", filename);
       response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
       return;
     }
 
-    String mimeType = resourceResult.mimeType() == null 
-      ? request.getSession().getServletContext().getMimeType(filename) 
-      : resourceResult.mimeType();
+    String mimeType =
+        resourceResult.mimeType() == null
+            ? request.getSession().getServletContext().getMimeType(filename)
+            : resourceResult.mimeType();
 
     if (mimeType != null) {
       response.setContentType(mimeType);
@@ -233,8 +235,13 @@ public class AppController {
     long contentLength = appManager.getUriContentLength(resourceResult.resource());
 
     response.setContentLengthLong(contentLength);
-    log.info("Serving resource: {} (contentType: {}, contentLength: {})", filename, mimeType, contentLength);
-    StreamUtils.copyThenCloseInputStream(resourceResult.resource().getInputStream(), response.getOutputStream());
+    log.info(
+        "Serving resource: {} (contentType: {}, contentLength: {})",
+        filename,
+        mimeType,
+        contentLength);
+    StreamUtils.copyThenCloseInputStream(
+        resourceResult.resource().getInputStream(), response.getOutputStream());
   }
 
   @DeleteMapping("/{app}")

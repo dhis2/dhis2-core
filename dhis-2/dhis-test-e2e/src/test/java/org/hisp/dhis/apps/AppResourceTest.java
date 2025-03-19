@@ -72,7 +72,8 @@ class AppResourceTest extends ApiTest {
           });
 
   private static final String SERVER_BASE = "http://web:8080";
-  private static final String META_TAG_DHIS2_BASE_URL = "<meta name=\"dhis2-base-url\" content=\"" + SERVER_BASE + "\">";
+  private static final String META_TAG_DHIS2_BASE_URL =
+      "<meta name=\"dhis2-base-url\" content=\"" + SERVER_BASE + "\">";
 
   @Test
   @DisplayName("Redirect location should have correct format")
