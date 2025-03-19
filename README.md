@@ -30,12 +30,9 @@ The software is open source and released under the [BSD 3-Clause license](https:
 
 ## Run DHIS2 in Docker
 
-The following guides use [Docker Compose](https://docs.docker.com/compose/install/) to run DHIS2
-using Docker.
+The following guides runs DHIS2 with [Docker Compose](https://docs.docker.com/compose/install/).
 
-A database dump is downloaded automatically the first time you start DHIS2. If you switch between
-different DHIS2 versions or need to download a different DB dump, you will need to remove the
-shared volume `db-dump` with the following command.
+A database dump is downloaded automatically the first time you start DHIS2. If you switch between different DHIS2 versions or need to download a different DB dump, you will need to remove the shared volume `db-dump` with the following command.
 
 ```sh
 docker compose down --volumes
@@ -75,12 +72,13 @@ DHIS2 will become available at `http://localhost:8080` with the Sierra Leone Dem
 If you want to start DHIS2 with a specific demo DB you can pass a URL like the below.
 
 ```sh
-DHIS2_DB_DUMP_URL=https://databases.dhis2.org/sierra-leone/2.39/dhis2-db-sierra-leone.sql.gz docker compose up
+DHIS2_DB_DUMP_URL=https://databases.dhis2.org/sierra-leone/2.39/dhis2-db-sierra-leone.sql.gz \
+docker compose up
 ```
 
 ### Synchronization between DHIS2 instances
 
-You can run multiple DHIS2 instances to test [data and metadata synchronization](https://docs.dhis2.org/en/use/user-guides/dhis-core-version-master/exchanging-data/metadata-synchronization.html) by running the following command.
+You can run multiple DHIS2 instances to test data and metadata [synchronization](https://docs.dhis2.org/en/use/user-guides/dhis-core-version-master/exchanging-data/metadata-synchronization.html) by running the following command.
 
 ```sh
 docker compose --profile sync up
