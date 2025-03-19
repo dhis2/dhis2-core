@@ -1194,7 +1194,7 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase {
             valueMap));
 
     assertEquals(
-        "11 DeX CocA:[ case when value > 99::numeric then 10::numeric else 11::numeric end]",
+        "0 DeX CocA:[ case when value > 99::numeric then 10::numeric else 11::numeric end]",
         evalIndicator("subExpression( if( #{dataElemenX.catOptCombA} > 99, 10, 11 ) )", valueMap));
   }
 
