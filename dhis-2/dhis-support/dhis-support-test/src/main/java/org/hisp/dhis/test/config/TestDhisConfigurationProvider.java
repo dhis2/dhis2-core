@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -133,21 +135,21 @@ public class TestDhisConfigurationProvider implements DhisConfigurationProvider 
   }
 
   @Override
-  public List<String> getRemoteServersAllowed() {
+  public List<String> getMetaDataSyncRemoteServersAllowed() {
     return Stream.of(
             this.properties
                 .getProperty(
-                    ConfigurationKey.REMOTE_SERVERS_ALLOWED.getKey(),
-                    ConfigurationKey.REMOTE_SERVERS_ALLOWED.getDefaultValue())
+                    ConfigurationKey.META_DATA_SYNC_SERVERS_ALLOWED.getKey(),
+                    ConfigurationKey.META_DATA_SYNC_SERVERS_ALLOWED.getDefaultValue())
                 .split(","))
         .filter(StringUtils::isNotEmpty)
         .toList();
   }
 
   @Override
-  public boolean remoteServerIsInAllowedList(String url) {
-    List<String> remoteServersAllowed = getRemoteServersAllowed();
-    return !getRemoteServersAllowed().isEmpty()
+  public boolean isMetaDataSyncRemoteServerAllowed(String url) {
+    List<String> remoteServersAllowed = getMetaDataSyncRemoteServersAllowed();
+    return !getMetaDataSyncRemoteServersAllowed().isEmpty()
         && remoteServersAllowed.stream().anyMatch(url::startsWith);
   }
 

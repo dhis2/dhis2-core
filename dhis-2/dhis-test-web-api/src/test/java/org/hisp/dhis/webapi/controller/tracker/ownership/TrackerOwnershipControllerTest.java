@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.ownership;
 
+import static java.util.Collections.emptySet;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
@@ -53,6 +56,8 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
 
   private String teUid;
 
+  private String tetId;
+
   private String pId;
 
   private User regularUser;
@@ -74,14 +79,14 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
 
     OrganisationUnit orgUnitA = manager.get(OrganisationUnit.class, orgUnitAUid);
     OrganisationUnit orgUnitB = manager.get(OrganisationUnit.class, orgUnitBUid);
-    regularUser =
-        createAndAddUser(
-            false, "regular-user", Set.of(orgUnitA, orgUnitB), Set.of(orgUnitA, orgUnitB));
+    regularUser = createAndAddUser(false, "regular-user", emptySet(), emptySet());
+    regularUser.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB));
+    manager.save(regularUser);
     User superuser =
         createAndAddUser(true, "superuser", Set.of(orgUnitA, orgUnitB), Set.of(orgUnitA, orgUnitB));
     injectSecurityContextUser(superuser);
 
-    String tetId =
+    tetId =
         assertStatus(
             HttpStatus.CREATED,
             POST(
@@ -189,6 +194,45 @@ class TrackerOwnershipControllerTest extends PostgresControllerIntegrationTestBa
 
   @Test
   void shouldGrantTemporaryAccess() {
+    injectSecurityContextUser(regularUser);
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Temporary Ownership granted",
+        POST("/tracker/ownership/override?trackedEntity={te}&program={prog}&reason=42", teUid, pId)
+            .content(HttpStatus.OK));
+  }
+
+  @Test
+  void shouldGrantTemporaryAccessWhenTEEnrolledInProgram() {
+    teUid = CodeGenerator.generateUid();
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/tracker?async=false",
+            """
+            {
+             "trackedEntities": [
+               {
+                 "trackedEntity": "%s",
+                 "trackedEntityType": "%s",
+                 "orgUnit": "%s",
+                 "enrollments": [
+                   {
+                    "program": "%s",
+                    "orgUnit": "%s",
+                    "status": "ACTIVE",
+                    "enrolledAt": "2023-06-16",
+                    "occurredAt': "2023-06-16"
+                   }
+                  ]
+               }
+             ]
+            }
+            """
+                .formatted(teUid, tetId, orgUnitAUid, pId, orgUnitAUid)));
+
     injectSecurityContextUser(regularUser);
     assertWebMessage(
         "OK",

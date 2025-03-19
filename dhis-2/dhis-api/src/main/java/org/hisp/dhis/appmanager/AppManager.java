@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -46,9 +48,10 @@ public interface AppManager {
   static final String BUNDLED_APP_PREFIX = "dhis-web-";
   static final String INSTALLED_APP_PREFIX = "api/apps/";
 
+  /* To be removed in favor of dynamic ClassPath loading, see BundledAppStorageService */
+  @Deprecated(forRemoval = true)
   static final Set<String> BUNDLED_APPS =
       Set.of(
-          // Javascript apps
           "aggregate-data-entry",
           "approval",
           "app-management",
@@ -61,8 +64,10 @@ public interface AppManager {
           "datastore",
           "event-reports",
           "event-visualizer",
+          "global-shell",
           "import-export",
           "interpretation",
+          "line-listing",
           "login",
           "maintenance",
           "maps",
@@ -77,6 +82,9 @@ public interface AppManager {
           "usage-analytics",
           "user",
           "user-profile");
+
+  static final Set<String> MENU_APP_EXCLUSIONS =
+      Set.of("global-shell"); // TODO: instead filter by app type
 
   static final String DASHBOARD_PLUGIN_TYPE = "DASHBOARD";
 
@@ -177,14 +185,6 @@ public interface AppManager {
    */
   boolean exists(String appName);
 
-  /**
-   * Deletes the given app.
-   *
-   * @param app the app to delete.
-   * @param deleteAppData decide if associated data in dataStore should be deleted or not.
-   */
-  void deleteApp(App app, boolean deleteAppData);
-
   /** Reload list of apps. */
   void reloadApps();
 
@@ -204,21 +204,34 @@ public interface AppManager {
   boolean isAccessible(App app);
 
   /**
-   * Looks up and returns the file associated with the app and pageName, if it exists
+   * Looks up and returns the file associated with the app and pageName, if it exists No template
+   * replacement is performed, only the raw resource is returned.
    *
    * @param app the app to look up files for
    * @param pageName the page requested
    * @return the {@link ResourceResult}
    */
-  ResourceResult getAppResource(App app, String pageName) throws IOException;
+  ResourceResult getRawAppResource(App app, String pageName) throws IOException;
 
   /**
-   * Sets the app status to DELETION_IN_PROGRESS.
+   * Looks up and returns the file associated with the app and pageName, if it exists Template
+   * replacement is performed where applicable on the returned resource.
+   *
+   * @param app the app to look up files for
+   * @param pageName the page requested
+   * @param contextPath the context path of this instance.
+   * @return the {@link ResourceResult}
+   */
+  ResourceResult getAppResource(App app, String pageName, String contextPath) throws IOException;
+
+  /**
+   * Sets the app status to DELETION_IN_PROGRESS and trigger asynchronous deletion of the app.
    *
    * @param app The app that has to be marked as deleted.
+   * @param deleteAppData decide if associated data in dataStore should be deleted or not.
    * @return true if the status was changed in this method.
    */
-  boolean markAppToDelete(App app);
+  boolean deleteApp(App app, boolean deleteAppData);
 
   int getUriContentLength(Resource resource);
 

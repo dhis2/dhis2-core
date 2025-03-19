@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -40,6 +42,7 @@ import org.hisp.dhis.cache.CacheBuilder;
 import org.hisp.dhis.cache.DefaultCacheBuilderProvider;
 import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.i18n.I18nManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,12 +62,13 @@ class DefaultAppManagerTest {
   @Mock private AppHubService appHubService;
   @Mock private AppStorageService localAppStorageService;
   @Mock private AppStorageService jCloudsAppStorageService;
+  @Mock private BundledAppStorageService bundledAppStorageService;
   @Mock private DatastoreService datastoreService;
   @Mock private Cache<App> appCache;
   @Mock private DefaultCacheBuilderProvider cacheBuilderProvider;
   @Mock private CacheBuilder cacheBuilder;
+  @Mock private I18nManager i18nManager;
 
-  @Mock private AppMenuManager appMenuManager;
   private AppManager appManager;
 
   @BeforeEach
@@ -120,9 +124,10 @@ class DefaultAppManagerTest {
             appHubService,
             localAppStorageService,
             jCloudsAppStorageService,
+            bundledAppStorageService,
             datastoreService,
             cacheBuilderProvider,
-            appMenuManager);
+            i18nManager);
   }
 
   /**

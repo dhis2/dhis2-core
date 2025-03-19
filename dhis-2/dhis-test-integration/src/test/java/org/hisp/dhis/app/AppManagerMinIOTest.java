@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -65,6 +67,8 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration(classes = {DhisConfig.class})
 class AppManagerMinIOTest extends PostgresIntegrationTestBase {
 
+  private static final String MOCK_CONTEXT_PATH = "/context";
+
   @Autowired AppManager appManager;
 
   @Test
@@ -93,7 +97,8 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
 
     // get app version & index.html
     App app = appManager.getApp("test minio");
-    ResourceFound resource = (ResourceFound) appManager.getAppResource(app, "index.html");
+    ResourceFound resource =
+        (ResourceFound) appManager.getAppResource(app, "index.html", MOCK_CONTEXT_PATH);
 
     assertEquals("2.0.0", app.getVersion());
     assertEquals(63, appManager.getUriContentLength(resource.resource()));
@@ -129,7 +134,8 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
 
     // when an app resource is retrieved with a valid path
     App app = appManager.getApp("test minio");
-    ResourceFound resource = (ResourceFound) appManager.getAppResource(app, path);
+    ResourceFound resource =
+        (ResourceFound) appManager.getAppResource(app, path, MOCK_CONTEXT_PATH);
 
     // then the resource path returned is the full resource path which ends with `/index.html`
     assertEquals(
@@ -155,7 +161,7 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
 
     // when an app resource is retrieved with a redirect path
     App app = appManager.getApp("test minio");
-    Redirect resource = (Redirect) appManager.getAppResource(app, path);
+    Redirect resource = (Redirect) appManager.getAppResource(app, path, MOCK_CONTEXT_PATH);
 
     // then the path returned should end in a trailing slash
     assertEquals(expectedPath, resource.path(), "redirect path should have trailing slash");
@@ -177,7 +183,8 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
 
     // when non-existent an app resource path is retrieved
     App app = appManager.getApp("test minio");
-    ResourceNotFound resource = (ResourceNotFound) appManager.getAppResource(app, path);
+    ResourceNotFound resource =
+        (ResourceNotFound) appManager.getAppResource(app, path, MOCK_CONTEXT_PATH);
 
     // then the path returned should be null
     assertEquals(path, resource.path());

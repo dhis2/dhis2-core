@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -50,6 +52,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTempOwnerService;
 import org.hisp.dhis.program.ProgramTempOwnershipAudit;
 import org.hisp.dhis.program.ProgramTempOwnershipAuditService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
@@ -85,12 +88,15 @@ class DefaultTrackerOwnershipManagerTest {
 
   @Mock private Cache<Object> tempOwnerCache;
 
+  @Mock private AclService aclService;
+
   @InjectMocks private DefaultTrackerOwnershipManager trackerOwnershipManager;
 
   private Program program;
   private UserDetails userDetails;
   private String reason;
   private OrganisationUnit orgUnit;
+  private TrackedEntityType trackedEntityType;
 
   @BeforeEach
   void setUp() {
@@ -106,24 +112,30 @@ class DefaultTrackerOwnershipManagerTest {
             programTempOwnerService,
             programOwnershipHistoryService,
             programService,
-            manager);
+            manager,
+            aclService);
 
     orgUnit = createOrganisationUnit("org unit");
     orgUnit.setPath(orgUnit.getUid());
     program = createProgram('A');
     program.setAccessLevel(AccessLevel.PROTECTED);
+    trackedEntityType = createTrackedEntityType('A');
+    program.setTrackedEntityType(trackedEntityType);
     User user = new User();
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
     userDetails = UserDetails.fromUser(user);
     reason = "breaking the glass";
 
     when(ownerCache.get(any(), any())).thenReturn(orgUnit);
+    when(aclService.canDataRead(userDetails, program)).thenReturn(true);
   }
 
   @Test
   void shouldLogProgramOwnershipChangeWhenTrackedEntityTypeAuditEnabled()
       throws ForbiddenException {
     TrackedEntity trackedEntity = createTrackedEntityWithAuditLog(true);
+    when(aclService.canDataRead(userDetails, trackedEntity.getTrackedEntityType()))
+        .thenReturn(true);
 
     trackerOwnershipManager.grantTemporaryOwnership(trackedEntity, program, userDetails, reason);
 
@@ -135,6 +147,8 @@ class DefaultTrackerOwnershipManagerTest {
   void shouldNotLogProgramOwnershipChangeWhenTrackedEntityTypeAuditDisabled()
       throws ForbiddenException {
     TrackedEntity trackedEntity = createTrackedEntityWithAuditLog(false);
+    when(aclService.canDataRead(userDetails, trackedEntity.getTrackedEntityType()))
+        .thenReturn(true);
 
     trackerOwnershipManager.grantTemporaryOwnership(trackedEntity, program, userDetails, reason);
 
@@ -143,7 +157,6 @@ class DefaultTrackerOwnershipManagerTest {
   }
 
   private TrackedEntity createTrackedEntityWithAuditLog(boolean isAllowAuditLog) {
-    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
     trackedEntityType.setAllowAuditLog(isAllowAuditLog);
     TrackedEntity trackedEntity = createTrackedEntity('A', orgUnit, trackedEntityType);
     trackedEntity.setTrackedEntityType(trackedEntityType);

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -83,7 +85,7 @@ public class App implements Serializable {
 
   private String locales;
 
-  private AppActivities activities;
+  private AppActivities activities = new AppActivities();
 
   private String launchUrl;
 
@@ -98,6 +100,8 @@ public class App implements Serializable {
   private AppSettings settings;
 
   private boolean coreApp = false;
+
+  private boolean bundled = false;
 
   /** Generated. */
   private AppStatus appState = AppStatus.OK;
@@ -114,10 +118,9 @@ public class App implements Serializable {
    * @param contextPath the context path of this instance.
    */
   public void init(String contextPath) {
-    String appPathPrefix =
-        isBundled() ? AppManager.BUNDLED_APP_PREFIX : AppManager.INSTALLED_APP_PREFIX;
-
-    this.basePath = ("/" + appPathPrefix + getUrlFriendlyName()).replaceAll("/+", "/");
+    String prefix =
+        this.isBundled() ? AppManager.BUNDLED_APP_PREFIX : AppManager.INSTALLED_APP_PREFIX;
+    this.basePath = ("/" + prefix + getUrlFriendlyName()).replaceAll("/+", "/");
     this.baseUrl = contextPath + basePath;
 
     if (contextPath != null && name != null && launchPath != null) {
@@ -143,7 +146,11 @@ public class App implements Serializable {
   /** Determine if this app will overload a bundled app */
   @JsonProperty
   public boolean isBundled() {
-    return AppManager.BUNDLED_APPS.contains(getShortName());
+    return this.bundled;
+  }
+
+  public void setBundled(boolean bundled) {
+    this.bundled = bundled;
   }
 
   /** Determine if the app is configured as a coreApp (to be served at the root namespace) */
@@ -305,11 +312,12 @@ public class App implements Serializable {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Nonnull
   public AppActivities getActivities() {
     return activities;
   }
 
-  public void setActivities(AppActivities activities) {
+  public void setActivities(@Nonnull AppActivities activities) {
     this.activities = activities;
   }
 

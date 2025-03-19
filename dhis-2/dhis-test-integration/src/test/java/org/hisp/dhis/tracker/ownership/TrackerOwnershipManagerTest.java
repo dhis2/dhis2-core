@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -35,6 +37,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -99,6 +102,8 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
+  private TrackedEntityType trackedEntityType;
+
   private TrackedEntity trackedEntityA1;
 
   private TrackedEntity trackedEntityB1;
@@ -127,7 +132,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
     organisationUnitB = createOrganisationUnit('B');
     organisationUnitService.addOrganisationUnit(organisationUnitB);
 
-    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
+    trackedEntityType = createTrackedEntityType('A');
     trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
     trackedEntityType.setSharing(Sharing.builder().publicAccess(AccessStringHelper.FULL).build());
     trackedEntityTypeService.updateTrackedEntityType(trackedEntityType);
@@ -189,7 +194,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
                     trackedEntityA1, programA, userDetailsB, "testing reason"));
 
     assertEquals(
-        "The owner of the entity-program combination is not in the user's search scope.",
+        "Temporary ownership not created. The owner of the entity-program combination is not in the user's search scope.",
         exception.getMessage());
   }
 
@@ -418,6 +423,78 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
 
     assertEquals(
         "Temporary ownership not created. Program supplied is not a tracker program.",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenGrantingTemporaryAccessIfTrackedEntitySuppliedIsNull() {
+    Exception exception =
+        Assertions.assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackerOwnershipAccessManager.grantTemporaryOwnership(
+                    null, programA, userDetailsA, "test temporary ownership"));
+
+    assertEquals(
+        "Temporary ownership not created. Tracked entity supplied does not exist.",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenGrantingTemporaryAccessIfUserHasNoAccessToProgram() {
+    programA.setSharing(Sharing.builder().publicAccess(AccessStringHelper.DEFAULT).build());
+    programService.updateProgram(programA);
+
+    Exception exception =
+        Assertions.assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackerOwnershipAccessManager.grantTemporaryOwnership(
+                    trackedEntityA1, programA, userDetailsA, "test temporary ownership"));
+
+    assertStartsWith(
+        "Temporary ownership not created. User has no data read access to program",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenGrantingTemporaryAccessIfUserHasNoAccessToTET() {
+    trackedEntityType.setSharing(
+        Sharing.builder().publicAccess(AccessStringHelper.DEFAULT).build());
+    trackedEntityTypeService.updateTrackedEntityType(trackedEntityType);
+    trackedEntityA1.setTrackedEntityType(trackedEntityType);
+    manager.update(trackedEntityA1);
+
+    Exception exception =
+        Assertions.assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackerOwnershipAccessManager.grantTemporaryOwnership(
+                    trackedEntityA1, programA, userDetailsA, "test temporary ownership"));
+
+    assertStartsWith(
+        "Temporary ownership not created. User has no data read access to tracked entity type",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenGrantingTemporaryAccessIfProgramTETDifferentThanTEs() {
+    TrackedEntityType differentTET = createTrackedEntityType('B');
+    trackedEntityTypeService.addTrackedEntityType(differentTET);
+    differentTET.setSharing(Sharing.builder().publicAccess(AccessStringHelper.FULL).build());
+    trackedEntityTypeService.updateTrackedEntityType(differentTET);
+    trackedEntityA1.setTrackedEntityType(differentTET);
+    manager.update(trackedEntityA1);
+
+    Exception exception =
+        Assertions.assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackerOwnershipAccessManager.grantTemporaryOwnership(
+                    trackedEntityA1, programA, userDetailsA, "test temporary ownership"));
+
+    assertStartsWith(
+        "Temporary ownership not created. The tracked entity type of the program",
         exception.getMessage());
   }
 

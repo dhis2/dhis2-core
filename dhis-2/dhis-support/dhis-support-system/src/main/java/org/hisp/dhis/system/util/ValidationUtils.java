@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -472,20 +474,16 @@ public class ValidationUtils {
       return "data_element_or_type_null_or_empty";
     }
 
-    OptionSet options = dataElement.getOptionSet();
-
-    if (valueType.isMultiText() && options == null) {
-      return "data_element_lacks_option_set";
-    }
-
-    if (validateOptions && options != null) {
-      if (!valueType.isMultiText() && options.getOptionByCode(value) == null) {
+    // note: avoid accessing options if not necessary for perf reasons
+    if (valueType.isMultiText()) {
+      OptionSet options = dataElement.getOptionSet();
+      if (options == null) return "data_element_lacks_option_set";
+      if (validateOptions && !options.hasAllOptions(ValueType.splitMultiText(value)))
         return "value_not_valid_option";
-      }
-
-      if (valueType.isMultiText() && !options.hasAllOptions(ValueType.splitMultiText(value))) {
+    } else if (validateOptions) {
+      OptionSet options = dataElement.getOptionSet();
+      if (options != null && options.getOptionByCode(value) == null)
         return "value_not_valid_option";
-      }
     }
 
     return valueIsValid(value, valueType);
