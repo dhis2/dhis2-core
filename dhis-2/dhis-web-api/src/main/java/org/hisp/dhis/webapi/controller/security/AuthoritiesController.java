@@ -79,7 +79,7 @@ public class AuthoritiesController {
   public Map<String, List<Map<String, String>>> getAuthorities(HttpServletResponse response) {
     I18n i18n = i18nManager.getI18n();
 
-    List<String> authorities = new ArrayList<>();
+    Set<String> authorities = new HashSet<>();
 
     Collection<String> systemAuthorities = authoritiesProvider.getSystemAuthorities();
     authorities.addAll(systemAuthorities);
