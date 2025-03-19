@@ -30,7 +30,6 @@ package org.hisp.dhis.deduplication.hibernate;
 import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
@@ -241,28 +240,26 @@ public class HibernatePotentialDuplicateStore
 
               getSession().saveOrUpdate(updatedTeav);
 
-              auditTeav(av, updatedTeav, changeLogType);
+              addTrackedEntityAttributeValueChangeLog(av, updatedTeav, changeLogType);
             });
   }
 
-  private void auditTeav(
+  private void addTrackedEntityAttributeValueChangeLog(
       TrackedEntityAttributeValue av,
       TrackedEntityAttributeValue createOrUpdateTeav,
       ChangeLogType changeLogType) {
     String currentUsername = CurrentUserUtil.getCurrentUsername();
 
-    TrackedEntityAttributeValueChangeLog deleteTeavAudit =
+    TrackedEntityAttributeValueChangeLog deleteTeavChangeLog =
         new TrackedEntityAttributeValueChangeLog(av, av.getAuditValue(), currentUsername, DELETE);
-    TrackedEntityAttributeValueChangeLog updatedTeavAudit =
+    TrackedEntityAttributeValueChangeLog updatedTeavChangeLog =
         new TrackedEntityAttributeValueChangeLog(
             createOrUpdateTeav, createOrUpdateTeav.getValue(), currentUsername, changeLogType);
 
-    if (config.isEnabled(CHANGELOG_TRACKER)) {
-      trackedEntityAttributeValueChangeLogStore.addTrackedEntityAttributeValueChangeLog(
-          deleteTeavAudit);
-      trackedEntityAttributeValueChangeLogStore.addTrackedEntityAttributeValueChangeLog(
-          updatedTeavAudit);
-    }
+    trackedEntityAttributeValueChangeLogStore.addTrackedEntityAttributeValueChangeLog(
+        deleteTeavChangeLog);
+    trackedEntityAttributeValueChangeLogStore.addTrackedEntityAttributeValueChangeLog(
+        updatedTeavChangeLog);
   }
 
   @Override
