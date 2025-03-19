@@ -43,7 +43,7 @@ docker compose down --volumes
 We push pre-built DHIS2 Docker images to Dockerhub. You can pick an `<image name>` from one of the following
 repositories:
 
-* [`dhis2/core`](https://hub.docker.com/r/dhis2/core) - images of the release and release-candidate DHIS2 versions. These images represent the **stable** DHIS2 versions, meaning they won't be rebuilt in the future.
+* [`dhis2/core`](https://hub.docker.com/r/dhis2/core) - images of the release and release-candidate DHIS2 versions. These images represent the stable DHIS2 versions, meaning they won't be rebuilt in the future.
 
 * [`dhis2/core-dev`](https://hub.docker.com/r/dhis2/core-dev) - images of _the latest development_ DHIS2 versions - branches `master` (tagged as `latest`) and the previous 3 supported major versions. Image tags in this repository will be overwritten multiple times a day.
 
