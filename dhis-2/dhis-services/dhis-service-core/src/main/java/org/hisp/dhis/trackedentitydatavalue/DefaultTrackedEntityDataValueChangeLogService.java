@@ -28,10 +28,12 @@
 package org.hisp.dhis.trackedentitydatavalue;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 import java.util.List;
 import java.util.function.Predicate;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueChangeLogQueryParams;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -51,15 +53,19 @@ public class DefaultTrackedEntityDataValueChangeLogService
 
   private final Predicate<TrackedEntityDataValueChangeLog> aclFilter;
 
+  private final DhisConfigurationProvider config;
+
   public DefaultTrackedEntityDataValueChangeLogService(
       TrackedEntityDataValueChangeLogStore trackedEntityDataValueChangeLogStore,
       TrackerAccessManager trackerAccessManager,
-      UserService userService) {
+      UserService userService,
+      DhisConfigurationProvider config) {
     checkNotNull(trackedEntityDataValueChangeLogStore);
     checkNotNull(trackerAccessManager);
     checkNotNull(userService);
 
     this.trackedEntityDataValueChangeLogStore = trackedEntityDataValueChangeLogStore;
+    this.config = config;
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
@@ -78,8 +84,10 @@ public class DefaultTrackedEntityDataValueChangeLogService
   @Transactional
   public void addTrackedEntityDataValueChangeLog(
       TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog) {
-    trackedEntityDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(
-        trackedEntityDataValueChangeLog);
+    if (config.isEnabled(CHANGELOG_TRACKER)) {
+      trackedEntityDataValueChangeLogStore.addTrackedEntityDataValueChangeLog(
+          trackedEntityDataValueChangeLog);
+    }
   }
 
   @Override
