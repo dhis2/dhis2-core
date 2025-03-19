@@ -231,8 +231,8 @@ public class EventVisualizationController
 
         List<String> orgUnitUids = fromFilter(dimensionalObject.getFilter());
 
-        processOrganisationUnits(orgUnitUids, eventVisualization, roots);
         processOrganisationUnitLevelsGroups(orgUnitUids, eventVisualization);
+        processOrganisationUnits(orgUnitUids, eventVisualization, roots);
       }
     }
   }
