@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -630,7 +630,7 @@ public class UserController
         importService.importMetadata(params, new MetadataObjects().addObject(inputUser));
 
     if (importReport.getStatus() == Status.OK
-        && importReport.getAccumulatedTypeReportStats().updated() == 1) {
+        && importReport.getAccumulatedStats().updated() == 1) {
       updateUserGroups(userUid, inputUser, currentUser);
 
       // If it was a pw change attempt (input.pw != null) and update was
@@ -742,7 +742,7 @@ public class UserController
         importService.importMetadata(importParams, new MetadataObjects().addObject(user));
 
     if (importReport.getStatus() == Status.OK
-        && importReport.getAccumulatedTypeReportStats().created() == 1) {
+        && importReport.getAccumulatedStats().created() == 1) {
       userGroupService.addUserToGroups(user, getUids(user.getGroups()), currentUser);
     }
 
@@ -781,7 +781,7 @@ public class UserController
     ObjectReport objectReport = getObjectReport(importReport);
 
     if (importReport.getStatus() == Status.OK
-        && importReport.getAccumulatedTypeReportStats().created() == 1
+        && importReport.getAccumulatedStats().created() == 1
         && objectReport != null) {
       userService.sendRestoreOrInviteMessage(
           user, HttpServletRequestPaths.getContextPath(request), restoreOptions);

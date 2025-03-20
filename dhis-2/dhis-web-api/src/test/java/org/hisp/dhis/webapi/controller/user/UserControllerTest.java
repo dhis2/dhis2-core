@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -184,7 +184,7 @@ class UserControllerTest {
   }
 
   private boolean isInStatusUpdatedOK(ImportReport report) {
-    return report.getStatus() == Status.OK && report.getAccumulatedTypeReportStats().updated() == 1;
+    return report.getStatus() == Status.OK && report.getAccumulatedStats().updated() == 1;
   }
 
   public static void injectSecurityContext(UserDetails currentUserDetails) {

@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -137,7 +137,7 @@ public class ImportReport implements ErrorReportContainer {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Stats getAccumulatedTypeReportStats() {
+  public Stats getAccumulatedStats() {
     return Stats.getAccumulatedStatsFromTypeReports(typeReportMap.values());
   }
 
@@ -190,7 +190,7 @@ public class ImportReport implements ErrorReportContainer {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("stats", getAccumulatedTypeReportStats())
+        .add("stats", getAccumulatedStats())
         .add("typeReports", getTypeReports())
         .toString();
   }
