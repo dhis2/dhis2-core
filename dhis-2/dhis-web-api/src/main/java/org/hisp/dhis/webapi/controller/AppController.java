@@ -170,10 +170,10 @@ public class AppController {
     String baseUrl = contextService.getContextPath();
 
     // Sanitize for logging, though Tomcat / Spring should have done this already
-    appName = appName.replaceAll("\\R", "");
+    appName = TextUtils.removeNewlines(appName);
 
     App application = appManager.getApp(appName, baseUrl);
-    log.debug("Rendering app resource {}", request.getPathInfo());
+    log.debug("Rendering app resource {}", TextUtils.removeNewlines(request.getPathInfo()));
 
     if (application == null) {
       log.warn("App {} not found", appName);
