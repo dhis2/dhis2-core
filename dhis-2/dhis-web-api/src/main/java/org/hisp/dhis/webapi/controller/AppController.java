@@ -238,9 +238,9 @@ public class AppController {
     String etagSource = String.format("%s-%s", app.getVersion(), String.valueOf(lastModified));
     String etag = HashUtils.hashMD5(etagSource.getBytes());
 
-    log.info("Generated etag {} from source {}, lastModified {}", etag, etagSource);
+    log.debug("Generated etag {} from source {}, lastModified {}", etag, etagSource);
     if (new ServletWebRequest(request, response).checkNotModified(etag, lastModified)) {
-      log.info("Resource not modified (etag {}, lastModified {})", etag, lastModified);
+      log.debug("Resource not modified (etag {}, lastModified {})", etag, lastModified);
       response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
       return;
     }
