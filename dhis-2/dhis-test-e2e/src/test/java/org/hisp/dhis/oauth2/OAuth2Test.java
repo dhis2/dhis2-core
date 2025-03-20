@@ -126,8 +126,13 @@ class OAuth2Test extends BaseE2ETest {
 
     ChromeOptions chromeOptions = new ChromeOptions();
     chromeOptions.addArguments("--remote-allow-origins=*");
+    chromeOptions.addArguments("--no-sandbox");
+    chromeOptions.addArguments("--disable-dev-shm-usage");
+    chromeOptions.addArguments("--disable-gpu");
+    chromeOptions.setPageLoadTimeout(Duration.ofSeconds(60));
+
     driver = new RemoteWebDriver(new URL(seleniumUrl), chromeOptions);
-    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(60));
 
     // 1. Call the authorize endpoint
     driver.get(
