@@ -385,7 +385,7 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     } else if (aggType.isAggregationType(AVERAGE) && aggType.isBooleanDataType()) {
       sql = "sum(daysxvalue) / sum(daysno) * 100";
     } else if (SIMPLE_AGGREGATION_TYPES.contains(aggType.getAggregationType())) {
-      sql = String.format("%s(%s)", aggType.getAggregationType().getValue(), valueColumn);
+      sql = resolveAggregationType(aggType.getAggregationType(), valueColumn);
     } else { // SUM and no value
       sql = "sum(" + valueColumn + ")";
     }
@@ -1041,5 +1041,20 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
    */
   private String quoteAliasCommaSeparate(Collection<String> items) {
     return items.stream().map(this::quoteAlias).collect(Collectors.joining(","));
+  }
+
+  /**
+   * Build the SQL function string for the given aggregation type and value.
+   *
+   * @param aggregationType aggregation type
+   * @param value value to be aggregated
+   * @return SQL function string
+   */
+  private String resolveAggregationType(AggregationType aggregationType, String value) {
+    return switch (aggregationType) {
+      case STDDEV -> sqlBuilder.stddev(value);
+      case VARIANCE -> sqlBuilder.variance(value);
+      default -> String.format("%s(%s)", aggregationType.getValue(), value);
+    };
   }
 }
