@@ -168,7 +168,7 @@ public class AppController {
       throws IOException, WebMessageException {
     String contextPath = request.getContextPath();
     String baseUrl = contextService.getContextPath();
-    
+
     // Sanitize for logging, though Tomcat / Spring should have done this already
     appName = appName.replaceAll("\\R", "");
 
