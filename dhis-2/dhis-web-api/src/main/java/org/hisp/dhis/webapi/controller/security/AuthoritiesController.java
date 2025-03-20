@@ -107,6 +107,7 @@ public class AuthoritiesController {
     Set<String> authorities = new HashSet<>();
     appManager.getApps(null).stream()
         .filter(app -> !StringUtils.isEmpty(app.getShortName()))
+        .filter(app -> !AppManager.ALWAYS_ACCESSIBLE_APPS.contains(app.getShortName()))
         .forEach(
             app -> {
               authorities.add(app.getSeeAppAuthority());
