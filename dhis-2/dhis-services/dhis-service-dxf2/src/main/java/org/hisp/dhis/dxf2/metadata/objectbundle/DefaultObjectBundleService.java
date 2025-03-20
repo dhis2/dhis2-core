@@ -424,7 +424,7 @@ public class DefaultObjectBundleService implements ObjectBundleService {
       objectReport.addErrorReport(
           new ErrorReport(klass, new ErrorMessage(ex.getMessage(), ErrorCode.E4030, null)));
       typeReport.withStatsIncIgnored(1);
-      typeReport.withStatsIncDeleted(1);
+      typeReport.withStatsDecDeleted(1);
     }
   }
 }

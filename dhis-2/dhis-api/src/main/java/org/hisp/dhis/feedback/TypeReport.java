@@ -226,6 +226,10 @@ public class TypeReport implements ErrorReportContainer {
     stats = stats.withDeleted(size);
   }
 
+  public void withStatsDecDeleted(int size) {
+    stats = stats.withDeleted(-size);
+  }
+
   public void withStatsIncIgnored(int size) {
     stats = stats.withIgnored(size);
   }

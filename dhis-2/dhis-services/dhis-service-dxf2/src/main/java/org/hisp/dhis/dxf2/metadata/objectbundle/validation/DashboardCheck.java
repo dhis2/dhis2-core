@@ -164,6 +164,7 @@ public class DashboardCheck implements ObjectValidationCheck {
    *
    * @param mergedObjects {@link Dashboard}s being imported for checking.
    * @param addReports add {@link ErrorCode#E4070} if layout column limit exceeded
+   * @param context if context is not null, mark object for removal
    */
   private <T> void processLayoutLimitCheck(
       List<T> mergedObjects, Consumer<ObjectReport> addReports, ValidationContext context) {
@@ -187,7 +188,9 @@ public class DashboardCheck implements ObjectValidationCheck {
                 new ObjectReport(Dashboard.class, 0, ((Dashboard) dashboard).getUid());
             objectReport.addErrorReport(error);
             addReports.accept(objectReport);
-            context.markForRemoval(((Dashboard) dashboard));
+            if (context != null) {
+              context.markForRemoval(((Dashboard) dashboard));
+            }
           }
         });
   }

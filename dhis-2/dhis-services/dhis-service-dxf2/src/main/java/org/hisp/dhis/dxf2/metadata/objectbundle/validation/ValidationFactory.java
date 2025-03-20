@@ -86,11 +86,10 @@ public class ValidationFactory {
       ObjectBundle bundle,
       List<T> persistedObjects,
       List<T> nonPersistedObjects) {
-    if (bundle
-        .getImportMode()
-        .isCreateAndUpdate()) { // todo validation has already failed at this point
+    if (bundle.getImportMode().isCreateAndUpdate()) {
       typeReport.withStatsIncCreated(nonPersistedObjects.size());
       typeReport.withStatsIncUpdated(persistedObjects.size());
+
     } else if (bundle.getImportMode().isCreate()) {
       typeReport.withStatsIncCreated(nonPersistedObjects.size());
 
@@ -100,7 +99,6 @@ public class ValidationFactory {
     } else if (bundle.getImportMode().isDelete()) {
       typeReport.withStatsIncDeleted(persistedObjects.size());
     }
-
     return typeReport;
   }
 

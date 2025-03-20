@@ -45,31 +45,25 @@ public record Stats(
     @JsonProperty int deleted,
     @JsonProperty int ignored) {
 
-  public Stats {
-    if (created < 0 || updated < 0 || deleted < 0 || ignored < 0) {
-      throw new IllegalArgumentException("Stats values cannot be negative");
-    }
-  }
-
   @JsonProperty
   public int getTotal() {
     return created + updated + deleted + ignored;
   }
 
-  public Stats withCreated(int additionalCreated) {
-    return new Stats(this.created + additionalCreated, this.updated, this.deleted, this.ignored);
+  public Stats withCreated(int created) {
+    return new Stats(this.created + created, this.updated, this.deleted, this.ignored);
   }
 
-  public Stats withUpdated(int additionalUpdated) {
-    return new Stats(this.created, this.updated + additionalUpdated, this.deleted, this.ignored);
+  public Stats withUpdated(int updated) {
+    return new Stats(this.created, this.updated + updated, this.deleted, this.ignored);
   }
 
-  public Stats withDeleted(int additionalDeleted) {
-    return new Stats(this.created, this.updated, this.deleted + additionalDeleted, this.ignored);
+  public Stats withDeleted(int deleted) {
+    return new Stats(this.created, this.updated, this.deleted + deleted, this.ignored);
   }
 
-  public Stats withIgnored(int additionalIgnored) {
-    return new Stats(this.created, this.updated, this.deleted, this.ignored + additionalIgnored);
+  public Stats withIgnored(int ignored) {
+    return new Stats(this.created, this.updated, this.deleted, this.ignored + ignored);
   }
 
   public Stats withStats(@Nonnull Stats stats) {
