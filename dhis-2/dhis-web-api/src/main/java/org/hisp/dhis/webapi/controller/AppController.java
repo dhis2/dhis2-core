@@ -37,19 +37,15 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.security.Authorities.M_DHIS_WEB_APP_MANAGEMENT;
 
 import com.google.common.collect.Lists;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
@@ -215,20 +211,27 @@ public class AppController {
     } else {
       log.warn("Internal server error - no resource result.  This is a bug.");
       throw new WebMessageException(
-          error("Failed to locate resource for app '" + appName + "'.", "AppManager should always return a ResourceResult, this is a bug."));
+          error(
+              "Failed to locate resource for app '" + appName + "'.",
+              "AppManager should always return a ResourceResult, this is a bug."));
     }
   }
 
   private void serveResource(
-      HttpServletRequest request, HttpServletResponse response, ResourceFound resourceResult, App app)
+      HttpServletRequest request,
+      HttpServletResponse response,
+      ResourceFound resourceResult,
+      App app)
       throws IOException {
     String filename = resourceResult.resource().getFilename();
     log.debug("Serving app resource, filename: {}", filename);
 
     // Use a combination of app version and last modified timestamp to generate an ETag
     // This is to ensure that the ETag changes when the app is updated
-    // There is no guarantee that a new app uploaded will have a different version number, so we need to include the last modified timestamp
-    // Similarly, with classPath resources the lastModified timestamp may be missing or not reliable, so we need to include the version number
+    // There is no guarantee that a new app uploaded will have a different version number, so we
+    // need to include the last modified timestamp
+    // Similarly, with classPath resources the lastModified timestamp may be missing or not
+    // reliable, so we need to include the version number
     // See also AppHtmlNoCacheFilter for cache control headers set on index.html responses
 
     long lastModified = resourceResult.resource().lastModified();
@@ -241,7 +244,6 @@ public class AppController {
       response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
       return;
     }
-
 
     String mimeType =
         resourceResult.mimeType() == null
