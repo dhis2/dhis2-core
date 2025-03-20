@@ -92,7 +92,7 @@ public class BundledAppStorageService implements AppStorageService {
         }
       }
     } catch (IOException e) {
-      log.error(e.getLocalizedMessage(), e);
+      log.error("Failed to discover bundled apps: ", e.getLocalizedMessage());
     }
 
     log.info("Discovered {} bundled apps", apps.size());
