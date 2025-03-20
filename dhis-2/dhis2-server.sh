@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+
+set -x
+set -e
+
 # DHIS2 Server Management Script
 #
 # A CLI tool to start, stop, restart and monitor the DHIS2 embedded Tomcat server
@@ -23,6 +27,7 @@
 #   -j, --java JAVA  Set the Java executable path
 #   -h, --help       Display this help message
 #   -v, --verbose    Enable verbose output
+# the upgrade_server wont work **in** production.
 
 set -e
 
@@ -31,10 +36,23 @@ DHIS2_HOME_DIR="/opt/dhis2"
 DHIS2_PORT=8080
 JAVA_CMD="java"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PID_FILE="$SCRIPT_DIR/dhis2-server.pid"
-LOG_FILE="$DHIS2_HOME_DIR/logs/dhis.log"
 VERBOSE=0
-DHIS2_WAR_PATH="$SCRIPT_DIR/dhis-web-server/target/dhis.war"
+USE_PARAM_HOME=false  # Flag to track if -d parameter was used
+
+# Initialize path-dependent variables
+initialize_paths() {
+    # Create standard directories within DHIS2_HOME_DIR
+    DHIS2_LOGS_DIR="$DHIS2_HOME_DIR/logs"
+    DHIS2_RUN_DIR="$DHIS2_HOME_DIR/run"
+
+    # Define files using these directories
+    PID_FILE="$DHIS2_RUN_DIR/dhis2-server.pid"
+    LOG_FILE="$DHIS2_LOGS_DIR/dhis.log"
+    DHIS2_WAR_PATH="$SCRIPT_DIR/dhis-web-server/target/dhis.war"
+
+    # Create necessary directories
+    mkdir -p "$DHIS2_LOGS_DIR" "$DHIS2_RUN_DIR" 2>/dev/null || true
+}
 
 # Java version requirements
 JAVA_MIN_VERSION_LEGACY=8  # For DHIS2 < 2.41
@@ -1240,6 +1258,7 @@ parse_options() {
             case "$opt" in
                 home)
                     DHIS2_HOME_DIR="$OPTARG"
+                    USE_PARAM_HOME=true
                     ;;
                 port)
                     DHIS2_PORT="$OPTARG"
@@ -1264,6 +1283,7 @@ parse_options() {
             case "$opt" in
                 d)
                     DHIS2_HOME_DIR="$OPTARG"
+                    USE_PARAM_HOME=true
                     ;;
                 p)
                     DHIS2_PORT="$OPTARG"
@@ -1344,18 +1364,21 @@ Important Notes for Upgrading:
 EOF
 }
 
-# Set DHIS2 home from environment variable if set
-if [ -n "$DHIS2_HOME" ]; then
+# Parse command line options
+parse_options "$@"
+
+# Use DHIS2_HOME env variable if -d parameter was not specified
+if [ "$USE_PARAM_HOME" = false ] && [ -n "$DHIS2_HOME" ]; then
     DHIS2_HOME_DIR="$DHIS2_HOME"
 fi
 
-# Set from environment variable if set
+# Use DHIS2_PORT env variable if set (always respects env var for port)
 if [ -n "$DHIS2_PORT" ]; then
     DHIS2_PORT="$DHIS2_PORT"
 fi
 
-# Parse command line options
-parse_options "$@"
+# Initialize path-dependent variables now that HOME_DIR is set
+initialize_paths
 
 # Set verbose output if needed
 if [ $VERBOSE -eq 1 ]; then
