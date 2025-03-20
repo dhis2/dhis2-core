@@ -242,7 +242,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
     OrganisationUnit ou = getOwner(trackedEntity, program, trackedEntity::getOrganisationUnit);
 
-    final String orgUnitPath = ou.getPath();
+    final String orgUnitPath = ou.getStoredPath();
     return switch (program.getAccessLevel()) {
       case OPEN, AUDITED -> user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnitPath);
       case PROTECTED ->
