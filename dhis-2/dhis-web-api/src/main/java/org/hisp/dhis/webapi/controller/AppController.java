@@ -168,12 +168,15 @@ public class AppController {
       throws IOException, WebMessageException {
     String contextPath = request.getContextPath();
     String baseUrl = contextService.getContextPath();
-    App application = appManager.getApp(appName, baseUrl);
+    
+    // Sanitize for logging, though Tomcat / Spring should have done this already
+    appName = appName.replaceAll("\\R", "");
 
+    App application = appManager.getApp(appName, baseUrl);
     log.debug("Rendering app resource {}", request.getPathInfo());
 
     if (application == null) {
-      log.debug("App {} not found", appName);
+      log.warn("App {} not found", appName);
       throw new WebMessageException(notFound("App '" + appName + "' not found."));
     }
 
@@ -238,9 +241,8 @@ public class AppController {
     String etagSource = String.format("%s-%s", app.getVersion(), String.valueOf(lastModified));
     String etag = HashUtils.hashMD5(etagSource.getBytes());
 
-    log.debug("Generated etag {} from source {}, lastModified {}", etag, etagSource);
     if (new ServletWebRequest(request, response).checkNotModified(etag, lastModified)) {
-      log.debug("Resource not modified (etag {}, lastModified {})", etag, lastModified);
+      log.debug("Resource not modified (etag {}, source {})", etag, etagSource);
       response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
       return;
     }
