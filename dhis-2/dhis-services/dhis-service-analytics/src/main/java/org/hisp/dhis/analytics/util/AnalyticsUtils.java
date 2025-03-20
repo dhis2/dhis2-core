@@ -966,8 +966,8 @@ public final class AnalyticsUtils {
           MetadataItem metadataItem =
               includeMetadataDetails
                   ? new MetadataItem(
-                      optionSet.getName(), optionSet.getUid(), new LinkedHashSet<>(options))
-                  : new MetadataItem(optionSet.getName());
+                      optionSet.getDisplayName(), optionSet.getUid(), new LinkedHashSet<>(options))
+                  : new MetadataItem(optionSet.getDisplayName());
 
           map.put(metadataKey, metadataItem);
         });
