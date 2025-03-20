@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.security.Authorities.M_DHIS_WEB_APP_MANAGEMENT;
@@ -55,6 +56,7 @@ import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -168,19 +170,21 @@ public class AppController {
     String baseUrl = contextService.getContextPath();
     App application = appManager.getApp(appName, baseUrl);
 
+    log.debug("Rendering app resource {}", request.getPathInfo());
+
     if (application == null) {
-      log.info("App not found: {}", appName);
+      log.debug("App {} not found", appName);
       throw new WebMessageException(notFound("App '" + appName + "' not found."));
     }
 
     if (!appManager.isAccessible(application)) {
-      log.info("User does not have access to app: {}", appName);
+      log.debug("User does not have access to app {}", appName);
       throw new WebMessageException(
           forbidden("User does not have access to app '" + appName + "'."));
     }
 
     if (application.getAppState() == AppStatus.DELETION_IN_PROGRESS) {
-      log.info("App deletion in progress: {}", appName);
+      log.debug("App deletion in progress {}", appName);
       throw new WebMessageException(
           conflict("App '" + appName + "' deletion is still in progress."));
     }
@@ -188,37 +192,55 @@ public class AppController {
     // Get page requested
     String resource = getResourcePath(request.getPathInfo(), application, contextPath);
 
-    log.info("Rendering resource {} from app {}", resource, application.getKey());
+    log.debug("Rendering resource {} from app {}", resource, application.getKey());
 
     ResourceResult resourceResult = appManager.getAppResource(application, resource, baseUrl);
     if (resourceResult instanceof ResourceFound found) {
-      serveResource(request, response, found);
+      serveResource(request, response, found, application);
     } else if (resourceResult instanceof Redirect redirect) {
       String redirectUrl = TextUtils.cleanUrlPathOnly(application.getBaseUrl(), redirect.path());
       String queryString = request.getQueryString();
       if (queryString != null) {
         redirectUrl += "?" + queryString;
       }
-      log.info(String.format("App resource redirected to: %s", redirectUrl));
+      log.debug(String.format("App resource redirected to: %s", redirectUrl));
       response.sendRedirect(redirectUrl);
     } else if (resourceResult instanceof ResourceNotFound) {
-      log.info("Resource not found: {}", resource);
+      log.debug("Resource not found: {}", resource);
       response.sendError(HttpServletResponse.SC_NOT_FOUND);
     } else {
-      log.info("Internal server error - no resource result");
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+      log.warn("Internal server error - no resource result.  This is a bug.");
+      throw new WebMessageException(
+          error(
+              "Failed to locate resource for app '" + appName + "'.",
+              "AppManager should always return a ResourceResult, this is a bug."));
     }
   }
 
   private void serveResource(
-      HttpServletRequest request, HttpServletResponse response, ResourceFound resourceResult)
+      HttpServletRequest request,
+      HttpServletResponse response,
+      ResourceFound resourceResult,
+      App app)
       throws IOException {
     String filename = resourceResult.resource().getFilename();
-    log.info("App filename: '{}'", filename);
+    log.debug("Serving app resource, filename: {}", filename);
 
-    if (new ServletWebRequest(request, response)
-        .checkNotModified(resourceResult.resource().lastModified())) {
-      log.info("Resource not modified: {}", filename);
+    // Use a combination of app version and last modified timestamp to generate an ETag
+    // This is to ensure that the ETag changes when the app is updated
+    // There is no guarantee that a new app uploaded will have a different version number, so we
+    // need to include the last modified timestamp
+    // Similarly, with classPath resources the lastModified timestamp may be missing or not
+    // reliable, so we need to include the version number
+    // See also AppHtmlNoCacheFilter for cache control headers set on index.html responses
+
+    long lastModified = resourceResult.resource().lastModified();
+    String etagSource = String.format("%s-%s", app.getVersion(), String.valueOf(lastModified));
+    String etag = HashUtils.hashMD5(etagSource.getBytes());
+
+    log.info("Generated etag {} from source {}, lastModified {}", etag, etagSource);
+    if (new ServletWebRequest(request, response).checkNotModified(etag, lastModified)) {
+      log.info("Resource not modified (etag {}, lastModified {})", etag, lastModified);
       response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
       return;
     }
@@ -235,11 +257,14 @@ public class AppController {
     long contentLength = appManager.getUriContentLength(resourceResult.resource());
 
     response.setContentLengthLong(contentLength);
-    log.info(
-        "Serving resource: {} (contentType: {}, contentLength: {})",
+
+    log.debug(
+        "Serving resource: {} (contentType: {}, contentLength: {}, lastModified: {}, etag: {})",
         filename,
         mimeType,
-        contentLength);
+        contentLength,
+        String.valueOf(lastModified),
+        etag);
     StreamUtils.copyThenCloseInputStream(
         resourceResult.resource().getInputStream(), response.getOutputStream());
   }
@@ -299,7 +324,7 @@ public class AppController {
     // that only files inside app directory can be resolved)
     resourcePath = REGEX_REMOVE_PROTOCOL.matcher(resourcePath).replaceAll("");
 
-    log.info("Resource path: {} => {}", path, resourcePath);
+    log.debug("Resource path: {} => {}", path, resourcePath);
 
     return resourcePath;
   }
