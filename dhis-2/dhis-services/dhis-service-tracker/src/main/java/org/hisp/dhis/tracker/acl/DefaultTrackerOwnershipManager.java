@@ -31,7 +31,6 @@ package org.hisp.dhis.tracker.acl;
 
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
@@ -147,7 +146,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
             hibernateTrackedEntity, program, orgUnit);
       }
 
-      ownerCache.invalidate(getOwnershipCacheKey(trackedEntity::getId, program));
+      ownerCache.invalidate(getOwnershipCacheKey(trackedEntity, program));
     } else {
       log.error("Unauthorized attempt to change ownership");
       throw new ForbiddenException(
@@ -243,7 +242,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
     OrganisationUnit ou = getOwner(trackedEntity, program, trackedEntity::getOrganisationUnit);
 
-    final String orgUnitPath = ou.getStoredPath();
+    final String orgUnitPath = ou.getPath();
     return switch (program.getAccessLevel()) {
       case OPEN, AUDITED -> user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnitPath);
       case PROTECTED ->
@@ -304,7 +303,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       Program program,
       Supplier<OrganisationUnit> orgUnitIfMissingSupplier) {
     return ownerCache.get(
-        getOwnershipCacheKey(trackedEntity::getId, program),
+        getOwnershipCacheKey(trackedEntity, program),
         s -> {
           TrackedEntityProgramOwner trackedEntityProgramOwner =
               trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(trackedEntity, program);
@@ -376,19 +375,15 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   /**
    * Returns key used to store and retrieve cached records for ownership
    *
-   * @param trackedEntityIdSupplier
-   * @param program
    * @return a String representing a record of ownership
    */
-  private String getOwnershipCacheKey(LongSupplier trackedEntityIdSupplier, Program program) {
-    return trackedEntityIdSupplier.getAsLong() + "_" + program.getUid();
+  private String getOwnershipCacheKey(TrackedEntity trackedEntity, Program program) {
+    return trackedEntity.getUid() + "_" + program.getUid();
   }
 
   /**
    * Returns key used to store and retrieve cached records for ownership
    *
-   * @param teUid
-   * @param programUid
    * @return a String representing a record of ownership
    */
   private String getTempOwnershipCacheKey(String teUid, String programUid, String userUid) {
