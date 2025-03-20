@@ -568,6 +568,8 @@ public abstract class AbstractAnalyticsService {
       }
     }
 
+    metadataItemMap.putAll(organisationUnitResolver.getMetadataItemsForOrgUnitDataElements(params));
+
     return metadataItemMap;
   }
 
