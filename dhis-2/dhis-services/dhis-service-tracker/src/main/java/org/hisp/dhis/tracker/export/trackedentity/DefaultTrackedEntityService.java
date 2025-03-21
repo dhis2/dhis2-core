@@ -225,7 +225,9 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     TrackedEntityQueryParams queryParams = mapper.map(operationParams, user);
     final List<TrackedEntityIdentifiers> ids = trackedEntityStore.getTrackedEntityIds(queryParams);
 
-    return findTrackedEntities(ids, operationParams, queryParams, user);
+    List<TrackedEntity> trackedEntities =
+        findTrackedEntities(ids, operationParams, queryParams, user);
+    return trackedEntities.stream().filter(getFilter(user, queryParams)).toList();
   }
 
   @Nonnull

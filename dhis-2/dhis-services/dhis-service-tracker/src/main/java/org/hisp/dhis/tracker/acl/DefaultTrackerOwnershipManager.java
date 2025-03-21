@@ -50,6 +50,7 @@ import org.hisp.dhis.program.ProgramTempOwnerService;
 import org.hisp.dhis.program.ProgramTempOwnershipAudit;
 import org.hisp.dhis.program.ProgramTempOwnershipAuditService;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
@@ -277,7 +278,10 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
   @Override
   public boolean canSkipOwnershipCheck(UserDetails user, ProgramType programType) {
-    return user == null || user.isSuper() || ProgramType.WITHOUT_REGISTRATION == programType;
+    return user == null
+        || user.isSuper()
+        || user.isAuthorized(Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS)
+        || ProgramType.WITHOUT_REGISTRATION == programType;
   }
 
   @Override
