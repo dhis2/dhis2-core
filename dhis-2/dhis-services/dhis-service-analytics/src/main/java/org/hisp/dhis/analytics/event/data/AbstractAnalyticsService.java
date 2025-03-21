@@ -59,6 +59,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -407,19 +408,14 @@ public abstract class AbstractAnalyticsService {
         optionItems.addAll(getItemOptionsAsFilter(params.getItemOptions(), params.getItems()));
       }
 
-      Map<String, Object> items = new HashMap<>();
-      items.putAll(organisationUnitResolver.getMetadataItemsForOrgUnitDataElements(params));
-
       if (params.isComingFromQuery()) {
-        items.putAll(getMetadataItems(params, periodKeywords, optionItems, grid));
+        metadata.put(ITEMS.getKey(), getMetadataItems(params, periodKeywords, optionItems, grid));
         metadata.put(
             DIMENSIONS.getKey(), getDimensionItems(params, Optional.of(optionsPresentInGrid)));
       } else {
-        items.putAll(getMetadataItems(params));
+        metadata.put(ITEMS.getKey(), getMetadataItems(params));
         metadata.put(DIMENSIONS.getKey(), getDimensionItems(params, empty()));
       }
-
-      metadata.put(ITEMS.getKey(), items);
 
       maybeAddOrgUnitHierarchyInfo(params, metadata, grid);
 
@@ -571,7 +567,11 @@ public abstract class AbstractAnalyticsService {
       }
     }
 
-    metadataItemMap.putAll(organisationUnitResolver.getMetadataItemsForOrgUnitDataElements(params));
+    Map<String, MetadataItem> metadataForOuDataElements =
+        organisationUnitResolver.getMetadataItemsForOrgUnitDataElements(params);
+    for (Entry<String, MetadataItem> entry : metadataForOuDataElements.entrySet()) {
+      metadataItemMap.putIfAbsent(entry.getKey(), entry.getValue());
+    }
 
     return metadataItemMap;
   }
