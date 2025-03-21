@@ -369,6 +369,25 @@ public interface SqlBuilder {
   String log10(String expression);
 
   /**
+   * Generates a SQL fragment that compute the standard deviation of the specified expression.
+   *
+   * @param expression a numeric expression or column name for which to compute the standard
+   *     deviation.
+   * @return a SQL fragment that calculates the standard deviation of the given expression.
+   */
+  String stddev(String expression);
+
+  /**
+   * Generates a SQL fragment that computes the variance of the specified expression. Variance
+   * measures how far a set of numbers are spread out from their average value. A higher variance
+   * indicates greater data dispersion.
+   *
+   * @param expression a numeric expression or column name for which to compute the variance.
+   * @return a SQL fragment that calculates the variance of the given expression.
+   */
+  String variance(String expression);
+
+  /**
    * Returns a conditional statement.
    *
    * @param condition the condition to evaluate.

@@ -328,6 +328,16 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
     return String.format("log(%s)", expression);
   }
 
+  @Override
+  public String stddev(String expression) {
+    return String.format("stddev(%s)", expression);
+  }
+
+  @Override
+  public String variance(String expression) {
+    return String.format("variance(%s)", expression);
+  }
+
   // Statements
 
   @Override
