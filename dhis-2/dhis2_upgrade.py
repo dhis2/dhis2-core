@@ -881,7 +881,7 @@ def manual_version_upgrade(
   download_url = None
   for version_data in versions_data.get("versions", []):
     if version_data.get("name") == target_version:
-      download_url = version_data.get("url", "")
+      download_url = version_data.get("latestStableUrl", "")
       break
 
   if not download_url:

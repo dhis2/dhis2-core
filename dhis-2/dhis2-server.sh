@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 
-set -x
+#set -x
 set -e
 
 # DHIS2 Server Management Script
