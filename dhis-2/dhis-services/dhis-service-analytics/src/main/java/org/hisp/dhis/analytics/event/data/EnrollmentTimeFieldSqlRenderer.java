@@ -137,18 +137,23 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
     format.applyPattern(Period.DEFAULT_DATE_FORMAT);
 
     String sql = EMPTY;
+    boolean firstIteration = true;
     for (String programStage : map.keySet()) {
       Set<AnalyticsPeriodBoundary> boundaries = map.get(programStage);
 
       String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
       sql +=
-          " exists(select 1 from "
+          (firstIteration ? "" : " and ")
+              + " exists(select 1 from "
               + eventTableName
               + " where "
               + eventTableName
               + ".enrollment = "
               + ANALYTICS_TBL_ALIAS
-              + ".enrollment and occurreddate is not null ";
+              + ".enrollment and occurreddate is not null "
+              + "and ps = '"
+              + programStage
+              + "'";
 
       for (AnalyticsPeriodBoundary boundary : boundaries) {
         sql +=
@@ -160,6 +165,7 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
       }
 
       sql += " limit 1)";
+      firstIteration = false;
     }
 
     return sql;
