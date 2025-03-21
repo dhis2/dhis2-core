@@ -407,14 +407,19 @@ public abstract class AbstractAnalyticsService {
         optionItems.addAll(getItemOptionsAsFilter(params.getItemOptions(), params.getItems()));
       }
 
+      Map<String, Object> items = new HashMap<>();
+      items.putAll(organisationUnitResolver.getMetadataItemsForOrgUnitDataElements(params));
+
       if (params.isComingFromQuery()) {
-        metadata.put(ITEMS.getKey(), getMetadataItems(params, periodKeywords, optionItems, grid));
+        items.putAll(getMetadataItems(params, periodKeywords, optionItems, grid));
         metadata.put(
             DIMENSIONS.getKey(), getDimensionItems(params, Optional.of(optionsPresentInGrid)));
       } else {
-        metadata.put(ITEMS.getKey(), getMetadataItems(params));
+        items.putAll(getMetadataItems(params));
         metadata.put(DIMENSIONS.getKey(), getDimensionItems(params, empty()));
       }
+
+      metadata.put(ITEMS.getKey(), items);
 
       maybeAddOrgUnitHierarchyInfo(params, metadata, grid);
 
@@ -504,8 +509,6 @@ public abstract class AbstractAnalyticsService {
                     item.getItemId(),
                     new MetadataItem(
                         item.getItem().getDisplayName(), includeDetails ? item.getItem() : null)));
-
-    metadataItemMap.putAll(organisationUnitResolver.getMetadataItemsForOrgUnitDataElements(params));
 
     return metadataItemMap;
   }
