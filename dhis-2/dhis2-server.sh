@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-
 #set -x
 set -e
 
@@ -430,116 +429,6 @@ upgrade_server() {
     return $?
 }
 
-# Display available versions
-_show_available_versions() {
-    echo "Fetching and displaying available DHIS2 versions..."
-
-    local TEMP_FILE=$(_fetch_available_versions)
-    if [ $? -ne 0 ]; then
-        return 1
-    fi
-
-    echo "============================================"
-    echo "         Available DHIS2 Versions          "
-    echo "============================================"
-
-    # Process with jq if available
-    if [ $HAVE_JQ -eq 1 ]; then
-        echo "Supported Versions:"
-        echo "-----------------"
-        jq -r '.versions[] | select(.supported == true) | .name' "$TEMP_FILE" | sort -Vr | while read -r VERSION; do
-            # Get version details using jq
-            VERSION_DATA=$(jq -r --arg ver "$VERSION" '.versions[] | select(.name == $ver)' "$TEMP_FILE")
-            LATEST_PATCH=$(echo "$VERSION_DATA" | jq -r '.latestPatchVersion')
-            RELEASE_DATE=$(echo "$VERSION_DATA" | jq -r '.releaseDate')
-            JAVA_VERSION=$(echo "$VERSION_DATA" | jq -r '.jdk')
-
-            echo -n "  • DHIS2 $VERSION"
-            if [ "$LATEST_PATCH" != "null" ]; then
-                echo -n " (Latest patch version: $VERSION.$LATEST_PATCH)"
-            fi
-            echo -n " - Released: $RELEASE_DATE"
-
-            if [ "$JAVA_VERSION" != "null" ]; then
-                echo " - Requires Java $JAVA_VERSION"
-            elif [ "$(echo "$VERSION" | cut -d. -f2)" -ge 41 ]; then
-                echo " - Requires Java 17+"
-            else
-                echo " - Requires Java 8"
-            fi
-        done
-
-        echo
-        echo "End-of-Support Versions:"
-        echo "---------------------"
-        jq -r '.versions[] | select(.supported == false) | .name' "$TEMP_FILE" | sort -Vr | while read -r VERSION; do
-            # Get version details using jq
-            VERSION_DATA=$(jq -r --arg ver "$VERSION" '.versions[] | select(.name == $ver)' "$TEMP_FILE")
-            RELEASE_DATE=$(echo "$VERSION_DATA" | jq -r '.releaseDate')
-            JAVA_VERSION=$(echo "$VERSION_DATA" | jq -r '.jdk')
-
-            echo -n "  • DHIS2 $VERSION - Released: $RELEASE_DATE"
-
-            if [ "$JAVA_VERSION" != "null" ]; then
-                echo " - Requires Java $JAVA_VERSION"
-            elif [ "$(echo "$VERSION" | cut -d. -f2)" -ge 41 ]; then
-                echo " - Requires Java 17+"
-            else
-                echo " - Requires Java 8"
-            fi
-        done
-    # Fallback to grep and sed if jq is not available
-    elif [ $HAVE_GREP -eq 1 ] && [ $HAVE_SED -eq 1 ]; then
-        echo "Warning: jq not available, using limited version information."
-        grep -o '"name":"[0-9]\+\.[0-9]\+"' "$TEMP_FILE" | sed 's/"name":"//;s/"//' | sort -V | while read -r VERSION; do
-            local LATEST=$(grep -A 5 "\"name\":\"$VERSION\"" "$TEMP_FILE" | grep -o '"latestPatchVersion":[0-9]\+' | sed 's/"latestPatchVersion"://')
-            local SUPPORTED=$(grep -A 5 "\"name\":\"$VERSION\"" "$TEMP_FILE" | grep -o '"supported":true' | wc -l)
-
-            if [ "$SUPPORTED" -eq 1 ]; then
-                echo "  $VERSION (Latest: $VERSION.$LATEST) - SUPPORTED"
-            else
-                echo "  $VERSION (Latest: $VERSION.$LATEST)"
-            fi
-        done
-    else
-        echo "Error: Required command-line tools (grep, sed or jq) not found."
-        rm -f "$TEMP_FILE"
-        return 1
-    fi
-
-    # Clean up
-    rm -f "$TEMP_FILE"
-}
-
-# Fetch available versions from DHIS2 release server
-_fetch_available_versions() {
-    # Create temp file for processing
-    local TEMP_FILE=$(mktemp)
-
-    # Display status with stderr to avoid capturing in command substitution
-    echo "Fetching available DHIS2 versions..." >&2
-
-    # Download the JSON data directly to a temp file
-    if [ $HAVE_CURL -eq 1 ]; then
-        curl -s "https://releases.dhis2.org/v1/versions/stable.json" > "$TEMP_FILE"
-    elif [ $HAVE_WGET -eq 1 ]; then
-        wget -q -O "$TEMP_FILE" "https://releases.dhis2.org/v1/versions/stable.json"
-    else
-        echo "Error: Neither curl nor wget found. Cannot fetch available versions." >&2
-        rm -f "$TEMP_FILE"
-        return 1
-    fi
-
-    # Check if file has content
-    if [ ! -s "$TEMP_FILE" ]; then
-        echo "Error: Failed to download version information." >&2
-        rm -f "$TEMP_FILE"
-        return 1
-    fi
-
-    # Return the path to the temp file - caller is responsible for cleanup
-    echo "$TEMP_FILE"
-}
 
 # Check server health via the health endpoint
 check_health() {
