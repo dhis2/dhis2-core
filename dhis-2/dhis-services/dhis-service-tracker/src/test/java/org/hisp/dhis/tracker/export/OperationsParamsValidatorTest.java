@@ -149,8 +149,10 @@ class OperationsParamsValidatorTest {
   @Test
   void shouldReturnProgramWhenUserHasAccessToProgram()
       throws ForbiddenException, BadRequestException {
+    program.setTrackedEntityType(trackedEntityType);
     when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
     when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(aclService.canDataRead(user, trackedEntityType)).thenReturn(true);
     assertEquals(program, paramsValidator.validateTrackerProgram(PROGRAM_UID, user));
   }
 
