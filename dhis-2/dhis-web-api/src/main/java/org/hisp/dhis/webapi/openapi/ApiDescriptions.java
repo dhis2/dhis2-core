@@ -34,10 +34,10 @@ import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.joining;
 
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.UnaryOperator;
@@ -90,7 +90,7 @@ final class ApiDescriptions {
 
   private final Class<?> target;
 
-  private final Map<String, String> entries = new HashMap<>();
+  private final Map<String, String> entries = new TreeMap<>();
 
   static ApiDescriptions of(Class<?> target) {
     return CACHE.computeIfAbsent(target, ApiDescriptions::ofUncached);
