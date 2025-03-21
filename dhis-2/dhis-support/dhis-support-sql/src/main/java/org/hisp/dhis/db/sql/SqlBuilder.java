@@ -378,7 +378,7 @@ public interface SqlBuilder {
   String stddev(String expression);
 
   /**
-   * Generates a SQL fragment that computes the variance of the specified expression. * Variance
+   * Generates a SQL fragment that computes the variance of the specified expression. Variance
    * measures how far a set of numbers are spread out from their average value. A higher variance
    * indicates greater data dispersion.
    *
