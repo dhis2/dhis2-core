@@ -1056,6 +1056,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   protected void addGridValue(
       Grid grid, GridHeader header, int index, SqlRowSet sqlRowSet, EventQueryParams params) {
+    // Virtual headers do not contain data
+    if (header.isVirtual()) {
+      grid.addValue(EMPTY);
+      return;
+    }
+
     if (Double.class.getName().equals(header.getType()) && !header.hasLegendSet()) {
       Object value = sqlRowSet.getObject(index);
 
