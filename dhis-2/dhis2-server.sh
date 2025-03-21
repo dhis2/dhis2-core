@@ -429,6 +429,101 @@ upgrade_server() {
     return $?
 }
 
+# Install DHIS2 as a systemd service
+install_systemd_service() {
+    echo "============================================"
+    echo "      DHIS2 Systemd Service Installation   "
+    echo "============================================"
+
+    # Check if running as root/sudo
+    if [ "$EUID" -ne 0 ]; then
+        echo "Error: This command must be run with sudo or as root."
+        echo "Please run: sudo $0 install-service"
+        exit 1
+    fi
+
+    # Get the absolute path of the script
+    local SCRIPT_PATH=$(readlink -f "$0")
+    local SCRIPT_DIR=$(dirname "$SCRIPT_PATH")
+
+    # Create a name for the service
+    read -p "Enter a name for the service [dhis2]: " SERVICE_NAME
+    SERVICE_NAME=${SERVICE_NAME:-dhis2}
+
+    # Ask for user to run the service as
+    read -p "Enter the user to run the service as [$(whoami)]: " SERVICE_USER
+    SERVICE_USER=${SERVICE_USER:-$(whoami)}
+
+    # Validate user exists
+    if ! id "$SERVICE_USER" &>/dev/null; then
+        echo "Error: User $SERVICE_USER does not exist."
+        exit 1
+    fi
+
+    # Get description
+    read -p "Enter a description for the service [DHIS2 Server]: " SERVICE_DESC
+    SERVICE_DESC=${SERVICE_DESC:-"DHIS2 Server"}
+
+    # Create systemd service file
+    local SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
+
+    echo "Creating systemd service file at $SERVICE_FILE..."
+
+    cat > "$SERVICE_FILE" << EOL
+[Unit]
+Description=${SERVICE_DESC}
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=${SERVICE_USER}
+Environment="DHIS2_HOME=${DHIS2_HOME_DIR}"
+Environment="DHIS2_PORT=${DHIS2_PORT}"
+WorkingDirectory=${SCRIPT_DIR}
+ExecStart=${SCRIPT_PATH} start
+ExecStop=${SCRIPT_PATH} stop
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+    # Set permissions
+    chmod 644 "$SERVICE_FILE"
+
+    # Reload systemd daemon
+    echo "Reloading systemd daemon..."
+    systemctl daemon-reload
+
+    # Enable the service
+    echo "Enabling service to start on boot..."
+    systemctl enable "$SERVICE_NAME.service"
+
+    # Ask to start the service now
+    read -p "Do you want to start the service now? (y/n): " START_NOW
+    if [[ "$START_NOW" =~ ^[Yy]$ ]]; then
+        echo "Starting $SERVICE_NAME service..."
+        systemctl start "$SERVICE_NAME.service"
+        echo "Service status:"
+        systemctl status "$SERVICE_NAME.service"
+    fi
+
+    echo "============================================"
+    echo "      Service Installation Complete        "
+    echo "============================================"
+    echo "Service name: $SERVICE_NAME"
+    echo "Service file: $SERVICE_FILE"
+    echo
+    echo "You can manage the service with these commands:"
+    echo "  sudo systemctl start $SERVICE_NAME    # Start the service"
+    echo "  sudo systemctl stop $SERVICE_NAME     # Stop the service"
+    echo "  sudo systemctl restart $SERVICE_NAME  # Restart the service"
+    echo "  sudo systemctl status $SERVICE_NAME   # Check service status"
+    echo "  sudo systemctl disable $SERVICE_NAME  # Disable auto-start on boot"
+    echo "  sudo journalctl -u $SERVICE_NAME      # View service logs"
+}
+
 
 # Check server health via the health endpoint
 check_health() {
