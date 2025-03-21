@@ -372,6 +372,16 @@ class DorisSqlBuilderTest {
     assertEquals("log(value, 10)", sqlBuilder.log10("value"));
   }
 
+  @Test
+  void testStandardDeviation() {
+    assertEquals("stddev(value)", sqlBuilder.stddev("value"));
+  }
+
+  @Test
+  void testVariance() {
+    assertEquals("variance(value)", sqlBuilder.variance("value"));
+  }
+
   // Statements
 
   @Test
