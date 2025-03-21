@@ -54,9 +54,11 @@ initialize_paths() {
 }
 
 # Java version requirements
-JAVA_MIN_VERSION_LEGACY=8  # For DHIS2 < 2.41
-JAVA_MIN_VERSION_MODERN=17 # For DHIS2 >= 2.41
-DHIS2_VERSION_THRESHOLD="2.41"
+JAVA_MIN_VERSION_LEGACY=8   # For DHIS2 <= 2.37
+JAVA_MIN_VERSION_MIDDLE=11  # For DHIS2 >= 2.38 and < 2.41
+JAVA_MIN_VERSION_MODERN=17  # For DHIS2 >= 2.41
+DHIS2_VERSION_THRESHOLD_MIDDLE="2.38"
+DHIS2_VERSION_THRESHOLD_MODERN="2.41"
 
 # Tool availability flags
 HAVE_CURL=0
@@ -222,13 +224,39 @@ check_java_compatibility() {
         return 1
     fi
 
-    # For non-upgrade operations, we use default modern version requirement
-    REQUIRED_JAVA=$JAVA_MIN_VERSION_MODERN
+    # For non-upgrade operations, we extract DHIS2 version if available
+    local DHIS2_VERSION=""
+    if [ -f "$SCRIPT_DIR/pom.xml" ] && [ $HAVE_GREP -eq 1 ] && [ $HAVE_SED -eq 1 ]; then
+        DHIS2_VERSION=$(grep -m 1 "<version>" "$SCRIPT_DIR/pom.xml" | sed 's/.*<version>\(.*\)<\/version>.*/\1/')
+    fi
+
+    # Determine required Java version based on DHIS2 version
+    REQUIRED_JAVA=$JAVA_MIN_VERSION_MODERN  # Default to latest requirement
+    REQUIRED_JAVA_DESC="17 or higher"  # Default description
+
+    if [ -n "$DHIS2_VERSION" ]; then
+        # Extract major.minor version (e.g., 2.41 from 2.41.3)
+        local MAJOR_MINOR=$(echo "$DHIS2_VERSION" | sed -E 's/^([0-9]+\.[0-9]+).*/\1/')
+        
+        # Version comparison using string comparison
+        if [[ "$(echo -e "$MAJOR_MINOR\n$DHIS2_VERSION_THRESHOLD_MODERN" | sort -V | head -n1)" = "$MAJOR_MINOR" ]]; then
+            # Version is less than threshold for modern Java (< 2.41)
+            if [[ "$(echo -e "$MAJOR_MINOR\n$DHIS2_VERSION_THRESHOLD_MIDDLE" | sort -V | head -n1)" = "$MAJOR_MINOR" ]]; then
+                # Version is less than middle threshold (< 2.38)
+                REQUIRED_JAVA=$JAVA_MIN_VERSION_LEGACY
+                REQUIRED_JAVA_DESC="8"
+            else 
+                # Version is between 2.38 and 2.41
+                REQUIRED_JAVA=$JAVA_MIN_VERSION_MIDDLE
+                REQUIRED_JAVA_DESC="11 or higher"
+            fi
+        fi
+    fi
 
     # Check if Java version meets requirements
     if [ "$JAVA_VERSION" -lt "$REQUIRED_JAVA" ]; then
         echo "Error: Java version $JAVA_VERSION is not supported."
-        echo "DHIS2 requires Java $REQUIRED_JAVA or higher."
+        echo "DHIS2 version $DHIS2_VERSION requires Java $REQUIRED_JAVA_DESC."
         echo "Please install a compatible Java version and/or set the correct path with --java option."
         [ "$EXIT_ON_ERROR" = "true" ] && exit 1
         return 1
@@ -685,7 +713,8 @@ Examples:
 
 Java Version Requirements:
   - DHIS2 versions 2.41 and above require Java 17 or higher
-  - DHIS2 versions below 2.41 require exactly Java 8 (not higher or lower)
+  - DHIS2 versions 2.38-2.40 require Java 11 or higher
+  - DHIS2 versions 2.37 and below require Java 8
 
 Python Requirements:
   - The upgrade functionality requires Python 3 to be installed
