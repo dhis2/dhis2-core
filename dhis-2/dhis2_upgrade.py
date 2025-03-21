@@ -25,9 +25,11 @@ from urllib.error import URLError
 
 # Constants
 DHIS2_RELEASES_URL = "https://releases.dhis2.org/v1/versions/stable.json"
-JAVA_MIN_VERSION_LEGACY = 8  # For DHIS2 < 2.41
+JAVA_MIN_VERSION_LEGACY = 8   # For DHIS2 <= 2.37
+JAVA_MIN_VERSION_MIDDLE = 11  # For DHIS2 >= 2.38 and < 2.41
 JAVA_MIN_VERSION_MODERN = 17  # For DHIS2 >= 2.41
-DHIS2_VERSION_THRESHOLD = "2.41"
+DHIS2_VERSION_THRESHOLD_MIDDLE = "2.38"
+DHIS2_VERSION_THRESHOLD_MODERN = "2.41"
 
 
 class Colors:
@@ -170,14 +172,17 @@ def show_available_versions(versions_data):
       unsupported_versions.append(version_data)
 
   # Sort versions by name in descending order (newest first)
-  supported_versions.sort(
-    key=lambda x: [int(p) for p in x.get("name", "0.0").split(".")],
-    reverse=True
-  )
-  unsupported_versions.sort(
-    key=lambda x: [int(p) for p in x.get("name", "0.0").split(".")],
-    reverse=True
-  )
+  try:
+    supported_versions.sort(
+      key=lambda x: [int(p) for p in x.get("name", "0.0").split(".")],
+      reverse=True
+    )
+    unsupported_versions.sort(
+      key=lambda x: [int(p) for p in x.get("name", "0.0").split(".")],
+      reverse=True
+    )
+  except (ValueError, TypeError):
+    print_warning("Could not sort versions properly due to unexpected version format")
 
   # Display supported versions
   print("Supported Versions:")
@@ -260,52 +265,51 @@ def check_java_compatibility(java_cmd, target_version=None,
       "Unable to detect DHIS2 version. Will use default minimum Java version requirement (Java 17)."
     )
     required_java = JAVA_MIN_VERSION_MODERN
-    exact_java = False
+    required_java_desc = "17 or higher"
   else:
     # Extract major.minor from DHIS2 version
     if match := re.match(r"^(\d+\.\d+)", target_version):
       dhis2_major_minor = match.group(1)
-
-      # Compare with threshold to determine Java requirements
-      if dhis2_major_minor >= DHIS2_VERSION_THRESHOLD:
-        # Version is equal to or greater than threshold
-        required_java = JAVA_MIN_VERSION_MODERN
-        exact_java = False
-        print(
-          f"DHIS2 version {target_version} requires Java {required_java} or higher."
-        )
-      else:
-        # Version is less than threshold - requires exactly Java 8
-        required_java = JAVA_MIN_VERSION_LEGACY
-        exact_java = True
-        print(
-          f"DHIS2 version {target_version} requires exactly Java {required_java} (not higher or lower)."
-        )
+      
+      # Version comparison using string comparison
+      # Default to latest requirement
+      required_java = JAVA_MIN_VERSION_MODERN
+      required_java_desc = "17 or higher"
+      
+      # Check if version is less than threshold for modern Java (< 2.41)
+      if dhis2_major_minor < DHIS2_VERSION_THRESHOLD_MODERN:
+        # Check if version is less than middle threshold (< 2.38)
+        if dhis2_major_minor < DHIS2_VERSION_THRESHOLD_MIDDLE:
+          # For DHIS2 < 2.38, require Java 8
+          required_java = JAVA_MIN_VERSION_LEGACY
+          required_java_desc = "8"
+        else:
+          # For DHIS2 between 2.38 and 2.41, require Java 11+
+          required_java = JAVA_MIN_VERSION_MIDDLE
+          required_java_desc = "11 or higher"
+      
+      print(f"DHIS2 version {target_version} requires Java {required_java_desc}.")
     else:
       print_warning(
         "Unable to parse DHIS2 version format. Will use default minimum Java version requirement (Java 17)."
       )
       required_java = JAVA_MIN_VERSION_MODERN
-      exact_java = False
+      required_java_desc = "17 or higher"
 
   # Check if Java version meets requirements
-  if exact_java:
-    # For versions < 2.41, require exactly Java 8
+  if required_java == JAVA_MIN_VERSION_LEGACY:
+    # For versions < 2.38, Java 8 is required
     if java_version != required_java:
       print_error(f"Java version {java_version} is not supported.")
-      print_error(
-        f"DHIS2 version {target_version} requires exactly Java {required_java} (not higher or lower)."
-      )
-      print_error(f"Please install Java 8 and/or set the correct path.")
+      print_error(f"DHIS2 version {target_version} requires Java {required_java_desc}.")
+      print_error("Please install Java 8 and/or set the correct path.")
       return False, java_version
   else:
-    # For versions >= 2.41, require Java 17 or higher
+    # For other versions, minimum Java version is required
     if java_version < required_java:
       print_error(f"Java version {java_version} is not supported.")
       version_text = "unknown" if not target_version else target_version
-      print_error(
-        f"DHIS2 version {version_text} requires Java {required_java} or higher."
-      )
+      print_error(f"DHIS2 version {version_text} requires Java {required_java_desc}.")
       print_error(
         f"Please install a compatible Java version and/or set the correct path."
       )
@@ -727,35 +731,42 @@ def auto_upgrade(
   # Find matching version in the data
   for version_data in versions_data.get("versions", []):
     if version_data.get("name") == same_version_group:
-      latest_patch = version_data.get("latestPatchVersion")
-      latest_hotfix = version_data.get("latestHotfixVersion", 0)
+      try:
+        latest_patch = int(version_data.get("latestPatchVersion", 0))
+        latest_hotfix = int(version_data.get("latestHotfixVersion", 0))
 
-      # Check if there's a newer patch or hotfix version
-      if latest_patch > current_patch or (
-          latest_patch == current_patch and latest_hotfix > 0
-      ):
-        latest_version = f"{same_version_group}.{latest_patch}"
-        if latest_hotfix > 0:
-          latest_version = f"{latest_version}.{latest_hotfix}"
+        # Check if there's a newer patch or hotfix version
+        if latest_patch > current_patch or (
+            latest_patch == current_patch and latest_hotfix > 0
+        ):
+          latest_version = f"{same_version_group}.{latest_patch}"
+          if latest_hotfix > 0:
+            latest_version = f"{latest_version}.{latest_hotfix}"
 
-        # Get download URL
-        download_url = ""
-        for v in versions_data.get("versions", []):
-          if v.get("name") == latest_version:
-            download_url = v.get("url", "")
+          # Get download URL
+          download_url = ""
+          for v in versions_data.get("versions", []):
+            if v.get("name") == latest_version:
+              download_url = v.get("url", "")
 
-        if download_url:
-          print(
-            f"1. RECOMMENDED: Update to {latest_version} (patch/hotfix update)"
-          )
-          print(
-            "   This is a low-risk update with bug fixes and security patches."
-          )
-          upgrade_options.append(
-            (latest_version, download_url, "patch/hotfix update")
-          )
-      else:
+          if download_url:
+            print(
+              f"1. RECOMMENDED: Update to {latest_version} (patch/hotfix update)"
+            )
+            print(
+              "   This is a low-risk update with bug fixes and security patches."
+            )
+            upgrade_options.append(
+              (latest_version, download_url, "patch/hotfix update")
+            )
+        else:
+          print("1. No patch/hotfix updates available for your version")
+      except (ValueError, TypeError):
+        print_warning(f"Could not process version data for {same_version_group} due to unexpected format")
         print("1. No patch/hotfix updates available for your version")
+      break
+  else:
+    print("1. No patch/hotfix updates available for your version")
 
   # 2. Find next minor version upgrade
   next_minor = f"{current_major}.{current_minor + 1}"
