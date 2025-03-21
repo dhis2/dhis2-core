@@ -29,9 +29,9 @@
  */
 package org.hisp.dhis.tracker.acl;
 
+import static java.util.Collections.emptyList;
 import static org.hisp.dhis.tracker.acl.TrackerOwnershipManager.NO_READ_ACCESS_TO_ORG_UNIT;
 import static org.hisp.dhis.tracker.acl.TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED;
-import static org.hisp.dhis.tracker.acl.TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -204,36 +204,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   @Override
   public List<String> canRead(
       UserDetails user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck) {
-    List<String> errors = canReadProgramAndTrackedEntityType(user, trackedEntity, program);
 
     if (!skipOwnershipCheck && !ownershipAccessManager.hasAccess(user, trackedEntity, program)) {
-      errors.add(OWNERSHIP_ACCESS_DENIED);
+      return List.of(OWNERSHIP_ACCESS_DENIED);
     }
 
-    return errors;
-  }
-
-  @Override
-  public List<String> canReadProgramAndTrackedEntityType(
-      @Nonnull UserDetails user, TrackedEntity trackedEntity, Program program) {
-    // always allow if user == null (internal process) or user is superuser
-    if (user.isSuper() || trackedEntity == null) {
-      return List.of();
-    }
-
-    List<String> errors = new ArrayList<>();
-    if (!aclService.canDataRead(user, program)) {
-      errors.add("User has no data read access to program: " + program.getUid());
-    }
-
-    TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
-
-    if (!aclService.canDataRead(user, trackedEntityType)) {
-      errors.add(
-          "User has no data read access to tracked entity type: " + trackedEntityType.getUid());
-    }
-
-    return errors;
+    return emptyList();
   }
 
   @Override
@@ -754,29 +730,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     }
 
     return user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getStoredPath());
-  }
-
-  @Override
-  public String canAccessProgramOwner(
-      @Nonnull UserDetails user,
-      TrackedEntity trackedEntity,
-      Program program,
-      boolean skipOwnershipCheck) {
-    if (!skipOwnershipCheck && !ownershipAccessManager.hasAccess(user, trackedEntity, program)) {
-      if (program.isProtected()) {
-        return ownershipAccessManager.isOwnerInUserSearchScope(user, trackedEntity, program)
-            ? OWNERSHIP_ACCESS_DENIED
-            : NO_READ_ACCESS_TO_ORG_UNIT;
-      }
-
-      if (program.isClosed()) {
-        return PROGRAM_ACCESS_CLOSED;
-      }
-
-      return NO_READ_ACCESS_TO_ORG_UNIT;
-    }
-
-    return null;
   }
 
   private boolean isNull(ProgramStage programStage) {
