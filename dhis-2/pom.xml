@@ -195,7 +195,7 @@
     <validation-api.version>2.0.1.Final</validation-api.version>
     <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
     <commons-collections4.version>4.4</commons-collections4.version>
-    <commons-beanutils.version>1.9.4</commons-beanutils.version>
+    <commons-beanutils.version>1.10.1</commons-beanutils.version>
     <commons-lang3.version>3.12.0</commons-lang3.version>
     <commons-text.version>1.10.0</commons-text.version>
     <commons-fileupload.version>1.5</commons-fileupload.version>
