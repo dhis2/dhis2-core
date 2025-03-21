@@ -40,6 +40,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.tracker.Assertions.assertNotes;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourBefore;
@@ -570,17 +571,59 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .trackedEntityType(trackedEntityTypeA)
             .build();
 
-    trackedEntityTypeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    makeTrackedEntityTypeDataInaccessible(trackedEntityTypeA);
     trackedEntityTypeA.getSharing().setOwner(superuser);
     manager.updateNoAcl(trackedEntityA);
+
+    ForbiddenException ex =
+        assertThrows(
+            ForbiddenException.class,
+            () -> trackedEntityService.findTrackedEntities(operationParams));
+    assertContains(
+        "User is not authorized to read data from selected tracked entity type: "
+            + trackedEntityTypeA.getUid(),
+        ex.getMessage());
+  }
+
+  @Test
+  void shouldReturnEmptyCollectionWhenUserHasNoAccessToProgramTrackedEntityType() {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnitA)
+            .program(programA)
+            .build();
+
+    makeTrackedEntityTypeDataInaccessible(trackedEntityTypeA);
+    manager.updateNoAcl(trackedEntityA);
+
+    ForbiddenException ex =
+        assertThrows(
+            ForbiddenException.class,
+            () -> trackedEntityService.findTrackedEntities(operationParams));
+    assertStartsWith(
+        "User is not authorized to read data from selected program's tracked entity type",
+        ex.getMessage());
+  }
+
+  @Test
+  void
+      shouldReturnEmptyCollectionWhenRequestingCollectionTrackedEntitiesAndProgramSpecifiedIsNotAccessible() {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnitA)
+            .program(programA)
+            .build();
+
+    injectSecurityContextUser(superuser);
+    makeProgramMetadataInaccessible(programA);
+    manager.updateNoAcl(programA);
+    injectSecurityContextUser(user);
 
     BadRequestException ex =
         assertThrows(
             BadRequestException.class,
             () -> trackedEntityService.findTrackedEntities(operationParams));
-    assertContains(
-        "racked entity type is specified but does not exist: " + trackedEntityTypeA.getUid(),
-        ex.getMessage());
+    assertStartsWith("Program is specified but does not exist", ex.getMessage());
   }
 
   @Test
@@ -1960,7 +2003,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     injectAdminIntoSecurityContext();
     Program inaccessibleProgram = createProgram('U', new HashSet<>(), orgUnitA);
     manager.save(inaccessibleProgram, false);
-    makeProgramMetadataAccessibleOnly(inaccessibleProgram);
+    makeProgramDataInaccessible(inaccessibleProgram);
     manager.update(inaccessibleProgram);
 
     injectSecurityContextUser(user);
@@ -1998,9 +2041,9 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   void shouldReturnEmptyResultIfUserHasNoAccessToAnyTrackerProgram()
       throws ForbiddenException, BadRequestException, NotFoundException {
     injectSecurityContextUser(getAdminUser());
-    makeProgramMetadataAccessibleOnly(programA);
-    makeProgramMetadataAccessibleOnly(programB);
-    makeProgramMetadataAccessibleOnly(programC);
+    makeProgramDataInaccessible(programA);
+    makeProgramDataInaccessible(programB);
+    makeProgramDataInaccessible(programC);
     injectSecurityContextUser(user);
 
     TrackedEntityOperationParams operationParams =
@@ -2013,9 +2056,9 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   void shouldReturnEmptyPageIfUserHasNoAccessToAnyTrackerProgram()
       throws ForbiddenException, BadRequestException, NotFoundException {
     injectSecurityContextUser(getAdminUser());
-    makeProgramMetadataAccessibleOnly(programA);
-    makeProgramMetadataAccessibleOnly(programB);
-    makeProgramMetadataAccessibleOnly(programC);
+    makeProgramDataInaccessible(programA);
+    makeProgramDataInaccessible(programB);
+    makeProgramDataInaccessible(programC);
     injectSecurityContextUser(user);
 
     TrackedEntityOperationParams operationParams =
@@ -2096,9 +2139,9 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldFailWhenRequestingSingleTEAndNoDataAccessToAnyProgram() {
     injectAdminIntoSecurityContext();
-    makeProgramMetadataAccessibleOnly(programA);
-    makeProgramMetadataAccessibleOnly(programB);
-    makeProgramMetadataAccessibleOnly(programC);
+    makeProgramDataInaccessible(programA);
+    makeProgramDataInaccessible(programB);
+    makeProgramDataInaccessible(programC);
 
     injectSecurityContextUser(user);
     NotFoundException exception =
@@ -2344,7 +2387,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     manager.update(program);
   }
 
-  private void makeProgramMetadataAccessibleOnly(Program program) {
+  private void makeProgramDataInaccessible(Program program) {
     program.setSharing(Sharing.builder().publicAccess("rw------").build());
     manager.update(program);
   }
@@ -2352,6 +2395,13 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   private void makeProgramMetadataInaccessible(Program program) {
     program.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.update(program);
+  }
+
+  private void makeTrackedEntityTypeDataInaccessible(TrackedEntityType trackedEntityType) {
+    injectSecurityContextUser(superuser);
+    trackedEntityType.setSharing(Sharing.builder().publicAccess("rw------").build());
+    manager.update(trackedEntityType);
+    injectSecurityContextUser(user);
   }
 
   private TrackedEntityOperationParams createOperationParams(
