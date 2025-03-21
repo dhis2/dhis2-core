@@ -963,6 +963,43 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void testInvitedUserEmailIsVerified() {
+    UserRole userRole = createUserRole("inviteRoleVerifiedEmail", "ALL");
+    userService.addUserRole(userRole);
+    UserRole inviteRole = userService.getUserRoleByName("inviteRoleVerifiedEmail");
+    String roleUid = inviteRole.getUid();
+    String testEmail = "verified@example.com";
+
+    assertWebMessage(
+        "Created",
+        201,
+        "OK",
+        null,
+        POST(
+                "/users/invite",
+                "{'surname':'V.','firstName':'Emma', 'email':'"
+                    + testEmail
+                    + "',"
+                    + " 'username':'emmav', 'userRoles': [{'id': '"
+                    + roleUid
+                    + "'}]}")
+            .content(HttpStatus.CREATED));
+
+    // Find the newly created user by username
+    User invitedUser = userService.getUserByUsername("emmav");
+
+    // Verify that the email is automatically verified
+    assertNotNull(invitedUser, "Invited user should exist");
+    assertEquals(
+        testEmail, invitedUser.getEmail(), "Email should match what was sent in the invite");
+    assertEquals(
+        testEmail,
+        invitedUser.getVerifiedEmail(),
+        "VerifiedEmail should be set to the email from the invite");
+    assertTrue(invitedUser.isEmailVerified(), "Email should be marked as verified");
+  }
+
+  @Test
   void testPatchUserGroups() {
     UserGroup userGroupA = createUserGroup('A', Set.of());
     userGroupA.setUid("GZSvMCVowAx");

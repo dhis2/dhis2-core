@@ -775,6 +775,13 @@ public class UserController
 
     userService.prepareUserForInvite(user);
 
+    // Automatically set verified email to match the invitation email
+    // This way the user doesn't need to verify their email since they already received the
+    // invitation
+    if (user.getEmail() != null) {
+      user.setVerifiedEmail(user.getEmail());
+    }
+
     ImportReport importReport = createUser(user, currentUser);
     ObjectReport objectReport = getObjectReport(importReport);
 
