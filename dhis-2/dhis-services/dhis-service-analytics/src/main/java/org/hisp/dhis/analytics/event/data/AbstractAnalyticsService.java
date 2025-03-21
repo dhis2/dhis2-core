@@ -59,6 +59,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -505,8 +506,6 @@ public abstract class AbstractAnalyticsService {
                     new MetadataItem(
                         item.getItem().getDisplayName(), includeDetails ? item.getItem() : null)));
 
-    metadataItemMap.putAll(organisationUnitResolver.getMetadataItemsForOrgUnitDataElements(params));
-
     return metadataItemMap;
   }
 
@@ -566,6 +565,12 @@ public abstract class AbstractAnalyticsService {
               keyword.getKey(), new MetadataItem(keyword.getMetadataItem().getName()));
         }
       }
+    }
+
+    Map<String, MetadataItem> metadataForOuDataElements =
+        organisationUnitResolver.getMetadataItemsForOrgUnitDataElements(params);
+    for (Entry<String, MetadataItem> entry : metadataForOuDataElements.entrySet()) {
+      metadataItemMap.putIfAbsent(entry.getKey(), entry.getValue());
     }
 
     return metadataItemMap;
