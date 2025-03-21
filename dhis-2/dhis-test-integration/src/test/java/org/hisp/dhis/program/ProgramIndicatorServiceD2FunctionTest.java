@@ -166,13 +166,13 @@ class ProgramIndicatorServiceD2FunctionTest extends SingleSetupIntegrationTestBa
   @Test
   void testD2Condition() {
     assertEquals(
-        "case when ((case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end is not null)) then 1 + 4 else "
+        "case when ((case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end is not null)) then 1::numeric + 4::numeric else "
             + "nullif(cast((case when case when ax.\"ps\" = 'Program000B' then \"DataElmentB\" else null end >= 0 then 1 else 0 end) as double precision),0) end",
         getSql(
             "d2:condition( 'd2:hasValue(#{ProgrmStagA.DataElmentA})', 1+4, d2:zpvc(#{Program000B.DataElmentB}) )"));
     assertEquals(
         "case when (((select \"DataElmentA\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 ) is not null)) "
-            + "then 1 + 4 else nullif(cast((case when (select \"DataElmentB\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentB\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'Program000B' order by occurreddate desc limit 1 ) >= 0 then 1 else 0 end) as double precision),0) end",
+            + "then 1::numeric + 4::numeric else nullif(cast((case when (select \"DataElmentB\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentB\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'Program000B' order by occurreddate desc limit 1 ) >= 0 then 1 else 0 end) as double precision),0) end",
         getSqlEnrollment(
             "d2:condition( \"d2:hasValue(#{ProgrmStagA.DataElmentA})\", 1+4, d2:zpvc(#{Program000B.DataElmentB}) )"));
   }
@@ -191,12 +191,12 @@ class ProgramIndicatorServiceD2FunctionTest extends SingleSetupIntegrationTestBa
   void testD2CountIfCondition() {
     assertEquals(
         "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi "
-            + "and \"DataElmentA\" is not null and \"DataElmentA\" >= coalesce(case when ax.\"ps\" = 'Program000B' then \"DataElmentB\" else null end::numeric,0) "
+            + "and \"DataElmentA\" is not null and \"DataElmentA\"::numeric >= coalesce(case when ax.\"ps\" = 'Program000B' then \"DataElmentB\" else null end::numeric,0) "
             + "and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
         getSql(
             "d2:countIfCondition( #{ProgrmStagA.DataElmentA}, ' >= #{Program000B.DataElmentB}')"));
     assertEquals(
-        "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and \"DataElmentA\" >= coalesce("
+        "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and \"DataElmentA\"::numeric >= coalesce("
             + "(select \"DataElmentB\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentB\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'Program000B' order by occurreddate desc limit 1 )::numeric,0) "
             + "and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
         getSqlEnrollment(
@@ -206,10 +206,10 @@ class ProgramIndicatorServiceD2FunctionTest extends SingleSetupIntegrationTestBa
   @Test
   void testD2CountIfValue() {
     assertEquals(
-        "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and \"DataElmentA\" = 10 and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
+        "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and \"DataElmentA\" = 10::numeric and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
         getSql("d2:countIfValue(#{ProgrmStagA.DataElmentA}, 10)"));
     assertEquals(
-        "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and \"DataElmentA\" = 10 and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
+        "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and \"DataElmentA\" = 10::numeric and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
         getSqlEnrollment("d2:countIfValue(#{ProgrmStagA.DataElmentA}, 10)"));
   }
 
@@ -346,10 +346,10 @@ class ProgramIndicatorServiceD2FunctionTest extends SingleSetupIntegrationTestBa
   @Test
   void testD2Zing() {
     assertEquals(
-        "greatest(0,coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end::numeric,0) + 5)",
+        "greatest(0,coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end::numeric,0) + 5::numeric)",
         getSql("d2:zing(#{ProgrmStagA.DataElmentA} + 5)"));
     assertEquals(
-        "greatest(0,coalesce((select \"DataElmentA\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 )::numeric,0) + 5)",
+        "greatest(0,coalesce((select \"DataElmentA\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 )::numeric,0) + 5::numeric)",
         getSqlEnrollment("d2:zing(#{ProgrmStagA.DataElmentA} + 5)"));
   }
 

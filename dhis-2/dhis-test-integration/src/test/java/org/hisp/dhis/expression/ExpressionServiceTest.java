@@ -1159,20 +1159,20 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase {
     Map<DimensionalItemObject, Object> valueMap = emptyMap();
 
     assertEquals(
-        "0 DeX [ case when coalesce(\"dataElemenX\",0) > 99 then 1 else 2 end]::NUMBER",
+        "0 DeX [ case when coalesce(\"dataElemenX\",0) > 99::numeric then 1::numeric else 2::numeric end]::NUMBER",
         evalIndicator("subExpression(if(#{dataElemenX}>99,1,2))", valueMap));
 
     assertEquals(
-        "0 DeX [ case when coalesce(\"dataElemenX\",0) > 0 and coalesce(\"dataElemenX\",0) < 3 then coalesce(\"dataElemenX\",0) else 3 end]::NUMBER",
+        "0 DeX [ case when coalesce(\"dataElemenX\",0) > 0::numeric and coalesce(\"dataElemenX\",0) < 3::numeric then coalesce(\"dataElemenX\",0) else 3::numeric end]::NUMBER",
         evalIndicator(
             "subExpression(if(#{dataElemenX}>0 && #{dataElemenX}<3,#{dataElemenX},3))", valueMap));
 
     assertEquals(
-        "5 DeX [ case when coalesce(\"dataElemenX\",0) > 99 then 'a' else 'b' end]::TEXT",
+        "5 DeX [ case when coalesce(\"dataElemenX\",0) > 99::numeric then 'a' else 'b' end]::TEXT",
         evalIndicator("if( subExpression(if(#{dataElemenX}>99,'a','b')) == 'a', 4, 5)", valueMap));
 
     assertEquals(
-        "7 DeZ [ case when coalesce(\"dataElemenZ\",'') != 'a' then 1 else 2 end]::NUMBER",
+        "7 DeZ [ case when coalesce(\"dataElemenZ\",'') != 'a' then 1::numeric else 2::numeric end]::NUMBER",
         evalIndicator("if( subExpression(if(#{dataElemenZ} != 'a', 1, 2)) == 2, 6, 7)", valueMap));
 
     assertEquals(
@@ -1182,7 +1182,7 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase {
             valueMap));
 
     assertEquals(
-        "0 DeX CocA [ case when coalesce(\"dataElemenX_catOptCombA\",0) > 99 then 10 else 11 end]::NUMBER",
+        "0 DeX CocA [ case when coalesce(\"dataElemenX_catOptCombA\",0) > 99::numeric then 10::numeric else 11::numeric end]::NUMBER",
         evalIndicator("subExpression( if( #{dataElemenX.catOptCombA} > 99, 10, 11 ) )", valueMap));
 
     assertEquals(
