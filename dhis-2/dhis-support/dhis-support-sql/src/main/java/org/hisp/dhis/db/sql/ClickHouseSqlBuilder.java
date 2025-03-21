@@ -307,6 +307,16 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     return String.format("log10(%s)", expression);
   }
 
+  @Override
+  public String stddev(String expression) {
+    return String.format("stddevSamp(%s)", expression);
+  }
+
+  @Override
+  public String variance(String expression) {
+    return String.format("varSamp(%s)", expression);
+  }
+
   // Statements
 
   @Override

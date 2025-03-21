@@ -309,7 +309,15 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return String.format("log(%s, 10)", expression);
   }
 
-  // Statements
+  @Override
+  public String stddev(String expression) {
+    return String.format("stddev(%s)", expression);
+  }
+
+  @Override
+  public String variance(String expression) {
+    return String.format("variance(%s)", expression);
+  }
 
   @Override
   public String createTable(Table table) {

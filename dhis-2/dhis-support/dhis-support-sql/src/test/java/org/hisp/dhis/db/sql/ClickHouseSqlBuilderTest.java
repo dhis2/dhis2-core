@@ -312,6 +312,16 @@ class ClickHouseSqlBuilderTest {
     assertEquals("log10(value)", sqlBuilder.log10("value"));
   }
 
+  @Test
+  void testStandardDeviation() {
+    assertEquals("stddevSamp(value)", sqlBuilder.stddev("value"));
+  }
+
+  @Test
+  void testVariance() {
+    assertEquals("varSamp(value)", sqlBuilder.variance("value"));
+  }
+
   // Statements
 
   @Test
