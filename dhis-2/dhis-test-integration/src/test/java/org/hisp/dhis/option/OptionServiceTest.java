@@ -111,9 +111,9 @@ class OptionServiceTest extends PostgresIntegrationTestBase {
     long idA = optionService.saveOptionSet(optionSetA);
     long idB = optionService.saveOptionSet(optionSetB);
     long idC = optionService.saveOptionSet(optionSetC);
-    OptionSet actualA = optionService.getOptionSet(idA);
-    OptionSet actualB = optionService.getOptionSet(idB);
-    OptionSet actualC = optionService.getOptionSet(idC);
+    OptionSet actualA = optionService.getOptionSet(optionSetA.getUid());
+    OptionSet actualB = optionService.getOptionSet(optionSetB.getUid());
+    OptionSet actualC = optionService.getOptionSet(optionSetC.getUid());
     assertEquals(optionSetA, actualA);
     assertEquals(optionSetB, actualB);
     assertEquals(optionSetC, actualC);
@@ -156,15 +156,16 @@ class OptionServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testGetList() throws ConflictException {
     long idA = optionService.saveOptionSet(optionSetA);
-    List<Option> options = optionService.getOptions(idA, "OptA", 10);
+    String uidA = optionGroupA.getUid();
+    List<Option> options = optionService.getOptions(uidA, "OptA", 10);
     assertEquals(2, options.size());
-    options = optionService.getOptions(idA, "OptA1", 10);
+    options = optionService.getOptions(uidA, "OptA1", 10);
     assertEquals(1, options.size());
-    options = optionService.getOptions(idA, "OptA1", null);
+    options = optionService.getOptions(uidA, "OptA1", null);
     assertEquals(1, options.size());
-    options = optionService.getOptions(idA, "Opt", null);
+    options = optionService.getOptions(uidA, "Opt", null);
     assertEquals(4, options.size());
-    options = optionService.getOptions(idA, "Opt", 3);
+    options = optionService.getOptions(uidA, "Opt", 3);
     assertEquals(3, options.size());
   }
 

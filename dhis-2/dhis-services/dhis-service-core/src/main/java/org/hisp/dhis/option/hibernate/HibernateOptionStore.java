@@ -32,6 +32,7 @@ package org.hisp.dhis.option.hibernate;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import org.hibernate.query.Query;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionStore;
@@ -59,10 +60,10 @@ public class HibernateOptionStore extends HibernateIdentifiableObjectStore<Optio
   // -------------------------------------------------------------------------
 
   @Override
-  public List<Option> getOptions(long optionSetId, String key, Integer max) {
+  public List<Option> getOptions(UID optionSetId, String key, Integer max) {
     String hql =
         "select option from OptionSet as optionset "
-            + "join optionset.options as option where optionset.id = :optionSetId ";
+            + "join optionset.options as option where optionset.uid = :optionSetId ";
 
     if (key != null) {
       hql += "and lower(option.name) like lower('%" + key + "%') ";
