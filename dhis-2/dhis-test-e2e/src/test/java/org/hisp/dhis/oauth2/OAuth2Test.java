@@ -171,8 +171,6 @@ class OAuth2Test extends BaseE2ETest {
     // Extract the authorization code from the redirected URL
     int codeStartIndex = redirUrl.indexOf("code=") + 5;
     String code = redirUrl.substring(codeStartIndex);
-    log.error("authorization code: " + code);
-    System.out.println("authorization code: " + code);
     assertNotNull(code);
 
     // 5. Call the token endpoint with the authorization code
@@ -180,8 +178,6 @@ class OAuth2Test extends BaseE2ETest {
     try {
       accessToken = getAccessToken(code);
     } catch (Exception e) {
-      log.error("Error getting access token: " + e.getMessage());
-      System.out.println("Error getting access token: " + e.getMessage());
       driver.quit();
       return;
     }
