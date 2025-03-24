@@ -594,10 +594,6 @@ public class OpenApiGenerator extends JsonGenerator {
     // needs a copy as we modify the iterated collection in the forEach
     new TreeSet<>(pathSchemaRefs).forEach(name -> addPathSchemaRefs(name, expanded));
     // now remove those schemas that are not referenced
-    if (!pathSchemaRefs.contains("RelationshipItemParams")
-        && api.getComponents().getSchemas().size() > 900) {
-      System.out.println("removed?");
-    }
     api.getComponents().getSchemas().keySet().removeIf(name -> !pathSchemaRefs.contains(name));
   }
 
