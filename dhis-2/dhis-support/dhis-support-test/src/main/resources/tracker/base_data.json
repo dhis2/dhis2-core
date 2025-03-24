@@ -68,17 +68,8 @@
             "identifier": "numericAttr"
           },
           "value": "88"
-        },
-        {
-          "valueType": "TEXT",
-          "attribute": {
-            "idScheme": "UID",
-            "identifier": "fRGt4l6yIRb"
-          },
-          "value": "Value"
         }
-      ],
-      "enrollments": []
+      ]
     },
     {
       "trackedEntity": "dUE514NMOlo",
@@ -125,12 +116,11 @@
           "value": "70"
         },
         {
-          "valueType": "TEXT",
           "attribute": {
             "idScheme": "UID",
-            "identifier": "fRGt4l6yIRb"
+            "identifier": "dIVt4l5vIOa"
           },
-          "value": "program attribute value"
+          "value": "Frank PTEA"
         }
       ]
     },
@@ -379,13 +369,6 @@
             "identifier": "dIVt4l5vIOa"
           },
           "value": "Frank PTEA"
-        },
-        {
-          "attribute": {
-            "idScheme": "UID",
-            "identifier": "fRGt4l6yIRb"
-          },
-          "value": "Test PTEA"
         }
       ],
       "notes": [

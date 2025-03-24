@@ -931,13 +931,13 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .programStage(programStage)
             .eventParams(EventParams.FALSE)
             .filterByAttribute(
-                UID.of("fRGt4l6yIRb"),
+                UID.of("dIVt4l5vIOa"),
                 List.of(new QueryFilter(QueryOperator.NNULL), new QueryFilter(QueryOperator.NNULL)))
             .build();
 
     List<String> events = getEvents(params);
 
-    assertContainsOnly(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
   }
 
   @Test
@@ -981,12 +981,12 @@ class EventExporterTest extends PostgresIntegrationTestBase {
         EventOperationParams.builder()
             .programStage(programStage)
             .eventParams(EventParams.FALSE)
-            .filterByAttribute(UID.of("fRGt4l6yIRb"), List.of(new QueryFilter(QueryOperator.NNULL)))
+            .filterByAttribute(UID.of("dIVt4l5vIOa"), List.of(new QueryFilter(QueryOperator.NNULL)))
             .build();
 
     List<String> events = getEvents(params);
 
-    assertContainsOnly(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
   }
 
   @Test
