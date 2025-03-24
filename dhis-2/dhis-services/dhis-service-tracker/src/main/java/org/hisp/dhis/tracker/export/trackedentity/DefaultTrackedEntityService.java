@@ -226,9 +226,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     TrackedEntityQueryParams queryParams = mapper.map(operationParams, user);
     final List<TrackedEntityIdentifiers> ids = trackedEntityStore.getTrackedEntityIds(queryParams);
 
-    List<TrackedEntity> trackedEntities =
-        findTrackedEntities(ids, operationParams, queryParams, user);
-    return trackedEntities.stream().filter(getFilter(user, queryParams)).toList();
+    return findTrackedEntities(ids, operationParams, queryParams, user);
   }
 
   @Nonnull
@@ -243,9 +241,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
     List<TrackedEntity> trackedEntities =
         findTrackedEntities(ids.getItems(), operationParams, queryParams, user);
-
-    // TODO(tracker): Push this filter into the store because it is breaking pagination
-    trackedEntities = trackedEntities.stream().filter(getFilter(user, queryParams)).toList();
 
     return ids.withFilteredItems(trackedEntities);
   }
@@ -277,7 +272,9 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       }
     }
     trackedEntityAuditService.addTrackedEntityAudit(SEARCH, user.getUsername(), trackedEntities);
-    return trackedEntities;
+
+    // TODO(tracker): Push this filter into the store because it is breaking pagination
+    return trackedEntities.stream().filter(getFilter(user, queryParams)).toList();
   }
 
   @Override
