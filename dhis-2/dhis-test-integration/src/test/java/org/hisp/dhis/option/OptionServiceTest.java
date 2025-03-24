@@ -156,7 +156,7 @@ class OptionServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testGetList() throws ConflictException {
     optionService.saveOptionSet(optionSetA);
-    String uidA = optionGroupA.getUid();
+    String uidA = optionSetA.getUid();
     List<Option> options = optionService.getOptions(uidA, "OptA", 10);
     assertEquals(2, options.size());
     options = optionService.getOptions(uidA, "OptA1", 10);
