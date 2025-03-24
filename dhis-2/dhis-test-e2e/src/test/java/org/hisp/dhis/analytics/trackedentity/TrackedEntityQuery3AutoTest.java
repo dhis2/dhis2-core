@@ -333,14 +333,13 @@ public class TrackedEntityQuery3AutoTest extends AnalyticsApiTest {
         response,
         34,
         List.of("Nonkoba CHP", "1983-02-23 00:00:00.0", "", "", "", "", "2017-01-26 13:48:13.305"));
+    // The following two have the same dates, hence the sort is interchangeable.
     validateRow(
         response,
-        35,
         List.of(
             "Sumbuya MCHP", "1981-06-12 00:00:00.0", "", "", "", "", "2017-01-26 13:48:13.302"));
     validateRow(
         response,
-        36,
         List.of(
             "Mokpanabom MCHP", "1973-06-26 00:00:00.0", "", "", "", "", "2017-01-26 13:48:13.302"));
     validateRow(
