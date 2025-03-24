@@ -1796,8 +1796,6 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
   }
 
-  @Disabled(
-      "We need to clarify if a regular user with 'search in all authority' needs to run ownership validations")
   @Test
   void shouldReturnAllEntitiesByTrackedEntityTypeMatchingFilterWhenAuthorizedUserNotInSearchScope()
       throws ForbiddenException, BadRequestException, NotFoundException {
@@ -1816,11 +1814,10 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         List.of(trackedEntityA, trackedEntityChildA, trackedEntityGrandchildA), trackedEntities);
   }
 
-  @Disabled(
-      "We need to clarify if a regular user with 'search in all authority' needs to run ownership validations")
   @Test
-  void shouldReturnAllEntitiesEnrolledInProgramMatchingFilterWhenAuthorizedUserNotInSearchScope()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+  void
+      shouldReturnAllNonPaginatedEntitiesEnrolledInProgramMatchingFilterWhenAuthorizedUserNotInSearchScope()
+          throws ForbiddenException, BadRequestException, NotFoundException {
     injectSecurityContextUser(authorizedUser);
 
     TrackedEntityOperationParams operationParams =
@@ -1831,6 +1828,27 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(trackedEntityA), trackedEntities);
+  }
+
+  @Test
+  void
+      shouldReturnAllPaginatedEntitiesEnrolledInProgramMatchingFilterWhenAuthorizedUserNotInSearchScope()
+          throws ForbiddenException, BadRequestException, NotFoundException {
+    injectSecurityContextUser(authorizedUser);
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .orgUnitMode(ALL)
+            .program(programB)
+            .filterBy(UID.of(teaA), List.of(new QueryFilter(QueryOperator.LIKE, "A")))
+            .build();
+
+    List<TrackedEntity> trackedEntities =
+        trackedEntityService
+            .findTrackedEntities(operationParams, PageParams.of(1, 10, false))
+            .getItems();
 
     assertContainsOnly(List.of(trackedEntityA), trackedEntities);
   }
@@ -2387,7 +2405,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldFailWhenRequestingPaginatedTEWithoutProgramAndUserCantEnrollTEAnywhere()
+  void shouldFailWhenRequestingCollectionPaginatedTEWithoutProgramParamAndUserCantEnrollTEAnywhere()
       throws BadRequestException, ForbiddenException, NotFoundException {
     injectAdminIntoSecurityContext();
     programB.setAccessLevel(CLOSED);
@@ -2403,6 +2421,23 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         trackedEntityService
             .findTrackedEntities(operationParams, PageParams.of(1, 10, false))
             .getItems());
+  }
+
+  @Test
+  void
+      shouldFailWhenRequestingCollectionNonPaginatedTEWithoutProgramParamAndUserCantEnrollTEAnywhere()
+          throws BadRequestException, ForbiddenException, NotFoundException {
+    injectAdminIntoSecurityContext();
+    programB.setAccessLevel(CLOSED);
+    manager.save(programB, false);
+    makeProgramMetadataInaccessible(programA);
+    makeProgramMetadataInaccessible(programC);
+    injectSecurityContextUser(user);
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder().trackedEntities(trackedEntityB).build();
+
+    assertIsEmpty(trackedEntityService.findTrackedEntities(operationParams));
   }
 
   @Test

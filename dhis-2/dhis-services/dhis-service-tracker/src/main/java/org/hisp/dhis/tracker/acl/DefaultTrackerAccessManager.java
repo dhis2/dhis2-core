@@ -77,16 +77,35 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
    */
   @Override
   public List<String> canRead(@Nonnull UserDetails user, TrackedEntity trackedEntity) {
-    // always allow if user == null (internal process) or user is superuser
     if (user.isSuper() || trackedEntity == null) {
       return List.of();
     }
 
-    return canRead(user, trackedEntity, programService.getAllPrograms());
+    return canRead(user, trackedEntity, programService.getAllPrograms(), false);
+  }
+
+  /**
+   * Check the data read permissions and ownership of a tracked entity given the programs for which
+   * the user has metadata access to. Ownership validations will be skipped if the flag is set to
+   * true.
+   *
+   * @return No errors if a user has access to at least one program
+   */
+  @Override
+  public List<String> canRead(
+      @Nonnull UserDetails user, TrackedEntity trackedEntity, boolean skipOwnershipCheck) {
+    if (user.isSuper() || trackedEntity == null) {
+      return List.of();
+    }
+
+    return canRead(user, trackedEntity, programService.getAllPrograms(), skipOwnershipCheck);
   }
 
   private List<String> canRead(
-      UserDetails user, TrackedEntity trackedEntity, List<Program> programs) {
+      UserDetails user,
+      TrackedEntity trackedEntity,
+      List<Program> programs,
+      boolean skipOwnershipCheck) {
 
     if (trackedEntity == null) {
       return List.of();
@@ -108,24 +127,20 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
                     p.isRegistration()
                         && Objects.equals(
                             p.getTrackedEntityType().getUid(),
-                            trackedEntity.getTrackedEntityType().getUid()))
+                            trackedEntity.getTrackedEntityType().getUid())
+                        && aclService.canDataRead(user, p))
             .toList();
 
     if (tetPrograms.isEmpty()) {
       return List.of("User has no access to any program");
     }
 
-    if (tetPrograms.stream().anyMatch(p -> canRead(user, trackedEntity, p))) {
+    if (tetPrograms.stream()
+        .anyMatch(p -> canRead(user, trackedEntity, p, skipOwnershipCheck).isEmpty())) {
       return List.of();
     } else {
       return List.of(OWNERSHIP_ACCESS_DENIED);
     }
-  }
-
-  /** Check Program data read access and Tracked Entity Program Ownership */
-  private boolean canRead(UserDetails user, TrackedEntity trackedEntity, Program program) {
-    return aclService.canDataRead(user, program)
-        && ownershipAccessManager.hasAccess(user, trackedEntity, program);
   }
 
   /**
@@ -574,11 +589,11 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     RelationshipItem from = relationship.getFrom();
     RelationshipItem to = relationship.getTo();
 
-    errors.addAll(canRead(user, from.getTrackedEntity(), programs));
+    errors.addAll(canRead(user, from.getTrackedEntity(), programs, false));
     errors.addAll(canRead(user, from.getEnrollment(), false));
     errors.addAll(canRead(user, from.getEvent(), false));
 
-    errors.addAll(canRead(user, to.getTrackedEntity(), programs));
+    errors.addAll(canRead(user, to.getTrackedEntity(), programs, false));
     errors.addAll(canRead(user, to.getEnrollment(), false));
     errors.addAll(canRead(user, to.getEvent(), false));
 

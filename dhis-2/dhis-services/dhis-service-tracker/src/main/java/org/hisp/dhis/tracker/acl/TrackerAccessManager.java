@@ -47,6 +47,8 @@ import org.hisp.dhis.user.UserDetails;
 public interface TrackerAccessManager {
   List<String> canRead(UserDetails user, TrackedEntity trackedEntity);
 
+  List<String> canRead(UserDetails user, TrackedEntity trackedEntity, boolean skipOwnershipCheck);
+
   List<String> canWrite(UserDetails user, TrackedEntity trackedEntity);
 
   /**

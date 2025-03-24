@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.export.trackedentity;
 
 import static org.hisp.dhis.audit.AuditOperationType.SEARCH;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.List;
@@ -286,13 +287,15 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   private Predicate<TrackedEntity> getFilter(
       UserDetails user, TrackedEntityQueryParams queryParams) {
+    boolean skipOwnershipCheck = queryParams.getOrgUnitMode() == ALL;
+
     if (queryParams.hasEnrolledInTrackerProgram()) {
       return te ->
           trackerAccessManager
-              .canRead(user, te, queryParams.getEnrolledInTrackerProgram(), false)
+              .canRead(user, te, queryParams.getEnrolledInTrackerProgram(), skipOwnershipCheck)
               .isEmpty();
     }
 
-    return te -> trackerAccessManager.canRead(user, te).isEmpty();
+    return te -> trackerAccessManager.canRead(user, te, skipOwnershipCheck).isEmpty();
   }
 }
