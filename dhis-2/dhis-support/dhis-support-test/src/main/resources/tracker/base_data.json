@@ -904,7 +904,14 @@
           },
           "value": "13"
         }
-      ]
+      ],
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -11.4197,
+          8.1039
+        ]
+      }
     },
     {
       "event": "ck7DzdxqLqA",
@@ -1252,6 +1259,7 @@
         "idScheme": "UID",
         "identifier": "xLmPUYJX8Ks"
       },
+      "createdAtClient": "2018-11-01T13:24:37.118",
       "from": {
         "trackedEntity": "dUE514NMOlo"
       },
