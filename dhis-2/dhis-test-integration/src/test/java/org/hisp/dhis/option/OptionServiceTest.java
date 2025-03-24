@@ -108,9 +108,9 @@ class OptionServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testSaveGet() throws ConflictException {
-    long idA = optionService.saveOptionSet(optionSetA);
-    long idB = optionService.saveOptionSet(optionSetB);
-    long idC = optionService.saveOptionSet(optionSetC);
+    optionService.saveOptionSet(optionSetA);
+    optionService.saveOptionSet(optionSetB);
+    optionService.saveOptionSet(optionSetC);
     OptionSet actualA = optionService.getOptionSet(optionSetA.getUid());
     OptionSet actualB = optionService.getOptionSet(optionSetB.getUid());
     OptionSet actualC = optionService.getOptionSet(optionSetC.getUid());
@@ -155,7 +155,7 @@ class OptionServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetList() throws ConflictException {
-    long idA = optionService.saveOptionSet(optionSetA);
+    optionService.saveOptionSet(optionSetA);
     String uidA = optionGroupA.getUid();
     List<Option> options = optionService.getOptions(uidA, "OptA", 10);
     assertEquals(2, options.size());
@@ -177,15 +177,15 @@ class OptionServiceTest extends PostgresIntegrationTestBase {
     optionGroupA.getMembers().add(option1);
     optionGroupA.getMembers().add(option2);
     optionGroupB.getMembers().add(option3);
-    long idA = optionService.saveOptionGroup(optionGroupA);
-    long idB = optionService.saveOptionGroup(optionGroupB);
-    long idC = optionService.saveOptionGroup(optionGroupC);
-    assertEquals(optionGroupA, optionService.getOptionGroup(idA));
-    assertEquals(optionGroupB, optionService.getOptionGroup(idB));
-    assertEquals(optionGroupC, optionService.getOptionGroup(idC));
-    assertEquals(2, optionService.getOptionGroup(idA).getMembers().size());
-    assertEquals(1, optionService.getOptionGroup(idB).getMembers().size());
-    assertEquals(0, optionService.getOptionGroup(idC).getMembers().size());
+    optionService.saveOptionGroup(optionGroupA);
+    optionService.saveOptionGroup(optionGroupB);
+    optionService.saveOptionGroup(optionGroupC);
+    assertEquals(optionGroupA, optionService.getOptionGroup(optionGroupA.getUid()));
+    assertEquals(optionGroupB, optionService.getOptionGroup(optionGroupB.getUid()));
+    assertEquals(optionGroupC, optionService.getOptionGroup(optionGroupC.getUid()));
+    assertEquals(2, optionService.getOptionGroup(optionGroupA.getUid()).getMembers().size());
+    assertEquals(1, optionService.getOptionGroup(optionGroupB.getUid()).getMembers().size());
+    assertEquals(0, optionService.getOptionGroup(optionGroupC.getUid()).getMembers().size());
   }
 
   // -------------------------------------------------------------------------
@@ -202,14 +202,14 @@ class OptionServiceTest extends PostgresIntegrationTestBase {
     optionGroupSetA.getMembers().add(optionGroupA);
     optionGroupSetA.getMembers().add(optionGroupB);
     optionGroupSetB.getMembers().add(optionGroupC);
-    long idA = optionService.saveOptionGroupSet(optionGroupSetA);
-    long idB = optionService.saveOptionGroupSet(optionGroupSetB);
-    long idC = optionService.saveOptionGroupSet(optionGroupSetC);
-    assertEquals(optionGroupSetA, optionService.getOptionGroupSet(idA));
-    assertEquals(optionGroupSetB, optionService.getOptionGroupSet(idB));
-    assertEquals(optionGroupSetC, optionService.getOptionGroupSet(idC));
-    assertEquals(2, optionService.getOptionGroupSet(idA).getMembers().size());
-    assertEquals(1, optionService.getOptionGroupSet(idB).getMembers().size());
-    assertEquals(0, optionService.getOptionGroupSet(idC).getMembers().size());
+    optionService.saveOptionGroupSet(optionGroupSetA);
+    optionService.saveOptionGroupSet(optionGroupSetB);
+    optionService.saveOptionGroupSet(optionGroupSetC);
+    assertEquals(optionGroupSetA, optionService.getOptionGroupSet(optionGroupSetA.getUid()));
+    assertEquals(optionGroupSetB, optionService.getOptionGroupSet(optionGroupSetB.getUid()));
+    assertEquals(optionGroupSetC, optionService.getOptionGroupSet(optionGroupSetC.getUid()));
+    assertEquals(2, optionService.getOptionGroupSet(optionGroupSetA.getUid()).getMembers().size());
+    assertEquals(1, optionService.getOptionGroupSet(optionGroupSetB.getUid()).getMembers().size());
+    assertEquals(0, optionService.getOptionGroupSet(optionGroupSetC.getUid()).getMembers().size());
   }
 }

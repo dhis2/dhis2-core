@@ -86,8 +86,6 @@ public interface OptionService {
 
   void updateOptionGroup(OptionGroup group);
 
-  OptionGroup getOptionGroup(long id);
-
   OptionGroup getOptionGroup(String uid);
 
   void deleteOptionGroup(OptionGroup group);
@@ -101,8 +99,6 @@ public interface OptionService {
   long saveOptionGroupSet(OptionGroupSet group);
 
   void updateOptionGroupSet(OptionGroupSet group);
-
-  OptionGroupSet getOptionGroupSet(long id);
 
   OptionGroupSet getOptionGroupSet(String uid);
 

@@ -208,12 +208,6 @@ public class DefaultOptionService implements OptionService {
 
   @Override
   @Transactional(readOnly = true)
-  public OptionGroup getOptionGroup(long id) {
-    return optionGroupStore.get(id);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public OptionGroup getOptionGroup(String uid) {
     return optionGroupStore.getByUid(uid);
   }
@@ -246,12 +240,6 @@ public class DefaultOptionService implements OptionService {
   @Transactional
   public void updateOptionGroupSet(OptionGroupSet group) {
     optionGroupSetStore.update(group);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public OptionGroupSet getOptionGroupSet(long id) {
-    return optionGroupSetStore.get(id);
   }
 
   @Override
