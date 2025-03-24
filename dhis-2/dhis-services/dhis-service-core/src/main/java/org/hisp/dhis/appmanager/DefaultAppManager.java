@@ -505,7 +505,7 @@ public class DefaultAppManager implements AppManager {
 
   @Override
   public boolean isAccessible(App app) {
-    return app.getKey().equals("login")
+    return ALWAYS_ACCESSIBLE_APPS.contains(app.getKey())
         || CurrentUserUtil.hasAnyAuthority(
             List.of(
                 Authorities.ALL.toString(),
@@ -539,7 +539,7 @@ public class DefaultAppManager implements AppManager {
         jsonMapper.writeValue(bout, app);
         ByteArrayResource byteArrayResource =
             toByteArrayResource(bout.toByteArray(), resourceFound.resource());
-        return new ResourceResult.ResourceFound(byteArrayResource);
+        return new ResourceResult.ResourceFound(byteArrayResource, "application/json");
       } else if (pageName.endsWith(".html")) {
         AppHtmlTemplate template = new AppHtmlTemplate(contextPath, app);
 
@@ -548,7 +548,7 @@ public class DefaultAppManager implements AppManager {
 
         ByteArrayResource byteArrayResource =
             toByteArrayResource(bout.toByteArray(), resourceFound.resource());
-        return new ResourceResult.ResourceFound(byteArrayResource);
+        return new ResourceResult.ResourceFound(byteArrayResource, "text/html;charset=UTF-8");
       }
     }
 
@@ -665,6 +665,12 @@ public class DefaultAppManager implements AppManager {
       @Override
       public String getFilename() {
         return resource.getFilename();
+      }
+
+      // This is necessary so that the content length is set correctly in getUriContentLength
+      @Override
+      public boolean isFile() {
+        return true;
       }
 
       @Override
