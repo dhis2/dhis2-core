@@ -51,38 +51,27 @@ public record Stats(
   }
 
   public Stats withCreated(int created) {
-    Stats stats = new Stats(this.created + created, this.updated, this.deleted, this.ignored);
-    System.out.println("withCreated(n): " + stats);
-    return stats;
+    return new Stats(this.created + created, this.updated, this.deleted, this.ignored);
   }
 
   public Stats withUpdated(int updated) {
-    Stats stats = new Stats(this.created, this.updated + updated, this.deleted, this.ignored);
-    System.out.println("withUpdated(n): " + stats);
-    return stats;
+    return new Stats(this.created, this.updated + updated, this.deleted, this.ignored);
   }
 
   public Stats withDeleted(int deleted) {
-    Stats stats = new Stats(this.created, this.updated, this.deleted + deleted, this.ignored);
-    System.out.println("withDeleted(n): " + stats);
-    return stats;
+    return new Stats(this.created, this.updated, this.deleted + deleted, this.ignored);
   }
 
   public Stats withIgnored(int ignored) {
-    Stats stats = new Stats(this.created, this.updated, this.deleted, this.ignored + ignored);
-    System.out.println("withIgnored(n): " + stats);
-    return stats;
+    return new Stats(this.created, this.updated, this.deleted, this.ignored + ignored);
   }
 
   public Stats withStats(@Nonnull Stats stats) {
-    Stats stats1 =
-        new Stats(
-            this.created + stats.created(),
-            this.updated + stats.updated(),
-            this.deleted + stats.deleted(),
-            this.ignored + stats.ignored());
-    System.out.println("withStats(stats): " + stats1);
-    return stats1;
+    return new Stats(
+        this.created + stats.created(),
+        this.updated + stats.updated(),
+        this.deleted + stats.deleted(),
+        this.ignored + stats.ignored());
   }
 
   public static Stats getAccumulatedStatsFromTypeReports(Collection<TypeReport> reports) {
