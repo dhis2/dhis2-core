@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -214,24 +214,24 @@ public class TypeReport implements ErrorReportContainer {
         .toString();
   }
 
-  public void withStatsIncCreated(int size) {
-    stats = stats.withCreated(size);
+  public void withStatsIncCreated(int amount) {
+    stats = stats.withCreated(amount);
   }
 
-  public void withStatsIncUpdated(int size) {
-    stats = stats.withUpdated(size);
+  public void withStatsIncUpdated(int amount) {
+    stats = stats.withUpdated(amount);
   }
 
-  public void withStatsIncDeleted(int size) {
-    stats = stats.withDeleted(size);
+  public void withStatsIncDeleted(int amount) {
+    stats = stats.withDeleted(amount);
   }
 
-  public void withStatsDecDeleted(int size) {
-    stats = stats.withDeleted(-size);
+  public void withStatsDecDeleted(int amount) {
+    stats = stats.withDeleted(-amount);
   }
 
-  public void withStatsIncIgnored(int size) {
-    stats = stats.withIgnored(size);
+  public void withStatsIncIgnored(int amount) {
+    stats = stats.withIgnored(amount);
   }
 
   public void withAllStatsIgnored() {
