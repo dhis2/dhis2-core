@@ -72,7 +72,7 @@ public class HibernateOptionStore extends HibernateIdentifiableObjectStore<Optio
     hql += "order by option.sortOrder";
 
     Query<Option> query = getQuery(hql);
-    query.setParameter("optionSetId", optionSetId);
+    query.setParameter("optionSetId", optionSetId.getValue());
 
     if (max != null) {
       query.setMaxResults(max);
