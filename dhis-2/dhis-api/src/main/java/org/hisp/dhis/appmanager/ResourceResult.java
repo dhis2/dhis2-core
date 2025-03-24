@@ -43,7 +43,11 @@ import org.springframework.core.io.Resource;
  * </ul>
  */
 public sealed interface ResourceResult {
-  record ResourceFound(@Nonnull Resource resource) implements ResourceResult {}
+  record ResourceFound(@Nonnull Resource resource, String mimeType) implements ResourceResult {
+    public ResourceFound(@Nonnull Resource resource) {
+      this(resource, null);
+    }
+  }
 
   record ResourceNotFound(@Nonnull String path) implements ResourceResult {}
 
