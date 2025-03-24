@@ -94,9 +94,6 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
         GET("/openapi/openapi.json?failOnNameClash=true&failOnInconsistency=true").content();
     SwaggerParseResult result =
         new OpenAPIParser().readContents(doc.node().getDeclaration(), null, null);
-    if (!result.getMessages().isEmpty()) {
-      System.out.println("error");
-    }
     assertEquals(List.of(), result.getMessages(), "There should not be any errors");
   }
 
