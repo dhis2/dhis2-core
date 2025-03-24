@@ -99,10 +99,10 @@ class ValidatingEventCheckerTest {
     // verify that object has been removed from bundle
     assertThat(bundle.getObjects(Attribute.class, false), hasSize(0));
     assertThat(bundle.getObjects(Attribute.class, true), hasSize(0));
-    assertThat(typeReport.getStats().getCreated(), is(0));
-    assertThat(typeReport.getStats().getUpdated(), is(0));
-    assertThat(typeReport.getStats().getDeleted(), is(0));
-    assertThat(typeReport.getStats().getIgnored(), is(1));
+    assertThat(typeReport.getStats().created(), is(0));
+    assertThat(typeReport.getStats().updated(), is(0));
+    assertThat(typeReport.getStats().deleted(), is(0));
+    assertThat(typeReport.getStats().ignored(), is(1));
     assertThat(typeReport.getObjectReportsCount(), is(1));
   }
 

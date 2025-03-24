@@ -59,7 +59,6 @@ import org.hisp.dhis.webapi.openapi.OpenApiObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.ParameterObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.ResponseObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.SchemaObject;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openapitools.codegen.DefaultGenerator;
 import org.openapitools.codegen.config.CodegenConfigurator;
@@ -90,7 +89,6 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  @Disabled("JB: temporary until we find the cause of flakiness")
   void testGetOpenApiDocumentJson_NoValidationErrors() {
     JsonObject doc =
         GET("/openapi/openapi.json?failOnNameClash=true&failOnInconsistency=true").content();
@@ -132,7 +130,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testGetOpenApiDocumentHtml_DomainFilter() {
     String html =
-        GET("/openapi/openapi.html?scope=entity.DataElement", Accept(TEXT_HTML_VALUE))
+        GET("/openapi/openapi.html?scope=entity:DataElement", Accept(TEXT_HTML_VALUE))
             .content(TEXT_HTML_VALUE);
     assertContains("#DataElement", html);
   }
@@ -140,7 +138,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testGetOpenApiDocument_DefaultValue() {
     // defaults in parameter objects (from Property analysis)
-    JsonObject users = GET("/openapi/openapi.json?scope=path./api/users").content();
+    JsonObject users = GET("/openapi/openapi.json?scope=path:/api/users").content();
     JsonObject sharedParams = users.getObject("components.parameters");
     assertEquals(50, sharedParams.getNumber("{GistParams.pageSize}.schema.default").integer());
     assertEquals(
@@ -148,7 +146,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
     assertTrue(sharedParams.getBoolean("{GistParams.translate}.schema.default").booleanValue());
 
     // defaults in individual parameters (from endpoint method parameter analysis)
-    JsonObject fileResources = GET("/openapi/openapi.json?scope=path./api/fileResources").content();
+    JsonObject fileResources = GET("/openapi/openapi.json?scope=path:/api/fileResources").content();
     JsonObject domain =
         fileResources
             .get("paths./api/fileResources/.post.parameters")
@@ -159,7 +157,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
             .orElse(JsonMixed.of("{}"));
     assertEquals("DATA_VALUE", domain.getString("schema.default").string());
 
-    JsonObject audits = GET("/openapi/openapi.json?scope=path./api/audits").content();
+    JsonObject audits = GET("/openapi/openapi.json?scope=path:/api/audits").content();
     JsonObject pageSize =
         audits
             .getArray("paths./api/audits/trackedEntity.get.parameters")
@@ -222,7 +220,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetOpenApiDocument_ReadOnly() {
-    JsonObject doc = GET("/openapi/openapi.json?scope=entity.JobConfiguration").content();
+    JsonObject doc = GET("/openapi/openapi.json?scope=entity:JobConfiguration").content();
     JsonObject jobConfiguration = doc.getObject("components.schemas.JobConfiguration");
     JsonObject jobConfigurationParams = doc.getObject("components.schemas.JobConfigurationParams");
     assertTrue(jobConfiguration.isObject());
@@ -243,7 +241,6 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  @Disabled("JB: temporary until we find the cause of flakiness")
   void testGetOpenApiDocument_CodeGeneration() throws IOException {
     JsonObject doc = GET("/openapi/openapi.json?failOnNameClash=true").content();
 

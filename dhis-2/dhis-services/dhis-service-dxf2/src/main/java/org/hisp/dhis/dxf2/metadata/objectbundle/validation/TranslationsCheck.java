@@ -71,7 +71,7 @@ public class TranslationsCheck implements ObjectValidationCheck {
     Schema schema = context.getSchemaService().getDynamicSchema(klass);
 
     for (int i = 0; i < objects.size(); i++) {
-      run(objects.get(i), klass, addReports, schema, i);
+      run(objects.get(i), klass, addReports, schema, i, context);
     }
   }
 
@@ -80,7 +80,8 @@ public class TranslationsCheck implements ObjectValidationCheck {
       Class<T> klass,
       Consumer<ObjectReport> addReports,
       Schema schema,
-      int index) {
+      int index,
+      ValidationContext context) {
     Set<Translation> translations = object.getTranslations();
 
     if (CollectionUtils.isEmpty(translations)) {
@@ -134,6 +135,9 @@ public class TranslationsCheck implements ObjectValidationCheck {
 
     if (objectReport.hasErrorReports()) {
       addReports.accept(objectReport);
+      if (context != null) {
+        context.markForRemoval(object);
+      }
     }
   }
 }

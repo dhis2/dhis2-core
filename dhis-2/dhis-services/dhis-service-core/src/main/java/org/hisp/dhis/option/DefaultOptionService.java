@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -117,12 +118,6 @@ public class DefaultOptionService implements OptionService {
 
   @Override
   @Transactional(readOnly = true)
-  public OptionSet getOptionSet(long id) {
-    return optionSetStore.get(id);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public OptionSet getOptionSet(String uid) {
     return optionSetStore.getByUid(uid);
   }
@@ -157,13 +152,13 @@ public class DefaultOptionService implements OptionService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<Option> getOptions(long optionSetId, String key, Integer max) {
+  public List<Option> getOptions(String optionSetId, String key, Integer max) {
     List<Option> options;
 
     if (key != null || max != null) {
       // Use query as option set size might be very high
 
-      options = optionStore.getOptions(optionSetId, key, max);
+      options = optionStore.getOptions(UID.of(optionSetId), key, max);
     } else {
       // Return all from object association to preserve custom order
 
@@ -179,12 +174,6 @@ public class DefaultOptionService implements OptionService {
   @Transactional
   public void updateOption(Option option) {
     optionStore.update(option);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Option getOption(long id) {
-    return optionStore.get(id);
   }
 
   @Override
@@ -215,12 +204,6 @@ public class DefaultOptionService implements OptionService {
   @Transactional
   public void updateOptionGroup(OptionGroup group) {
     optionGroupStore.update(group);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public OptionGroup getOptionGroup(long id) {
-    return optionGroupStore.get(id);
   }
 
   @Override
@@ -257,12 +240,6 @@ public class DefaultOptionService implements OptionService {
   @Transactional
   public void updateOptionGroupSet(OptionGroupSet group) {
     optionGroupSetStore.update(group);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public OptionGroupSet getOptionGroupSet(long id) {
-    return optionGroupSetStore.get(id);
   }
 
   @Override

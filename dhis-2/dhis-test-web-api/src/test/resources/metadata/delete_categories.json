@@ -1,0 +1,16 @@
+{
+  "categories": [
+    {
+      "id": "CatUid00001",
+      "name": "cat test 1",
+      "shortName": "test 1",
+      "dataDimensionType": "DISAGGREGATION"
+    },
+    {
+      "id": "CatUid00002",
+      "name": "cat test 2",
+      "shortName": "test 2",
+      "dataDimensionType": "DISAGGREGATION"
+    }
+  ]
+}
