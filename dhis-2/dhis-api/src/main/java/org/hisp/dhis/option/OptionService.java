@@ -58,51 +58,25 @@ public interface OptionService {
 
   OptionSet getOptionSet(String uid);
 
-  OptionSet getOptionSetByName(String name);
-
   OptionSet getOptionSetByCode(String code);
-
-  void deleteOptionSet(OptionSet optionSet);
 
   List<OptionSet> getAllOptionSets();
 
   List<Option> getOptions(String optionSetId, String name, Integer max);
 
   // -------------------------------------------------------------------------
-  // Option
-  // -------------------------------------------------------------------------
-
-  void updateOption(Option option);
-
-  Option getOptionByCode(String code);
-
-  void deleteOption(Option option);
-
-  // -------------------------------------------------------------------------
   // OptionGroup
   // -------------------------------------------------------------------------
 
-  long saveOptionGroup(OptionGroup group);
-
-  void updateOptionGroup(OptionGroup group);
+  void saveOptionGroup(OptionGroup group);
 
   OptionGroup getOptionGroup(String uid);
-
-  void deleteOptionGroup(OptionGroup group);
-
-  List<OptionGroup> getAllOptionGroups();
 
   // -------------------------------------------------------------------------
   // OptionGroupSet
   // -------------------------------------------------------------------------
 
-  long saveOptionGroupSet(OptionGroupSet group);
-
-  void updateOptionGroupSet(OptionGroupSet group);
+  void saveOptionGroupSet(OptionGroupSet group);
 
   OptionGroupSet getOptionGroupSet(String uid);
-
-  void deleteOptionGroupSet(OptionGroupSet group);
-
-  List<OptionGroupSet> getAllOptionGroupSets();
 }

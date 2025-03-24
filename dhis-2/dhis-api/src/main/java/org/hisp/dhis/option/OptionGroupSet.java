@@ -37,7 +37,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -111,20 +110,8 @@ public class OptionGroupSet extends BaseDimensionalObject implements MetadataObj
     return DimensionType.OPTION_GROUP_SET;
   }
 
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
   public void addOptionGroup(OptionGroup optionGroup) {
     members.add(optionGroup);
-  }
-
-  public void removeOptionGroup(OptionGroup optionGroup) {
-    members.remove(optionGroup);
-  }
-
-  public void removeAllOptionGroups() {
-    members.clear();
   }
 
   public Collection<Option> getOptions() {
@@ -135,27 +122,5 @@ public class OptionGroupSet extends BaseDimensionalObject implements MetadataObj
     }
 
     return options;
-  }
-
-  public Boolean isMemberOfOptionGroups(Option option) {
-    for (OptionGroup group : members) {
-      if (group.getMembers().contains(option)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  public Boolean hasOptionGroups() {
-    return members != null && members.size() > 0;
-  }
-
-  public List<OptionGroup> getSortedGroups() {
-    List<OptionGroup> sortedGroups = new ArrayList<>(members);
-
-    Collections.sort(sortedGroups);
-
-    return sortedGroups;
   }
 }
