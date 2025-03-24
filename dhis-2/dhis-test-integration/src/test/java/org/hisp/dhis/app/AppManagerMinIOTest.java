@@ -101,7 +101,7 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
         (ResourceFound) appManager.getAppResource(app, "index.html", MOCK_CONTEXT_PATH);
 
     assertEquals("2.0.0", app.getVersion());
-    assertEquals(63, appManager.getUriContentLength(resource.resource()));
+    assertEquals(64, appManager.getUriContentLength(resource.resource()));
   }
 
   @Test
