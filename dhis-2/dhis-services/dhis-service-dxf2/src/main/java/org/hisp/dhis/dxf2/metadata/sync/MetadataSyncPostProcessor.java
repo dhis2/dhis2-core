@@ -133,16 +133,16 @@ public class MetadataSyncPostProcessor {
                 .append("Stats: \n")
                 .append("total: " + stats.getTotal() + "\n");
 
-            if (stats.getCreated() > 0) {
-              text.append(" created: " + stats.getCreated() + "\n");
+            if (stats.created() > 0) {
+              text.append(" created: " + stats.created() + "\n");
             }
 
-            if (stats.getUpdated() > 0) {
-              text.append(" updated: " + stats.getUpdated() + "\n");
+            if (stats.updated() > 0) {
+              text.append(" updated: " + stats.updated() + "\n");
             }
 
-            if (stats.getIgnored() > 0) {
-              text.append(" ignored: " + stats.getIgnored() + "\n");
+            if (stats.ignored() > 0) {
+              text.append(" ignored: " + stats.ignored() + "\n");
             }
           });
 

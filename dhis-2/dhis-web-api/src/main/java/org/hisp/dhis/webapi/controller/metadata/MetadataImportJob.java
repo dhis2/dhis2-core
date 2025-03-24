@@ -117,17 +117,17 @@ public class MetadataImportJob implements Job {
       }
 
       notifier.addJobSummary(config, report, ImportReport.class);
-      Stats count = report.getStats();
+      Stats count = report.getAccumulatedStats();
       Consumer<String> endProcess =
           report.getStatus() == Status.ERROR ? progress::failedProcess : progress::completedProcess;
       endProcess.accept(
           "Import complete with status %s, %d created, %d updated, %d deleted, %d ignored"
               .formatted(
                   report.getStatus(),
-                  count.getCreated(),
-                  count.getUpdated(),
-                  count.getDeleted(),
-                  count.getIgnored()));
+                  count.created(),
+                  count.updated(),
+                  count.deleted(),
+                  count.ignored()));
     } catch (IOException ex) {
       progress.failedProcess(ex);
     }
