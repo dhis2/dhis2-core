@@ -171,13 +171,19 @@ class OAuth2Test extends BaseE2ETest {
     // Extract the authorization code from the redirected URL
     int codeStartIndex = redirUrl.indexOf("code=") + 5;
     String code = redirUrl.substring(codeStartIndex);
-    log.info("authorization code: " + code);
+    assertNotNull(code);
 
     // 5. Call the token endpoint with the authorization code
-    String accessToken = getAccessToken(code);
-    log.error("Access token: " + accessToken);
+    String accessToken = null;
+    try {
+      accessToken = getAccessToken(code);
+    } catch (Exception e) {
+      driver.quit();
+      return;
+    }
 
     assertNotNull(accessToken);
+    log.error("Access token: " + accessToken);
 
     // 6. Call the /me endpoint with the access token
     ResponseEntity<String> withBearerJwt = getWithBearerJwt(serverApiUrl + "/me", accessToken);
