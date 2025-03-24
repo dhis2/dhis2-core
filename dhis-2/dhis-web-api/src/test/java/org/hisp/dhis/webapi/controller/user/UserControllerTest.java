@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -54,7 +54,6 @@ import java.util.function.Consumer;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.Stats;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.security.Authorities;
@@ -124,7 +123,7 @@ class UserControllerTest {
   void updateUserGroups() {
     when(userService.getUser("def2")).thenReturn(user);
 
-    if (isInStatusUpdatedOK(createReportWith(Status.OK, (stats) -> stats.withUpdated(1)))) {
+    if (isInStatusUpdatedOK(createReportWith(Status.OK, report -> report.withStatsIncUpdated(1)))) {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
@@ -137,7 +136,8 @@ class UserControllerTest {
 
   @Test
   void updateUserGroupsNotOk() {
-    if (isInStatusUpdatedOK(createReportWith(Status.ERROR, (stats) -> stats.withUpdated(1)))) {
+    if (isInStatusUpdatedOK(
+        createReportWith(Status.ERROR, report -> report.withStatsIncUpdated(1)))) {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
@@ -147,7 +147,7 @@ class UserControllerTest {
 
   @Test
   void updateUserGroupsNotUpdated() {
-    if (isInStatusUpdatedOK(createReportWith(Status.OK, (stats) -> stats.withCreated(1)))) {
+    if (isInStatusUpdatedOK(createReportWith(Status.OK, report -> report.withStatsIncCreated(1)))) {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
@@ -167,16 +167,16 @@ class UserControllerTest {
     when(userService.getUser("def2")).thenReturn(user);
     when(userService.getUserByUsername(any())).thenReturn(currentUser);
 
-    if (isInStatusUpdatedOK(createReportWith(Status.OK, (stats) -> stats.withUpdated(1)))) {
+    if (isInStatusUpdatedOK(createReportWith(Status.OK, report -> report.withStatsIncUpdated(1)))) {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
     verify(userGroupService).updateUserGroups(user, Set.of("abc1", "abc2"), currentUser2);
   }
 
-  private ImportReport createReportWith(Status status, Consumer<Stats> operation) {
+  private ImportReport createReportWith(Status status, Consumer<TypeReport> operation) {
     TypeReport typeReport = new TypeReport(User.class);
-    operation.accept(typeReport.getStats());
+    operation.accept(typeReport);
     ImportReport report = new ImportReport();
     report.setStatus(status);
     report.addTypeReport(typeReport);
