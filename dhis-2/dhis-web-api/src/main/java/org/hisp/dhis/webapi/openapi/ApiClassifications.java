@@ -30,9 +30,10 @@
 package org.hisp.dhis.webapi.openapi;
 
 import static java.util.Collections.unmodifiableMap;
+import static java.util.Comparator.comparing;
 import static java.util.Comparator.comparingInt;
+import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toUnmodifiableSet;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -113,7 +114,9 @@ public record ApiClassifications(
 
   static Set<Class<?>> matches(
       @Nonnull Set<Class<?>> controllers, @Nonnull Map<String, Set<String>> filters) {
-    return controllers.stream().filter(c -> matches(filters, c)).collect(toUnmodifiableSet());
+    return controllers.stream()
+        .filter(c -> matches(filters, c))
+        .collect(toCollection((() -> new TreeSet<>(comparing(Class::getName)))));
   }
 
   private static boolean matches(@Nonnull Map<String, Set<String>> filters, Class<?> controller) {

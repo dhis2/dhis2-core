@@ -471,7 +471,8 @@ public abstract class AbstractCrudController<
 
     persistedObject.setTranslations(translations);
     List<ObjectReport> objectReports = new ArrayList<>();
-    translationsCheck.run(persistedObject, getEntityClass(), objectReports::add, getSchema(), 0);
+    translationsCheck.run(
+        persistedObject, getEntityClass(), objectReports::add, getSchema(), 0, null);
 
     if (objectReports.isEmpty()) {
       manager.update(persistedObject);

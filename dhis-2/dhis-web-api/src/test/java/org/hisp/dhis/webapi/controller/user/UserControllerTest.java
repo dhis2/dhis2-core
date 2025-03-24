@@ -54,7 +54,6 @@ import java.util.function.Consumer;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.Stats;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.security.Authorities;
@@ -124,7 +123,7 @@ class UserControllerTest {
   void updateUserGroups() {
     when(userService.getUser("def2")).thenReturn(user);
 
-    if (isInStatusUpdatedOK(createReportWith(Status.OK, Stats::incUpdated))) {
+    if (isInStatusUpdatedOK(createReportWith(Status.OK, report -> report.withStatsIncUpdated(1)))) {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
@@ -137,7 +136,8 @@ class UserControllerTest {
 
   @Test
   void updateUserGroupsNotOk() {
-    if (isInStatusUpdatedOK(createReportWith(Status.ERROR, Stats::incUpdated))) {
+    if (isInStatusUpdatedOK(
+        createReportWith(Status.ERROR, report -> report.withStatsIncUpdated(1)))) {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
@@ -147,7 +147,7 @@ class UserControllerTest {
 
   @Test
   void updateUserGroupsNotUpdated() {
-    if (isInStatusUpdatedOK(createReportWith(Status.OK, Stats::incCreated))) {
+    if (isInStatusUpdatedOK(createReportWith(Status.OK, report -> report.withStatsIncCreated(1)))) {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
@@ -167,16 +167,16 @@ class UserControllerTest {
     when(userService.getUser("def2")).thenReturn(user);
     when(userService.getUserByUsername(any())).thenReturn(currentUser);
 
-    if (isInStatusUpdatedOK(createReportWith(Status.OK, Stats::incUpdated))) {
+    if (isInStatusUpdatedOK(createReportWith(Status.OK, report -> report.withStatsIncUpdated(1)))) {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
     verify(userGroupService).updateUserGroups(user, Set.of("abc1", "abc2"), currentUser2);
   }
 
-  private ImportReport createReportWith(Status status, Consumer<Stats> operation) {
+  private ImportReport createReportWith(Status status, Consumer<TypeReport> operation) {
     TypeReport typeReport = new TypeReport(User.class);
-    operation.accept(typeReport.getStats());
+    operation.accept(typeReport);
     ImportReport report = new ImportReport();
     report.setStatus(status);
     report.addTypeReport(typeReport);
@@ -184,7 +184,7 @@ class UserControllerTest {
   }
 
   private boolean isInStatusUpdatedOK(ImportReport report) {
-    return report.getStatus() == Status.OK && report.getStats().getUpdated() == 1;
+    return report.getStatus() == Status.OK && report.getAccumulatedStats().updated() == 1;
   }
 
   public static void injectSecurityContext(UserDetails currentUserDetails) {
