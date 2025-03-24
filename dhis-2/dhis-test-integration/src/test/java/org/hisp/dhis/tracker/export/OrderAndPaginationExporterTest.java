@@ -1334,9 +1334,10 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
   void shouldOrderRelationshipsByCreatedAtClientAndByDefaultOrder()
       throws ForbiddenException, BadRequestException, NotFoundException {
     Relationship oLT07jKRu9e = get(Relationship.class, "fHn74P5T3r1");
+    Relationship p53a6314631 = get(Relationship.class, "p53a6314631");
     Relationship yZxjxJli9mO = get(Relationship.class, "yZxjxJli9mO");
     List<String> expected =
-        Stream.of(oLT07jKRu9e, yZxjxJli9mO)
+        Stream.of(oLT07jKRu9e, p53a6314631, yZxjxJli9mO)
             .sorted(Comparator.comparing(Relationship::getId).reversed()) // reversed = desc
             .map(Relationship::getUid)
             .toList();
