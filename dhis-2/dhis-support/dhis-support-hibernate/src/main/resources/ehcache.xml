@@ -19,7 +19,7 @@
           overflowToDisk="false"
           diskPersistent="false"/>
 
-  <!-- ✅Hibernate Entity Cache for `OptionSet` -->
+  <!-- Hibernate Entity Cache for `OptionSet` -->
   <cache name="org.hisp.dhis.option.OptionSet"
          maxEntriesLocalHeap="5000000"
          eternal="false"
