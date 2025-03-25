@@ -32,10 +32,8 @@ package org.hisp.dhis.option.hibernate;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.List;
-import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.option.OptionGroup;
-import org.hisp.dhis.option.OptionGroupSet;
 import org.hisp.dhis.option.OptionGroupStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -57,17 +55,6 @@ public class HibernateOptionGroupStore extends HibernateIdentifiableObjectStore<
   }
 
   @Override
-  public List<OptionGroup> getOptionGroups(OptionGroupSet groupSet) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder,
-        newJpaParameters()
-            .addPredicates(getSharingPredicates(builder))
-            .addPredicate(root -> builder.equal(root.get("groupSet"), groupSet)));
-  }
-
-  @Override
   public List<OptionGroup> getOptionGroupsByOptionId(String optionId) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -76,17 +63,5 @@ public class HibernateOptionGroupStore extends HibernateIdentifiableObjectStore<
         newJpaParameters()
             .addPredicates(getSharingPredicates(builder))
             .addPredicate(root -> builder.equal(root.join("members").get("uid"), optionId)));
-  }
-
-  @Override
-  public List<OptionGroup> getOptionGroupsNoAcl(
-      DataDimensionType dataDimensionType, boolean dataDimension) {
-    CriteriaBuilder builder = getCriteriaBuilder();
-
-    return getList(
-        builder,
-        newJpaParameters()
-            .addPredicate(root -> builder.equal(root.get("dataDimensionType"), dataDimension))
-            .addPredicate(root -> builder.equal(root.get("dataDimension"), dataDimension)));
   }
 }

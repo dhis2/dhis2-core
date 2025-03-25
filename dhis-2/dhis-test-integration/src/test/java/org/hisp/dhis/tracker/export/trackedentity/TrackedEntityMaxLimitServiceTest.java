@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.export.trackedentity;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
+import static org.hisp.dhis.test.utils.Assertions.assertLessOrEqual;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -48,7 +49,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.test.utils.Assertions;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TestSetup;
@@ -103,7 +103,7 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
     TrackedEntityOperationParams operationParams = createProgramOperationParams();
     injectSecurityContextUser(regularUser);
 
-    Assertions.assertLessOrEqual(
+    assertLessOrEqual(
         program.getMaxTeiCountToReturn(),
         trackedEntityService.findTrackedEntities(operationParams).size());
   }
@@ -127,7 +127,7 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
     TrackedEntityOperationParams operationParams = createTrackedEntityTypeOperationParams();
     injectSecurityContextUser(regularUser);
 
-    Assertions.assertLessOrEqual(
+    assertLessOrEqual(
         trackedEntityType.getMaxTeiCountToReturn(),
         trackedEntityService.findTrackedEntities(operationParams).size());
   }
@@ -225,7 +225,7 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
     TrackedEntityOperationParams operationParams = createTrackedEntityTypeOperationParams();
     injectSecurityContextUser(regularUser);
 
-    Assertions.assertLessOrEqual(
+    assertLessOrEqual(
         getCurrentSystemSettingLimit(),
         trackedEntityService.findTrackedEntities(operationParams).size());
   }
@@ -351,7 +351,7 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
         .orgUnitMode(SELECTED)
         .organisationUnits(organisationUnit)
         .program(program)
-        .filterBy(UID.of("fRGt4l6yIRb"))
+        .trackedEntities(UID.of("QS6w44flWAf", "dUE514NMOlo"))
         .build();
   }
 

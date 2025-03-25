@@ -68,9 +68,9 @@ class DashboardCheckTest extends TestBase {
             null, Dashboard.class, emptyList(), List.of(dashboard), strategy, null);
 
     assertEquals(0, check.getErrorReportsCount());
-    assertEquals(0, check.getStats().getIgnored());
-    assertEquals(0, check.getStats().getCreated());
-    assertEquals(0, check.getStats().getUpdated());
+    assertEquals(0, check.getStats().ignored());
+    assertEquals(0, check.getStats().created());
+    assertEquals(0, check.getStats().updated());
     assertEquals(0, check.getStats().getTotal());
   }
 
@@ -89,9 +89,9 @@ class DashboardCheckTest extends TestBase {
     ErrorReport errorReport = check.getFirstObjectReport().getErrorReports().get(0);
 
     assertEquals(1, check.getErrorReportsCount());
-    assertEquals(1, check.getStats().getIgnored());
-    assertEquals(0, check.getStats().getCreated());
-    assertEquals(0, check.getStats().getUpdated());
+    assertEquals(1, check.getStats().ignored());
+    assertEquals(0, check.getStats().created());
+    assertEquals(0, check.getStats().updated());
     assertEquals(1, check.getStats().getTotal());
     assertEquals(E4070, errorReport.getErrorCode());
     assertEquals(
@@ -114,9 +114,9 @@ class DashboardCheckTest extends TestBase {
     ErrorReport errorReport = check.getFirstObjectReport().getErrorReports().get(0);
 
     assertEquals(1, check.getErrorReportsCount());
-    assertEquals(1, check.getStats().getIgnored());
-    assertEquals(0, check.getStats().getCreated());
-    assertEquals(0, check.getStats().getUpdated());
+    assertEquals(1, check.getStats().ignored());
+    assertEquals(0, check.getStats().created());
+    assertEquals(0, check.getStats().updated());
     assertEquals(1, check.getStats().getTotal());
     assertEquals(E4070, errorReport.getErrorCode());
     assertEquals(

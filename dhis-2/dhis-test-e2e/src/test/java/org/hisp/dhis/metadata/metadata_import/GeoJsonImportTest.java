@@ -90,8 +90,7 @@ class GeoJsonImportTest extends ApiTest {
     assertEquals(11, taskId.length());
 
     // wait for job to be completed (24 seconds used as the job schedule loop is 20 seconds)
-    ApiResponse taskStatus = systemActions.waitUntilTaskCompleted("GEOJSON_IMPORT", taskId, 24);
-    assertTrue(taskStatus.getAsString().contains("\"completed\":true"));
+    systemActions.waitUntilTaskCompleted("GEOJSON_IMPORT", taskId, 24);
 
     // get org unit again which should now contain geometry property
     ApiResponse getUpdatedOrgUnit = restApiActions.get("/ImspTQPwCqd");

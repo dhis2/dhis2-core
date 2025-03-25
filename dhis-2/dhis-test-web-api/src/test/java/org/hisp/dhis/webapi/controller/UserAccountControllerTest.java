@@ -32,6 +32,8 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
@@ -555,6 +557,48 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
                 "/auth/invite",
                 renderService.toJsonAsString(getRegParamsWithRecaptcha(null, RegType.INVITE)))
             .content(HttpStatus.BAD_REQUEST));
+  }
+
+  @Test
+  @DisplayName("Email is automatically verified when accepting an invitation")
+  void testEmailVerificationOnInviteAcceptance() {
+    disableRecaptcha();
+    // Create a user as an admin
+    User adminCreatedUser = getAdminCreatedUser();
+    POST("/users", renderService.toJsonAsString(adminCreatedUser)).content(HttpStatus.CREATED);
+
+    User invitedUser = userService.getUserByUsername("samewisegamgee");
+
+    // Verify email is not verified before accepting invitation
+    assertNull(
+        invitedUser.getVerifiedEmail(), "Email should not be verified before accepting invitation");
+    assertFalse(invitedUser.isEmailVerified(), "User's email should not be marked as verified");
+
+    // Configure for invitation acceptance
+    invitedUser.setIdToken("idToken");
+    invitedUser.setRestoreToken("$2a$10$fScYIKiJx6sBWBm/U0QgR.fPlLJeMXOu0CmuharO7v5XVOSZRZ.p.");
+    invitedUser.setRestoreExpiry(DateUtils.getDate(2040, 11, 22, 4, 20));
+    invitedUser.setEmail("samewisegamgee@dhis2.org");
+    userService.updateUser(invitedUser);
+
+    // Accept the invitation
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Account updated",
+        POST("/auth/invite", renderService.toJsonAsString(getInviteRegistrationForm()))
+            .content(HttpStatus.OK));
+
+    // Verify that the email is now verified after accepting the invitation
+    User updatedUser = userService.getUserByUsername("samewisegamgee");
+    assertNotNull(
+        "Email should be verified after accepting invitation", updatedUser.getVerifiedEmail());
+    assertEquals(
+        updatedUser.getEmail(),
+        updatedUser.getVerifiedEmail(),
+        "Verified email should match the user's email");
+    assertTrue(updatedUser.isEmailVerified(), "User's email should be marked as verified");
   }
 
   private OrganisationUnit enableSelfRegistration() {

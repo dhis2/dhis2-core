@@ -40,6 +40,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.appmanager.AndroidSettingsApp;
 import org.hisp.dhis.appmanager.App;
@@ -79,7 +80,7 @@ public class AuthoritiesController {
   public Map<String, List<Map<String, String>>> getAuthorities(HttpServletResponse response) {
     I18n i18n = i18nManager.getI18n();
 
-    List<String> authorities = new ArrayList<>();
+    TreeSet<String> authorities = new TreeSet<>();
 
     Collection<String> systemAuthorities = authoritiesProvider.getSystemAuthorities();
     authorities.addAll(systemAuthorities);
@@ -106,6 +107,7 @@ public class AuthoritiesController {
     Set<String> authorities = new HashSet<>();
     appManager.getApps(null).stream()
         .filter(app -> !StringUtils.isEmpty(app.getShortName()))
+        .filter(app -> !AppManager.ALWAYS_ACCESSIBLE_APPS.contains(app.getShortName()))
         .forEach(
             app -> {
               authorities.add(app.getSeeAppAuthority());

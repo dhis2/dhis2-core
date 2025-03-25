@@ -52,6 +52,7 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.ValueType;
@@ -80,6 +81,15 @@ public class ProgramDataElementOptionDimensionItem extends BaseDimensionalItemOb
     this.program = program;
     this.dataElement = dataElement;
     this.option = option;
+  }
+
+  @Override
+  public String getDisplayProperty(DisplayProperty displayProperty) {
+    return format(
+        "%s (%s, %s)",
+        option.getDisplayProperty(displayProperty),
+        dataElement.getDisplayProperty(displayProperty),
+        program.getDisplayProperty(displayProperty));
   }
 
   @Override

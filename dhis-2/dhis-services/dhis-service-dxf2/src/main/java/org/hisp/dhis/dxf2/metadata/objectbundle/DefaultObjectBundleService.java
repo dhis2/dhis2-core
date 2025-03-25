@@ -423,8 +423,8 @@ public class DefaultObjectBundleService implements ObjectBundleService {
     } catch (DeleteNotAllowedException ex) {
       objectReport.addErrorReport(
           new ErrorReport(klass, new ErrorMessage(ex.getMessage(), ErrorCode.E4030, null)));
-      typeReport.getStats().incIgnored();
-      typeReport.getStats().decDeleted();
+      typeReport.withStatsIncIgnored(1);
+      typeReport.withStatsDecDeleted(1);
     }
   }
 }

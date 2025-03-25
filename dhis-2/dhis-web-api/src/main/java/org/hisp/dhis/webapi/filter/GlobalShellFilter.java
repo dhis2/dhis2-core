@@ -218,6 +218,9 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       // Serve global app shell resources
       serveGlobalShellResource(request, response, resource);
     }
+    if (!response.isCommitted()) {
+      response.sendError(HttpServletResponse.SC_NOT_FOUND);
+    }
   }
 
   private void serveGlobalShellResource(

@@ -56,7 +56,7 @@ public class TypeReport implements ErrorReportContainer {
 
   private final boolean empty;
 
-  private final Stats stats = new Stats();
+  private Stats stats = new Stats(0, 0, 0, 0);
 
   private final Map<Integer, ObjectReport> objectReportMap = new HashMap<>();
 
@@ -100,7 +100,7 @@ public class TypeReport implements ErrorReportContainer {
     if (other.empty) {
       return; // done: nothing to merge with
     }
-    stats.merge(other.getStats());
+    stats = stats.withStats(other.getStats());
 
     other.objectReportMap.forEach(
         (index, objectReport) ->
@@ -212,5 +212,30 @@ public class TypeReport implements ErrorReportContainer {
         .add("stats", stats)
         .add("objectReports", getObjectReports())
         .toString();
+  }
+
+  public void withStatsIncCreated(int amount) {
+    stats = stats.withCreated(amount);
+  }
+
+  public void withStatsIncUpdated(int amount) {
+    stats = stats.withUpdated(amount);
+  }
+
+  public void withStatsIncDeleted(int amount) {
+    stats = stats.withDeleted(amount);
+  }
+
+  public void withStatsDecDeleted(int amount) {
+    stats = stats.withDeleted(-amount);
+  }
+
+  public void withStatsIncIgnored(int amount) {
+    stats = stats.withIgnored(amount);
+  }
+
+  public void withAllStatsIgnored() {
+    stats =
+        new Stats(0, 0, 0, (stats.created() + stats.updated() + stats.deleted() + stats.ignored()));
   }
 }
