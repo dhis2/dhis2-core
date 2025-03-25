@@ -163,7 +163,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsCreated() throws NotFoundException {
-    String event = "QRYjLTiJTrA";
+    String event = "OTmjvJDn0Fu";
     String dataElement = getDataElement(event);
 
     List<EventChangeLog> changeLogs =
@@ -172,12 +172,12 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
                 UID.of(event), defaultOperationParams, defaultPageParams));
 
     assertNumberOfChanges(1, changeLogs);
-    assertDataElementCreate(dataElement, "15", changeLogs.get(0));
+    assertDataElementCreate(dataElement, "13", changeLogs.get(0));
   }
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsDeleted() throws NotFoundException {
-    String event = "QRYjLTiJTrA";
+    String event = "OTmjvJDn0Fu";
     String dataElement = getDataElement(event);
 
     updateDataValue(event, dataElement, "");
@@ -189,13 +189,13 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     assertNumberOfChanges(2, changeLogs);
     assertAll(
-        () -> assertDataElementDelete(dataElement, "15", changeLogs.get(0)),
-        () -> assertDataElementCreate(dataElement, "15", changeLogs.get(1)));
+        () -> assertDataElementDelete(dataElement, "13", changeLogs.get(0)),
+        () -> assertDataElementCreate(dataElement, "13", changeLogs.get(1)));
   }
 
   @Test
   void shouldNotUpdateChangeLogsWhenDataValueIsDeletedTwiceInARow() throws NotFoundException {
-    String event = "QRYjLTiJTrA";
+    String event = "OTmjvJDn0Fu";
     String dataElement = getDataElement(event);
 
     updateDataValue(event, dataElement, "");
@@ -208,13 +208,13 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     assertNumberOfChanges(2, changeLogs);
     assertAll(
-        () -> assertDataElementDelete(dataElement, "15", changeLogs.get(0)),
-        () -> assertDataElementCreate(dataElement, "15", changeLogs.get(1)));
+        () -> assertDataElementDelete(dataElement, "13", changeLogs.get(0)),
+        () -> assertDataElementCreate(dataElement, "13", changeLogs.get(1)));
   }
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsUpdated() throws NotFoundException {
-    String event = "QRYjLTiJTrA";
+    String event = "OTmjvJDn0Fu";
     String dataElement = getDataElement(event);
 
     updateDataValue(event, dataElement, "20");
@@ -226,13 +226,13 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
 
     assertNumberOfChanges(2, changeLogs);
     assertAll(
-        () -> assertDataElementUpdate(dataElement, "15", "20", changeLogs.get(0)),
-        () -> assertDataElementCreate(dataElement, "15", changeLogs.get(1)));
+        () -> assertDataElementUpdate(dataElement, "13", "20", changeLogs.get(0)),
+        () -> assertDataElementCreate(dataElement, "13", changeLogs.get(1)));
   }
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsUpdatedTwiceInARow() throws NotFoundException {
-    String event = "QRYjLTiJTrA";
+    String event = "OTmjvJDn0Fu";
     String dataElement = getDataElement(event);
 
     updateDataValue(event, dataElement, "20");
@@ -246,13 +246,13 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     assertNumberOfChanges(3, changeLogs);
     assertAll(
         () -> assertDataElementUpdate(dataElement, "20", "25", changeLogs.get(0)),
-        () -> assertDataElementUpdate(dataElement, "15", "20", changeLogs.get(1)),
-        () -> assertDataElementCreate(dataElement, "15", changeLogs.get(2)));
+        () -> assertDataElementUpdate(dataElement, "13", "20", changeLogs.get(1)),
+        () -> assertDataElementCreate(dataElement, "13", changeLogs.get(2)));
   }
 
   @Test
   void shouldReturnChangeLogsWhenDataValueIsCreatedUpdatedAndDeleted() throws NotFoundException {
-    String event = "QRYjLTiJTrA";
+    String event = "OTmjvJDn0Fu";
     String dataElement = getDataElement(event);
 
     updateDataValue(event, dataElement, "20");
@@ -266,13 +266,13 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     assertNumberOfChanges(3, changeLogs);
     assertAll(
         () -> assertDataElementDelete(dataElement, "20", changeLogs.get(0)),
-        () -> assertDataElementUpdate(dataElement, "15", "20", changeLogs.get(1)),
-        () -> assertDataElementCreate(dataElement, "15", changeLogs.get(2)));
+        () -> assertDataElementUpdate(dataElement, "13", "20", changeLogs.get(1)),
+        () -> assertDataElementCreate(dataElement, "13", changeLogs.get(2)));
   }
 
   @Test
   void shouldReturnOnlyUserNameWhenUserDoesNotExistInDatabase() throws NotFoundException {
-    Event event = getEvent("QRYjLTiJTrA");
+    Event event = getEvent("OTmjvJDn0Fu");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
     DataElement dataElement = manager.get(DataElement.class, dataElementUid);
     User deletedUser = new User();
@@ -283,19 +283,19 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     List<EventChangeLog> changeLogs =
         getDataElementChangeLogs(
             eventChangeLogService.getEventChangeLog(
-                UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams));
+                UID.of("OTmjvJDn0Fu"), defaultOperationParams, defaultPageParams));
 
     assertNumberOfChanges(2, changeLogs);
     assertAll(
         () ->
             assertUpdate(
                 dataElementUid, null, "previous", "current", changeLogs.get(0), deletedUser),
-        () -> assertDataElementCreate(dataElementUid, "15", changeLogs.get(1)));
+        () -> assertDataElementCreate(dataElementUid, "13", changeLogs.get(1)));
   }
 
   @Test
   void shouldReturnEventFieldChangeLogWhenNewDateFieldValueAdded() throws NotFoundException {
-    String event = "QRYjLTiJTrA";
+    String event = "OTmjvJDn0Fu";
 
     Page<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(
@@ -306,14 +306,14 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     assertNumberOfChanges(1, scheduledAtLogs);
     assertNumberOfChanges(1, occurredAtLogs);
     assertAll(
-        () -> assertFieldCreate("scheduledAt", "2022-04-22 06:00:38.343", scheduledAtLogs.get(0)),
-        () -> assertFieldCreate("occurredAt", "2022-04-20 06:00:38.343", occurredAtLogs.get(0)));
+        () -> assertFieldCreate("scheduledAt", "2022-04-22 06:00:30.562", scheduledAtLogs.get(0)),
+        () -> assertFieldCreate("occurredAt", "2022-04-23 06:00:38.343", occurredAtLogs.get(0)));
   }
 
   @Test
   void shouldReturnEventFieldChangeLogWhenExistingDateFieldUpdated()
       throws IOException, NotFoundException {
-    UID event = UID.of("QRYjLTiJTrA");
+    UID event = UID.of("OTmjvJDn0Fu");
     LocalDateTime currentTime = LocalDateTime.now();
 
     updateEventDates(event, currentTime.toDate().toInstant());
@@ -329,22 +329,22 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
         () ->
             assertFieldUpdate(
                 "scheduledAt",
-                "2022-04-22 06:00:38.343",
+                "2022-04-22 06:00:30.562",
                 currentTime.toString(formatter),
                 scheduledAtLogs.get(0)),
-        () -> assertFieldCreate("scheduledAt", "2022-04-22 06:00:38.343", scheduledAtLogs.get(1)),
+        () -> assertFieldCreate("scheduledAt", "2022-04-22 06:00:30.562", scheduledAtLogs.get(1)),
         () ->
             assertFieldUpdate(
                 "occurredAt",
-                "2022-04-20 06:00:38.343",
+                "2022-04-23 06:00:38.343",
                 currentTime.toString(formatter),
                 occurredAtLogs.get(0)),
-        () -> assertFieldCreate("occurredAt", "2022-04-20 06:00:38.343", occurredAtLogs.get(1)));
+        () -> assertFieldCreate("occurredAt", "2022-04-23 06:00:38.343", occurredAtLogs.get(1)));
   }
 
   @Test
   void shouldReturnEventFieldChangeLogWhenExistingDateFieldDeleted() throws NotFoundException {
-    UID event = UID.of("QRYjLTiJTrA");
+    UID event = UID.of("OTmjvJDn0Fu");
 
     deleteScheduledAtDate(event);
 
@@ -356,15 +356,15 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
     assertNumberOfChanges(2, scheduledAtLogs);
     assertNumberOfChanges(1, occurredAtLogs);
     assertAll(
-        () -> assertFieldDelete("scheduledAt", "2022-04-22 06:00:38.343", scheduledAtLogs.get(0)),
-        () -> assertFieldCreate("scheduledAt", "2022-04-22 06:00:38.343", scheduledAtLogs.get(1)),
-        () -> assertFieldCreate("occurredAt", "2022-04-20 06:00:38.343", occurredAtLogs.get(0)));
+        () -> assertFieldDelete("scheduledAt", "2022-04-22 06:00:30.562", scheduledAtLogs.get(0)),
+        () -> assertFieldCreate("scheduledAt", "2022-04-22 06:00:30.562", scheduledAtLogs.get(1)),
+        () -> assertFieldCreate("occurredAt", "2022-04-23 06:00:38.343", occurredAtLogs.get(0)));
   }
 
   @Test
   void shouldReturnEventFieldChangeLogWhenNewGeometryPointFieldValueAdded()
       throws NotFoundException {
-    String event = "QRYjLTiJTrA";
+    String event = "OTmjvJDn0Fu";
 
     Page<EventChangeLog> changeLogs =
         eventChangeLogService.getEventChangeLog(
@@ -398,7 +398,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnEventFieldChangeLogWhenExistingGeometryPointFieldUpdated()
       throws NotFoundException {
-    UID event = UID.of("QRYjLTiJTrA");
+    UID event = UID.of("OTmjvJDn0Fu");
 
     Geometry geometry = createGeometryPoint(16.435547, 49.26422);
     updateEventGeometry(event, geometry);
@@ -421,7 +421,7 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnEventFieldChangeLogWhenExistingGeometryPointFieldDeleted()
       throws NotFoundException {
-    UID event = UID.of("QRYjLTiJTrA");
+    UID event = UID.of("OTmjvJDn0Fu");
 
     deleteEventGeometry(event);
 
