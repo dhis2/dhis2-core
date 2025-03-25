@@ -159,6 +159,92 @@ check_required_tools() {
     return 0
 }
 
+# Function to parse the document and list versions using JSON.sh
+list_dhis2_versions() {
+  local file="$1"
+
+  # Array to store version information
+  declare -a versions_info
+
+  # Process JSON.sh output and extract version info with awk
+  while IFS=$'\t' read -r name releaseDate supported latestStableUrl; do
+    versions_info+=("$name	$releaseDate	$supported	$latestStableUrl")
+  done < <(./JSON.sh < "$file" | awk '
+  BEGIN {
+    FS = "\t"
+  }
+  {
+    # Remove quotes from path
+    gsub(/"/, "", $1)
+    # Split path into array
+    split($1, path, ",")
+    # Remove [ and ] from path elements
+    for (i in path) {
+      gsub(/[\[\]]/, "", path[i])
+    }
+    len = length(path)
+    # Version object fields (path length 3)
+    if (len == 3 && path[1] == "versions") {
+      ver_index = path[2]
+      ver_field = path[3]
+      if (ver_field == "supported") {
+        versions[ver_index,"supported"] = $2
+      } else if (ver_field == "name" || ver_field == "releaseDate" || ver_field == "latestStableUrl") {
+        # Remove quotes from string values
+        value = substr($2, 2, length($2)-2)
+        versions[ver_index,ver_field] = value
+      }
+      # Track version indices when name is found
+      if (ver_field == "name") {
+        indices[ver_index] = 1
+      }
+    }
+    # Patch version fields (path length 5)
+    else if (len == 5 && path[1] == "versions" && path[3] == "patchVersions") {
+      ver_index = path[2]
+      patch_index = path[4]
+      ver_field = path[5]
+      if (ver_field == "name" || ver_field == "releaseDate") {
+        # Remove quotes from string values
+        value = substr($2, 2, length($2)-2)
+        patches[ver_index,patch_index,ver_field] = value
+      }
+      # Update maximum patch index (force numeric comparison)
+      if ((patch_index + 0) > (max_patch[ver_index] + 0)) {
+        max_patch[ver_index] = patch_index
+      }
+    }
+  }
+  END {
+    # Process each version
+    for (idx in indices) {
+      if (max_patch[idx] != "") {
+        # Use last patch version if patches exist
+        name = patches[idx,max_patch[idx],"name"]
+        releaseDate = patches[idx,max_patch[idx],"releaseDate"]
+      } else {
+        # Use version fields if no patches
+        name = versions[idx,"name"]
+        releaseDate = versions[idx,"releaseDate"]
+      }
+      supported = versions[idx,"supported"]
+      latestStableUrl = versions[idx,"latestStableUrl"]
+      # Output fields tab-separated
+      print name "\t" releaseDate "\t" supported "\t" latestStableUrl
+    }
+  }
+  ')
+
+  # Sort by release date (field 2) in descending order
+  sorted_versions=$(printf '%s\n' "${versions_info[@]}" | sort -k1 -r)
+
+  # Print header and formatted list
+  echo "Version	Release Date	Supported	URL"
+  echo "$sorted_versions" | column -t
+}
+
+
+
 # Check if the WAR file exists at the provided path
 check_war_file() {
     if [ ! -f "$DHIS2_WAR_PATH" ]; then
