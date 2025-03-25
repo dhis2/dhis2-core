@@ -1,5 +1,11 @@
 #!/bin/sh
 
+# JSON.sh - A simple shell-based JSON parser
+# https://github.com/dominictarr/JSON.sh
+# MIT License
+# Apache License 2.0
+
+
 throw() {
   echo "$*" >&2
   exit 1
