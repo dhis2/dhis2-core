@@ -33,8 +33,6 @@ import static java.nio.file.Files.createTempDirectory;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -183,11 +181,9 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
 
     HttpResponse response = GET("/apps/menu");
     assertEquals(HttpStatus.OK, response.status());
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     List<App> modules =
-        mapper.readValue(response.content().get("modules").toJson(), new TypeReference<>() {});
+        App.MAPPER.readValue(response.content().get("modules").toJson(), new TypeReference<>() {});
 
     App installedApp = modules.get(modules.size() - 1);
     AppShortcut firstShortcut = installedApp.getShortcuts().get(0);
@@ -213,11 +209,9 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
 
     HttpResponse response = GET("/apps/menu");
     assertEquals(HttpStatus.OK, response.status());
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     List<App> modules =
-        mapper.readValue(response.content().get("modules").toJson(), new TypeReference<>() {});
+        App.MAPPER.readValue(response.content().get("modules").toJson(), new TypeReference<>() {});
 
     App installedApp = modules.get(modules.size() - 1);
     AppShortcut firstShortcut = installedApp.getShortcuts().get(0);
@@ -239,11 +233,9 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
 
     HttpResponse response = GET("/apps/menu");
     assertEquals(HttpStatus.OK, response.status());
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     List<App> modules =
-        mapper.readValue(response.content().get("modules").toJson(), new TypeReference<>() {});
+        App.MAPPER.readValue(response.content().get("modules").toJson(), new TypeReference<>() {});
 
     Optional<App> installedApp =
         modules.stream().filter(a -> Objects.equals(a.getName(), "test")).findFirst();
@@ -266,11 +258,9 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
 
     HttpResponse response = GET("/apps/menu");
     assertEquals(HttpStatus.OK, response.status());
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     List<App> modules =
-        mapper.readValue(response.content().get("modules").toJson(), new TypeReference<>() {});
+        App.MAPPER.readValue(response.content().get("modules").toJson(), new TypeReference<>() {});
 
     Optional<App> installedApp =
         modules.stream().filter(a -> Objects.equals(a.getName(), "test")).findFirst();
