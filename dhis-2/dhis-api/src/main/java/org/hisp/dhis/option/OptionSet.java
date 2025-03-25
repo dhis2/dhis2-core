@@ -42,6 +42,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
@@ -49,11 +51,22 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.VersionedObject;
 
+import javax.persistence.Cacheable;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.OneToMany;
+
 /**
  * @author Lars Helge Overland
  */
+@Entity
+@Cacheable
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region = "org.hisp.dhis.option.OptionSet")
 @JacksonXmlRootElement(localName = "optionSet", namespace = DxfNamespaces.DXF_2_0)
 public class OptionSet extends BaseIdentifiableObject implements VersionedObject, MetadataObject {
+  @OneToMany(mappedBy = "optionSet", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region = "org.hisp.dhis.option.OptionSet.options")
   private List<Option> options = new ArrayList<>();
 
   private ValueType valueType;
