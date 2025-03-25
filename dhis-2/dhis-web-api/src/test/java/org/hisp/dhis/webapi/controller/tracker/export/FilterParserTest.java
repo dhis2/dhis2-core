@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import static org.hisp.dhis.webapi.controller.tracker.FilterParser.parseFilters;
+import static org.hisp.dhis.webapi.controller.tracker.export.FilterParser.parseFilters;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -52,7 +52,7 @@ class FilterParserTest {
   public static final UID UID_3 = UID.of("cy2oRh2sNr7");
 
   @Test
-  void shouldParseFiltersWithMultipleIdentifiersAndOperators() throws BadRequestException {
+  void shouldParseFiltersWithMultipleDistinctIdentifiersAndOperators() throws BadRequestException {
     Map<UID, List<QueryFilter>> filters =
         parseFilters(UID_1 + ":lt:20:gt:10," + UID_2 + ":like:foo");
 
@@ -67,7 +67,7 @@ class FilterParserTest {
   }
 
   @Test
-  void shouldParseFiltersWithRepeatedIdentifier() throws BadRequestException {
+  void shouldParseFiltersWithMultipleRepeatedIdentifiers() throws BadRequestException {
     Map<UID, List<QueryFilter>> filters =
         parseFilters(UID_1 + ":lt:20," + UID_2 + ":like:foo," + UID_1 + ":gt:10");
 
@@ -126,6 +126,22 @@ class FilterParserTest {
 
     assertEquals(
         Map.of(UID_2, List.of(new QueryFilter(QueryOperator.LIKE, "project:x:eq:2"))), filters);
+  }
+
+  @Test
+  void shouldParseFiltersWithValueContainingEscapedComma() throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters = parseFilters(UID_2 + ":like:project/,x/:eq/:2");
+
+    assertEquals(
+        Map.of(UID_2, List.of(new QueryFilter(QueryOperator.LIKE, "project,x:eq:2"))), filters);
+  }
+
+  @Test
+  void shouldParseFiltersWithValueContainingEscapedSlash() throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters = parseFilters(UID_2 + ":like:project//x/:eq/:2");
+
+    assertEquals(
+        Map.of(UID_2, List.of(new QueryFilter(QueryOperator.LIKE, "project/x:eq:2"))), filters);
   }
 
   @Test
