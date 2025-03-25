@@ -117,13 +117,13 @@ class TypeReportTest {
   void allStatsIgnoredTest() {
     // given
     TypeReport typeReport = new TypeReport(DataElement.class);
-    typeReport.withStatsIncCreated(1);
-    typeReport.withStatsIncUpdated(2);
-    typeReport.withStatsIncDeleted(3);
-    typeReport.withStatsIncIgnored(4);
+    typeReport.createdInc(1);
+    typeReport.updatedInc(2);
+    typeReport.deletedInc(3);
+    typeReport.ignoredInc(4);
 
     // when
-    typeReport.withAllStatsIgnored();
+    typeReport.ignoreAll();
 
     // then
     assertEquals(new Stats(0, 0, 0, 10), typeReport.getStats());
@@ -133,7 +133,7 @@ class TypeReportTest {
   @DisplayName("Type report with decremented delete has correct values")
   void decDeleteTest() {
     TypeReport typeReport = new TypeReport(DataElement.class);
-    typeReport.withStatsDecDeleted(1);
+    typeReport.deletedDec(1);
     assertEquals(new Stats(0, 0, -1, 0), typeReport.getStats());
   }
 }

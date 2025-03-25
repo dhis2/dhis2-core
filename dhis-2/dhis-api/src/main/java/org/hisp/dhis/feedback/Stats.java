@@ -35,6 +35,9 @@ import java.util.Collection;
 import javax.annotation.Nonnull;
 
 /**
+ * New immutable instances are returned for all operations. Make sure to use the returned instance
+ * if updated stats are to be tracked correctly.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author david mackessy
  */
@@ -50,20 +53,24 @@ public record Stats(
     return created + updated + deleted + ignored;
   }
 
-  public Stats withCreated(int created) {
-    return new Stats(this.created + created, this.updated, this.deleted, this.ignored);
+  public Stats createdInc(int amount) {
+    return new Stats(this.created + amount, this.updated, this.deleted, this.ignored);
   }
 
-  public Stats withUpdated(int updated) {
-    return new Stats(this.created, this.updated + updated, this.deleted, this.ignored);
+  public Stats updatedInc(int amount) {
+    return new Stats(this.created, this.updated + amount, this.deleted, this.ignored);
   }
 
-  public Stats withDeleted(int deleted) {
-    return new Stats(this.created, this.updated, this.deleted + deleted, this.ignored);
+  public Stats deletedInc(int amount) {
+    return new Stats(this.created, this.updated, this.deleted + amount, this.ignored);
   }
 
-  public Stats withIgnored(int ignored) {
-    return new Stats(this.created, this.updated, this.deleted, this.ignored + ignored);
+  public Stats deletedDec(int amount) {
+    return new Stats(this.created, this.updated, this.deleted - amount, this.ignored);
+  }
+
+  public Stats ignoredInc(int amount) {
+    return new Stats(this.created, this.updated, this.deleted, this.ignored + amount);
   }
 
   public Stats withStats(@Nonnull Stats stats) {

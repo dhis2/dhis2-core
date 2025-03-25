@@ -87,17 +87,17 @@ public class ValidationFactory {
       List<T> persistedObjects,
       List<T> nonPersistedObjects) {
     if (bundle.getImportMode().isCreateAndUpdate()) {
-      typeReport.withStatsIncCreated(nonPersistedObjects.size());
-      typeReport.withStatsIncUpdated(persistedObjects.size());
+      typeReport.createdInc(nonPersistedObjects.size());
+      typeReport.updatedInc(persistedObjects.size());
 
     } else if (bundle.getImportMode().isCreate()) {
-      typeReport.withStatsIncCreated(nonPersistedObjects.size());
+      typeReport.createdInc(nonPersistedObjects.size());
 
     } else if (bundle.getImportMode().isUpdate()) {
-      typeReport.withStatsIncUpdated(persistedObjects.size());
+      typeReport.updatedInc(persistedObjects.size());
 
     } else if (bundle.getImportMode().isDelete()) {
-      typeReport.withStatsIncDeleted(persistedObjects.size());
+      typeReport.deletedInc(persistedObjects.size());
     }
     return typeReport;
   }

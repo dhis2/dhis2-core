@@ -114,9 +114,9 @@ public class DefaultCollectionService implements CollectionService {
         item -> {
           if (!collection.contains(item)) {
             collection.add(item);
-            report.withStatsIncUpdated(1);
+            report.updatedInc(1);
           } else {
-            report.withStatsIncIgnored(1);
+            report.ignoredInc(1);
           }
         });
     validateAndThrowErrors(() -> schemaValidator.validateProperty(property, object));
@@ -142,9 +142,9 @@ public class DefaultCollectionService implements CollectionService {
             validateAndThrowErrors(() -> schemaValidator.validateProperty(property, object));
             collection.add(object);
             manager.update(item);
-            report.withStatsIncUpdated(1);
+            report.updatedInc(1);
           } else {
-            report.withStatsIncIgnored(1);
+            report.ignoredInc(1);
           }
         });
     entityManager.refresh(object);
@@ -194,9 +194,9 @@ public class DefaultCollectionService implements CollectionService {
         item -> {
           if (collection.contains(item)) {
             collection.remove(item);
-            report.withStatsIncDeleted(1);
+            report.deletedInc(1);
           } else {
-            report.withStatsIncIgnored(1);
+            report.ignoredInc(1);
           }
         });
   }
@@ -221,9 +221,9 @@ public class DefaultCollectionService implements CollectionService {
             validateAndThrowErrors(() -> schemaValidator.validateProperty(owningProperty, item));
             collection.remove(object);
             manager.update(item);
-            report.withStatsIncDeleted(1);
+            report.deletedInc(1);
           } else {
-            report.withStatsIncIgnored(1);
+            report.ignoredInc(1);
           }
         });
     entityManager.refresh(object);
@@ -318,7 +318,7 @@ public class DefaultCollectionService implements CollectionService {
         ObjectReport objectReport = new ObjectReport(itemType, index, item.getUid());
         objectReport.addErrorReport(new ErrorReport(itemType, errorCode, ex.getMessage()));
         report.addObjectReport(objectReport);
-        report.withStatsIncIgnored(1);
+        report.ignoredInc(1);
       }
       index++;
     }
