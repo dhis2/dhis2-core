@@ -65,15 +65,6 @@ public interface TrackerAccessManager {
 
   List<String> canWrite(UserDetails user, TrackedEntity trackedEntity);
 
-  /**
-   * Check if a user has data access to the supplied program and tracked entity type. It also
-   * validates user ownership to the TE/program pair.
-   *
-   * @return empty list if access is granted, list with errors otherwise
-   */
-  List<String> canRead(
-      UserDetails user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck);
-
   List<String> canRead(UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck);
 
   List<String> canCreate(UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck);

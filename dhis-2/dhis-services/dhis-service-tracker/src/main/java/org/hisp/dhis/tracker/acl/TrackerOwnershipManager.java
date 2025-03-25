@@ -65,6 +65,16 @@ public interface TrackerOwnershipManager {
    */
   boolean hasAccess(UserDetails user, TrackedEntity trackedEntity, Program program);
 
+  /**
+   * Check whether the user has access (as owner or has temporarily broken the glass) to the tracked
+   * entity - program combination. If {@code skipOwnershipCheck} is set to {@code true}, the
+   * validation is skipped.
+   *
+   * @return true if the user has access or validation is skipped, false otherwise.
+   */
+  boolean hasAccess(
+      UserDetails user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck);
+
   boolean hasAccess(
       UserDetails user, String trackedEntity, OrganisationUnit organisationUnit, Program program);
 

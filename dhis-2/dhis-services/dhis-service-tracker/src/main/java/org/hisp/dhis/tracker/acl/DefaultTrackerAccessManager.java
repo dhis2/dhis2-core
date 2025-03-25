@@ -35,6 +35,7 @@ import static org.hisp.dhis.tracker.acl.TrackerOwnershipManager.OWNERSHIP_ACCESS
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOption;
@@ -69,7 +70,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   private final ProgramService programService;
 
   @Override
-  public List<String> canRead(@Nonnull UserDetails user, TrackedEntity trackedEntity) {
+  public List<String> canRead(
+      @Nonnull UserDetails user, @CheckForNull TrackedEntity trackedEntity) {
     if (user.isSuper() || trackedEntity == null) {
       return List.of();
     }
@@ -79,7 +81,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   public List<String> canRead(
-      @Nonnull UserDetails user, TrackedEntity trackedEntity, boolean skipOwnershipCheck) {
+      @Nonnull UserDetails user,
+      @CheckForNull TrackedEntity trackedEntity,
+      boolean skipOwnershipCheck) {
     if (user.isSuper() || trackedEntity == null) {
       return List.of();
     }
@@ -88,8 +92,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   private List<String> canRead(
-      UserDetails user,
-      TrackedEntity trackedEntity,
+      @Nonnull UserDetails user,
+      @CheckForNull TrackedEntity trackedEntity,
       List<Program> programs,
       boolean skipOwnershipCheck) {
 
@@ -103,8 +107,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       return List.of(
           "User has no data read access to tracked entity type: " + trackedEntityType.getUid());
     }
-
-    initializeTrackedEntityOrgUnitParents(trackedEntity);
 
     List<Program> tetPrograms =
         programs.stream()
@@ -122,27 +124,11 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     }
 
     if (tetPrograms.stream()
-        .anyMatch(p -> canRead(user, trackedEntity, p, skipOwnershipCheck).isEmpty())) {
+        .anyMatch(
+            p -> ownershipAccessManager.hasAccess(user, trackedEntity, p, skipOwnershipCheck))) {
       return List.of();
     } else {
       return List.of(OWNERSHIP_ACCESS_DENIED);
-    }
-  }
-
-  /**
-   * TODO This is a temporary fix, a more permanent solution needs to be found, maybe store the org
-   * unit path directly in the cache as a string or avoid using an Hibernate object in the cache
-   *
-   * <p>The tracked entity org unit will be used as a fallback in case no owner is found. In that
-   * case, it will be stored in the cache, but it's lazy loaded, meaning org unit parents won't be
-   * loaded unless accessed. This is a problem because we save the org unit object in the cache, and
-   * when we retrieve it, we can't get the value of the parents, since there's no session. We need
-   * the parents to build the org unit path, that later will be used to validate the ownership.
-   */
-  private void initializeTrackedEntityOrgUnitParents(TrackedEntity trackedEntity) {
-    OrganisationUnit organisationUnit = trackedEntity.getOrganisationUnit();
-    while (organisationUnit.getParent() != null) {
-      organisationUnit = organisationUnit.getParent();
     }
   }
 
@@ -173,8 +159,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
           "User has no data read access to tracked entity type: " + trackedEntityType.getUid());
     }
 
-    initializeTrackedEntityOrgUnitParents(trackedEntity);
-
     List<Program> tetPrograms =
         programs.stream()
             .filter(
@@ -200,17 +184,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   private boolean canWrite(UserDetails user, TrackedEntity trackedEntity, Program program) {
     return aclService.canDataWrite(user, program)
         && ownershipAccessManager.hasAccess(user, trackedEntity, program);
-  }
-
-  @Override
-  public List<String> canRead(
-      UserDetails user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck) {
-
-    if (!skipOwnershipCheck && !ownershipAccessManager.hasAccess(user, trackedEntity, program)) {
-      return List.of(OWNERSHIP_ACCESS_DENIED);
-    }
-
-    return List.of();
   }
 
   @Override
