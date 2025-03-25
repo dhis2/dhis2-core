@@ -148,9 +148,7 @@ public class EmailVerification extends BaseE2ETest {
     // http://localhost:8080/dhis-web-login/index.html#/complete-registration?token=aXM0SmVUaEo3bVhrNDZlN0cwVkVadUlNY0JCR1BsYWJnVEdkT3hIT3Fublk6SUN0OW9JQU5FWm1HcUJpaVMxV0xwd3AzR3dvN29LaTRkOHFFMzh3ZEZaNHNVaw&email=jpjdk0ie@dhis2.org&username=invitevlk45rojitc
     int tokenStartIndex = invitationEmail.indexOf("token=");
     assertTrue(tokenStartIndex != -1);
-
     tokenStartIndex += 6;
-    // Find the end of the token (end of URL or whitespace)
     int tokenEndIndex = invitationEmail.indexOf("&", tokenStartIndex);
     return invitationEmail.substring(tokenStartIndex, tokenEndIndex).trim();
   }
