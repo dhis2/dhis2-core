@@ -30,6 +30,7 @@
 package org.hisp.dhis.option.hibernate;
 
 import jakarta.persistence.EntityManager;
+import java.util.Collection;
 import java.util.List;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.UID;
@@ -60,7 +61,7 @@ public class HibernateOptionStore extends HibernateIdentifiableObjectStore<Optio
   // -------------------------------------------------------------------------
 
   @Override
-  public List<Option> getOptions(UID optionSetId, String key, Integer max) {
+  public List<Option> getOptions(UID optionSet, String key, Integer max) {
     String hql =
         "select option from OptionSet as optionset "
             + "join optionset.options as option where optionset.uid = :optionSetId ";
@@ -72,12 +73,38 @@ public class HibernateOptionStore extends HibernateIdentifiableObjectStore<Optio
     hql += "order by option.sortOrder";
 
     Query<Option> query = getQuery(hql);
-    query.setParameter("optionSetId", optionSetId.getValue());
+    query.setParameter("optionSetId", optionSet.getValue());
 
     if (max != null) {
       query.setMaxResults(max);
     }
 
     return query.list();
+  }
+
+  @Override
+  public List<String> getOptionCodes(UID optionSet) {
+    String sql =
+        """
+      select code from optionvalue
+      where optionsetid = (select optionsetid from optionset s where s.uid = :uid)
+      order by sort_order""";
+    return nativeSynchronizedQuery(sql).setParameter("uid", optionSet.getValue()).list();
+  }
+
+  @Override
+  public boolean existsAllOptions(UID optionSet, Collection<String> codes) {
+    String sql =
+        """
+      select count(*) from optionvalue
+      where optionsetid = (select optionsetid from optionset s where s.uid = :uid)
+      and code in :codes
+      """;
+    Object res =
+        nativeSynchronizedQuery(sql)
+            .setParameter("uid", optionSet.getValue())
+            .setParameterList("codes", codes)
+            .getSingleResult();
+    return res instanceof Number n && n.intValue() == codes.size();
   }
 }

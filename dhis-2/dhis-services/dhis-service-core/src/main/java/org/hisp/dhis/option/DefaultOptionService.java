@@ -30,7 +30,9 @@
 package org.hisp.dhis.option;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.UID;
@@ -140,22 +142,32 @@ public class DefaultOptionService implements OptionService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<Option> getOptions(String optionSetId, String key, Integer max) {
+  public List<Option> getOptions(String optionSet, String key, Integer max) {
     List<Option> options;
 
     if (key != null || max != null) {
       // Use query as option set size might be very high
 
-      options = optionStore.getOptions(UID.of(optionSetId), key, max);
+      options = optionStore.getOptions(UID.of(optionSet), key, max);
     } else {
       // Return all from object association to preserve custom order
 
-      OptionSet optionSet = getOptionSet(optionSetId);
-
-      options = new ArrayList<>(optionSet.getOptions());
+      options = new ArrayList<>(getOptionSet(optionSet).getOptions());
     }
 
     return options;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<String> getOptionCodes(@Nonnull String optionSet) {
+    return optionStore.getOptionCodes(UID.of(optionSet));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean existsAllOptions(@Nonnull String optionSet, @Nonnull Collection<String> codes) {
+    return optionStore.existsAllOptions(UID.of(optionSet), codes);
   }
 
   // -------------------------------------------------------------------------

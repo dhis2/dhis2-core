@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.option;
 
+import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.UID;
@@ -38,5 +39,9 @@ import org.hisp.dhis.common.UID;
  */
 public interface OptionStore extends IdentifiableObjectStore<Option> {
 
-  List<Option> getOptions(UID optionSetId, String key, Integer max);
+  List<Option> getOptions(UID optionSet, String key, Integer max);
+
+  List<String> getOptionCodes(UID optionSet);
+
+  boolean existsAllOptions(UID optionSet, Collection<String> codes);
 }

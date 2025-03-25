@@ -29,7 +29,9 @@
  */
 package org.hisp.dhis.option;
 
+import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorMessage;
 
@@ -62,7 +64,15 @@ public interface OptionService {
 
   List<OptionSet> getAllOptionSets();
 
-  List<Option> getOptions(String optionSetId, String name, Integer max);
+  List<Option> getOptions(String optionSet, String name, Integer max);
+
+  /**
+   * @param optionSet UID of the set
+   * @return the codes of all the options of the set in their sort order
+   */
+  List<String> getOptionCodes(@Nonnull String optionSet);
+
+  boolean existsAllOptions(@Nonnull String optionSet, @Nonnull Collection<String> codes);
 
   // -------------------------------------------------------------------------
   // OptionGroup

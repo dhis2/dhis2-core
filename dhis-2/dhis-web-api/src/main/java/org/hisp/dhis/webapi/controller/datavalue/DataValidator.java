@@ -63,6 +63,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -103,6 +104,8 @@ public class DataValidator {
   private final AggregateAccessManager accessManager;
 
   private final UserService userService;
+
+  private final OptionService optionService;
 
   /**
    * Retrieves and verifies a data set.
@@ -494,21 +497,23 @@ public class DataValidator {
   /**
    * Checks if the given data value is a valid association with the OptionSet.
    *
-   * @param dataValue the data value.
+   * @param value the data value.
    * @param optionSet the {@link OptionSet}.
-   * @param dataElement the {@link DataElement}.
+   * @param de the {@link DataElement}.
    * @throws IllegalQueryException if the validation fails.
    */
-  public void validateOptionSet(String dataValue, OptionSet optionSet, DataElement dataElement) {
-    if (isNullOrEmpty(dataValue) || optionSet == null) {
+  public void validateOptionSet(String value, OptionSet optionSet, DataElement de) {
+    if (isNullOrEmpty(value) || optionSet == null) {
       return;
     }
     boolean valid =
-        dataElement.getValueType() != ValueType.MULTI_TEXT
-            ? optionSet.getOptionByCode(dataValue) != null
-            : optionSet.hasAllOptions(ValueType.splitMultiText(dataValue));
+        optionService.existsAllOptions(
+            de.getOptionSet().getUid(),
+            de.getValueType() != ValueType.MULTI_TEXT
+                ? List.of(value)
+                : ValueType.splitMultiText(value));
     if (!valid) {
-      throw new IllegalQueryException(new ErrorMessage(ErrorCode.E2029, dataElement.getUid()));
+      throw new IllegalQueryException(new ErrorMessage(ErrorCode.E2029, de.getUid()));
     }
   }
 
