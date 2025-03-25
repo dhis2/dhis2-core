@@ -63,6 +63,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.tracker.export.FilterParser;
 
 /**
  * RequestParamUtils are functions used to parse and transform tracker request parameters. This
@@ -283,7 +284,7 @@ public class RequestParamsValidator {
   /**
    * Validate the {@code filter} request parameter in change log tracker exporters. Allowed filter
    * values are {@code supportedFieldNames}. Only one field name at a time can be specified. If the
-   * endpoint supports UIDs use {@link #parseFilters(String)}.
+   * endpoint supports UIDs use {@link FilterParser#parseFilters(String)}.
    */
   public static void validateFilter(String filter, Set<Pair<String, Class<?>>> supportedFields)
       throws BadRequestException {
