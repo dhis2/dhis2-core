@@ -47,7 +47,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.*;
 import org.subethamail.wiser.WiserMessage;
 
-public class EmailVerification extends BaseE2ETest {
+public class EmailVerificationTest extends BaseE2ETest {
   @BeforeAll
   static void setup() throws JsonProcessingException {
     startSMTPServer();
