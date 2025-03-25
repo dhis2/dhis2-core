@@ -84,7 +84,7 @@ public class NotOwnerReferencesCheck implements ValidationCheck {
     }
 
     if (typeReport.hasErrorReports() && AtomicMode.ALL == bundle.getAtomicMode()) {
-      typeReport.withStatsIncIgnored(1);
+      typeReport.ignoredInc(1);
     }
 
     return typeReport;
