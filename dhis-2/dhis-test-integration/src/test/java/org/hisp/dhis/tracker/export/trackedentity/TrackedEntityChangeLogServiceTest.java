@@ -271,7 +271,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
       throws NotFoundException, ForbiddenException, BadRequestException {
     String trackedEntity = "dUE514NMOlo";
     String program = "BFcipDERJnf";
-    String programAttribute = "fRGt4l6yIRb";
+    String programAttribute = "dIVt4l5vIOa";
 
     updateAttributeValue(trackedEntity, programAttribute, "updated program attribute value");
 
@@ -284,12 +284,10 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
         () ->
             assertUpdate(
                 programAttribute,
-                "program attribute value",
+                "Frank PTEA",
                 "updated program attribute value",
                 changeLogs.getItems().get(0)),
-        () ->
-            assertCreate(
-                programAttribute, "program attribute value", changeLogs.getItems().get(1)));
+        () -> assertCreate(programAttribute, "Frank PTEA", changeLogs.getItems().get(1)));
   }
 
   private static void assertNumberOfChanges(int expected, List<TrackedEntityChangeLog> changeLogs) {
@@ -305,6 +303,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
   private void assertCreate(
       String trackedEntityAttribute, String currentValue, TrackedEntityChangeLog changeLog) {
     assertAll(
+        "asserting create of tracked entity attribute " + trackedEntityAttribute,
         () -> assertUser(importUser, changeLog),
         () -> assertEquals("CREATE", changeLog.getChangeLogType().name()),
         () -> assertChange(trackedEntityAttribute, null, currentValue, changeLog));
@@ -316,6 +315,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
       String currentValue,
       TrackedEntityChangeLog changeLog) {
     assertAll(
+        "asserting update of tracked entity attribute " + trackedEntityAttribute,
         () -> assertUser(importUser, changeLog),
         () -> assertEquals("UPDATE", changeLog.getChangeLogType().name()),
         () -> assertChange(trackedEntityAttribute, previousValue, currentValue, changeLog));
@@ -324,6 +324,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
   private void assertDelete(
       String trackedEntityAttribute, String previousValue, TrackedEntityChangeLog changeLog) {
     assertAll(
+        "asserting delete of tracked entity attribute " + trackedEntityAttribute,
         () -> assertUser(importUser, changeLog),
         () -> assertEquals("DELETE", changeLog.getChangeLogType().name()),
         () -> assertChange(trackedEntityAttribute, previousValue, null, changeLog));

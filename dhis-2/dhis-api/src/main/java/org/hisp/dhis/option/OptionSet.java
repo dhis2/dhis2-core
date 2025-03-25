@@ -103,10 +103,6 @@ public class OptionSet extends BaseIdentifiableObject implements VersionedObject
     option.setOptionSet(this);
   }
 
-  public void removeAllOptions() {
-    options.clear();
-  }
-
   public void removeOption(Option option) {
     if (!CollectionUtils.isEmpty(options)) {
       options.remove(option);
