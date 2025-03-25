@@ -35,6 +35,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
@@ -138,7 +139,7 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
   }
 
   private RuleEngineEffects evaluateEnrollmentAndEvents(
-      RuleEnrollment enrollment,
+      @CheckForNull RuleEnrollment enrollment,
       @Nonnull List<RuleEvent> events,
       @Nonnull Program program,
       @Nonnull UserDetails user) {
@@ -155,7 +156,7 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
   }
 
   private List<RuleEffects> evaluateProgramRulesForMultipleTrackerObjects(
-      RuleEnrollment ruleEnrollment,
+      @CheckForNull RuleEnrollment ruleEnrollment,
       @Nonnull Program program,
       @Nonnull List<RuleEvent> ruleEvents,
       @Nonnull List<ProgramRule> rules,
