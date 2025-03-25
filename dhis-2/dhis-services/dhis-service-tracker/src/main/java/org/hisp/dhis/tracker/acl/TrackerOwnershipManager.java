@@ -72,6 +72,7 @@ public interface TrackerOwnershipManager {
    *
    * @return true if the user has access or validation is skipped, false otherwise.
    */
+  @Deprecated(forRemoval = true, since = "2.42")
   boolean hasAccess(
       UserDetails user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck);
 
