@@ -522,7 +522,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     assertHasSize(
         2,
         trackedEntityTypeAttributeValues,
-        "test expects the tracked entity to have 2 tracked entity type attribute values");
+        "test expects the tracked entity to have 3 tracked entity type attribute values");
 
     HttpResponse response =
         GET("/tracker/trackedEntities/{id}", te.getUid(), Accept(ContextUtils.CONTENT_TYPE_CSV));
