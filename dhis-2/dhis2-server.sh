@@ -10,6 +10,7 @@ set -e
 # Usage: ./dhis2-server.sh [command] [options]
 #
 # Commands:
+#   install  - Install a DHIS2 version from the official releases
 #   start    - Start the DHIS2 server
 #   stop     - Stop the DHIS2 server
 #   restart  - Restart the DHIS2 server
@@ -37,6 +38,7 @@ JAVA_CMD="java"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VERBOSE=0
 USE_PARAM_HOME=false  # Flag to track if -d parameter was used
+DHIS2_RELEASES_URL="https://releases.dhis2.org/v1/versions/stable.json"
 
 # Initialize path-dependent variables
 initialize_paths() {
@@ -47,10 +49,22 @@ initialize_paths() {
     # Define files using these directories
     PID_FILE="$DHIS2_RUN_DIR/dhis2-server.pid"
     LOG_FILE="$DHIS2_LOGS_DIR/dhis.log"
-    DHIS2_WAR_PATH="$SCRIPT_DIR/dhis-web-server/target/dhis.war"
+
+    # Check for WAR file in different locations
+    if [ -f "$SCRIPT_DIR/dhis.war" ]; then
+        # Use downloaded WAR if available
+        DHIS2_WAR_PATH="$SCRIPT_DIR/dhis.war"
+    else
+        # Use built WAR from target directory
+        DHIS2_WAR_PATH="$SCRIPT_DIR/dhis-web-server/target/dhis.war"
+    fi
 
     # Create necessary directories
     mkdir -p "$DHIS2_LOGS_DIR" "$DHIS2_RUN_DIR" 2>/dev/null || true
+
+    # Create dhis-web-server/target directory if it doesn't exist
+    # This is needed for installations where the WAR file is not built but downloaded
+    mkdir -p "$SCRIPT_DIR/dhis-web-server/target" 2>/dev/null || true
 }
 
 # Java version requirements
@@ -97,6 +111,9 @@ check_required_tools() {
         logs)
             required_tools=("tail|cat")
             ;;
+        install)
+            required_tools=("curl|wget")
+            ;;
     esac
 
     if [ ${#required_tools[@]} -eq 0 ]; then
@@ -115,6 +132,7 @@ check_required_tools() {
     command -v cat > /dev/null && HAVE_CAT=1
     command -v lsof > /dev/null && HAVE_LSOF=1
     command -v ps > /dev/null && HAVE_PS=1
+    command -v jq > /dev/null && HAVE_JQ=1
 
     # Check for missing tools
     for tool in "${required_tools[@]}"; do
@@ -162,6 +180,7 @@ check_required_tools() {
 # Function to parse the document and list versions using JSON.sh
 list_dhis2_versions() {
   local file="$1"
+  local show_list=${2:-true}  # Whether to print the list
 
   # Array to store version information
   declare -a versions_info
@@ -235,21 +254,38 @@ list_dhis2_versions() {
   }
   ')
 
-  # Sort by release date (field 2) in descending order
+  # Sort by version number in descending order
   sorted_versions=$(printf '%s\n' "${versions_info[@]}" | sort -k1 -r)
 
-  # Print header and formatted list
-  echo "Version	Release Date	Supported	URL"
-  echo "$sorted_versions" | column -t
+  # Store the sorted versions in the global variable for use in other functions
+  DHIS2_VERSION_LIST="$sorted_versions"
+
+  if [ "$show_list" = true ]; then
+    # Print header and formatted list
+    echo "Available DHIS2 versions:"
+    echo "------------------------------------------------------------------------------"
+    echo "   Version           | Release Date    | Supported"
+    echo "------------------------------------------------------------------------------"
+
+    # Print versions with numbers for selection
+    local count=1
+    echo "$sorted_versions" | while IFS=$'\t' read -r version date supported url; do
+      printf " %2d) %-16s | %-15s | %s\n" "$count" "$version" "$date" "$supported"
+      count=$((count+1))
+    done
+    echo "------------------------------------------------------------------------------"
+  fi
+
+  return 0
 }
-
-
 
 # Check if the WAR file exists at the provided path
 check_war_file() {
     if [ ! -f "$DHIS2_WAR_PATH" ]; then
         echo "Error: DHIS2 WAR file not found at $DHIS2_WAR_PATH"
-        echo "Please build the application first using: mvn clean package -DskipTests --activate-profiles embedded"
+        echo "Please either:"
+        echo "  1. Build the application using: mvn clean package -DskipTests --activate-profiles embedded"
+        echo "  2. Install a DHIS2 version using: $0 install"
         exit 1
     fi
 }
@@ -323,7 +359,7 @@ check_java_compatibility() {
     if [ -n "$DHIS2_VERSION" ]; then
         # Extract major.minor version (e.g., 2.41 from 2.41.3)
         local MAJOR_MINOR=$(echo "$DHIS2_VERSION" | sed -E 's/^([0-9]+\.[0-9]+).*/\1/')
-        
+
         # Version comparison using string comparison
         if [[ "$(echo -e "$MAJOR_MINOR\n$DHIS2_VERSION_THRESHOLD_MODERN" | sort -V | head -n1)" = "$MAJOR_MINOR" ]]; then
             # Version is less than threshold for modern Java (< 2.41)
@@ -331,7 +367,7 @@ check_java_compatibility() {
                 # Version is less than middle threshold (< 2.38)
                 REQUIRED_JAVA=$JAVA_MIN_VERSION_LEGACY
                 REQUIRED_JAVA_DESC="8"
-            else 
+            else
                 # Version is between 2.38 and 2.41
                 REQUIRED_JAVA=$JAVA_MIN_VERSION_MIDDLE
                 REQUIRED_JAVA_DESC="11 or higher"
@@ -688,6 +724,163 @@ check_health() {
     fi
 }
 
+# Download a file using available tools
+download_file() {
+    local url="$1"
+    local output_file="$2"
+    local success=false
+
+    echo "Downloading $url to $output_file..."
+
+    if [ $HAVE_CURL -eq 1 ]; then
+        echo "Using curl to download..."
+        if curl -L -o "$output_file" "$url" --progress-bar; then
+            success=true
+        fi
+    elif [ $HAVE_WGET -eq 1 ]; then
+        echo "Using wget to download..."
+        if wget -O "$output_file" "$url" --show-progress; then
+            success=true
+        fi
+    else
+        echo "Error: Neither curl nor wget is available. Cannot download the file."
+        return 1
+    fi
+
+    if [ "$success" = true ]; then
+        echo "Download completed successfully."
+        return 0
+    else
+        echo "Download failed."
+        return 1
+    fi
+}
+
+# Create a backup of a file
+backup_file() {
+    local file="$1"
+    local backup_file="${file}.backup-$(date +%Y%m%d%H%M%S)"
+
+    echo "Creating backup of $file as $backup_file"
+    if cp "$file" "$backup_file"; then
+        echo "Backup created successfully."
+        return 0
+    else
+        echo "Failed to create backup."
+        return 1
+    fi
+}
+
+# Install DHIS2 from releases website
+install_dhis2() {
+    echo "============================================"
+    echo "      DHIS2 Version Installation           "
+    echo "============================================"
+
+    # Check for required tools
+    check_required_tools "install" || exit 1
+
+    # Create temporary directory for downloads
+    local TEMP_DIR="$SCRIPT_DIR/dhis2-temp"
+    mkdir -p "$TEMP_DIR"
+
+    # Download the JSON file with available versions
+    local VERSION_JSON="$TEMP_DIR/versions.json"
+    echo "Fetching available DHIS2 versions..."
+    if ! download_file "$DHIS2_RELEASES_URL" "$VERSION_JSON"; then
+        echo "Error: Failed to fetch version information."
+        rm -rf "$TEMP_DIR"
+        exit 1
+    fi
+
+    # Check if JSON.sh is available, if not, download it
+    if [ ! -f "$SCRIPT_DIR/JSON.sh" ]; then
+        echo "JSON.sh not found, downloading..."
+        download_file "https://raw.githubusercontent.com/dominictarr/JSON.sh/master/JSON.sh" "$SCRIPT_DIR/JSON.sh"
+        chmod +x "$SCRIPT_DIR/JSON.sh"
+    fi
+
+    # Parse and list available versions
+    list_dhis2_versions "$VERSION_JSON"
+
+    # Get the latest version (first line of sorted_versions)
+    local latest_version=$(echo "$DHIS2_VERSION_LIST" | head -n1 | cut -f1)
+    local latest_url=$(echo "$DHIS2_VERSION_LIST" | head -n1 | cut -f4)
+
+    # Ask the user if they want to install the latest version or choose another one
+    echo
+    echo "The latest version is $latest_version"
+    read -p "Do you want to install this version? (Y/n): " install_latest
+
+    local selected_version="$latest_version"
+    local download_url="$latest_url"
+
+    if [[ "$install_latest" =~ ^[Nn] ]]; then
+        # Ask the user to select a version by number
+        echo "Please select a version by entering its number:"
+        read -p "Enter version number: " version_num
+
+        # Validate input
+        if ! [[ "$version_num" =~ ^[0-9]+$ ]]; then
+            echo "Error: Invalid input. Please enter a number."
+            rm -rf "$TEMP_DIR"
+            exit 1
+        fi
+
+        # Get the selected version and URL
+        selected_version=$(echo "$DHIS2_VERSION_LIST" | sed -n "${version_num}p" | cut -f1)
+        download_url=$(echo "$DHIS2_VERSION_LIST" | sed -n "${version_num}p" | cut -f4)
+
+        if [ -z "$selected_version" ]; then
+            echo "Error: Invalid version number."
+            rm -rf "$TEMP_DIR"
+            exit 1
+        fi
+
+        echo "You selected version $selected_version"
+    fi
+
+    # Set the WAR file name (the default war path is in the target directory for compiled source)
+    local war_file="$SCRIPT_DIR/dhis.war"
+
+    # Check if WAR file already exists
+    if [ -f "$war_file" ]; then
+        echo "Warning: A DHIS2 WAR file already exists at $war_file"
+        read -p "Do you want to back it up and continue? (Y/n): " backup_continue
+
+        if [[ ! "$backup_continue" =~ ^[Nn] ]]; then
+            backup_file "$war_file" || exit 1
+        else
+            echo "Installation aborted by user."
+            rm -rf "$TEMP_DIR"
+            exit 0
+        fi
+    fi
+
+    # Download the selected version
+    echo "Downloading DHIS2 version $selected_version..."
+    if ! download_file "$download_url" "$war_file"; then
+        echo "Error: Failed to download DHIS2 version $selected_version."
+        rm -rf "$TEMP_DIR"
+        exit 1
+    fi
+
+    echo "============================================"
+    echo "      Installation Complete                "
+    echo "============================================"
+    echo "DHIS2 version $selected_version has been installed to: $war_file"
+    echo
+    echo "To start the server, run:"
+    echo "  $0 start"
+    echo
+    echo "Make sure you have configured dhis.conf in your DHIS2_HOME directory:"
+    echo "  $DHIS2_HOME_DIR"
+
+    # Clean up
+    rm -rf "$TEMP_DIR"
+    return 0
+}
+
 # Parse command line options
 parse_options() {
     local OPTIND
@@ -765,6 +958,7 @@ DHIS2 Server Management Script
 Usage: $0 [command] [options]
 
 Commands:
+  install  - Install a DHIS2 version from the official releases
   start    - Start the DHIS2 server
   stop     - Stop the DHIS2 server
   restart  - Restart the DHIS2 server
@@ -789,6 +983,7 @@ Options:
   -v, --verbose    Enable verbose output
 
 Examples:
+  $0 install      # Install a DHIS2 version from the official releases
   $0 start -d /path/to/dhis2_home -p 8080
   $0 stop
   $0 logs 100     # Show last 100 lines of logs
@@ -869,6 +1064,9 @@ case "$COMMAND" in
     install-service)
         install_systemd_service
         ;;
+    install)
+        install_dhis2
+        ;;
     "")
         echo "Error: Command required."
         show_help
@@ -882,5 +1080,3 @@ case "$COMMAND" in
 esac
 
 exit 0
-
-# python3 /Users/netromsb/develop/dhis2/dhis2-core/dhis-2/dhis2_upgrade.py --dhis2-home /opt/dhis2 --war-path /Users/netromsb/develop/dhis2/dhis2-core/dhis-2/dhis-web-server/target/dhis.war --pid-file /opt/dhis2/run/dhis2-server.pid --java java --script-dir /Users/netromsb/develop/dhis2/dhis2-core/dhis-2 --pom-path /Users/netromsb/develop/dhis2/dhis2-core/dhis-2/pom.xml
