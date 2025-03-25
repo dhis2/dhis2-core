@@ -32,7 +32,6 @@ package org.hisp.dhis.appmanager;
 import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
 
 import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
@@ -91,9 +90,6 @@ public class JCloudsAppStorageService implements AppStorageService {
   private final FileResourceContentStore fileResourceContentStore;
 
   private void discoverInstalledApps(Consumer<App> handler) {
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
     log.info("Starting JClouds discovery");
     for (StorageMetadata resource :
         jCloudsStore.getBlobList(prefix(APPS_DIR + "/").delimiter("/"))) {
@@ -109,7 +105,7 @@ public class JCloudsAppStorageService implements AppStorageService {
 
       try {
         InputStream inputStream = manifest.getPayload().openStream();
-        App app = mapper.readValue(inputStream, App.class);
+        App app = App.MAPPER.readValue(inputStream, App.class);
         inputStream.close();
 
         app.setAppStorageSource(AppStorageSource.JCLOUDS);
@@ -312,10 +308,9 @@ public class JCloudsAppStorageService implements AppStorageService {
   private static void extractManifestTranslations(ZipFile zip, String prefix, App app) {
     try {
       ZipEntry translationFiles = zip.getEntry(prefix + MANIFEST_TRANSLATION_FILENAME);
-      ObjectMapper objectMapper = new ObjectMapper();
-      objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
       List<AppManifestTranslation> appManifestTranslations =
-          objectMapper
+          App.MAPPER
               .readerForListOf(AppManifestTranslation.class)
               .readValue(zip.getInputStream(translationFiles));
       app.setManifestTranslations(appManifestTranslations);

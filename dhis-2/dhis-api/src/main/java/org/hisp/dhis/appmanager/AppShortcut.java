@@ -42,13 +42,11 @@ public class AppShortcut implements Serializable {
   /** Determines if a de-serialized file is compatible with this class. */
   private static final long serialVersionUID = -8865601558938806456L;
 
-  /** Required. */
   @Getter
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   private String name;
 
-  /** Required. */
   @Getter
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
