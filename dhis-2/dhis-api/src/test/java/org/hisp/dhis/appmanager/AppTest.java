@@ -34,8 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -60,9 +58,7 @@ class AppTest {
         FileUtils.readFileToString(
             new File(this.getClass().getResource("/manifest.webapp").getFile()),
             StandardCharsets.UTF_8);
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    this.app = mapper.readValue(appJson, App.class);
+    this.app = App.MAPPER.readValue(appJson, App.class);
     this.app.init("https://example.com");
 
     List<AppShortcut> shortcuts =
@@ -173,9 +169,7 @@ class AppTest {
   }
 
   List<AppManifestTranslation> getTranslation(String translationJSON) throws IOException {
-    ObjectMapper objectMapper = new ObjectMapper();
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    return objectMapper.readerForListOf(AppManifestTranslation.class).readValue(translationJSON);
+    return App.MAPPER.readerForListOf(AppManifestTranslation.class).readValue(translationJSON);
   }
 
   @Test
