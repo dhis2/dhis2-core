@@ -274,7 +274,9 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     trackedEntityAuditService.addTrackedEntityAudit(SEARCH, user.getUsername(), trackedEntities);
 
     // TODO(tracker): Push this filter into the store because it is breaking pagination
-    return trackedEntities.stream().filter(getFilter(user, queryParams)).toList();
+    return trackedEntities.stream()
+        .filter(filterAccessibleTrackedEntities(user, queryParams))
+        .toList();
   }
 
   @Override
@@ -282,7 +284,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     return trackedEntityStore.getOrderableFields();
   }
 
-  private Predicate<TrackedEntity> getFilter(
+  private Predicate<TrackedEntity> filterAccessibleTrackedEntities(
       UserDetails user, TrackedEntityQueryParams queryParams) {
     boolean skipOwnershipCheck = queryParams.getOrgUnitMode() == ALL;
 

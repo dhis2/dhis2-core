@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.tracker.acl;
 
-import static java.util.Collections.emptyList;
 import static org.hisp.dhis.tracker.acl.TrackerOwnershipManager.NO_READ_ACCESS_TO_ORG_UNIT;
 import static org.hisp.dhis.tracker.acl.TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED;
 
@@ -69,12 +68,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   private final TrackerOwnershipManager ownershipAccessManager;
   private final ProgramService programService;
 
-  /**
-   * Check the data read permissions and ownership of a tracked entity given the programs for which
-   * the user has metadata access to.
-   *
-   * @return No errors if a user has access to at least one program
-   */
   @Override
   public List<String> canRead(@Nonnull UserDetails user, TrackedEntity trackedEntity) {
     if (user.isSuper() || trackedEntity == null) {
@@ -84,13 +77,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     return canRead(user, trackedEntity, programService.getAllPrograms(), false);
   }
 
-  /**
-   * Check the data read permissions and ownership of a tracked entity given the programs for which
-   * the user has metadata access to. Ownership validations will be skipped if the flag is set to
-   * true.
-   *
-   * @return No errors if a user has access to at least one program
-   */
   @Override
   public List<String> canRead(
       @Nonnull UserDetails user, TrackedEntity trackedEntity, boolean skipOwnershipCheck) {
@@ -224,7 +210,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       return List.of(OWNERSHIP_ACCESS_DENIED);
     }
 
-    return emptyList();
+    return List.of();
   }
 
   @Override
