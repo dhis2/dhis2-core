@@ -33,6 +33,8 @@ import static java.util.stream.Collectors.toUnmodifiableSet;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
@@ -131,6 +133,17 @@ public class App implements Serializable {
     if (contextPath != null && name != null && pluginLaunchPath != null) {
       this.pluginLaunchUrl = String.join("/", baseUrl, pluginLaunchPath.replaceFirst("^/+", ""));
     }
+  }
+
+  /**
+   * A mapper used for App serialisation and de-serialisation A mapper is often created and
+   * configured when reading from the app manifests during app install and discovery. This provides
+   * one such mapper for convenience and consistency.
+   */
+  public static final ObjectMapper MAPPER = new ObjectMapper();
+
+  static {
+    MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   }
 
   /** Unique identifier for the app. Is based on app-name */
