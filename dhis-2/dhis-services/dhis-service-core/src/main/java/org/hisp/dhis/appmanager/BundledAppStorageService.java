@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.appmanager;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -64,8 +62,6 @@ public class BundledAppStorageService implements AppStorageService {
   private static final String BUNDLED_APP_PREFIX = "dhis-web-";
   private final ResourceLoader resourceLoader;
   private final ResourcePatternResolver resourcePatternResolver;
-
-  private final ObjectMapper objectMapper = new ObjectMapper();
 
   private final Map<String, App> apps = new ConcurrentHashMap<>();
 
@@ -127,8 +123,8 @@ public class BundledAppStorageService implements AppStorageService {
   private App readAppManifest(Resource resource) {
     try {
       InputStream inputStream = resource.getInputStream();
-      objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-      return objectMapper.readValue(inputStream, App.class);
+
+      return App.MAPPER.readValue(inputStream, App.class);
     } catch (IOException e) {
       log.error(e.getLocalizedMessage(), e);
     }
@@ -138,8 +134,7 @@ public class BundledAppStorageService implements AppStorageService {
   private List<AppManifestTranslation> readAppManifestTranslation(Resource resource) {
     try {
       InputStream inputStream = resource.getInputStream();
-      objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-      return objectMapper.readerForListOf(AppManifestTranslation.class).readValue(inputStream);
+      return App.MAPPER.readerForListOf(AppManifestTranslation.class).readValue(inputStream);
     } catch (IOException e) {
       log.error(e.getLocalizedMessage(), e);
       return Collections.emptyList();
