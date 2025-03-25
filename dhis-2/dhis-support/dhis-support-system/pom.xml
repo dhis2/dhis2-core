@@ -263,10 +263,10 @@
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-micrometer</artifactId>
     </dependency>
-    <dependency>
-      <groupId>io.micrometer</groupId>
-      <artifactId>micrometer-spring-legacy</artifactId>
-    </dependency>
+    <!--    <dependency>-->
+    <!--      <groupId>io.micrometer</groupId>-->
+    <!--      <artifactId>micrometer-spring-legacy</artifactId>-->
+    <!--    </dependency>-->
     <dependency>
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-core</artifactId>
