@@ -35,6 +35,7 @@ coverage
 node_modules
 **/rebel.xml
 .vscode
+.cursor
 # ignore generated artifact directory
 docker/artifacts
 # ignore local docker override files
