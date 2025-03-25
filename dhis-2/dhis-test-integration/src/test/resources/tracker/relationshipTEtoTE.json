@@ -1,0 +1,23 @@
+{
+  "trackedEntities": [],
+  "enrollments": [],
+  "events": [],
+  "relationships": [
+    {
+      "relationship": "Hta3Xj2j79R",
+      "relationshipType": {
+        "idScheme": "UID",
+        "identifier": "m1575931405"
+      },
+      "bidirectional": false,
+      "deleted": false,
+      "from": {
+        "trackedEntity": "IOR1AXXl24H"
+      },
+      "to": {
+        "trackedEntity": "Fr9h5ps74jF"
+      }
+    }
+  ],
+  "username": "system-process"
+}
