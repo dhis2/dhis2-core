@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.bundle.persister;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import javax.validation.constraints.NotNull;
 import org.hibernate.Session;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
@@ -122,8 +123,8 @@ public class TrackedEntityPersister
   }
 
   @Override
-  protected String getUpdatedTrackedEntity(TrackedEntityInstance entity) {
-    return null; // We don't need to keep track, Tei has already been
+  protected Set<String> getUpdatedTrackedEntities(TrackedEntityInstance entity) {
+    return Set.of(); // We don't need to keep track, Tei has already been
     // updated
   }
 }
