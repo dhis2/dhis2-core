@@ -40,8 +40,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -182,12 +180,6 @@ public class WebMvcMetricsConfig implements WebMvcConfigurer {
 
   /** Replacement for the legacy WebMvcMetricsFilter that works with Jakarta EE. */
   public static class WebMvcMetricsFilter extends OncePerRequestFilter {
-    private static final Set<String> SERVLET_PATH_ATTRIBUTE_NAMES =
-        Collections.unmodifiableSet(
-            Set.of(
-                HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE,
-                HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE));
-
     private final MeterRegistry registry;
     private final WebMvcTagsProvider tagsProvider;
     private final String metricName;
@@ -253,7 +245,7 @@ public class WebMvcMetricsConfig implements WebMvcConfigurer {
         Exception exception) {
       long endTime = System.nanoTime();
       HandlerMethod handlerMethod =
-          (handler instanceof HandlerMethod) ? (HandlerMethod) handler : null;
+          (handler instanceof HandlerMethod method) ? method : null;
       Iterable<Tag> tags = this.tagsProvider.getTags(request, response, handlerMethod, exception);
       Timer.builder(this.metricName)
           .tags(tags)

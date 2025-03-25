@@ -37,6 +37,7 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceException;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -47,6 +48,7 @@ import org.springframework.context.annotation.Configuration;
 /**
  * @author Luciano Fiandesio
  */
+@Slf4j
 @Configuration
 @Conditional(HibernateMetricsConfig.HibernateMetricsEnabledCondition.class)
 public class HibernateMetricsConfig {
@@ -69,6 +71,10 @@ public class HibernateMetricsConfig {
               List.of())
           .bindTo(registry);
     } catch (PersistenceException ex) {
+      log.debug(
+          "Failed to bind Hibernate metrics for EntityManagerFactory '{}': {}",
+          entityManagerFactoryName,
+          ex.getMessage());
       // Continue
     }
   }
