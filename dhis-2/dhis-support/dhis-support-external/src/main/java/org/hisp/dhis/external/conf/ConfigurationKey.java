@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -742,7 +742,10 @@ public enum ConfigurationKey {
 
   /** Whether to generate a new JWT key if the keystore is missing. */
   OAUTH2_JWT_KEYSTORE_GENERATE_IF_MISSING(
-      "oauth2.server.jwt.keystore.generate-if-missing", "true", false);
+      "oauth2.server.jwt.keystore.generate-if-missing", "true", false),
+
+  /** Ehcache monitoring. (default: off) */
+  MONITORING_EHCACHE_ENABLED("monitoring.ehcache.enabled", Constants.OFF, false);
 
   private final String key;
 
