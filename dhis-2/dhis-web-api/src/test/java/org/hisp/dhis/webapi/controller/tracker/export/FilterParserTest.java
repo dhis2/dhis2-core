@@ -261,7 +261,23 @@ cy2oRh2sNr7:eq:project//""");
   void shouldFailWhenOperatorDoesNotExist() {
     BadRequestException exception =
         assertThrows(BadRequestException.class, () -> parseFilters("TvjwTPToKHO:lke:value"));
+
     assertContains("'lke' is not a valid operator", exception.getMessage());
+  }
+
+  @ValueSource(
+      strings = {
+        "TvjwTPToKHO::null,cy2oRh2sNr6:!null",
+        "TvjwTPToKHO::gt:10",
+        "TvjwTPToKHO::gt:10,",
+        "TvjwTPToKHO::gt:10:",
+      })
+  @ParameterizedTest
+  void shouldFailWhenOperatorIsEmpty(String input) {
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> parseFilters(input));
+
+    assertContains("Missing operator after UID 'TvjwTPToKHO", exception.getMessage());
   }
 
   @Test
@@ -269,6 +285,7 @@ cy2oRh2sNr7:eq:project//""");
     BadRequestException exception =
         assertThrows(
             BadRequestException.class, () -> parseFilters("filterAttributes", "nouid:eq:2"));
+
     assertContains("filterAttributes=nouid:eq:2 is invalid", exception.getMessage());
   }
 
@@ -277,6 +294,7 @@ cy2oRh2sNr7:eq:project//""");
   void shouldFailWhenUIDIsInvalid(String input) {
     BadRequestException exception =
         assertThrows(BadRequestException.class, () -> parseFilters(input));
+
     assertContains("UID must be an alphanumeric string", exception.getMessage());
   }
 
@@ -284,12 +302,11 @@ cy2oRh2sNr7:eq:project//""");
       strings = {
         "TvjwTPToKHO:lt",
         "TvjwTPToKHO:lt:",
+        "TvjwTPToKHO:lt::",
         "TvjwTPToKHO:lt,",
         "TvjwTPToKHO:lt::gt:10",
         "TvjwTPToKHO:lt::gt:10:",
         "TvjwTPToKHO:gt:10:lt",
-        "TvjwTPToKHO::gt:10:lt:",
-        "TvjwTPToKHO::gt:10:lt,",
         "TvjwTPToKHO:null:lt",
         "TvjwTPToKHO:null:lt,",
         "TvjwTPToKHO:null:lt:",
@@ -297,6 +314,7 @@ cy2oRh2sNr7:eq:project//""");
   @ParameterizedTest
   void shouldFailWhenBinaryOperatorIsMissingAValue(String input) {
     Exception exception = assertThrows(BadRequestException.class, () -> parseFilters(input));
+
     assertContains("Binary operator 'lt' must have a value", exception.getMessage());
   }
 
@@ -315,6 +333,7 @@ cy2oRh2sNr7:eq:project//""");
   @ParameterizedTest
   void shouldFailWhenUnaryOperatorHasAValue(String input) {
     Exception exception = assertThrows(BadRequestException.class, () -> parseFilters(input));
+
     assertContains("Unary operator '!null' cannot have a value", exception.getMessage());
   }
 
@@ -322,6 +341,7 @@ cy2oRh2sNr7:eq:project//""");
   void shouldFailParsingFiltersWithUnaryAndBinaryOperatorsCombinedAndUnaryOperatorHavingAValue() {
     Exception exception =
         assertThrows(BadRequestException.class, () -> parseFilters("TvjwTPToKHO:gt:10:null:value"));
+
     assertContains("Unary operator 'null' cannot have a value", exception.getMessage());
   }
 
@@ -335,6 +355,7 @@ cy2oRh2sNr7:eq:project//""");
   @ParameterizedTest
   void shouldFailParsingFiltersWithMoreThanTwoOperatorsForASingleIdentifier(String input) {
     Exception exception = assertThrows(BadRequestException.class, () -> parseFilters(input));
+
     assertStartsWith("A maximum of two operators can be used in a filter", exception.getMessage());
   }
 }
