@@ -264,6 +264,14 @@ cy2oRh2sNr7:eq:project//""");
     assertContains("'lke' is not a valid operator", exception.getMessage());
   }
 
+  @Test
+  void shouldFailReportingTheParameterNameAndInput() {
+    BadRequestException exception =
+        assertThrows(
+            BadRequestException.class, () -> parseFilters("filterAttributes", "nouid:eq:2"));
+    assertContains("filterAttributes=nouid:eq:2 is invalid", exception.getMessage());
+  }
+
   @ValueSource(strings = {"nouid:eq:2", ":", "::", ",:", " ,", ", ,"})
   @ParameterizedTest
   void shouldFailWhenUIDIsInvalid(String input) {

@@ -71,14 +71,31 @@ public class FilterParser {
    * Parse given {@code input} string representing one or more filters for objects referenced by a
    * UID like a tracked entity attribute or data element.
    *
-   * <p>Accumulate {@link QueryFilter}s per UID by parsing given input string of format
-   * {uid}[:{operator}[:{value}]]. Only the UID is mandatory. The value is mandatory and only
-   * allowed for binary operators. Multiple operator or operator:value pairs are allowed. A {@link
-   * QueryFilter} for each operator[:value] pair is added to the corresponding UID in the input
-   * order.
+   * <p>The expected input format is <br>
+   * <code>{uid}[:{operator}[:{value}]][,{uid}[:{operator}[:{value}]]]</code> <br>
+   * The value is mandatory and only allowed for binary operators. Multiple operator or
+   * operator:value pairs are allowed. A {@link QueryFilter} for each operator[:value] pair is added
+   * to the corresponding UID in the input order.
    *
-   * @throws BadRequestException if the input is not a valid filter
+   * <p>This method assumes that the input
+   *
+   * <ul>
+   *   <li>has been percent-decoded already
+   *   <li>only contains ASCII characters
+   * </ul>
+   *
+   * @return accumulated {@link QueryFilter}s per UID
+   * @throws BadRequestException if the input is invalid
    */
+  public static Map<UID, List<QueryFilter>> parseFilters(String parameterName, String input)
+      throws BadRequestException {
+    try {
+      return parseFilters(input);
+    } catch (Exception e) {
+      throw new BadRequestException(parameterName + "=" + input + " is invalid. " + e.getMessage());
+    }
+  }
+
   public static Map<UID, List<QueryFilter>> parseFilters(String input) throws BadRequestException {
     Map<UID, List<QueryFilter>> result = new HashMap<>();
     if (StringUtils.isBlank(input)) {
@@ -105,9 +122,9 @@ public class FilterParser {
       if (curChar == COLON || curChar == COMMA) {
         if (uid == null
             && (curChar == COLON || end - start > 0)) { // empty commas like "," ",," are ignored
-          uid = uid(input, input.substring(start, end));
+          uid = uid(input.substring(start, end));
         } else if (operator == null) {
-          operator = getQueryOperator(input, input.substring(start, end));
+          operator = getQueryOperator(input.substring(start, end));
         } else {
           valueOrOperator = input.substring(start, end);
         }
@@ -116,7 +133,7 @@ public class FilterParser {
 
       // state transitions
       if (curChar == COMMA) { // transition back to initial state
-        addFilter(input, result, uid, operator, valueOrOperator);
+        addFilter(result, uid, operator, valueOrOperator);
 
         uid = null;
         operator = null;
@@ -124,12 +141,11 @@ public class FilterParser {
       } else if (curChar == COLON && valueOrOperator != null) {
         // we only keep track of two segments after the uid so we need to consume at least the first
         // if it is a unary operator or both if its a binary operator
-        Optional<QueryOperator> nextOperator =
-            validateUnaryOperator(input, operator, valueOrOperator);
+        Optional<QueryOperator> nextOperator = validateUnaryOperator(operator, valueOrOperator);
         if (operator.isUnary()) {
-          addFilter(input, result, uid, operator, null);
+          addFilter(result, uid, operator, null);
         } else {
-          addFilter(input, result, uid, operator, valueOrOperator);
+          addFilter(result, uid, operator, valueOrOperator);
         }
 
         // the uid is not reset as it might get another operator or operator:value pair
@@ -142,43 +158,40 @@ public class FilterParser {
 
     if (start < end) { // consume remaining input
       if (uid == null) {
-        uid = uid(input, input.substring(start, end));
+        uid = uid(input.substring(start, end));
       } else if (operator == null) {
-        operator = getQueryOperator(input, input.substring(start, end));
+        operator = getQueryOperator(input.substring(start, end));
       } else {
         valueOrOperator = input.substring(start, end);
       }
     }
-    addFilter(input, result, uid, operator, valueOrOperator);
+    addFilter(result, uid, operator, valueOrOperator);
 
     return result;
   }
 
-  private static UID uid(String input, String uid) throws BadRequestException {
+  private static UID uid(String uid) throws BadRequestException {
     try {
       return UID.of(uid);
     } catch (IllegalArgumentException exception) {
-      throw new BadRequestException("filter " + input + " is invalid. " + exception.getMessage());
+      throw new BadRequestException(exception.getMessage());
     }
   }
 
-  private static QueryOperator getQueryOperator(String input, String operator)
-      throws BadRequestException {
+  private static QueryOperator getQueryOperator(String operator) throws BadRequestException {
     try {
       return QueryOperator.fromString(operator);
     } catch (IllegalArgumentException exception) {
-      throw new BadRequestException(
-          "filter " + input + " is invalid. '" + operator + "' is not a valid operator.");
+      throw new BadRequestException("'" + operator + "' is not a valid operator.");
     }
   }
 
   private static Optional<QueryOperator> validateUnaryOperator(
-      @Nonnull String input, @Nonnull QueryOperator operator, @CheckForNull String valueOrOperator)
+      @Nonnull QueryOperator operator, @CheckForNull String valueOrOperator)
       throws BadRequestException {
     Optional<QueryOperator> nextOperator = findQueryOperator(valueOrOperator);
     if (operator.isUnary() && StringUtils.isNotEmpty(valueOrOperator) && nextOperator.isEmpty()) {
-      throw new BadRequestException(
-          "filter " + input + " is invalid. Unary operator " + operator + " cannot have a value.");
+      throw new BadRequestException("Unary operator " + operator + " cannot have a value.");
     }
     return nextOperator;
   }
@@ -192,7 +205,6 @@ public class FilterParser {
   }
 
   private static void addFilter(
-      @Nonnull String input,
       @Nonnull Map<UID, List<QueryFilter>> result,
       @CheckForNull UID uid,
       @CheckForNull QueryOperator operator,
@@ -209,30 +221,24 @@ public class FilterParser {
     }
 
     if (operator.isBinary() && StringUtils.isEmpty(valueOrOperator)) {
-      throw new BadRequestException(
-          "filter " + input + " is invalid. Binary operator " + operator + " must have a value.");
+      throw new BadRequestException("Binary operator " + operator + " must have a value.");
     }
 
-    Optional<QueryOperator> nextOperator = validateUnaryOperator(input, operator, valueOrOperator);
+    Optional<QueryOperator> nextOperator = validateUnaryOperator(operator, valueOrOperator);
     if (operator.isUnary()) {
       result.get(uid).add(new QueryFilter(operator));
       if (nextOperator.isPresent() && nextOperator.get().isUnary()) {
         result.get(uid).add(new QueryFilter(nextOperator.get()));
       } else if (nextOperator.isPresent() && nextOperator.get().isBinary()) {
         throw new BadRequestException(
-            "filter "
-                + input
-                + " is invalid. Binary operator "
-                + nextOperator.get()
-                + " must have a value.");
+            "Binary operator " + nextOperator.get() + " must have a value.");
       }
     } else {
       result.get(uid).add(new QueryFilter(operator, removeEscapeCharacters(valueOrOperator)));
     }
 
     if (result.get(uid).size() > 2) {
-      throw new BadRequestException(
-          String.format("A maximum of two operators can be used in a filter: %s", input));
+      throw new BadRequestException("A maximum of two operators can be used in a filter.");
     }
   }
 
