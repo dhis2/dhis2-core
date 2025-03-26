@@ -124,14 +124,14 @@ class DefaultTrackerProgramRuleServiceTest extends DhisConvenienceTest {
     when(eventTrackerConverterService.fromForRuleEngine(
             any(TrackerPreheat.class), any(Event.class)))
         .thenReturn(programStageInstances.get(0));
-    when(programRuleEngine.evaluateEnrollmentAndEvents(
+    when(programRuleEngine.evaluateEnrollmentAndTrackerEvents(
             any(ProgramInstance.class), anySet(), anyList()))
         .thenReturn(Collections.emptyList());
 
     defaultTrackerProgramRuleService.calculateRuleEffects(trackerBundle);
 
     Mockito.verify(programRuleEngine, Mockito.times(1))
-        .evaluateEnrollmentAndEvents(any(ProgramInstance.class), anySet(), anyList());
+        .evaluateEnrollmentAndTrackerEvents(any(ProgramInstance.class), anySet(), anyList());
     Mockito.verify(programRuleEngine, Mockito.times(0))
         .evaluateProgramEvent(any(), any(), anyList());
   }
@@ -164,7 +164,7 @@ class DefaultTrackerProgramRuleServiceTest extends DhisConvenienceTest {
     defaultTrackerProgramRuleService.calculateRuleEffects(trackerBundle);
 
     Mockito.verify(programRuleEngine, Mockito.times(0))
-        .evaluateEnrollmentAndEvents(any(ProgramInstance.class), anySet(), anyList());
+        .evaluateEnrollmentAndTrackerEvents(any(ProgramInstance.class), anySet(), anyList());
     Mockito.verify(programRuleEngine, Mockito.times(1)).evaluateProgramEvents(anySet(), any());
   }
 }
