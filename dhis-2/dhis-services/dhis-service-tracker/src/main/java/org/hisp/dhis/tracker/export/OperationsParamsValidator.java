@@ -134,8 +134,7 @@ public class OperationsParamsValidator {
       throw new BadRequestException("Program specified is not a tracker program: " + uid);
     }
 
-    if (program.getTrackedEntityType() != null
-        && !aclService.canDataRead(user, program.getTrackedEntityType())) {
+    if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
       throw new ForbiddenException(
           "User is not authorized to read data from selected program's tracked entity type: "
               + program.getTrackedEntityType().getUid());
