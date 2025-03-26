@@ -297,7 +297,7 @@ cy2oRh2sNr7:eq:project//""");
   @ParameterizedTest
   void shouldFailWhenBinaryOperatorIsMissingAValue(String input) {
     Exception exception = assertThrows(BadRequestException.class, () -> parseFilters(input));
-    assertContains("Binary operator LT must have a value", exception.getMessage());
+    assertContains("Binary operator 'lt' must have a value", exception.getMessage());
   }
 
   @ValueSource(
@@ -315,14 +315,14 @@ cy2oRh2sNr7:eq:project//""");
   @ParameterizedTest
   void shouldFailWhenUnaryOperatorHasAValue(String input) {
     Exception exception = assertThrows(BadRequestException.class, () -> parseFilters(input));
-    assertContains("Unary operator NNULL cannot have a value", exception.getMessage());
+    assertContains("Unary operator '!null' cannot have a value", exception.getMessage());
   }
 
   @Test
   void shouldFailParsingFiltersWithUnaryAndBinaryOperatorsCombinedAndUnaryOperatorHavingAValue() {
     Exception exception =
         assertThrows(BadRequestException.class, () -> parseFilters("TvjwTPToKHO:gt:10:null:value"));
-    assertContains("Unary operator NULL cannot have a value", exception.getMessage());
+    assertContains("Unary operator 'null' cannot have a value", exception.getMessage());
   }
 
   @ValueSource(
