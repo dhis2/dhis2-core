@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.export.FilterParser.parseFilters;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -78,16 +79,15 @@ class FilterParserTest {
         filters);
   }
 
-  @Test
-  void shouldParseFiltersWithIdentifierOnly() throws BadRequestException {
-    Map<UID, List<QueryFilter>> filters = parseFilters("TvjwTPToKHO");
-
-    assertEquals(Map.of(UID.of("TvjwTPToKHO"), List.of()), filters);
-  }
-
-  @Test
-  void shouldParseFiltersWithIdentifierAndTrailingColon() throws BadRequestException {
-    Map<UID, List<QueryFilter>> filters = parseFilters("TvjwTPToKHO:");
+  @ValueSource(
+      strings = {
+        "TvjwTPToKHO",
+        "TvjwTPToKHO:",
+        "TvjwTPToKHO,",
+      })
+  @ParameterizedTest
+  void shouldParseFiltersWithIdentifierOnly(String input) throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters = parseFilters(input);
 
     assertEquals(Map.of(UID.of("TvjwTPToKHO"), List.of()), filters);
   }
@@ -162,14 +162,10 @@ class FilterParserTest {
   void shouldParseFiltersWithEscapedSlashAndComma() throws BadRequestException {
     Map<UID, List<QueryFilter>> filters =
         parseFilters(
-            "TvjwTPToKHO"
-                + ":eq:project///,/,//"
-                + ","
-                + "cy2oRh2sNr6"
-                + ":eq:project//"
-                + ","
-                + "cy2oRh2sNr7"
-                + ":eq:project//");
+            """
+TvjwTPToKHO:eq:project///,/,//,\
+cy2oRh2sNr6:eq:project//,\
+cy2oRh2sNr7:eq:project//""");
 
     assertEquals(
         Map.of(
@@ -195,18 +191,25 @@ class FilterParserTest {
         filters);
   }
 
-  @Test
-  void shouldParseFiltersWithSingleUnaryOperator() throws BadRequestException {
-    Map<UID, List<QueryFilter>> filters = parseFilters("TvjwTPToKHO:!null");
+  @ValueSource(strings = {"TvjwTPToKHO:!null", "TvjwTPToKHO:!null:", "TvjwTPToKHO:!null,"})
+  @ParameterizedTest
+  void shouldParseFiltersWithSingleUnaryOperator(String input) throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters = parseFilters(input);
 
     assertEquals(
         Map.of(UID.of("TvjwTPToKHO"), List.of(new QueryFilter(QueryOperator.NNULL))), filters);
   }
 
-  @Test
-  void shouldParseFiltersWithSingleIdentifierAndMultipleUnaryOperators()
+  @ValueSource(
+      strings = {
+        "TvjwTPToKHO:!null:null",
+        "TvjwTPToKHO:!null:null:",
+        "TvjwTPToKHO:!null:null,",
+      })
+  @ParameterizedTest
+  void shouldParseFiltersWithSingleIdentifierAndMultipleUnaryOperators(String input)
       throws BadRequestException {
-    Map<UID, List<QueryFilter>> filters = parseFilters("TvjwTPToKHO:!null:null");
+    Map<UID, List<QueryFilter>> filters = parseFilters(input);
 
     assertEquals(
         Map.of(
@@ -242,6 +245,7 @@ class FilterParserTest {
         "TvjwTPToKHO:lt::gt:10:",
         "TvjwTPToKHO:gt:10:lt",
         "TvjwTPToKHO::gt:10:lt:",
+        "TvjwTPToKHO::gt:10:lt,",
       })
   @ParameterizedTest
   void shouldFailWhenBinaryOperatorIsMissingAValue(String input) {
@@ -263,12 +267,16 @@ class FilterParserTest {
     assertContains("Unary operator NULL cannot have a value", exception.getMessage());
   }
 
-  @Test
-  void shouldFailParsingFiltersWithMoreThanTwoOperatorsForASingleIdentifier() {
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> parseFilters("TvjwTPToKHO:gt:10:null:!null"));
-    assertEquals(
-        "A maximum of two operators can be used in a filter: TvjwTPToKHO:gt:10:null:!null",
-        exception.getMessage());
+  @ValueSource(
+      strings = {
+        "TvjwTPToKHO:gt:10:null:!null",
+        "TvjwTPToKHO:gt:10:null:!null:",
+        "TvjwTPToKHO:gt:10:null,TvjwTPToKHO:!null",
+        "TvjwTPToKHO:gt:10:null:!null",
+      })
+  @ParameterizedTest
+  void shouldFailParsingFiltersWithMoreThanTwoOperatorsForASingleIdentifier(String input) {
+    Exception exception = assertThrows(BadRequestException.class, () -> parseFilters(input));
+    assertStartsWith("A maximum of two operators can be used in a filter", exception.getMessage());
   }
 }
