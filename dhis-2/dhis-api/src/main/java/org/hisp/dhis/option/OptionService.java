@@ -65,7 +65,8 @@ public interface OptionService {
 
   List<OptionSet> getAllOptionSets();
 
-  List<Option> getOptions(String optionSet, String name, Integer max);
+  List<Option> findOptionsByNamePattern(
+      @Nonnull String optionSet, @CheckForNull String infix, @CheckForNull Integer maxResults);
 
   boolean existsAllOptions(@Nonnull String optionSet, @Nonnull Collection<String> codes);
 

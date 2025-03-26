@@ -29,9 +29,9 @@
  */
 package org.hisp.dhis.option;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectStore;
@@ -142,20 +142,9 @@ public class DefaultOptionService implements OptionService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<Option> getOptions(String optionSet, String key, Integer max) {
-    List<Option> options;
-
-    if (key != null || max != null) {
-      // Use query as option set size might be very high
-
-      options = optionStore.getOptions(UID.of(optionSet), key, max);
-    } else {
-      // Return all from object association to preserve custom order
-
-      options = new ArrayList<>(getOptionSet(optionSet).getOptions());
-    }
-
-    return options;
+  public List<Option> findOptionsByNamePattern(
+      @Nonnull String optionSet, @CheckForNull String infix, @CheckForNull Integer maxResults) {
+    return optionStore.findOptionsByNamePattern(UID.of(optionSet), infix, maxResults);
   }
 
   @Override

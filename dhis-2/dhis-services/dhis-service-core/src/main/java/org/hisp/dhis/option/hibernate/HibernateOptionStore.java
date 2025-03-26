@@ -63,13 +63,13 @@ public class HibernateOptionStore extends HibernateIdentifiableObjectStore<Optio
   // -------------------------------------------------------------------------
 
   @Override
-  public List<Option> getOptions(UID optionSet, String key, Integer max) {
+  public List<Option> findOptionsByNamePattern(UID optionSet, String infix, Integer maxResults) {
     String hql =
         "select option from OptionSet as optionset "
             + "join optionset.options as option where optionset.uid = :optionSetId ";
 
-    if (key != null) {
-      hql += "and lower(option.name) like lower('%" + key + "%') ";
+    if (infix != null && !infix.isEmpty()) {
+      hql += "and lower(option.name) like lower('%" + infix + "%') ";
     }
 
     hql += "order by option.sortOrder";
@@ -77,8 +77,8 @@ public class HibernateOptionStore extends HibernateIdentifiableObjectStore<Optio
     Query<Option> query = getQuery(hql);
     query.setParameter("optionSetId", optionSet.getValue());
 
-    if (max != null) {
-      query.setMaxResults(max);
+    if (maxResults != null) {
+      query.setMaxResults(maxResults);
     }
 
     return query.list();

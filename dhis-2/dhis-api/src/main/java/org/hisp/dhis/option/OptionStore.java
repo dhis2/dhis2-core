@@ -41,7 +41,7 @@ import org.hisp.dhis.common.UID;
  */
 public interface OptionStore extends IdentifiableObjectStore<Option> {
 
-  List<Option> getOptions(UID optionSet, String key, Integer max);
+  List<Option> findOptionsByNamePattern(UID optionSet, String infix, Integer maxResults);
 
   boolean existsAllOptions(@Nonnull UID optionSet, @Nonnull Collection<String> codes);
 
