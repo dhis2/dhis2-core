@@ -1,0 +1,291 @@
+package org.hisp.dhis.webapi.controller.tracker.export;
+
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.parseFilters;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+import java.util.Map;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+public class FilterParserTestsAgainstOldFunction {
+  @Test
+  void shouldParseFiltersWithMultipleDistinctIdentifiersAndOperators() throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters =
+        parseFilters("TvjwTPToKHO:lt:20:gt:10,cy2oRh2sNr6:like:foo");
+
+    assertEquals(
+        Map.of(
+            UID.of("TvjwTPToKHO"),
+            List.of(
+                new QueryFilter(QueryOperator.LT, "20"), new QueryFilter(QueryOperator.GT, "10")),
+            UID.of("cy2oRh2sNr6"),
+            List.of(new QueryFilter(QueryOperator.LIKE, "foo"))),
+        filters);
+  }
+
+  @Test
+  void shouldParseFiltersWithMultipleRepeatedIdentifiers() throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters =
+        parseFilters("TvjwTPToKHO:lt:20,cy2oRh2sNr6:like:foo,TvjwTPToKHO:gt:10");
+
+    assertEquals(
+        Map.of(
+            UID.of("TvjwTPToKHO"),
+            List.of(
+                new QueryFilter(QueryOperator.LT, "20"), new QueryFilter(QueryOperator.GT, "10")),
+            UID.of("cy2oRh2sNr6"),
+            List.of(new QueryFilter(QueryOperator.LIKE, "foo"))),
+        filters);
+  }
+
+  @ValueSource(
+      strings = {
+          "TvjwTPToKHO",
+          "TvjwTPToKHO:",
+          "TvjwTPToKHO,",
+      })
+  @ParameterizedTest
+  void shouldParseFiltersWithIdentifierOnly(String input) throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters = parseFilters(input);
+
+    assertEquals(Map.of(UID.of("TvjwTPToKHO"), List.of()), filters);
+  }
+
+  @Test
+  void shouldParseFiltersWithIdentifiersOnly() throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters = parseFilters("TvjwTPToKHO,cy2oRh2sNr6");
+
+    assertEquals(
+        Map.of(UID.of("TvjwTPToKHO"), List.of(), UID.of("cy2oRh2sNr6"), List.of()), filters);
+  }
+
+  @Test
+  void shouldParseFiltersWithBlankInput() throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters = parseFilters(" ");
+
+    assertTrue(filters.isEmpty());
+  }
+
+  @Test
+  void shouldParseFiltersWithValueContainingEscapedColon() throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters = parseFilters("cy2oRh2sNr6:like:project/:x/:eq/:2");
+
+    assertEquals(
+        Map.of(
+            UID.of("cy2oRh2sNr6"), List.of(new QueryFilter(QueryOperator.LIKE, "project:x:eq:2"))),
+        filters);
+  }
+
+  @Test
+  void shouldParseFiltersWithValueContainingEscapedComma() throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters = parseFilters("cy2oRh2sNr6:like:project/,x/:eq/:2");
+
+    assertEquals(
+        Map.of(
+            UID.of("cy2oRh2sNr6"), List.of(new QueryFilter(QueryOperator.LIKE, "project,x:eq:2"))),
+        filters);
+  }
+
+  @Test
+  void shouldParseFiltersWithValueContainingEscapedSlash() throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters = parseFilters("cy2oRh2sNr6:like:project//x/:eq/:2");
+
+    assertEquals(
+        Map.of(
+            UID.of("cy2oRh2sNr6"), List.of(new QueryFilter(QueryOperator.LIKE, "project/x:eq:2"))),
+        filters);
+  }
+
+  @Test
+  void shouldParseFiltersWithDateRangeContainingEscapedColon() throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters =
+        parseFilters(
+            "TvjwTPToKHO:ge:2020-01-01T00/:00/:00.001 +05/:30:le:2021-01-01T00/:00/:00.001 +05/:30");
+
+    assertEquals(
+        Map.of(
+            UID.of("TvjwTPToKHO"),
+            List.of(
+                new QueryFilter(QueryOperator.GE, "2020-01-01T00:00:00.001 +05:30"),
+                new QueryFilter(QueryOperator.LE, "2021-01-01T00:00:00.001 +05:30"))),
+        filters);
+  }
+
+  @Test
+  void shouldParseFiltersWithTextRangeContainingEscapedColon() throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters =
+        parseFilters("TvjwTPToKHO:sw:project/:x:ew:project/:le/:");
+
+    assertEquals(
+        Map.of(
+            UID.of("TvjwTPToKHO"),
+            List.of(
+                new QueryFilter(QueryOperator.SW, "project:x"),
+                new QueryFilter(QueryOperator.EW, "project:le:"))),
+        filters);
+  }
+
+  @Test
+  void shouldParseFiltersWithEscapedSlashAndComma() throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters =
+        parseFilters(
+            """
+TvjwTPToKHO:eq:project///,/,//,\
+cy2oRh2sNr6:eq:project//,\
+cy2oRh2sNr7:eq:project//""");
+
+    assertEquals(
+        Map.of(
+            UID.of("TvjwTPToKHO"),
+            List.of(new QueryFilter(QueryOperator.EQ, "project/,,/")),
+            UID.of("cy2oRh2sNr6"),
+            List.of(new QueryFilter(QueryOperator.EQ, "project/")),
+            UID.of("cy2oRh2sNr7"),
+            List.of(new QueryFilter(QueryOperator.EQ, "project/"))),
+        filters);
+  }
+
+  @Test
+  void shouldParseFiltersWithMultipleOperatorsAndEscapedColon() throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters = parseFilters("TvjwTPToKHO:like:value1/::like:value2");
+
+    assertEquals(
+        Map.of(
+            UID.of("TvjwTPToKHO"),
+            List.of(
+                new QueryFilter(QueryOperator.LIKE, "value1:"),
+                new QueryFilter(QueryOperator.LIKE, "value2"))),
+        filters);
+  }
+
+  @ValueSource(strings = {"TvjwTPToKHO:!null", "TvjwTPToKHO:!null:", "TvjwTPToKHO:!null,"})
+  @ParameterizedTest
+  void shouldParseFiltersWithSingleUnaryOperator(String input) throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters = parseFilters(input);
+
+    assertEquals(
+        Map.of(UID.of("TvjwTPToKHO"), List.of(new QueryFilter(QueryOperator.NNULL))), filters);
+  }
+
+  @ValueSource(
+      strings = {
+          "TvjwTPToKHO:!null:null",
+          "TvjwTPToKHO:!null:null:",
+          "TvjwTPToKHO:!null:null,",
+      })
+  @ParameterizedTest
+  void shouldParseFiltersWithSingleIdentifierAndMultipleUnaryOperators(String input)
+      throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters = parseFilters(input);
+
+    assertEquals(
+        Map.of(
+            UID.of("TvjwTPToKHO"),
+            List.of(new QueryFilter(QueryOperator.NNULL), new QueryFilter(QueryOperator.NULL))),
+        filters);
+  }
+
+  @Test
+  void shouldParseFiltersWithCombinedUnaryAndBinaryOperators() throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters = parseFilters("TvjwTPToKHO:null:gt:10");
+
+    assertEquals(
+        Map.of(
+            UID.of("TvjwTPToKHO"),
+            List.of(new QueryFilter(QueryOperator.NULL), new QueryFilter(QueryOperator.GT, "10"))),
+        filters);
+  }
+
+  @Test
+  void shouldParseFiltersWithBinaryOperatorValueBeingNull() throws BadRequestException {
+    // null is not a reserved keyword like in Java so it will be used as a value if it follows a
+    // binary operator
+    Map<UID, List<QueryFilter>> filters = parseFilters("TvjwTPToKHO:eq:null");
+
+    assertEquals(
+        Map.of(UID.of("TvjwTPToKHO"), List.of(new QueryFilter(QueryOperator.EQ, "null"))), filters);
+  }
+
+  @Test
+  void shouldFailWhenOperatorDoesNotExist() {
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> parseFilters("TvjwTPToKHO:lke:value"));
+    assertContains("'lke' is not a valid operator", exception.getMessage());
+  }
+
+  @ValueSource(strings = {"nouid:eq:2", ":", "::", ",,", ",:", ","})
+  @ParameterizedTest
+  void shouldFailWhenUIDIsInvalid(String input) {
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> parseFilters(input));
+    assertContains("UID must be an alphanumeric string", exception.getMessage());
+  }
+
+  @ValueSource(
+      strings = {
+          "TvjwTPToKHO:lt",
+          "TvjwTPToKHO:lt:",
+          "TvjwTPToKHO:lt,",
+          "TvjwTPToKHO:lt::gt:10",
+          "TvjwTPToKHO:lt::gt:10:",
+          "TvjwTPToKHO:gt:10:lt",
+          "TvjwTPToKHO::gt:10:lt:",
+          "TvjwTPToKHO::gt:10:lt,",
+          "TvjwTPToKHO:null:lt",
+          "TvjwTPToKHO:null:lt,",
+          "TvjwTPToKHO:null:lt:",
+      })
+  @ParameterizedTest
+  void shouldFailWhenBinaryOperatorIsMissingAValue(String input) {
+    Exception exception = assertThrows(BadRequestException.class, () -> parseFilters(input));
+    assertContains("Binary operator LT must have a value", exception.getMessage());
+  }
+
+  @ValueSource(
+      strings = {
+          "TvjwTPToKHO:null:!null:value",
+          "TvjwTPToKHO:!null:value:eq:2",
+          "TvjwTPToKHO:!null:value",
+          "TvjwTPToKHO:null:!null:value:",
+          "TvjwTPToKHO:!null:value:eq:2:",
+          "TvjwTPToKHO:!null:value:",
+          "TvjwTPToKHO:null:!null:value,",
+          "TvjwTPToKHO:!null:value:eq:2,",
+          "TvjwTPToKHO:!null:value,"
+      })
+  @ParameterizedTest
+  void shouldFailWhenUnaryOperatorHasAValue(String input) {
+    Exception exception = assertThrows(BadRequestException.class, () -> parseFilters(input));
+    assertContains("Unary operator NNULL cannot have a value", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailParsingFiltersWithUnaryAndBinaryOperatorsCombinedAndUnaryOperatorHavingAValue() {
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> parseFilters("TvjwTPToKHO:gt:10:null:value"));
+    assertContains("Unary operator NULL cannot have a value", exception.getMessage());
+  }
+
+  @ValueSource(
+      strings = {
+          "TvjwTPToKHO:gt:10:null:!null",
+          "TvjwTPToKHO:gt:10:null:!null:",
+          "TvjwTPToKHO:gt:10:null,TvjwTPToKHO:!null",
+          "TvjwTPToKHO:gt:10:null:!null",
+      })
+  @ParameterizedTest
+  void shouldFailParsingFiltersWithMoreThanTwoOperatorsForASingleIdentifier(String input) {
+    Exception exception = assertThrows(BadRequestException.class, () -> parseFilters(input));
+    assertStartsWith("A maximum of two operators can be used in a filter", exception.getMessage());
+  }
+}
