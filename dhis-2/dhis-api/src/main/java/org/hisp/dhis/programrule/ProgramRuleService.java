@@ -28,7 +28,6 @@
 package org.hisp.dhis.programrule;
 
 import java.util.List;
-import java.util.Set;
 import org.hisp.dhis.program.Program;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -96,10 +95,9 @@ public interface ProgramRuleService {
    */
   List<ProgramRule> getAllProgramRule();
 
-  List<ProgramRule> getProgramRulesByActionTypes(Program program, Set<ProgramRuleActionType> types);
+  List<ProgramRule> getProgramRules(Program program);
 
-  List<ProgramRule> getProgramRulesByActionTypes(
-      Program program, Set<ProgramRuleActionType> serverSupportedTypes, String programStageUid);
+  List<ProgramRule> getProgramRules(Program program, String programStageUid);
 
   /**
    * Get validation by {@link Program}
@@ -116,7 +114,7 @@ public interface ProgramRuleService {
    * @param key Search Program Rule by key
    * @return ProgramRule list
    */
-  List<ProgramRule> getProgramRules(Program program, String key);
+  List<ProgramRule> getProgramRulesByKey(Program program, String key);
 
   /**
    * @return all {@link ProgramRule} with no priority

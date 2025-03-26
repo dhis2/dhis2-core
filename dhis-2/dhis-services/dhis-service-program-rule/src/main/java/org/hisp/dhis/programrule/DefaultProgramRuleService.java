@@ -28,7 +28,6 @@
 package org.hisp.dhis.programrule;
 
 import java.util.List;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.Program;
 import org.springframework.stereotype.Service;
@@ -105,17 +104,14 @@ public class DefaultProgramRuleService implements ProgramRuleService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<ProgramRule> getProgramRulesByActionTypes(
-      Program program, Set<ProgramRuleActionType> actionTypes) {
-    return programRuleStore.getProgramRulesByActionTypes(program, actionTypes);
+  public List<ProgramRule> getProgramRules(Program program) {
+    return programRuleStore.getProgramRules(program);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<ProgramRule> getProgramRulesByActionTypes(
-      Program program, Set<ProgramRuleActionType> serverSupportedTypes, String programStageUid) {
-    return programRuleStore.getProgramRulesByActionTypes(
-        program, serverSupportedTypes, programStageUid);
+  public List<ProgramRule> getProgramRules(Program program, String programStageUid) {
+    return programRuleStore.getProgramRules(program, programStageUid);
   }
 
   @Override
@@ -126,7 +122,7 @@ public class DefaultProgramRuleService implements ProgramRuleService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<ProgramRule> getProgramRules(Program program, String key) {
+  public List<ProgramRule> getProgramRulesByKey(Program program, String key) {
     return programRuleStore.get(program, key);
   }
 

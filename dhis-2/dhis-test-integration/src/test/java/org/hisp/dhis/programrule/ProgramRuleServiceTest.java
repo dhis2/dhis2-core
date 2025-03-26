@@ -357,11 +357,11 @@ class ProgramRuleServiceTest extends IntegrationTestBase {
     // part of list of rules in program B.
     assertFalse(rules.contains(ruleG));
     assertEquals(ruleD.getId(), programRuleService.getProgramRuleByName("RuleD", programB).getId());
-    assertEquals(3, programRuleService.getProgramRules(programB, "rule").size());
+    assertEquals(3, programRuleService.getProgramRulesByKey(programB, "rule").size());
   }
 
   @Test
-  void testGetProgramRulesByActionTypes() {
+  void testGetProgramRules() {
     ProgramRule ruleD =
         new ProgramRule("RuleD", "descriptionD", programB, null, null, "true", null);
     ProgramRule ruleE = new ProgramRule("RuleE", "descriptionE", programB, null, null, "$a < 1", 1);
@@ -377,9 +377,7 @@ class ProgramRuleServiceTest extends IntegrationTestBase {
     ruleD.setProgramRuleActions(Sets.newHashSet(actionD));
     programRuleService.updateProgramRule(ruleD);
     // Get all the 3 rules for programB
-    List<ProgramRule> rules =
-        programRuleService.getProgramRulesByActionTypes(
-            programB, ProgramRuleActionType.IMPLEMENTED_ACTIONS);
+    List<ProgramRule> rules = programRuleService.getProgramRules(programB);
     assertEquals(1, rules.size());
     assertTrue(rules.contains(ruleD));
     assertFalse(rules.contains(ruleG));
@@ -439,11 +437,9 @@ class ProgramRuleServiceTest extends IntegrationTestBase {
     entityManager.clear();
     entityManager.flush();
 
-    List<ProgramRule> rules =
-        programRuleService.getProgramRulesByActionTypes(
-            programB, ProgramRuleActionType.SERVER_SUPPORTED_TYPES, null);
+    List<ProgramRule> rules = programRuleService.getProgramRules(programB);
 
-    assertContainsOnly(rules, List.of(ruleD, ruleG));
+    assertContainsOnly(rules, List.of(ruleD, ruleG, ruleF));
   }
 
   @Test

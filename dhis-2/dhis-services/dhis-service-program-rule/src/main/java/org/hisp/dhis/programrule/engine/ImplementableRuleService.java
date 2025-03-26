@@ -29,29 +29,25 @@ package org.hisp.dhis.programrule.engine;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
 
 @RequiredArgsConstructor
 abstract class ImplementableRuleService {
   private final ProgramRuleService programRuleService;
 
-  abstract List<ProgramRule> getProgramRulesByActionTypes(Program program, String programStageUid);
-
   abstract Cache<Boolean> getProgramHasRulesCache();
 
   protected List<ProgramRule> getProgramRulesByActionTypes(
-      Program program, Set<ProgramRuleActionType> types, String programStageUid) {
+      Program program, String programStageUid) {
     if (programStageUid == null) {
-      return programRuleService.getProgramRulesByActionTypes(program, types);
+      return programRuleService.getProgramRules(program);
     } else {
-      return programRuleService.getProgramRulesByActionTypes(program, types, programStageUid);
+      return programRuleService.getProgramRules(program, programStageUid);
     }
   }
 
