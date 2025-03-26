@@ -80,11 +80,12 @@ public class FilterParser {
     }
 
     int start = 0, end = 0;
-    UID currentUid = null;
-    QueryOperator currentOperator = null;
+    UID uid = null;
+    QueryOperator operator = null;
+    String valueOrOperator = null;
     while (end < input.length()) {
       char curChar = input.charAt(end);
-      // skip escaped slash and segment/filter separators
+      // skip escaped slash, colon and comma which allow users to pass them as part of values
       if (curChar == '/'
           && end + 1 < input.length()
           && (input.charAt(end + 1) == '/'
@@ -94,61 +95,60 @@ public class FilterParser {
         continue;
       }
 
-      if (curChar == ':') { // new segment causes state transition
-        if (currentUid == null) {
-          currentUid = UID.of(input.substring(start, end));
-        } else if (currentOperator == null) {
-          currentOperator = getQueryOperator(input, input.substring(start, end));
-        } else if (currentOperator.isUnary()) { // consume unary operator
-          addFilter(input, result, currentUid, currentOperator, null);
-
-          // the current segment might be the next operator or be an invalid attempt at providing a
-          // value to a unary operator
-          // TODO what test is currently targeting this case? could we provide a better error
-          // message?
-          currentOperator = getQueryOperator(input, input.substring(start, end));
-        } else { // consume binary operator:value
-          addFilter(input, result, currentUid, currentOperator, input.substring(start, end));
-
-          // currentUid might get another operator or operator:value pair
-          currentOperator = null;
-        }
-
-        start = end + 1;
-      } else if (curChar == ',') { // new filter causes state transition to initial state
-        String valueOrOperator = null;
-        if (currentUid == null) {
-          currentUid = UID.of(input.substring(start, end));
-        } else if (currentOperator == null) {
-          currentOperator = getQueryOperator(input, input.substring(start, end));
+      // get next segment
+      if (curChar == ':' || curChar == ',') {
+        if (uid == null) {
+          uid = UID.of(input.substring(start, end));
+        } else if (operator == null) {
+          operator = getQueryOperator(input, input.substring(start, end));
         } else {
           valueOrOperator = input.substring(start, end);
         }
-        addFilter(input, result, currentUid, currentOperator, valueOrOperator);
-
-        currentUid = null;
-        currentOperator = null;
-
         start = end + 1;
+      }
+
+      // state transitions
+      if (curChar == ',') { // transition back to initial state
+        addFilter(input, result, uid, operator, valueOrOperator);
+
+        uid = null;
+        operator = null;
+        valueOrOperator = null;
+      } else if (curChar == ':' && valueOrOperator != null) {
+        // uid is not reset as it might get another operator or operator:value pair
+        Optional<QueryOperator> nextOperator =
+            validateUnaryOperator(input, operator, valueOrOperator);
+        if (operator.isUnary() && nextOperator.isPresent()) {
+          addFilter(input, result, uid, operator, null);
+
+          operator = nextOperator.get();
+        } else {
+          addFilter(input, result, uid, operator, valueOrOperator);
+
+          operator = null;
+        }
+        valueOrOperator = null;
       }
       end++;
     }
 
     if (start < end) { // consume remaining input
-      String valueOrOperator = null;
-      if (currentUid == null) {
-        currentUid = UID.of(input.substring(start, end));
-      } else if (currentOperator == null) {
-        currentOperator = getQueryOperator(input, input.substring(start, end));
+      if (uid == null) {
+        uid = UID.of(input.substring(start, end));
+      } else if (operator == null) {
+        operator = getQueryOperator(input, input.substring(start, end));
       } else {
         valueOrOperator = input.substring(start, end);
       }
-      addFilter(input, result, currentUid, currentOperator, valueOrOperator);
+      // can I join this with the case below somehow? or make addFilter null safe and just call it
+      // regardless
+      addFilter(input, result, uid, operator, valueOrOperator);
       // TODO cases for trailing :
       // is that correct, are there more cases? could we have a trailing value here? or not as it
       // would then need to be consumed in the above start < end case
-    } else if (currentUid != null) {
-      addFilter(input, result, currentUid, currentOperator, null);
+      // can there ever be a valueOrOperator trailing here? add test
+    } else if (uid != null) {
+      addFilter(input, result, uid, operator, valueOrOperator);
     }
 
     return result;
@@ -157,54 +157,53 @@ public class FilterParser {
   private static void addFilter(
       @Nonnull String input,
       @Nonnull Map<UID, List<QueryFilter>> result,
-      @Nonnull UID currentUid,
-      @CheckForNull QueryOperator currentOperator,
+      @Nonnull UID uid,
+      @CheckForNull QueryOperator operator,
       @CheckForNull String valueOrOperator)
       throws BadRequestException {
-    result.putIfAbsent(currentUid, new ArrayList<>());
+    result.putIfAbsent(uid, new ArrayList<>());
 
-    if (currentOperator == null) {
+    if (operator == null) {
       return;
     }
 
-    if (currentOperator.isBinary() && StringUtils.isEmpty(valueOrOperator)) {
+    if (operator.isBinary() && StringUtils.isEmpty(valueOrOperator)) {
       throw new BadRequestException(
-          "filter "
-              + input
-              + " is invalid. Binary operator "
-              + currentOperator
-              + " must have a value.");
+          "filter " + input + " is invalid. Binary operator " + operator + " must have a value.");
     }
 
-    Optional<QueryOperator> nextOperator = findQueryOperator(valueOrOperator);
-    if (currentOperator.isUnary()
-        && StringUtils.isNotEmpty(valueOrOperator)
-        && nextOperator.isEmpty()) {
-      throw new BadRequestException(
-          "filter "
-              + input
-              + " is invalid. Unary operator "
-              + currentOperator
-              + " cannot have a value.");
-    }
-
-    if (currentOperator.isUnary()) {
-      result.get(currentUid).add(new QueryFilter(currentOperator));
+    Optional<QueryOperator> nextOperator = validateUnaryOperator(input, operator, valueOrOperator);
+    if (operator.isUnary()) {
+      result.get(uid).add(new QueryFilter(operator));
       if (nextOperator.isPresent() && nextOperator.get().isUnary()) {
-        result.get(currentUid).add(new QueryFilter(nextOperator.get()));
+        result.get(uid).add(new QueryFilter(nextOperator.get()));
+      } else if (nextOperator.isPresent() && nextOperator.get().isBinary()) {
+        throw new BadRequestException(
+            "filter "
+                + input
+                + " is invalid. Binary operator "
+                + nextOperator.get()
+                + " must have a value.");
       }
-      // TODO(ivo) I need to validate the nextOperator is not a binary one as it would not have a
-      // value
     } else {
-      result
-          .get(currentUid)
-          .add(new QueryFilter(currentOperator, removeEscapeCharacters(valueOrOperator)));
+      result.get(uid).add(new QueryFilter(operator, removeEscapeCharacters(valueOrOperator)));
     }
 
-    if (result.get(currentUid).size() > 2) {
+    if (result.get(uid).size() > 2) {
       throw new BadRequestException(
           String.format("A maximum of two operators can be used in a filter: %s", input));
     }
+  }
+
+  private static Optional<QueryOperator> validateUnaryOperator(
+      @Nonnull String input, @Nonnull QueryOperator operator, @CheckForNull String valueOrOperator)
+      throws BadRequestException {
+    Optional<QueryOperator> nextOperator = findQueryOperator(valueOrOperator);
+    if (operator.isUnary() && StringUtils.isNotEmpty(valueOrOperator) && nextOperator.isEmpty()) {
+      throw new BadRequestException(
+          "filter " + input + " is invalid. Unary operator " + operator + " cannot have a value.");
+    }
+    return nextOperator;
   }
 
   private static QueryOperator getQueryOperator(String input, String operator)

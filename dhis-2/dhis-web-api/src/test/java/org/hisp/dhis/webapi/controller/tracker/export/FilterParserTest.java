@@ -230,6 +230,16 @@ cy2oRh2sNr7:eq:project//""");
   }
 
   @Test
+  void shouldParseFiltersWithBinaryOperatorValueBeingNull() throws BadRequestException {
+    // null is not a reserved keyword like in Java so it will be used as a value if it follows a
+    // binary operator
+    Map<UID, List<QueryFilter>> filters = parseFilters("TvjwTPToKHO:eq:null");
+
+    assertEquals(
+        Map.of(UID.of("TvjwTPToKHO"), List.of(new QueryFilter(QueryOperator.EQ, "null"))), filters);
+  }
+
+  @Test
   void shouldFailWhenOperatorDoesNotExist() {
     BadRequestException exception =
         assertThrows(BadRequestException.class, () -> parseFilters("TvjwTPToKHO:lke:value"));
@@ -246,6 +256,9 @@ cy2oRh2sNr7:eq:project//""");
         "TvjwTPToKHO:gt:10:lt",
         "TvjwTPToKHO::gt:10:lt:",
         "TvjwTPToKHO::gt:10:lt,",
+        "TvjwTPToKHO:null:lt",
+        "TvjwTPToKHO:null:lt,",
+        "TvjwTPToKHO:null:lt:",
       })
   @ParameterizedTest
   void shouldFailWhenBinaryOperatorIsMissingAValue(String input) {
@@ -253,10 +266,21 @@ cy2oRh2sNr7:eq:project//""");
     assertContains("Binary operator LT must have a value", exception.getMessage());
   }
 
-  @Test
-  void shouldFailParsingFiltersWithUnaryOperatorHavingAValue() {
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> parseFilters("TvjwTPToKHO:!null:value"));
+  @ValueSource(
+      strings = {
+        "TvjwTPToKHO:null:!null:value",
+        "TvjwTPToKHO:!null:value:eq:2",
+        "TvjwTPToKHO:!null:value",
+        "TvjwTPToKHO:null:!null:value:",
+        "TvjwTPToKHO:!null:value:eq:2:",
+        "TvjwTPToKHO:!null:value:",
+        "TvjwTPToKHO:null:!null:value,",
+        "TvjwTPToKHO:!null:value:eq:2,",
+        "TvjwTPToKHO:!null:value,"
+      })
+  @ParameterizedTest
+  void shouldFailParsingFiltersWithUnaryOperatorHavingAValue(String input) {
+    Exception exception = assertThrows(BadRequestException.class, () -> parseFilters(input));
     assertContains("Unary operator NNULL cannot have a value", exception.getMessage());
   }
 
