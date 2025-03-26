@@ -34,6 +34,8 @@ import static org.hisp.dhis.tracker.imports.programrule.IssueType.WARNING;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -181,6 +183,8 @@ class AssignDataValueExecutorTest extends TestBase {
   @Test
   void shouldAssignDataValueWhenAssignedValueIsValidOptionAndDataValueIsEmpty() {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    when(optionService.existsAllOptions(any(), anyList())).thenReturn(true);
+
     Event eventWithOptionDataValue = getEventWithOptionSetDataValueWithValidValue();
     List<Event> events = List.of(eventWithOptionDataValue);
     bundle.setEvents(events);

@@ -33,6 +33,8 @@ import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertNoErrors;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -872,6 +874,8 @@ class DataValuesValidatorTest {
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
+    when(optionService.existsAllOptions(any(), anyList())).thenReturn(true);
+
     Event event =
         Event.builder()
             .event(UID.generate())
@@ -939,6 +943,8 @@ class DataValuesValidatorTest {
     ProgramStage programStage = programStage(dataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
+
+    when(optionService.existsAllOptions(any(), anyList())).thenReturn(true);
 
     Event event =
         Event.builder()
