@@ -104,24 +104,6 @@ class FilterParserTest {
   }
 
   @Test
-  void shouldFailWhenOperatorIsMissingAValue() {
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> parseFilters(UID_1 + ":lt"));
-    assertEquals(
-        "Operator in filter must be be used with a value: " + UID_1 + ":lt",
-        exception.getMessage());
-  }
-
-  @Test
-  void shouldFailWhenOperatorHasATrailingColonAndIsMissingAValue() {
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> parseFilters(UID_1 + ":lt:"));
-    assertEquals(
-        "Operator in filter must be be used with a value: " + UID_1 + ":lt:",
-        exception.getMessage());
-  }
-
-  @Test
   void shouldParseFiltersWithValueContainingEscapedColon() throws BadRequestException {
     Map<UID, List<QueryFilter>> filters = parseFilters(UID_2 + ":like:project/:x/:eq/:2");
 
@@ -143,16 +125,6 @@ class FilterParserTest {
 
     assertEquals(
         Map.of(UID_2, List.of(new QueryFilter(QueryOperator.LIKE, "project/x:eq:2"))), filters);
-  }
-
-  @Test
-  void shouldFailWhenOperatorDoesNotExist() {
-    BadRequestException exception =
-        assertThrows(BadRequestException.class, () -> parseFilters(UID_1 + ":lke:value"));
-    // TODO(ivo) how detailed do we want the error messages to be?
-    //    assertEquals("'lke' is not a valid operator: " + UID_1 + ":lke:value",
-    // exception.getMessage());
-    assertContains("'lke' is not a valid operator", exception.getMessage());
   }
 
   @Test
@@ -219,9 +191,9 @@ class FilterParserTest {
 
   @Test
   void shouldParseFiltersWithSingleUnaryOperator() throws BadRequestException {
-    Map<UID, List<QueryFilter>> filters = parseFilters(UID_1 + ":null");
+    Map<UID, List<QueryFilter>> filters = parseFilters(UID_1 + ":!null");
 
-    assertEquals(Map.of(UID_1, List.of(new QueryFilter(QueryOperator.NULL))), filters);
+    assertEquals(Map.of(UID_1, List.of(new QueryFilter(QueryOperator.NNULL))), filters);
   }
 
   @Test
@@ -248,21 +220,46 @@ class FilterParserTest {
   }
 
   @Test
+  void shouldFailWhenOperatorDoesNotExist() {
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> parseFilters(UID_1 + ":lke:value"));
+    assertContains("'lke' is not a valid operator", exception.getMessage());
+  }
+
+  // TODO make parametrized test out of these 3, add trailing comma case?
+  @Test
+  void shouldFailWhenBinaryOperatorIsMissingAValue() {
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> parseFilters(UID_1 + ":lt"));
+    assertContains("Binary operator LT must have a value", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenBinaryOperatorIsMissingAValueWithTrailingColon() {
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> parseFilters(UID_1 + ":lt:"));
+    assertContains("Binary operator LT must have a value", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailParsingFiltersWithMultipleBinaryOperatorsAndOneIsMissingAValue() {
+    Exception exception =
+        assertThrows(BadRequestException.class, () -> parseFilters(UID_1 + ":gt:10:lt"));
+    assertContains("Binary operator LT must have a value", exception.getMessage());
+  }
+
+  @Test
   void shouldFailParsingFiltersWithUnaryOperatorHavingAValue() {
     Exception exception =
         assertThrows(BadRequestException.class, () -> parseFilters(UID_1 + ":!null:value"));
-    assertEquals(
-        "Operator '!null' in filter can't be used with a value: " + UID_1 + ":!null:value",
-        exception.getMessage());
+    assertContains("Unary operator NNULL cannot have a value", exception.getMessage());
   }
 
   @Test
   void shouldFailParsingFiltersWithUnaryAndBinaryOperatorsCombinedAndUnaryOperatorHavingAValue() {
     Exception exception =
         assertThrows(BadRequestException.class, () -> parseFilters(UID_1 + ":gt:10:null:value"));
-    assertEquals(
-        "Operator 'null' in filter can't be used with a value: " + UID_1 + ":gt:10:null:value",
-        exception.getMessage());
+    assertContains("Unary operator NULL cannot have a value", exception.getMessage());
   }
 
   @Test
@@ -272,12 +269,5 @@ class FilterParserTest {
     assertEquals(
         "A maximum of two operators can be used in a filter: " + UID_1 + ":gt:10:null:!null",
         exception.getMessage());
-  }
-
-  @Test
-  void shouldFailParsingFiltersWithMultipleBinaryOperatorsAndOneHasNoValue() {
-    Exception exception =
-        assertThrows(BadRequestException.class, () -> parseFilters(UID_1 + ":gt:10:lt"));
-    assertEquals("Query item or filter is invalid: " + UID_1 + ":gt:10:lt", exception.getMessage());
   }
 }
