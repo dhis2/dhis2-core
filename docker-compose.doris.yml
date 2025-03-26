@@ -21,6 +21,7 @@ services:
         ipv4_address: 192.168.100.10
     ports:
       - "9030:9030"
+      - "8031:8030"
     environment:
       #- FE_SERVERS=fe1:127.0.0.1:9010
       #- FE_SERVERS=fe1:doris-fe:9010
@@ -30,7 +31,7 @@ services:
       - ./docker/postgresql.jar:/opt/apache-doris/fe/jdbc_drivers/postgresql.jar
       - ./docker/postgresql-42.7.5.jar:/opt/apache-doris/fe/jdbc_drivers/postgresql-42.7.5.jar
     healthcheck:
-      test: [ "CMD-SHELL", "curl -fsS http://localhost:8030/api/bootstrap || exit 1" ]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8030/home || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -44,6 +45,8 @@ services:
       - FE_SERVERS=fe1:192.168.100.10:9010
       #- BE_ADDR=127.0.0.1:9050
       - BE_ADDR=192.168.100.11:9050
+    ports:
+      - 8041:8040
     depends_on:
       doris-fe:
         condition: service_healthy
@@ -51,26 +54,24 @@ services:
       - ./docker/postgresql.jar:/opt/apache-doris/be/jdbc_drivers/postgresql.jar
       - ./docker/postgresql-42.7.5.jar:/opt/apache-doris/be/jdbc_drivers/postgresql-42.7.5.jar
     healthcheck:
-      test: [ "CMD", "curl", "-fsS", "http://localhost:8040/api/health" ]
+      test: ["CMD", "curl", "-fsS", "http://localhost:8040/api/health"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   doris-init:
-    image: mysql:latest
+    image: alpine:latest
     networks:
       doris_network:
         ipv4_address: 192.168.100.12
-    entrypoint: [ "/bin/sh", "-c" ]
-    command: mysql -uroot -e "CREATE DATABASE IF NOT EXISTS dhis2;"
-    environment:
-      MYSQL_HOST: 192.168.100.10
-      MYSQL_TCP_PORT: 9030
     depends_on:
       doris-fe:
         condition: service_healthy
       doris-be:
         condition: service_healthy
+    command: >
+      sh -c "apk add --no-cache mysql-client &&
+             mysql -h192.168.100.10 -P9030 -uroot --protocol=tcp --skip-password -e 'CREATE DATABASE IF NOT EXISTS dhis2;'"
 
 networks:
   doris_network:
