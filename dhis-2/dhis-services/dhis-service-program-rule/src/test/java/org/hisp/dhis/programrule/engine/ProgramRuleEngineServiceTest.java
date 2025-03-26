@@ -205,7 +205,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
         .thenReturn(programStageInstance);
     when(programInstanceService.getProgramInstance(anyLong())).thenReturn(programInstance);
 
-    when(programRuleEngine.getProgramRules(any(), any())).thenReturn(List.of(programRuleA));
+    when(programRuleEngine.getProgramRules(any())).thenReturn(List.of(programRuleA));
     when(programRuleEngine.evaluate(any(), any(), anySet(), anyList())).thenReturn(effects);
 
     setProgramRuleActionType_SendMessage();
@@ -250,8 +250,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
     when(programStageInstanceService.getProgramStageInstance(programEvent.getUid()))
         .thenReturn(programEvent);
 
-    when(programRuleEngine.getProgramRules(program, List.of(programStage)))
-        .thenReturn(List.of(programRuleA));
+    when(programRuleEngine.getProgramRules(program)).thenReturn(List.of(programRuleA));
     when(programRuleEngine.evaluateProgramEvent(programEvent, program, List.of(programRuleA)))
         .thenReturn(effects);
 
@@ -279,7 +278,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest {
         .thenReturn(programStageInstance);
     when(programInstanceService.getProgramInstance(anyLong())).thenReturn(programInstance);
 
-    when(programRuleEngine.getProgramRules(any(), any())).thenReturn(List.of());
+    when(programRuleEngine.getProgramRules(any())).thenReturn(List.of());
 
     List<RuleEffect> ruleEffects =
         service.evaluateEventAndRunEffects(programStageInstance.getUid());
