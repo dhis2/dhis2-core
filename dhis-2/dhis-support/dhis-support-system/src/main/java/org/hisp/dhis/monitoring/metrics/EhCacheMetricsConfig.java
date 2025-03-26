@@ -39,7 +39,6 @@ import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.binder.MeterBinder;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceException;
-import java.util.Arrays;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.ehcache.CacheManager;
@@ -265,10 +264,10 @@ public class EhCacheMetricsConfig {
     public void bindTo(MeterRegistry registry) {
       // Bind metrics directly using the provided CacheStatistics object
       //      Tags tags =
-      Tag l1 = Tag.of("type", "L2");
+      Tag l2 = Tag.of("type", "L2");
       //      Tags.of(Tag.of("name", name), l1);
       //      "cache.gets"
-      // split name on . and take the last element
+      // split name on . and capture from the element that start with capital letter
       String[] parts = name.split("\\.");
       StringBuilder lastPartBuilder = new StringBuilder();
       boolean foundCapitalized = false;
@@ -282,39 +281,38 @@ public class EhCacheMetricsConfig {
       }
       String lastPart = foundCapitalized ? lastPartBuilder.toString() : name;
 
+      log.info("[Metrics] Last part: {}", lastPart);
+
       FunctionCounter.builder("ehcache." + lastPart, stats, CacheStatistics::getCacheGets)
-          .tags(Tags.of(Tag.of("name", "cache.gets"), l1))
+          .tags(Tags.of(Tag.of("name", "cache.gets"), l2))
           .description("The number of get requests that were made to the cache")
           .register(registry);
 
       FunctionCounter.builder("ehcache." + lastPart, stats, CacheStatistics::getCachePuts)
-          .tags(Tags.of(Tag.of("name", "cache.puts"), l1))
+          .tags(Tags.of(Tag.of("name", "cache.puts"), l2))
           .description("The number of put requests that were made to the cache")
           .register(registry);
+      FunctionCounter.builder("ehcache." + lastPart, stats, CacheStatistics::getCacheRemovals)
+          .tags(Tags.of(Tag.of("name", "cache.removals"), l2))
+          .description("The number of removal requests that were made to the cache")
+          .register(registry);
 
-      //      FunctionCounter.builder("cache.removals", stats, CacheStatistics::getCacheRemovals)
-      //          .tags(tags)
-      //          .description("The number of removal requests that were made to the cache")
-      //          .register(registry);
-      //
-      //      FunctionCounter.builder("cache.evictions", stats, CacheStatistics::getCacheEvictions)
-      //          .tags(tags)
-      //          .description("The number of evictions from the cache")
-      //          .register(registry);
-      //
-      //      FunctionCounter.builder("cache.hits", stats, CacheStatistics::getCacheHits)
-      //          .tags(tags)
-      //          .description(
-      //              "The number of times cache lookup methods found a requested entry in the
-      // cache")
-      //          .register(registry);
-      //
-      //      FunctionCounter.builder("cache.misses", stats, CacheStatistics::getCacheMisses)
-      //          .tags(tags)
-      //          .description(
-      //              "The number of times cache lookup methods did not find a requested entry in
-      // the cache")
-      //          .register(registry);
+      FunctionCounter.builder("ehcache." + lastPart, stats, CacheStatistics::getCacheEvictions)
+          .tags(Tags.of(Tag.of("name", "cache.evictions"), l2))
+          .description("The number of evictions from the cache")
+          .register(registry);
+
+      FunctionCounter.builder("ehcache." + lastPart, stats, CacheStatistics::getCacheHits)
+          .tags(Tags.of(Tag.of("name", "cache.hits"), l2))
+          .description(
+              "The number of times cache lookup methods found a requested entry in the cache")
+          .register(registry);
+
+      FunctionCounter.builder("ehcache." + lastPart, stats, CacheStatistics::getCacheMisses)
+          .tags(Tags.of(Tag.of("name", "cache.misses"), l2))
+          .description(
+              "The number of times cache lookup methods did not find a requested entry in the cache")
+          .register(registry);
 
       Gauge.builder(
               "cache.hit.ratio",
