@@ -127,15 +127,15 @@ public class FilterParser {
     }
 
     if (start < end) { // consume remaining input
-      String value = null;
+      String valueOrOperator = null;
       if (currentUid == null) {
         currentUid = UID.of(input.substring(start, end));
       } else if (currentOperator == null) {
         currentOperator = getQueryOperator(input, input.substring(start, end));
       } else {
-        value = input.substring(start, end);
+        valueOrOperator = input.substring(start, end);
       }
-      addFilter(input, result, currentUid, currentOperator, value);
+      addFilter(input, result, currentUid, currentOperator, valueOrOperator);
       // TODO cases for trailing :
       // is that correct, are there more cases?
     } else if (currentUid != null) {
@@ -179,14 +179,15 @@ public class FilterParser {
               + currentOperator
               + " cannot have a value.");
     }
-
     // TODO(ivo) do we need to check for an empty value?
     // TODO(ivo) I need to validate the nextOperator is not a binary one as it would not have a
     // value
-    if (valueOrOperator == null) {
+
+    if (currentOperator.isUnary()) {
       result.get(currentUid).add(new QueryFilter(currentOperator));
-    } else if (nextOperator.isPresent() && nextOperator.get().isUnary()) {
-      result.get(currentUid).add(new QueryFilter(nextOperator.get()));
+      if (nextOperator.isPresent() && nextOperator.get().isUnary()) {
+        result.get(currentUid).add(new QueryFilter(nextOperator.get()));
+      }
     } else {
       result
           .get(currentUid)
