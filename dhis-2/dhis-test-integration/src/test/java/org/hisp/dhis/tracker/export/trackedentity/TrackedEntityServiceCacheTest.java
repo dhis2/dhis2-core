@@ -32,7 +32,6 @@ package org.hisp.dhis.tracker.export.trackedentity;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -61,7 +60,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ActiveProfiles("cache-test")
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class TrackedEntityServiceCacheTest extends PostgresIntegrationTestBase {
+class TrackedEntityServiceCacheTest extends PostgresIntegrationTestBase {
   @Autowired private TestSetup testSetup;
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private TrackedEntityService trackedEntityService;
@@ -152,8 +151,6 @@ public class TrackedEntityServiceCacheTest extends PostgresIntegrationTestBase {
   }
 
   private List<String> extractUIDs(Page<TrackedEntity> trackedEntities) {
-    return trackedEntities.getItems().stream()
-        .map(TrackedEntity::getUid)
-        .collect(Collectors.toList());
+    return trackedEntities.getItems().stream().map(TrackedEntity::getUid).toList();
   }
 }
