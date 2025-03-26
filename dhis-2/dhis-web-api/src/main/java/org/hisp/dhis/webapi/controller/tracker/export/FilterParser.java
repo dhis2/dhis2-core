@@ -87,10 +87,17 @@ public class FilterParser {
     UID currentUid = null;
     QueryOperator currentOperator = null;
     while (end < input.length()) {
-      // TODO fix this and make it pretty.
-      // a // should be a /
-      // so //, should lead to the comma being taken as a filter separator
-      if (input.charAt(end) == ':' && !(end - 1 >= 0 && input.charAt(end - 1) == '/')) {
+      // skip escaped slash and segment/filter separators
+      if (input.charAt(end) == '/'
+          && end + 1 < input.length()
+          && (input.charAt(end + 1) == '/'
+              || input.charAt(end + 1) == ':'
+              || input.charAt(end + 1) == ',')) {
+        end = end + 2;
+        continue;
+      }
+
+      if (input.charAt(end) == ':') {
         if (currentState == state.UID) {
           currentUid = UID.of(input.substring(start, end));
 
@@ -112,7 +119,7 @@ public class FilterParser {
 
         // TODO be careful not to index out of bounds
         start = end + 1;
-      } else if (input.charAt(end) == ',' && !(end - 1 >= 0 && input.charAt(end - 1) == '/')) {
+      } else if (input.charAt(end) == ',') {
         // TODO error handling depending on the state we are in; what could happen? make sure we err
         // if we have not consumed some input
         if (currentState == state.VALUE) {

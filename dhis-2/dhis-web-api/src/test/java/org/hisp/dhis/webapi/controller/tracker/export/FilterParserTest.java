@@ -49,7 +49,7 @@ class FilterParserTest {
 
   private static final UID UID_2 = UID.of("cy2oRh2sNr6");
 
-  public static final UID UID_3 = UID.of("cy2oRh2sNr7");
+  private static final UID UID_3 = UID.of("cy2oRh2sNr7");
 
   @Test
   void shouldParseFiltersWithMultipleDistinctIdentifiersAndOperators() throws BadRequestException {
