@@ -126,6 +126,7 @@ public class FilterParser {
         operator = nextOperator.orElse(null);
         valueOrOperator = null;
       }
+
       end++;
     }
 
