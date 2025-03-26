@@ -44,7 +44,14 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 
-/** Parser for the filter request parameter. */
+/**
+ * Parser for the <code>filter</code> (<code>filterAttribute</code>) request parameter.
+ *
+ * <p><code>/changeLogs?filter</code> validation is implemented in {@link
+ * org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator} and its parsing in its mapper.
+ * The requirements for these endpoints are slightly different. We use this parser for changeLogs as
+ * soon as we need to support escaped values like dates which contain the segment separator ':'.
+ */
 public class FilterParser {
   private FilterParser() {
     throw new IllegalStateException("Utility class");
@@ -61,14 +68,16 @@ public class FilterParser {
   private static final String ESCAPED_COLON = ESCAPE + COLON_STRING;
 
   /**
-   * Parse given {@code input} string representing a filter for an object referenced by a UID like a
-   * tracked entity attribute.
+   * Parse given {@code input} string representing one or more filters for objects referenced by a
+   * UID like a tracked entity attribute or data element.
    *
    * <p>Accumulate {@link QueryFilter}s per UID by parsing given input string of format
-   * {uid}[:{operator}:{value}]. Only the UID is mandatory. Multiple operator:value pairs are
-   * allowed. A {@link QueryFilter} for each operator:value pair is added to the corresponding UID.
+   * {uid}[:{operator}[:{value}]]. Only the UID is mandatory. The value is mandatory and only
+   * allowed for binary operators. Multiple operator or operator:value pairs are allowed. A {@link
+   * QueryFilter} for each operator[:value] pair is added to the corresponding UID in the input
+   * order.
    *
-   * @throws BadRequestException filter is neither multiple nor single operator:value format
+   * @throws BadRequestException if the input is not a valid filter
    */
   public static Map<UID, List<QueryFilter>> parseFilters(String input) throws BadRequestException {
     Map<UID, List<QueryFilter>> result = new HashMap<>();
