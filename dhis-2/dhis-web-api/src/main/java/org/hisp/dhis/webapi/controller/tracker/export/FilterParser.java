@@ -50,18 +50,15 @@ public class FilterParser {
     throw new IllegalStateException("Utility class");
   }
 
-  private static final String INVALID_FILTER = "Query item or filter is invalid: ";
-
-  private static final char COMMA_SEPARATOR = ',';
-
   private static final char ESCAPE = '/';
-
   private static final String ESCAPE_STRING = Character.toString(ESCAPE);
-  private static final String COMMA_STRING = Character.toString(COMMA_SEPARATOR);
-
   private static final String ESCAPED_ESCAPE = ESCAPE + ESCAPE_STRING;
+  private static final char COMMA = ',';
+  private static final String COMMA_STRING = Character.toString(COMMA);
   private static final String ESCAPED_COMMA = ESCAPE + COMMA_STRING;
-  private static final String ESCAPED_COLON = ESCAPE + DIMENSION_NAME_SEP;
+  private static final char COLON = ':';
+  private static final String COLON_STRING = Character.toString(COLON);
+  private static final String ESCAPED_COLON = ESCAPE + COLON_STRING;
 
   /**
    * Parse given {@code input} string representing a filter for an object referenced by a UID like a
@@ -86,17 +83,17 @@ public class FilterParser {
     while (end < input.length()) {
       char curChar = input.charAt(end);
       // skip escaped slash, colon and comma which allow users to pass them as part of values
-      if (curChar == '/'
+      if (curChar == ESCAPE
           && end + 1 < input.length()
-          && (input.charAt(end + 1) == '/'
-              || input.charAt(end + 1) == ':'
-              || input.charAt(end + 1) == ',')) {
+          && (input.charAt(end + 1) == ESCAPE
+              || input.charAt(end + 1) == COLON
+              || input.charAt(end + 1) == COMMA)) {
         end = end + 2;
         continue;
       }
 
       // get next segment
-      if (curChar == ':' || curChar == ',') {
+      if (curChar == COLON || curChar == COMMA) {
         if (uid == null) {
           uid = UID.of(input.substring(start, end));
         } else if (operator == null) {
@@ -108,17 +105,18 @@ public class FilterParser {
       }
 
       // state transitions
-      if (curChar == ',') { // transition back to initial state
+      if (curChar == COMMA) { // transition back to initial state
         addFilter(input, result, uid, operator, valueOrOperator);
 
         uid = null;
         operator = null;
         valueOrOperator = null;
-      } else if (curChar == ':' && valueOrOperator != null) {
+      } else if (curChar == COLON && valueOrOperator != null) {
+        // TODO can I make this prettier?
         // uid is not reset as it might get another operator or operator:value pair
-        Optional<QueryOperator> nextOperator =
-            validateUnaryOperator(input, operator, valueOrOperator);
-        if (operator.isUnary() && nextOperator.isPresent()) {
+        if (operator.isUnary()) {
+          Optional<QueryOperator> nextOperator =
+              validateUnaryOperator(input, operator, valueOrOperator);
           addFilter(input, result, uid, operator, null);
 
           operator = nextOperator.get();
@@ -140,27 +138,52 @@ public class FilterParser {
       } else {
         valueOrOperator = input.substring(start, end);
       }
-      // can I join this with the case below somehow? or make addFilter null safe and just call it
-      // regardless
-      addFilter(input, result, uid, operator, valueOrOperator);
-      // TODO cases for trailing :
-      // is that correct, are there more cases? could we have a trailing value here? or not as it
-      // would then need to be consumed in the above start < end case
-      // can there ever be a valueOrOperator trailing here? add test
-    } else if (uid != null) {
-      addFilter(input, result, uid, operator, valueOrOperator);
     }
+    addFilter(input, result, uid, operator, valueOrOperator);
 
     return result;
+  }
+
+  private static QueryOperator getQueryOperator(String input, String operator)
+      throws BadRequestException {
+    try {
+      return QueryOperator.fromString(operator);
+    } catch (IllegalArgumentException exception) {
+      throw new BadRequestException(
+          "filter " + input + " is invalid. '" + operator + "' is not a valid operator.");
+    }
+  }
+
+  private static Optional<QueryOperator> validateUnaryOperator(
+      @Nonnull String input, @Nonnull QueryOperator operator, @CheckForNull String valueOrOperator)
+      throws BadRequestException {
+    Optional<QueryOperator> nextOperator = findQueryOperator(valueOrOperator);
+    if (operator.isUnary() && StringUtils.isNotEmpty(valueOrOperator) && nextOperator.isEmpty()) {
+      throw new BadRequestException(
+          "filter " + input + " is invalid. Unary operator " + operator + " cannot have a value.");
+    }
+    return nextOperator;
+  }
+
+  private static Optional<QueryOperator> findQueryOperator(String operator) {
+    try {
+      return Optional.ofNullable(QueryOperator.fromString(operator));
+    } catch (IllegalArgumentException exception) {
+      return Optional.empty();
+    }
   }
 
   private static void addFilter(
       @Nonnull String input,
       @Nonnull Map<UID, List<QueryFilter>> result,
-      @Nonnull UID uid,
+      @CheckForNull UID uid,
       @CheckForNull QueryOperator operator,
       @CheckForNull String valueOrOperator)
       throws BadRequestException {
+    if (uid == null) {
+      return;
+    }
+
     result.putIfAbsent(uid, new ArrayList<>());
 
     if (operator == null) {
@@ -192,35 +215,6 @@ public class FilterParser {
     if (result.get(uid).size() > 2) {
       throw new BadRequestException(
           String.format("A maximum of two operators can be used in a filter: %s", input));
-    }
-  }
-
-  private static Optional<QueryOperator> validateUnaryOperator(
-      @Nonnull String input, @Nonnull QueryOperator operator, @CheckForNull String valueOrOperator)
-      throws BadRequestException {
-    Optional<QueryOperator> nextOperator = findQueryOperator(valueOrOperator);
-    if (operator.isUnary() && StringUtils.isNotEmpty(valueOrOperator) && nextOperator.isEmpty()) {
-      throw new BadRequestException(
-          "filter " + input + " is invalid. Unary operator " + operator + " cannot have a value.");
-    }
-    return nextOperator;
-  }
-
-  private static QueryOperator getQueryOperator(String input, String operator)
-      throws BadRequestException {
-    try {
-      return QueryOperator.fromString(operator);
-    } catch (IllegalArgumentException exception) {
-      throw new BadRequestException(
-          "filter " + input + " is invalid. '" + operator + "' is not a valid operator.");
-    }
-  }
-
-  private static Optional<QueryOperator> findQueryOperator(String operator) {
-    try {
-      return Optional.ofNullable(QueryOperator.fromString(operator));
-    } catch (IllegalArgumentException exception) {
-      return Optional.empty();
     }
   }
 

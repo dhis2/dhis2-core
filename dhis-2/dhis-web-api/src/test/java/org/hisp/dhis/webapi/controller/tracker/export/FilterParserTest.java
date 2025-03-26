@@ -48,7 +48,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 /** Tests {@link FilterParser}. */
 class FilterParserTest {
-
   @Test
   void shouldParseFiltersWithMultipleDistinctIdentifiersAndOperators() throws BadRequestException {
     Map<UID, List<QueryFilter>> filters =
