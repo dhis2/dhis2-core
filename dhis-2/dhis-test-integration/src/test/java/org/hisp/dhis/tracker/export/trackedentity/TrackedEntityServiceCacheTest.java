@@ -93,7 +93,7 @@ class TrackedEntityServiceCacheTest extends PostgresIntegrationTestBase {
     makeProgramTheOnlyOneAccessible(programA);
     TrackedEntityOperationParams operationParams =
         createTrackedEntitiesOperationParams(trackedEntityD);
-    injectSecurityContextUser(userService.getUser("FIgVWzUCkpw"));
+    injectSecurityContextUser(regularUser);
 
     List<String> trackedEntities =
         extractUIDs(trackedEntityService.findTrackedEntities(operationParams, defaultPageParams));
@@ -120,10 +120,12 @@ class TrackedEntityServiceCacheTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, BadRequestException, NotFoundException {
     User user = userService.getUser("o1HMTIzBGo7");
     injectSecurityContextUser(user);
+
     List<String> trackedEntities =
         extractUIDs(
             trackedEntityService.findTrackedEntities(
                 createTrackedEntitiesOperationParams(trackedEntityC), defaultPageParams));
+
     Assertions.assertContainsOnly(List.of(trackedEntityC), trackedEntities);
   }
 
