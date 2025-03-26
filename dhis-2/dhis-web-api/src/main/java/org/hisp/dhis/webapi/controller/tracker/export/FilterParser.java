@@ -95,7 +95,7 @@ public class FilterParser {
       // get next segment
       if (curChar == COLON || curChar == COMMA) {
         if (uid == null) {
-          uid = UID.of(input.substring(start, end));
+          uid = uid(input, input.substring(start, end));
         } else if (operator == null) {
           operator = getQueryOperator(input, input.substring(start, end));
         } else {
@@ -132,7 +132,7 @@ public class FilterParser {
 
     if (start < end) { // consume remaining input
       if (uid == null) {
-        uid = UID.of(input.substring(start, end));
+        uid = uid(input, input.substring(start, end));
       } else if (operator == null) {
         operator = getQueryOperator(input, input.substring(start, end));
       } else {
@@ -142,6 +142,14 @@ public class FilterParser {
     addFilter(input, result, uid, operator, valueOrOperator);
 
     return result;
+  }
+
+  private static UID uid(String input, String uid) throws BadRequestException {
+    try {
+      return UID.of(uid);
+    } catch (IllegalArgumentException exception) {
+      throw new BadRequestException("filter " + input + " is invalid. " + exception.getMessage());
+    }
   }
 
   private static QueryOperator getQueryOperator(String input, String operator)

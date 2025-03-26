@@ -92,6 +92,14 @@ class FilterParserTest {
   }
 
   @Test
+  void shouldParseFiltersWithIdentifiersOnly() throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters = parseFilters("TvjwTPToKHO,cy2oRh2sNr6");
+
+    assertEquals(
+        Map.of(UID.of("TvjwTPToKHO"), List.of(), UID.of("cy2oRh2sNr6"), List.of()), filters);
+  }
+
+  @Test
   void shouldParseFiltersWithBlankInput() throws BadRequestException {
     Map<UID, List<QueryFilter>> filters = parseFilters(" ");
 
@@ -245,6 +253,14 @@ cy2oRh2sNr7:eq:project//""");
     assertContains("'lke' is not a valid operator", exception.getMessage());
   }
 
+  @ValueSource(strings = {"nouid:eq:2", ":", "::", ",,", ",:", ","})
+  @ParameterizedTest
+  void shouldFailWhenUIDIsInvalid(String input) {
+    BadRequestException exception =
+        assertThrows(BadRequestException.class, () -> parseFilters(input));
+    assertContains("UID must be an alphanumeric string", exception.getMessage());
+  }
+
   @ValueSource(
       strings = {
         "TvjwTPToKHO:lt",
@@ -278,7 +294,7 @@ cy2oRh2sNr7:eq:project//""");
         "TvjwTPToKHO:!null:value,"
       })
   @ParameterizedTest
-  void shouldFailParsingFiltersWithUnaryOperatorHavingAValue(String input) {
+  void shouldFailWhenUnaryOperatorHasAValue(String input) {
     Exception exception = assertThrows(BadRequestException.class, () -> parseFilters(input));
     assertContains("Unary operator NNULL cannot have a value", exception.getMessage());
   }
