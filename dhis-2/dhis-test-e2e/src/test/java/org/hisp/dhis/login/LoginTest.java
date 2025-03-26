@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -270,6 +270,31 @@ public class LoginTest extends BaseE2ETest {
   @Test
   void testRedirectMissingEndingSlash() {
     testRedirectWhenLoggedIn("dhis-web-dashboard", "dhis-web-dashboard/");
+  }
+
+  @Test
+  void testJsonResponseForFailedLogin() {
+    try {
+      getWithWrongAuth("/me", Map.of());
+      fail("Should have thrown an exception");
+    } catch (HttpClientErrorException e) {
+      assertEquals(HttpStatus.UNAUTHORIZED, e.getStatusCode());
+      // Verify response is JSON format
+      String responseBody = e.getResponseBodyAsString();
+      assertTrue(responseBody.startsWith("{"), "Response should be in JSON format");
+      try {
+        // Parse response and verify it contains expected fields
+        JsonNode jsonNode = objectMapper.readTree(responseBody);
+        assertTrue(jsonNode.has("message"), "JSON response should contain 'message' field");
+        assertTrue(jsonNode.has("httpStatus"), "JSON response should contain 'httpStatus' field");
+        assertTrue(
+            jsonNode.has("httpStatusCode"), "JSON response should contain 'httpStatusCode' field");
+        assertEquals("Unauthorized", jsonNode.get("httpStatus").asText());
+        assertEquals(401, jsonNode.get("httpStatusCode").asInt());
+      } catch (JsonProcessingException ex) {
+        fail("Response is not valid JSON: " + responseBody);
+      }
+    }
   }
 
   // --------------------------------------------------------------------------------------------
