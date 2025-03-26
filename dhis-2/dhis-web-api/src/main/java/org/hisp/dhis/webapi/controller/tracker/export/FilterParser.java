@@ -94,7 +94,8 @@ public class FilterParser {
 
       // get next segment
       if (curChar == COLON || curChar == COMMA) {
-        if (uid == null) {
+        if (uid == null
+            && (curChar == COLON || end - start > 0)) { // empty commas like "," ",," are ignored
           uid = uid(input, input.substring(start, end));
         } else if (operator == null) {
           operator = getQueryOperator(input, input.substring(start, end));

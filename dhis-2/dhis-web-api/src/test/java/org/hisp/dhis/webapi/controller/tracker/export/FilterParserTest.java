@@ -106,6 +106,17 @@ class FilterParserTest {
     assertTrue(filters.isEmpty());
   }
 
+  @ValueSource(
+      strings = {
+        ",", ",,",
+      })
+  @ParameterizedTest
+  void shouldParseFiltersWithJustCommas(String input) throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters = parseFilters(input);
+
+    assertTrue(filters.isEmpty());
+  }
+
   @Test
   void shouldParseFiltersWithValueContainingEscapedColon() throws BadRequestException {
     Map<UID, List<QueryFilter>> filters = parseFilters("cy2oRh2sNr6:like:project/:x/:eq/:2");
@@ -253,7 +264,7 @@ cy2oRh2sNr7:eq:project//""");
     assertContains("'lke' is not a valid operator", exception.getMessage());
   }
 
-  @ValueSource(strings = {"nouid:eq:2", ":", "::", ",,", ",:", ","})
+  @ValueSource(strings = {"nouid:eq:2", ":", "::", ",:", " ,", ", ,"})
   @ParameterizedTest
   void shouldFailWhenUIDIsInvalid(String input) {
     BadRequestException exception =
