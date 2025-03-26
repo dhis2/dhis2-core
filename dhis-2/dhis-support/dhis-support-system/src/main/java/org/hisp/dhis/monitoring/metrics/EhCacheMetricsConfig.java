@@ -41,11 +41,8 @@ import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceException;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
-import org.ehcache.Cache;
 import org.ehcache.CacheManager;
-import org.ehcache.core.spi.service.StatisticsService;
 import org.ehcache.core.statistics.CacheStatistics;
-import org.hibernate.SessionFactory;
 import org.hibernate.cache.spi.RegionFactory;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.service.ServiceRegistry;
@@ -183,7 +180,7 @@ public class EhCacheMetricsConfig {
 
           if (cacheStats != null) {
             // Register metrics using the directly obtained CacheStatistics
-//            new EhCacheDirectStatisticsMetrics(cacheStats, tags).bindTo(registry);
+            new EhCacheDirectStatisticsMetrics(cacheStats, tags).bindTo(registry);
             log.debug("[Metrics] Registered metrics for cache: {}", cacheName);
           } else {
             log.warn(
@@ -253,27 +250,19 @@ public class EhCacheMetricsConfig {
     }
   }
 
-  /** Custom metrics binder for EhCache 3.x with full statistics. */
-  private static class EhCache3Metrics implements MeterBinder {
-    private final Cache<?, ?> cache;
-    private final String cacheName;
-    private final StatisticsService statisticsService;
+  /** Binds metrics using a CacheStatistics object obtained via reflection. */
+  private static class EhCacheDirectStatisticsMetrics implements MeterBinder {
+    private final CacheStatistics stats;
     private final Iterable<Tag> tags;
 
-    public EhCache3Metrics(
-        Cache<?, ?> cache,
-        String cacheName,
-        StatisticsService statisticsService,
-        Iterable<Tag> tags) {
-      this.cache = cache;
-      this.cacheName = cacheName;
-      this.statisticsService = statisticsService;
+    public EhCacheDirectStatisticsMetrics(CacheStatistics stats, Iterable<Tag> tags) {
+      this.stats = stats;
       this.tags = tags;
     }
 
     @Override
     public void bindTo(MeterRegistry registry) {
-      CacheStatistics stats = statisticsService.getCacheStatistics(cacheName);
+      // Bind metrics directly using the provided CacheStatistics object
 
       FunctionCounter.builder("cache.gets", stats, CacheStatistics::getCacheGets)
           .tags(tags)
@@ -320,38 +309,7 @@ public class EhCacheMetricsConfig {
     }
   }
 
-  /**
-   * Fallback metrics binder with limited statistics when the StatisticsService is not available.
-   */
-  private static class EhCache3FallbackMetrics implements MeterBinder {
-    private final Cache<?, ?> cache;
-    private final String cacheName;
-    private final Iterable<Tag> tags;
-
-    public EhCache3FallbackMetrics(Cache<?, ?> cache, String cacheName, Iterable<Tag> tags) {
-      this.cache = cache;
-      this.cacheName = cacheName;
-      this.tags = tags;
-    }
-
-    @Override
-    public void bindTo(MeterRegistry registry) {
-      // Only register metrics that we can calculate without the statistics service
-      Gauge.builder(
-              "cache.size",
-              cache,
-              c -> {
-                try {
-                  return c.iterator().hasNext() ? 1 : 0; // We can only check if it's empty
-                } catch (Exception ex) {
-                  return 0;
-                }
-              })
-          .tags(tags)
-          .description("An estimate of the number of entries in the cache")
-          .register(registry);
-    }
-  }
+  // Removed EhCache3Metrics and EhCache3FallbackMetrics as they are no longer used
 
   static class EhCacheMetricsEnabledCondition extends MetricsEnabler {
     @Override
