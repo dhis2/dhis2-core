@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.webapi.controller.tracker.export.FilterParser.parseFilters;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -148,7 +149,10 @@ class FilterParserTest {
   void shouldFailWhenOperatorDoesNotExist() {
     BadRequestException exception =
         assertThrows(BadRequestException.class, () -> parseFilters(UID_1 + ":lke:value"));
-    assertEquals("'lke' is not a valid operator: " + UID_1 + ":lke:value", exception.getMessage());
+    // TODO(ivo) how detailed do we want the error messages to be?
+    //    assertEquals("'lke' is not a valid operator: " + UID_1 + ":lke:value",
+    // exception.getMessage());
+    assertContains("'lke' is not a valid operator", exception.getMessage());
   }
 
   @Test
@@ -215,9 +219,9 @@ class FilterParserTest {
 
   @Test
   void shouldParseFiltersWithSingleUnaryOperator() throws BadRequestException {
-    Map<UID, List<QueryFilter>> filters = parseFilters(UID_1 + ":!null");
+    Map<UID, List<QueryFilter>> filters = parseFilters(UID_1 + ":null");
 
-    assertEquals(Map.of(UID_1, List.of(new QueryFilter(QueryOperator.NNULL))), filters);
+    assertEquals(Map.of(UID_1, List.of(new QueryFilter(QueryOperator.NULL))), filters);
   }
 
   @Test

@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
@@ -60,12 +61,6 @@ public class FilterParser {
   private static final String ESCAPED_COMMA = ESCAPE + COMMA_STRING;
   private static final String ESCAPED_COLON = ESCAPE + DIMENSION_NAME_SEP;
 
-  private enum state {
-    UID,
-    OPERATOR,
-    VALUE
-  }
-
   /**
    * Parse given {@code input} string representing a filter for an object referenced by a UID like a
    * tracked entity attribute.
@@ -83,12 +78,12 @@ public class FilterParser {
     }
 
     int start = 0, end = 0;
-    state currentState = state.UID;
     UID currentUid = null;
     QueryOperator currentOperator = null;
     while (end < input.length()) {
+      char curChar = input.charAt(end);
       // skip escaped slash and segment/filter separators
-      if (input.charAt(end) == '/'
+      if (curChar == '/'
           && end + 1 < input.length()
           && (input.charAt(end + 1) == '/'
               || input.charAt(end + 1) == ':'
@@ -97,58 +92,51 @@ public class FilterParser {
         continue;
       }
 
-      if (input.charAt(end) == ':') {
-        if (currentState == state.UID) {
+      if (curChar == ':') {
+        if (currentUid == null) {
           currentUid = UID.of(input.substring(start, end));
-
           // an operator or operator:value pair might follow but only UIDs are legal as well
-          currentState = state.OPERATOR;
-        } else if (currentState == state.OPERATOR) {
-          // TODO we seem to have some logic mapping our "!null" or "null" to the QueryOperators
-          currentOperator = QueryOperator.fromString(input.substring(start, end));
-          // TODO only binary operators should move to the value state; use the unary set we have to
-          // determine if we now expect a value or not
-          currentState = state.VALUE;
-        } else {
-          consumeFilter(result, currentUid, currentOperator, input, start, end);
-
-          // another operator or operator:value pair for the currentUid might follow
+        } else if (currentOperator == null) {
+          currentOperator = getQueryOperator(input.substring(start, end));
+          if (currentOperator.isUnary()) {
+            addFilter(result, currentUid, currentOperator, null);
+            // currentUid might get another operator or operator:value pair
+            currentOperator = null;
+          }
+        } else { // value
+          addFilter(result, currentUid, currentOperator, input.substring(start, end));
+          // currentUid might get another operator or operator:value pair
           currentOperator = null;
-          currentState = state.OPERATOR;
         }
 
-        // TODO be careful not to index out of bounds
         start = end + 1;
-      } else if (input.charAt(end) == ',') {
+      } else if (curChar == ',') {
         // TODO error handling depending on the state we are in; what could happen? make sure we err
-        // if we have not consumed some input
-        if (currentState == state.VALUE) {
-          consumeFilter(result, currentUid, currentOperator, input, start, end);
-        }
+        // if we have not consumed some input; what if the last segment was a unary operator could
+        // the currentOperator thus still be null here?
+        addFilter(result, currentUid, currentOperator, input.substring(start, end));
 
         // comma transitions back to the initial state
-        currentState = state.UID;
         currentUid = null;
         currentOperator = null;
 
-        // TODO be careful not to index out of bounds
         start = end + 1;
       }
       end++;
     }
 
-    // TODO check currentState and non-consumed input like in the only UID case, there might be
-    // other cases
     if (start < end) {
-      if (currentState == state.UID) {
+      String value = null;
+      if (currentUid == null) {
         currentUid = UID.of(input.substring(start, end));
-        result.putIfAbsent(currentUid, new ArrayList<>());
-        // TODO we might also still need to consume an operator and a value right?
+      } else if (currentOperator == null) {
+        currentOperator = getQueryOperator(input.substring(start, end));
       } else {
-        consumeFilter(result, currentUid, currentOperator, input, start, end);
+        value = input.substring(start, end);
       }
+      addFilter(result, currentUid, currentOperator, value);
       // TODO cases for trailing :
-      // is that correct
+      // is that correct, are there more cases?
     } else if (currentUid != null) {
       result.putIfAbsent(currentUid, new ArrayList<>());
     }
@@ -156,14 +144,44 @@ public class FilterParser {
     return result;
   }
 
-  private static void consumeFilter(
+  private static QueryOperator getQueryOperator(String operator) throws BadRequestException {
+    QueryOperator queryOperator;
+    try {
+      if (Objects.equals(operator, "!null")) {
+        queryOperator = QueryOperator.NNULL;
+      } else if (Objects.equals(operator, "null")) {
+        queryOperator = QueryOperator.NULL;
+      } else {
+        queryOperator = QueryOperator.fromString(operator);
+      }
+    } catch (IllegalArgumentException exception) {
+      throw new BadRequestException(String.format("'%s' is not a valid operator", operator));
+    }
+    return queryOperator;
+  }
+
+  private static void addFilter(
       Map<UID, List<QueryFilter>> result,
       UID currentUid,
       QueryOperator currentOperator,
-      String input,
-      int start,
-      int end) {
-    String value = removeEscapeCharacters(input.substring(start, end));
+      String value) {
+    result.putIfAbsent(currentUid, new ArrayList<>());
+
+    // TODO(ivo) add validations in here about a binary operator not having a value and a unary one
+    // having a value
+    if (currentOperator != null && value == null) {
+      result.get(currentUid).add(new QueryFilter(currentOperator));
+    } else if (currentOperator != null) {
+      result.get(currentUid).add(new QueryFilter(currentOperator, removeEscapeCharacters(value)));
+    }
+  }
+
+  private static void consumeFilterOld(
+      Map<UID, List<QueryFilter>> result,
+      UID currentUid,
+      QueryOperator currentOperator,
+      String input) {
+    String value = removeEscapeCharacters(input);
     result.putIfAbsent(currentUid, new ArrayList<>());
     result.get(currentUid).add(new QueryFilter(currentOperator, value));
   }
