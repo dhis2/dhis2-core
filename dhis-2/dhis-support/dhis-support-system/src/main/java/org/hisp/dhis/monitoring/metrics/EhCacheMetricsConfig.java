@@ -39,6 +39,7 @@ import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.binder.MeterBinder;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceException;
+import java.util.Arrays;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.ehcache.CacheManager;
@@ -101,7 +102,8 @@ public class EhCacheMetricsConfig {
           // Pass both managers to register metrics
           registerCacheMetrics(jsr107CacheManager, ehCacheManager, registry);
         } else {
-          log.warn("Unwrapping JSR-107 CacheManager returned null for native Ehcache CacheManager.");
+          log.warn(
+              "Unwrapping JSR-107 CacheManager returned null for native Ehcache CacheManager.");
         }
       } catch (IllegalArgumentException e) {
         log.warn(
@@ -120,8 +122,7 @@ public class EhCacheMetricsConfig {
    */
   private javax.cache.CacheManager getEhCacheManager(RegionFactory regionFactory) {
     log.info(
-        "[Metrics] Attempting reflection on RegionFactory: {}",
-        regionFactory.getClass().getName());
+        "[Metrics] Attempting reflection on RegionFactory: {}", regionFactory.getClass().getName());
     try {
       // The field name might vary, but "cacheManager" is common for JCacheRegionFactory
       java.lang.reflect.Field field = regionFactory.getClass().getDeclaredField("cacheManager");
@@ -157,8 +158,8 @@ public class EhCacheMetricsConfig {
   }
 
   /**
-   * Registers metrics for each cache using reflection to access statistics directly from the JSR-107
-   * cache wrapper.
+   * Registers metrics for each cache using reflection to access statistics directly from the
+   * JSR-107 cache wrapper.
    */
   private void registerCacheMetrics(
       javax.cache.CacheManager jsr107CacheManager,
@@ -172,15 +173,13 @@ public class EhCacheMetricsConfig {
       try {
         javax.cache.Cache<?, ?> jsr107Cache = jsr107CacheManager.getCache(cacheName);
         if (jsr107Cache != null) {
-          Tags tags =
-              Tags.of(Tag.of("name", cacheName), Tag.of("type", "hibernate-second-level-cache"));
 
           // Use reflection to get cacheStatistics via statisticsBean
           CacheStatistics cacheStats = getCacheStatisticsViaReflection(jsr107Cache);
 
           if (cacheStats != null) {
             // Register metrics using the directly obtained CacheStatistics
-            new EhCacheDirectStatisticsMetrics(cacheStats, tags).bindTo(registry);
+            new EhCacheDirectStatisticsMetrics(cacheStats, null, cacheName).bindTo(registry);
             log.debug("[Metrics] Registered metrics for cache: {}", cacheName);
           } else {
             log.warn(
@@ -199,8 +198,8 @@ public class EhCacheMetricsConfig {
   }
 
   /**
-   * Uses reflection to extract the CacheStatistics object from a JSR-107 Cache instance, assuming it's
-   * an Ehcache implementation with a statisticsBean field.
+   * Uses reflection to extract the CacheStatistics object from a JSR-107 Cache instance, assuming
+   * it's an Ehcache implementation with a statisticsBean field.
    */
   private CacheStatistics getCacheStatisticsViaReflection(javax.cache.Cache<?, ?> jsr107Cache) {
     try {
@@ -254,47 +253,68 @@ public class EhCacheMetricsConfig {
   private static class EhCacheDirectStatisticsMetrics implements MeterBinder {
     private final CacheStatistics stats;
     private final Iterable<Tag> tags;
+    private final String name;
 
-    public EhCacheDirectStatisticsMetrics(CacheStatistics stats, Iterable<Tag> tags) {
+    public EhCacheDirectStatisticsMetrics(CacheStatistics stats, Iterable<Tag> tags, String name) {
       this.stats = stats;
       this.tags = tags;
+      this.name = name;
     }
 
     @Override
     public void bindTo(MeterRegistry registry) {
       // Bind metrics directly using the provided CacheStatistics object
+      //      Tags tags =
+      Tag l1 = Tag.of("type", "L2");
+      //      Tags.of(Tag.of("name", name), l1);
+      //      "cache.gets"
+      // split name on . and take the last element
+      String[] parts = name.split("\\.");
+      StringBuilder lastPartBuilder = new StringBuilder();
+      boolean foundCapitalized = false;
+      for (String part : parts) {
+        if (foundCapitalized) {
+          lastPartBuilder.append(".").append(part);
+        } else if (Character.isUpperCase(part.charAt(0))) {
+          lastPartBuilder.append(part);
+          foundCapitalized = true;
+        }
+      }
+      String lastPart = foundCapitalized ? lastPartBuilder.toString() : name;
 
-      FunctionCounter.builder("cache.gets", stats, CacheStatistics::getCacheGets)
-          .tags(tags)
+      FunctionCounter.builder("ehcache." + lastPart, stats, CacheStatistics::getCacheGets)
+          .tags(Tags.of(Tag.of("name", "cache.gets"), l1))
           .description("The number of get requests that were made to the cache")
           .register(registry);
 
-      FunctionCounter.builder("cache.puts", stats, CacheStatistics::getCachePuts)
-          .tags(tags)
+      FunctionCounter.builder("ehcache." + lastPart, stats, CacheStatistics::getCachePuts)
+          .tags(Tags.of(Tag.of("name", "cache.puts"), l1))
           .description("The number of put requests that were made to the cache")
           .register(registry);
 
-      FunctionCounter.builder("cache.removals", stats, CacheStatistics::getCacheRemovals)
-          .tags(tags)
-          .description("The number of removal requests that were made to the cache")
-          .register(registry);
-
-      FunctionCounter.builder("cache.evictions", stats, CacheStatistics::getCacheEvictions)
-          .tags(tags)
-          .description("The number of evictions from the cache")
-          .register(registry);
-
-      FunctionCounter.builder("cache.hits", stats, CacheStatistics::getCacheHits)
-          .tags(tags)
-          .description(
-              "The number of times cache lookup methods found a requested entry in the cache")
-          .register(registry);
-
-      FunctionCounter.builder("cache.misses", stats, CacheStatistics::getCacheMisses)
-          .tags(tags)
-          .description(
-              "The number of times cache lookup methods did not find a requested entry in the cache")
-          .register(registry);
+      //      FunctionCounter.builder("cache.removals", stats, CacheStatistics::getCacheRemovals)
+      //          .tags(tags)
+      //          .description("The number of removal requests that were made to the cache")
+      //          .register(registry);
+      //
+      //      FunctionCounter.builder("cache.evictions", stats, CacheStatistics::getCacheEvictions)
+      //          .tags(tags)
+      //          .description("The number of evictions from the cache")
+      //          .register(registry);
+      //
+      //      FunctionCounter.builder("cache.hits", stats, CacheStatistics::getCacheHits)
+      //          .tags(tags)
+      //          .description(
+      //              "The number of times cache lookup methods found a requested entry in the
+      // cache")
+      //          .register(registry);
+      //
+      //      FunctionCounter.builder("cache.misses", stats, CacheStatistics::getCacheMisses)
+      //          .tags(tags)
+      //          .description(
+      //              "The number of times cache lookup methods did not find a requested entry in
+      // the cache")
+      //          .register(registry);
 
       Gauge.builder(
               "cache.hit.ratio",
