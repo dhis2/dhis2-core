@@ -70,6 +70,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.option.OptionService;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.render.ObjectValueTypeRenderingOption;
 import org.hisp.dhis.render.StaticRenderingConfiguration;
 import org.hisp.dhis.render.type.ValueTypeRenderingType;
@@ -433,9 +434,11 @@ public class ValidationUtils {
       String value, DataElement dataElement, OptionService optionService) {
     String error = valueIsValid(value, dataElement);
     if (error != null) return error;
+    OptionSet optionSet = dataElement.getOptionSet();
+    if (optionSet == null) return null;
     boolean valid =
         optionService.existsAllOptions(
-            dataElement.getOptionSet().getUid(),
+            optionSet.getUid(),
             dataElement.getValueType().isMultiText()
                 ? ValueType.splitMultiText(value)
                 : List.of(value));
