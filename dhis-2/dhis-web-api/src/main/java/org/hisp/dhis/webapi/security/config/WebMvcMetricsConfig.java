@@ -244,8 +244,7 @@ public class WebMvcMetricsConfig implements WebMvcConfigurer {
         Object handler,
         Exception exception) {
       long endTime = System.nanoTime();
-      HandlerMethod handlerMethod =
-          (handler instanceof HandlerMethod method) ? method : null;
+      HandlerMethod handlerMethod = (handler instanceof HandlerMethod method) ? method : null;
       Iterable<Tag> tags = this.tagsProvider.getTags(request, response, handlerMethod, exception);
       Timer.builder(this.metricName)
           .tags(tags)

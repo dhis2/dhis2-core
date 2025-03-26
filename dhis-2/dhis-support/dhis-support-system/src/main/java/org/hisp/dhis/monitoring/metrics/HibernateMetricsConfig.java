@@ -32,14 +32,16 @@ package org.hisp.dhis.monitoring.metrics;
 import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_HIBERNATE_ENABLED;
 
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.binder.jpa.HibernateQueryMetrics;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.binder.MeterBinder;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceException;
-import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
+import org.hibernate.stat.Statistics;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
@@ -65,11 +67,11 @@ public class HibernateMetricsConfig {
       String beanName, EntityManagerFactory entityManagerFactory, MeterRegistry registry) {
     String entityManagerFactoryName = getEntityManagerFactoryName(beanName);
     try {
-      new HibernateQueryMetrics(
-              entityManagerFactory.unwrap(SessionFactory.class),
-              entityManagerFactoryName,
-              List.of())
-          .bindTo(registry);
+      SessionFactory sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
+      sessionFactory.getStatistics().setStatisticsEnabled(true);
+
+      // Create a custom meter binder for Hibernate statistics
+      new HibernateMeterBinderCustom(sessionFactory, entityManagerFactoryName).bindTo(registry);
     } catch (PersistenceException ex) {
       log.debug(
           "Failed to bind Hibernate metrics for EntityManagerFactory '{}': {}",
@@ -91,6 +93,74 @@ public class HibernateMetricsConfig {
       return beanName.substring(0, beanName.length() - ENTITY_MANAGER_FACTORY_SUFFIX.length());
     }
     return beanName;
+  }
+
+  /** Custom implementation of a meter binder for Hibernate statistics */
+  private static class HibernateMeterBinderCustom implements MeterBinder {
+    private final SessionFactory sessionFactory;
+    private final Iterable<Tag> tags;
+
+    public HibernateMeterBinderCustom(SessionFactory sessionFactory, String name) {
+      this.sessionFactory = sessionFactory;
+      this.tags = Tags.of("entityManagerFactory", name);
+    }
+
+    @Override
+    public void bindTo(MeterRegistry registry) {
+      Statistics statistics = this.sessionFactory.getStatistics();
+
+      // Query execution metrics
+      registry.gauge("hibernate.queries", tags, statistics, Statistics::getQueryExecutionCount);
+      registry.gauge(
+          "hibernate.queries.slow", tags, statistics, Statistics::getQueryExecutionMaxTime);
+
+      // Session metrics
+      registry.gauge("hibernate.sessions.open", tags, statistics, Statistics::getSessionOpenCount);
+      registry.gauge(
+          "hibernate.sessions.closed", tags, statistics, Statistics::getSessionCloseCount);
+
+      // Transaction metrics
+      registry.gauge("hibernate.transactions", tags, statistics, Statistics::getTransactionCount);
+      registry.gauge(
+          "hibernate.transactions.successful",
+          tags,
+          statistics,
+          Statistics::getSuccessfulTransactionCount);
+
+      // Entity metrics
+      registry.gauge(
+          "hibernate.entities.deletes", tags, statistics, Statistics::getEntityDeleteCount);
+      registry.gauge(
+          "hibernate.entities.fetches", tags, statistics, Statistics::getEntityFetchCount);
+      registry.gauge(
+          "hibernate.entities.inserts", tags, statistics, Statistics::getEntityInsertCount);
+      registry.gauge("hibernate.entities.loads", tags, statistics, Statistics::getEntityLoadCount);
+      registry.gauge(
+          "hibernate.entities.updates", tags, statistics, Statistics::getEntityUpdateCount);
+
+      // Collection metrics
+      registry.gauge(
+          "hibernate.collections.deletes", tags, statistics, Statistics::getCollectionRemoveCount);
+      registry.gauge(
+          "hibernate.collections.fetches", tags, statistics, Statistics::getCollectionFetchCount);
+      registry.gauge(
+          "hibernate.collections.loads", tags, statistics, Statistics::getCollectionLoadCount);
+      registry.gauge(
+          "hibernate.collections.recreates",
+          tags,
+          statistics,
+          Statistics::getCollectionRecreateCount);
+      registry.gauge(
+          "hibernate.collections.updates", tags, statistics, Statistics::getCollectionUpdateCount);
+
+      // Cache metrics
+      registry.gauge(
+          "hibernate.cache.puts", tags, statistics, Statistics::getSecondLevelCachePutCount);
+      registry.gauge(
+          "hibernate.cache.hits", tags, statistics, Statistics::getSecondLevelCacheHitCount);
+      registry.gauge(
+          "hibernate.cache.misses", tags, statistics, Statistics::getSecondLevelCacheMissCount);
+    }
   }
 
   static class HibernateMetricsEnabledCondition extends MetricsEnabler {
