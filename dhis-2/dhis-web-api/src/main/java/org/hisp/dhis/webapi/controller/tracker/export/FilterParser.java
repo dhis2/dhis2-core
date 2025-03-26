@@ -112,19 +112,18 @@ public class FilterParser {
         operator = null;
         valueOrOperator = null;
       } else if (curChar == COLON && valueOrOperator != null) {
-        // TODO can I make this prettier?
-        // uid is not reset as it might get another operator or operator:value pair
+        // we only keep track of two segments after the uid so we need to consume at least the first
+        // if it is a unary operator or both if its a binary operator
+        Optional<QueryOperator> nextOperator =
+            validateUnaryOperator(input, operator, valueOrOperator);
         if (operator.isUnary()) {
-          Optional<QueryOperator> nextOperator =
-              validateUnaryOperator(input, operator, valueOrOperator);
           addFilter(input, result, uid, operator, null);
-
-          operator = nextOperator.get();
         } else {
           addFilter(input, result, uid, operator, valueOrOperator);
-
-          operator = null;
         }
+
+        // the uid is not reset as it might get another operator or operator:value pair
+        operator = nextOperator.orElse(null);
         valueOrOperator = null;
       }
       end++;
