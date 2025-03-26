@@ -292,9 +292,10 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     boolean skipOwnershipCheck = queryParams.getOrgUnitMode() == ALL;
 
     if (queryParams.hasEnrolledInTrackerProgram()) {
-      return te ->
-          ownershipAccessManager.hasAccess(
-              user, te, queryParams.getEnrolledInTrackerProgram(), skipOwnershipCheck);
+      return skipOwnershipCheck
+          ? te -> true
+          : te ->
+              ownershipAccessManager.hasAccess(user, te, queryParams.getEnrolledInTrackerProgram());
     }
 
     return te -> trackerAccessManager.canRead(user, te, skipOwnershipCheck).isEmpty();

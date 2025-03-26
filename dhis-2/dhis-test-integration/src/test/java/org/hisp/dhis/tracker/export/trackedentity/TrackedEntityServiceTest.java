@@ -2405,8 +2405,9 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldFailWhenRequestingCollectionPaginatedTEWithoutProgramParamAndUserCantEnrollTEAnywhere()
-      throws BadRequestException, ForbiddenException, NotFoundException {
+  void
+      shouldReturnEmptyListWhenRequestingCollectionPaginatedTEWithoutProgramParamAndUserCantEnrollTEAnywhere()
+          throws BadRequestException, ForbiddenException, NotFoundException {
     injectAdminIntoSecurityContext();
     programB.setAccessLevel(CLOSED);
     manager.save(programB, false);
@@ -2425,7 +2426,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void
-      shouldFailWhenRequestingCollectionNonPaginatedTEWithoutProgramParamAndUserCantEnrollTEAnywhere()
+      shouldReturnEmptyListWhenRequestingCollectionNonPaginatedTEWithoutProgramParamAndUserCantEnrollTEAnywhere()
           throws BadRequestException, ForbiddenException, NotFoundException {
     injectAdminIntoSecurityContext();
     programB.setAccessLevel(CLOSED);

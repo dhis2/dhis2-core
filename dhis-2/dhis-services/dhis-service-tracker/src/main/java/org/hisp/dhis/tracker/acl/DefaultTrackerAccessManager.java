@@ -123,9 +123,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       return List.of("User has no access to any program");
     }
 
-    if (tetPrograms.stream()
-        .anyMatch(
-            p -> ownershipAccessManager.hasAccess(user, trackedEntity, p, skipOwnershipCheck))) {
+    if (skipOwnershipCheck
+        || tetPrograms.stream()
+            .anyMatch(p -> ownershipAccessManager.hasAccess(user, trackedEntity, p))) {
       return List.of();
     } else {
       return List.of(OWNERSHIP_ACCESS_DENIED);

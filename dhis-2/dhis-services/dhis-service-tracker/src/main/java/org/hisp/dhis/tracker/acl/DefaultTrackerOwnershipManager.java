@@ -237,14 +237,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   @Override
   @Transactional(readOnly = true)
   public boolean hasAccess(UserDetails user, TrackedEntity trackedEntity, Program program) {
-    return hasAccess(user, trackedEntity, program, false);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean hasAccess(
-      UserDetails user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck) {
-    if (skipOwnershipCheck || canSkipOwnershipCheck(user, program) || trackedEntity == null) {
+    if (canSkipOwnershipCheck(user, program) || trackedEntity == null) {
       return true;
     }
 
