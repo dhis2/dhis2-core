@@ -38,8 +38,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.notification.ProgramStageTemplateVariable;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -49,8 +52,12 @@ import org.springframework.stereotype.Component;
  * @author Halvdan Hoem Grelland
  */
 @Component
+@RequiredArgsConstructor
 public class ProgramStageNotificationMessageRenderer
     extends BaseNotificationMessageRenderer<Event> {
+
+  private final OptionService optionService;
+
   public static final ImmutableMap<TemplateVariable, Function<Event, String>> VARIABLE_RESOLVERS =
       new ImmutableMap.Builder<TemplateVariable, Function<Event, String>>()
           .put(
@@ -109,13 +116,6 @@ public class ProgramStageNotificationMessageRenderer
           ExpressionType.DATA_ELEMENT);
 
   // -------------------------------------------------------------------------
-  // Singleton instance
-  // -------------------------------------------------------------------------
-
-  public static final ProgramStageNotificationMessageRenderer INSTANCE =
-      new ProgramStageNotificationMessageRenderer();
-
-  // -------------------------------------------------------------------------
   // Overrides
   // -------------------------------------------------------------------------
 
@@ -133,10 +133,7 @@ public class ProgramStageNotificationMessageRenderer
 
     return entity.getEnrollment().getTrackedEntity().getTrackedEntityAttributeValues().stream()
         .filter(av -> attributeKeys.contains(av.getAttribute().getUid()))
-        .collect(
-            Collectors.toMap(
-                av -> av.getAttribute().getUid(),
-                ProgramStageNotificationMessageRenderer::filterValue));
+        .collect(Collectors.toMap(av -> av.getAttribute().getUid(), this::filterValue));
   }
 
   @Override
@@ -170,7 +167,7 @@ public class ProgramStageNotificationMessageRenderer
   // Internal methods
   // -------------------------------------------------------------------------
 
-  private static String filterValue(TrackedEntityAttributeValue av) {
+  private String filterValue(TrackedEntityAttributeValue av) {
     String value = av.getPlainValue();
 
     if (value == null) {
@@ -180,13 +177,15 @@ public class ProgramStageNotificationMessageRenderer
     // If the AV has an OptionSet -> substitute value with the name of the
     // Option
     if (av.getAttribute().hasOptionSet()) {
-      value = av.getAttribute().getOptionSet().getOptionByCode(value).getName();
+      Option option =
+          optionService.getOptionByCode(av.getAttribute().getOptionSet().getUid(), value);
+      if (option != null) value = option.getName();
     }
 
     return value != null ? value : MISSING_VALUE_REPLACEMENT;
   }
 
-  private static String filterValue(EventDataValue dv, DataElement dataElement) {
+  private String filterValue(EventDataValue dv, DataElement dataElement) {
     String value = dv.getValue();
 
     if (value == null) {
@@ -196,7 +195,8 @@ public class ProgramStageNotificationMessageRenderer
     // If the DV has an OptionSet -> substitute value with the name of the
     // Option
     if (dataElement != null && dataElement.hasOptionSet()) {
-      value = dataElement.getOptionSet().getOptionByCode(value).getName();
+      Option option = optionService.getOptionByCode(dataElement.getOptionSet().getUid(), value);
+      if (option != null) value = option.getName();
     }
 
     return value != null ? value : MISSING_VALUE_REPLACEMENT;

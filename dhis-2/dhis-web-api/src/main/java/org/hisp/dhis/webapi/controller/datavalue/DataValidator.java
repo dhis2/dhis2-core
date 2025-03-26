@@ -547,7 +547,7 @@ public class DataValidator {
   public String validateAndNormalizeDataValue(String dataValue, DataElement dataElement) {
     final String normalizedBoolean = normalizeBoolean(dataValue, dataElement.getValueType());
 
-    final String valueValid = valueIsValid(normalizedBoolean, dataElement, false);
+    final String valueValid = valueIsValid(normalizedBoolean, dataElement);
 
     if (valueValid != null) {
       throw new IllegalQueryException(

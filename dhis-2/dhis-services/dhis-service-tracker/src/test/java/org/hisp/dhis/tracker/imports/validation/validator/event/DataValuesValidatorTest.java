@@ -46,6 +46,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStage;
@@ -78,6 +79,7 @@ class DataValuesValidatorTest {
 
   private DataValuesValidator validator;
 
+  @Mock OptionService optionService;
   @Mock TrackerPreheat preheat;
 
   private static final String PROGRAM_STAGE_UID = "programStageUid";
@@ -120,7 +122,7 @@ class DataValuesValidatorTest {
 
   @BeforeEach
   public void setUp() {
-    validator = new DataValuesValidator();
+    validator = new DataValuesValidator(optionService);
 
     when(bundle.getPreheat()).thenReturn(preheat);
 

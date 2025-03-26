@@ -32,6 +32,8 @@ package org.hisp.dhis.option.hibernate;
 import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -82,18 +84,25 @@ public class HibernateOptionStore extends HibernateIdentifiableObjectStore<Optio
     return query.list();
   }
 
+  @CheckForNull
   @Override
-  public List<String> getOptionCodes(UID optionSet) {
+  public Option getOptionByCode(@Nonnull UID optionSet, @Nonnull String code) {
     String sql =
         """
-      select code from optionvalue
+      select * from optionvalue
       where optionsetid = (select optionsetid from optionset s where s.uid = :uid)
-      order by sort_order""";
-    return nativeSynchronizedQuery(sql).setParameter("uid", optionSet.getValue()).list();
+      and code = :code""";
+    @SuppressWarnings("unchecked")
+    List<Option> options =
+        nativeSynchronizedQuery(sql)
+            .setParameter("uid", optionSet.getValue())
+            .setParameter("code", code)
+            .list();
+    return options.isEmpty() ? null : options.get(0);
   }
 
   @Override
-  public boolean existsAllOptions(UID optionSet, Collection<String> codes) {
+  public boolean existsAllOptions(@Nonnull UID optionSet, @Nonnull Collection<String> codes) {
     String sql =
         """
       select count(*) from optionvalue

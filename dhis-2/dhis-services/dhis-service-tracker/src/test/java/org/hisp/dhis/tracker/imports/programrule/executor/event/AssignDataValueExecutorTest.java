@@ -44,6 +44,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
@@ -109,6 +110,7 @@ class AssignDataValueExecutorTest extends TestBase {
 
   @Mock private SystemSettingsProvider settingsProvider;
   @Mock private SystemSettings settings;
+  @Mock private OptionService optionService;
 
   @BeforeEach
   void setUpTest() {
@@ -161,6 +163,7 @@ class AssignDataValueExecutorTest extends TestBase {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             settingsProvider,
+            optionService,
             RULE_UID,
             INVALID_OPTION_VALUE,
             OPTION_SET_DATA_ELEMENT_UID,
@@ -185,6 +188,7 @@ class AssignDataValueExecutorTest extends TestBase {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             settingsProvider,
+            optionService,
             RULE_UID,
             VALID_OPTION_VALUE,
             OPTION_SET_DATA_ELEMENT_UID,
@@ -212,6 +216,7 @@ class AssignDataValueExecutorTest extends TestBase {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             settingsProvider,
+            optionService,
             RULE_UID,
             INVALID_OPTION_VALUE,
             OPTION_SET_DATA_ELEMENT_UID,
@@ -240,6 +245,7 @@ class AssignDataValueExecutorTest extends TestBase {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             settingsProvider,
+            optionService,
             RULE_UID,
             INVALID_OPTION_VALUE,
             OPTION_SET_DATA_ELEMENT_UID,
@@ -264,6 +270,7 @@ class AssignDataValueExecutorTest extends TestBase {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             settingsProvider,
+            optionService,
             RULE_UID,
             DATAELEMENT_NEW_VALUE,
             DATA_ELEMENT_UID,
@@ -286,6 +293,7 @@ class AssignDataValueExecutorTest extends TestBase {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             settingsProvider,
+            optionService,
             RULE_UID,
             DATAELEMENT_NEW_VALUE,
             DATA_ELEMENT_UID,
@@ -310,6 +318,7 @@ class AssignDataValueExecutorTest extends TestBase {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             settingsProvider,
+            optionService,
             RULE_UID,
             DATAELEMENT_NEW_VALUE,
             DATA_ELEMENT_UID,
@@ -331,6 +340,7 @@ class AssignDataValueExecutorTest extends TestBase {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             settingsProvider,
+            optionService,
             RULE_UID,
             DATAELEMENT_NEW_VALUE,
             DATA_ELEMENT_UID,
@@ -355,6 +365,7 @@ class AssignDataValueExecutorTest extends TestBase {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             settingsProvider,
+            optionService,
             RULE_UID,
             DATAELEMENT_NEW_VALUE,
             DATA_ELEMENT_UID,

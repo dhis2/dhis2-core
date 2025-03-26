@@ -160,14 +160,13 @@ public class DefaultOptionService implements OptionService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<String> getOptionCodes(@Nonnull String optionSet) {
-    return optionStore.getOptionCodes(UID.of(optionSet));
+  public boolean existsAllOptions(@Nonnull String optionSet, @Nonnull Collection<String> codes) {
+    return optionStore.existsAllOptions(UID.of(optionSet), codes);
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public boolean existsAllOptions(@Nonnull String optionSet, @Nonnull Collection<String> codes) {
-    return optionStore.existsAllOptions(UID.of(optionSet), codes);
+  public Option getOptionByCode(@Nonnull String optionSet, @Nonnull String code) {
+    return optionStore.getOptionByCode(UID.of(optionSet), code);
   }
 
   // -------------------------------------------------------------------------

@@ -37,10 +37,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -109,31 +106,6 @@ public class OptionSet extends BaseIdentifiableObject implements VersionedObject
   @Override
   public int increaseVersion() {
     return ++version;
-  }
-
-  public boolean hasAllOptions(Collection<String> optionCodes) {
-    for (String code : optionCodes) {
-      if (getOptionByCode(code) == null) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  public List<String> getOptionCodes() {
-    return options.stream()
-        .filter(Objects::nonNull)
-        .map(Option::getCode)
-        .collect(Collectors.toList());
-  }
-
-  public Option getOptionByCode(String code) {
-    for (Option option : options) {
-      if (option != null && option.getCode().equals(code)) {
-        return option;
-      }
-    }
-    return null;
   }
 
   // -------------------------------------------------------------------------

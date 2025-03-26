@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -58,6 +59,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 class RuleActionEventMapper {
   private final SystemSettingsProvider settingsProvider;
+  private final OptionService optionService;
 
   public Map<Event, List<RuleActionExecutor<Event>>> mapRuleEffects(
       Map<UID, List<ValidationEffect>> eventValidationEffects, TrackerBundle bundle) {
@@ -89,6 +91,7 @@ class RuleActionEventMapper {
       case ASSIGN ->
           new AssignDataValueExecutor(
               settingsProvider,
+              optionService,
               validationEffect.rule(),
               validationEffect.data(),
               validationEffect.field(),

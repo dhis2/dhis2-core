@@ -38,6 +38,7 @@ import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils
 import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -60,10 +61,15 @@ import org.springframework.stereotype.Component;
 class AttributeValidator
     extends org.hisp.dhis.tracker.imports.validation.validator.AttributeValidator
     implements Validator<org.hisp.dhis.tracker.imports.domain.TrackedEntity> {
+
+  private final OptionService optionService;
+
   public AttributeValidator(
       TrackedAttributeValidationService teAttrService,
-      DhisConfigurationProvider dhisConfigurationProvider) {
+      DhisConfigurationProvider dhisConfigurationProvider,
+      OptionService optionService) {
     super(teAttrService, dhisConfigurationProvider);
+    this.optionService = optionService;
   }
 
   @Override
@@ -154,7 +160,7 @@ class AttributeValidator
 
       validateAttributeValue(reporter, trackedEntity, tea, attribute.getValue());
       validateAttrValueType(reporter, bundle, trackedEntity, attribute, tea);
-      validateOptionSet(reporter, trackedEntity, tea, attribute.getValue());
+      validateOptionSet(reporter, trackedEntity, tea, attribute.getValue(), optionService);
 
       validateAttributeUniqueness(
           reporter, preheat, trackedEntity, attribute.getValue(), tea, te, orgUnit);

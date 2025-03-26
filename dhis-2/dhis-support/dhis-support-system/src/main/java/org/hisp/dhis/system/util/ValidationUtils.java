@@ -52,6 +52,7 @@ import static org.hisp.dhis.util.DateUtils.dateTimeIsValid;
 
 import java.awt.geom.Point2D;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -68,7 +69,7 @@ import org.hisp.dhis.common.ValueTypeOptions;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.render.ObjectValueTypeRenderingOption;
 import org.hisp.dhis.render.StaticRenderingConfiguration;
 import org.hisp.dhis.render.type.ValueTypeRenderingType;
@@ -428,8 +429,18 @@ public class ValidationUtils {
     return options.getClass().equals(valueType.getValueTypeOptionsClass());
   }
 
-  public static String valueIsValid(String value, DataElement dataElement) {
-    return valueIsValid(value, dataElement, true);
+  public static String valueIsValidOption(
+      String value, DataElement dataElement, OptionService optionService) {
+    String error = valueIsValid(value, dataElement);
+    if (error != null) return error;
+    boolean valid =
+        optionService.existsAllOptions(
+            dataElement.getOptionSet().getUid(),
+            dataElement.getValueType().isMultiText()
+                ? ValueType.splitMultiText(value)
+                : List.of(value));
+    if (!valid) return "value_not_valid_option";
+    return null;
   }
 
   /**
@@ -458,12 +469,9 @@ public class ValidationUtils {
    *
    * @param value the value.
    * @param dataElement the data element.
-   * @param validateOptions indicates whether to validate against the options of the option set of
-   *     the given data element.
    * @return null if the value is valid, a non-empty string if not.
    */
-  public static String valueIsValid(
-      String value, DataElement dataElement, boolean validateOptions) {
+  public static String valueIsValid(String value, DataElement dataElement) {
     if (dataElement == null) {
       return "data_element_or_type_null_or_empty";
     }
@@ -474,17 +482,8 @@ public class ValidationUtils {
       return "data_element_or_type_null_or_empty";
     }
 
-    // note: avoid accessing options if not necessary for perf reasons
-    if (valueType.isMultiText()) {
-      OptionSet options = dataElement.getOptionSet();
-      if (options == null) return "data_element_lacks_option_set";
-      if (validateOptions && !options.hasAllOptions(ValueType.splitMultiText(value)))
-        return "value_not_valid_option";
-    } else if (validateOptions) {
-      OptionSet options = dataElement.getOptionSet();
-      if (options != null && options.getOptionByCode(value) == null)
-        return "value_not_valid_option";
-    }
+    if (valueType.isMultiText() && dataElement.getOptionSet() == null)
+      return "data_element_lacks_option_set";
 
     return valueIsValid(value, valueType);
   }
