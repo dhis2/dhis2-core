@@ -59,14 +59,7 @@ import org.junit.jupiter.api.Test;
  */
 class NotifierTest {
 
-  private final SystemSettingsService settingsService = mock(SystemSettingsService.class);
-
-  private final Notifier notifier =
-      new DefaultNotifier(
-          new InMemoryNotifierStore(),
-          new ObjectMapper(),
-          settingsService,
-          System::currentTimeMillis);
+  private final Notifier notifier;
 
   private final JobConfiguration analyticsTable;
   private final JobConfiguration metadataImport;
@@ -83,7 +76,14 @@ class NotifierTest {
     dataImport2 = new JobConfiguration(null, DATAVALUE_IMPORT);
     dataImport3 = new JobConfiguration(null, DATAVALUE_IMPORT);
     dataImport4 = new JobConfiguration(null, DATAVALUE_IMPORT);
+    SystemSettingsService settingsService = mock(SystemSettingsService.class);
     when(settingsService.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
+    this.notifier =
+        new DefaultNotifier(
+            new InMemoryNotifierStore(),
+            new ObjectMapper(),
+            settingsService,
+            System::currentTimeMillis);
   }
 
   @Test
