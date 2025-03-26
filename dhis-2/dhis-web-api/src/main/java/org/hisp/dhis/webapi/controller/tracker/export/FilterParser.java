@@ -36,6 +36,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
@@ -95,7 +97,6 @@ public class FilterParser {
       if (curChar == ':') { // new segment causes state transition
         if (currentUid == null) {
           currentUid = UID.of(input.substring(start, end));
-          // an operator or operator:value pair might follow but only UIDs are legal as well
         } else if (currentOperator == null) {
           currentOperator = getQueryOperator(input, input.substring(start, end));
         } else if (currentOperator.isUnary()) { // consume unary operator
@@ -103,20 +104,27 @@ public class FilterParser {
 
           // the current segment might be the next operator or be an invalid attempt at providing a
           // value to a unary operator
-          // TODO might need special handling to give a better error message
+          // TODO what test is currently targeting this case? could we provide a better error
+          // message?
           currentOperator = getQueryOperator(input, input.substring(start, end));
         } else { // consume binary operator:value
           addFilter(input, result, currentUid, currentOperator, input.substring(start, end));
+
           // currentUid might get another operator or operator:value pair
           currentOperator = null;
         }
 
         start = end + 1;
       } else if (curChar == ',') { // new filter causes state transition to initial state
-        // TODO error handling depending on the state we are in; what could happen? make sure we err
-        // if we have not consumed some input; what if the last segment was a unary operator could
-        // the currentOperator thus still be null here?
-        addFilter(input, result, currentUid, currentOperator, input.substring(start, end));
+        String valueOrOperator = null;
+        if (currentUid == null) {
+          currentUid = UID.of(input.substring(start, end));
+        } else if (currentOperator == null) {
+          currentOperator = getQueryOperator(input, input.substring(start, end));
+        } else {
+          valueOrOperator = input.substring(start, end);
+        }
+        addFilter(input, result, currentUid, currentOperator, valueOrOperator);
 
         currentUid = null;
         currentOperator = null;
@@ -137,7 +145,8 @@ public class FilterParser {
       }
       addFilter(input, result, currentUid, currentOperator, valueOrOperator);
       // TODO cases for trailing :
-      // is that correct, are there more cases?
+      // is that correct, are there more cases? could we have a trailing value here? or not as it
+      // would then need to be consumed in the above start < end case
     } else if (currentUid != null) {
       addFilter(input, result, currentUid, currentOperator, null);
     }
@@ -146,11 +155,11 @@ public class FilterParser {
   }
 
   private static void addFilter(
-      String input,
-      Map<UID, List<QueryFilter>> result,
-      UID currentUid,
-      QueryOperator currentOperator,
-      String valueOrOperator)
+      @Nonnull String input,
+      @Nonnull Map<UID, List<QueryFilter>> result,
+      @Nonnull UID currentUid,
+      @CheckForNull QueryOperator currentOperator,
+      @CheckForNull String valueOrOperator)
       throws BadRequestException {
     result.putIfAbsent(currentUid, new ArrayList<>());
 
@@ -158,7 +167,7 @@ public class FilterParser {
       return;
     }
 
-    if (!currentOperator.isUnary() && StringUtils.isEmpty(valueOrOperator)) {
+    if (currentOperator.isBinary() && StringUtils.isEmpty(valueOrOperator)) {
       throw new BadRequestException(
           "filter "
               + input
@@ -167,7 +176,6 @@ public class FilterParser {
               + " must have a value.");
     }
 
-    // TODO(ivo) handle the case where the value is actually another unary operator
     Optional<QueryOperator> nextOperator = findQueryOperator(valueOrOperator);
     if (currentOperator.isUnary()
         && StringUtils.isNotEmpty(valueOrOperator)
@@ -179,15 +187,14 @@ public class FilterParser {
               + currentOperator
               + " cannot have a value.");
     }
-    // TODO(ivo) do we need to check for an empty value?
-    // TODO(ivo) I need to validate the nextOperator is not a binary one as it would not have a
-    // value
 
     if (currentOperator.isUnary()) {
       result.get(currentUid).add(new QueryFilter(currentOperator));
       if (nextOperator.isPresent() && nextOperator.get().isUnary()) {
         result.get(currentUid).add(new QueryFilter(nextOperator.get()));
       }
+      // TODO(ivo) I need to validate the nextOperator is not a binary one as it would not have a
+      // value
     } else {
       result
           .get(currentUid)
