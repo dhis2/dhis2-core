@@ -1,7 +1,7 @@
 services:
   web:
     volumes:
-      - ./docker/dhis-doris.conf:/opt/dhis2/dhis.conf:ro
+      - ./docker/doris/dhis-doris.conf:/opt/dhis2/dhis.conf:ro
     depends_on:
       doris-be:
         condition: service_healthy
@@ -26,8 +26,9 @@ services:
       - FE_SERVERS=fe1:192.168.100.10:9010
       - FE_ID=1
     volumes:
-      - ./docker/postgresql.jar:/opt/apache-doris/fe/jdbc_drivers/postgresql.jar:ro
-      - ./docker/postgresql-42.7.5.jar:/opt/apache-doris/fe/jdbc_drivers/postgresql-42.7.5.jar:ro
+      - ./docker/doris/postgresql.jar:/opt/apache-doris/fe/jdbc_drivers/postgresql.jar:ro
+      - ./docker/doris/postgresql-42.7.5.jar:/opt/apache-doris/fe/jdbc_drivers/postgresql-42.7.5.jar:ro
+      - ./docker/doris/fe.conf:/opt/apache-doris/fe/conf/fe.conf
       - doris-fe-meta:/opt/apache-doris/fe/doris-meta
       - doris-fe-log:/opt/apache-doris/fe/log
     healthcheck:
@@ -50,9 +51,9 @@ services:
       doris-fe:
         condition: service_healthy
     volumes:
-      - ./docker/postgresql.jar:/opt/apache-doris/be/jdbc_drivers/postgresql.jar:ro
-      - ./docker/postgresql-42.7.5.jar:/opt/apache-doris/be/jdbc_drivers/postgresql-42.7.5.jar:ro
-      - ./docker/create-doris-database.sql:/docker-entrypoint-initdb.d/create-doris-database.sql:ro
+      - ./docker/doris/postgresql.jar:/opt/apache-doris/be/jdbc_drivers/postgresql.jar:ro
+      - ./docker/doris/postgresql-42.7.5.jar:/opt/apache-doris/be/jdbc_drivers/postgresql-42.7.5.jar:ro
+      - ./docker/doris/create-doris-database.sql:/docker-entrypoint-initdb.d/create-doris-database.sql:ro
       - doris-be-storage:/opt/apache-doris/be/storage
       - doris-be-log:/opt/apache-doris/be/log
     healthcheck:
