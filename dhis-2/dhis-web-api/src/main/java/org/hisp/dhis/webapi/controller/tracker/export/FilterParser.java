@@ -257,8 +257,8 @@ public class FilterParser {
       result.get(uid).add(new QueryFilter(parsedOperator, removeEscapeCharacters(valueOrOperator)));
     }
 
-    if (result.get(uid).size() > 2) {
-      throw new BadRequestException("A maximum of two operators can be used in a filter.");
+    if (result.get(uid).size() > 3) {
+      throw new BadRequestException("A maximum of three operators can be used in a filter.");
     }
   }
 

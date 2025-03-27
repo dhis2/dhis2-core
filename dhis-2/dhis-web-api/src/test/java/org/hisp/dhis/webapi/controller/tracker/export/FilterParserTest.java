@@ -355,15 +355,15 @@ cy2oRh2sNr7:eq:project//""");
 
   @ValueSource(
       strings = {
-        "TvjwTPToKHO:gt:10:null:!null",
-        "TvjwTPToKHO:gt:10:null:!null:",
-        "TvjwTPToKHO:gt:10:null,TvjwTPToKHO:!null",
-        "TvjwTPToKHO:gt:10:null:!null",
+        "TvjwTPToKHO:gt:10:null:!null:null",
+        "TvjwTPToKHO:gt:10:null:!null:null:",
+        "TvjwTPToKHO:gt:10:null,TvjwTPToKHO:!null:null",
       })
   @ParameterizedTest
-  void shouldFailParsingFiltersWithMoreThanTwoOperatorsForASingleIdentifier(String input) {
+  void shouldFailParsingFiltersWithMoreThanThreeOperatorsForASingleIdentifier(String input) {
     Exception exception = assertThrows(BadRequestException.class, () -> parseFilters(input));
 
-    assertStartsWith("A maximum of two operators can be used in a filter", exception.getMessage());
+    assertStartsWith(
+        "A maximum of three operators can be used in a filter", exception.getMessage());
   }
 }
