@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -37,10 +37,12 @@ import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.binder.MeterBinder;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceException;
+import java.util.Collections;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
+import org.hibernate.stat.HibernateMetrics;
 import org.hibernate.stat.Statistics;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,13 +67,18 @@ public class HibernateMetricsConfig {
 
   private void bindEntityManagerFactoryToRegistry(
       String beanName, EntityManagerFactory entityManagerFactory, MeterRegistry registry) {
+
     String entityManagerFactoryName = getEntityManagerFactoryName(beanName);
     try {
       SessionFactory sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
       sessionFactory.getStatistics().setStatisticsEnabled(true);
 
+      Tag tag = Tag.of("type", "L2");
+      new HibernateMetrics(sessionFactory, "entityManagerFactory", Collections.singleton(tag))
+          .bindTo(registry);
+
       // Create a custom meter binder for Hibernate statistics
-      new HibernateMeterBinderCustom(sessionFactory, entityManagerFactoryName).bindTo(registry);
+//      new HibernateMeterBinderCustom(sessionFactory, entityManagerFactoryName).bindTo(registry);
     } catch (PersistenceException ex) {
       log.debug(
           "Failed to bind Hibernate metrics for EntityManagerFactory '{}': {}",
@@ -104,6 +111,9 @@ public class HibernateMetricsConfig {
       this.sessionFactory = sessionFactory;
       this.tags = Tags.of("entityManagerFactory", name);
     }
+
+
+
 
     @Override
     public void bindTo(MeterRegistry registry) {

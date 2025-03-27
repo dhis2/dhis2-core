@@ -87,7 +87,6 @@ public class EhCacheMetricsConfig {
 
       // Get the JSR-107 CacheManager wrapper (likely Eh107CacheManager)
       javax.cache.CacheManager jsr107CacheManager = getEhCacheManager(regionFactory);
-
       if (jsr107CacheManager == null) {
         log.warn("Failed to retrieve JSR-107 CacheManager via reflection.");
         return;
@@ -164,6 +163,7 @@ public class EhCacheMetricsConfig {
       javax.cache.CacheManager jsr107CacheManager,
       CacheManager ehCacheManager, // Native manager used to get cache names
       MeterRegistry registry) {
+
     Set<String> cacheNames =
         ehCacheManager.getRuntimeConfiguration().getCacheConfigurations().keySet();
     log.info("[Metrics] Found {} EHCache regions for monitoring", cacheNames.size());
@@ -262,12 +262,7 @@ public class EhCacheMetricsConfig {
 
     @Override
     public void bindTo(MeterRegistry registry) {
-      // Bind metrics directly using the provided CacheStatistics object
-      //      Tags tags =
       Tag l2 = Tag.of("type", "L2");
-      //      Tags.of(Tag.of("name", name), l1);
-      //      "cache.gets"
-      // split name on . and capture from the element that start with capital letter
       String[] parts = name.split("\\.");
       StringBuilder lastPartBuilder = new StringBuilder();
       boolean foundCapitalized = false;
