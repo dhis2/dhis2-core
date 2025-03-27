@@ -23,8 +23,6 @@ services:
       - "9030:9030"
       - "8030:8030"
     environment:
-      #- FE_SERVERS=fe1:127.0.0.1:9010
-      #- FE_SERVERS=fe1:doris-fe:9010
       - FE_SERVERS=fe1:192.168.100.10:9010
       - FE_ID=1
     volumes:
@@ -43,7 +41,6 @@ services:
         ipv4_address: 192.168.100.11
     environment:
       - FE_SERVERS=fe1:192.168.100.10:9010
-      #- BE_ADDR=127.0.0.1:9050
       - BE_ADDR=192.168.100.11:9050
     ports:
       - 8041:8040
