@@ -56,6 +56,7 @@ public class TrackedEntityQuery {
     ORGUNIT_UID,
     ORGUNIT_CODE,
     ORGUNIT_NAME,
+    ORGUNIT_PATH,
     ORGUNIT_ATTRIBUTE_VALUES,
     TRACKEDENTITYID,
 
@@ -87,6 +88,7 @@ public class TrackedEntityQuery {
           .put(COLUMNS.ORGUNIT_UID, new TableColumn("o", "uid", "ou_uid"))
           .put(COLUMNS.ORGUNIT_CODE, new TableColumn("o", "code", "ou_code"))
           .put(COLUMNS.ORGUNIT_NAME, new TableColumn("o", "name", "ou_name"))
+          .put(COLUMNS.ORGUNIT_PATH, new TableColumn("o", "path", "ou_path"))
           .put(
               COLUMNS.ORGUNIT_ATTRIBUTE_VALUES,
               new TableColumn("o", "attributevalues", "ou_attributevalues"))
