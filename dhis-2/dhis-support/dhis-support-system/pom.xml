@@ -283,6 +283,12 @@
       <groupId>io.prometheus</groupId>
       <artifactId>prometheus-metrics-model</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.ehcache</groupId>
+      <artifactId>ehcache</artifactId>
+      <version>${ehcache3.version}</version>
+      <classifier>jakarta</classifier>
+    </dependency>
 
     <!-- Test -->
     <dependency>
