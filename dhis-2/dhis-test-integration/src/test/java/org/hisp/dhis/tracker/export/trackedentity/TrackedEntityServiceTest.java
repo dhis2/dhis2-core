@@ -645,6 +645,34 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldReturnTrackedEntitiesWithCorrectOrgUnitPropertiesMappedWhenTrackedEntityAccessible()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnitChildA)
+            .orgUnitMode(SELECTED)
+            .trackedEntityType(trackedEntityTypeA)
+            .build();
+
+    final List<TrackedEntity> trackedEntities =
+        trackedEntityService.findTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(trackedEntityChildA), trackedEntities);
+    assertEquals(
+        trackedEntityChildA.getOrganisationUnit().getUid(),
+        trackedEntities.get(0).getOrganisationUnit().getUid());
+    assertEquals(
+        trackedEntityChildA.getOrganisationUnit().getCode(),
+        trackedEntities.get(0).getOrganisationUnit().getCode());
+    assertEquals(
+        trackedEntityChildA.getOrganisationUnit().getName(),
+        trackedEntities.get(0).getOrganisationUnit().getName());
+    assertEquals(
+        trackedEntityChildA.getOrganisationUnit().getStoredPath(),
+        trackedEntities.get(0).getOrganisationUnit().getStoredPath());
+  }
+
+  @Test
   void shouldReturnTrackedEntityIncludingAllAttributesEnrollmentsEventsRelationshipsOwners()
       throws ForbiddenException, NotFoundException, BadRequestException {
     // this was declared as "remove ownership"; unclear to me how this is removing ownership
