@@ -108,6 +108,7 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
@@ -156,8 +157,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       EnrollmentTimeFieldSqlRenderer timeFieldSqlRenderer,
       ExecutionPlanStore executionPlanStore,
       SystemSettingsService settingsService,
-      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder,
-      @Qualifier("postgresAnalyticsSqlBuilder") AnalyticsSqlBuilder analyticsSqlBuilder,
+      DhisConfigurationProvider config,
+      SqlBuilder sqlBuilder,
+      AnalyticsSqlBuilder analyticsSqlBuilder,
       OrganisationUnitResolver organisationUnitResolver) {
     super(
         jdbcTemplate,
@@ -168,6 +170,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         executionPlanStore,
         sqlBuilder,
         settingsService,
+        config,
         organisationUnitResolver,
         analyticsSqlBuilder);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;

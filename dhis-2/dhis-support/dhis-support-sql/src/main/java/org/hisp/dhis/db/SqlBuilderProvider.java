@@ -52,6 +52,15 @@ public class SqlBuilderProvider {
   }
 
   /**
+   * Returns a {@link SqlBuilder} implementation based on the system configuration.
+   *
+   * @return a {@link SqlBuilder}.
+   */
+  public SqlBuilder getSqlBuilder() {
+    return sqlBuilder;
+  }
+
+  /**
    * Returns the appropriate {@link SqlBuilder} implementation based on the system configuration.
    *
    * @param config the {@link DhisConfigurationProvider}.

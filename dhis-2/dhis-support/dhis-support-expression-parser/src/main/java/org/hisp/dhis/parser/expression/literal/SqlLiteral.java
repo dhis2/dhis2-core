@@ -33,16 +33,25 @@ import static org.apache.commons.text.StringEscapeUtils.unescapeJava;
 import static org.hisp.dhis.antlr.AntlrParserUtils.trimQuotes;
 import static org.hisp.dhis.system.util.SqlUtils.escape;
 
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.AntlrExprLiteral;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser.BooleanLiteralContext;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser.NumericLiteralContext;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser.StringLiteralContext;
 
 /** Gets literal value Strings from an ANTLR parse tree for use in SQL queries. */
 public class SqlLiteral implements AntlrExprLiteral {
+
+  private final SqlBuilder sqlBuilder;
+
+  public SqlLiteral(SqlBuilder sqlBuilder) {
+    this.sqlBuilder = sqlBuilder;
+  }
+
   @Override
   public Object getNumericLiteral(NumericLiteralContext ctx) {
-    return ctx.getText() + "::numeric";
+    return sqlBuilder.cast(ctx.getText(), DataType.NUMERIC);
   }
 
   @Override
