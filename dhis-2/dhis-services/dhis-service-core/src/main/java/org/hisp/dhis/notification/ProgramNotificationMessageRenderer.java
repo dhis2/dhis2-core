@@ -35,6 +35,7 @@ import com.google.common.collect.Maps;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -138,9 +139,9 @@ public class ProgramNotificationMessageRenderer
     // If the AV has an OptionSet -> substitute value with the name of the
     // Option
     if (av.getAttribute().hasOptionSet()) {
-      Option option =
-          optionService.getOptionByCode(av.getAttribute().getOptionSet().getUid(), value);
-      if (option != null) value = option.getName();
+      Optional<Option> option =
+          optionService.findOptionByCode(av.getAttribute().getOptionSet().getUid(), value);
+      if (option.isPresent()) value = option.get().getName();
     }
 
     return value != null ? value : MISSING_VALUE_REPLACEMENT;

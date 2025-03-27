@@ -31,6 +31,7 @@ package org.hisp.dhis.option;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -154,8 +155,9 @@ public class DefaultOptionService implements OptionService {
   }
 
   @Override
-  public Option getOptionByCode(@Nonnull String optionSet, @Nonnull String code) {
-    return optionStore.getOptionByCode(UID.of(optionSet), code);
+  @Transactional(readOnly = true)
+  public Optional<Option> findOptionByCode(@Nonnull String optionSet, @Nonnull String code) {
+    return optionStore.findOptionByCode(UID.of(optionSet), code);
   }
 
   // -------------------------------------------------------------------------

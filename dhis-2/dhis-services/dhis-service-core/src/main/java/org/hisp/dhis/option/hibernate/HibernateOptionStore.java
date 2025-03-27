@@ -32,7 +32,7 @@ package org.hisp.dhis.option.hibernate;
 import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
-import javax.annotation.CheckForNull;
+import java.util.Optional;
 import javax.annotation.Nonnull;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.UID;
@@ -84,9 +84,8 @@ public class HibernateOptionStore extends HibernateIdentifiableObjectStore<Optio
     return query.list();
   }
 
-  @CheckForNull
   @Override
-  public Option getOptionByCode(@Nonnull UID optionSet, @Nonnull String code) {
+  public Optional<Option> findOptionByCode(@Nonnull UID optionSet, @Nonnull String code) {
     String sql =
         """
       select * from optionvalue
@@ -97,8 +96,9 @@ public class HibernateOptionStore extends HibernateIdentifiableObjectStore<Optio
         nativeSynchronizedQuery(sql)
             .setParameter("uid", optionSet.getValue())
             .setParameter("code", code)
+            .setCacheable(true)
             .list();
-    return options.isEmpty() ? null : options.get(0);
+    return options.isEmpty() ? Optional.empty() : Optional.of(options.get(0));
   }
 
   @Override
@@ -113,6 +113,7 @@ public class HibernateOptionStore extends HibernateIdentifiableObjectStore<Optio
         nativeSynchronizedQuery(sql)
             .setParameter("uid", optionSet.getValue())
             .setParameterList("codes", codes)
+            .setCacheable(true)
             .getSingleResult();
     return res instanceof Number n && n.intValue() == codes.size();
   }

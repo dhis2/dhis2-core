@@ -31,7 +31,7 @@ package org.hisp.dhis.option;
 
 import java.util.Collection;
 import java.util.List;
-import javax.annotation.CheckForNull;
+import java.util.Optional;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.UID;
@@ -45,6 +45,5 @@ public interface OptionStore extends IdentifiableObjectStore<Option> {
 
   boolean existsAllOptions(@Nonnull UID optionSet, @Nonnull Collection<String> codes);
 
-  @CheckForNull
-  Option getOptionByCode(@Nonnull UID optionSet, @Nonnull String code);
+  Optional<Option> findOptionByCode(@Nonnull UID optionSet, @Nonnull String code);
 }
