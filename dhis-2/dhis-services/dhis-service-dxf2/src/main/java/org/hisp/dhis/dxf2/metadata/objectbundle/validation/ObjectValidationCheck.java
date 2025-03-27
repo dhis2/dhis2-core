@@ -78,7 +78,7 @@ public interface ObjectValidationCheck extends ValidationCheck {
             reportBox[0] = report;
           }
           report.addObjectReport(objectReport);
-          report.withStatsIncIgnored(1);
+          report.ignoredInc(1);
         });
     return reportBox[0] == null ? TypeReport.empty(klass) : reportBox[0];
   }

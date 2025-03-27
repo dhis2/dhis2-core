@@ -130,7 +130,7 @@ public class DefaultMetadataImportService implements MetadataImportService {
 
       log.info("(" + bundle.getUsername() + ") Import:Commit took " + commitTimer.toString());
     } else {
-      report.getTypeReports().forEach(TypeReport::withAllStatsIgnored);
+      report.getTypeReports().forEach(TypeReport::ignoreAll);
       report.setStatus(Status.ERROR);
     }
 

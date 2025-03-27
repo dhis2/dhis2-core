@@ -214,27 +214,27 @@ public class TypeReport implements ErrorReportContainer {
         .toString();
   }
 
-  public void withStatsIncCreated(int amount) {
-    stats = stats.withCreated(amount);
+  public void createdInc(int amount) {
+    stats = stats.createdInc(amount);
   }
 
-  public void withStatsIncUpdated(int amount) {
-    stats = stats.withUpdated(amount);
+  public void updatedInc(int amount) {
+    stats = stats.updatedInc(amount);
   }
 
-  public void withStatsIncDeleted(int amount) {
-    stats = stats.withDeleted(amount);
+  public void deletedInc(int amount) {
+    stats = stats.deletedInc(amount);
   }
 
-  public void withStatsDecDeleted(int amount) {
-    stats = stats.withDeleted(-amount);
+  public void deletedDec(int amount) {
+    stats = stats.deletedDec(amount);
   }
 
-  public void withStatsIncIgnored(int amount) {
-    stats = stats.withIgnored(amount);
+  public void ignoredInc(int amount) {
+    stats = stats.ignoredInc(amount);
   }
 
-  public void withAllStatsIgnored() {
+  public void ignoreAll() {
     stats =
         new Stats(0, 0, 0, (stats.created() + stats.updated() + stats.deleted() + stats.ignored()));
   }
