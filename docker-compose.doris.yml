@@ -21,7 +21,7 @@ services:
         ipv4_address: 192.168.100.10
     ports:
       - "9030:9030"
-      - "8031:8030"
+      - "8030:8030"
     environment:
       #- FE_SERVERS=fe1:127.0.0.1:9010
       #- FE_SERVERS=fe1:doris-fe:9010
