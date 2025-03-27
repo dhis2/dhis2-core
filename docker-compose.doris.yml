@@ -3,8 +3,8 @@ services:
     volumes:
       - ./docker/dhis-doris.conf:/opt/dhis2/dhis.conf:ro
     depends_on:
-      doris-init:
-        condition: service_completed_successfully
+      doris-be:
+        condition: service_healthy
     networks:
       doris_network:
         ipv4_address: 192.168.100.9
@@ -28,6 +28,8 @@ services:
     volumes:
       - ./docker/postgresql.jar:/opt/apache-doris/fe/jdbc_drivers/postgresql.jar:ro
       - ./docker/postgresql-42.7.5.jar:/opt/apache-doris/fe/jdbc_drivers/postgresql-42.7.5.jar:ro
+      - doris-fe-meta:/opt/apache-doris/fe/doris-meta
+      - doris-fe-log:/opt/apache-doris/fe/log
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8030/home || exit 1"]
       interval: 10s
@@ -50,25 +52,20 @@ services:
     volumes:
       - ./docker/postgresql.jar:/opt/apache-doris/be/jdbc_drivers/postgresql.jar:ro
       - ./docker/postgresql-42.7.5.jar:/opt/apache-doris/be/jdbc_drivers/postgresql-42.7.5.jar:ro
+      - ./docker/create-doris-database.sql:/docker-entrypoint-initdb.d/create-doris-database.sql:ro
+      - doris-be-storage:/opt/apache-doris/be/storage
+      - doris-be-log:/opt/apache-doris/be/log
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8040/api/health"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  doris-init:
-    image: alpine:latest
-    networks:
-      doris_network:
-        ipv4_address: 192.168.100.12
-    depends_on:
-      doris-fe:
-        condition: service_healthy
-      doris-be:
-        condition: service_healthy
-    command: >
-      sh -c "apk add --no-cache mysql-client &&
-             mysql -h192.168.100.10 -P9030 -uroot --protocol=tcp --skip-password -e 'CREATE DATABASE IF NOT EXISTS dhis2;'"
+volumes:
+  doris-fe-meta:
+  doris-fe-log:
+  doris-be-storage:
+  doris-be-log:
 
 networks:
   doris_network:
