@@ -29,6 +29,18 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
+import static org.hisp.dhis.common.QueryOperator.IN;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.function.Consumer;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
@@ -55,19 +67,6 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.function.Consumer;
-
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
-import static org.hisp.dhis.common.QueryOperator.IN;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Luciano Fiandesio
