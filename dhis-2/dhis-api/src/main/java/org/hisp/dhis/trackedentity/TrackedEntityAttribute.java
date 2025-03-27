@@ -30,12 +30,6 @@
 package org.hisp.dhis.trackedentity;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
@@ -47,6 +41,11 @@ import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.textpattern.TextPattern;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Abyot Asalefew
@@ -144,6 +143,7 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
     return optionSet != null;
   }
 
+  /** Indicates whether this attribute has a legend set. */
   @Override
   public boolean hasLegendSet() {
     return isNotEmpty(legendSets);
