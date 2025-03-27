@@ -423,9 +423,9 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
 
     assertEquals("ERROR", updateReport.getStatus());
     assertEquals(0, updateReport.getStats().getCreated());
-    assertEquals(2, updateReport.getStats().getIgnored());
+    assertEquals(1, updateReport.getStats().getIgnored());
     assertEquals(0, updateReport.getStats().getUpdated());
-    assertEquals(2, updateReport.getStats().getTotal());
+    assertEquals(1, updateReport.getStats().getTotal());
   }
 
   @Test
@@ -453,9 +453,9 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
 
     assertEquals("ERROR", report.getStatus());
     assertEquals(0, report.getStats().getCreated());
-    assertEquals(2, report.getStats().getIgnored());
+    assertEquals(1, report.getStats().getIgnored());
     assertEquals(0, report.getStats().getUpdated());
-    assertEquals(2, report.getStats().getTotal());
+    assertEquals(1, report.getStats().getTotal());
   }
 
   @Test
@@ -617,6 +617,48 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
             .as(JsonTypeReport.class);
     JsonImportSummary report = typeReport.getImportSummaries().get(0).as(JsonImportSummary.class);
     assertEquals("SUCCESS", report.getStatus());
+  }
+
+  @Test
+  void deleteStatsAreCorrectWhenDeleteNotAllowedTest() {
+    // given import of 2 categories and 2 category combos
+    POST(
+            "/metadata?importReportMode=FULL&importStrategy=CREATE_AND_UPDATE&async=false",
+            Path.of("metadata/categories_with_category_combos.json"))
+        .content(HttpStatus.OK);
+
+    // when trying to delete 2 categories
+    JsonImportSummary importSummary =
+        POST(
+                "/metadata?importReportMode=FULL&importStrategy=DELETE&async=false",
+                Path.of("metadata/delete_categories.json"))
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    // then report shows items as ignored as delete is not allowed
+    assertEquals("WARNING", importSummary.getStatus());
+    JsonTypeReport typeReport = importSummary.getTypeReports().get(0).as(JsonTypeReport.class);
+
+    assertTrue(
+        typeReport.getObjectReports().stream()
+            .flatMap(or -> or.getErrorReports().stream())
+            .allMatch(
+                er ->
+                    er.getMessage()
+                        .contains(
+                            "Object could not be deleted because it is associated with another object")));
+    assertEquals(2, importSummary.getStats().getTotal());
+    assertEquals(2, importSummary.getStats().getIgnored());
+    assertEquals(0, importSummary.getStats().getDeleted());
+    assertEquals(0, importSummary.getStats().getCreated());
+    assertEquals(0, importSummary.getStats().getUpdated());
+
+    assertEquals(2, typeReport.getStats().getTotal());
+    assertEquals(2, typeReport.getStats().getIgnored());
+    assertEquals(0, typeReport.getStats().getDeleted());
+    assertEquals(0, typeReport.getStats().getCreated());
+    assertEquals(0, typeReport.getStats().getUpdated());
   }
 
   @Test

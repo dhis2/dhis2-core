@@ -83,8 +83,10 @@ public interface AppManager {
           "user",
           "user-profile");
 
+  static final Set<String> ALWAYS_ACCESSIBLE_APPS = Set.of("login", "global-shell", "user-profile");
+
   static final Set<String> MENU_APP_EXCLUSIONS =
-      Set.of("global-shell"); // TODO: instead filter by app type
+      Set.of("login", "global-shell"); // TODO: instead filter by app type
 
   static final String DASHBOARD_PLUGIN_TYPE = "DASHBOARD";
 

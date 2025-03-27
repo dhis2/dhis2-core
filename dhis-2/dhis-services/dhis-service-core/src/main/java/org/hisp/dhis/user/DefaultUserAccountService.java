@@ -122,6 +122,11 @@ public class DefaultUserAccountService implements UserAccountService {
     user.setFirstName(params.getFirstName());
     user.setSurname(params.getSurname());
 
+    boolean autoVerifyEmail = settingsProvider.getCurrentSettings().getAutoVerifyInvitedUserEmail();
+    if (autoVerifyEmail && user.getEmail() != null) {
+      user.setVerifiedEmail(user.getEmail());
+    }
+
     userService.encodeAndSetPassword(user, params.getPassword());
     userService.updateUser(user, new SystemUser());
     log.info("User invitation accepted");

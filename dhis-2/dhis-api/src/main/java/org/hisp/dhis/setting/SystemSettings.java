@@ -795,4 +795,11 @@ public non-sealed interface SystemSettings extends Settings {
   default boolean getUseExperimentalAnalyticsQueryEngine() {
     return asBoolean("experimentalAnalyticsSqlEngineEnabled", false);
   }
+
+  /**
+   * @return true if emails for invited users should be automatically verified.
+   */
+  default boolean getAutoVerifyInvitedUserEmail() {
+    return asBoolean("autoVerifyInvitedUserEmail", true);
+  }
 }

@@ -431,6 +431,11 @@ public class AccountController {
     user.setEmail(userRegistration.getEmail());
     user.setPhoneNumber(userRegistration.getPhoneNumber());
 
+    boolean autoVerifyEmail = settingsProvider.getCurrentSettings().getAutoVerifyInvitedUserEmail();
+    if (autoVerifyEmail && user.getEmail() != null) {
+      user.setVerifiedEmail(user.getEmail());
+    }
+
     userService.updateUser(user, new SystemUser());
 
     log.info("User " + user.getUsername() + " accepted invitation.");

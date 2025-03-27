@@ -29,10 +29,14 @@
  */
 package org.hisp.dhis.option;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -117,32 +121,14 @@ public class DefaultOptionService implements OptionService {
 
   @Override
   @Transactional(readOnly = true)
-  public OptionSet getOptionSet(long id) {
-    return optionSetStore.get(id);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public OptionSet getOptionSet(String uid) {
     return optionSetStore.getByUid(uid);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public OptionSet getOptionSetByName(String name) {
-    return optionSetStore.getByName(name);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public OptionSet getOptionSetByCode(String code) {
     return optionSetStore.getByCode(code);
-  }
-
-  @Override
-  @Transactional
-  public void deleteOptionSet(OptionSet optionSet) {
-    optionSetStore.delete(optionSet);
   }
 
   @Override
@@ -157,46 +143,21 @@ public class DefaultOptionService implements OptionService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<Option> getOptions(long optionSetId, String key, Integer max) {
-    List<Option> options;
-
-    if (key != null || max != null) {
-      // Use query as option set size might be very high
-
-      options = optionStore.getOptions(optionSetId, key, max);
-    } else {
-      // Return all from object association to preserve custom order
-
-      OptionSet optionSet = getOptionSet(optionSetId);
-
-      options = new ArrayList<>(optionSet.getOptions());
-    }
-
-    return options;
-  }
-
-  @Override
-  @Transactional
-  public void updateOption(Option option) {
-    optionStore.update(option);
+  public List<Option> findOptionsByNamePattern(
+      @Nonnull String optionSet, @CheckForNull String infix, @CheckForNull Integer maxResults) {
+    return optionStore.findOptionsByNamePattern(UID.of(optionSet), infix, maxResults);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public Option getOption(long id) {
-    return optionStore.get(id);
+  public boolean existsAllOptions(@Nonnull String optionSet, @Nonnull Collection<String> codes) {
+    return optionStore.existsAllOptions(UID.of(optionSet), codes);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public Option getOptionByCode(String code) {
-    return optionStore.getByCode(code);
-  }
-
-  @Override
-  @Transactional
-  public void deleteOption(Option option) {
-    optionStore.delete(option);
+  public Optional<Option> findOptionByCode(@Nonnull String optionSet, @Nonnull String code) {
+    return optionStore.findOptionByCode(UID.of(optionSet), code);
   }
 
   // -------------------------------------------------------------------------
@@ -205,22 +166,8 @@ public class DefaultOptionService implements OptionService {
 
   @Override
   @Transactional
-  public long saveOptionGroup(OptionGroup group) {
+  public void saveOptionGroup(OptionGroup group) {
     optionGroupStore.save(group);
-
-    return group.getId();
-  }
-
-  @Override
-  @Transactional
-  public void updateOptionGroup(OptionGroup group) {
-    optionGroupStore.update(group);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public OptionGroup getOptionGroup(long id) {
-    return optionGroupStore.get(id);
   }
 
   @Override
@@ -229,57 +176,19 @@ public class DefaultOptionService implements OptionService {
     return optionGroupStore.getByUid(uid);
   }
 
-  @Override
-  @Transactional
-  public void deleteOptionGroup(OptionGroup group) {
-    optionGroupStore.delete(group);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<OptionGroup> getAllOptionGroups() {
-    return optionGroupStore.getAll();
-  }
-
   // -------------------------------------------------------------------------
   // OptionGroupSet
   // -------------------------------------------------------------------------
 
   @Override
   @Transactional
-  public long saveOptionGroupSet(OptionGroupSet group) {
+  public void saveOptionGroupSet(OptionGroupSet group) {
     optionGroupSetStore.save(group);
-
-    return group.getId();
-  }
-
-  @Override
-  @Transactional
-  public void updateOptionGroupSet(OptionGroupSet group) {
-    optionGroupSetStore.update(group);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public OptionGroupSet getOptionGroupSet(long id) {
-    return optionGroupSetStore.get(id);
   }
 
   @Override
   @Transactional(readOnly = true)
   public OptionGroupSet getOptionGroupSet(String uid) {
     return optionGroupSetStore.getByUid(uid);
-  }
-
-  @Override
-  @Transactional
-  public void deleteOptionGroupSet(OptionGroupSet group) {
-    optionGroupSetStore.delete(group);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<OptionGroupSet> getAllOptionGroupSets() {
-    return optionGroupSetStore.getAll();
   }
 }

@@ -90,7 +90,7 @@ public class ReferencesCheck implements ValidationCheck {
     }
 
     if (typeReport.hasErrorReports() && AtomicMode.ALL == bundle.getAtomicMode()) {
-      typeReport.getStats().incIgnored();
+      typeReport.ignoredInc(1);
     }
 
     return typeReport;
