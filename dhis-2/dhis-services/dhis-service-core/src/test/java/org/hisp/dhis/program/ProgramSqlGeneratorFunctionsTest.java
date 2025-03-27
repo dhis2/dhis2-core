@@ -176,7 +176,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
   @Test
   void testIsIn() {
     assertEquals("'A' in ('A','B','C')", test("is('A' in 'A','B','C')"));
-    assertEquals("1 in (1,2,3)", test("is( 1 in 1, 2, 3 )"));
+    assertEquals("1::numeric in (1::numeric,2::numeric,3::numeric)", test("is( 1 in 1, 2, 3 )"));
   }
 
   @Test
@@ -192,7 +192,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
         sql,
         is(
             "case when (coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end::numeric,0) "
-                + "> 3) then 10 + 5 else 3 * 2 end"));
+                + "> 3::numeric) then 10::numeric + 5::numeric else 3::numeric * 2::numeric end"));
   }
 
   @Test
@@ -209,7 +209,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
         is(
             "case when (coalesce("
                 + "case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentE\" else null end::numeric!=0,false)) "
-                + "then 10 + 5 else 3 * 2 end"));
+                + "then 10::numeric + 5::numeric else 3::numeric * 2::numeric end"));
   }
 
   @Test
@@ -225,7 +225,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
         sql,
         is(
             "case when (coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentE\" else null end::numeric,0) "
-                + "> 0) then 10 + 5 else 3 * 2 end"));
+                + "> 0::numeric) then 10::numeric + 5::numeric else 3::numeric * 2::numeric end"));
   }
 
   @Test
@@ -316,7 +316,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
             "(select count(\"DataElmentA\") "
                 + "from analytics_event_Program000A "
                 + "where analytics_event_Program000A.pi = ax.pi "
-                + "and \"DataElmentA\" is not null and \"DataElmentA\" > 5 and ps = 'ProgrmStagA')"));
+                + "and \"DataElmentA\" is not null and \"DataElmentA\"::numeric > 5::numeric and ps = 'ProgrmStagA')"));
   }
 
   @Test
@@ -339,7 +339,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
             "(select count(\"DataElmentA\") "
                 + "from analytics_event_Program000A "
                 + "where analytics_event_Program000A.pi = ax.pi "
-                + "and \"DataElmentA\" is not null and \"DataElmentA\" > "
+                + "and \"DataElmentA\" is not null and \"DataElmentA\"::numeric > "
                 + "coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentE\" else null end::numeric,0) "
                 + "and ps = 'ProgrmStagA')"));
   }
@@ -356,7 +356,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
             "(select count(\"DataElmentA\") "
                 + "from analytics_event_Program000A "
                 + "where analytics_event_Program000A.pi = ax.pi "
-                + "and \"DataElmentA\" is not null and \"DataElmentA\" = 55 "
+                + "and \"DataElmentA\" is not null and \"DataElmentA\" = 55::numeric "
                 + "and ps = 'ProgrmStagA')"));
   }
 
@@ -452,7 +452,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
     assertThat(
         sql,
         is(
-            "66 + coalesce(case when case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end + 4 >= 0 then 1 else 0 end, 0)"));
+            "66::numeric + coalesce(case when case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end + 4::numeric >= 0 then 1 else 0 end, 0)"));
   }
 
   @Test
@@ -534,7 +534,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
                 + "where analytics_event_Program000A.pi = ax.pi and executiondate is not null "
                 + "and executiondate < cast( '2021-01-01' as date ) and executiondate >= cast( '2020-01-01' as date ) "
                 + "and ps = 'ProgrmStagA' "
-                + "order by executiondate desc limit 1 ) as date), cast(enrollmentdate as date)))) < 1"));
+                + "order by executiondate desc limit 1 ) as date), cast(enrollmentdate as date)))) < 1::numeric"));
   }
 
   @Test
@@ -585,7 +585,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest {
     assertThat(sql, is("ln(distinct pi)"));
 
     sql = test("log(V{event_count},3)");
-    assertThat(sql, is("log(3,case " + DEFAULT_COUNT_CONDITION + " end)"));
+    assertThat(sql, is("log(3::numeric,case " + DEFAULT_COUNT_CONDITION + " end)"));
   }
 
   @Test
