@@ -49,8 +49,9 @@ import org.hisp.dhis.feedback.BadRequestException;
  *
  * <p><code>/changeLogs?filter</code> validation is implemented in {@link
  * org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator} and its parsing in its mapper.
- * The requirements for these endpoints are slightly different. We use this parser for changeLogs as
- * soon as we need to support escaped values like dates which contain the segment separator ':'.
+ * The requirements for these endpoints are slightly different. We should use this parser for
+ * changeLogs as soon as we need to support escaped values like dates which contain the segment
+ * separator ':'.
  */
 public class FilterParser {
   private FilterParser() {
@@ -112,8 +113,8 @@ public class FilterParser {
       int charCount = Character.charCount(curChar);
 
       // skip escaped slash, colon and comma which allow users to pass them as part of values
-      if (curChar == ESCAPE && end + charCount < length) {
-        int nextChar = input.codePointAt(end + charCount);
+      if (curChar == ESCAPE && end + 1 < length) {
+        int nextChar = input.codePointAt(end + 1);
         if (nextChar == ESCAPE || nextChar == COLON || nextChar == COMMA) {
           end += charCount + Character.charCount(nextChar);
           continue;
