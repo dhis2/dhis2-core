@@ -78,27 +78,21 @@ public class BundledAppStorageService implements AppStorageService {
       for (Resource resource : resources) {
         App app = readAppManifest(resource);
         if (app != null) {
-          String path =
-              CLASSPATH_PREFIX
-                  + STATIC_DIR
-                  + BUNDLED_APP_PREFIX
-                  + app.getKey()
-                  + "/manifest.webapp";
-
+          String path = ((ClassPathResource) resource).getPath();
           String shortName =
               path.replaceAll("/manifest.webapp$", "")
-                  .replaceAll("^" + CLASSPATH_PREFIX + STATIC_DIR + BUNDLED_APP_PREFIX, "");
+                  .replaceAll("^" + STATIC_DIR + BUNDLED_APP_PREFIX, "");
           app.setBundled(true);
           app.setShortName(shortName);
           app.setAppStorageSource(AppStorageSource.BUNDLED);
-          app.setFolderName(path.replaceAll("/manifest.webapp$", ""));
+          app.setFolderName(CLASSPATH_PREFIX + path.replaceAll("/manifest.webapp$", ""));
 
           log.info("Discovered bundled app {} ({})", app.getKey(), app.getFolderName());
           apps.put(app.getKey(), app);
         }
       }
     } catch (IOException e) {
-      log.error("Failed to discover bundled apps: {}", e.getLocalizedMessage());
+      log.error("Failed to discover bundled apps: ", e.getLocalizedMessage());
     }
 
     log.info("Discovered {} bundled apps", apps.size());

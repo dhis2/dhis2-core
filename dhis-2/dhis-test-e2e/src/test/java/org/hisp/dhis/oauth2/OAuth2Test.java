@@ -80,16 +80,14 @@ class OAuth2Test extends BaseE2ETest {
 
   @BeforeAll
   static void setup() throws JsonProcessingException {
-    //    seleniumUrl = getSeleniumUrl().toString();
+    seleniumUrl = getSeleniumUrl().toString();
     serverApiUrl = TestConfiguration.get().baseUrl();
 
     // When testing with docker, use this: http://host.docker.internal:8080
-    serverHostUrl =
-        "http://host.docker.internal:8080"; // TestConfiguration.get().baseUrl().replace("/api",
-    // "");
+    serverHostUrl = TestConfiguration.get().baseUrl().replace("/api", "");
 
     orgUnitUID = createOrgUnit();
-    //    setupOAuth2Client();
+    setupOAuth2Client();
   }
 
   static void setupOAuth2Client() throws JsonProcessingException {
