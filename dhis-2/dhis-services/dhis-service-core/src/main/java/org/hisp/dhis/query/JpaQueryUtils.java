@@ -30,6 +30,9 @@
 package org.hisp.dhis.query;
 
 import static java.util.stream.Collectors.joining;
+import static org.hisp.dhis.schema.PropertyType.EMAIL;
+import static org.hisp.dhis.schema.PropertyType.TEXT;
+import static org.hisp.dhis.schema.PropertyType.USERNAME;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Expression;
@@ -416,6 +419,10 @@ public class JpaQueryUtils {
             generateSQlQueryForSharingCheck(
                 tableName + ".sharing", access, userId, getGroupsIds(userGroupIds)))
         + ")";
+  }
+
+  public static boolean isPropertyTypeText(Property property) {
+    return List.of(TEXT, EMAIL, USERNAME).contains(property.getPropertyType());
   }
 
   private static String getGroupsIds(UserDetails user) {
