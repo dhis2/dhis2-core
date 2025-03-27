@@ -153,7 +153,6 @@ class DefaultTrackerOwnershipManagerTest {
   }
 
   private TrackedEntity createTrackedEntityWithAuditLog(boolean isAllowAuditLog) {
-    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
     trackedEntityType.setAllowAuditLog(isAllowAuditLog);
     TrackedEntity trackedEntity = createTrackedEntity('A', orgUnit);
     trackedEntity.setTrackedEntityType(trackedEntityType);
