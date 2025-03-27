@@ -43,7 +43,6 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.Cache;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -78,21 +77,27 @@ public class BundledAppStorageService implements AppStorageService {
       for (Resource resource : resources) {
         App app = readAppManifest(resource);
         if (app != null) {
-          String path = ((ClassPathResource) resource).getPath();
+          String path =
+              CLASSPATH_PREFIX
+                  + STATIC_DIR
+                  + BUNDLED_APP_PREFIX
+                  + app.getKey()
+                  + "/manifest.webapp";
+
           String shortName =
               path.replaceAll("/manifest.webapp$", "")
-                  .replaceAll("^" + STATIC_DIR + BUNDLED_APP_PREFIX, "");
+                  .replaceAll("^" + CLASSPATH_PREFIX + STATIC_DIR + BUNDLED_APP_PREFIX, "");
           app.setBundled(true);
           app.setShortName(shortName);
           app.setAppStorageSource(AppStorageSource.BUNDLED);
-          app.setFolderName(CLASSPATH_PREFIX + path.replaceAll("/manifest.webapp$", ""));
+          app.setFolderName(path.replaceAll("/manifest.webapp$", ""));
 
           log.info("Discovered bundled app {} ({})", app.getKey(), app.getFolderName());
           apps.put(app.getKey(), app);
         }
       }
     } catch (IOException e) {
-      log.error("Failed to discover bundled apps: ", e.getLocalizedMessage());
+      log.error("Failed to discover bundled apps: {}", e.getLocalizedMessage());
     }
 
     log.info("Discovered {} bundled apps", apps.size());

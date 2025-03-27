@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -48,8 +48,8 @@ import org.hisp.dhis.uitest.ConsentPage;
 import org.hisp.dhis.uitest.LoginPage;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -119,8 +119,9 @@ class OAuth2Test extends BaseE2ETest {
     invalidateAllSession();
   }
 
-  @Test
-  void testGetAccessToken() throws MalformedURLException, JsonProcessingException {
+  @RepeatedTest(value = 10, name = "Get Access Token Test {currentRepetition}/{totalRepetitions}")
+  void testGetAccessToken()
+      throws MalformedURLException, JsonProcessingException, InterruptedException {
     String username = CodeGenerator.generateCode(8);
     String password = "Test123###...";
     createSuperuser(username, password, orgUnitUID);
@@ -162,29 +163,36 @@ class OAuth2Test extends BaseE2ETest {
 
     // 4. Wait for the redirect to happen
     wait.until(ExpectedConditions.urlContains("http://localhost:9090/oauth2/code/dhis2-client"));
-    String redirUrl = driver.getCurrentUrl();
-    assertTrue(redirUrl.indexOf("http://localhost:9090/oauth2/code/dhis2-client") != -1);
-    // Extract the authorization code from the redirected URL
-    int codeStartIndex = redirUrl.indexOf("code=") + 5;
-    String code = redirUrl.substring(codeStartIndex);
+    int codeStartIndex = driver.getCurrentUrl().indexOf("code=") + 5;
+
+    // Workaround for weird behavior in some cases, where the getCurrentUrl() returns an empty
+    // string.
+    if (codeStartIndex < 6) {
+      log.error("Failed to fetch current url, sleep and retry: " + driver.getCurrentUrl());
+      Thread.sleep(1000);
+      int tries = 0;
+      while (codeStartIndex < 6 && tries < 5) {
+        codeStartIndex = driver.getCurrentUrl().indexOf("code=") + 5;
+        tries++;
+        Thread.sleep(333);
+      }
+    }
+    assertTrue(codeStartIndex > 5, "codeStartIndex is not valid codeStartIndex: " + codeStartIndex);
+
+    String code = driver.getCurrentUrl().substring(codeStartIndex);
     assertNotNull(code);
     assertNotNull(code, "code is null");
     assertFalse(code.isBlank(), "code is empty");
     log.info("Authorization code: " + code);
+
     assertTrue(
-        code.length() == 128, "code is too short code: " + code + " code length: " + code.length());
+        code.length() == 128, "code has wrong size: '" + code + "', code length: " + code.length());
+
     // 5. Call the token endpoint with the authorization code
-    String accessToken = null;
-    try {
-      accessToken = getAccessToken(code);
-    } catch (Exception e) {
-      log.error("Error getting access token: " + e.getMessage());
-      driver.quit();
-      return;
-    }
+    String accessToken = getAccessToken(code);
 
     assertNotNull(accessToken);
-    log.error("Access token: " + accessToken);
+    log.info("Access token: " + accessToken);
 
     // 6. Call the /me endpoint with the access token
     ResponseEntity<String> withBearerJwt = getWithBearerJwt(serverApiUrl + "/me", accessToken);
