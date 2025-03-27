@@ -52,6 +52,7 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.legend.LegendSet;
@@ -93,6 +94,15 @@ public class ProgramTrackedEntityAttributeOptionDimensionItem extends BaseDimens
         option.getDisplayShortName(),
         attribute.getDisplayShortName(),
         program.getDisplayShortName());
+  }
+
+  @Override
+  public String getDisplayProperty(DisplayProperty displayProperty) {
+    return format(
+        "%s (%s, %s)",
+        option.getDisplayProperty(displayProperty),
+        attribute.getDisplayProperty(displayProperty),
+        program.getDisplayProperty(displayProperty));
   }
 
   @Override
