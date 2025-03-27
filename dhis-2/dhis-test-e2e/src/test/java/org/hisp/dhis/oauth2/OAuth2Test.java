@@ -30,6 +30,7 @@
 package org.hisp.dhis.oauth2;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -79,14 +80,16 @@ class OAuth2Test extends BaseE2ETest {
 
   @BeforeAll
   static void setup() throws JsonProcessingException {
-    seleniumUrl = getSeleniumUrl().toString();
+    //    seleniumUrl = getSeleniumUrl().toString();
     serverApiUrl = TestConfiguration.get().baseUrl();
 
     // When testing with docker, use this: http://host.docker.internal:8080
-    serverHostUrl = TestConfiguration.get().baseUrl().replace("/api", "");
+    serverHostUrl =
+        "http://host.docker.internal:8080"; // TestConfiguration.get().baseUrl().replace("/api",
+    // "");
 
     orgUnitUID = createOrgUnit();
-    setupOAuth2Client();
+    //    setupOAuth2Client();
   }
 
   static void setupOAuth2Client() throws JsonProcessingException {
@@ -119,15 +122,23 @@ class OAuth2Test extends BaseE2ETest {
   }
 
   @Test
-  void testGetAccessToken() throws MalformedURLException, JsonProcessingException {
-    String username = CodeGenerator.generateCode(8);
-    String password = "Test123###...";
-    createSuperuser(username, password, orgUnitUID);
-
+  void testGetAccessTokenManyTimes() throws MalformedURLException, JsonProcessingException {
     ChromeOptions chromeOptions = new ChromeOptions();
     chromeOptions.addArguments("--remote-allow-origins=*");
     driver = new RemoteWebDriver(new URL(seleniumUrl), chromeOptions);
     WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+
+    for (int i = 0; i < 10; i++) {
+      testGetAccessToken(driver, wait);
+    }
+  }
+
+  void testGetAccessToken(WebDriver driver, WebDriverWait wait)
+      throws MalformedURLException, JsonProcessingException {
+
+    String username = CodeGenerator.generateCode(8);
+    String password = "Test123###...";
+    createSuperuser(username, password, orgUnitUID);
 
     // 1. Call the authorize endpoint
     driver.get(
@@ -167,13 +178,17 @@ class OAuth2Test extends BaseE2ETest {
     int codeStartIndex = redirUrl.indexOf("code=") + 5;
     String code = redirUrl.substring(codeStartIndex);
     assertNotNull(code);
-
+    assertNotNull(code, "code is null");
+    assertFalse(code.isBlank(), "code is empty");
+    log.info("Authorization code: " + code);
+    assertTrue(
+        code.length() == 128, "code is too short code: " + code + " code length: " + code.length());
     // 5. Call the token endpoint with the authorization code
     String accessToken = null;
     try {
       accessToken = getAccessToken(code);
     } catch (Exception e) {
-      driver.quit();
+      log.error("Error getting access token: " + e.getMessage());
       return;
     }
 
@@ -185,14 +200,11 @@ class OAuth2Test extends BaseE2ETest {
     HttpStatusCode statusCode = withBearerJwt.getStatusCode();
     assertEquals(HttpStatus.UNAUTHORIZED, statusCode);
     String body = withBearerJwt.getBody();
-    assertNotNull(body);
 
     log.info("Body: " + body);
     assertTrue(
         body.contains(
             "Found no matching DHIS2 user for the mapping claim: 'email' with the value:"));
-
-    driver.quit();
   }
 
   public String getAccessToken(String code) throws JsonProcessingException {
