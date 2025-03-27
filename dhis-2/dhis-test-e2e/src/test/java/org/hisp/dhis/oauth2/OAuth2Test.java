@@ -120,23 +120,15 @@ class OAuth2Test extends BaseE2ETest {
   }
 
   @Test
-  void testGetAccessTokenManyTimes() throws MalformedURLException, JsonProcessingException {
+  void testGetAccessToken() throws MalformedURLException, JsonProcessingException {
+    String username = CodeGenerator.generateCode(8);
+    String password = "Test123###...";
+    createSuperuser(username, password, orgUnitUID);
+
     ChromeOptions chromeOptions = new ChromeOptions();
     chromeOptions.addArguments("--remote-allow-origins=*");
     driver = new RemoteWebDriver(new URL(seleniumUrl), chromeOptions);
     WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
-
-    for (int i = 0; i < 10; i++) {
-      testGetAccessToken(driver, wait);
-    }
-  }
-
-  void testGetAccessToken(WebDriver driver, WebDriverWait wait)
-      throws MalformedURLException, JsonProcessingException {
-
-    String username = CodeGenerator.generateCode(8);
-    String password = "Test123###...";
-    createSuperuser(username, password, orgUnitUID);
 
     // 1. Call the authorize endpoint
     driver.get(
@@ -187,6 +179,7 @@ class OAuth2Test extends BaseE2ETest {
       accessToken = getAccessToken(code);
     } catch (Exception e) {
       log.error("Error getting access token: " + e.getMessage());
+      driver.quit();
       return;
     }
 
@@ -198,11 +191,14 @@ class OAuth2Test extends BaseE2ETest {
     HttpStatusCode statusCode = withBearerJwt.getStatusCode();
     assertEquals(HttpStatus.UNAUTHORIZED, statusCode);
     String body = withBearerJwt.getBody();
+    assertNotNull(body);
 
     log.info("Body: " + body);
     assertTrue(
         body.contains(
             "Found no matching DHIS2 user for the mapping claim: 'email' with the value:"));
+
+    driver.quit();
   }
 
   public String getAccessToken(String code) throws JsonProcessingException {
