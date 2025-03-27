@@ -28,8 +28,8 @@ services:
       - FE_SERVERS=fe1:192.168.100.10:9010
       - FE_ID=1
     volumes:
-      - ./docker/postgresql.jar:/opt/apache-doris/fe/jdbc_drivers/postgresql.jar
-      - ./docker/postgresql-42.7.5.jar:/opt/apache-doris/fe/jdbc_drivers/postgresql-42.7.5.jar
+      - ./docker/postgresql.jar:/opt/apache-doris/fe/jdbc_drivers/postgresql.jar:ro
+      - ./docker/postgresql-42.7.5.jar:/opt/apache-doris/fe/jdbc_drivers/postgresql-42.7.5.jar:ro
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8030/home || exit 1"]
       interval: 10s
@@ -51,8 +51,8 @@ services:
       doris-fe:
         condition: service_healthy
     volumes:
-      - ./docker/postgresql.jar:/opt/apache-doris/be/jdbc_drivers/postgresql.jar
-      - ./docker/postgresql-42.7.5.jar:/opt/apache-doris/be/jdbc_drivers/postgresql-42.7.5.jar
+      - ./docker/postgresql.jar:/opt/apache-doris/be/jdbc_drivers/postgresql.jar:ro
+      - ./docker/postgresql-42.7.5.jar:/opt/apache-doris/be/jdbc_drivers/postgresql-42.7.5.jar:ro
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8040/api/health"]
       interval: 10s
