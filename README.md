@@ -79,16 +79,7 @@ docker compose up
 ### Launch with Doris
 
 ```sh
-DHIS2_IMAGE=dhis2/core-dev:latest DORIS_VERSION=3.0.4 docker compose -f docker-compose.yml -f docker-compose.doris.yml up
-```
-
-#### Generate tables (using default DHIS2 password)
-
-```sh
-curl --request POST \
-  --url 'http://localhost:8080/api/resourceTables/analytics?skipTrackedEntities=false&skipOutliers=true&skipEvents=false&skipEnrollment=false' \
-  --header 'authorization: Basic YWRtaW46ZGlzdHJpY3Q=' \
-  --header 'content-type: application/json'
+DHIS2_IMAGE=dhis2/core-dev:local DORIS_VERSION=3.0.4 docker compose -f docker-compose.yml -f docker-compose.doris.yml up
 ```
 
 ### Synchronization between DHIS2 instances
