@@ -106,16 +106,18 @@ public class FilterParser {
     UID uid = null;
     String operator = null;
     String valueOrOperator = null;
-    while (end < input.length()) {
-      char curChar = input.charAt(end);
+    int length = input.length();
+    while (end < length) {
+      int curChar = input.codePointAt(end);
+      int charCount = Character.charCount(curChar);
+
       // skip escaped slash, colon and comma which allow users to pass them as part of values
-      if (curChar == ESCAPE
-          && end + 1 < input.length()
-          && (input.charAt(end + 1) == ESCAPE
-              || input.charAt(end + 1) == COLON
-              || input.charAt(end + 1) == COMMA)) {
-        end = end + 2;
-        continue;
+      if (curChar == ESCAPE && end + charCount < length) {
+        int nextChar = input.codePointAt(end + charCount);
+        if (nextChar == ESCAPE || nextChar == COLON || nextChar == COMMA) {
+          end += charCount + Character.charCount(nextChar);
+          continue;
+        }
       }
 
       // get next segment
@@ -128,7 +130,7 @@ public class FilterParser {
         } else {
           valueOrOperator = input.substring(start, end);
         }
-        start = end + 1;
+        start = end + charCount;
       }
 
       // state transitions
@@ -159,7 +161,7 @@ public class FilterParser {
         valueOrOperator = null;
       }
 
-      end++;
+      end += charCount;
     }
 
     if (start < end) { // consume remaining input
