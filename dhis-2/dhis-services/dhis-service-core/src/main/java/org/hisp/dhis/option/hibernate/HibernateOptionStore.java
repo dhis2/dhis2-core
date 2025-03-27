@@ -96,7 +96,6 @@ public class HibernateOptionStore extends HibernateIdentifiableObjectStore<Optio
         nativeSynchronizedQuery(sql)
             .setParameter("uid", optionSet.getValue())
             .setParameter("code", code)
-            .setCacheable(true)
             .list();
     return options.isEmpty() ? Optional.empty() : Optional.of(options.get(0));
   }
@@ -113,7 +112,6 @@ public class HibernateOptionStore extends HibernateIdentifiableObjectStore<Optio
         nativeSynchronizedQuery(sql)
             .setParameter("uid", optionSet.getValue())
             .setParameterList("codes", codes)
-            .setCacheable(true)
             .getSingleResult();
     return res instanceof Number n && n.intValue() == codes.size();
   }
