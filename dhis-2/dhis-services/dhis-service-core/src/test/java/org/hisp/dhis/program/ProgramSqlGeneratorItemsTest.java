@@ -29,20 +29,6 @@
  */
 package org.hisp.dhis.program;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.analytics.DataType.NUMERIC;
-import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
-import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_DESCRIPTIONS;
-import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
-
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
 import org.hisp.dhis.antlr.AntlrExprLiteral;
 import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.literal.DefaultLiteral;
@@ -71,6 +57,21 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
+import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_DESCRIPTIONS;
+import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
+
 /**
  * @author Jim Grace
  */
@@ -91,9 +92,9 @@ class ProgramSqlGeneratorItemsTest extends TestBase {
 
   private Map<String, Constant> constantMap;
 
-  private Date startDate = getDate(2020, 1, 1);
+  private final Date startDate = getDate(2020, 1, 1);
 
-  private Date endDate = getDate(2020, 12, 31);
+  private final Date endDate = getDate(2020, 12, 31);
 
   @Mock private ProgramIndicatorService programIndicatorService;
 
@@ -215,13 +216,13 @@ class ProgramSqlGeneratorItemsTest extends TestBase {
   // -------------------------------------------------------------------------
 
   private String testNumeric(String expression) {
-    return castString(test(expression, new SqlLiteral(), ITEM_GET_SQL));
+    return castString(test(expression, new SqlLiteral(new PostgreSqlBuilder()), ITEM_GET_SQL));
   }
 
   private String test(String expression) {
     test(expression, new DefaultLiteral(), ITEM_GET_DESCRIPTIONS);
 
-    return castString(test(expression, new SqlLiteral(), ITEM_GET_SQL));
+    return castString(test(expression, new SqlLiteral(new PostgreSqlBuilder()), ITEM_GET_SQL));
   }
 
   private Object test(

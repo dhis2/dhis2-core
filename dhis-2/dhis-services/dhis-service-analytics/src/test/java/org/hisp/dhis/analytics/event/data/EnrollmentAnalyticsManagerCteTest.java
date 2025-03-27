@@ -29,17 +29,6 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
-import static org.hisp.dhis.common.QueryOperator.IN;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.function.Consumer;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
@@ -49,6 +38,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
@@ -65,6 +55,19 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.function.Consumer;
+
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
+import static org.hisp.dhis.common.QueryOperator.IN;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Luciano Fiandesio
@@ -101,6 +104,8 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
 
   @Spy private SystemSettings systemSettings;
 
+  @Mock private DefaultDhisConfigurationProvider config;
+
   @Captor private ArgumentCaptor<String> sql;
 
   @BeforeEach
@@ -108,6 +113,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
     when(systemSettingsService.getCurrentSettings()).thenReturn(systemSettings);
     when(systemSettings.getUseExperimentalAnalyticsQueryEngine()).thenReturn(true);
+    when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
         new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService, systemSettingsService);
 
@@ -121,6 +127,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
             enrollmentTimeFieldSqlRenderer,
             executionPlanStore,
             systemSettingsService,
+            config,
             sqlBuilder,
             analyticsSqlBuilder,
             organisationUnitResolver);
