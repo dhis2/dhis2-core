@@ -105,7 +105,7 @@ public class DefaultTrackerProgramRuleService implements TrackerProgramRuleServi
                       enrollmentTrackerConverterService.fromForRuleEngine(bundle.getPreheat(), e);
 
                   return programRuleEngine
-                      .evaluateEnrollmentAndEvents(
+                      .evaluateEnrollmentAndTrackerEvents(
                           enrollment,
                           getEventsFromEnrollment(enrollment.getUid(), bundle),
                           getAttributes(e, bundle))
@@ -185,7 +185,7 @@ public class DefaultTrackerProgramRuleService implements TrackerProgramRuleServi
                         .map(e -> getAttributes(e, bundle))
                         .orElse(Collections.EMPTY_LIST);
                 return programRuleEngine
-                    .evaluateEnrollmentAndEvents(
+                    .evaluateEnrollmentAndTrackerEvents(
                         enrollment,
                         getEventsFromEnrollment(enrollment.getUid(), bundle),
                         attributeValues)
