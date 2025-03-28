@@ -29,21 +29,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.hisp.dhis.analytics.common.ColumnHeader.CREATED_BY_DISPLAY_NAME;
-import static org.hisp.dhis.analytics.common.ColumnHeader.ENROLLMENT;
-import static org.hisp.dhis.analytics.common.ColumnHeader.ENROLLMENT_DATE;
-import static org.hisp.dhis.analytics.common.ColumnHeader.GEOMETRY;
-import static org.hisp.dhis.analytics.common.ColumnHeader.INCIDENT_DATE;
-import static org.hisp.dhis.analytics.common.ColumnHeader.LAST_UPDATED;
-import static org.hisp.dhis.analytics.common.ColumnHeader.LAST_UPDATED_BY_DISPLAY_NAME;
-import static org.hisp.dhis.analytics.common.ColumnHeader.LATITUDE;
-import static org.hisp.dhis.analytics.common.ColumnHeader.LONGITUDE;
-import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT_CODE;
-import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT_NAME;
-import static org.hisp.dhis.analytics.common.ColumnHeader.ORG_UNIT_NAME_HIERARCHY;
-import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STATUS;
-import static org.hisp.dhis.analytics.common.ColumnHeader.STORED_BY;
-import static org.hisp.dhis.analytics.common.ColumnHeader.TRACKED_ENTITY;
+import static org.hisp.dhis.analytics.common.ColumnHeader.*;
 import static org.hisp.dhis.analytics.event.LabelMapper.getEnrollmentDateLabel;
 import static org.hisp.dhis.analytics.event.LabelMapper.getEnrollmentLabel;
 import static org.hisp.dhis.analytics.event.LabelMapper.getIncidentDateLabel;
@@ -73,7 +59,6 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.Timer;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 /** Service responsible for querying enrollments. */
@@ -93,7 +78,7 @@ public class EnrollmentQueryService {
 
   private final SchemeIdHandler schemeIdHandler;
 
-  private final @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder;
+  private final SqlBuilder sqlBuilder;
 
   /**
    * Returns a list of enrollments matching the given query.
