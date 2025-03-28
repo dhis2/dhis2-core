@@ -41,7 +41,6 @@ import java.util.Set;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.AccessLevel;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -121,8 +120,7 @@ class DefaultTrackerOwnershipManagerTest {
   }
 
   @Test
-  void shouldLogProgramOwnershipChangeWhenTrackedEntityTypeAuditEnabled()
-      throws ForbiddenException {
+  void shouldLogProgramOwnershipChangeWhenTrackedEntityTypeAuditEnabled() {
     TrackedEntityInstance trackedEntity = createTrackedEntityWithAuditLog(true);
 
     trackerOwnershipManager.grantTemporaryOwnership(trackedEntity, program, user, reason);
@@ -132,8 +130,7 @@ class DefaultTrackerOwnershipManagerTest {
   }
 
   @Test
-  void shouldNotLogProgramOwnershipChangeWhenTrackedEntityTypeAuditDisabled()
-      throws ForbiddenException {
+  void shouldNotLogProgramOwnershipChangeWhenTrackedEntityTypeAuditDisabled() {
     TrackedEntityInstance trackedEntity = createTrackedEntityWithAuditLog(false);
 
     trackerOwnershipManager.grantTemporaryOwnership(trackedEntity, program, user, reason);
