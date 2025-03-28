@@ -120,6 +120,10 @@ public enum QueryOperator {
     return COMPARISON_OPERATORS.contains(this);
   }
 
+  public boolean isBinary() {
+    return !isUnary();
+  }
+
   public boolean isUnary() {
     return UNARY_OPERATORS.contains(this);
   }
