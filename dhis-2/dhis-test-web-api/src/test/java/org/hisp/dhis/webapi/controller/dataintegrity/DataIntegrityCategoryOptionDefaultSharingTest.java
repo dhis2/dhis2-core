@@ -34,12 +34,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionStore;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.category.CategoryStore;
 import org.hisp.dhis.test.webapi.json.domain.JsonCategoryOption;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Tests metadata integrity check for which identifies incorrect sharing on the default category
@@ -52,11 +50,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 class DataIntegrityCategoryOptionDefaultSharingTest extends AbstractDataIntegrityIntegrationTest {
   @Autowired private CategoryService categoryService;
 
-  @Autowired private CategoryStore categoryStore;
-
   @Autowired private CategoryOptionStore categoryOptionStore;
-
-  @Autowired private TransactionTemplate transactionTemplate;
 
   private final String check = "category_options_default_incorrect_sharing";
 
@@ -71,7 +65,7 @@ class DataIntegrityCategoryOptionDefaultSharingTest extends AbstractDataIntegrit
   void testDefaultCategoryOptionHasIncorrectSharing() {
 
     // The controller is not going to allow us to update the sharing of the default category option
-    // So we need to do it directly in the store
+    // So we need to do it directly in through the service layer.
     CategoryOption defaultOption = categoryService.getDefaultCategoryOption();
     Sharing sharing = new Sharing();
     sharing.setPublicAccess("--------");
