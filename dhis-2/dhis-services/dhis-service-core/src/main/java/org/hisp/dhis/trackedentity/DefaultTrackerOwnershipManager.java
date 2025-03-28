@@ -28,7 +28,6 @@
 package org.hisp.dhis.trackedentity;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -40,7 +39,6 @@ import org.hibernate.Hibernate;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.dxf2.events.event.EventContext;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -56,7 +54,6 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.springframework.core.env.Environment;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -91,8 +88,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
   private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-  private final DhisConfigurationProvider config;
-
   public DefaultTrackerOwnershipManager(
       CurrentUserService currentUserService,
       TrackedEntityProgramOwnerService trackedEntityProgramOwnerService,
@@ -103,8 +98,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       TrackedEntityInstanceService trackedEntityInstanceService,
       OrganisationUnitService organisationUnitService,
       ProgramService programService,
-      DhisConfigurationProvider config,
-      Environment env,
       AclService aclService) {
     checkNotNull(currentUserService);
     checkNotNull(trackedEntityProgramOwnerService);
@@ -113,8 +106,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     checkNotNull(programTempOwnerService);
     checkNotNull(programOwnershipHistoryService);
     checkNotNull(organisationUnitService);
-    checkNotNull(config);
-    checkNotNull(env);
     checkNotNull(aclService);
 
     this.currentUserService = currentUserService;
@@ -125,7 +116,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     this.organisationUnitService = organisationUnitService;
     this.trackedEntityInstanceService = trackedEntityInstanceService;
     this.programService = programService;
-    this.config = config;
     this.ownerCache = cacheProvider.createProgramOwnerCache();
     this.tempOwnerCache = cacheProvider.createProgramTempOwnerCache();
     this.aclService = aclService;
@@ -245,7 +235,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
     validateGrantTemporaryOwnershipInputs(entityInstance, program, user);
 
-    if (config.isEnabled(CHANGELOG_TRACKER)) {
+    if (entityInstance.getTrackedEntityType().isAllowAuditLog()) {
       programTempOwnershipAuditService.addProgramTempOwnershipAudit(
           new ProgramTempOwnershipAudit(program, entityInstance, reason, user.getUsername()));
     }

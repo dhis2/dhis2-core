@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.trackedentityattributevalue;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
+
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.CurrentUserService;
@@ -50,11 +53,15 @@ public class DefaultTrackedEntityAttributeValueAuditService
 
   private final CurrentUserService currentUserService;
 
+  private final DhisConfigurationProvider config;
+
   @Override
   public void addTrackedEntityAttributeValueAudit(
       TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit) {
-    trackedEntityAttributeValueAuditStore.addTrackedEntityAttributeValueAudit(
-        trackedEntityAttributeValueAudit);
+    if (config.isEnabled(CHANGELOG_TRACKER)) {
+      trackedEntityAttributeValueAuditStore.addTrackedEntityAttributeValueAudit(
+          trackedEntityAttributeValueAudit);
+    }
   }
 
   @Override

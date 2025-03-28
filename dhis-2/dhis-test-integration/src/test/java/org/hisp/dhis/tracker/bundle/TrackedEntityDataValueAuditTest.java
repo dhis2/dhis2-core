@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.Assertions.assertTrackedEntityDataValueAudit;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -38,6 +40,7 @@ import java.util.List;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
@@ -65,6 +68,8 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest {
 
   @Autowired private TrackedEntityDataValueAuditService dataValueAuditService;
 
+  @Autowired private DhisConfigurationProvider config;
+
   private DataElement dataElement;
 
   private ProgramStageInstance psi;
@@ -77,6 +82,7 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest {
 
   @Test
   void testTrackedEntityDataValueAuditCreate() throws IOException {
+    enableChangeLogs();
     assertNoErrors(
         trackerImportService.importTracker(
             fromJson("tracker/event_and_enrollment_with_data_values.json")));
@@ -124,5 +130,40 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest {
         updatedAudit.get(0), dataElement, AuditType.UPDATE, ORIGINAL_VALUE);
     assertTrackedEntityDataValueAudit(
         deletedAudit.get(0), dataElement, AuditType.DELETE, UPDATED_VALUE);
+  }
+
+  @Test
+  void shouldNotLogChangesWhenChangeLogConfigDisabled() throws IOException {
+    disableChangeLogs();
+    assertNoErrors(
+        trackerImportService.importTracker(
+            fromJson("tracker/event_and_enrollment_with_data_values.json")));
+    assertNoErrors(
+        trackerImportService.importTracker(
+            fromJson("tracker/event_with_data_values_for_update_audit.json")));
+    assertNoErrors(
+        trackerImportService.importTracker(
+            fromJson("tracker/event_with_data_values_for_delete_audit.json")));
+
+    dataElement = manager.search(DataElement.class, DE);
+    psi = manager.search(ProgramStageInstance.class, PSI);
+    assertNotNull(dataElement);
+    assertNotNull(psi);
+
+    List<TrackedEntityDataValueAudit> allAudits =
+        dataValueAuditService.getTrackedEntityDataValueAudits(
+            new TrackedEntityDataValueAuditQueryParams()
+                .setDataElements(List.of(dataElement))
+                .setProgramStageInstances(List.of(psi)));
+
+    assertIsEmpty(allAudits);
+  }
+
+  private void enableChangeLogs() {
+    config.getProperties().put(CHANGELOG_TRACKER.getKey(), "on");
+  }
+
+  private void disableChangeLogs() {
+    config.getProperties().put(CHANGELOG_TRACKER.getKey(), "off");
   }
 }
