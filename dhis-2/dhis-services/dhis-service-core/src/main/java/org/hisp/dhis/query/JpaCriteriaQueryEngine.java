@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.query;
 
+import static org.hisp.dhis.query.JpaQueryUtils.isPropertyTypeText;
 import static org.hisp.dhis.query.JpaQueryUtils.stringPredicateIgnoreCase;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
@@ -185,7 +186,9 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
       jakarta.persistence.criteria.Order getOrderPredicate(
           CriteriaBuilder builder, Root<T> root, @Nonnull Order order) {
 
-    if (order.isIgnoreCase()) {
+    if (order.isIgnoreCase()
+        && order.getProperty() != null
+        && isPropertyTypeText(order.getProperty())) {
       return order.isAscending()
           ? builder.asc(builder.lower(root.get(order.getProperty().getFieldName())))
           : builder.desc(builder.lower(root.get(order.getProperty().getFieldName())));
