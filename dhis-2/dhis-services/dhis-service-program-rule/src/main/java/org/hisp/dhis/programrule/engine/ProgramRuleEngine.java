@@ -37,7 +37,6 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
@@ -78,17 +77,11 @@ public class ProgramRuleEngine {
         rules);
   }
 
-  public List<RuleEffects> evaluateEnrollmentAndEvents(
+  public List<RuleEffects> evaluateEnrollmentAndTrackerEvents(
       ProgramInstance enrollment,
       Set<ProgramStageInstance> events,
       List<TrackedEntityAttributeValue> trackedEntityAttributeValues) {
-    List<ProgramRule> rules =
-        getProgramRules(
-            enrollment.getProgram(),
-            events.stream()
-                .map(ProgramStageInstance::getProgramStage)
-                .distinct()
-                .collect(Collectors.toList()));
+    List<ProgramRule> rules = getProgramRules(enrollment.getProgram());
     return evaluateProgramRulesForMultipleTrackerObjects(
         enrollment,
         enrollment.getProgram(),
@@ -181,21 +174,8 @@ public class ProgramRuleEngine {
     return builder.build();
   }
 
-  public List<ProgramRule> getProgramRules(Program program, List<ProgramStage> programStage) {
-    if (programStage.isEmpty()) {
-      return implementableRuleService.getProgramRules(program, null);
-    }
-
-    Set<ProgramRule> programRules =
-        programStage.stream()
-            .flatMap(ps -> implementableRuleService.getProgramRules(program, ps.getUid()).stream())
-            .collect(Collectors.toSet());
-
-    return List.copyOf(programRules);
-  }
-
   public List<ProgramRule> getProgramRules(Program program) {
-    return implementableRuleService.getProgramRules(program, null);
+    return implementableRuleService.getProgramRules(program);
   }
 
   /**

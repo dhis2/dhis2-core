@@ -111,7 +111,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
                   enrollmentTrackerConverterService.fromForRuleEngine(preheat, e);
 
               return programRuleEngine
-                  .evaluateEnrollmentAndEvents(
+                  .evaluateEnrollmentAndTrackerEvents(
                       programInstance,
                       getEventsFromEnrollment(programInstance.getUid(), bundle, preheat),
                       getAttributes(e.getEnrollment(), e.getTrackedEntity(), bundle, preheat))
@@ -133,7 +133,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
         .flatMap(
             enrollment ->
                 programRuleEngine
-                    .evaluateEnrollmentAndEvents(
+                    .evaluateEnrollmentAndTrackerEvents(
                         enrollment,
                         getEventsFromEnrollment(enrollment.getUid(), bundle, preheat),
                         getAttributes(
