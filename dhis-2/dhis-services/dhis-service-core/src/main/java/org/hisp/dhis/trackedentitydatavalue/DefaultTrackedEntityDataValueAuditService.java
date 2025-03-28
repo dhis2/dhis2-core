@@ -28,11 +28,13 @@
 package org.hisp.dhis.trackedentitydatavalue;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -54,15 +56,20 @@ public class DefaultTrackedEntityDataValueAuditService
 
   private final Predicate<TrackedEntityDataValueAudit> aclFilter;
 
+  private final DhisConfigurationProvider config;
+
   public DefaultTrackedEntityDataValueAuditService(
       TrackedEntityDataValueAuditStore trackedEntityDataValueAuditStore,
       TrackerAccessManager trackerAccessManager,
-      CurrentUserService currentUserService) {
+      CurrentUserService currentUserService,
+      DhisConfigurationProvider config) {
     checkNotNull(trackedEntityDataValueAuditStore);
     checkNotNull(trackerAccessManager);
     checkNotNull(currentUserService);
+    checkNotNull(config);
 
     this.trackedEntityDataValueAuditStore = trackedEntityDataValueAuditStore;
+    this.config = config;
 
     aclFilter =
         (audit) ->
@@ -83,7 +90,9 @@ public class DefaultTrackedEntityDataValueAuditService
   @Transactional
   public void addTrackedEntityDataValueAudit(
       TrackedEntityDataValueAudit trackedEntityDataValueAudit) {
-    trackedEntityDataValueAuditStore.addTrackedEntityDataValueAudit(trackedEntityDataValueAudit);
+    if (config.isEnabled(CHANGELOG_TRACKER)) {
+      trackedEntityDataValueAuditStore.addTrackedEntityDataValueAudit(trackedEntityDataValueAudit);
+    }
   }
 
   @Override

@@ -28,7 +28,6 @@
 package org.hisp.dhis.trackedentityattributevalue;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 import static org.hisp.dhis.system.util.ValidationUtils.valueIsValid;
 
 import java.util.List;
@@ -106,10 +105,8 @@ public class DefaultTrackedEntityAttributeValueService
             currentUserService.getCurrentUsername(),
             AuditType.DELETE);
 
-    if (config.isEnabled(CHANGELOG_TRACKER)) {
-      trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit(
-          trackedEntityAttributeValueAudit);
-    }
+    trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit(
+        trackedEntityAttributeValueAudit);
 
     deleteFileValue(attributeValue);
     attributeValueStore.delete(attributeValue);
@@ -220,10 +217,8 @@ public class DefaultTrackedEntityAttributeValueService
               User.username(user),
               AuditType.UPDATE);
 
-      if (config.isEnabled(CHANGELOG_TRACKER)) {
-        trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit(
-            trackedEntityAttributeValueAudit);
-      }
+      trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit(
+          trackedEntityAttributeValueAudit);
 
       attributeValueStore.update(attributeValue);
 
