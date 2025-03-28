@@ -98,8 +98,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       TrackedEntityInstanceService trackedEntityInstanceService,
       OrganisationUnitService organisationUnitService,
       ProgramService programService,
-      DhisConfigurationProvider config,
-      Environment env,
       AclService aclService) {
     checkNotNull(currentUserService);
     checkNotNull(trackedEntityProgramOwnerService);
@@ -108,8 +106,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     checkNotNull(programTempOwnerService);
     checkNotNull(programOwnershipHistoryService);
     checkNotNull(organisationUnitService);
-    checkNotNull(config);
-    checkNotNull(env);
     checkNotNull(aclService);
 
     this.currentUserService = currentUserService;

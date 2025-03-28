@@ -50,6 +50,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTempOwnerService;
 import org.hisp.dhis.program.ProgramTempOwnershipAudit;
 import org.hisp.dhis.program.ProgramTempOwnershipAuditService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -84,12 +85,15 @@ class DefaultTrackerOwnershipManagerTest {
 
   @Mock private Cache<Object> tempOwnerCache;
 
+  @Mock private AclService aclService;
+
   @InjectMocks private DefaultTrackerOwnershipManager trackerOwnershipManager;
 
   private Program program;
   private User user;
   private String reason;
   private OrganisationUnit orgUnit;
+  private TrackedEntityType trackedEntityType;
 
   @BeforeEach
   void setUp() {
@@ -106,24 +110,29 @@ class DefaultTrackerOwnershipManagerTest {
             programOwnershipHistoryService,
             trackedEntityService,
             organisationUnitService,
-            programService);
+            programService,
+            aclService);
 
     orgUnit = createOrganisationUnit("org unit");
     orgUnit.setPath(orgUnit.getUid());
+    trackedEntityType = createTrackedEntityType('A');
     program = createProgram('A');
     program.setAccessLevel(AccessLevel.PROTECTED);
+    program.setTrackedEntityType(trackedEntityType);
     user = new User();
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
     reason = "breaking the glass";
 
     when(ownerCache.get(any(), any())).thenReturn(orgUnit);
     when(organisationUnitService.isInUserSearchHierarchyCached(user, orgUnit)).thenReturn(true);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
   }
 
   @Test
   void shouldLogProgramOwnershipChangeWhenTrackedEntityTypeAuditEnabled()
       throws ForbiddenException {
     TrackedEntityInstance trackedEntity = createTrackedEntityWithAuditLog(true);
+    when(aclService.canDataRead(user, trackedEntity.getTrackedEntityType())).thenReturn(true);
 
     trackerOwnershipManager.grantTemporaryOwnership(trackedEntity, program, user, reason);
 
@@ -135,6 +144,7 @@ class DefaultTrackerOwnershipManagerTest {
   void shouldNotLogProgramOwnershipChangeWhenTrackedEntityTypeAuditDisabled()
       throws ForbiddenException {
     TrackedEntityInstance trackedEntity = createTrackedEntityWithAuditLog(false);
+    when(aclService.canDataRead(user, trackedEntity.getTrackedEntityType())).thenReturn(true);
 
     trackerOwnershipManager.grantTemporaryOwnership(trackedEntity, program, user, reason);
 
@@ -143,7 +153,6 @@ class DefaultTrackerOwnershipManagerTest {
   }
 
   private TrackedEntityInstance createTrackedEntityWithAuditLog(boolean isAllowAuditLog) {
-    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
     trackedEntityType.setAllowAuditLog(isAllowAuditLog);
     TrackedEntityInstance trackedEntity = createTrackedEntityInstance('A', orgUnit);
     trackedEntity.setTrackedEntityType(trackedEntityType);
