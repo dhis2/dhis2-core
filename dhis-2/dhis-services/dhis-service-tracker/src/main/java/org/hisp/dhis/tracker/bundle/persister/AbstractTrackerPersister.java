@@ -448,10 +448,8 @@ public abstract class AbstractTrackerPersister<
       TrackedEntityAttributeValue attributeValue,
       TrackedEntityInstance trackedEntityInstance,
       AuditType auditType) {
-    boolean allowAuditLog = trackedEntityInstance.getTrackedEntityType().isAllowAuditLog();
 
-    // create log entry only for updated, created and deleted attributes
-    if (allowAuditLog && auditType != null) {
+    if (auditType != null) {
       TrackedEntityAttributeValueAudit valueAudit =
           new TrackedEntityAttributeValueAudit(
               attributeValue, attributeValue.getValue(), userName, auditType);

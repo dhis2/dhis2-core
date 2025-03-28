@@ -28,7 +28,6 @@
 package org.hisp.dhis.trackedentity;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 import java.util.Optional;
 import java.util.function.LongSupplier;
@@ -238,7 +237,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
     validateGrantTemporaryOwnershipInputs(entityInstance, program, user);
 
-    if (config.isEnabled(CHANGELOG_TRACKER)) {
+    if (entityInstance.getTrackedEntityType().isAllowAuditLog()) {
       programTempOwnershipAuditService.addProgramTempOwnershipAudit(
           new ProgramTempOwnershipAudit(program, entityInstance, reason, user.getUsername()));
     }
