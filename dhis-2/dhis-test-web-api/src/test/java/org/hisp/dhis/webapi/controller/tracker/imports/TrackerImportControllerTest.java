@@ -110,7 +110,7 @@ class TrackerImportControllerTest extends PostgresControllerIntegrationTestBase 
             .content(HttpStatus.OK);
 
     assertNoDiff(
-        """
+"""
 {
   "status": "OK",
   "validationReport": {

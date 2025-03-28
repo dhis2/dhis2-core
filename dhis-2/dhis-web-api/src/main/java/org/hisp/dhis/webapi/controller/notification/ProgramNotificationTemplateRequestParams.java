@@ -46,14 +46,14 @@ public class ProgramNotificationTemplateRequestParams implements PageRequestPara
   private UID programStage;
 
   @OpenApi.Description(
-      """
+"""
 Get the given page.
 """)
   @OpenApi.Property(defaultValue = "1")
   private Integer page;
 
   @OpenApi.Description(
-      """
+"""
 Get given number of items per page.
 """)
   @OpenApi.Property(defaultValue = "50")
@@ -69,7 +69,7 @@ Get given number of items per page.
   }
 
   @OpenApi.Description(
-      """
+"""
 Get all items by specifying `paging=false`. Requests are paginated by default.
 
 **Be aware that the performance is directly related to the amount of data requested. Larger pages
