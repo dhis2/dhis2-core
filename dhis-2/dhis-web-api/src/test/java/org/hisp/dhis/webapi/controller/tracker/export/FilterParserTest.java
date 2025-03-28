@@ -251,9 +251,11 @@ cy2oRh2sNr7:eq:project//""");
         filters);
   }
 
-  @Test
-  void shouldParseFiltersWithCombinedUnaryAndBinaryOperators() throws BadRequestException {
-    Map<UID, List<QueryFilter>> filters = parseFilters("TvjwTPToKHO:null:gt:10");
+  @ValueSource(strings = {"TvjwTPToKHO:null:gt:10", "TvjwTPToKHO:null,TvjwTPToKHO:gt:10"})
+  @ParameterizedTest
+  void shouldParseFiltersWithCombinedUnaryAndBinaryOperators(String input)
+      throws BadRequestException {
+    Map<UID, List<QueryFilter>> filters = parseFilters(input);
 
     assertEquals(
         Map.of(

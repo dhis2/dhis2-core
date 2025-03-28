@@ -54,9 +54,13 @@ import org.hisp.dhis.feedback.BadRequestException;
  * separator ':'.
  */
 public class FilterParser {
+
   private FilterParser() {
     throw new IllegalStateException("Utility class");
   }
+
+  /** Slash, comma and colon have a width of 1 in the input string. */
+  public static final int SEPARATOR_CHAR_COUNT = 1;
 
   private static final char ESCAPE = '/';
   private static final String ESCAPE_STRING = Character.toString(ESCAPE);
@@ -110,11 +114,13 @@ public class FilterParser {
     int length = input.length();
     while (end < length) {
       int curChar = input.codePointAt(end);
-      int charCount = Character.charCount(curChar);
+      int charCount =
+          Character.charCount(
+              curChar); // so we iterate characters spanning more than char(16-bytes)
 
       // skip escaped slash, colon and comma which allow users to pass them as part of values
-      if (curChar == ESCAPE && end + 1 < length) {
-        int nextChar = input.codePointAt(end + 1);
+      if (curChar == ESCAPE && end + SEPARATOR_CHAR_COUNT < length) {
+        int nextChar = input.codePointAt(end + SEPARATOR_CHAR_COUNT);
         if (nextChar == ESCAPE || nextChar == COLON || nextChar == COMMA) {
           end += charCount + Character.charCount(nextChar);
           continue;
