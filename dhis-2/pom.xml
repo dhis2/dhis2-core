@@ -2024,7 +2024,10 @@ jasperreports.version=${jasperreports.version}
               <enabled>true</enabled>
             </upToDateChecking>
             <java>
-              <googleJavaFormat/>
+              <googleJavaFormat>
+                <version>1.26.0</version>
+                <style>GOOGLE</style>
+              </googleJavaFormat>
               <trimTrailingWhitespace/>
               <licenseHeader>
                 <file>${rootDir}/license-header</file>
