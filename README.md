@@ -82,6 +82,14 @@ docker compose up
 DHIS2_IMAGE=dhis2/core-dev:local DORIS_VERSION=3.0.4 docker compose -f docker-compose.yml -f docker-compose.doris.yml up
 ```
 
+> **Note**
+> 
+> Remember, when running compose up with multiple compose files, you need to pass the same files to compose down, e.g.
+> ```
+> docker compose -f docker-compose.yml -f docker-compose.doris.yml down
+> ```
+
+
 ### Synchronization between DHIS2 instances
 
 You can run multiple DHIS2 instances to test data and metadata [synchronization](https://docs.dhis2.org/en/use/user-guides/dhis-core-version-master/exchanging-data/metadata-synchronization.html) by running the following command.
