@@ -102,7 +102,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 public class TrackerImportController {
   static final String TRACKER_JOB_ADDED = "Tracker job added";
   public static final String OPENAPI_IMPORT_DESCRIPTION =
-      """
+"""
 Import tracker data.
 """
           + ImportRequestParams.OPENAPI_DESCRIPTION_ASYNC;

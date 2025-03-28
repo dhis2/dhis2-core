@@ -1306,6 +1306,25 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("Child Health", response.get(1).getDisplayName());
   }
 
+  @Test
+  void testSortNoneTextCaseInsensitive() {
+    POST(
+            "/categories/",
+            "{'name':'Child Health', 'shortName':'CAT1','dataDimensionType':'DISAGGREGATION','lastUpdated':'2017-05-19T15:13:52.488'}")
+        .content(HttpStatus.CREATED);
+    POST(
+            "/categories/",
+            "{'name':'births attended by', 'shortName':'CAT2','dataDimensionType':'DISAGGREGATION', 'lastUpdated':'2017-05-19T15:14:52.488'}")
+        .content(HttpStatus.CREATED);
+
+    JsonList<JsonIdentifiableObject> response =
+        GET("/categories?order=craeted:idesc")
+            .content()
+            .getList("categories", JsonIdentifiableObject.class);
+    assertEquals("births attended by", response.get(0).getDisplayName());
+    assertEquals("Child Health", response.get(1).getDisplayName());
+  }
+
   private void assertErrorMandatoryAttributeRequired(String attrId, HttpResponse response) {
     JsonError msg = response.content(HttpStatus.CONFLICT).as(JsonError.class);
     JsonList<JsonErrorReport> errorReports = msg.getTypeReport().getErrorReports();

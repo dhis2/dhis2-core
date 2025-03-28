@@ -178,7 +178,7 @@ class ResultProcessor {
           "%s (%s, %s)",
           trimToEmpty(rowSet.getString(I18N_THIRD_NAME)),
           trimToEmpty(rowSet.getString(I18N_SECOND_NAME)),
-          trimToEmpty(rowSet.getString(I18N_FIRST_NAME)));
+          trimToEmpty(rowSet.getString(I18N_FIRST_SHORTNAME)));
     } else if (isNotBlank(rowSet.getString(PROGRAM_NAME))) {
       return trimToEmpty(rowSet.getString(I18N_FIRST_SHORTNAME))
           + SPACE
