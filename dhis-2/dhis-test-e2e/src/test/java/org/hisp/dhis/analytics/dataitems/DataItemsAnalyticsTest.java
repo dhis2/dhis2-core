@@ -417,4 +417,30 @@ public class DataItemsAnalyticsTest {
         .body("dataItems.optionSetId", allOf(hasItem("iDFPKpFTiVw")))
         .body("dataItems.programId", allOf(hasItem("eBAyeGv0exc")));
   }
+
+  @Test
+  void testDataItemsShortNameOption_PROGRAM_DATA_ELEMENT_OPTION() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("paging=truec")
+            .add("page=1")
+            .add("fields=id1,displayShortName~rename(name),dimensionItemType")
+            .add("order=displayName:asc")
+            .add("filter=dimensionItemType:eq:PROGRAM_DATA_ELEMENT_OPTION")
+            .add("filter=programDataElementId:eq:qDkgAbB5Jlk.XCMLePzaZiL");
+
+    // When
+    ApiResponse response = dataItemsActions.get(params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(equalTo(200))
+        .body("dataItems", is(not(empty())))
+        .body("dataItems", hasSize(2))
+        .body("dataItems.dimensionItemType", allOf(hasItem("PROGRAM_DATA_ELEMENT_OPTION")))
+        .body("dataItems.name", hasItem("No (Symptoms, Case)"))
+        .body("dataItems.name", hasItem("Yes (Symptoms, Case)"));
+  }
 }
