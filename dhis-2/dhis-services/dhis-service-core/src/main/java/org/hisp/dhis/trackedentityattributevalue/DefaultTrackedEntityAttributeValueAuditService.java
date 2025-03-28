@@ -28,11 +28,13 @@
 package org.hisp.dhis.trackedentityattributevalue;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.CurrentUserService;
@@ -50,24 +52,31 @@ public class DefaultTrackedEntityAttributeValueAuditService
 
   private final CurrentUserService currentUserService;
 
+  private final DhisConfigurationProvider config;
+
   public DefaultTrackedEntityAttributeValueAuditService(
       TrackedEntityAttributeValueAuditStore trackedEntityAttributeValueAuditStore,
       TrackedEntityAttributeService trackedEntityAttributeService,
-      CurrentUserService currentUserService) {
+      CurrentUserService currentUserService,
+      DhisConfigurationProvider config) {
     checkNotNull(trackedEntityAttributeValueAuditStore);
     checkNotNull(trackedEntityAttributeService);
     checkNotNull(currentUserService);
+    checkNotNull(config);
 
     this.trackedEntityAttributeValueAuditStore = trackedEntityAttributeValueAuditStore;
     this.trackedEntityAttributeService = trackedEntityAttributeService;
     this.currentUserService = currentUserService;
+    this.config = config;
   }
 
   @Override
   public void addTrackedEntityAttributeValueAudit(
       TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit) {
-    trackedEntityAttributeValueAuditStore.addTrackedEntityAttributeValueAudit(
-        trackedEntityAttributeValueAudit);
+    if (config.isEnabled(CHANGELOG_TRACKER)) {
+      trackedEntityAttributeValueAuditStore.addTrackedEntityAttributeValueAudit(
+          trackedEntityAttributeValueAudit);
+    }
   }
 
   @Override
