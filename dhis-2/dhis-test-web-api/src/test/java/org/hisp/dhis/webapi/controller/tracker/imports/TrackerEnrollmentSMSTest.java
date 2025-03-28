@@ -252,7 +252,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
         POST(
                 "/sms/inbound",
                 format(
-                    """
+"""
 {
 "text": "%s",
 "originator": "%s"
@@ -425,7 +425,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
         POST(
                 "/sms/inbound",
                 format(
-                    """
+"""
 {
 "text": "register a=hello|c=there|x=codeIsNotFoundOnCommand",
 "originator": "%s"
