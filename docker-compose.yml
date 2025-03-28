@@ -1,5 +1,3 @@
-version: "3.8"
-
 x-web-base: &web-base
   image: "${DHIS2_IMAGE:-dhis2/core-dev:local}"
   volumes:
@@ -9,7 +7,7 @@ x-web-base: &web-base
       "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081 \
       -Dlog4j2.configurationFile=/opt/dhis2/log4j2.xml
       -Dcom.sun.management.jmxremote \
-      -Dcom.sun.management.jmxremote.port=9010 \
+      -Dcom.sun.management.jmxremote.port=9011 \
       -Dcom.sun.management.jmxremote.local.only=false \
       -Dcom.sun.management.jmxremote.authenticate=false \
       -Dcom.sun.management.jmxremote.ssl=false"
@@ -48,7 +46,7 @@ services:
     ports:
       - "127.0.0.1:8080:8080" # DHIS2
       - "127.0.0.1:8081:8081" # Debugger: connect using commandline flag -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081
-      - "127.0.0.1:9010:9010" # JMX port (for example for VisualVM)
+      - "127.0.0.1:9011:9011" # JMX port (for example for VisualVM)
     depends_on:
       db:
         condition: service_healthy
