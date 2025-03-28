@@ -333,7 +333,7 @@ class VisualizationControllerTest extends H2ControllerIntegrationTestBase {
     String optionUid = option.getUid();
     String dimUid = programUid + "." + attributeUid + "." + optionUid;
     String jsonBody =
-        """
+"""
 {
     "type": "PIE",
     "columns": [
@@ -385,7 +385,7 @@ class VisualizationControllerTest extends H2ControllerIntegrationTestBase {
     String optionUid = option.getUid();
     String dimUid = programUid + "." + dataElementUid + "." + optionUid;
     String jsonBody =
-        """
+"""
 {
     "type": "PIE",
     "columns": [
