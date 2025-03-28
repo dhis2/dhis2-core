@@ -114,7 +114,10 @@ class DataValuesValidator implements Validator<Event> {
       return;
     }
 
-    String status = ValidationUtils.valueIsValid(dataValue.getValue(), dataElement);
+    String status =
+        dataElement.hasOptionSet()
+            ? null
+            : ValidationUtils.valueIsValid(dataValue.getValue(), dataElement);
 
     if (dataElement.hasOptionSet()) {
       validateOptionSet(reporter, event, dataElement, dataValue.getValue());

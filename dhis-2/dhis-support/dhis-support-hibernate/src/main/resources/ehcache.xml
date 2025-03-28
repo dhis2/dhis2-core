@@ -1,31 +1,70 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ehcache>
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="http://ehcache.org/ehcache.xsd"
+         updateCheck="false">
 
-  <!-- Default cache -->
-  
-  <!-- 
-    Ensure that default cache has less frequent expiration than query cache
-    to avoid individual select queries per entity.
-  -->
+  <!--  Default Cache Settings -->
+  <!-- Increased from 1M to 5M -->
+  <!--
+  -    Ensure that default cache has less frequent expiration than query cache
+  -    to avoid individual select queries per entity.
+  -  -->
 
   <defaultCache
-    maxElementsInMemory="1000000" 
-    eternal="false" 
-    timeToIdleSeconds="21600" 
-    timeToLiveSeconds="21600"
-    overflowToDisk="false" 
-    diskPersistent="false" />
+          maxEntriesLocalHeap="5000000"
+          eternal="false"
+          timeToIdleSeconds="21600"
+          timeToLiveSeconds="43200"
+          memoryStoreEvictionPolicy="LRU"
+          overflowToDisk="false"
+          diskPersistent="false"/>
 
-  <!-- Hibernate query cache -->
+  <!-- Hibernate Entity Cache for `OptionSet` -->
+  <cache name="org.hisp.dhis.option.OptionSet"
+         maxEntriesLocalHeap="5000000"
+         eternal="false"
+         timeToIdleSeconds="21600"
+         timeToLiveSeconds="43200"
+         memoryStoreEvictionPolicy="LRU"
+         overflowToDisk="false"
+         diskPersistent="false"/>
 
-  <cache name="org.hibernate.cache.internal.StandardQueryCache"
-    maxElementsInMemory="1000000" 
-    eternal="false" 
-    timeToIdleSeconds="21600" 
-    timeToLiveSeconds="21600"
-    overflowToDisk="false" 
-    diskPersistent="false" />
+  <!-- Hibernate Collection Cache for `OptionSet.options` -->
+  <cache name="org.hisp.dhis.option.OptionSet.options"
+         maxEntriesLocalHeap="5000000"
+         eternal="false"
+         timeToIdleSeconds="21600"
+         timeToLiveSeconds="43200"
+         memoryStoreEvictionPolicy="LRU"
+         overflowToDisk="false"
+         diskPersistent="false"/>
 
-  <cache name="org.hibernate.cache.spi.UpdateTimestampsCache" 
-    maxElementsInMemory="5000" />
+  <!--  Hibernate Entity Cache for `Option` -->
+  <cache name="org.hisp.dhis.option.Option"
+         maxEntriesLocalHeap="5000000"
+         eternal="false"
+         timeToIdleSeconds="21600"
+         timeToLiveSeconds="43200"
+         memoryStoreEvictionPolicy="LRU"
+         overflowToDisk="false"
+         diskPersistent="false"/>
+
+  <!-- Hibernate Query Cache -->
+  <cache name="default-query-results-region"
+         maxEntriesLocalHeap="5000000"
+         eternal="false"
+         timeToIdleSeconds="21600"
+         timeToLiveSeconds="43200"
+         memoryStoreEvictionPolicy="LRU"
+         overflowToDisk="false"
+         diskPersistent="false"/>
+
+  <!--  Hibernate Update Timestamps Cache (Needed for Query Cache) -->
+  <cache name="default-update-timestamps-region"
+         maxEntriesLocalHeap="10000"
+         eternal="true"
+         memoryStoreEvictionPolicy="LRU"
+         overflowToDisk="false"
+         diskPersistent="false"/>
+
 </ehcache>
