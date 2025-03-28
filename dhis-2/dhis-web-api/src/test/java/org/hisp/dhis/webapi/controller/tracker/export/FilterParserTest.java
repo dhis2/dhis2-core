@@ -195,7 +195,7 @@ class FilterParserTest {
   void shouldParseFiltersWithEscapedSlashAndComma() throws BadRequestException {
     Map<UID, List<QueryFilter>> filters =
         parseFilters(
-            """
+"""
 TvjwTPToKHO:eq:project///,/,//,\
 cy2oRh2sNr6:eq:project//,\
 cy2oRh2sNr7:eq:project//""");
