@@ -329,6 +329,11 @@
       <artifactId>quick</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-support-external</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

@@ -39,7 +39,6 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.events.event.EventContext;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -53,7 +52,6 @@ import org.hisp.dhis.program.ProgramTempOwnershipAuditService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.springframework.core.env.Environment;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -86,8 +84,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
   private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-  private final DhisConfigurationProvider config;
-
   public DefaultTrackerOwnershipManager(
       CurrentUserService currentUserService,
       TrackedEntityProgramOwnerService trackedEntityProgramOwnerService,
@@ -97,9 +93,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       ProgramOwnershipHistoryService programOwnershipHistoryService,
       TrackedEntityInstanceService trackedEntityInstanceService,
       OrganisationUnitService organisationUnitService,
-      ProgramService programService,
-      DhisConfigurationProvider config,
-      Environment env) {
+      ProgramService programService) {
     checkNotNull(currentUserService);
     checkNotNull(trackedEntityProgramOwnerService);
     checkNotNull(cacheProvider);
@@ -107,8 +101,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     checkNotNull(programTempOwnerService);
     checkNotNull(programOwnershipHistoryService);
     checkNotNull(organisationUnitService);
-    checkNotNull(config);
-    checkNotNull(env);
 
     this.currentUserService = currentUserService;
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
@@ -118,7 +110,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     this.organisationUnitService = organisationUnitService;
     this.trackedEntityInstanceService = trackedEntityInstanceService;
     this.programService = programService;
-    this.config = config;
     this.ownerCache = cacheProvider.createProgramOwnerCache();
     this.tempOwnerCache = cacheProvider.createProgramTempOwnerCache();
   }
