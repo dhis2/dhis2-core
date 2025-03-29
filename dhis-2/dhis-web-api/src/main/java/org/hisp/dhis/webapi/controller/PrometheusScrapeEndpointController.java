@@ -57,7 +57,7 @@ public class PrometheusScrapeEndpointController {
     this.prometheusRegistry = prometheusRegistry;
   }
 
-  @GetMapping(value = "/metrics", produces = TextFormat.CONTENT_TYPE_004)
+  @GetMapping(value = "/api/metrics", produces = TextFormat.CONTENT_TYPE_004)
   public void scrape(HttpServletResponse response) {
     try {
       response.setContentType(TextFormat.CONTENT_TYPE_004);
