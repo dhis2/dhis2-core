@@ -322,8 +322,6 @@ public class EhCacheMetricsConfig {
     }
   }
 
-  // Removed EhCache3Metrics and EhCache3FallbackMetrics as they are no longer used
-
   static class EhCacheMetricsEnabledCondition extends MetricsEnabler {
     @Override
     protected ConfigurationKey getConfigKey() {

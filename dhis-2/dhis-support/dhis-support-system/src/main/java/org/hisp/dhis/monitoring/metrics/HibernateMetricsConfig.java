@@ -34,10 +34,12 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_HIBERNATE_
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.TimeGauge;
 import io.micrometer.core.instrument.binder.MeterBinder;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceException;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
@@ -127,6 +129,19 @@ public class HibernateMetricsConfig {
           statistics,
           Statistics::getSuccessfulTransactionCount);
 
+      registry.gauge(
+          "hibernate.transactions.failed",
+          tags,
+          statistics,
+          s -> s.getTransactionCount() - s.getSuccessfulTransactionCount());
+
+      registry.gauge(
+          "hibernate.optimistic.failures", tags, statistics, Statistics::getOptimisticFailureCount);
+
+      registry.gauge("hibernate.flushes", tags, statistics, Statistics::getFlushCount);
+      registry.gauge(
+          "hibernate.connections.obtained", tags, statistics, Statistics::getConnectCount);
+
       // Entity metrics
       registry.gauge(
           "hibernate.entities.deletes", tags, statistics, Statistics::getEntityDeleteCount);
@@ -153,13 +168,105 @@ public class HibernateMetricsConfig {
       registry.gauge(
           "hibernate.collections.updates", tags, statistics, Statistics::getCollectionUpdateCount);
 
-      // Cache metrics
+      // Prepared statements
       registry.gauge(
-          "hibernate.cache.puts", tags, statistics, Statistics::getSecondLevelCachePutCount);
+          "hibernate.statements.prepared", tags, statistics, Statistics::getPrepareStatementCount);
       registry.gauge(
-          "hibernate.cache.hits", tags, statistics, Statistics::getSecondLevelCacheHitCount);
+          "hibernate.statements.closed", tags, statistics, Statistics::getCloseStatementCount);
+
+      // Natural Id cache
       registry.gauge(
-          "hibernate.cache.misses", tags, statistics, Statistics::getSecondLevelCacheMissCount);
+          "hibernate.cache.natural.id.requests.hit",
+          tags,
+          statistics,
+          Statistics::getNaturalIdCacheHitCount);
+      registry.gauge(
+          "hibernate.cache.natural.id.requests.miss",
+          tags,
+          statistics,
+          Statistics::getNaturalIdCacheMissCount);
+      registry.gauge(
+          "hibernate.cache.natural.id.puts",
+          tags,
+          statistics,
+          Statistics::getNaturalIdCachePutCount);
+
+      registry.gauge(
+          "hibernate.query.natural.id.executions",
+          tags,
+          statistics,
+          Statistics::getNaturalIdQueryExecutionCount);
+
+      TimeGauge.builder(
+              "hibernate.query.natural.id.executions.max",
+              statistics,
+              TimeUnit.MILLISECONDS,
+              Statistics::getNaturalIdQueryExecutionMaxTime)
+          .description("The maximum query time for naturalId queries executed against the database")
+          .tags(tags)
+          .register(registry);
+
+      // Query statistics
+      registry.gauge(
+          "hibernate.query.executions", tags, statistics, Statistics::getQueryExecutionCount);
+
+      TimeGauge.builder(
+              "hibernate.query.executions.max",
+              statistics,
+              TimeUnit.MILLISECONDS,
+              Statistics::getQueryExecutionMaxTime)
+          .description("The time of the slowest query")
+          .tags(tags)
+          .register(registry);
+
+      // Cache update timestamp
+      registry.gauge(
+          "hibernate.cache.update.timestamps.requests.hit",
+          tags,
+          statistics,
+          Statistics::getUpdateTimestampsCacheHitCount);
+      registry.gauge(
+          "hibernate.cache.update.timestamps.requests.miss",
+          tags,
+          statistics,
+          Statistics::getUpdateTimestampsCacheMissCount);
+      registry.gauge(
+          "hibernate.cache.update.timestamps.puts",
+          tags,
+          statistics,
+          Statistics::getUpdateTimestampsCachePutCount);
+
+      // Second level cache_ metrics
+      registry.gauge(
+          "hibernate.cache.l2.puts", tags, statistics, Statistics::getSecondLevelCachePutCount);
+      registry.gauge(
+          "hibernate.cache.l2.hits", tags, statistics, Statistics::getSecondLevelCacheHitCount);
+      registry.gauge(
+          "hibernate.cache.l2.misses", tags, statistics, Statistics::getSecondLevelCacheMissCount);
+
+      // Query Caching
+      registry.gauge(
+          "hibernate.cache.query.requests.hit",
+          tags,
+          statistics,
+          Statistics::getQueryCacheHitCount);
+      registry.gauge(
+          "hibernate.cache.query.requests.miss",
+          tags,
+          statistics,
+          Statistics::getQueryCacheMissCount);
+      registry.gauge(
+          "hibernate.cache.query.puts", tags, statistics, Statistics::getQueryCachePutCount);
+      registry.gauge(
+          "hibernate.cache.query.plan.hit",
+          tags,
+          statistics,
+          Statistics::getQueryPlanCacheHitCount);
+      registry.gauge(
+          "hibernate.cache.query.plan.miss",
+          tags,
+          statistics,
+          Statistics::getQueryPlanCacheMissCount);
     }
   }
 
