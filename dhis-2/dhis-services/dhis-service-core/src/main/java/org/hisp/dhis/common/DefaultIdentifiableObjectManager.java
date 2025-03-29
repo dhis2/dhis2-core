@@ -270,7 +270,9 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
       return null;
     }
 
-    return store.getByUid(uid);
+    return CurrentUserUtil.getCurrentUserDetails().isSuper()
+        ? store.getByUidNoAcl(uid)
+        : store.getByUid(uid);
   }
 
   @Nonnull
