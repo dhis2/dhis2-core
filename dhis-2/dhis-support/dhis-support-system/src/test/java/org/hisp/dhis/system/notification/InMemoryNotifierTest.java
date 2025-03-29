@@ -29,8 +29,12 @@
  */
 package org.hisp.dhis.system.notification;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsService;
 
 /**
  * Tests the {@link Notifier} API for the {@link InMemoryNotifierStore} implementation.
@@ -43,7 +47,10 @@ class InMemoryNotifierTest extends NotifierStoreTest {
 
   @Override
   void setUpNotifier(SystemSettings settings) {
+    SystemSettingsService settingsService = mock(SystemSettingsService.class);
+    when(settingsService.getCurrentSettings()).thenReturn(settings);
     notifier =
-        new DefaultNotifier(new InMemoryNotifierStore(), new ObjectMapper(), () -> settings, clock);
+        new DefaultNotifier(
+            new InMemoryNotifierStore(), new ObjectMapper(), settingsService, clock);
   }
 }
