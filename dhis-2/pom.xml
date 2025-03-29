@@ -1000,11 +1000,6 @@
         <version>${ehcache3.version}</version>
         <classifier>jakarta</classifier>
       </dependency>
-<!--      <dependency>-->
-<!--        <groupId>org.ehcache</groupId>-->
-<!--        <artifactId>ehcache</artifactId>-->
-<!--        <version>${ehcache3.version}</version>-->
-<!--      </dependency>-->
       <dependency>
         <groupId>jakarta.persistence</groupId>
         <artifactId>jakarta.persistence-api</artifactId>
