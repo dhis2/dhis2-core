@@ -38,6 +38,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -114,7 +115,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
               RuleEnrollment enrollment =
                   RuleEngineMapper.mapPayloadEnrollment(preheat, e, attributes);
 
-              return programRuleEngine.evaluateEnrollmentAndEvents(
+              return programRuleEngine.evaluateEnrollmentAndTrackerEvents(
                   enrollment,
                   getEventsFromEnrollment(e.getUid(), bundle, preheat),
                   preheat.getProgram(e.getProgram()),
@@ -139,7 +140,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
               List<RuleAttributeValue> attributes =
                   getAttributes(UID.of(e), UID.of(e.getTrackedEntity()), bundle, preheat);
               RuleEnrollment enrollment = RuleEngineMapper.mapSavedEnrollment(e, attributes);
-              return programRuleEngine.evaluateEnrollmentAndEvents(
+              return programRuleEngine.evaluateEnrollmentAndTrackerEvents(
                   enrollment,
                   getEventsFromEnrollment(UID.of(e), bundle, preheat),
                   e.getProgram(),
@@ -209,6 +210,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
 
   // Get all the events linked to enrollment from the payload and the DB,
   // using the one from payload if they are present in both places
+  @Nonnull
   private List<RuleEvent> getEventsFromEnrollment(
       UID enrollmentUid, TrackerBundle bundle, TrackerPreheat preheat) {
     Stream<Event> events;

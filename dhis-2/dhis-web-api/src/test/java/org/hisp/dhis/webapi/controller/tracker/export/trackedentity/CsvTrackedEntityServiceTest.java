@@ -181,7 +181,7 @@ class CsvTrackedEntityServiceTest {
     }
 
     assertEquals(
-        """
+"""
 h4w96yEMlzO,,2022-09-29T15:15:30Z,,,,"Test org unit",false,false,false,"POINT (40 5)",5.0,40.0,,,,,,"attribute 1",,"Age test",AGE
 h4w96yEMlzO,,2022-09-29T15:15:30Z,,,,"Test org unit",false,false,false,"POINT (40 5)",5.0,40.0,,,,,,"attribute 2",,"Text test",TEXT
 """,
@@ -210,7 +210,7 @@ h4w96yEMlzO,,2022-09-29T15:15:30Z,,,,"Test org unit",false,false,false,"POINT (4
     }
 
     assertEquals(
-        """
+"""
 h4w96yEMlzO,,2022-09-29T15:15:30Z,,,,"Test org unit",false,false,false,"POINT (40 5)",5.0,40.0,,,,,,"attribute 1",,"Age test",AGE
 h4w96yEMlzO,,2022-09-29T15:15:30Z,,,,"Test org unit",false,false,false,"POINT (40 5)",5.0,40.0,,,,,,"attribute 2",,"Text test",TEXT
 """,

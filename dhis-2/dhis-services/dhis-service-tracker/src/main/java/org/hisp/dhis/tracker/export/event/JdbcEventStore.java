@@ -585,7 +585,7 @@ class JdbcEventStore {
     if (TrackerIdScheme.UID
         != queryParams.getIdSchemeParams().getDataElementIdScheme().getIdScheme()) {
       sqlBuilder.append(
-          """
+"""
 left join
     lateral jsonb_each(
         coalesce(event.ev_eventdatavalues, '{}')
@@ -1431,7 +1431,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    */
   private String getCategoryOptionComboQuery(User user) {
     String joinCondition =
-        """
+"""
  inner join (select coc.uid, coc.code, coc.name, coc.attributevalues, coc.categoryoptioncomboid as id,\
     jsonb_object_agg(
         co.uid,
