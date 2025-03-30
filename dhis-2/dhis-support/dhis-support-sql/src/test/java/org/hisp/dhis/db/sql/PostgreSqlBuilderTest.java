@@ -472,7 +472,7 @@ class PostgreSqlBuilderTest {
   void testRemoveParent() {
     String expected =
         """
-        "alter table "immunization" no inherit "vaccination";""";
+        alter table "immunization" no inherit "vaccination";""";
 
     assertEquals(expected, sqlBuilder.removeParentTable(getTableA(), "vaccination"));
   }
