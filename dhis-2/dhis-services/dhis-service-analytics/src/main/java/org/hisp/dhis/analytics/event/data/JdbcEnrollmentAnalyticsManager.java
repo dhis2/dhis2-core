@@ -121,6 +121,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.InvalidResultSetAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 import org.springframework.stereotype.Service;
 
 /**
@@ -211,6 +212,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     log.debug("Analytics enrollment query SQL: '{}'", sql);
 
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
+    List<String> columnLabels = getColumnLabels(rowSet);
 
     int rowsRed = 0;
 
@@ -237,7 +239,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
         if (params.isRowContext()) {
           addValueOriginInfo(grid, rowSet, grid.getHeaders().get(i).getName());
-          columnOffset += getRowSetOriginItems(rowSet, grid.getHeaders().get(i).getName());
+          columnOffset += getRowSetOriginItems(columnLabels, grid.getHeaders().get(i).getName());
         }
       }
     }
@@ -246,18 +248,19 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   /**
    * Retrieves the amount of the supportive columns in database result set.
    *
-   * @param rowSet {@link SqlRowSet}.
+   * @param columns List of columns from a {@link SqlRowSet}.
    * @param columnName The name of the investigated column.
    * @return if the investigated column has some supportive columns like .exists or .status, the
    *     count of the columns is returned.
    */
-  private long getRowSetOriginItems(SqlRowSet rowSet, String columnName) {
-    return Arrays.stream(rowSet.getMetaData().getColumnNames())
-        .filter(
-            c ->
-                c.equalsIgnoreCase(columnName + ".exists")
-                    || c.equalsIgnoreCase(columnName + ".status"))
-        .count();
+  private int getRowSetOriginItems(List<String> columns, String columnName) {
+    return (int)
+        columns.stream()
+            .filter(
+                c ->
+                    c.equalsIgnoreCase(columnName + ".exists")
+                        || c.equalsIgnoreCase(columnName + ".status"))
+            .count();
   }
 
   /**
@@ -1800,5 +1803,24 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         sb.groupBy(col);
       }
     }
+  }
+
+  /**
+   * Returns a list of column labels from the given {@link SqlRowSet}. The JDBC-compliant way of
+   * getting the alias of a column, is by calling ResultSetMetaData.getColumnLabel().
+   *
+   * @param rowSet the {@link SqlRowSet} to extract column labels from
+   * @return a list of column labels
+   */
+  private List<String> getColumnLabels(SqlRowSet rowSet) {
+    SqlRowSetMetaData metaData = rowSet.getMetaData();
+    int columnCount = metaData.getColumnCount();
+
+    List<String> columnLabels = new ArrayList<>();
+    for (int i = 1; i <= columnCount; i++) {
+      columnLabels.add(metaData.getColumnLabel(i));
+    }
+
+    return columnLabels;
   }
 }
