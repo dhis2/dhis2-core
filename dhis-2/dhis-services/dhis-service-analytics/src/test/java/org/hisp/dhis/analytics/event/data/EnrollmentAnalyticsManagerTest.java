@@ -74,8 +74,6 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
-import org.hisp.dhis.db.sql.PostgreSqlBuilder;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -117,10 +115,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private ProgramIndicatorService programIndicatorService;
 
-  @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
-
-  @Spy
-  private PostgreSqlAnalyticsSqlBuilder analyticsSqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
+  @Spy private PostgreSqlAnalyticsSqlBuilder sqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
 
   @Mock private SystemSettingsService systemSettingsService;
 
@@ -169,7 +164,6 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             systemSettingsService,
             config,
             sqlBuilder,
-            analyticsSqlBuilder,
             organisationUnitResolver);
   }
 
