@@ -38,6 +38,7 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.text.StringSubstitutor;
+import org.hisp.dhis.common.RegexUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
@@ -322,6 +323,6 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
    * @return true if the input is quoted, false otherwise.
    */
   protected static boolean isSingleQuoted(String input) {
-    return input != null && IS_SINGLE_QUOTED.matcher(input).matches();
+    return RegexUtils.matches(IS_SINGLE_QUOTED, input);
   }
 }
