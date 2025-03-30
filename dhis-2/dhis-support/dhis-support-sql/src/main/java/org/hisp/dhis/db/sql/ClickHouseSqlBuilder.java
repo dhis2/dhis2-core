@@ -37,6 +37,7 @@ import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Database;
+import org.hisp.dhis.db.model.DateUnit;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
