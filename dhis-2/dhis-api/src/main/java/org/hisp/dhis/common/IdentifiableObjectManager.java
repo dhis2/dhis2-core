@@ -310,8 +310,16 @@ public interface IdentifiableObjectManager {
    */
   void resetNonOwnerProperties(@Nonnull Object object);
 
+  /**
+   * Flushes the current session with the persistance manager. Note: Only for testing purposes,
+   * flushing the session during runtime is not advisable.
+   */
   void flush();
 
+  /**
+   * Clears the current session with the persistance manager. Note: Only for testing purposes,
+   * clearing the session during runtime is not advisable.
+   */
   void clear();
 
   <T extends IdentifiableObject> boolean isAttributeValueUniqueTo(

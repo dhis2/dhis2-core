@@ -10,7 +10,7 @@
 
   <artifactId>dhis-support-sql</artifactId>
   <packaging>jar</packaging>
-  <name>DHIS SQL Building support</name>
+  <name>DHIS SQL generation support</name>
   <properties>
     <rootDir>../../</rootDir>
   </properties>
@@ -42,10 +42,6 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-jdbc</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-core-jakarta</artifactId>
     </dependency>
 
     <!-- Various -->
