@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -59,6 +60,7 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   protected static final String EMPTY = "";
   protected static final String ALIAS_AX = "ax";
   protected static final String SCHEMA = "public";
+  protected static final Pattern IS_SINGLE_QUOTED = Pattern.compile("^'.*'$");
 
   // Utilities
 
@@ -319,9 +321,6 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
    * @return true if the input is quoted, false otherwise.
    */
   protected static boolean isSingleQuoted(String input) {
-    return input != null
-        && input.length() >= 2
-        && input.startsWith(SINGLE_QUOTE)
-        && input.endsWith(SINGLE_QUOTE);
+    return input != null ? IS_SINGLE_QUOTED.matcher(input).matches() : false;
   }
 }
