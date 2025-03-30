@@ -30,9 +30,6 @@
 package org.hisp.dhis.test.webapi;
 
 import static org.springframework.http.MediaType.parseMediaType;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
@@ -47,7 +44,6 @@ import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.test.message.DefaultFakeMessageSender;
-import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.webapi.mvc.CurrentSystemSettingsHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
@@ -91,6 +87,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.handler.ConversionServiceExposingInterceptor;
 import org.springframework.web.servlet.resource.ResourceUrlProvider;
 import org.springframework.web.servlet.resource.ResourceUrlProviderExposingInterceptor;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -98,8 +96,6 @@ import org.springframework.web.servlet.resource.ResourceUrlProviderExposingInter
 @EnableWebMvc
 @EnableMethodSecurity
 public class MvcTestConfig implements WebMvcConfigurer {
-  @Autowired private UserSettingsService userSettingsService;
-
   @Autowired public DefaultRequestInfoService requestInfoService;
 
   @Autowired private MetadataExportService metadataExportService;

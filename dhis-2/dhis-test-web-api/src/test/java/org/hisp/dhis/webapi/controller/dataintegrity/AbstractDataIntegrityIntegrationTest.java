@@ -33,7 +33,6 @@ import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -46,9 +45,7 @@ import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegrityDetails;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegrityDetails.JsonDataIntegrityIssue;
 import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegritySummary;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 
 @Transactional
 class AbstractDataIntegrityIntegrationTest extends PostgresControllerIntegrationTestBase {
@@ -266,8 +263,6 @@ class AbstractDataIntegrityIntegrationTest extends PostgresControllerIntegration
       assertStatus(HttpStatus.NOT_FOUND, GET("/" + endpoint + "/" + uid));
     }
   }
-
-  @Autowired private TransactionTemplate txTemplate;
 
   protected final HttpResponse postNewDataValue(
       String period,

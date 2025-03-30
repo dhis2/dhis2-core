@@ -30,14 +30,11 @@
 package org.hisp.dhis.setting;
 
 import static org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType.RESTRICTED;
-
 import java.util.Optional;
 import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.datastore.DatastoreEntry;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
 import org.hisp.dhis.datastore.DatastoreService;
@@ -51,12 +48,12 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.SystemUser;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Jan Bernitt
  * @since 2.42
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DefaultSystemSettingsTranslationService implements SystemSettingsTranslationService {

@@ -30,7 +30,6 @@
 package org.hisp.dhis.tracker.imports.preheat.supplier.strategy;
 
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -47,7 +46,7 @@ import org.hisp.dhis.tracker.imports.preheat.mappers.PreheatMapper;
 public @interface StrategyFor {
   Class<?> value();
 
-  Class<? extends PreheatMapper> mapper();
+  Class<? extends PreheatMapper<?>> mapper();
 
   /** Whether the object used in this Strategy can be cached */
   boolean cache() default false;
