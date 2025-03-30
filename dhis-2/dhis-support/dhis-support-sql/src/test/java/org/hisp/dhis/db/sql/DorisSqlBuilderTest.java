@@ -87,7 +87,7 @@ class DorisSqlBuilderTest {
   @Test
   void testDataTypes() {
     assertEquals("double", sqlBuilder.dataTypeDouble());
-    assertEquals("datetime", sqlBuilder.dataTypeTimestamp());
+    assertEquals("datetime(3)", sqlBuilder.dataTypeTimestamp());
     assertEquals("json", sqlBuilder.dataTypeJson());
   }
 
