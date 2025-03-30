@@ -48,6 +48,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import lombok.Getter;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.Parser;
@@ -108,7 +109,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
       DimensionService dimensionService,
       I18nManager i18nManager,
       CacheProvider cacheProvider,
-      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder) {
+      SqlBuilder sqlBuilder) {
     checkNotNull(programIndicatorStore);
     checkNotNull(programIndicatorGroupStore);
     checkNotNull(programStageService);
@@ -117,6 +118,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
     checkNotNull(dimensionService);
     checkNotNull(i18nManager);
     checkNotNull(cacheProvider);
+    checkNotNull(sqlBuilder);
 
     this.programIndicatorStore = programIndicatorStore;
     this.programIndicatorGroupStore = programIndicatorGroupStore;
@@ -286,7 +288,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
     String cacheKey =
         getAnalyticsSqlCacheKey(
             expression, dataType, programIndicator, startDate, endDate, tableAlias, replaceNulls);
-
+    cacheKey = cacheKey + RandomStringUtils.secure().nextAlphabetic(10);
     return analyticsSqlCache.get(
         cacheKey,
         k ->
@@ -358,7 +360,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
 
     CommonExpressionVisitor visitor = newVisitor(ITEM_GET_SQL, params, progParams, replaceNulls);
 
-    visitor.setExpressionLiteral(new SqlLiteral());
+    visitor.setExpressionLiteral(new SqlLiteral(visitor.getSqlBuilder()));
 
     String sql = castString(Parser.visit(expression, visitor));
 

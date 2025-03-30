@@ -65,6 +65,7 @@ import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.commons.collection.ListUtils.union;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.feedback.ErrorCode.E7149;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
@@ -129,6 +130,7 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.period.Period;
@@ -170,7 +172,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   private static final Collector<CharSequence, ?, String> AND_JOINER = joining(AND);
 
-  @Qualifier("analyticsJdbcTemplate")
+  @Qualifier("analyticsReadOnlyJdbcTemplate")
   protected final JdbcTemplate jdbcTemplate;
 
   protected final ProgramIndicatorService programIndicatorService;
@@ -186,6 +188,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected final SqlBuilder sqlBuilder;
 
   protected final SystemSettingsService settingsService;
+
+  private final DhisConfigurationProvider config;
 
   private final OrganisationUnitResolver organisationUnitResolver;
 
@@ -1531,7 +1535,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @return true if the experimental analytics query engine should be used, false otherwise.
    */
   protected boolean useExperimentalAnalyticsQueryEngine() {
-    return this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine();
+    String analyticsDatabase = config.getPropertyOrDefault(ANALYTICS_DATABASE, "").trim();
+    return "doris".equalsIgnoreCase(analyticsDatabase)
+        || "clickhouse".equalsIgnoreCase(analyticsDatabase)
+        || this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine();
   }
 
   /**

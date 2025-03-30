@@ -52,7 +52,7 @@ import org.hisp.dhis.tracker.imports.bundle.TrackerBundleMode;
 @Builder
 public class ImportRequestParams {
   public static final String OPENAPI_DESCRIPTION_ASYNC =
-      """
+"""
 Tracker data is imported asynchronously by default (as with `async=true`). Asynchronous imports get a `WebMessage` response with a URL to the job executing the import. Check the job status by following the `response.location` URL. Set `async=true` to import synchronously in which case the response will be the `ImportReport`. Prefer asynchronous imports for large data sets.
 """;
 
