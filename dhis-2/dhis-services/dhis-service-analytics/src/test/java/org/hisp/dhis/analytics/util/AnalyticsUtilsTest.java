@@ -43,6 +43,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.google.common.collect.Lists;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -104,7 +106,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.jdbc.UncategorizedSQLException;
-import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
