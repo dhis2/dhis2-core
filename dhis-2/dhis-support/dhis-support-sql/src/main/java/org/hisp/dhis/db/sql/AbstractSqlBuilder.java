@@ -322,6 +322,6 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
    * @return true if the input is quoted, false otherwise.
    */
   protected static boolean isSingleQuoted(String input) {
-    return input != null ? IS_SINGLE_QUOTED.matcher(input).matches() : false;
+    return input != null && IS_SINGLE_QUOTED.matcher(input).matches();
   }
 }
