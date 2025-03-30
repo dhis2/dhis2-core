@@ -31,7 +31,6 @@ package org.hisp.dhis.commons.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -65,5 +64,10 @@ class ListUtilsTest {
     assertEquals(expected, ListUtils.getDuplicates(list));
     list = new ArrayList<>(Arrays.asList("a", "b", "c", "d", "e", "f", "g", "h"));
     assertEquals(0, ListUtils.getDuplicates(list).size());
+  }
+  
+  @Test
+  void testOfVarArgs() {
+    assertEquals(3, ListUtils.of("one", null, "three").size());
   }
 }

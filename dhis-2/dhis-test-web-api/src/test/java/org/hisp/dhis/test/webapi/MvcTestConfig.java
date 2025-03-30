@@ -30,6 +30,9 @@
 package org.hisp.dhis.test.webapi;
 
 import static org.springframework.http.MediaType.parseMediaType;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
@@ -87,8 +90,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.handler.ConversionServiceExposingInterceptor;
 import org.springframework.web.servlet.resource.ResourceUrlProvider;
 import org.springframework.web.servlet.resource.ResourceUrlProviderExposingInterceptor;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
