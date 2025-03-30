@@ -492,7 +492,8 @@ class PostgreSqlBuilderTest {
     String expected =
         """
         select t.table_name from information_schema.tables t \
-        where t.table_schema = 'public' and t.table_name = 'immunization';""";
+        where t.table_schema = 'public' \
+        and t.table_name = 'immunization';""";
 
     assertEquals(expected, sqlBuilder.tableExists("immunization"));
   }
@@ -558,7 +559,8 @@ class PostgreSqlBuilderTest {
   void testCreateIndexWithDescNullsLast() {
     String expected =
         """
-        create unique index "index_a" on "table_a" using btree("column_a" desc nulls last);""";
+        create unique index "index_a" on "table_a" \
+        using btree("column_a" desc nulls last);""";
     Index index =
         Index.builder()
             .name("index_a")
