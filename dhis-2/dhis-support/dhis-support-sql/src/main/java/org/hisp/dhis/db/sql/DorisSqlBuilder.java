@@ -44,6 +44,11 @@ import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.TablePartition;
 import org.hisp.dhis.db.model.constraint.Nullable;
 
+/**
+ * Implementation of {@link SqlBuilder} for Apache Doris.
+ *
+ * @author Lars Helge Overland
+ */
 @RequiredArgsConstructor
 public class DorisSqlBuilder extends AbstractSqlBuilder {
 

@@ -42,6 +42,11 @@ import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 
+/**
+ * Implementation of {@link SqlBuilder} for ClickHouse.
+ *
+ * @author Lars Helge Overland
+ */
 @Getter
 @RequiredArgsConstructor
 public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
