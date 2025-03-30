@@ -83,8 +83,6 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
-import org.hisp.dhis.db.sql.PostgreSqlBuilder;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -124,7 +122,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private PiDisagQueryGenerator piDisagQueryGenerator;
 
-  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  @Spy private PostgreSqlAnalyticsSqlBuilder sqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
 
   private JdbcEventAnalyticsManager subject;
 
@@ -166,7 +164,6 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             systemSettingsService,
             config,
             sqlBuilder,
-            analyticsSqlBuilder,
             organisationUnitResolver);
 
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);

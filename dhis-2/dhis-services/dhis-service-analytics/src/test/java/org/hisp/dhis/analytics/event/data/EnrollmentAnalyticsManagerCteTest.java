@@ -48,8 +48,6 @@ import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGen
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
-import org.hisp.dhis.db.sql.PostgreSqlBuilder;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.setting.SystemSettings;
@@ -84,10 +82,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
 
   @Mock private ProgramIndicatorService programIndicatorService;
 
-  @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
-
-  @Spy
-  private PostgreSqlAnalyticsSqlBuilder analyticsSqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
+  @Spy private PostgreSqlAnalyticsSqlBuilder sqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
 
   @Mock private SystemSettingsService systemSettingsService;
 
@@ -128,7 +123,6 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
             systemSettingsService,
             config,
             sqlBuilder,
-            analyticsSqlBuilder,
             organisationUnitResolver);
   }
 

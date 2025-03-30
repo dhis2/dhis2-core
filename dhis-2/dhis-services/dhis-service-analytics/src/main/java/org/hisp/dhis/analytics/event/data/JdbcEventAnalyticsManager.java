@@ -89,7 +89,6 @@ import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -107,8 +106,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 /**
- * TODO could use row_number() and filtering for paging. TODO introduce dedicated "year" partition
- * column.
+ * TODO could use row_number() and filtering for paging.
+ *
+ * <p>TODO introduce dedicated "year" partition column.
  *
  * @author Lars Helge Overland
  */
@@ -130,8 +130,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       ExecutionPlanStore executionPlanStore,
       SystemSettingsService settingsService,
       DhisConfigurationProvider config,
-      SqlBuilder sqlBuilder,
-      AnalyticsSqlBuilder analyticsSqlBuilder,
+      AnalyticsSqlBuilder sqlBuilder,
       OrganisationUnitResolver organisationUnitResolver) {
     super(
         jdbcTemplate,
@@ -143,8 +142,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         sqlBuilder,
         settingsService,
         config,
-        organisationUnitResolver,
-        analyticsSqlBuilder);
+        organisationUnitResolver);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
