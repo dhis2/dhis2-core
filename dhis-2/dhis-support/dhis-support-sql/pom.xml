@@ -10,7 +10,7 @@
 
   <artifactId>dhis-support-sql</artifactId>
   <packaging>jar</packaging>
-  <name>DHIS SQL Building support</name>
+  <name>DHIS SQL generation support</name>
   <properties>
     <rootDir>../../</rootDir>
   </properties>
