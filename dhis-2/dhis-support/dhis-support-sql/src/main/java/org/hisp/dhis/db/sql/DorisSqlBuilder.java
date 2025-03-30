@@ -126,12 +126,12 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String dataTypeTimestamp() {
-    return "datetime";
+    return "datetime(3)";
   }
 
   @Override
   public String dataTypeTimestampTz() {
-    return "datetime";
+    return "datetime(3)";
   }
 
   @Override
