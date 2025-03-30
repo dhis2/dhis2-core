@@ -64,7 +64,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.ResultSet;
@@ -98,8 +97,8 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.db.sql.PostgreSqlBuilder;
-import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
+import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
@@ -146,7 +145,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   private ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
       new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService, systemSettingsService);
 
-  @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  @Spy private AnalyticsSqlBuilder sqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
 
   @Spy
   private EventTimeFieldSqlRenderer eventTimeFieldSqlRenderer =
