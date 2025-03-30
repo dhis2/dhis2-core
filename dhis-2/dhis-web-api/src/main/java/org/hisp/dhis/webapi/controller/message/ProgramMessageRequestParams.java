@@ -61,14 +61,14 @@ public class ProgramMessageRequestParams {
   private Date beforeDate;
 
   @OpenApi.Description(
-      """
+"""
 Get the given page.
 """)
   @OpenApi.Property(defaultValue = "1")
   private Integer page;
 
   @OpenApi.Description(
-      """
+"""
 Get given number of items per page.
 """)
   @OpenApi.Property(defaultValue = "50")
