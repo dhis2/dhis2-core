@@ -35,6 +35,8 @@ import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
 import static org.hisp.dhis.scheduling.JobType.METADATA_IMPORT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.waitAtMost;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,6 +51,7 @@ import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -56,12 +59,7 @@ import org.junit.jupiter.api.Test;
  */
 class NotifierTest {
 
-  private final Notifier notifier =
-      new DefaultNotifier(
-          new InMemoryNotifierStore(),
-          new ObjectMapper(),
-          () -> SystemSettings.of(Map.of()),
-          System::currentTimeMillis);
+  private final Notifier notifier;
 
   private final JobConfiguration analyticsTable;
   private final JobConfiguration metadataImport;
@@ -78,6 +76,14 @@ class NotifierTest {
     dataImport2 = new JobConfiguration(null, DATAVALUE_IMPORT);
     dataImport3 = new JobConfiguration(null, DATAVALUE_IMPORT);
     dataImport4 = new JobConfiguration(null, DATAVALUE_IMPORT);
+    SystemSettingsService settingsService = mock(SystemSettingsService.class);
+    when(settingsService.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
+    this.notifier =
+        new DefaultNotifier(
+            new InMemoryNotifierStore(),
+            new ObjectMapper(),
+            settingsService,
+            System::currentTimeMillis);
   }
 
   @Test
