@@ -33,7 +33,7 @@ import java.util.Objects;
 import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.setting.SqlBuilderSettings;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
-import org.hisp.dhis.db.sql.ClickhouseAnalyticsSqlBuilder;
+import org.hisp.dhis.db.sql.ClickHouseAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.DorisAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -67,11 +67,14 @@ public class AnalyticsSqlBuilderProvider {
    */
   private AnalyticsSqlBuilder getSqlBuilder(SqlBuilderSettings config) {
     Database database = config.getAnalyticsDatabase();
+    String catalog = config.getAnalyticsDatabaseCatalog();
+    String driverFilename = config.getAnalyticsDatabaseDriverFilename();
+
     Objects.requireNonNull(database);
 
     return switch (database) {
-      case DORIS -> new DorisAnalyticsSqlBuilder();
-      case CLICKHOUSE -> new ClickhouseAnalyticsSqlBuilder();
+      case DORIS -> new DorisAnalyticsSqlBuilder(catalog, driverFilename);
+      case CLICKHOUSE -> new ClickHouseAnalyticsSqlBuilder();
       default -> new PostgreSqlAnalyticsSqlBuilder();
     };
   }

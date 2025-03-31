@@ -32,7 +32,11 @@ package org.hisp.dhis.db.sql;
 import java.time.LocalDateTime;
 import org.apache.commons.lang3.StringUtils;
 
-public class DorisAnalyticsSqlBuilder implements AnalyticsSqlBuilder {
+public class DorisAnalyticsSqlBuilder extends DorisSqlBuilder implements AnalyticsSqlBuilder {
+
+  public DorisAnalyticsSqlBuilder(String catalog, String driverFilename) {
+    super(catalog, driverFilename);
+  }
 
   @Override
   public String getEventDataValues() {

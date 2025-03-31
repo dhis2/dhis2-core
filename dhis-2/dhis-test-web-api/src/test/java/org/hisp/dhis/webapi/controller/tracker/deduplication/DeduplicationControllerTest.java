@@ -141,7 +141,7 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
         "required input property 'duplicate'",
         POST(
                 "/potentialDuplicates",
-                """
+"""
 {
   "original": "%s"
 }
@@ -157,7 +157,7 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
         "required input property 'original'",
         POST(
                 "/potentialDuplicates",
-                """
+"""
 {
 "duplicate": "%s"
 }
@@ -171,7 +171,7 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
   void shouldThrowNotFoundExceptionWhenTeDoesNotExist() {
     POST(
             "/potentialDuplicates",
-            """
+"""
 {
   "original": "%s",
   "duplicate": "%s"
@@ -192,7 +192,7 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
 
     POST(
             "/potentialDuplicates",
-            """
+"""
 {
   "original": "%s",
   "duplicate": "%s"
@@ -326,7 +326,7 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
             .asA(JsonPage.class);
 
     assertEquals(
-        """
+"""
 {"status":"OPEN"}""",
         page.getList("potentialDuplicates", JsonPotentialDuplicate.class).get(0).toMinimizedJson());
   }

@@ -49,14 +49,14 @@ public class ChangeLogRequestParams implements PageRequestParams, FieldsRequestP
   private static final String DEFAULT_FIELDS_PARAM = "change,createdAt,createdBy,type";
 
   @OpenApi.Description(
-      """
+"""
 Get the given page.
 """)
   @OpenApi.Property(defaultValue = "1")
   private Integer page;
 
   @OpenApi.Description(
-      """
+"""
 Get given number of items per page.
 """)
   @OpenApi.Property(defaultValue = "50")
@@ -77,7 +77,7 @@ Get given number of items per page.
   }
 
   @OpenApi.Description(
-      """
+"""
 Get only the given fields in the JSON response. This query parameter allows you to remove
 unnecessary fields from the JSON response and in some cases decrease the response time. Refer to
 [metadata field filter](https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata.html#webapi_metadata_field_filter)
@@ -86,7 +86,7 @@ on how to use it.
   private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
 
   @OpenApi.Description(
-      """
+"""
 `<propertyName1:sortDirection>[,<propertyName2:sortDirection>...]`
 
 Get items in given order.

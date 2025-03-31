@@ -87,7 +87,7 @@ class DorisSqlBuilderTest {
   @Test
   void testDataTypes() {
     assertEquals("double", sqlBuilder.dataTypeDouble());
-    assertEquals("datetime", sqlBuilder.dataTypeTimestamp());
+    assertEquals("datetime(3)", sqlBuilder.dataTypeTimestamp());
     assertEquals("json", sqlBuilder.dataTypeJson());
   }
 
@@ -392,7 +392,7 @@ class DorisSqlBuilderTest {
         """
         create table `immunization` (`id` bigint not null,\
         `data` char(11) not null,`period` varchar(50) not null,\
-        `created` datetime null,`user` json null,`value` double null) \
+        `created` datetime(3) null,`user` json null,`value` double null) \
         engine = olap \
         unique key (`id`) \
         distributed by hash(`id`) buckets 10 \

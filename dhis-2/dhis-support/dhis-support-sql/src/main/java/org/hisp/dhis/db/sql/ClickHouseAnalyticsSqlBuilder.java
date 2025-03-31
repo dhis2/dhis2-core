@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,15 +29,16 @@
  */
 package org.hisp.dhis.db.sql;
 
-/**
- * Enumeration of time units.
- *
- * @author Lars Helge Overland
- */
-public enum DateUnit {
-  DAYS,
-  WEEKS,
-  MONTHS,
-  MINUTES,
-  YEARS
+public class ClickHouseAnalyticsSqlBuilder extends ClickHouseSqlBuilder
+    implements AnalyticsSqlBuilder {
+
+  @Override
+  public String getEventDataValues() {
+    return "ev.eventdatavalues";
+  }
+
+  @Override
+  public String renderTimestamp(String timestampAsString) {
+    return timestampAsString;
+  }
 }
