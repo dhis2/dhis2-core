@@ -30,14 +30,16 @@
 package org.hisp.dhis.db.sql;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.hibernate.internal.util.collections.ArrayHelper.toList;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.text.StringSubstitutor;
+import org.hisp.dhis.common.RegexUtils;
+import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.IndexFunction;
@@ -60,6 +62,7 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
   protected static final String EMPTY = "";
   protected static final String ALIAS_AX = "ax";
   protected static final String SCHEMA = "public";
+  protected static final Pattern IS_SINGLE_QUOTED = Pattern.compile("^'.*'$");
 
   // Utilities
 
@@ -87,7 +90,7 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
 
   @Override
   public String concat(String... columns) {
-    return concat(toList(columns));
+    return concat(ListUtils.of(columns));
   }
 
   @Override
@@ -320,9 +323,6 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
    * @return true if the input is quoted, false otherwise.
    */
   protected static boolean isSingleQuoted(String input) {
-    return input != null
-        && input.length() >= 2
-        && input.startsWith(SINGLE_QUOTE)
-        && input.endsWith(SINGLE_QUOTE);
+    return RegexUtils.matches(IS_SINGLE_QUOTED, input);
   }
 }

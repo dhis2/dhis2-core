@@ -65,7 +65,7 @@ public abstract class TimeFieldSqlRenderer {
 
   protected TimeFieldSqlRenderer(SqlBuilder sqlBuilder) {
     this.sqlBuilder = sqlBuilder;
-    this.statementBuilder = new DefaultStatementBuilder(this.sqlBuilder);
+    this.statementBuilder = new DefaultStatementBuilder(sqlBuilder);
   }
 
   /**

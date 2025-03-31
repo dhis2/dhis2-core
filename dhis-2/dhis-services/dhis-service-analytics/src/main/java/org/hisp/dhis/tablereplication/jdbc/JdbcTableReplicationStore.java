@@ -29,15 +29,13 @@
  */
 package org.hisp.dhis.tablereplication.jdbc;
 
-import java.util.List;
-import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.analytics.AnalyticsDataSourceFactory;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.tablereplication.TableReplicationStore;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -49,33 +47,21 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class JdbcTableReplicationStore implements TableReplicationStore {
 
-  private JdbcTemplate jdbcTemplate;
-  private final AnalyticsDataSourceFactory dataSourceFactory;
+  @Qualifier("analyticsJdbcTemplate")
+  private final JdbcTemplate jdbcTemplate;
 
   private final SqlBuilder sqlBuilder;
 
   @Override
-  public void replicateAnalyticsDatabaseTables(List<Table> tables) {
-    try (AnalyticsDataSourceFactory.TemporaryDataSourceWrapper wrapper =
-        dataSourceFactory.createTemporaryAnalyticsDataSource()) {
+  public void replicateAnalyticsDatabaseTable(Table table) {
+    final Clock clock = new Clock().startClock();
+    final String tableName = table.getName();
 
-      // Get the DataSource correctly through the wrapper
-      DataSource dataSource = wrapper.dataSource();
-      this.jdbcTemplate = new JdbcTemplate(dataSource);
-      for (Table table : tables) {
-        final Clock clock = new Clock().startClock();
-        final String tableName = table.getName();
+    dropTable(table);
+    createTable(table);
+    replicateTable(table);
 
-        dropTable(table);
-        createTable(table);
-        replicateTable(table);
-
-        log.info("Analytics database table replicated: '{}' '{}'", tableName, clock.time());
-      }
-
-    } catch (Exception e) {
-      log.error("Failed to initialize analytics database", e);
-    }
+    log.info("Analytics database table replicated: '{}' '{}'", tableName, clock.time());
   }
 
   /**
