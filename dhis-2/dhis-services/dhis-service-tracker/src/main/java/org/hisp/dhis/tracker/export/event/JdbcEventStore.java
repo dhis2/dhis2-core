@@ -658,7 +658,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
               mapSqlParameterSource.addValue(
                   parameterKey,
                   isNumericTea
-                      ? Double.valueOf(filter.getSqlBindFilter())
+                      ? validateAndParseNumericFilter(
+                          "attribute", teaUid, filter.getSqlBindFilter())
                       : StringUtils.lowerCase(filter.getSqlBindFilter()),
                   itemType);
               yield new StringBuilder()
@@ -675,6 +676,17 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     query.append(String.join(AND, filterStrings));
 
     return query.toString();
+  }
+
+  private Double validateAndParseNumericFilter(String context, String uid, String filterValue) {
+    try {
+      return Double.parseDouble(filterValue);
+    } catch (NumberFormatException e) {
+      throw new IllegalArgumentException(
+          String.format(
+              "Filter for %s %s is invalid. The %s value type is numeric but the value '%s' is not.",
+              context, uid, context, filterValue));
+    }
   }
 
   /**
@@ -1290,7 +1302,11 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           eventDataValuesWhereSql.append(inCondition(filter, bindParameter, queryCol));
         } else {
           mapSqlParameterSource.addValue(
-              bindParameter, StringUtils.lowerCase(filter.getSqlBindFilter()), itemValueType);
+              bindParameter,
+              de.getValueType().isNumeric()
+                  ? validateAndParseNumericFilter("data element", deUid, filter.getSqlBindFilter())
+                  : StringUtils.lowerCase(filter.getSqlBindFilter()),
+              itemValueType);
 
           eventDataValuesWhereSql
               .append(" ")
