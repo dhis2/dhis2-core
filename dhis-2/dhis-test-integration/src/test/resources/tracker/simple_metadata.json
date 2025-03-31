@@ -466,6 +466,30 @@
   ],
   "relationshipTypes": [
     {
+      "id": "m1575931405",
+      "bidirectional": true,
+      "displayFromToName": "Parent Of",
+      "displayName": "Parent to Child",
+      "fromConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "ja8NY4PW7Xm"
+        }
+      },
+      "fromToName": "Child Of",
+      "name": "Tracked entity to tracked entity",
+      "sharing": {
+        "owner": null,
+        "public": "r-------"
+      },
+      "toConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "ja8NY4PW7Xm"
+        }
+      }
+    },
+    {
       "created": "2019-04-23T09:20:41.834",
       "lastUpdated": "2019-04-23T09:21:18.063",
       "name": "TA Sibling",
@@ -2791,7 +2815,95 @@
           "id": "aZdGjigJcJb"
         }
       ],
-      "userAccesses": []
+      "programType": "WITH_REGISTRATION",
+      "shortName": "test-program-unaccessible-tet",
+      "trackedEntityType": {
+        "id": "Ip8NY4PW7Xm"
+      },
+      "user": {
+        "id": "FIgVWzUCkpw"
+      },
+      "version": 2
+    }
+  ],
+  "relationshipTypes": [
+    {
+      "id": "xLmPUYJX8Ks",
+      "bidirectional": true,
+      "created": "2019-04-23T09:20:41.834",
+      "fromConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "ja8NY4PW7Xm"
+        }
+      },
+      "fromToName": "Sibling of",
+      "lastUpdated": "2019-04-23T09:21:18.063",
+      "name": "TA Sibling",
+      "sharing": {
+        "owner": null,
+        "public": "r-------"
+      },
+      "toConstraint": {
+        "program": {
+          "id": "BFcipDERJnf"
+        },
+        "relationshipEntity": "PROGRAM_INSTANCE"
+      },
+      "toFromName": "Sibling of"
+    },
+    {
+      "id": "TV9oB9LT3sh",
+      "bidirectional": true,
+      "created": "2020-11-20T09:06:23.348",
+      "displayFromToName": "Parent Of",
+      "displayName": "TA Parent to Child",
+      "fromConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "ja8NY4PW7Xm"
+        }
+      },
+      "fromToName": "Parent Of",
+      "lastUpdated": "2020-11-20T09:06:23.348",
+      "name": "TA Parent to Child",
+      "sharing": {
+        "owner": null,
+        "public": "r-------"
+      },
+      "toConstraint": {
+        "program": {
+          "id": "BFcipDERJnf"
+        },
+        "programStage": {
+          "id": "NpsdDv6kKSO"
+        },
+        "relationshipEntity": "PROGRAM_STAGE_INSTANCE"
+      }
+    },
+    {
+      "id": "m1575931405",
+      "bidirectional": true,
+      "displayFromToName": "Parent Of",
+      "displayName": "Parent to Child",
+      "fromConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "ja8NY4PW7Xm"
+        }
+      },
+      "fromToName": "Child Of",
+      "name": "Tracked entity to tracked entity",
+      "sharing": {
+        "owner": null,
+        "public": "r-------"
+      },
+      "toConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "ja8NY4PW7Xm"
+        }
+      }
     }
   ],
   "userRoles": [

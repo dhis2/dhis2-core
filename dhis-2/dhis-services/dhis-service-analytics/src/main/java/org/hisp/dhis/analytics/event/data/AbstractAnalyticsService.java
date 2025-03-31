@@ -398,6 +398,8 @@ public abstract class AbstractAnalyticsService {
       }
 
       Map<String, Object> items = new HashMap<>();
+      items.putAll(organisationUnitResolver.getMetadataItemsForOrgUnitDataElements(params));
+
       AnalyticsOrganisationUnitUtils.getUserOrganisationUnitItems(
               userService.getUserByUsername(CurrentUserUtil.getCurrentUsername()),
               params.getUserOrganisationUnitsCriteria())

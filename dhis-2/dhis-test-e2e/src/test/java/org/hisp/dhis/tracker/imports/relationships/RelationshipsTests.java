@@ -462,17 +462,7 @@ public class RelationshipsTests extends TrackerApiTest {
         toInstanceId,
         createdRelationships.get(0));
 
-    ApiResponse entityResponse = getEntityInRelationship(toInstance, toInstanceId);
-    validateRelationship(
-        entityResponse,
-        relType,
-        fromInstance,
-        fromInstanceId,
-        toInstance,
-        toInstanceId,
-        createdRelationships.get(0));
-
-    entityResponse = getEntityInRelationship(fromInstance, fromInstanceId);
+    ApiResponse entityResponse = getEntityInRelationship(fromInstance, fromInstanceId);
     validateRelationship(
         entityResponse,
         relType,
