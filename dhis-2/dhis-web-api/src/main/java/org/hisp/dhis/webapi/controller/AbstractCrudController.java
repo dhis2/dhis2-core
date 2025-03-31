@@ -619,7 +619,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         getEntityClass(),
         objectReport -> objectReports.add(objectReport),
         getSchema(),
-        0);
+        0,
+        null);
 
     if (objectReports.size() == 0) {
       manager.update(persistedObject, currentUser);
