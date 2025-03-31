@@ -28,8 +28,6 @@
 package org.hisp.dhis.programrule.engine;
 
 import java.util.List;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
@@ -38,22 +36,13 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ServerSideImplementableRuleService extends ImplementableRuleService {
-  private final Cache<Boolean> programHasRulesCache;
 
-  public ServerSideImplementableRuleService(
-      ProgramRuleService programRuleService, final CacheProvider cacheProvider) {
+  public ServerSideImplementableRuleService(ProgramRuleService programRuleService) {
     super(programRuleService);
-    this.programHasRulesCache = cacheProvider.createProgramHasRulesCache();
   }
 
   @Override
-  public List<ProgramRule> getProgramRulesByActionTypes(Program program, String programStageUid) {
-    return getProgramRulesByActionTypes(
-        program, ProgramRuleActionType.SERVER_SUPPORTED_TYPES, programStageUid);
-  }
-
-  @Override
-  Cache<Boolean> getProgramHasRulesCache() {
-    return this.programHasRulesCache;
+  public List<ProgramRule> getProgramRules(Program program) {
+    return getProgramRulesByActionTypes(program, ProgramRuleActionType.SERVER_SUPPORTED_TYPES);
   }
 }

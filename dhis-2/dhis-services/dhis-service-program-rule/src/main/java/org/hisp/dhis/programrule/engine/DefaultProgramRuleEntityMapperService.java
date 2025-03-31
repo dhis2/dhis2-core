@@ -483,9 +483,9 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     ValueType valueType =
         switch (programRuleVariable.getSourceType()) {
           case DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE,
-                  DATAELEMENT_PREVIOUS_EVENT,
-                  DATAELEMENT_NEWEST_EVENT_PROGRAM,
-                  DATAELEMENT_CURRENT_EVENT ->
+              DATAELEMENT_PREVIOUS_EVENT,
+              DATAELEMENT_NEWEST_EVENT_PROGRAM,
+              DATAELEMENT_CURRENT_EVENT ->
               programRuleVariable.getDataElement().getValueType();
           case CALCULATED_VALUE -> programRuleVariable.getValueType();
           case TEI_ATTRIBUTE -> programRuleVariable.getAttribute().getValueType();
@@ -521,9 +521,9 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
   private DataItem getDescription(ProgramRuleVariable prv) {
     return switch (prv.getSourceType()) {
       case DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE,
-              DATAELEMENT_PREVIOUS_EVENT,
-              DATAELEMENT_NEWEST_EVENT_PROGRAM,
-              DATAELEMENT_CURRENT_EVENT ->
+          DATAELEMENT_PREVIOUS_EVENT,
+          DATAELEMENT_NEWEST_EVENT_PROGRAM,
+          DATAELEMENT_CURRENT_EVENT ->
           new DataItem(
               ObjectUtils.firstNonNull(
                   prv.getDataElement().getDisplayFormName(),

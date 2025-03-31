@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.web.HttpStatus.CONFLICT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
 import java.util.Map;
@@ -37,11 +39,14 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonDataElement;
+import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
+import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -131,5 +136,45 @@ class DataElementControllerTest extends DhisControllerConvenienceTest {
             .map(JsonIdentifiableObject::getId)
             .collect(Collectors.toSet()),
         "Returned cat combo IDs equal custom cat combos Ids only");
+  }
+
+  @Test
+  @DisplayName(
+      "Creating a data element with missing locale should show correct ignored stats value")
+  void dataElementValidationIgnoredValueTest() {
+    JsonImportSummary summary =
+        POST(
+                "/metadata",
+                """
+    {
+        "dataElements": [
+            {
+                "id": "DeUid000015",
+                "aggregationType": "DEFAULT",
+                "domainType": "AGGREGATE",
+                "name": "test de 1",
+                "shortName": "test DE 1",
+                "valueType": "NUMBER",
+                "translations": [
+                    {
+                        "property": "name",
+                        "value": "french name"
+                    }
+                ]
+            }
+        ]
+    }
+    """)
+            .content(CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    assertEquals(1, summary.getStats().getIgnored());
+    assertEquals(0, summary.getStats().getCreated());
+
+    JsonErrorReport errorReport =
+        summary.find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4000);
+    assertNotNull(errorReport);
+    assertEquals("Missing required property `locale`", errorReport.getMessage());
   }
 }

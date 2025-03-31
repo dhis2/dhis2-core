@@ -451,17 +451,6 @@ public class DefaultCacheProvider implements CacheProvider {
   }
 
   @Override
-  public <V> Cache<V> createProgramHasRulesCache() {
-    return registerCache(
-        this.<V>newBuilder()
-            .forRegion(Region.programHasRulesCache.name())
-            .expireAfterWrite(3, TimeUnit.HOURS)
-            .withInitialCapacity((int) getActualSize(20))
-            .forceInMemory()
-            .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_1K))));
-  }
-
-  @Override
   public <V> Cache<V> createProgramRuleVariablesCache() {
     return registerCache(
         this.<V>newBuilder()

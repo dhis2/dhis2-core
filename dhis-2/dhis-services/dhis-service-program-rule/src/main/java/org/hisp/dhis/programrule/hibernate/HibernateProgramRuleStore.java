@@ -125,22 +125,6 @@ public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<
   }
 
   @Override
-  public List<ProgramRule> getProgramRulesByActionTypes(
-      Program program, Set<ProgramRuleActionType> types, String programStageUid) {
-    final String hql =
-        "SELECT distinct pr FROM ProgramRule pr JOIN pr.programRuleActions pra "
-            + "LEFT JOIN pr.programStage ps "
-            + "WHERE pr.program = :programId AND pra.programRuleActionType IN ( :implementableTypes ) "
-            + "AND (pr.programStage IS NULL OR ps.uid = :programStageUid )";
-
-    return getQuery(hql)
-        .setParameter("programId", program)
-        .setParameter("implementableTypes", types)
-        .setParameter("programStageUid", programStageUid)
-        .getResultList();
-  }
-
-  @Override
   public List<ProgramRule> get(Program program, String key) {
     CriteriaBuilder builder = getCriteriaBuilder();
 
