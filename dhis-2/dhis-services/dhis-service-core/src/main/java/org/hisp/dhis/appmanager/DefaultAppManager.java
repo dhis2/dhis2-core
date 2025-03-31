@@ -98,7 +98,7 @@ public class DefaultAppManager implements AppManager {
   public static final String INVALID_FILTER_MSG = "Invalid filter: ";
 
   private static final Set<String> EXCLUSION_APPS = Set.of("Line Listing");
-  
+
   private final DhisConfigurationProvider dhisConfigurationProvider;
   private final AppHubService appHubService;
   private final AppStorageService localAppStorageService;
