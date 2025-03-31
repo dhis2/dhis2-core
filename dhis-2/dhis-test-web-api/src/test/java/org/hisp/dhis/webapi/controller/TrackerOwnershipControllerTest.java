@@ -27,10 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.Collections.emptySet;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
@@ -51,6 +53,8 @@ class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest {
   private String orgUnitBUid;
 
   private String teiId;
+
+  private String tetId;
 
   private String pId;
 
@@ -74,14 +78,14 @@ class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest {
     OrganisationUnit orgUnitA = manager.get(OrganisationUnit.class, orgUnitAUid);
     OrganisationUnit orgUnitB = manager.get(OrganisationUnit.class, orgUnitBUid);
 
-    regularUser =
-        createAndAddUser(
-            false, "regular-user", Set.of(orgUnitA, orgUnitB), Set.of(orgUnitA, orgUnitB));
+    regularUser = createAndAddUser(false, "regular-user", emptySet(), emptySet());
+    regularUser.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB));
+    manager.save(regularUser);
     User superuser =
         createAndAddUser(true, "superuser", Set.of(orgUnitA, orgUnitB), Set.of(orgUnitA, orgUnitB));
     injectSecurityContextUser(superuser);
 
-    String tetId =
+    tetId =
         assertStatus(
             HttpStatus.CREATED,
             POST(
@@ -197,6 +201,45 @@ class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest {
         "OK",
         "Temporary Ownership granted",
         POST("/tracker/ownership/override?trackedEntity={tei}&program={prog}&reason=42", teiId, pId)
+            .content(HttpStatus.OK));
+  }
+
+  @Test
+  void shouldGrantTemporaryAccessWhenTEEnrolledInProgram() {
+    teiId = CodeGenerator.generateUid();
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/tracker?async=false",
+            """
+            {
+             "trackedEntities": [
+               {
+                 "trackedEntity": "%s",
+                 "trackedEntityType": "%s",
+                 "orgUnit": "%s",
+                 "enrollments": [
+                   {
+                    "program": "%s",
+                    "orgUnit": "%s",
+                    "status": "ACTIVE",
+                    "enrolledAt": "2023-06-16",
+                    "occurredAt': "2023-06-16"
+                   }
+                  ]
+               }
+             ]
+            }
+            """
+                .formatted(teiId, tetId, orgUnitAUid, pId, orgUnitAUid)));
+
+    injectSecurityContextUser(regularUser);
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Temporary Ownership granted",
+        POST("/tracker/ownership/override?trackedEntity={te}&program={prog}&reason=42", teiId, pId)
             .content(HttpStatus.OK));
   }
 

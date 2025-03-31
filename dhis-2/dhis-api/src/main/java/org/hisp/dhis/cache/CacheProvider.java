@@ -97,8 +97,6 @@ public interface CacheProvider {
 
   <V> Cache<V> createPropertyTransformerCache();
 
-  <V> Cache<V> createProgramHasRulesCache();
-
   <V> Cache<V> createProgramRuleVariablesCache();
 
   <V> Cache<V> createUserGroupNameCache();
