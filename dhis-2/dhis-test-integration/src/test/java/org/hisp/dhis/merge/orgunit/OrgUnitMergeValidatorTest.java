@@ -56,10 +56,8 @@ class OrgUnitMergeValidatorTest extends PostgresIntegrationTestBase {
 
   @Test
   void testValidateMissingSources() {
-    OrganisationUnit ouA = createOrganisationUnit('A');
     OrganisationUnit ouB = createOrganisationUnit('B');
-    OrgUnitMergeRequest request =
-        new OrgUnitMergeRequest.Builder().addSource(ouA).withTarget(ouB).build();
+    OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().withTarget(ouB).build();
     assertEquals(ErrorCode.E1500, validator.validateForErrorMessage(request).getErrorCode());
   }
 
