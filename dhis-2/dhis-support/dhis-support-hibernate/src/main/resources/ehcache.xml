@@ -1,31 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ehcache>
+<config xmlns="http://www.ehcache.org/v3"
+        xmlns:jsr107="http://www.ehcache.org/v3/jsr107">
 
-<!-- Default cache -->
-  <!-- 
-    Ensure that default cache has less frequent expiration than query cache
-    to avoid individual select queries per entity.
-  -->
+  <service>
+    <jsr107:defaults enable-statistics="true" enable-management="true"/>
+  </service>
 
-  <defaultCache
-    maxElementsInMemory="1000000" 
-    eternal="false" 
-    timeToIdleSeconds="21600" 
-    timeToLiveSeconds="21600"
-    overflowToDisk="false"
-    diskPersistent="false" />
+  <cache alias="defaultCache">
+    <key-type>java.lang.Object</key-type>
+    <value-type>java.lang.Object</value-type>
+    <expiry>
+      <ttl unit="seconds">21600</ttl>
+    </expiry>
+    <resources>
+      <heap>1000000</heap>
+    </resources>
+  </cache>
 
-  <!-- Hibernate query cache -->
+  <cache alias="default-query-results-region">
+    <key-type>java.lang.Object</key-type>
+    <value-type>java.lang.Object</value-type>
+    <expiry>
+      <ttl unit="seconds">21600</ttl>
+    </expiry>
+    <resources>
+      <!-- if you get a deprecation warning about heap, check this link; https://stackoverflow.com/a/74098583 -->
+      <heap>1000000</heap>
+    </resources>
+  </cache>
 
-  <cache name="default-query-results-region"
-    maxElementsInMemory="1000000" 
-    eternal="false" 
-    timeToIdleSeconds="21600" 
-    timeToLiveSeconds="21600"
-    overflowToDisk="false" 
-    diskPersistent="false" />
-
-  <cache name="default-update-timestamps-region" 
-    maxElementsInMemory="5000" />
-
-</ehcache>
+  <cache alias="default-update-timestamps-region">
+    <key-type>java.lang.Object</key-type>
+    <value-type>java.lang.Object</value-type>
+    <resources>
+      <heap>5000</heap>
+    </resources>
+  </cache>
+</config>
