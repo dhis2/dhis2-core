@@ -32,7 +32,6 @@ package org.hisp.dhis.monitoring.metrics;
 import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_EHCACHE_ENABLED;
 
 import io.micrometer.core.instrument.FunctionCounter;
-import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
@@ -112,6 +111,7 @@ public class EhCacheMetricsConfig {
     try {
       // Common field name for JCacheRegionFactory implementations
       java.lang.reflect.Field field = regionFactory.getClass().getDeclaredField("cacheManager");
+      field.setAccessible(true);
       Object cacheManagerObj = field.get(regionFactory);
 
       if (cacheManagerObj instanceof javax.cache.CacheManager cacheManager) {
@@ -191,6 +191,7 @@ public class EhCacheMetricsConfig {
     try {
       java.lang.reflect.Field statsBeanField =
           jsr107Cache.getClass().getDeclaredField("statisticsBean");
+      statsBeanField.setAccessible(true);
       Object statsBean = statsBeanField.get(jsr107Cache);
 
       if (statsBean == null) {
@@ -202,10 +203,11 @@ public class EhCacheMetricsConfig {
 
       java.lang.reflect.Field cacheStatsField =
           statsBean.getClass().getDeclaredField("cacheStatistics");
+      cacheStatsField.setAccessible(true);
       Object cacheStatsObj = cacheStatsField.get(statsBean);
 
-      if (cacheStatsObj instanceof CacheStatistics cacheStats) {
-        return cacheStats;
+      if (cacheStatsObj instanceof CacheStatistics cacheStatistics) {
+        return cacheStatistics;
       } else {
         log.warn(
             "Field 'cacheStatistics' in statisticsBean is not of expected type CacheStatistics for cache: {}. Type: {}",
@@ -249,7 +251,6 @@ public class EhCacheMetricsConfig {
       // Example: org.hibernate.cache.internal.StandardQueryCache -> StandardQueryCache
       String metricNamePart = deriveMetricNamePart(cacheName);
 
-      // Register various cache statistics as gauges or counters
       FunctionCounter.builder("ehcache." + metricNamePart, stats, CacheStatistics::getCacheGets)
           .tags(Tags.of(Tag.of("name", "cache.gets"), L_2))
           .description("The number of get requests made to the cache")
@@ -280,16 +281,6 @@ public class EhCacheMetricsConfig {
           .tags(Tags.of(Tag.of("name", "cache.misses"), L_2))
           .description(
               "The number of times cache lookup methods did not find a requested entry in the cache")
-          .register(registry);
-
-      Gauge.builder(
-              "cache.hit.ratio",
-              stats,
-              s -> {
-                long gets = s.getCacheGets();
-                return gets == 0 ? 0 : (double) s.getCacheHits() / gets;
-              })
-          .description("The ratio of cache requests which were hits")
           .register(registry);
     }
 
