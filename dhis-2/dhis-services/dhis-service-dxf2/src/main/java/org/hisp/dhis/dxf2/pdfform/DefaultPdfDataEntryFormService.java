@@ -456,7 +456,8 @@ public class DefaultPdfDataEntryFormService implements PdfDataEntryFormService {
           // TODO: This gets repeated <- Create an array of the
           // options. and apply only once.
           List<Option> options =
-              optionService.getOptions(optionSet.getId(), query, MAX_OPTIONS_DISPLAYED);
+              optionService.findOptionsByNamePattern(
+                  optionSet.getUid(), query, MAX_OPTIONS_DISPLAYED);
 
           addCell_WithDropDownListField(
               table,

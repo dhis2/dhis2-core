@@ -43,10 +43,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -62,7 +64,11 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
 /**
  * @author Enrico Colasante
  */
+@RequiredArgsConstructor
 class DataValuesValidator implements Validator<Event> {
+
+  private final OptionService optionService;
+
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
     ProgramStage programStage = bundle.getPreheat().getProgramStage(event.getProgramStage());
@@ -114,16 +120,17 @@ class DataValuesValidator implements Validator<Event> {
       return;
     }
 
-    String status = ValidationUtils.valueIsValid(dataValue.getValue(), dataElement);
-
     if (dataElement.hasOptionSet()) {
-      validateOptionSet(reporter, event, dataElement, dataValue.getValue());
+      validateOptionSet(reporter, event, dataElement, dataValue.getValue(), optionService);
     } else if (dataElement.getValueType().isFile()) {
       validateFileNotAlreadyAssigned(reporter, bundle, event, dataValue.getValue());
     } else if (dataElement.getValueType().isOrganisationUnit()) {
       validateOrgUnitValueType(reporter, bundle, event, dataValue.getValue());
-    } else if (status != null) {
-      reporter.addError(event, E1302, dataElement.getUid(), status);
+    } else {
+      String status = ValidationUtils.valueIsValid(dataValue.getValue(), dataElement);
+      if (status != null) {
+        reporter.addError(event, E1302, dataElement.getUid(), status);
+      }
     }
   }
 

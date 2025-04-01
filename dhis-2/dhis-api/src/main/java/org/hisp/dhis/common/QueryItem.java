@@ -42,6 +42,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -309,10 +310,19 @@ public class QueryItem implements GroupableItem {
    */
   private List<String> getOptionSetQueryFilterItems() {
     return getQueryFilterItems().stream()
-        .map(code -> optionSet.getOptionByCode(code))
+        .map(this::getOptionByCode)
         .filter(Objects::nonNull)
         .map(IdentifiableObject::getUid)
         .collect(Collectors.toList());
+  }
+
+  private Option getOptionByCode(String code) {
+    for (Option option : optionSet.getOptions()) {
+      if (option != null && option.getCode().equals(code)) {
+        return option;
+      }
+    }
+    return null;
   }
 
   /** Returns filter items for all filters associated with this query item. */

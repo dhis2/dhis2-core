@@ -150,16 +150,17 @@ class OptionServiceTest extends TransactionalIntegrationTest {
 
   @Test
   void testGetList() throws ConflictException {
-    long idA = optionService.saveOptionSet(optionSetA);
-    List<Option> options = optionService.getOptions(idA, "OptA", 10);
+    optionService.saveOptionSet(optionSetA);
+    String uidA = optionSetA.getUid();
+    List<Option> options = optionService.findOptionsByNamePattern(uidA, "OptA", 10);
     assertEquals(2, options.size());
-    options = optionService.getOptions(idA, "OptA1", 10);
+    options = optionService.findOptionsByNamePattern(uidA, "OptA1", 10);
     assertEquals(1, options.size());
-    options = optionService.getOptions(idA, "OptA1", null);
+    options = optionService.findOptionsByNamePattern(uidA, "OptA1", null);
     assertEquals(1, options.size());
-    options = optionService.getOptions(idA, "Opt", null);
+    options = optionService.findOptionsByNamePattern(uidA, "Opt", null);
     assertEquals(4, options.size());
-    options = optionService.getOptions(idA, "Opt", 3);
+    options = optionService.findOptionsByNamePattern(uidA, "Opt", 3);
     assertEquals(3, options.size());
   }
 

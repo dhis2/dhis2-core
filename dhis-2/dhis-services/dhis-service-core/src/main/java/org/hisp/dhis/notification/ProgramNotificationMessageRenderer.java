@@ -37,20 +37,24 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.notification.ProgramTemplateVariable;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Halvdan Hoem Grelland
  */
 @Component
+@RequiredArgsConstructor
 public class ProgramNotificationMessageRenderer
     extends BaseNotificationMessageRenderer<Enrollment> {
+
+  private final OptionService optionService;
+
   public static final ImmutableMap<TemplateVariable, Function<Enrollment, String>>
       VARIABLE_RESOLVERS =
           new ImmutableMap.Builder<TemplateVariable, Function<Enrollment, String>>()
@@ -80,8 +84,6 @@ public class ProgramNotificationMessageRenderer
 
   private static final Set<ExpressionType> SUPPORTED_EXPRESSION_TYPES =
       ImmutableSet.of(ExpressionType.TRACKED_ENTITY_ATTRIBUTE, ExpressionType.VARIABLE);
-
-  @Autowired private OptionService optionService;
 
   // -------------------------------------------------------------------------
   // Overrides
@@ -135,10 +137,9 @@ public class ProgramNotificationMessageRenderer
     // If the AV has an OptionSet -> substitute value with the name of the
     // Option
     if (av.getAttribute().hasOptionSet()) {
-      value =
-          Optional.ofNullable(optionService.getOptionByCode(value))
-              .map(BaseIdentifiableObject::getName)
-              .orElse(MISSING_VALUE_REPLACEMENT);
+      Optional<Option> option =
+          optionService.findOptionByCode(av.getAttribute().getOptionSet().getUid(), value);
+      if (option.isPresent()) value = option.get().getName();
     }
 
     return value;
