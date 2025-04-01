@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.security;
 
 import static org.hisp.dhis.analytics.security.CategorySecurityUtils.getConstrainedCategories;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
+import static org.hisp.dhis.security.Authorities.F_VIEW_EVENT_ANALYTICS;
 import static org.hisp.dhis.security.Authorities.F_VIEW_UNAPPROVED_DATA;
 
 import java.util.ArrayList;
@@ -73,7 +74,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.analytics.AnalyticsSecurityManager")
 @RequiredArgsConstructor
 public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager {
-  public static final String AUTH_VIEW_EVENT_ANALYTICS = "F_VIEW_EVENT_ANALYTICS";
 
   private final DataApprovalLevelService approvalLevelService;
 
@@ -216,7 +216,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     boolean notAuthorized =
-        currentUser != null && !currentUser.isAuthorized(AUTH_VIEW_EVENT_ANALYTICS);
+        currentUser != null && !currentUser.isAuthorized(F_VIEW_EVENT_ANALYTICS);
 
     String username = currentUser != null ? currentUser.getUsername() : "[None]";
 
