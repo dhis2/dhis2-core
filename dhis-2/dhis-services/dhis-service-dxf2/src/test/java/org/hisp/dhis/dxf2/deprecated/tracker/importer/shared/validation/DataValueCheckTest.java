@@ -31,6 +31,8 @@ import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramStageDataElement;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -48,6 +50,7 @@ import org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.validation.BaseValidationTest;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -65,9 +68,12 @@ class DataValueCheckTest extends BaseValidationTest {
 
   private ProgramStage programStageA;
 
+  private OptionService optionService;
+
   @BeforeEach
   void setUp() {
-    rule = new DataValueCheck();
+    optionService = mock(OptionService.class);
+    rule = new DataValueCheck(optionService);
     final Program programA = createProgram('A');
     programStageA = createProgramStage('A', programA);
     // THIS TRIGGERS THE MANDATORY DATA ELEMENT VALIDATION
@@ -82,6 +88,7 @@ class DataValueCheckTest extends BaseValidationTest {
 
   @Test
   void verifyDataValuesWithOptionSetOk() {
+    when(optionService.existsAllOptions(any(), anyList())).thenReturn(true);
     DataElement dataElement = createDataElement('A');
     dataElement.setValueType(ValueType.TEXT);
 
