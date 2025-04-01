@@ -37,7 +37,9 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemIdSche
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.common.scheme.SchemeInfo;
 import org.hisp.dhis.analytics.common.scheme.SchemeInfo.Data;
 import org.hisp.dhis.analytics.common.scheme.SchemeInfo.Settings;
@@ -46,6 +48,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.springframework.stereotype.Component;
@@ -145,7 +148,7 @@ public class SchemeIdResponseMapper {
 
         if (header.hasOptionSet()) {
           Map<String, String> optionMap =
-              header.getOptionSetObject().getOptionCodePropertyMap(idScheme);
+              getOptionCodePropertyMap(header.getOptionSetObject(), idScheme);
           grid.substituteMetaData(i, i, optionMap);
         } else if (header.hasLegendSet()) {
           Map<String, String> legendMap =
@@ -154,6 +157,12 @@ public class SchemeIdResponseMapper {
         }
       }
     }
+  }
+
+  private static Map<String, String> getOptionCodePropertyMap(OptionSet set, IdScheme idScheme) {
+    return set.getOptions().stream()
+        .filter(Objects::nonNull)
+        .collect(Collectors.toMap(Option::getCode, o -> o.getDisplayPropertyValue(idScheme)));
   }
 
   /**
