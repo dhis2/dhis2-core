@@ -33,11 +33,13 @@ import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.error;
 import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.warning;
 import static org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor.isEqual;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
@@ -54,6 +56,7 @@ import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 @RequiredArgsConstructor
 public class AssignDataValueExecutor implements RuleActionExecutor<Event> {
   private final SystemSettingsProvider settingsProvider;
+  private final OptionService optionService;
 
   private final UID ruleUid;
 
@@ -83,7 +86,7 @@ public class AssignDataValueExecutor implements RuleActionExecutor<Event> {
     // Hopefully we will be able to remove this special case once rule engine will support
     // optionSets
     if (dataElement.isOptionSetValue()
-        && !dataElement.getOptionSet().getOptionCodes().contains(value)) {
+        && !optionService.existsAllOptions(dataElement.getOptionSet().getUid(), List.of(value))) {
       return assignInvalidOptionDataElement(payloadDataValue, canOverwrite, event);
     }
 

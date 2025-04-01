@@ -34,6 +34,7 @@ import static org.hisp.dhis.tracker.imports.validation.validator.Each.each;
 import static org.hisp.dhis.tracker.imports.validation.validator.Field.field;
 import static org.hisp.dhis.tracker.imports.validation.validator.Seq.seq;
 
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -48,7 +49,8 @@ public class EventValidator implements Validator<TrackerBundle> {
 
   public EventValidator(
       SecurityOwnershipValidator securityOwnershipValidator,
-      CategoryOptValidator categoryOptValidator) {
+      CategoryOptValidator categoryOptValidator,
+      OptionService optionService) {
     validator =
         all(
             each(
@@ -65,7 +67,7 @@ public class EventValidator implements Validator<TrackerBundle> {
                         new DateValidator(),
                         new GeoValidator(),
                         new NoteValidator(),
-                        new DataValuesValidator(),
+                        new DataValuesValidator(optionService),
                         new StatusUpdateValidator(),
                         new AssignedUserValidator()))),
             field(TrackerBundle::getEvents, new RepeatedEventsValidator()));
