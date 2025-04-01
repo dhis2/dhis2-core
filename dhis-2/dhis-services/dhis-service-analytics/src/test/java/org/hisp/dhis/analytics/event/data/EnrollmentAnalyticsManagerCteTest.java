@@ -65,6 +65,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 
 /**
  * @author Luciano Fiandesio
@@ -83,6 +84,8 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
   @Mock private ProgramIndicatorService programIndicatorService;
 
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
+  @Mock private SqlRowSetMetaData rowSetMetaData;
 
   @Spy
   private PostgreSqlAnalyticsSqlBuilder analyticsSqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
@@ -108,6 +111,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
     when(systemSettingsService.getCurrentSettings()).thenReturn(systemSettings);
     when(systemSettings.getUseExperimentalAnalyticsQueryEngine()).thenReturn(true);
+    when(rowSet.getMetaData()).thenReturn(rowSetMetaData);
     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
         new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService, systemSettingsService);
 
