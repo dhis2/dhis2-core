@@ -66,6 +66,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -243,8 +244,10 @@ class EventOperationParamsMapperTest {
   void shouldMapAttributeFilters() throws BadRequestException, ForbiddenException {
     TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
     tea1.setUid(TEA_1_UID);
+    tea1.setValueType(ValueType.INTEGER);
     TrackedEntityAttribute tea2 = new TrackedEntityAttribute();
     tea2.setUid(TEA_2_UID);
+    tea2.setValueType(ValueType.TEXT);
     when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
     when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_2_UID)).thenReturn(tea2);
 
@@ -352,9 +355,11 @@ class EventOperationParamsMapperTest {
   void shouldMapDataElementFilters() throws BadRequestException, ForbiddenException {
     DataElement de1 = new DataElement();
     de1.setUid(DE_1_UID);
+    de1.setValueType(ValueType.INTEGER);
     when(dataElementService.getDataElement(DE_1_UID)).thenReturn(de1);
     DataElement de2 = new DataElement();
     de2.setUid(DE_2_UID);
+    de2.setValueType(ValueType.TEXT);
     when(dataElementService.getDataElement(DE_2_UID)).thenReturn(de2);
 
     EventOperationParams operationParams =

@@ -659,7 +659,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
               mapSqlParameterSource.addValue(
                   parameterKey,
                   isNumericTea
-                      ? parseNumericFilterValue("attribute", teaUid, filter.getSqlBindFilter())
+                      ? new BigDecimal(filter.getSqlBindFilter())
                       : StringUtils.lowerCase(filter.getSqlBindFilter()),
                   itemType);
               yield new StringBuilder()
@@ -676,25 +676,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     query.append(String.join(AND, filterStrings));
 
     return query.toString();
-  }
-
-  /**
-   * Validates and parses numeric filter values. Uses BigDecimal to match PostgreSQL's numeric type
-   * behavior. PostgreSQL's numeric type is an exact decimal type that can store numbers of up to
-   * 131072 digits before the decimal point and up to 16383 digits after the decimal point.
-   *
-   * @see <a href="https://www.postgresql.org/docs/current/datatype-numeric.html">PostgreSQL Numeric
-   *     Type</a>
-   */
-  private BigDecimal parseNumericFilterValue(String context, String uid, String filterValue) {
-    try {
-      return new BigDecimal(filterValue);
-    } catch (NumberFormatException e) {
-      throw new IllegalArgumentException(
-          String.format(
-              "Filter for %s %s is invalid. The %s value type is numeric but the value '%s' is not.",
-              context, uid, context, filterValue));
-    }
   }
 
   /**
@@ -1303,7 +1284,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           mapSqlParameterSource.addValue(
               bindParameter,
               de.getValueType().isNumeric()
-                  ? parseNumericFilterValue("data element", deUid, filter.getSqlBindFilter())
+                  ? new BigDecimal(filter.getSqlBindFilter())
                   : StringUtils.lowerCase(filter.getSqlBindFilter()),
               itemValueType);
 
