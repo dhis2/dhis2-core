@@ -288,6 +288,22 @@ public class BaseE2ETest {
         serverApiUrl + path, HttpMethod.GET, new HttpEntity<>(map, jsonHeaders()), String.class);
   }
 
+  public static ResponseEntity<String> getWithWrongAuth(String path, Map<String, Object> map) {
+    RestTemplate rt = new RestTemplate();
+
+    String authHeader =
+        Base64.getUrlEncoder().encodeToString("admin:wrong".getBytes(StandardCharsets.UTF_8));
+    rt.getInterceptors()
+        .add(
+            (request, body, execution) -> {
+              request.getHeaders().add(HttpHeaders.AUTHORIZATION, "Basic " + authHeader);
+              return execution.execute(request, body);
+            });
+
+    return rt.exchange(
+        serverApiUrl + path, HttpMethod.GET, new HttpEntity<>(map, jsonHeaders()), String.class);
+  }
+
   public static ResponseEntity<String> postWithAdminBasicAuth(
       String path, Map<String, Object> map) {
     RestTemplate rt = addAdminBasicAuthHeaders(new RestTemplate());
