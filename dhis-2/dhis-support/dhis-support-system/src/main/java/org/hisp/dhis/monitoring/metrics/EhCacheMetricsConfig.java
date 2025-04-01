@@ -170,7 +170,7 @@ public class EhCacheMetricsConfig {
 
         CacheStatistics cacheStats = getCacheStatisticsViaReflection(jsr107Cache);
         if (cacheStats != null) {
-          new EhCacheDirectStatisticsMetrics(cacheStats, null, cacheName).bindTo(registry);
+          new EhCacheDirectStatisticsMetrics(cacheStats, cacheName).bindTo(registry);
           log.debug("Registered metrics for cache: {}", cacheName);
         } else {
           log.warn(
@@ -234,54 +234,53 @@ public class EhCacheMetricsConfig {
 
   /** Binds metrics using a CacheStatistics object obtained via reflection. */
   private static class EhCacheDirectStatisticsMetrics implements MeterBinder {
+    public static final Tag L_2 = Tag.of("type", "L2");
     private final CacheStatistics stats;
-    private final Iterable<Tag> tags; // Note: This 'tags' parameter is currently unused.
     private final String cacheName; // Renamed from 'name' for clarity
 
-    public EhCacheDirectStatisticsMetrics(
-        CacheStatistics stats, Iterable<Tag> tags, String cacheName) {
+    public EhCacheDirectStatisticsMetrics(CacheStatistics stats, String cacheName) {
       this.stats = stats;
-      this.tags = tags; // Keep in case needed later, but currently unused in bindTo
       this.cacheName = cacheName;
     }
 
     @Override
     public void bindTo(MeterRegistry registry) {
-      Tag l2 = Tag.of("type", "L2");
       // Derive a shorter metric name part from the full cache name
       // Example: org.hisp.dhis.user.User -> User
+      // Example: org.hisp.dhis.user.OrganisationUnit.categoryOptions ->
+      // OrganisationUnit.categoryOptions
       // Example: org.hibernate.cache.internal.StandardQueryCache -> StandardQueryCache
       String metricNamePart = deriveMetricNamePart(cacheName);
 
       // Register various cache statistics as gauges or counters
       FunctionCounter.builder("ehcache." + metricNamePart, stats, CacheStatistics::getCacheGets)
-          .tags(Tags.of(Tag.of("name", "cache.gets"), l2))
+          .tags(Tags.of(Tag.of("name", "cache.gets"), L_2))
           .description("The number of get requests made to the cache")
           .register(registry);
 
       FunctionCounter.builder("ehcache." + metricNamePart, stats, CacheStatistics::getCachePuts)
-          .tags(Tags.of(Tag.of("name", "cache.puts"), l2))
+          .tags(Tags.of(Tag.of("name", "cache.puts"), L_2))
           .description("The number of put requests that were made to the cache")
           .register(registry);
       FunctionCounter.builder("ehcache." + metricNamePart, stats, CacheStatistics::getCacheRemovals)
-          .tags(Tags.of(Tag.of("name", "cache.removals"), l2))
+          .tags(Tags.of(Tag.of("name", "cache.removals"), L_2))
           .description("The number of removal requests that were made to the cache")
           .register(registry);
 
       FunctionCounter.builder(
               "ehcache." + metricNamePart, stats, CacheStatistics::getCacheEvictions)
-          .tags(Tags.of(Tag.of("name", "cache.evictions"), l2))
+          .tags(Tags.of(Tag.of("name", "cache.evictions"), L_2))
           .description("The number of evictions from the cache")
           .register(registry);
 
       FunctionCounter.builder("ehcache." + metricNamePart, stats, CacheStatistics::getCacheHits)
-          .tags(Tags.of(Tag.of("name", "cache.hits"), l2))
+          .tags(Tags.of(Tag.of("name", "cache.hits"), L_2))
           .description(
               "The number of times cache lookup methods found a requested entry in the cache")
           .register(registry);
 
       FunctionCounter.builder("ehcache." + metricNamePart, stats, CacheStatistics::getCacheMisses)
-          .tags(Tags.of(Tag.of("name", "cache.misses"), l2))
+          .tags(Tags.of(Tag.of("name", "cache.misses"), L_2))
           .description(
               "The number of times cache lookup methods did not find a requested entry in the cache")
           .register(registry);
@@ -293,29 +292,46 @@ public class EhCacheMetricsConfig {
                 long gets = s.getCacheGets();
                 return gets == 0 ? 0 : (double) s.getCacheHits() / gets;
               })
-          .tags(tags)
           .description("The ratio of cache requests which were hits")
           .register(registry);
     }
 
     /**
-     * Derives a simplified name part for the metric from the full cache name. It attempts to find
-     * the most significant part, often the class name without the package.
+     * Derives a simplified name part for the metric from the full cache name. It finds the first
+     * segment starting with an uppercase letter and includes all subsequent segments.
      *
-     * @param fullCacheName The full name of the cache region (e.g., org.hisp.dhis.user.User).
-     * @return A simplified name (e.g., User) or the original name if parsing fails.
+     * <p>Examples: - org.hisp.dhis.user.User -> User - org.hisp.dhis.user.User.roles -> User.roles
+     * - org.hibernate.cache.internal.StandardQueryCache -> StandardQueryCache
+     *
+     * @param fullCacheName The full name of the cache region.
+     * @return A simplified name based on the first capitalized segment, or the original name if no
+     *     capitalized segment is found.
      */
     private String deriveMetricNamePart(String fullCacheName) {
       if (fullCacheName == null || fullCacheName.isEmpty()) {
         return "unknown";
       }
-      // Attempt to extract the simple class name or the last significant part
-      int lastDot = fullCacheName.lastIndexOf('.');
-      if (lastDot != -1 && lastDot < fullCacheName.length() - 1) {
-        return fullCacheName.substring(lastDot + 1);
+
+      String[] parts = fullCacheName.split("\\.");
+      StringBuilder metricPartBuilder = new StringBuilder();
+      boolean foundCapitalized = false;
+
+      for (String part : parts) {
+        if (part.isEmpty()) {
+          continue;
+        }
+        if (foundCapitalized) {
+          // Append subsequent parts after the first capitalized one is found
+          metricPartBuilder.append(".").append(part);
+        } else if (Character.isUpperCase(part.charAt(0))) {
+          // Found the first capitalized part
+          metricPartBuilder.append(part);
+          foundCapitalized = true;
+        }
       }
-      // Fallback for names without dots or unusual structures
-      return fullCacheName;
+      // If a capitalized part was found, return the built string; otherwise, fallback to the
+      // original name
+      return foundCapitalized ? metricPartBuilder.toString() : fullCacheName;
     }
   }
 
