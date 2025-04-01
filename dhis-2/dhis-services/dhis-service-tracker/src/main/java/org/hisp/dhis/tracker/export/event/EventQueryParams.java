@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.Getter;
 import org.apache.commons.collections4.SetUtils;
@@ -463,7 +462,7 @@ class EventQueryParams {
 
   public EventQueryParams filterBy(
       @Nonnull TrackedEntityAttribute tea, @Nonnull QueryFilter filter) {
-    validateNumericFilter(tea, filter.getFilter());
+    validateNumericFilterValue(tea, filter);
     this.attributes.putIfAbsent(tea, new ArrayList<>());
     this.attributes.get(tea).add(filter);
     return this;
@@ -475,7 +474,7 @@ class EventQueryParams {
   }
 
   public EventQueryParams filterBy(@Nonnull DataElement de, @Nonnull QueryFilter filter) {
-    validateNumericFilter(de, filter.getFilter());
+    validateNumericFilterValue(de, filter);
     this.dataElements.putIfAbsent(de, new ArrayList<>());
     this.dataElements.get(de).add(filter);
     this.hasDataElementFilter = true;
@@ -488,7 +487,7 @@ class EventQueryParams {
   }
 
   /**
-   * Validates that a filter value for a numeric value type is numeric.
+   * Validates that a binary filter's value for a numeric value type is actually numeric.
    *
    * <p>Uses BigDecimal as we use <code>cast(column as numeric)</code> in the SQL query. BigDecimal
    * matches PostgreSQL's numeric type behavior.
@@ -496,20 +495,20 @@ class EventQueryParams {
    * @see <a href="https://www.postgresql.org/docs/current/datatype-numeric.html">PostgreSQL Numeric
    *     Type</a>
    */
-  private void validateNumericFilter(
-      ValueTypedDimensionalItemObject item, @CheckForNull String filterValue) {
-    if (!item.getValueType().isNumeric() || filterValue == null) {
+  private void validateNumericFilterValue(
+      ValueTypedDimensionalItemObject item, QueryFilter filter) {
+    if (!item.getValueType().isNumeric() || filter.getOperator().isUnary()) {
       return;
     }
 
     try {
-      new BigDecimal(filterValue);
+      new BigDecimal(filter.getFilter());
     } catch (NumberFormatException e) {
       String name = item instanceof TrackedEntityAttribute ? "attribute" : "data element";
       throw new IllegalArgumentException(
           String.format(
               "Filter for %s %s is invalid. The %s value type is numeric but the value `%s` is not.",
-              name, item.getUid(), name, filterValue));
+              name, item.getUid(), name, filter.getFilter()));
     }
   }
 
