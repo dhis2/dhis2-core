@@ -57,6 +57,7 @@ import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.DhisCorsProcessor;
+import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
 import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
@@ -397,6 +398,7 @@ public class DhisWebApiWebSecurityConfig {
         /// HTTP BASIC///////////////////////////////////////
         .httpBasic()
         .authenticationDetailsSource(httpBasicWebAuthenticationDetailsSource)
+        .authenticationEntryPoint(formLoginBasicAuthenticationEntryPoint())
         .addObjectPostProcessor(
             new ObjectPostProcessor<BasicAuthenticationFilter>() {
               @Override
@@ -441,6 +443,11 @@ public class DhisWebApiWebSecurityConfig {
         .maximumSessions(
             Integer.parseInt(dhisConfig.getProperty(ConfigurationKey.MAX_SESSIONS_PER_USER)))
         .expiredUrl("/dhis-web-commons-security/logout.action");
+  }
+
+  @Bean
+  public FormLoginBasicAuthenticationEntryPoint formLoginBasicAuthenticationEntryPoint() {
+    return new FormLoginBasicAuthenticationEntryPoint("/dhis-web-login");
   }
 
   @Bean
