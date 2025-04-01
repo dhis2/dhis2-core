@@ -165,14 +165,14 @@
     },
     {
       "name": "programDataElementOptionDimensionItemWithOptions",
-      "query": "/api/analytics?dimension=dx:eBAyeGv0exc.K6uUAvq500H.IwbX7Ubzu57;eBAyeGv0exc.K6uUAvq500H.Fg4hq7La1MN;eBAyeGv0exc.K6uUAvq500H.UYhscH2W06r;eBAyeGv0exc.K6uUAvq500H.rmYsyizWAJx,pe:LAST_12_MONTHS&filter=ou:USER_ORGUNIT&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=true&includeMetadataDetails=true",
+      "query": "/api/analytics?dimension=dx:eBAyeGv0exc.K6uUAvq500H.IwbX7Ubzu57;eBAyeGv0exc.K6uUAvq500H.Fg4hq7La1MN;eBAyeGv0exc.K6uUAvq500H.UYhscH2W06r;eBAyeGv0exc.K6uUAvq500H.rmYsyizWAJx,pe:LAST_12_MONTHS&filter=ou:USER_ORGUNIT&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=true&includeMetadataDetails=true&relativePeriodDate=2025-03-01",
       "version": {
         "min": 42
       }
     },
     {
       "name": "programDataElementOptionShortNameInMetaData",
-      "query": "/api/analytics?dimension=dx:qDkgAbB5Jlk.XCMLePzaZiL.vak9GKjzzAP;qDkgAbB5Jlk.XCMLePzaZiL.zPVS0EAEwia,pe:LAST_12_MONTHS&filter=ou:USER_ORGUNIT&displayProperty=SHORTNAME&includeNumDen=true&skipMeta=false&skipData=true&includeMetadataDetails=true",
+      "query": "/api/analytics?dimension=dx:qDkgAbB5Jlk.XCMLePzaZiL.vak9GKjzzAP;qDkgAbB5Jlk.XCMLePzaZiL.zPVS0EAEwia,pe:LAST_12_MONTHS&filter=ou:USER_ORGUNIT&displayProperty=SHORTNAME&includeNumDen=true&skipMeta=false&skipData=true&includeMetadataDetails=true&relativePeriodDate=2025-03-01",
       "version": {
         "min": 42
       }
