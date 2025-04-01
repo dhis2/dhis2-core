@@ -112,15 +112,14 @@ public class EhCacheMetricsConfig {
     try {
       // Common field name for JCacheRegionFactory implementations
       java.lang.reflect.Field field = regionFactory.getClass().getDeclaredField("cacheManager");
-      field.setAccessible(true);
       Object cacheManagerObj = field.get(regionFactory);
 
-      if (cacheManagerObj instanceof javax.cache.CacheManager) {
+      if (cacheManagerObj instanceof javax.cache.CacheManager cacheManager) {
         log.debug(
             "Retrieved JSR-107 CacheManager ({}) via reflection from RegionFactory ({}).",
             cacheManagerObj.getClass().getName(),
             regionFactory.getClass().getName());
-        return (javax.cache.CacheManager) cacheManagerObj;
+        return cacheManager;
       } else {
         log.warn(
             "Object retrieved via reflection from field 'cacheManager' in {} is not a javax.cache.CacheManager. Type: {}",
@@ -192,7 +191,6 @@ public class EhCacheMetricsConfig {
     try {
       java.lang.reflect.Field statsBeanField =
           jsr107Cache.getClass().getDeclaredField("statisticsBean");
-      statsBeanField.setAccessible(true);
       Object statsBean = statsBeanField.get(jsr107Cache);
 
       if (statsBean == null) {
@@ -204,11 +202,10 @@ public class EhCacheMetricsConfig {
 
       java.lang.reflect.Field cacheStatsField =
           statsBean.getClass().getDeclaredField("cacheStatistics");
-      cacheStatsField.setAccessible(true);
       Object cacheStatsObj = cacheStatsField.get(statsBean);
 
-      if (cacheStatsObj instanceof CacheStatistics) {
-        return (CacheStatistics) cacheStatsObj;
+      if (cacheStatsObj instanceof CacheStatistics cacheStats) {
+        return cacheStats;
       } else {
         log.warn(
             "Field 'cacheStatistics' in statisticsBean is not of expected type CacheStatistics for cache: {}. Type: {}",
