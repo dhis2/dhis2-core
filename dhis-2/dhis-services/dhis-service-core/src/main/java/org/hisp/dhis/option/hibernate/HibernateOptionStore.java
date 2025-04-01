@@ -66,7 +66,7 @@ public class HibernateOptionStore extends HibernateIdentifiableObjectStore<Optio
   public List<Option> findOptionsByNamePattern(UID optionSet, String infix, Integer maxResults) {
     String hql =
         "select option from OptionSet as optionset "
-            + "join optionset.options as option where optionset.id = :optionSetId ";
+            + "join optionset.options as option where optionset.uid = :optionSetId ";
 
     if (infix != null && !infix.isEmpty()) {
       hql += "and lower(option.name) like lower('%" + infix + "%') ";
