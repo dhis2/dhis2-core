@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -66,88 +66,76 @@ public class EhCacheMetricsConfig {
   public void bindEhCacheToRegistry(
       EntityManagerFactory entityManagerFactory, MeterRegistry registry) {
     try {
-      // Directly unwrap to the needed type, handling potential proxies
       SessionFactoryImplementor sessionFactoryImplementor =
           entityManagerFactory.unwrap(SessionFactoryImplementor.class);
-
-      if (sessionFactoryImplementor == null) {
-        log.warn(
-            "Could not unwrap EntityManagerFactory to SessionFactoryImplementor. Cache metrics disabled.");
-        return; // Exit if unwrapping fails
-      }
-
-      // Try to access the CacheManager
       ServiceRegistry serviceRegistry = sessionFactoryImplementor.getServiceRegistry();
       RegionFactory regionFactory = serviceRegistry.getService(RegionFactory.class);
 
       if (regionFactory == null) {
-        log.warn("No RegionFactory found for second-level cache monitoring");
+        log.debug("No RegionFactory found, assuming no second-level cache configured.");
         return;
       }
 
-      // Get the JSR-107 CacheManager wrapper (likely Eh107CacheManager)
       javax.cache.CacheManager jsr107CacheManager = getEhCacheManager(regionFactory);
       if (jsr107CacheManager == null) {
-        log.warn("Failed to retrieve JSR-107 CacheManager via reflection.");
+        log.warn("Could not retrieve JSR-107 CacheManager via reflection. Cache metrics disabled.");
         return;
       }
 
-      try {
-        // Unwrap to get the native Ehcache CacheManager to retrieve cache names
-        CacheManager ehCacheManager = jsr107CacheManager.unwrap(CacheManager.class);
-        if (ehCacheManager != null) {
-          log.info("Successfully unwrapped to native Ehcache CacheManager.");
-          // Pass both managers to register metrics
-          registerCacheMetrics(jsr107CacheManager, ehCacheManager, registry);
-        } else {
-          log.warn(
-              "Unwrapping JSR-107 CacheManager returned null for native Ehcache CacheManager.");
-        }
-      } catch (IllegalArgumentException e) {
+      CacheManager ehCacheManager = jsr107CacheManager.unwrap(CacheManager.class);
+      if (ehCacheManager == null) {
         log.warn(
-            "Failed to unwrap JSR-107 CacheManager ({}) to native Ehcache CacheManager: {}",
-            jsr107CacheManager.getClass().getName(),
-            e.getMessage());
+            "Could not unwrap JSR-107 CacheManager ({}) to native Ehcache CacheManager. Cache metrics disabled.",
+            jsr107CacheManager.getClass().getName());
+        return;
       }
-    } catch (PersistenceException | ClassCastException ex) {
-      log.warn("Failed to bind EHCache metrics: {}", ex.getMessage());
+
+      log.debug("Successfully retrieved native Ehcache CacheManager. Registering metrics...");
+      registerCacheMetrics(jsr107CacheManager, ehCacheManager, registry);
+
+    } catch (PersistenceException | ClassCastException | IllegalArgumentException ex) {
+      log.warn(
+          "Failed to bind EHCache metrics due to an unexpected error during setup: {}",
+          ex.getMessage());
+    } catch (Exception ex) {
+      // Catch broader exceptions during reflection/unwrapping
+      log.warn(
+          "An unexpected error occurred while binding EHCache metrics: {}", ex.getMessage(), ex);
     }
   }
 
   /**
-   * Attempts to extract the EHCache CacheManager from the Hibernate RegionFactory. This uses
-   * reflection. Returns the JSR-107 CacheManager wrapper.
+   * Attempts to extract the EHCache CacheManager from the Hibernate RegionFactory using reflection.
+   * Returns the JSR-107 CacheManager wrapper.
    */
   private javax.cache.CacheManager getEhCacheManager(RegionFactory regionFactory) {
-    log.info(
-        "[Metrics] Attempting reflection on RegionFactory: {}", regionFactory.getClass().getName());
     try {
-      // The field name might vary, but "cacheManager" is common for JCacheRegionFactory
+      // Common field name for JCacheRegionFactory implementations
       java.lang.reflect.Field field = regionFactory.getClass().getDeclaredField("cacheManager");
       field.setAccessible(true);
       Object cacheManagerObj = field.get(regionFactory);
-      log.info(
-          "[Metrics] Object returned by reflection ('cacheManager' field): {}",
-          cacheManagerObj != null ? cacheManagerObj.getClass().getName() : "null");
 
       if (cacheManagerObj instanceof javax.cache.CacheManager) {
+        log.debug(
+            "Retrieved JSR-107 CacheManager ({}) via reflection from RegionFactory ({}).",
+            cacheManagerObj.getClass().getName(),
+            regionFactory.getClass().getName());
         return (javax.cache.CacheManager) cacheManagerObj;
       } else {
         log.warn(
-            "[Metrics] Object retrieved via reflection is not a javax.cache.CacheManager. Type:"
-                + " {}",
+            "Object retrieved via reflection from field 'cacheManager' in {} is not a javax.cache.CacheManager. Type: {}",
+            regionFactory.getClass().getName(),
             cacheManagerObj != null ? cacheManagerObj.getClass().getName() : "null");
         return null;
       }
     } catch (NoSuchFieldException nsfe) {
-      log.error(
-          "[Metrics] Reflection failed: Field 'cacheManager' not found in {}",
-          regionFactory.getClass().getName(),
-          nsfe);
+      log.warn(
+          "Reflection failed: Field 'cacheManager' not found in {}. Cannot monitor EHCache.",
+          regionFactory.getClass().getName());
       return null;
     } catch (Exception e) {
-      log.error(
-          "[Metrics] Could not access CacheManager via reflection on {}: {}",
+      log.warn(
+          "Could not access CacheManager via reflection on {}: {}",
           regionFactory.getClass().getName(),
           e.getMessage(),
           e);
@@ -166,56 +154,54 @@ public class EhCacheMetricsConfig {
 
     Set<String> cacheNames =
         ehCacheManager.getRuntimeConfiguration().getCacheConfigurations().keySet();
-    log.info("[Metrics] Found {} EHCache regions for monitoring", cacheNames.size());
+    if (cacheNames.isEmpty()) {
+      log.info("No EHCache regions found for monitoring.");
+      return;
+    }
+    log.info("Found {} EHCache regions for monitoring.", cacheNames.size());
 
     for (String cacheName : cacheNames) {
       try {
         javax.cache.Cache<?, ?> jsr107Cache = jsr107CacheManager.getCache(cacheName);
-        if (jsr107Cache != null) {
+        if (jsr107Cache == null) {
+          log.warn("JSR-107 CacheManager returned null for cache name: {}", cacheName);
+          continue; // Skip this cache
+        }
 
-          // Use reflection to get cacheStatistics via statisticsBean
-          CacheStatistics cacheStats = getCacheStatisticsViaReflection(jsr107Cache);
-
-          if (cacheStats != null) {
-            // Register metrics using the directly obtained CacheStatistics
-            new EhCacheDirectStatisticsMetrics(cacheStats, null, cacheName).bindTo(registry);
-            log.debug("[Metrics] Registered metrics for cache: {}", cacheName);
-          } else {
-            log.warn(
-                "[Metrics] Could not retrieve CacheStatistics for cache '{}' via reflection.",
-                cacheName);
-            // Optionally, register fallback metrics if needed, but for now, we just warn
-          }
+        CacheStatistics cacheStats = getCacheStatisticsViaReflection(jsr107Cache);
+        if (cacheStats != null) {
+          new EhCacheDirectStatisticsMetrics(cacheStats, null, cacheName).bindTo(registry);
+          log.debug("Registered metrics for cache: {}", cacheName);
         } else {
-          log.warn("[Metrics] JSR-107 CacheManager returned null for cache name: {}", cacheName);
+          log.warn(
+              "Could not retrieve CacheStatistics for cache '{}' via reflection. Metrics not registered for this cache.",
+              cacheName);
         }
       } catch (Exception e) {
-        log.warn(
-            "[Metrics] Failed to register metrics for cache {}: {}", cacheName, e.getMessage(), e);
+        // Catch exceptions during individual cache processing
+        log.warn("Failed to register metrics for cache '{}': {}", cacheName, e.getMessage(), e);
       }
     }
   }
 
   /**
    * Uses reflection to extract the CacheStatistics object from a JSR-107 Cache instance, assuming
-   * it's an Ehcache implementation with a statisticsBean field.
+   * it's an Ehcache implementation with a statisticsBean containing cacheStatistics.
    */
   private CacheStatistics getCacheStatisticsViaReflection(javax.cache.Cache<?, ?> jsr107Cache) {
     try {
-      // Get the statisticsBean field from the JSR-107 Cache object
       java.lang.reflect.Field statsBeanField =
           jsr107Cache.getClass().getDeclaredField("statisticsBean");
       statsBeanField.setAccessible(true);
       Object statsBean = statsBeanField.get(jsr107Cache);
 
       if (statsBean == null) {
-        log.warn(
-            "[Metrics] Reflection returned null for 'statisticsBean' field in cache: {}",
+        log.debug(
+            "Reflection returned null for 'statisticsBean' field in cache: {}",
             jsr107Cache.getName());
         return null;
       }
 
-      // Get the cacheStatistics field from the statisticsBean object
       java.lang.reflect.Field cacheStatsField =
           statsBean.getClass().getDeclaredField("cacheStatistics");
       cacheStatsField.setAccessible(true);
@@ -225,22 +211,20 @@ public class EhCacheMetricsConfig {
         return (CacheStatistics) cacheStatsObj;
       } else {
         log.warn(
-            "[Metrics] Field 'cacheStatistics' in statisticsBean is not of expected type"
-                + " CacheStatistics for cache: {}. Type: {}",
+            "Field 'cacheStatistics' in statisticsBean is not of expected type CacheStatistics for cache: {}. Type: {}",
             jsr107Cache.getName(),
             cacheStatsObj != null ? cacheStatsObj.getClass().getName() : "null");
         return null;
       }
     } catch (NoSuchFieldException nsfe) {
       log.warn(
-          "[Metrics] Reflection failed to find 'statisticsBean' or 'cacheStatistics' field for"
-              + " cache {}: {}",
+          "Reflection failed to find 'statisticsBean' or 'cacheStatistics' field for cache '{}': {}. Cannot retrieve stats.",
           jsr107Cache.getName(),
           nsfe.getMessage());
       return null;
     } catch (Exception e) {
       log.warn(
-          "[Metrics] Error accessing statistics via reflection for cache {}: {}",
+          "Error accessing statistics via reflection for cache '{}': {}",
           jsr107Cache.getName(),
           e.getMessage(),
           e);
@@ -251,59 +235,52 @@ public class EhCacheMetricsConfig {
   /** Binds metrics using a CacheStatistics object obtained via reflection. */
   private static class EhCacheDirectStatisticsMetrics implements MeterBinder {
     private final CacheStatistics stats;
-    private final Iterable<Tag> tags;
-    private final String name;
+    private final Iterable<Tag> tags; // Note: This 'tags' parameter is currently unused.
+    private final String cacheName; // Renamed from 'name' for clarity
 
-    public EhCacheDirectStatisticsMetrics(CacheStatistics stats, Iterable<Tag> tags, String name) {
+    public EhCacheDirectStatisticsMetrics(
+        CacheStatistics stats, Iterable<Tag> tags, String cacheName) {
       this.stats = stats;
-      this.tags = tags;
-      this.name = name;
+      this.tags = tags; // Keep in case needed later, but currently unused in bindTo
+      this.cacheName = cacheName;
     }
 
     @Override
     public void bindTo(MeterRegistry registry) {
       Tag l2 = Tag.of("type", "L2");
-      String[] parts = name.split("\\.");
-      StringBuilder lastPartBuilder = new StringBuilder();
-      boolean foundCapitalized = false;
-      for (String part : parts) {
-        if (foundCapitalized) {
-          lastPartBuilder.append(".").append(part);
-        } else if (Character.isUpperCase(part.charAt(0))) {
-          lastPartBuilder.append(part);
-          foundCapitalized = true;
-        }
-      }
-      String lastPart = foundCapitalized ? lastPartBuilder.toString() : name;
+      // Derive a shorter metric name part from the full cache name
+      // Example: org.hisp.dhis.user.User -> User
+      // Example: org.hibernate.cache.internal.StandardQueryCache -> StandardQueryCache
+      String metricNamePart = deriveMetricNamePart(cacheName);
 
-      log.info("[Metrics] Last part: {}", lastPart);
-
-      FunctionCounter.builder("ehcache." + lastPart, stats, CacheStatistics::getCacheGets)
+      // Register various cache statistics as gauges or counters
+      FunctionCounter.builder("ehcache." + metricNamePart, stats, CacheStatistics::getCacheGets)
           .tags(Tags.of(Tag.of("name", "cache.gets"), l2))
-          .description("The number of get requests that were made to the cache")
+          .description("The number of get requests made to the cache")
           .register(registry);
 
-      FunctionCounter.builder("ehcache." + lastPart, stats, CacheStatistics::getCachePuts)
+      FunctionCounter.builder("ehcache." + metricNamePart, stats, CacheStatistics::getCachePuts)
           .tags(Tags.of(Tag.of("name", "cache.puts"), l2))
           .description("The number of put requests that were made to the cache")
           .register(registry);
-      FunctionCounter.builder("ehcache." + lastPart, stats, CacheStatistics::getCacheRemovals)
+      FunctionCounter.builder("ehcache." + metricNamePart, stats, CacheStatistics::getCacheRemovals)
           .tags(Tags.of(Tag.of("name", "cache.removals"), l2))
           .description("The number of removal requests that were made to the cache")
           .register(registry);
 
-      FunctionCounter.builder("ehcache." + lastPart, stats, CacheStatistics::getCacheEvictions)
+      FunctionCounter.builder(
+              "ehcache." + metricNamePart, stats, CacheStatistics::getCacheEvictions)
           .tags(Tags.of(Tag.of("name", "cache.evictions"), l2))
           .description("The number of evictions from the cache")
           .register(registry);
 
-      FunctionCounter.builder("ehcache." + lastPart, stats, CacheStatistics::getCacheHits)
+      FunctionCounter.builder("ehcache." + metricNamePart, stats, CacheStatistics::getCacheHits)
           .tags(Tags.of(Tag.of("name", "cache.hits"), l2))
           .description(
               "The number of times cache lookup methods found a requested entry in the cache")
           .register(registry);
 
-      FunctionCounter.builder("ehcache." + lastPart, stats, CacheStatistics::getCacheMisses)
+      FunctionCounter.builder("ehcache." + metricNamePart, stats, CacheStatistics::getCacheMisses)
           .tags(Tags.of(Tag.of("name", "cache.misses"), l2))
           .description(
               "The number of times cache lookup methods did not find a requested entry in the cache")
@@ -319,6 +296,26 @@ public class EhCacheMetricsConfig {
           .tags(tags)
           .description("The ratio of cache requests which were hits")
           .register(registry);
+    }
+
+    /**
+     * Derives a simplified name part for the metric from the full cache name. It attempts to find
+     * the most significant part, often the class name without the package.
+     *
+     * @param fullCacheName The full name of the cache region (e.g., org.hisp.dhis.user.User).
+     * @return A simplified name (e.g., User) or the original name if parsing fails.
+     */
+    private String deriveMetricNamePart(String fullCacheName) {
+      if (fullCacheName == null || fullCacheName.isEmpty()) {
+        return "unknown";
+      }
+      // Attempt to extract the simple class name or the last significant part
+      int lastDot = fullCacheName.lastIndexOf('.');
+      if (lastDot != -1 && lastDot < fullCacheName.length() - 1) {
+        return fullCacheName.substring(lastDot + 1);
+      }
+      // Fallback for names without dots or unusual structures
+      return fullCacheName;
     }
   }
 
