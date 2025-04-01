@@ -94,7 +94,7 @@ class OrgUnitMergeValidatorTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testValidateSuccess() {
+  void testMultiSourceValidateSuccess() {
     OrganisationUnit ouA = createOrganisationUnit('A');
     OrganisationUnit ouB = createOrganisationUnit('B');
     OrganisationUnit ouC = createOrganisationUnit('C');
@@ -103,6 +103,17 @@ class OrgUnitMergeValidatorTest extends PostgresIntegrationTestBase {
     organisationUnitService.addOrganisationUnit(ouC);
     OrgUnitMergeRequest request =
         new OrgUnitMergeRequest.Builder().addSource(ouA).addSource(ouB).withTarget(ouC).build();
+    assertNull(validator.validateForErrorMessage(request));
+  }
+
+  @Test
+  void validateSingleSourceValidateSuccess() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnit ouB = createOrganisationUnit('B');
+    organisationUnitService.addOrganisationUnit(ouA);
+    organisationUnitService.addOrganisationUnit(ouB);
+    OrgUnitMergeRequest request =
+        new OrgUnitMergeRequest.Builder().addSource(ouA).withTarget(ouB).build();
     assertNull(validator.validateForErrorMessage(request));
   }
 }
