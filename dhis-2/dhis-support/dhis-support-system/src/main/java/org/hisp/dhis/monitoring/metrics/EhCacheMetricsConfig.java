@@ -249,38 +249,40 @@ public class EhCacheMetricsConfig {
       // Example: org.hisp.dhis.user.OrganisationUnit.categoryOptions ->
       // OrganisationUnit.categoryOptions
       // Example: org.hibernate.cache.internal.StandardQueryCache -> StandardQueryCache
-      String metricNamePart = deriveMetricNamePart(cacheName);
+      String namePart = deriveNamePart(cacheName);
 
-      FunctionCounter.builder("ehcache." + metricNamePart, stats, CacheStatistics::getCacheGets)
-          .tags(Tags.of(Tag.of("name", "cache.gets"), L_2))
-          .description("The number of get requests made to the cache")
+      Tags cacheTags = Tags.of(Tag.of("cache", namePart), L_2);
+
+      FunctionCounter.builder("ehcache_gets_total", stats, CacheStatistics::getCacheGets)
+          .tags(cacheTags)
+          .description("The total number of get requests made to the cache")
           .register(registry);
 
-      FunctionCounter.builder("ehcache." + metricNamePart, stats, CacheStatistics::getCachePuts)
-          .tags(Tags.of(Tag.of("name", "cache.puts"), L_2))
-          .description("The number of put requests that were made to the cache")
-          .register(registry);
-      FunctionCounter.builder("ehcache." + metricNamePart, stats, CacheStatistics::getCacheRemovals)
-          .tags(Tags.of(Tag.of("name", "cache.removals"), L_2))
-          .description("The number of removal requests that were made to the cache")
+      FunctionCounter.builder("ehcache_puts_total", stats, CacheStatistics::getCachePuts)
+          .tags(cacheTags)
+          .description("The total number of put requests that were made to the cache")
           .register(registry);
 
-      FunctionCounter.builder(
-              "ehcache." + metricNamePart, stats, CacheStatistics::getCacheEvictions)
-          .tags(Tags.of(Tag.of("name", "cache.evictions"), L_2))
-          .description("The number of evictions from the cache")
+      FunctionCounter.builder("ehcache_removals_total", stats, CacheStatistics::getCacheRemovals)
+          .tags(cacheTags)
+          .description("The total number of removal requests that were made to the cache")
           .register(registry);
 
-      FunctionCounter.builder("ehcache." + metricNamePart, stats, CacheStatistics::getCacheHits)
-          .tags(Tags.of(Tag.of("name", "cache.hits"), L_2))
+      FunctionCounter.builder("ehcache_evictions_total", stats, CacheStatistics::getCacheEvictions)
+          .tags(cacheTags)
+          .description("The total number of evictions from the cache")
+          .register(registry);
+
+      FunctionCounter.builder("ehcache_hits_total", stats, CacheStatistics::getCacheHits)
+          .tags(cacheTags)
           .description(
-              "The number of times cache lookup methods found a requested entry in the cache")
+              "The total number of times cache lookup methods found a requested entry in the cache")
           .register(registry);
 
-      FunctionCounter.builder("ehcache." + metricNamePart, stats, CacheStatistics::getCacheMisses)
-          .tags(Tags.of(Tag.of("name", "cache.misses"), L_2))
+      FunctionCounter.builder("ehcache_misses_total", stats, CacheStatistics::getCacheMisses)
+          .tags(cacheTags)
           .description(
-              "The number of times cache lookup methods did not find a requested entry in the cache")
+              "The total number of times cache lookup methods did not find a requested entry in the cache")
           .register(registry);
     }
 
@@ -295,7 +297,7 @@ public class EhCacheMetricsConfig {
      * @return A simplified name based on the first capitalized segment, or the original name if no
      *     capitalized segment is found.
      */
-    private String deriveMetricNamePart(String fullCacheName) {
+    private String deriveNamePart(String fullCacheName) {
       if (fullCacheName == null || fullCacheName.isEmpty()) {
         return "unknown";
       }
