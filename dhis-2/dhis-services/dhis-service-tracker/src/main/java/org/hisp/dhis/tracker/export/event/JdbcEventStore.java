@@ -39,6 +39,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.base.Strings;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -658,7 +659,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
               mapSqlParameterSource.addValue(
                   parameterKey,
                   isNumericTea
-                      ? Double.valueOf(filter.getSqlBindFilter())
+                      ? new BigDecimal(filter.getSqlBindFilter())
                       : StringUtils.lowerCase(filter.getSqlBindFilter()),
                   itemType);
               yield new StringBuilder()
@@ -1258,23 +1259,14 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
       final String dataValueValueSql = "ev.eventdatavalues #>> '{" + deUid + ", value}'";
 
-      selectBuilder
-          .append(", ")
-          .append(
-              de.getValueType().isNumeric()
-                  ? castToNumber(dataValueValueSql)
-                  : lower(dataValueValueSql))
-          .append(" as ")
-          .append(deUid);
+      String queryCol =
+          de.getValueType().isNumeric()
+              ? castToNumber(dataValueValueSql)
+              : lower(dataValueValueSql);
+      selectBuilder.append(", ").append(queryCol).append(" as ").append(deUid);
 
       for (QueryFilter filter : filters) {
         ++filterCount;
-
-        final String queryCol =
-            de.getValueType().isNumeric()
-                ? castToNumber(dataValueValueSql)
-                : lower(dataValueValueSql);
-
         String bindParameter = "parameter_" + filterCount;
 
         eventDataValuesWhereSql.append(hlp.whereAnd());
@@ -1290,7 +1282,11 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           eventDataValuesWhereSql.append(inCondition(filter, bindParameter, queryCol));
         } else {
           mapSqlParameterSource.addValue(
-              bindParameter, StringUtils.lowerCase(filter.getSqlBindFilter()), itemValueType);
+              bindParameter,
+              de.getValueType().isNumeric()
+                  ? new BigDecimal(filter.getSqlBindFilter())
+                  : StringUtils.lowerCase(filter.getSqlBindFilter()),
+              itemValueType);
 
           eventDataValuesWhereSql
               .append(" ")
