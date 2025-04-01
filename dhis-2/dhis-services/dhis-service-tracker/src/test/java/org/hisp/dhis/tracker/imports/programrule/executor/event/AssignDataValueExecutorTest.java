@@ -32,6 +32,8 @@ import static org.hisp.dhis.tracker.imports.programrule.IssueType.WARNING;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -42,6 +44,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
@@ -103,6 +106,7 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
   @Mock private TrackerPreheat preheat;
 
   @Mock private SystemSettingManager systemSettingManager;
+  @Mock private OptionService optionService;
 
   @BeforeEach
   void setUpTest() {
@@ -154,6 +158,7 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             systemSettingManager,
+            optionService,
             "",
             INVALID_OPTION_VALUE,
             OPTION_SET_DATA_ELEMENT_ID,
@@ -171,6 +176,8 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
   @Test
   void shouldAssignDataValueWhenAssignedValueIsValidOptionAndDataValueIsEmpty() {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    when(optionService.existsAllOptions(any(), anyList())).thenReturn(true);
+
     Event eventWithOptionDataValue = getEventWithOptionSetDataValueWithValidValue();
     List<Event> events = List.of(eventWithOptionDataValue);
     bundle.setEvents(events);
@@ -178,6 +185,7 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             systemSettingManager,
+            optionService,
             "",
             VALID_OPTION_VALUE,
             OPTION_SET_DATA_ELEMENT_ID,
@@ -205,6 +213,7 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             systemSettingManager,
+            optionService,
             "",
             INVALID_OPTION_VALUE,
             OPTION_SET_DATA_ELEMENT_ID,
@@ -234,6 +243,7 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             systemSettingManager,
+            optionService,
             "",
             INVALID_OPTION_VALUE,
             OPTION_SET_DATA_ELEMENT_ID,
@@ -258,6 +268,7 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             systemSettingManager,
+            optionService,
             "",
             DATAELEMENT_NEW_VALUE,
             DATA_ELEMENT_ID,
@@ -280,6 +291,7 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             systemSettingManager,
+            optionService,
             "",
             DATAELEMENT_NEW_VALUE,
             DATA_ELEMENT_ID,
@@ -304,6 +316,7 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             systemSettingManager,
+            optionService,
             "",
             DATAELEMENT_NEW_VALUE,
             DATA_ELEMENT_ID,
@@ -325,6 +338,7 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             systemSettingManager,
+            optionService,
             "",
             DATAELEMENT_NEW_VALUE,
             DATA_ELEMENT_ID,
@@ -350,6 +364,7 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             systemSettingManager,
+            optionService,
             "",
             DATAELEMENT_NEW_VALUE,
             DATA_ELEMENT_ID,
