@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.tablereplication;
 
-import java.util.List;
 import org.hisp.dhis.db.model.Table;
 
 /**
@@ -38,9 +37,9 @@ import org.hisp.dhis.db.model.Table;
 public interface TableReplicationStore {
 
   /**
-   * Replicates the given transactional database tables in the analytics database.
+   * Replicates the given transactional database table in the analytics database.
    *
-   * @param tables the {@link Table} to replicate.
+   * @param table the {@link Table} to replicate.
    */
-  void replicateAnalyticsDatabaseTables(List<Table> tables);
+  void replicateAnalyticsDatabaseTable(Table table);
 }

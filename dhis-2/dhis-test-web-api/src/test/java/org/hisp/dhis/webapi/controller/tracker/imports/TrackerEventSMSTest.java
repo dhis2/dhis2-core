@@ -500,7 +500,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         POST(
                 "/sms/inbound",
                 format(
-                    """
+"""
 {
 "text": "%s",
 "originator": "%s"
@@ -570,7 +570,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         POST(
                 "/sms/inbound",
                 format(
-                    """
+"""
 {
 "text": "%s",
 "originator": "%s"
@@ -634,7 +634,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         POST(
                 "/sms/inbound",
                 format(
-                    """
+"""
 {
 "text": "visit a=hello",
 "originator": "%s"
@@ -701,7 +701,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         POST(
                 "/sms/inbound",
                 format(
-                    """
+"""
 {
 "text": "birth a=hello",
 "originator": "%s"
@@ -787,7 +787,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         POST(
                 "/sms/inbound",
                 format(
-                    """
+"""
 {
 "text": "birth a=hello",
 "originator": "%s"

@@ -30,7 +30,34 @@
 package org.hisp.dhis.program;
 
 import static org.hisp.dhis.parser.expression.ParserUtils.COMMON_EXPRESSION_ITEMS;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.AVG;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.A_BRACE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.COUNT;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_CONDITION;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_COUNT;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_COUNT_IF_CONDITION;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_COUNT_IF_VALUE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_DAYS_BETWEEN;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_HAS_VALUE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_MAX_VALUE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_MINUTES_BETWEEN;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_MIN_VALUE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_MONTHS_BETWEEN;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_OIZP;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_RELATIONSHIP_COUNT;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_WEEKS_BETWEEN;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_YEARS_BETWEEN;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_ZING;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_ZPVC;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.HASH_BRACE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MAX;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MIN;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PS_EVENTDATE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STAGE_OFFSET;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.SUM;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.VARIANCE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_BRACE;
 
 import com.google.common.collect.ImmutableMap;
 import lombok.Getter;

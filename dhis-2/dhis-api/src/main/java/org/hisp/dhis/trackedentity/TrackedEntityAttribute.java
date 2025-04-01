@@ -144,6 +144,7 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
     return optionSet != null;
   }
 
+  /** Indicates whether this attribute has a legend set. */
   @Override
   public boolean hasLegendSet() {
     return isNotEmpty(legendSets);

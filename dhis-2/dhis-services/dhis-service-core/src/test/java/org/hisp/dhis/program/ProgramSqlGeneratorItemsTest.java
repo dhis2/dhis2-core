@@ -91,9 +91,9 @@ class ProgramSqlGeneratorItemsTest extends TestBase {
 
   private Map<String, Constant> constantMap;
 
-  private Date startDate = getDate(2020, 1, 1);
+  private final Date startDate = getDate(2020, 1, 1);
 
-  private Date endDate = getDate(2020, 12, 31);
+  private final Date endDate = getDate(2020, 12, 31);
 
   @Mock private ProgramIndicatorService programIndicatorService;
 
@@ -215,13 +215,13 @@ class ProgramSqlGeneratorItemsTest extends TestBase {
   // -------------------------------------------------------------------------
 
   private String testNumeric(String expression) {
-    return castString(test(expression, new SqlLiteral(), ITEM_GET_SQL));
+    return castString(test(expression, new SqlLiteral(new PostgreSqlBuilder()), ITEM_GET_SQL));
   }
 
   private String test(String expression) {
     test(expression, new DefaultLiteral(), ITEM_GET_DESCRIPTIONS);
 
-    return castString(test(expression, new SqlLiteral(), ITEM_GET_SQL));
+    return castString(test(expression, new SqlLiteral(new PostgreSqlBuilder()), ITEM_GET_SQL));
   }
 
   private Object test(

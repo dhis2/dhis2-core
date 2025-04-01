@@ -276,7 +276,7 @@ class CsvEventServiceTest {
     }
 
     assertEquals(
-        """
+"""
 FRM97UKN8te,COMPLETED,programId,programStageId,PSeMWi7rBgb,orgUnitId,2020-02-26T23:01:00Z,2020-02-26T23:02:00Z,,,,false,false,2020-02-26T23:03:00Z,,2020-02-26T23:05:00Z,,admin,2020-02-26T23:07:00Z,,attributeOptionCombo,attributeCategoryOptions,,dataElement,value,admin,false,,2020-02-26T23:08:00Z,2020-02-26T23:09:00Z
 """,
         csvStream.toString(),
@@ -306,7 +306,7 @@ FRM97UKN8te,COMPLETED,programId,programStageId,PSeMWi7rBgb,orgUnitId,2020-02-26T
     }
 
     assertEquals(
-        """
+"""
 FRM97UKN8te,COMPLETED,programId,programStageId,PSeMWi7rBgb,orgUnitId,2020-02-26T23:01:00Z,2020-02-26T23:02:00Z,,,,false,false,2020-02-26T23:03:00Z,,2020-02-26T23:05:00Z,,admin,2020-02-26T23:07:00Z,,attributeOptionCombo,attributeCategoryOptions,,dataElement,value,admin,false,,2020-02-26T23:08:00Z,2020-02-26T23:09:00Z
 """,
         csvStream.toString(),
