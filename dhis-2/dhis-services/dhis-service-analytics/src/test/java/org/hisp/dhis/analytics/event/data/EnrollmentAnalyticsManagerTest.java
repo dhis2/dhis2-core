@@ -139,7 +139,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Captor private ArgumentCaptor<String> sql;
 
-  private final String DEFAULT_COLUMNS =
+  private static final String DEFAULT_COLUMNS =
       "enrollment,trackedentity,enrollmentdate,occurreddate,storedby,"
           + "createdbydisplayname"
           + ","
