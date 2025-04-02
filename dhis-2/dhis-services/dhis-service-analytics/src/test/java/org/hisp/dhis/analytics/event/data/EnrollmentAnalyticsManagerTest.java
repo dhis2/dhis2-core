@@ -98,6 +98,7 @@ import org.mockito.quality.Strictness;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 
 /**
  * @author Luciano Fiandesio
@@ -116,6 +117,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   @Mock private ProgramIndicatorService programIndicatorService;
 
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+
+  @Mock private SqlRowSetMetaData rowSetMetaData;
 
   @Spy
   private PostgreSqlAnalyticsSqlBuilder analyticsSqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
@@ -136,7 +139,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Captor private ArgumentCaptor<String> sql;
 
-  private String DEFAULT_COLUMNS =
+  private static final String DEFAULT_COLUMNS =
       "enrollment,trackedentity,enrollmentdate,occurreddate,storedby,"
           + "createdbydisplayname"
           + ","
@@ -151,6 +154,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     when(systemSettingsService.getCurrentSettings()).thenReturn(systemSettings);
     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
         new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService, systemSettingsService);
+    when(rowSet.getMetaData()).thenReturn(rowSetMetaData);
 
     subject =
         new JdbcEnrollmentAnalyticsManager(
