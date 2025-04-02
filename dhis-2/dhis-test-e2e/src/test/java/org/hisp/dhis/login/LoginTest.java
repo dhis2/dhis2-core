@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -273,6 +273,12 @@ public class LoginTest extends BaseE2ETest {
   }
 
   @Test
+  void testRedirectIcon() {
+    testRedirectAsUser(
+        "/api/icons/medicines_positive/icon.svg", "api/icons/medicines_positive/icon");
+  }
+
+  @Test
   void testJsonResponseForFailedLogin() {
     try {
       getWithWrongAuth("/me", Map.of());
@@ -480,6 +486,35 @@ public class LoginTest extends BaseE2ETest {
     ResponseEntity<String> redirResp =
         restTemplateNoRedirects.exchange(
             serverHostUrl + "dhis-web-dashboard", HttpMethod.GET, entity, String.class);
+    List<String> location = redirResp.getHeaders().get("Location");
+    assertNotNull(location);
+    assertEquals(1, location.size());
+    String actual = location.get(0);
+    assertEquals(redirectUrl, actual.replaceAll(serverHostUrl, ""));
+  }
+
+  public static void testRedirectAsUser(String url, String redirectUrl) {
+    // Disable auto-redirects
+    RestTemplate restTemplateNoRedirects = getRestTemplateNoRedirects();
+
+    // Do a valid login
+    HttpHeaders cookieHeaders = jsonHeaders();
+    ResponseEntity<LoginResponse> secondResponse =
+        restTemplateNoRedirects.postForEntity(
+            serverApiUrl + LOGIN_API_PATH,
+            new HttpEntity<>(
+                LoginRequest.builder().username("admin").password("district").build(),
+                cookieHeaders),
+            LoginResponse.class);
+    String cookie = extractSessionCookie(secondResponse);
+
+    // Test the redirect
+    HttpHeaders headers = jsonHeaders();
+    headers.set("Cookie", cookie);
+    HttpEntity<String> entity = new HttpEntity<>(headers);
+    ResponseEntity<String> redirResp =
+        restTemplateNoRedirects.exchange(serverHostUrl + url, HttpMethod.GET, entity, String.class);
+
     List<String> location = redirResp.getHeaders().get("Location");
     assertNotNull(location);
     assertEquals(1, location.size());
