@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,22 +29,6 @@
  */
 package org.hisp.dhis.test.config;
 
-import javax.annotation.Nullable;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import java.util.Properties;
 
-/**
- * Use this Spring configuration for tests relying on the Postgres DB running in a Docker container.
- *
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
- */
-@Configuration
-public class PostgresTestConfig {
-
-  @Bean
-  public DhisConfigurationProvider dhisConfigurationProvider(
-      @Nullable PostgresTestConfigOverride overrides) {
-    return new PostgresDhisConfigurationProvider(overrides);
-  }
-}
+public class PostgresTestConfigOverride extends Properties {}

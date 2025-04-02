@@ -31,6 +31,7 @@ package org.hisp.dhis.test.config;
 
 import java.util.Map;
 import java.util.Properties;
+import javax.annotation.CheckForNull;
 import org.springframework.core.io.ClassPathResource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
@@ -108,10 +109,13 @@ public class PostgresDhisConfigurationProvider extends TestDhisConfigurationProv
     return resource.exists();
   }
 
-  public PostgresDhisConfigurationProvider() {
+  public PostgresDhisConfigurationProvider(@CheckForNull Properties overrides) {
     Properties dhisConfig = new Properties();
     dhisConfig.putAll(getPropertiesFromFile(DEFAULT_CONFIGURATION_FILE_NAME));
     dhisConfig.putAll(getConnectionProperties());
+
+    if (overrides != null) dhisConfig.putAll(overrides);
+
     this.properties = dhisConfig;
   }
 
