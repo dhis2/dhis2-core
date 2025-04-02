@@ -26,11 +26,10 @@
     </resources>
   </cache-template>
 
-  <!-- Hibernate Default Query Cache (mapped from old 'default-query-results-region') -->
-  <!-- Uses settings from defaultCacheTemplate -->
-<!--  <cache alias="default-query-cache" uses-template="defaultCacheTemplate">-->
-<!--    &lt;!&ndash; No overrides needed as it matches the old defaultCache settings &ndash;&gt;-->
-<!--  </cache>-->
+  <!--   Hibernate Default Query Cache -->
+  <cache alias="default-query-results-region" uses-template="defaultCacheTemplate">
+    <!-- No overrides needed as it matches the old defaultCache settings -->
+  </cache>
 
   <!-- Hibernate Default Entity Cache for Update Timestamps -->
   <cache alias="default-update-timestamps-region">
