@@ -65,6 +65,7 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
             .add("includeNumDen=true")
             .add("displayProperty=NAME")
             .add("skipMeta=false")
+            .add("relativePeriodDate=2025-03-01")
             .add(
                 "dimension=dx:eBAyeGv0exc.K6uUAvq500H.IwbX7Ubzu57;eBAyeGv0exc.K6uUAvq500H.Fg4hq7La1MN;eBAyeGv0exc.K6uUAvq500H.UYhscH2W06r;eBAyeGv0exc.K6uUAvq500H.rmYsyizWAJx,pe:LAST_12_MONTHS");
 
@@ -99,6 +100,7 @@ public class AnalyticsQueryDv16AutoTest extends AnalyticsApiTest {
             .add("includeNumDen=true")
             .add("displayProperty=SHORTNAME")
             .add("skipMeta=false")
+            .add("relativePeriodDate=2025-03-01")
             .add(
                 "dimension=dx:qDkgAbB5Jlk.XCMLePzaZiL.vak9GKjzzAP;qDkgAbB5Jlk.XCMLePzaZiL.zPVS0EAEwia,pe:LAST_12_MONTHS");
 
