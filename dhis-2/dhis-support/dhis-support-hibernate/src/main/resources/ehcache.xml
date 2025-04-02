@@ -18,11 +18,11 @@
     <expiry>
       <!-- Time-to-live: 6 hours (Chosen as primary expiry from old config) -->
       <!-- TTI (Time-to-idle) was also 6 hours, but only one can be specified directly here. -->
-      <ttl unit="seconds">9999</ttl>
+      <ttl unit="seconds">21600</ttl>
     </expiry>
     <resources>
       <!-- Max 1,000,000 entries on heap -->
-      <heap unit="entries">777777</heap>
+      <heap unit="entries">1000000</heap>
     </resources>
   </cache-template>
 
