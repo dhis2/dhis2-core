@@ -63,6 +63,8 @@ class HibernateQueryCacheTest extends PostgresIntegrationTestBase {
     public PostgresTestConfigOverride postgresTestConfigOverride() {
       PostgresTestConfigOverride override = new PostgresTestConfigOverride();
       override.put(AvailableSettings.USE_QUERY_CACHE, "true");
+      override.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "true");
+      override.put("cache.ehcache.config.file", "");
       return override;
     }
   }
