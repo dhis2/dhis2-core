@@ -166,13 +166,15 @@ public class HibernateConfig {
     if ("true".equals(dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE))) {
       properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "true");
       properties.put(AvailableSettings.CACHE_REGION_FACTORY, JCacheRegionFactory.class.getName());
-      properties.put(AvailableSettings.USE_QUERY_CACHE, dhisConfig.getProperty(USE_QUERY_CACHE));
+
       properties.put(
           ConfigSettings.MISSING_CACHE_STRATEGY,
           MissingCacheStrategy.CREATE.getExternalRepresentation());
       // Specify the location of the Ehcache 3 configuration file
       properties.put(ConfigSettings.CONFIG_URI, "classpath:ehcache.xml");
     }
+
+    properties.put(AvailableSettings.USE_QUERY_CACHE, dhisConfig.getProperty(USE_QUERY_CACHE));
 
     properties.put(AvailableSettings.HBM2DDL_AUTO, Action.VALIDATE.getExternalHbm2ddlName());
 
