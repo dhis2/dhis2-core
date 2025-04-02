@@ -57,7 +57,7 @@ services:
       - doris-be-storage:/opt/apache-doris/be/storage
       - doris-be-log:/opt/apache-doris/be/log
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:8040/api/health"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8040/api/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
