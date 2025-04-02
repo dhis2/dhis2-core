@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -38,18 +38,17 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 /**
- * This class is a custom implementation of the RequestMappingHandlerMapping class. It is used to
- * handle the versioning of the API endpoints. The class overrides the getMappingForMethod method to
- * add the versioning to the API endpoints.
- *
- * <p>During startup of the application, the Spring framework will create a
- * RequestMappingHandlerMapping bean. This bean is responsible for mapping the request to the
- * appropriate controller method. By creating a custom implementation of the
- * RequestMappingHandlerMapping class, we can add the versioning to the API endpoints.
- *
- * <p>
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * This class used to create ~50k API mappings for all versions of the App for each controller
+ * method e.g. <br>
+ * <code>/api/39/icons</code> <br>
+ * <code>/api/39/icons/{key}</code> <br>
+ * <code>/api/40/icons</code> <br>
+ * <code>/api/40/icons/{key}</code> <br>
+ * <br>
+ * It now provides a mapping for any endpoint starting with `/api/`, allowing any version from 28 to
+ * 43. It also still allows the endpoint without any version e.g. <br>
+ * <code>/api/icons/{key}</code> <br>
+ * which is what we want clients to use exclusively in the future.
  */
 public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMapping {
   @Override
@@ -60,10 +59,14 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
       return null;
     }
 
-    List<String> list =
-        info.getPatternValues().stream()
-            .map(s -> s.replace("/api/", "/api/{apiVersion:^[2][8-9]?|^[3][0-9]?|^[4][0-3]$}/"))
-            .toList();
+    // allow API calls with versions 28-43 in the path e.g. `/api/42/icons`
+    List<String> versionedApiEndpoints =
+        new java.util.ArrayList<>(
+            info.getPatternValues().stream()
+                .map(pv -> pv.replace("/api/", "/api/{apiVersion:^[2][8-9]|^[3][0-9]|^[4][0-3]$}/"))
+                .toList());
+    // allow original API path with no version in it e.g. `/api/icons
+    versionedApiEndpoints.addAll(info.getPatternValues());
 
     RequestMethodsRequestCondition methodsCondition = info.getMethodsCondition();
 
@@ -72,7 +75,8 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
     }
 
     PatternsRequestCondition patternsRequestCondition =
-        new PatternsRequestCondition(list.toArray(new String[] {}), null, null, true, true, null);
+        new PatternsRequestCondition(
+            versionedApiEndpoints.toArray(new String[] {}), null, null, true, true, null);
     return new RequestMappingInfo(
         null,
         patternsRequestCondition,
