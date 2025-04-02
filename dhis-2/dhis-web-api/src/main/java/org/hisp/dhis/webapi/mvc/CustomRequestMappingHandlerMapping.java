@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -30,12 +30,7 @@
 package org.hisp.dhis.webapi.mvc;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.core.annotation.AnnotationUtils;
+import java.util.List;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.condition.PatternsRequestCondition;
 import org.springframework.web.servlet.mvc.condition.RequestMethodsRequestCondition;
@@ -61,16 +56,14 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
   protected RequestMappingInfo getMappingForMethod(Method method, Class<?> handlerType) {
     RequestMappingInfo info = super.getMappingForMethod(method, handlerType);
 
-    if (info == null) {
+    if (info == null || info.getPatternValues().stream().noneMatch(s -> s.startsWith("/api/"))) {
       return null;
     }
 
-    ApiVersion typeApiVersion = AnnotationUtils.findAnnotation(handlerType, ApiVersion.class);
-    ApiVersion methodApiVersion = AnnotationUtils.findAnnotation(method, ApiVersion.class);
-
-    if (typeApiVersion == null && methodApiVersion == null) {
-      return info;
-    }
+    List<String> list =
+        info.getPatternValues().stream()
+            .map(s -> s.replace("/api/", "/api/{apiVersion:^[2][8-9]?|^[3][0-9]?|^[4][0-3]$}/"))
+            .toList();
 
     RequestMethodsRequestCondition methodsCondition = info.getMethodsCondition();
 
@@ -78,21 +71,8 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
       methodsCondition = new RequestMethodsRequestCondition(RequestMethod.GET);
     }
 
-    Set<String> rqmPatterns = info.getPatternsCondition().getPatterns();
-    Set<String> allPaths = new HashSet<>();
-
-    Set<DhisApiVersion> versions = getVersions(typeApiVersion, methodApiVersion);
-
-    for (String path : rqmPatterns) {
-      versions.stream()
-          .filter(version -> !version.isIgnore())
-          .forEach(version -> addVersionedPath(version, path, allPaths));
-    }
-
     PatternsRequestCondition patternsRequestCondition =
-        new PatternsRequestCondition(
-            allPaths.toArray(new String[] {}), null, null, true, true, null);
-
+        new PatternsRequestCondition(list.toArray(new String[] {}), null, null, true, true, null);
     return new RequestMappingInfo(
         null,
         patternsRequestCondition,
@@ -102,55 +82,5 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
         info.getConsumesCondition(),
         info.getProducesCondition(),
         info.getCustomCondition());
-  }
-
-  private static void addVersionedPath(DhisApiVersion version, String path, Set<String> allPaths) {
-    // Normalize path to start with "/api/"
-    String normalizedPath = path.startsWith("/api/") ? path : path.replaceFirst("^api/", "/api/");
-
-    // Skip path that don't start with "/api/"
-    if (!normalizedPath.startsWith("/api/")) {
-      return;
-    }
-
-    // Check if the path corresponds directly to a versioned API endpoint
-    if (normalizedPath.startsWith("/api/" + version.getVersionString())) {
-      allPaths.add(normalizedPath);
-      return;
-    }
-
-    // Remove the leading "/api/" for further processing
-    String pathWithoutApi = normalizedPath.substring(5); // Skip "/api/"
-
-    // Add the versioned API path
-    allPaths.add("/api/" + version.getVersionString() + "/" + pathWithoutApi);
-  }
-
-  private Set<DhisApiVersion> getVersions(ApiVersion typeApiVersion, ApiVersion methodApiVersion) {
-    Set<DhisApiVersion> includes = new HashSet<>();
-    Set<DhisApiVersion> excludes = new HashSet<>();
-
-    if (typeApiVersion != null) {
-      includes.addAll(Arrays.asList(typeApiVersion.include()));
-      excludes.addAll(Arrays.asList(typeApiVersion.exclude()));
-    }
-
-    if (methodApiVersion != null) {
-      includes.addAll(Arrays.asList(methodApiVersion.include()));
-      excludes.addAll(Arrays.asList(methodApiVersion.exclude()));
-    }
-
-    if (includes.contains(DhisApiVersion.ALL)) {
-      boolean includeDefault = includes.contains(DhisApiVersion.DEFAULT);
-      includes = new HashSet<>(Arrays.asList(DhisApiVersion.values()));
-
-      if (!includeDefault) {
-        includes.remove(DhisApiVersion.DEFAULT);
-      }
-    }
-
-    includes.removeAll(excludes);
-
-    return includes;
   }
 }
