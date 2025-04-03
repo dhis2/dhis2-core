@@ -68,21 +68,21 @@ public class TrackedEntityRequestParams implements PageRequestParams, FieldsRequ
   static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!enrollments,!events,!programOwners";
 
   @OpenApi.Description(
-      """
+"""
 Get the given page.
 """)
   @OpenApi.Property(defaultValue = "1")
   private Integer page;
 
   @OpenApi.Description(
-      """
+"""
 Get given number of items per page.
 """)
   @OpenApi.Property(defaultValue = "50")
   private Integer pageSize;
 
   @OpenApi.Description(
-      """
+"""
 Get the total number of items and pages in the pager.
 
 **Only enable this if absolutely necessary as this is resource intensive.** Use the pagers
@@ -91,7 +91,7 @@ Get the total number of items and pages in the pager.
   private boolean totalPages = false;
 
   @OpenApi.Description(
-      """
+"""
 Get all items by specifying `paging=false`. Requests are paginated by default.
 
 **Be aware that the performance is directly related to the amount of data requested. Larger pages

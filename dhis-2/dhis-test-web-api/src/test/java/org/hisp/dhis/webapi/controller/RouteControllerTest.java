@@ -108,7 +108,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
           "http://localhost:*,https://stub");
 
       PostgresDhisConfigurationProvider postgresDhisConfigurationProvider =
-          new PostgresDhisConfigurationProvider();
+          new PostgresDhisConfigurationProvider(null);
       postgresDhisConfigurationProvider.addProperties(override);
       return postgresDhisConfigurationProvider;
     }

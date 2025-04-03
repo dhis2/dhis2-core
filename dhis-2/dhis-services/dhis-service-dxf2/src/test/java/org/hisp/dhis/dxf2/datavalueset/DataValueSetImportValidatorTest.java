@@ -73,6 +73,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -89,12 +90,8 @@ import org.junit.jupiter.api.Test;
  * @author Jan Bernitt
  */
 class DataValueSetImportValidatorTest {
+
   private AclService aclService;
-
-  private LockExceptionStore lockExceptionStore;
-
-  private DataApprovalService approvalService;
-
   private DataValueService dataValueService;
 
   private I18n i18n;
@@ -106,14 +103,15 @@ class DataValueSetImportValidatorTest {
   @BeforeEach
   void setUp() {
     aclService = mock(AclService.class);
-    lockExceptionStore = mock(LockExceptionStore.class);
-    approvalService = mock(DataApprovalService.class);
+    LockExceptionStore lockExceptionStore = mock(LockExceptionStore.class);
+    DataApprovalService approvalService = mock(DataApprovalService.class);
     dataValueService = mock(DataValueService.class);
+    OptionService optionService = mock(OptionService.class);
 
     i18n = mock(I18n.class);
     validator =
         new DataValueSetImportValidator(
-            aclService, lockExceptionStore, approvalService, dataValueService);
+            aclService, lockExceptionStore, approvalService, dataValueService, optionService);
     validator.init();
     setupUserCanWriteCategoryOptions(true);
     when(i18n.getString(anyString()))

@@ -27,17 +27,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.db.sql;
+package org.hisp.dhis.test.config;
 
-/**
- * Enumeration of time units.
- *
- * @author Lars Helge Overland
- */
-public enum DateUnit {
-  DAYS,
-  WEEKS,
-  MONTHS,
-  MINUTES,
-  YEARS
-}
+import java.util.Properties;
+
+public class PostgresTestConfigOverride extends Properties {}

@@ -54,14 +54,13 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 @Component
 class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
 
-  public EnrollmentTimeFieldSqlRenderer(@Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder) {
+  public EnrollmentTimeFieldSqlRenderer(SqlBuilder sqlBuilder) {
     super(sqlBuilder);
   }
 

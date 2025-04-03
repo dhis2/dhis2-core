@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.Getter;
 import org.apache.commons.collections4.SetUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -47,6 +49,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -457,18 +460,21 @@ class EventQueryParams {
     return this.dataElements;
   }
 
-  public EventQueryParams filterBy(TrackedEntityAttribute tea, QueryFilter filter) {
+  public EventQueryParams filterBy(
+      @Nonnull TrackedEntityAttribute tea, @Nonnull QueryFilter filter) {
+    validateNumericFilterValue(tea, filter);
     this.attributes.putIfAbsent(tea, new ArrayList<>());
     this.attributes.get(tea).add(filter);
     return this;
   }
 
-  public EventQueryParams filterBy(TrackedEntityAttribute tea) {
+  public EventQueryParams filterBy(@Nonnull TrackedEntityAttribute tea) {
     this.attributes.putIfAbsent(tea, new ArrayList<>());
     return this;
   }
 
-  public EventQueryParams filterBy(DataElement de, QueryFilter filter) {
+  public EventQueryParams filterBy(@Nonnull DataElement de, @Nonnull QueryFilter filter) {
+    validateNumericFilterValue(de, filter);
     this.dataElements.putIfAbsent(de, new ArrayList<>());
     this.dataElements.get(de).add(filter);
     this.hasDataElementFilter = true;
@@ -478,6 +484,32 @@ class EventQueryParams {
   public EventQueryParams filterBy(DataElement de) {
     this.dataElements.putIfAbsent(de, List.of(new QueryFilter(QueryOperator.NNULL)));
     return this;
+  }
+
+  /**
+   * Validates that a binary filter's value for a numeric value type is actually numeric.
+   *
+   * <p>Uses BigDecimal as we use <code>cast(column as numeric)</code> in the SQL query. BigDecimal
+   * matches PostgreSQL's numeric type behavior.
+   *
+   * @see <a href="https://www.postgresql.org/docs/current/datatype-numeric.html">PostgreSQL Numeric
+   *     Type</a>
+   */
+  private void validateNumericFilterValue(
+      ValueTypedDimensionalItemObject item, QueryFilter filter) {
+    if (!item.getValueType().isNumeric() || filter.getOperator().isUnary()) {
+      return;
+    }
+
+    try {
+      new BigDecimal(filter.getFilter());
+    } catch (NumberFormatException e) {
+      String name = item instanceof TrackedEntityAttribute ? "attribute" : "data element";
+      throw new IllegalArgumentException(
+          String.format(
+              "Filter for %s %s is invalid. The %s value type is numeric but the value `%s` is not.",
+              name, item.getUid(), name, filter.getFilter()));
+    }
   }
 
   public EventQueryParams setIncludeDeleted(boolean includeDeleted) {

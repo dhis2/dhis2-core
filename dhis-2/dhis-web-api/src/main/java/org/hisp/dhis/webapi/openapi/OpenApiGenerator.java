@@ -37,12 +37,12 @@ import static org.hisp.dhis.webapi.openapi.Api.Schema.Direction.OUT;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -122,13 +122,13 @@ public class OpenApiGenerator extends JsonGenerator {
   private final Api api;
   private final Info info;
   private final OpenApiGenerationParams params;
-  private final Map<String, List<Api.Endpoint>> endpointsByBaseOperationId = new HashMap<>();
+  private final Map<String, List<Api.Endpoint>> endpointsByBaseOperationId = new TreeMap<>();
 
   /**
    * Accumulates the schema references used during generation of the OpenAPI {@code paths} part.
    * This is later used to ensure no schema is added to the output that isn't actually referenced.
    */
-  private final Set<String> pathSchemaRefs = new HashSet<>();
+  private final Set<String> pathSchemaRefs = new TreeSet<>();
 
   private OpenApiGenerator(
       Api api,
@@ -592,7 +592,7 @@ public class OpenApiGenerator extends JsonGenerator {
     // in that set
     Set<String> expanded = new HashSet<>();
     // needs a copy as we modify the iterated collection in the forEach
-    Set.copyOf(pathSchemaRefs).forEach(name -> addPathSchemaRefs(name, expanded));
+    new TreeSet<>(pathSchemaRefs).forEach(name -> addPathSchemaRefs(name, expanded));
     // now remove those schemas that are not referenced
     api.getComponents().getSchemas().keySet().removeIf(name -> !pathSchemaRefs.contains(name));
   }
@@ -608,9 +608,13 @@ public class OpenApiGenerator extends JsonGenerator {
   private void addPathSchemaRefs(Api.Schema schema, Set<String> expanded) {
     if (schema.isShared()) {
       String name = schema.getSharedName().getValue();
-      addPathSchemaRefs(name, expanded);
-      if (expanded.contains(name)) return;
+      if (!expanded.contains(name)) {
+        pathSchemaRefs.add(name);
+        expanded.add(name);
+        schema.getProperties().forEach(p -> addPathSchemaRefs(p.getType(), expanded));
+      }
+    } else {
+      schema.getProperties().forEach(p -> addPathSchemaRefs(p.getType(), expanded));
     }
-    schema.getProperties().forEach(p -> addPathSchemaRefs(p.getType(), expanded));
   }
 }

@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.db.model.Database;
+import org.hisp.dhis.db.model.DateUnit;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 
@@ -367,6 +368,25 @@ public interface SqlBuilder {
    * @return a SQL fragment that calculates the base-10 logarithm of the given expression.
    */
   String log10(String expression);
+
+  /**
+   * Generates a SQL fragment that compute the standard deviation of the specified expression.
+   *
+   * @param expression a numeric expression or column name for which to compute the standard
+   *     deviation.
+   * @return a SQL fragment that calculates the standard deviation of the given expression.
+   */
+  String stddev(String expression);
+
+  /**
+   * Generates a SQL fragment that computes the variance of the specified expression. Variance
+   * measures how far a set of numbers are spread out from their average value. A higher variance
+   * indicates greater data dispersion.
+   *
+   * @param expression a numeric expression or column name for which to compute the variance.
+   * @return a SQL fragment that calculates the variance of the given expression.
+   */
+  String variance(String expression);
 
   /**
    * Returns a conditional statement.

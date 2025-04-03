@@ -65,4 +65,15 @@ public class RegexUtils {
 
     return set;
   }
+
+  /**
+   * Null safe pattern matcher test.
+   *
+   * @param pattern the {@link Pattern}.
+   * @param input the string input.
+   * @return true if matches, false if not.
+   */
+  public static boolean matches(Pattern pattern, String input) {
+    return input != null && pattern.matcher(input).matches();
+  }
 }

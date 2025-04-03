@@ -1,0 +1,48 @@
+{
+  "categoryCombos": [
+    {
+      "id": "CatComUid01",
+      "name": "cat combo 1",
+      "dataDimensionType": "DISAGGREGATION",
+      "categories": [
+        {
+          "id": "CatUid00001"
+        }
+      ]
+    },
+    {
+      "id": "CatComUid02",
+      "name": "cat combo 2",
+      "dataDimensionType": "DISAGGREGATION",
+      "categories": [
+        {
+          "id": "CatUid00002"
+        }
+      ]
+    }
+  ],
+  "categories": [
+    {
+      "id": "CatUid00001",
+      "name": "cat test 1",
+      "shortName": "test 1",
+      "dataDimensionType": "DISAGGREGATION",
+      "categoryCombos": [
+        {
+          "id": "CatComUid01"
+        }
+      ]
+    },
+    {
+      "id": "CatUid00002",
+      "name": "cat test 2",
+      "shortName": "test 2",
+      "dataDimensionType": "DISAGGREGATION",
+      "categoryCombos": [
+        {
+          "id": "CatComUid02"
+        }
+      ]
+    }
+  ]
+}

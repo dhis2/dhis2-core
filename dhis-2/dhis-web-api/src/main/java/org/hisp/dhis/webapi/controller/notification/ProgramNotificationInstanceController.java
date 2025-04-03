@@ -64,6 +64,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Zubair Asghar
  */
+@OpenApi.EntityType(ProgramNotificationInstance.class)
 @OpenApi.Document(
     entity = ProgramNotificationInstance.class,
     classifiers = {"team:tracker", "purpose:data"})

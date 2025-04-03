@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,28 +27,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.db.sql;
 
-import javax.sql.DataSource;
+public class ClickHouseAnalyticsSqlBuilder extends ClickHouseSqlBuilder
+    implements AnalyticsSqlBuilder {
 
-/** Factory interface for creating temporary analytics DataSources. */
-public interface AnalyticsDataSourceFactory {
+  @Override
+  public String getEventDataValues() {
+    return "ev.eventdatavalues";
+  }
 
-  /**
-   * Creates a temporary DataSource for analytics database initialization.
-   *
-   * @return A wrapper containing the DataSource that should be closed after use
-   */
-  TemporaryDataSourceWrapper createTemporaryAnalyticsDataSource();
-
-  /** Wrapper class that holds a DataSource and provides proper cleanup */
-  record TemporaryDataSourceWrapper(DataSource dataSource) implements AutoCloseable {
-
-    @Override
-    public void close() throws Exception {
-      if (dataSource instanceof AutoCloseable ds) {
-        ds.close();
-      }
-    }
+  @Override
+  public String renderTimestamp(String timestampAsString) {
+    return timestampAsString;
   }
 }

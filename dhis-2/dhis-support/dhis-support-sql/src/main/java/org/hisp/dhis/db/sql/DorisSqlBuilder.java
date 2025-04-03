@@ -38,11 +38,17 @@ import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Database;
+import org.hisp.dhis.db.model.DateUnit;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.TablePartition;
 import org.hisp.dhis.db.model.constraint.Nullable;
 
+/**
+ * Implementation of {@link SqlBuilder} for Apache Doris.
+ *
+ * @author Lars Helge Overland
+ */
 @RequiredArgsConstructor
 public class DorisSqlBuilder extends AbstractSqlBuilder {
 
@@ -120,12 +126,12 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String dataTypeTimestamp() {
-    return "datetime";
+    return "datetime(3)";
   }
 
   @Override
   public String dataTypeTimestampTz() {
-    return "datetime";
+    return "datetime(3)";
   }
 
   @Override
@@ -309,7 +315,15 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return String.format("log(%s, 10)", expression);
   }
 
-  // Statements
+  @Override
+  public String stddev(String expression) {
+    return String.format("stddev(%s)", expression);
+  }
+
+  @Override
+  public String variance(String expression) {
+    return String.format("variance(%s)", expression);
+  }
 
   @Override
   public String createTable(Table table) {

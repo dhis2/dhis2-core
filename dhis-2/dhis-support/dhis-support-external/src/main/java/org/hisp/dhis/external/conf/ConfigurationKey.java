@@ -742,7 +742,12 @@ public enum ConfigurationKey {
 
   /** Whether to generate a new JWT key if the keystore is missing. */
   OAUTH2_JWT_KEYSTORE_GENERATE_IF_MISSING(
-      "oauth2.server.jwt.keystore.generate-if-missing", "true", false);
+      "oauth2.server.jwt.keystore.generate-if-missing", "true", false),
+
+  /** Ehcache monitoring. (default: off) */
+  MONITORING_EHCACHE_ENABLED("monitoring.ehcache.enabled", Constants.OFF, false),
+
+  CACHE_EHCACHE_CONFIG_FILE("cache.ehcache.config.file", "classpath:ehcache.xml", false);
 
   private final String key;
 

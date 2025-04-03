@@ -104,7 +104,7 @@ public class MappingErrors {
     // values
     if (hasDefaultCategory) {
       result.append(
-          """
+"""
 
 
 Data linked to default category option (combo)s cannot be exported using\

@@ -30,22 +30,20 @@
 package org.hisp.dhis.webapi.openapi;
 
 import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.toCollection;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.EnumSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -131,19 +129,17 @@ public class Api {
   Components components = new Components();
 
   /**
-   * Note that this needs to use the {@link ConcurrentSkipListMap} as most other maps do not allow
-   * to be modified from within a callback that itself is adding an entry like {@link
-   * Map#computeIfAbsent(Object, Function)}. Here, while one {@link Schema} is resolved more {@link
-   * Schema} might be added.
+   * Note that this needs tu use a {@link Map} that allows to be modified while running a call
+   * {@link Map#computeIfAbsent(Object, Function)}. Here, while one {@link Schema} is resolved more
+   * {@link Schema} might be added.
    */
-  Map<Class<?>, Schema> schemas = new ConcurrentSkipListMap<>(comparing(Class::getName));
+  Map<Class<?>, Schema> schemas = newClassMap();
 
   /**
    * First level key is the {@link SchemaGenerator} type, second level is the {@link
    * Schema#getRawType()} of the generated {@link Schema}.
    */
-  Map<Class<?>, Map<Class<?>, Schema>> generatorSchemas =
-      new ConcurrentSkipListMap<>(comparing(Class::getName));
+  Map<Class<?>, Map<Class<?>, Schema>> generatorSchemas = newClassMap();
 
   @Data
   @NoArgsConstructor
@@ -181,13 +177,13 @@ public class Api {
   @Value
   static class Components {
     /** Only the shared schemas of the API by their unique name */
-    Map<String, Schema> schemas = new LinkedHashMap<>();
+    Map<String, Schema> schemas = new TreeMap<>();
 
     /**
      * Shared parameters originating from parameter object classes. These are reused purely for sake
      * of removing duplication from the resulting OpenAPI document.
      */
-    Map<Class<?>, List<Parameter>> parameters = new ConcurrentHashMap<>();
+    Map<Class<?>, List<Parameter>> parameters = newClassMap();
   }
 
   @Value
@@ -233,7 +229,7 @@ public class Api {
 
     @EqualsAndHashCode.Include Set<RequestMethod> methods = EnumSet.noneOf(RequestMethod.class);
 
-    @EqualsAndHashCode.Include Set<String> paths = new LinkedHashSet<>();
+    @EqualsAndHashCode.Include Set<String> paths = new TreeSet<>();
 
     Maybe<RequestBody> requestBody = new Maybe<>();
 
@@ -362,12 +358,17 @@ public class Api {
 
   @Value
   @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-  static class Header {
+  static class Header implements Comparable<Header> {
     @EqualsAndHashCode.Include String name;
 
     String description;
 
     Schema type;
+
+    @Override
+    public int compareTo(@Nonnull Header other) {
+      return name.compareTo(other.name);
+    }
   }
 
   @Value
@@ -438,7 +439,11 @@ public class Api {
   public static class Schema {
 
     public static Schema ofAny(java.lang.reflect.Type source) {
-      if (source != Object.class) log.warn("OpenAPI failed to analyse the type: " + source);
+      if (source == OpenApi.EntityType.class) {
+        log.warn("OpenAPI substitute is undefined for: " + source);
+      } else if (source != Object.class
+          && !(source instanceof WildcardType wt && "?".equals(wt.toString())))
+        log.warn("OpenAPI failed to analyse the type: " + source);
       return new Schema(Type.ANY, source, Object.class, null).asSingleton();
     }
 
@@ -584,7 +589,7 @@ public class Api {
       return getProperties().stream()
           .filter(property -> Boolean.TRUE.equals(property.getRequired()))
           .map(Property::getName)
-          .collect(toSet());
+          .collect(toCollection(TreeSet::new));
     }
 
     Schema getElementType() {
@@ -633,5 +638,10 @@ public class Api {
     Api.Schema sealed() {
       return properties.stream().allMatch(p -> p.type.isSingleton()) ? asSingleton() : this;
     }
+  }
+
+  @Nonnull
+  private static <T> TreeMap<Class<?>, T> newClassMap() {
+    return new TreeMap<>(comparing(Class::getName));
   }
 }
