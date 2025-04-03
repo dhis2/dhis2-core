@@ -37,7 +37,6 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.rules.models.RuleAction;
@@ -61,7 +60,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 class RuleActionEventMapper {
   private final SystemSettingManager systemSettingManager;
-  private final OptionService optionService;
 
   public Map<Event, List<RuleActionExecutor<Event>>> mapRuleEffects(
       List<RuleEffects> ruleEffects, TrackerBundle bundle) {
@@ -99,7 +97,7 @@ class RuleActionEventMapper {
       String ruleId, String data, RuleAction ruleAction, Set<DataValue> dataValues) {
     if (ruleAction.getType().equals(ProgramRuleActionType.ASSIGN.name())) {
       return new AssignDataValueExecutor(
-          systemSettingManager, optionService, ruleId, data, ruleAction.field(), dataValues);
+          systemSettingManager, ruleId, data, ruleAction.field(), dataValues);
     }
     if (ruleAction.getType().equals(ProgramRuleActionType.SETMANDATORYFIELD.name())) {
       return new SetMandatoryFieldExecutor(ruleId, ruleAction.field());
