@@ -50,8 +50,7 @@ services:
       doris-fe:
         condition: service_healthy
     volumes:
-      - ./docker/doris/postgresql.jar:/opt/apache-doris/be/jdbc_drivers/postgresql.jar:ro
-      - ./docker/doris/postgresql-42.7.5.jar:/opt/apache-doris/be/jdbc_drivers/postgresql-42.7.5.jar:ro
+      - ./docker/doris/postgresql-42.7.5.jar:/opt/apache-doris/fe/jdbc_drivers/postgresql.jar:ro
       - ./docker/doris/create-doris-database.sql:/docker-entrypoint-initdb.d/create-doris-database.sql:ro
       - doris-be-storage:/opt/apache-doris/be/storage
       - doris-be-log:/opt/apache-doris/be/log
