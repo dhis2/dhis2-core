@@ -41,6 +41,7 @@ import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramIndicator;
@@ -73,8 +74,7 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
-import org.hisp.dhis.db.sql.PostgreSqlBuilder;
-import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -98,6 +98,7 @@ import org.mockito.quality.Strictness;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 
 /**
  * @author Luciano Fiandesio
@@ -113,12 +114,11 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private SqlRowSet rowSet;
 
+  @Mock private SqlRowSetMetaData rowSetMetaData;
+
   @Mock private ProgramIndicatorService programIndicatorService;
 
-  @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
-
-  @Spy
-  private PostgreSqlAnalyticsSqlBuilder analyticsSqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
+  @Spy private PostgreSqlAnalyticsSqlBuilder sqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
 
   @Mock private SystemSettingsService systemSettingsService;
 
@@ -134,9 +134,11 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Spy private SystemSettings systemSettings;
 
+  @Mock private DefaultDhisConfigurationProvider config;
+
   @Captor private ArgumentCaptor<String> sql;
 
-  private String DEFAULT_COLUMNS =
+  private static final String DEFAULT_COLUMNS =
       "enrollment,trackedentity,enrollmentdate,occurreddate,storedby,"
           + "createdbydisplayname"
           + ","
@@ -149,8 +151,10 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   void setUp() {
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
     when(systemSettingsService.getCurrentSettings()).thenReturn(systemSettings);
+    when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
         new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService, systemSettingsService);
+    when(rowSet.getMetaData()).thenReturn(rowSetMetaData);
 
     subject =
         new JdbcEnrollmentAnalyticsManager(
@@ -162,8 +166,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             enrollmentTimeFieldSqlRenderer,
             executionPlanStore,
             systemSettingsService,
+            config,
             sqlBuilder,
-            analyticsSqlBuilder,
             organisationUnitResolver);
   }
 

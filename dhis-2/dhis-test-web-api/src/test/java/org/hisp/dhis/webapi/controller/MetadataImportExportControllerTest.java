@@ -517,7 +517,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
   void testDeleteWithException() {
     POST(
             "/metadata",
-            """
+"""
 {'optionSets':
     [{'name': 'Device category','id': 'RHqFlB1Wm4d','version': 2,'valueType': 'TEXT'}]
 ,'dataElements':

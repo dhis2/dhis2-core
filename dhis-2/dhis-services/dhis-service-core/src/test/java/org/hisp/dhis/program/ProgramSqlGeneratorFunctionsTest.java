@@ -106,9 +106,9 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
 
   private RelationshipType relTypeA;
 
-  private Date startDate = getDate(2020, 1, 1);
+  private final Date startDate = getDate(2020, 1, 1);
 
-  private Date endDate = getDate(2020, 12, 31);
+  private final Date endDate = getDate(2020, 12, 31);
 
   @Mock private IdentifiableObjectManager idObjectManager;
 
@@ -773,7 +773,8 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
   private String test(String expression, DataType dataType) {
     test(expression, new DefaultLiteral(), ITEM_GET_DESCRIPTIONS, dataType);
 
-    return castString(test(expression, new SqlLiteral(), ITEM_GET_SQL, dataType));
+    return castString(
+        test(expression, new SqlLiteral(new PostgreSqlBuilder()), ITEM_GET_SQL, dataType));
   }
 
   private Object test(

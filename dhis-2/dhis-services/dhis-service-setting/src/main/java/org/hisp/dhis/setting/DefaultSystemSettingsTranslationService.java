@@ -37,7 +37,6 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.datastore.DatastoreEntry;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
 import org.hisp.dhis.datastore.DatastoreService;
@@ -56,7 +55,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Jan Bernitt
  * @since 2.42
  */
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DefaultSystemSettingsTranslationService implements SystemSettingsTranslationService {

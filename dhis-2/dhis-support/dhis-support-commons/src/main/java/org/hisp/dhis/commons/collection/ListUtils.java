@@ -330,10 +330,11 @@ public class ListUtils {
   }
 
   /**
-   * Creates a new mutable list based on the given items.
+   * Creates a new mutable list based on the given items. Null values are accepted.
    *
-   * @param items the items.
-   * @return a list.
+   * @param <T>
+   * @param items the varargs items.
+   * @return a {@link List}.
    */
   @SafeVarargs
   public static <T> List<T> of(T... items) {
