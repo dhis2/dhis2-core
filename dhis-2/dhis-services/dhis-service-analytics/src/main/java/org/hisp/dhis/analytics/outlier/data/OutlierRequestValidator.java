@@ -57,6 +57,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 @AllArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class OutlierRequestValidator {
 
   public static final int DEFAULT_LIMIT = 500;
@@ -69,7 +70,6 @@ public class OutlierRequestValidator {
    * @param request the {@link OutlierRequest}.
    * @throws IllegalQueryException if request is invalid.
    */
-  @Transactional(readOnly = true)
   public void validate(OutlierRequest request, boolean isAnalytics) throws IllegalQueryException {
     ErrorMessage errorMessage = validateForErrorMessage(request, isAnalytics);
 

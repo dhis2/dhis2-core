@@ -46,6 +46,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @Component
+@Transactional(readOnly = true)
 public class OutliersCache {
   private final AnalyticsCacheSettings analyticsCacheSettings;
 
@@ -78,7 +79,6 @@ public class OutliersCache {
    * @return the cached or fetched list of {@link Outlier}.
    * @throws NullPointerException if any argument is null.
    */
-  @Transactional(readOnly = true)
   public List<Outlier> getOrFetch(
       OutlierRequest params, Function<OutlierRequest, List<Outlier>> function) {
     Optional<List<Outlier>> cachedOutliers = get(params.getQueryKey());

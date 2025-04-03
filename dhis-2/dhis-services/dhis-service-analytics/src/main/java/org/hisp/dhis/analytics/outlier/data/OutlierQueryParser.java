@@ -61,6 +61,7 @@ import org.springframework.transaction.annotation.Transactional;
 /** Parse and transform the incoming query params into the OutlierDetectionRequest. */
 @Component
 @AllArgsConstructor
+@Transactional(readOnly = true)
 public class OutlierQueryParser {
   private final IdentifiableObjectManager idObjectManager;
   private final DimensionalObjectProvider dimensionalObjectProducer;
@@ -72,7 +73,6 @@ public class OutlierQueryParser {
    * @param queryParams the {@link OutlierQueryParams}.
    * @return a {@link OutlierRequest}.
    */
-  @Transactional(readOnly = true)
   public OutlierRequest getFromQuery(OutlierQueryParams queryParams, boolean analyzeOnly) {
     List<DataDimension> dimensions = getDataDimensions(queryParams);
 

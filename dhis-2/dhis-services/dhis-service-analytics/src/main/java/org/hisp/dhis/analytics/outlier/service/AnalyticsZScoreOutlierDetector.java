@@ -65,6 +65,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Repository
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AnalyticsZScoreOutlierDetector {
   private final NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -79,7 +80,6 @@ public class AnalyticsZScoreOutlierDetector {
    * @param request the {@link OutlierRequest}.
    * @return list of the {@link Outlier} instances for api response.
    */
-  @Transactional(readOnly = true)
   public List<Outlier> getOutliers(OutlierRequest request) {
     String sql = sqlStatementProcessor.getSqlStatement(request);
     SqlParameterSource params = sqlStatementProcessor.getSqlParameterSource(request);

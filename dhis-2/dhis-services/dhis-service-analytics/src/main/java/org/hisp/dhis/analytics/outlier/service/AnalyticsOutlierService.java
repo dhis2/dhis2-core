@@ -93,6 +93,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @AllArgsConstructor
 @Service
+@Transactional(readOnly = true)
 public class AnalyticsOutlierService {
 
   private final AnalyticsZScoreOutlierDetector zScoreOutlierDetector;
@@ -115,7 +116,6 @@ public class AnalyticsOutlierService {
    * @param request the {@link OutlierRequest}.
    * @return the {@link Grid}.
    */
-  @Transactional(readOnly = true)
   public Grid getOutliers(OutlierRequest request) throws IllegalQueryException {
     List<Outlier> outliers =
         outliersCache.getOrFetch(request, p -> zScoreOutlierDetector.getOutliers(request));

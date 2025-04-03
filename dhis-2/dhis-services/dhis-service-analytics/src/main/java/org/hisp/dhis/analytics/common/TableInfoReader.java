@@ -49,6 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component
 @AllArgsConstructor
+@Transactional(readOnly = true)
 public class TableInfoReader {
 
   @Qualifier("analyticsJdbcTemplate")
@@ -61,7 +62,6 @@ public class TableInfoReader {
    * @return the populated {@link TableInfo} object.
    * @throws IllegalArgumentException if the argument 'tableName' is null or blank.
    */
-  @Transactional(readOnly = true)
   public TableInfo getInfo(@Nonnull String tableName) {
     hasText(tableName, "Param 'tableName' cannot be null/blank");
 

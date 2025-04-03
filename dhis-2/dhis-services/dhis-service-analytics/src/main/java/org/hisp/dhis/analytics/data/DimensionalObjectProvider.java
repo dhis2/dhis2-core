@@ -119,6 +119,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class DimensionalObjectProvider {
   private final IdentifiableObjectManager idObjectManager;
 
@@ -191,7 +192,6 @@ public class DimensionalObjectProvider {
    * @param relativePeriodDate date that relative periods will be generated based on.
    * @return a period based instance of {@link BaseDimensionalObject}.
    */
-  @Transactional(readOnly = true)
   public BaseDimensionalObject getPeriodDimension(List<String> items, Date relativePeriodDate) {
     List<Period> periods = new ArrayList<>();
     DimensionItemKeywords dimensionalKeywords = new DimensionItemKeywords();
