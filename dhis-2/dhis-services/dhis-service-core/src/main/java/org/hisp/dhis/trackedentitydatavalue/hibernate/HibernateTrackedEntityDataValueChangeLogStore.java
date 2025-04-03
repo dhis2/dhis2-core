@@ -64,7 +64,7 @@ public class HibernateTrackedEntityDataValueChangeLogStore
   // Dependencies
   // -------------------------------------------------------------------------
 
-  private EntityManager entityManager;
+  private final EntityManager entityManager;
 
   public HibernateTrackedEntityDataValueChangeLogStore(EntityManager entityManager) {
     this.entityManager = entityManager;
@@ -77,7 +77,9 @@ public class HibernateTrackedEntityDataValueChangeLogStore
   @Override
   public void addTrackedEntityDataValueChangeLog(
       TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog) {
-    entityManager.unwrap(Session.class).save(trackedEntityDataValueChangeLog);
+    try (Session session = entityManager.unwrap(Session.class)) {
+      session.save(trackedEntityDataValueChangeLog);
+    }
   }
 
   @Override

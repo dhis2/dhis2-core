@@ -200,9 +200,11 @@ public class EventPersister
           EventDataValue eventDataValue = dataValueDBMap.get(dataElement.getUid());
 
           ValuesHolder valuesHolder = getAuditAndDateParameters(eventDataValue, dv);
+          if (valuesHolder.getChangeLogType() == null) {
+            return;
+          }
 
           eventDataValue = valuesHolder.getEventDataValue();
-
           eventDataValue.setDataElement(dataElement.getUid());
           eventDataValue.setStoredBy(dv.getStoredBy());
 
@@ -265,16 +267,17 @@ public class EventPersister
   }
 
   private boolean isNewDataValue(EventDataValue eventDataValue, DataValue dv) {
-    return eventDataValue == null
-        || (eventDataValue.getCreated() == null && StringUtils.isNotBlank(dv.getValue()));
+    return StringUtils.isNotBlank(dv.getValue()) && eventDataValue == null;
   }
 
   private boolean isDeletion(EventDataValue eventDataValue, DataValue dv) {
-    return StringUtils.isNotBlank(eventDataValue.getValue()) && StringUtils.isBlank(dv.getValue());
+    return eventDataValue != null
+        && StringUtils.isNotBlank(eventDataValue.getValue())
+        && StringUtils.isBlank(dv.getValue());
   }
 
   private boolean isUpdate(EventDataValue eventDataValue, DataValue dv) {
-    return !StringUtils.equals(dv.getValue(), eventDataValue.getValue());
+    return eventDataValue != null && !StringUtils.equals(dv.getValue(), eventDataValue.getValue());
   }
 
   private ValuesHolder getAuditAndDateParameters(EventDataValue eventDataValue, DataValue dv) {
@@ -289,7 +292,7 @@ public class EventPersister
       persistedValue = dv.getValue();
       changeLogType = ChangeLogType.CREATE;
     } else {
-      persistedValue = eventDataValue.getValue();
+      persistedValue = eventDataValue != null ? eventDataValue.getValue() : null;
 
       if (isUpdate(eventDataValue, dv)) {
         changeLogType = ChangeLogType.UPDATE;
