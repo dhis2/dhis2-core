@@ -110,6 +110,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Component that focus on the production of dimensional objects of different types.
@@ -118,6 +119,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class DimensionalObjectProvider {
   private final IdentifiableObjectManager idObjectManager;
 

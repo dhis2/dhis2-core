@@ -89,9 +89,11 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @AllArgsConstructor
 @Service
+@Transactional(readOnly = true)
 public class AnalyticsOutlierService {
 
   private final AnalyticsZScoreOutlierDetector zScoreOutlierDetector;
@@ -201,6 +203,7 @@ public class AnalyticsOutlierService {
    * table. The 'sourceid' column serves as a reliable indicator for successful outliers export. Its
    * absence implies that the outliers were not exported.
    */
+  @Transactional(readOnly = true)
   public void checkAnalyticsTableForOutliers() {
     if (tableInfoReader.getInfo("analytics").getColumns().stream()
         .noneMatch("sourceid"::equalsIgnoreCase)) {

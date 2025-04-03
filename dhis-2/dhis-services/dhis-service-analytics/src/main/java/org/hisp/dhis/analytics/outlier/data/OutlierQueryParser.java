@@ -56,10 +56,12 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /** Parse and transform the incoming query params into the OutlierDetectionRequest. */
 @Component
 @AllArgsConstructor
+@Transactional(readOnly = true)
 public class OutlierQueryParser {
   private final IdentifiableObjectManager idObjectManager;
   private final DimensionalObjectProvider dimensionalObjectProducer;

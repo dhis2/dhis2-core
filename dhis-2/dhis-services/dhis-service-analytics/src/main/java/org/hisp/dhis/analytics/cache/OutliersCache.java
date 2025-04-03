@@ -38,6 +38,7 @@ import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This is a wrapper class responsible for keeping and isolating all cache definitions related to
@@ -45,6 +46,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
+@Transactional(readOnly = true)
 public class OutliersCache {
   private final AnalyticsCacheSettings analyticsCacheSettings;
 

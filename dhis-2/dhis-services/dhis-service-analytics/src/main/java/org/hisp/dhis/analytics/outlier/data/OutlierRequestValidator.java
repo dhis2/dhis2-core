@@ -51,11 +51,13 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /** OutlierDetectionRequest validator. */
 @Component
 @AllArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class OutlierRequestValidator {
 
   public static final int DEFAULT_LIMIT = 500;

@@ -39,6 +39,7 @@ import lombok.Data;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Component responsible for querying meta information related to DB tables, as well as providing
@@ -48,6 +49,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
+@Transactional(readOnly = true)
 public class TableInfoReader {
 
   @Qualifier("analyticsJdbcTemplate")
