@@ -31,12 +31,10 @@ import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.error;
 import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.warning;
 import static org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor.isEqual;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -54,7 +52,6 @@ import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 @RequiredArgsConstructor
 public class AssignDataValueExecutor implements RuleActionExecutor<Event> {
   private final SystemSettingManager systemSettingManager;
-  private final OptionService optionService;
 
   private final String ruleUid;
 
@@ -82,13 +79,6 @@ public class AssignDataValueExecutor implements RuleActionExecutor<Event> {
             .findAny()
             .orElse(null);
 
-    // Hopefully we will be able to remove this special case once rule engine will support
-    // optionSets
-    if (dataElement.isOptionSetValue()
-        && !optionService.existsAllOptions(dataElement.getOptionSet().getUid(), List.of(value))) {
-      return assignInvalidOptionDataElement(payloadDataValue, canOverwrite, event);
-    }
-
     if (payloadDataValue == null
         || Boolean.TRUE.equals(canOverwrite)
         || isEqual(value, payloadDataValue.getValue(), dataElement.getValueType())) {
@@ -96,20 +86,6 @@ public class AssignDataValueExecutor implements RuleActionExecutor<Event> {
       return Optional.of(warning(ruleUid, ValidationCode.E1308, dataElementUid, event.getEvent()));
     }
     return Optional.of(error(ruleUid, ValidationCode.E1307, dataElementUid, value));
-  }
-
-  private Optional<ProgramRuleIssue> assignInvalidOptionDataElement(
-      DataValue payloadDataValue, Boolean canOverwrite, Event event) {
-    if (payloadDataValue == null || payloadDataValue.getValue() == null) {
-      return Optional.of(warning(ruleUid, ValidationCode.E1308, dataElementUid, event.getEvent()));
-    }
-
-    if (Boolean.TRUE.equals(canOverwrite)) {
-      payloadDataValue.setValue(null);
-      return Optional.of(warning(ruleUid, ValidationCode.E1308, dataElementUid, event.getEvent()));
-    }
-
-    return Optional.of(error(ruleUid, ValidationCode.E1307, dataElementUid, ""));
   }
 
   private void addOrOverwriteDataValue(
