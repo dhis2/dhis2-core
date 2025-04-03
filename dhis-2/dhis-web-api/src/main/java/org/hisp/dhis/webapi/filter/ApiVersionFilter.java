@@ -27,26 +27,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.mvc.annotation;
+package org.hisp.dhis.webapi.filter;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.springframework.core.annotation.AliasFor;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author david mackessy
  */
-@Target({ElementType.TYPE, ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface ApiVersion {
-  @AliasFor("include")
-  DhisApiVersion[] value() default DhisApiVersion.ALL;
+@Component
+public class ApiVersionFilter implements Filter {
 
-  @AliasFor("value")
-  DhisApiVersion[] include() default DhisApiVersion.ALL;
+  @Override
+  public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+      throws IOException, ServletException {
+    // dispatch requests using an API version to endpoints without the version
+    // e.g. /api/42/icons -> /api/icons
 
-  DhisApiVersion[] exclude() default {};
+    HttpServletRequest req = (HttpServletRequest) request;
+
+    Pattern pattern =
+        Pattern.compile("^(?<api>/api/)(?<apiversion>2[8-9]|3\\d|4[0-3])/(?<endpoint>.*)");
+    Matcher matcher = pattern.matcher(req.getRequestURI());
+    while (matcher.find()) {
+      String api = matcher.group("api");
+      String apiVersion = matcher.group("apiversion");
+      String endpoint = matcher.group("endpoint");
+
+      if (api != null && apiVersion != null && endpoint != null) {
+        RequestDispatcher dispatcher = req.getRequestDispatcher(api + endpoint);
+        dispatcher.forward(request, response);
+        return;
+      }
+    }
+    chain.doFilter(request, response);
+  }
 }

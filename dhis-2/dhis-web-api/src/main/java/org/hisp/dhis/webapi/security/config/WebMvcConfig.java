@@ -47,8 +47,6 @@ import org.hisp.dhis.fieldfiltering.FieldPathConverter;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.webapi.mvc.CurrentSystemSettingsHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
-import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
-import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.SystemSettingsInterceptor;
@@ -169,14 +167,8 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     return new StandardServletMultipartResolver();
   }
 
-  @Bean
-  public DhisApiVersionHandlerMethodArgumentResolver dhisApiVersionHandlerMethodArgumentResolver() {
-    return new DhisApiVersionHandlerMethodArgumentResolver();
-  }
-
   @Override
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-    resolvers.add(dhisApiVersionHandlerMethodArgumentResolver());
     resolvers.add(currentUserHandlerMethodArgumentResolver);
     resolvers.add(currentSystemSettingsHandlerMethodArgumentResolver);
   }
@@ -257,7 +249,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
 
   @Override
   protected RequestMappingHandlerMapping createRequestMappingHandlerMapping() {
-    CustomRequestMappingHandlerMapping mapping = new CustomRequestMappingHandlerMapping();
+    RequestMappingHandlerMapping mapping = new RequestMappingHandlerMapping();
     mapping.setOrder(0);
     mapping.setContentNegotiationManager(mvcContentNegotiationManager());
     mapping.setUseTrailingSlashMatch(true);

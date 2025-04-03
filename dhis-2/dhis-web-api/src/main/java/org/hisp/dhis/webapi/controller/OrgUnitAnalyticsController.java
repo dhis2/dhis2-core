@@ -41,7 +41,6 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.grid.GridUtils;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -56,7 +55,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
     entity = DataValue.class,
     classifiers = {"team:analytics", "purpose:analytics"})
 @Controller
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class OrgUnitAnalyticsController {
   private static final String RESOURCE_PATH = "/api/orgUnitAnalytics";
 

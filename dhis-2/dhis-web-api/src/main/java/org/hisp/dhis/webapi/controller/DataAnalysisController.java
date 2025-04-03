@@ -48,7 +48,6 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.OpenApi;
@@ -93,7 +92,6 @@ import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.hisp.dhis.validation.ValidationService;
 import org.hisp.dhis.validation.comparator.ValidationResultComparator;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.ValidationResultView;
 import org.joda.time.DateTime;
@@ -116,7 +114,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
     classifiers = {"team:tracker", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/dataAnalysis")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @Slf4j
 @RequiresAuthority(anyOf = F_RUN_VALIDATION)
 public class DataAnalysisController {

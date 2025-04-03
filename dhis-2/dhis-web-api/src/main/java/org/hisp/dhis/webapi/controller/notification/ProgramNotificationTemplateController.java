@@ -32,7 +32,6 @@ package org.hisp.dhis.webapi.controller.notification;
 import static org.hisp.dhis.security.Authorities.ALL;
 
 import java.util.List;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -44,7 +43,6 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -57,7 +55,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @Controller
 @RequestMapping("/api/programNotificationTemplates")
-@ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
 public class ProgramNotificationTemplateController
     extends AbstractCrudController<ProgramNotificationTemplate, GetObjectListParams> {

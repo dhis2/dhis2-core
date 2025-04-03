@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.controller;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
@@ -46,7 +45,6 @@ import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -65,7 +63,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/aggregateDataExchanges")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class AggregateDataExchangeController
     extends AbstractCrudController<AggregateDataExchange, GetObjectListParams> {
   private final AggregateDataExchangeService service;

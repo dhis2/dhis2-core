@@ -141,6 +141,9 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
         .addFilter(
             "springSecurityFilterChain", new DelegatingFilterProxy("springSecurityFilterChain"))
         .addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
+    context
+        .addFilter("ApiVersionFilter", new DelegatingFilterProxy("apiVersionFilter"))
+        .addMappingForUrlPatterns(null, true, "/*");
 
     context
         .addFilter("RequestIdentifierFilter", new DelegatingFilterProxy("requestIdentifierFilter"))

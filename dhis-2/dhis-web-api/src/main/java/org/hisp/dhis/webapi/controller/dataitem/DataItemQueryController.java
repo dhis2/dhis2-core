@@ -31,8 +31,6 @@ package org.hisp.dhis.webapi.controller.dataitem;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.common.DhisApiVersion.ALL;
-import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.feedback.ErrorCode.E3012;
 import static org.hisp.dhis.node.NodeUtils.createMetadata;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.checkNamesAndOperators;
@@ -59,7 +57,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.http.ResponseEntity;
@@ -79,7 +76,6 @@ import org.springframework.web.bind.annotation.RestController;
     entity = DataItem.class,
     classifiers = {"team:analytics", "purpose:analytics"})
 @Slf4j
-@ApiVersion({DEFAULT, ALL})
 @RequiredArgsConstructor
 @RestController
 public class DataItemQueryController {

@@ -48,6 +48,7 @@ import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.IntegrationTestBase;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.filter.ApiVersionFilter;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -101,6 +102,8 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
 
   @Autowired private TransactionTemplate txTemplate;
 
+  @Autowired private ApiVersionFilter apiVersionFilter;
+
   @Getter private User currentUser;
 
   protected MockMvc mvc;
@@ -115,7 +118,10 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
   void setup() {
     renderService = _renderService;
 
-    mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+    mvc =
+        MockMvcBuilders.webAppContextSetup(webApplicationContext)
+            .addFilter(apiVersionFilter)
+            .build();
 
     switchContextToUser(getAdminUser());
     currentUser = getAdminUser();

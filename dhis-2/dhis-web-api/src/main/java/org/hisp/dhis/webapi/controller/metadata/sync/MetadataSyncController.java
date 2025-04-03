@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.controller.metadata.sync;
 
 import static org.hisp.dhis.security.Authorities.F_METADATA_MANAGE;
 
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
@@ -48,7 +47,6 @@ import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -67,7 +65,6 @@ import org.springframework.web.bind.annotation.RestController;
     classifiers = {"team:platform", "purpose:metadata"})
 @RestController
 @RequestMapping("/api/metadata/sync")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class MetadataSyncController {
   @Autowired private ContextService contextService;
 
