@@ -522,6 +522,8 @@ class DataElementControllerTest extends H2ControllerIntegrationTestBase {
         Arguments.of("/44/dataElements"),
         Arguments.of("/99/dataElements"),
         Arguments.of("/27/dataElements"),
+        Arguments.of("/333/dataElements"),
+        Arguments.of("/3/dataElements"),
         Arguments.of("/test/dataElements"));
   }
 }
