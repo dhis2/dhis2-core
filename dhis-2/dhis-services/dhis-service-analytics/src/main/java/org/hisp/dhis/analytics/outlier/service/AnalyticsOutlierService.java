@@ -89,6 +89,7 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @AllArgsConstructor
 @Service
@@ -114,6 +115,7 @@ public class AnalyticsOutlierService {
    * @param request the {@link OutlierRequest}.
    * @return the {@link Grid}.
    */
+  @Transactional(readOnly = true)
   public Grid getOutliers(OutlierRequest request) throws IllegalQueryException {
     List<Outlier> outliers =
         outliersCache.getOrFetch(request, p -> zScoreOutlierDetector.getOutliers(request));
@@ -201,6 +203,7 @@ public class AnalyticsOutlierService {
    * table. The 'sourceid' column serves as a reliable indicator for successful outliers export. Its
    * absence implies that the outliers were not exported.
    */
+  @Transactional(readOnly = true)
   public void checkAnalyticsTableForOutliers() {
     if (tableInfoReader.getInfo("analytics").getColumns().stream()
         .noneMatch("sourceid"::equalsIgnoreCase)) {

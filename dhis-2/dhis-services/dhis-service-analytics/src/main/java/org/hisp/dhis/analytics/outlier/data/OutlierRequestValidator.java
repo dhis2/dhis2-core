@@ -51,6 +51,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /** OutlierDetectionRequest validator. */
 @Component
@@ -68,6 +69,7 @@ public class OutlierRequestValidator {
    * @param request the {@link OutlierRequest}.
    * @throws IllegalQueryException if request is invalid.
    */
+  @Transactional(readOnly = true)
   public void validate(OutlierRequest request, boolean isAnalytics) throws IllegalQueryException {
     ErrorMessage errorMessage = validateForErrorMessage(request, isAnalytics);
 

@@ -38,6 +38,7 @@ import org.hisp.dhis.analytics.outlier.data.OutlierRequest;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This is a wrapper class responsible for keeping and isolating all cache definitions related to
@@ -77,6 +78,7 @@ public class OutliersCache {
    * @return the cached or fetched list of {@link Outlier}.
    * @throws NullPointerException if any argument is null.
    */
+  @Transactional(readOnly = true)
   public List<Outlier> getOrFetch(
       OutlierRequest params, Function<OutlierRequest, List<Outlier>> function) {
     Optional<List<Outlier>> cachedOutliers = get(params.getQueryKey());

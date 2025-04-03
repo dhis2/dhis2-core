@@ -110,6 +110,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Component that focus on the production of dimensional objects of different types.
@@ -190,6 +191,7 @@ public class DimensionalObjectProvider {
    * @param relativePeriodDate date that relative periods will be generated based on.
    * @return a period based instance of {@link BaseDimensionalObject}.
    */
+  @Transactional(readOnly = true)
   public BaseDimensionalObject getPeriodDimension(List<String> items, Date relativePeriodDate) {
     List<Period> periods = new ArrayList<>();
     DimensionItemKeywords dimensionalKeywords = new DimensionItemKeywords();

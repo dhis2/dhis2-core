@@ -56,6 +56,7 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /** Parse and transform the incoming query params into the OutlierDetectionRequest. */
 @Component
@@ -71,6 +72,7 @@ public class OutlierQueryParser {
    * @param queryParams the {@link OutlierQueryParams}.
    * @return a {@link OutlierRequest}.
    */
+  @Transactional(readOnly = true)
   public OutlierRequest getFromQuery(OutlierQueryParams queryParams, boolean analyzeOnly) {
     List<DataDimension> dimensions = getDataDimensions(queryParams);
 

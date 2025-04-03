@@ -52,6 +52,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Manager for database queries related to outlier data detection based on z-score and modified
@@ -78,6 +79,7 @@ public class AnalyticsZScoreOutlierDetector {
    * @param request the {@link OutlierRequest}.
    * @return list of the {@link Outlier} instances for api response.
    */
+  @Transactional(readOnly = true)
   public List<Outlier> getOutliers(OutlierRequest request) {
     String sql = sqlStatementProcessor.getSqlStatement(request);
     SqlParameterSource params = sqlStatementProcessor.getSqlParameterSource(request);

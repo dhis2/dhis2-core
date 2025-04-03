@@ -39,6 +39,7 @@ import lombok.Data;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Component responsible for querying meta information related to DB tables, as well as providing
@@ -60,6 +61,7 @@ public class TableInfoReader {
    * @return the populated {@link TableInfo} object.
    * @throws IllegalArgumentException if the argument 'tableName' is null or blank.
    */
+  @Transactional(readOnly = true)
   public TableInfo getInfo(@Nonnull String tableName) {
     hasText(tableName, "Param 'tableName' cannot be null/blank");
 
