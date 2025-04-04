@@ -2146,6 +2146,7 @@ jasperreports.version=${jasperreports.version}
               <ignoredUnusedDeclaredDependency>org.apache.activemq:artemis-jakarta-server</ignoredUnusedDeclaredDependency>
             </ignoredUnusedDeclaredDependencies>
             <ignoredUsedUndeclaredDependencies>
+              <ignoredUsedUndeclaredDependency>javax.cache:cache-api:jar</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.springframework.data:spring-data-redis:jar</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.flywaydb:flyway-core</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.antlr:antlr4-runtime</ignoredUsedUndeclaredDependency>
