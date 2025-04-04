@@ -35,17 +35,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.TypedQuery;
-import java.util.Properties;
 import org.hibernate.FlushMode;
 import org.hibernate.SessionFactory;
+import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.jpa.QueryHints;
+import org.hibernate.stat.Statistics;
 import org.hisp.dhis.cache.HibernateQueryCacheTest.DhisConfig;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.scheduling.HousekeepingJob;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.test.config.PostgresDhisConfigurationProvider;
+import org.hisp.dhis.test.config.PostgresTestConfigOverride;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,14 +60,12 @@ class HibernateQueryCacheTest extends PostgresIntegrationTestBase {
 
   static class DhisConfig {
     @Bean
-    public DhisConfigurationProvider dhisConfigurationProvider() {
-      Properties override = new Properties();
-      override.put("hibernate.cache.use_query_cache", "true");
-      override.put("hibernate.cache.use_second_level_cache", "true");
-      PostgresDhisConfigurationProvider postgresDhisConfigurationProvider =
-          new PostgresDhisConfigurationProvider();
-      postgresDhisConfigurationProvider.addProperties(override);
-      return postgresDhisConfigurationProvider;
+    public PostgresTestConfigOverride postgresTestConfigOverride() {
+      PostgresTestConfigOverride override = new PostgresTestConfigOverride();
+      override.put(AvailableSettings.USE_QUERY_CACHE, "true");
+      override.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "true");
+      override.put("cache.ehcache.config.file", "");
+      return override;
     }
   }
 
@@ -79,9 +77,7 @@ class HibernateQueryCacheTest extends PostgresIntegrationTestBase {
   @BeforeEach
   void setUp() {
     this.sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
-
     this.entityManager.setProperty(org.hibernate.annotations.QueryHints.FLUSH_MODE, FlushMode.AUTO);
-
     sessionFactory.getStatistics().setStatisticsEnabled(true);
     sessionFactory.getStatistics().clear();
   }
@@ -89,6 +85,18 @@ class HibernateQueryCacheTest extends PostgresIntegrationTestBase {
   @AfterEach
   public final void afterEach() {
     entityManager.close();
+  }
+
+  private void setUpData() {
+    OptionSet optionSet = new OptionSet();
+    optionSet.setAutoFields();
+    optionSet.setName("OptionSetA");
+    optionSet.setCode("OptionSetCodeA");
+    optionSet.setValueType(ValueType.TEXT);
+
+    entityManager.getTransaction().begin();
+    entityManager.persist(optionSet);
+    entityManager.getTransaction().commit();
   }
 
   @Test
@@ -103,8 +111,9 @@ class HibernateQueryCacheTest extends PostgresIntegrationTestBase {
       entityManager.getTransaction().commit();
     }
 
-    assertEquals(1, sessionFactory.getStatistics().getQueryCacheMissCount());
-    assertEquals(9, sessionFactory.getStatistics().getQueryCacheHitCount());
+    Statistics statistics = sessionFactory.getStatistics();
+    assertEquals(1, statistics.getQueryCacheMissCount());
+    assertEquals(9, statistics.getQueryCacheHitCount());
   }
 
   @Test
@@ -122,18 +131,6 @@ class HibernateQueryCacheTest extends PostgresIntegrationTestBase {
             .getCacheRegionStatistics(OptionSet.class.getName())
             .getHitCount());
     assertTrue(sessionFactory.getStatistics().getQueryCacheHitCount() > 10);
-  }
-
-  private void setUpData() {
-    OptionSet optionSet = new OptionSet();
-    optionSet.setAutoFields();
-    optionSet.setName("OptionSetA");
-    optionSet.setCode("OptionSetCodeA");
-    optionSet.setValueType(ValueType.TEXT);
-
-    entityManager.getTransaction().begin();
-    entityManager.persist(optionSet);
-    entityManager.getTransaction().commit();
   }
 
   private void createSelectQuery(int numberOfQueries) {

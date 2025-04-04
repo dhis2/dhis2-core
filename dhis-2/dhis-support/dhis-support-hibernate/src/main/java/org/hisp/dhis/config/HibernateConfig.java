@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.config;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.CACHE_EHCACHE_CONFIG_FILE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.USE_QUERY_CACHE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.USE_SECOND_LEVEL_CACHE;
 
@@ -170,6 +171,11 @@ public class HibernateConfig {
       properties.put(
           ConfigSettings.MISSING_CACHE_STRATEGY,
           MissingCacheStrategy.CREATE.getExternalRepresentation());
+      // Specify the location of the Ehcache 3 configuration file
+      String configFile = dhisConfig.getProperty(CACHE_EHCACHE_CONFIG_FILE);
+      if (!configFile.isBlank()) {
+        properties.put(ConfigSettings.CONFIG_URI, configFile);
+      }
     }
 
     properties.put(AvailableSettings.HBM2DDL_AUTO, Action.VALIDATE.getExternalHbm2ddlName());

@@ -78,7 +78,7 @@ public class MinIOTestExtension implements AfterAllCallback {
       properties.put("filestore.identity", MINIO_USER);
       properties.put("filestore.secret", MINIO_PASSWORD);
 
-      PostgresDhisConfigurationProvider pgDhisConfig = new PostgresDhisConfigurationProvider();
+      PostgresDhisConfigurationProvider pgDhisConfig = new PostgresDhisConfigurationProvider(null);
       pgDhisConfig.addProperties(properties);
       return pgDhisConfig;
     }

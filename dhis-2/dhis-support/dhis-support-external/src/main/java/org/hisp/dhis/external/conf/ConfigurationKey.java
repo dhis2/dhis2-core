@@ -745,7 +745,9 @@ public enum ConfigurationKey {
       "oauth2.server.jwt.keystore.generate-if-missing", "true", false),
 
   /** Ehcache monitoring. (default: off) */
-  MONITORING_EHCACHE_ENABLED("monitoring.ehcache.enabled", Constants.OFF, false);
+  MONITORING_EHCACHE_ENABLED("monitoring.ehcache.enabled", Constants.OFF, false),
+
+  CACHE_EHCACHE_CONFIG_FILE("cache.ehcache.config.file", "classpath:ehcache.xml", false);
 
   private final String key;
 
