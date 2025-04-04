@@ -61,14 +61,14 @@ class CompleteDataSetRegistrationControllerTest extends H2ControllerIntegrationT
         409,
         "ERROR",
         "An error occurred, please check import summary.",
-        POST("/38/completeDataSetRegistrations", "{}").content(HttpStatus.CONFLICT));
+        POST("/completeDataSetRegistrations", "{}").content(HttpStatus.CONFLICT));
   }
 
   @Test
   void testPostCompleteRegistrationsXml() {
     HttpResponse response =
         POST(
-            "/38/completeDataSetRegistrations",
+            "/completeDataSetRegistrations",
             Body("<completeDataSetRegistrations></completeDataSetRegistrations>"),
             ContentType(CONTENT_TYPE_XML),
             Accept(CONTENT_TYPE_XML));

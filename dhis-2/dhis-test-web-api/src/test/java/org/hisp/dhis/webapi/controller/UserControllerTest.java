@@ -683,7 +683,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
         200,
         "OK",
         null,
-        PUT("/38/users/" + peter.getUid(), user.toString()).content(HttpStatus.OK));
+        PUT("/users/" + peter.getUid(), user.toString()).content(HttpStatus.OK));
   }
 
   @Test
@@ -853,7 +853,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
         "OK",
         null,
         PUT(
-                "/38/users/" + userId,
+                "/users/" + userId,
                 user.node()
                     .addMembers(
                         obj -> obj.addObject("settings", s -> s.addString("keyUiLocale", "de")))
@@ -935,7 +935,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
         new Gson().fromJson(user.toString(), JsonElement.class).getAsJsonObject();
     asJsonObject.addProperty("openId", "test");
 
-    PUT("/37/users/" + peter.getUid(), asJsonObject.toString());
+    PUT("/users/" + peter.getUid(), asJsonObject.toString());
 
     User userAfter = userService.getUser(peter.getUid());
     assertEquals("test", userAfter.getOpenId());
@@ -1027,7 +1027,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     switchContextToUser(this.peter);
     assertEquals(
         "You don't have the proper permissions to update this user.",
-        PUT("/37/users/" + peter.getUid(), "{\"firstName\":\"nils\"}")
+        PUT("/users/" + peter.getUid(), "{\"firstName\":\"nils\"}")
             .error(HttpStatus.FORBIDDEN)
             .getMessage());
   }

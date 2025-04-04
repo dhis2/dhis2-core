@@ -133,8 +133,7 @@ public class IconController {
   }
 
   @GetMapping(value = "/{key}")
-  public ResponseEntity<Icon> getIconByKey(@PathVariable String key, HttpServletRequest request)
-      throws NotFoundException {
+  public ResponseEntity<Icon> getIconByKey(@PathVariable String key) throws NotFoundException {
     Icon icon = iconService.getIcon(key);
     icon.setHref(getIconHref(icon.getKey()));
     return new ResponseEntity<>(icon, HttpStatus.OK);

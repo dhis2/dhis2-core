@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -42,6 +42,27 @@ import java.util.regex.Pattern;
 import org.springframework.stereotype.Component;
 
 /**
+ * Filters calls matching <code>/api/{version}/{endpoint}</code>, where version is a number between
+ * 28-43 inclusive.<br>
+ * When there is no match, the request gets processed as normal.<br>
+ * When there is a match, it gets dispatched with the version part removed e.g. <code>
+ * /api/42/icons</code> gets dispatched to <code>/api/icons</code><br>
+ * Regex match examples: <br>
+ * <code>/api/42/icons</code> -> match <br>
+ * <code>/api/33/icons</code> -> match <br>
+ * <code>/api/28/icons</code> -> match <br>
+ * <br>
+ * <code>/api/27/icons</code> -> no match <br>
+ * <code>/api/44/icons</code> -> no match <br>
+ * <code>/api/333/icons</code> -> no match <br>
+ * <code>/api/test/icons</code> -> no match <br>
+ * <code>/api/1/icons</code> -> no match <br>
+ * <br>
+ * This allows us to keep current behaviour of allowing clients to call any endpoint with a version
+ * number without the need for any explicit mappings, as was the previous behaviour. This is
+ * intended as a temporary measure, as we intend on removing support for calling endpoints with
+ * version numbers in the future.
+ *
  * @author david mackessy
  */
 @Component
@@ -50,14 +71,12 @@ public class ApiVersionFilter implements Filter {
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
       throws IOException, ServletException {
-    // dispatch requests using an API version to endpoints without the version
-    // e.g. /api/42/icons -> /api/icons
-
     HttpServletRequest req = (HttpServletRequest) request;
 
     Pattern pattern =
         Pattern.compile("^(?<api>/api/)(?<apiversion>2[8-9]|3\\d|4[0-3])/(?<endpoint>.*)");
     Matcher matcher = pattern.matcher(req.getRequestURI());
+
     while (matcher.find()) {
       String api = matcher.group("api");
       String apiVersion = matcher.group("apiversion");
