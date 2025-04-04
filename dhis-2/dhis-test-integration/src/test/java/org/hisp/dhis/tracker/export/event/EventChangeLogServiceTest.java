@@ -259,6 +259,31 @@ class EventChangeLogServiceTest extends TrackerTest {
   }
 
   @Test
+  void shouldReturnChangeLogsWhenDataValueIsCreatedDeletedAndCreatedAgain()
+      throws IOException, NotFoundException {
+    Event event = getEvent("QRYjLTiJTrA");
+    String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();
+
+    TrackerObjects trackerObjects = fromJson("tracker/event_and_enrollment.json");
+
+    updateDataValue(trackerObjects, event, dataElementUid, "");
+    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+
+    updateDataValue(trackerObjects, event, dataElementUid, "20");
+    assertNoErrors(trackerImportService.importTracker(importParams, trackerObjects));
+
+    Page<EventChangeLog> changeLogs =
+        eventChangeLogService.getEventChangeLog(
+            UID.of("QRYjLTiJTrA"), defaultOperationParams, defaultPageParams);
+
+    assertNumberOfChanges(3, changeLogs.getItems());
+    assertAll(
+        () -> assertCreate(dataElementUid, "20", changeLogs.getItems().get(0)),
+        () -> assertDelete(dataElementUid, "15", changeLogs.getItems().get(1)),
+        () -> assertCreate(dataElementUid, "15", changeLogs.getItems().get(2)));
+  }
+
+  @Test
   void shouldNotLogChangesWhenChangeLogConfigDisabled() throws IOException, NotFoundException {
     config.getProperties().put(CHANGELOG_TRACKER.getKey(), "off");
     Event event = getEvent("QRYjLTiJTrA");

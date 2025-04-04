@@ -132,8 +132,6 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest {
 
     DataElement dataElement = new DataElement();
     dataElement.setUid(CodeGenerator.generateUid());
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElement.getUid())))
-        .thenReturn(dataElement);
 
     org.hisp.dhis.tracker.imports.domain.Event event =
         event(dataValue(MetadataIdentifier.ofUid(dataElement.getUid()), "value"));
@@ -163,8 +161,6 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest {
 
     DataElement dataElement = new DataElement();
     dataElement.setUid(CodeGenerator.generateUid());
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElement.getUid())))
-        .thenReturn(dataElement);
     when(preheat.getUsername()).thenReturn(USERNAME);
 
     org.hisp.dhis.tracker.imports.domain.Event event =
@@ -197,8 +193,6 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest {
     DataElement dataElement = new DataElement();
     dataElement.setUid(CodeGenerator.generateUid());
     String eventUid = CodeGenerator.generateUid();
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElement.getUid())))
-        .thenReturn(dataElement);
     dbEvent.setStatus(EventStatus.COMPLETED);
     when(preheat.getEvent(eventUid)).thenReturn(dbEvent);
 
@@ -231,8 +225,6 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest {
     DataElement dataElement = new DataElement();
     dataElement.setUid(CodeGenerator.generateUid());
     String eventUid = CodeGenerator.generateUid();
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElement.getUid())))
-        .thenReturn(dataElement);
     when(preheat.getUsername()).thenReturn(USERNAME);
     dbEvent.setStatus(EventStatus.ACTIVE);
     when(preheat.getEvent(eventUid)).thenReturn(dbEvent);
