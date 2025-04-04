@@ -1,31 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ehcache>
+<!-- Add jsr107 namespace -->
+<config xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+  xmlns='http://www.ehcache.org/v3'
+  xmlns:jsr107='http://www.ehcache.org/v3/jsr107'
+  xsi:schemaLocation="
+            http://www.ehcache.org/v3 http://www.ehcache.org/schema/ehcache-core-3.10.xsd
+            http://www.ehcache.org/v3/jsr107 http://www.ehcache.org/schema/ehcache-107-ext-3.10.xsd">
 
-<!-- Default cache -->
-  <!-- 
-    Ensure that default cache has less frequent expiration than query cache
-    to avoid individual select queries per entity.
+  <!-- Service definition to specify the default template for JSR-107 created caches -->
+  <service>
+    <jsr107:defaults default-template="defaultCacheTemplate"/>
+  </service>
+
+  <!-- Cache template definition (referenced by jsr107:defaults and potentially explicit caches) -->
+  <!-- Based on old defaultCache settings -->
+  <cache-template name="defaultCacheTemplate">
+    <expiry>
+      <!-- Time-to-live: 6 hours (Chosen as primary expiry from old config) -->
+      <!-- TTI (Time-to-idle) was also 6 hours, but only one can be specified directly here. -->
+      <ttl unit="seconds">21600</ttl>
+    </expiry>
+    <resources>
+      <!-- Max 1,000,000 entries on heap -->
+      <heap unit="entries">1000000</heap>
+    </resources>
+  </cache-template>
+
+  <!--   Hibernate Default Query Cache -->
+  <cache alias="default-query-results-region" uses-template="defaultCacheTemplate">
+    <!-- No overrides needed as it matches the old defaultCache settings -->
+  </cache>
+
+  <!-- Hibernate Default Entity Cache for Update Timestamps -->
+  <cache alias="default-update-timestamps-region">
+    <expiry>
+      <none/> <!-- Timestamps should not expire -->
+    </expiry>
+    <resources>
+      <!-- Max 5,000 entries on heap (from old config) -->
+      <heap unit="entries">5000</heap>
+    </resources>
+  </cache>
+
+  <!--
+    NOTE: The old configuration did not define specific caches for entities.
+    Entities will use the 'defaultCacheTemplate' settings unless you define
+    specific <cache> elements for them below using their fully qualified class name as the alias.
+    Example:
+    <cache alias="org.hisp.dhis.organisationunit.OrganisationUnit" uses-template="defaultCacheTemplate">
+      <resources>
+        <heap unit="entries">50000</heap> <!- More specific size ->
+      </resources>
+    </cache>
   -->
 
-  <defaultCache
-    maxElementsInMemory="1000000" 
-    eternal="false" 
-    timeToIdleSeconds="21600" 
-    timeToLiveSeconds="21600"
-    overflowToDisk="false"
-    diskPersistent="false" />
-
-  <!-- Hibernate query cache -->
-
-  <cache name="default-query-results-region"
-    maxElementsInMemory="1000000" 
-    eternal="false" 
-    timeToIdleSeconds="21600" 
-    timeToLiveSeconds="21600"
-    overflowToDisk="false" 
-    diskPersistent="false" />
-
-  <cache name="default-update-timestamps-region" 
-    maxElementsInMemory="5000" />
-
-</ehcache>
+</config>
