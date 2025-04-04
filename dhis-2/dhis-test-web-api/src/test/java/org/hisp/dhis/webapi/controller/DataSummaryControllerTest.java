@@ -70,6 +70,9 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
         content.lines().anyMatch(line -> line.startsWith("data_summary_event_count")),
         "Event count metric is missing");
     assertTrue(
+        content.lines().anyMatch(line -> line.startsWith("data_summary_enrollment_count")),
+        "Enrollment count metric is missing");
+    assertTrue(
         content.contains("# HELP data_summary_build_info"), "Build info help text is missing");
     // data_summary_build_info should end with an integer representing the build time in seconds
     // since epoch

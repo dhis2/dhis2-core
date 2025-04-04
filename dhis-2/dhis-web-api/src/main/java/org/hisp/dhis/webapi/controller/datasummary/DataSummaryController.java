@@ -136,6 +136,12 @@ public class DataSummaryController {
         "days",
         "Count of updated events by day");
 
+    metrics.addMetrics(
+        summary.getEnrollmentCount(),
+        "data_summary_enrollment_count",
+        "days",
+        "Count of updated enrollments by day");
+
     appendSystemInfoMetrics(metrics, summary.getSystem());
     return metrics.getMetrics();
   }
