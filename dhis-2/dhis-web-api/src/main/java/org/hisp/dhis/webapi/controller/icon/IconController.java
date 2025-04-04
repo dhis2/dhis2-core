@@ -146,7 +146,7 @@ public class IconController {
       throws IOException, NotFoundException {
     if (!iconService.iconExists(key)) throw new NotFoundException(Icon.class, key);
 
-    String location = response.encodeRedirectURL("/icons/" + key + "/icon");
+    String location = response.encodeRedirectURL("/api/icons/" + key + "/icon");
     response.sendRedirect(ContextUtils.getRootPath(request) + location);
   }
 

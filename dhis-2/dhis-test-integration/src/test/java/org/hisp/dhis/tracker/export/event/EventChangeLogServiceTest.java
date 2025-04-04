@@ -271,6 +271,27 @@ class EventChangeLogServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldReturnChangeLogsWhenDataValueIsCreatedDeletedAndCreatedAgain()
+      throws NotFoundException {
+    String event = "OTmjvJDn0Fu";
+    String dataElement = getDataElement(event);
+
+    updateDataValue(event, dataElement, "");
+    updateDataValue(event, dataElement, "20");
+
+    List<EventChangeLog> changeLogs =
+        getDataElementChangeLogs(
+            eventChangeLogService.getEventChangeLog(
+                UID.of(event), defaultOperationParams, defaultPageParams));
+
+    assertNumberOfChanges(3, changeLogs);
+    assertAll(
+        () -> assertDataElementCreate(dataElement, "20", changeLogs.get(0)),
+        () -> assertDataElementDelete(dataElement, "13", changeLogs.get(1)),
+        () -> assertDataElementCreate(dataElement, "13", changeLogs.get(2)));
+  }
+
+  @Test
   void shouldReturnOnlyUserNameWhenUserDoesNotExistInDatabase() throws NotFoundException {
     Event event = getEvent("OTmjvJDn0Fu");
     String dataElementUid = event.getEventDataValues().iterator().next().getDataElement();

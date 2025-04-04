@@ -31,11 +31,8 @@ package org.hisp.dhis.tracker.imports.programrule.executor.event;
 
 import static org.hisp.dhis.tracker.imports.programrule.IssueType.ERROR;
 import static org.hisp.dhis.tracker.imports.programrule.IssueType.WARNING;
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -165,7 +162,6 @@ class AssignDataValueExecutorTest extends TestBase {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             settingsProvider,
-            optionService,
             RULE_UID,
             INVALID_OPTION_VALUE,
             OPTION_SET_DATA_ELEMENT_UID,
@@ -181,65 +177,7 @@ class AssignDataValueExecutorTest extends TestBase {
   }
 
   @Test
-  void shouldAssignDataValueWhenAssignedValueIsValidOptionAndDataValueIsEmpty() {
-    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
-    when(optionService.existsAllOptions(any(), anyList())).thenReturn(true);
-
-    Event eventWithOptionDataValue = getEventWithOptionSetDataValueWithValidValue();
-    List<Event> events = List.of(eventWithOptionDataValue);
-    bundle.setEvents(events);
-
-    AssignDataValueExecutor executor =
-        new AssignDataValueExecutor(
-            settingsProvider,
-            optionService,
-            RULE_UID,
-            VALID_OPTION_VALUE,
-            OPTION_SET_DATA_ELEMENT_UID,
-            eventWithOptionDataValue.getDataValues());
-
-    Optional<ProgramRuleIssue> warning =
-        executor.executeRuleAction(bundle, eventWithOptionDataValue);
-
-    Optional<DataValue> dataValue =
-        findDataValueByUid(bundle, EVENT_UID, OPTION_SET_DATA_ELEMENT_UID);
-
-    assertTrue(dataValue.isPresent());
-    assertEquals(VALID_OPTION_VALUE, dataValue.get().getValue());
-    assertTrue(warning.isPresent());
-    assertEquals(WARNING, warning.get().getIssueType());
-  }
-
-  @Test
-  void shouldAssignDataValueWhenAssignedValueIsInvalidOptionAndDataValueIsEmpty() {
-    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
-    Event eventWithOptionDataValue = getEventWithDataValueNOTSet();
-    List<Event> events = List.of(eventWithOptionDataValue);
-    bundle.setEvents(events);
-
-    AssignDataValueExecutor executor =
-        new AssignDataValueExecutor(
-            settingsProvider,
-            optionService,
-            RULE_UID,
-            INVALID_OPTION_VALUE,
-            OPTION_SET_DATA_ELEMENT_UID,
-            eventWithOptionDataValue.getDataValues());
-
-    Optional<ProgramRuleIssue> warning =
-        executor.executeRuleAction(bundle, eventWithOptionDataValue);
-
-    Optional<DataValue> dataValue =
-        findDataValueByUid(bundle, SECOND_EVENT_UID, OPTION_SET_DATA_ELEMENT_UID);
-
-    assertAll(
-        () -> assertTrue(dataValue.isEmpty()),
-        () -> assertTrue(warning.isPresent()),
-        () -> assertEquals(WARNING, warning.get().getIssueType()));
-  }
-
-  @Test
-  void shouldAssignNullDataValueWhenAssignedValueIsInvalidOptionAndOverwriteIsTrue() {
+  void shouldAssignDataValueWhenAssignedValueIsInvalidOptionAndOverwriteIsTrue() {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
     when(settings.getRuleEngineAssignOverwrite()).thenReturn(true);
     Event eventWithOptionDataValue = getEventWithOptionSetDataValueWithValidValue();
@@ -249,7 +187,6 @@ class AssignDataValueExecutorTest extends TestBase {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             settingsProvider,
-            optionService,
             RULE_UID,
             INVALID_OPTION_VALUE,
             OPTION_SET_DATA_ELEMENT_UID,
@@ -261,7 +198,7 @@ class AssignDataValueExecutorTest extends TestBase {
     Optional<DataValue> dataValue =
         findDataValueByUid(bundle, EVENT_UID, OPTION_SET_DATA_ELEMENT_UID);
 
-    assertDataValueWasAssignedAndWarningIsPresent(null, dataValue, warning);
+    assertDataValueWasAssignedAndWarningIsPresent(INVALID_OPTION_VALUE, dataValue, warning);
   }
 
   @Test
@@ -274,7 +211,6 @@ class AssignDataValueExecutorTest extends TestBase {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             settingsProvider,
-            optionService,
             RULE_UID,
             DATAELEMENT_NEW_VALUE,
             DATA_ELEMENT_UID,
@@ -297,7 +233,6 @@ class AssignDataValueExecutorTest extends TestBase {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             settingsProvider,
-            optionService,
             RULE_UID,
             DATAELEMENT_NEW_VALUE,
             DATA_ELEMENT_UID,
@@ -322,7 +257,6 @@ class AssignDataValueExecutorTest extends TestBase {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             settingsProvider,
-            optionService,
             RULE_UID,
             DATAELEMENT_NEW_VALUE,
             DATA_ELEMENT_UID,
@@ -344,7 +278,6 @@ class AssignDataValueExecutorTest extends TestBase {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             settingsProvider,
-            optionService,
             RULE_UID,
             DATAELEMENT_NEW_VALUE,
             DATA_ELEMENT_UID,
@@ -369,7 +302,6 @@ class AssignDataValueExecutorTest extends TestBase {
     AssignDataValueExecutor executor =
         new AssignDataValueExecutor(
             settingsProvider,
-            optionService,
             RULE_UID,
             DATAELEMENT_NEW_VALUE,
             DATA_ELEMENT_UID,
