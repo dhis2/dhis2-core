@@ -39,6 +39,20 @@ pipeline {
                     }
                 }
             }
+
+            post {
+                always {
+                    // TODO might need to be more specific with the include pattern
+                    teamscale includePattern: 'dhis-2/dhis-test-coverage/target/site/jacoco-aggregate/**',
+                        credentialsId: 'teamscale_id',
+                        partition: 'yourPartition',
+                        reportFormatId: 'JACOCO',
+                        teamscaleProject: 'simpleProject',
+                        uploadMessage: "JaCoCo reports from ${GIT_COMMIT}",
+                        url: 'http://localhost:8100',
+                        revision: "${GIT_COMMIT}"
+                }
+            }
         }
 
         stage('Run api tests') {
