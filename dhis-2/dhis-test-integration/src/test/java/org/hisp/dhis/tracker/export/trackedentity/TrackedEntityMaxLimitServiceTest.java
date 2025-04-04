@@ -342,7 +342,7 @@ class TrackedEntityMaxLimitServiceTest extends PostgresIntegrationTestBase {
         .orgUnitMode(SELECTED)
         .organisationUnits(organisationUnit)
         .trackedEntityType(trackedEntityType)
-        .filterBy(UID.of("numericAttr"))
+        .filterBy(UID.of("integerAttr"))
         .build();
   }
 

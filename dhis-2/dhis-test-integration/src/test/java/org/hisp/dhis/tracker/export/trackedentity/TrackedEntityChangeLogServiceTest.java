@@ -169,7 +169,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnChangeLogsWhenTrackedEntityAttributeValueIsCreated()
       throws NotFoundException, ForbiddenException, BadRequestException {
-    String trackedEntityAttribute = "numericAttr";
+    String trackedEntityAttribute = "integerAttr";
     List<TrackedEntityChangeLog> changeLogs =
         filterTrackedEntityAttribute(
             trackedEntityChangeLogService.getTrackedEntityChangeLog(
@@ -177,14 +177,14 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
             trackedEntityAttribute);
 
     assertNumberOfChanges(1, changeLogs);
-    assertAll(() -> assertCreate("numericAttr", "88", changeLogs.get(0)));
+    assertAll(() -> assertCreate("integerAttr", "88", changeLogs.get(0)));
   }
 
   @Test
   void shouldReturnChangeLogsWhenTrackedEntityAttributeValueIsDeleted()
       throws NotFoundException, ForbiddenException, BadRequestException {
     String trackedEntity = "QS6w44flWAf";
-    String trackedEntityAttribute = "numericAttr";
+    String trackedEntityAttribute = "integerAttr";
     updateAttributeValue(trackedEntity, trackedEntityAttribute, "");
 
     List<TrackedEntityChangeLog> changeLogs =
@@ -203,7 +203,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
   void shouldReturnChangeLogsWhenTrackedEntityAttributeValueIsUpdated()
       throws NotFoundException, ForbiddenException, BadRequestException {
     String trackedEntity = "QS6w44flWAf";
-    String trackedEntityAttribute = "numericAttr";
+    String trackedEntityAttribute = "integerAttr";
     String updatedValue = "100";
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
 
@@ -223,7 +223,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
   void shouldReturnChangeLogsWhenTrackedEntityAttributeValueIsUpdatedTwiceInARow()
       throws NotFoundException, ForbiddenException, BadRequestException {
     String trackedEntity = "QS6w44flWAf";
-    String trackedEntityAttribute = "numericAttr";
+    String trackedEntityAttribute = "integerAttr";
     String updatedValue = "100";
     String secondUpdatedValue = "200";
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
@@ -248,7 +248,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
   void shouldReturnChangeLogsWhenTrackedEntityAttributeValueIsCreatedUpdatedAndDeleted()
       throws NotFoundException, ForbiddenException, BadRequestException {
     String trackedEntity = "QS6w44flWAf";
-    String trackedEntityAttribute = "numericAttr";
+    String trackedEntityAttribute = "integerAttr";
     String updatedValue = "100";
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
     updateAttributeValue(trackedEntity, trackedEntityAttribute, "");
