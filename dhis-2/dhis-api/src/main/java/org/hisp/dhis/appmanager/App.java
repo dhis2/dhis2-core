@@ -33,6 +33,8 @@ import static java.util.stream.Collectors.toUnmodifiableSet;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
@@ -40,6 +42,7 @@ import java.util.*;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.datastore.DatastoreNamespace;
+import org.hisp.dhis.util.ObjectUtils;
 
 /**
  * @author Saptarshi
@@ -130,6 +133,17 @@ public class App implements Serializable {
     if (contextPath != null && name != null && pluginLaunchPath != null) {
       this.pluginLaunchUrl = String.join("/", baseUrl, pluginLaunchPath.replaceFirst("^/+", ""));
     }
+  }
+
+  /**
+   * A mapper used for App serialisation and de-serialisation A mapper is often created and
+   * configured when reading from the app manifests during app install and discovery. This provides
+   * one such mapper for convenience and consistency.
+   */
+  public static final ObjectMapper MAPPER = new ObjectMapper();
+
+  static {
+    MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   }
 
   /** Unique identifier for the app. Is based on app-name */
@@ -519,5 +533,64 @@ public class App implements Serializable {
     return additionalNamespaces.stream()
         .flatMap(ns -> ns.getAllAuthorities().stream())
         .collect(toUnmodifiableSet());
+  }
+
+  private transient List<AppManifestTranslation> manifestTranslations = new ArrayList<>();
+
+  public void setManifestTranslations(List<AppManifestTranslation> translations) {
+    if (translations == null) {
+      return;
+    }
+
+    manifestTranslations = translations;
+  }
+
+  public void localise(Locale userLocale) {
+    if (!manifestTranslations.isEmpty()) {
+      for (AppShortcut shortcut : this.shortcuts) {
+        shortcut.setDisplayName(getTranslations(userLocale, shortcut.getName()));
+      }
+    }
+  }
+
+  private String getTranslations(Locale locale, String shortcutName) {
+    if (this.manifestTranslations == null) {
+      return shortcutName;
+    }
+
+    String language = locale.getLanguage();
+    String country = locale.getCountry();
+    String script = locale.getScript();
+
+    Optional<AppManifestTranslation> matchingLocale =
+        manifestTranslations.stream()
+            .filter(
+                tf ->
+                    language.equals(tf.getLanguageCode())
+                        && country.equals(tf.getCountryCode())
+                        && (script.isEmpty() || script.equals(tf.getScriptCode())))
+            .findFirst();
+
+    Optional<AppManifestTranslation> matchingLanguage =
+        manifestTranslations.stream()
+            .filter(tf -> language.equals(tf.getLanguageCode()))
+            .findFirst();
+
+    if (matchingLocale.isEmpty() && matchingLanguage.isEmpty()) {
+      return shortcutName;
+    }
+
+    String key = "SHORTCUT_" + shortcutName;
+
+    String result = null;
+    if (matchingLocale.isPresent()) {
+      result = matchingLocale.get().getTranslations().get(key);
+    }
+
+    if (result == null && matchingLanguage.isPresent()) {
+      result = matchingLanguage.get().getTranslations().get(key);
+    }
+
+    return ObjectUtils.firstNonNull(result, shortcutName);
   }
 }
