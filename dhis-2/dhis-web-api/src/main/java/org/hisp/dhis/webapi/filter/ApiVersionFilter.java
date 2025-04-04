@@ -68,13 +68,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class ApiVersionFilter implements Filter {
 
+  private static final String API_VERSION_REGEX =
+      "^(?<api>/api/)(?<apiversion>2[8-9]|3\\d|4[0-3])/(?<endpoint>.*)";
+
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
       throws IOException, ServletException {
     HttpServletRequest req = (HttpServletRequest) request;
 
-    Pattern pattern =
-        Pattern.compile("^(?<api>/api/)(?<apiversion>2[8-9]|3\\d|4[0-3])/(?<endpoint>.*)");
+    Pattern pattern = Pattern.compile(API_VERSION_REGEX);
     Matcher matcher = pattern.matcher(req.getRequestURI());
 
     while (matcher.find()) {
