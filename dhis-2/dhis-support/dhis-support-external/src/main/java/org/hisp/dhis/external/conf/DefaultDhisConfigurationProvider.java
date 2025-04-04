@@ -217,6 +217,11 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
   }
 
   @Override
+  public boolean isTrackerReadReplicaEnabled() {
+    return isEnabled(ConfigurationKey.TRACKER_READ_REPLICA_ENABLED);
+  }
+
+  @Override
   public boolean isClusterEnabled() {
     return StringUtils.isNotBlank(getProperty(ConfigurationKey.CLUSTER_MEMBERS))
         && StringUtils.isNotBlank(getProperty(ConfigurationKey.CLUSTER_HOSTNAME));
