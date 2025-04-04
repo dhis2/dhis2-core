@@ -77,9 +77,7 @@ public class HibernateTrackedEntityDataValueChangeLogStore
   @Override
   public void addTrackedEntityDataValueChangeLog(
       TrackedEntityDataValueChangeLog trackedEntityDataValueChangeLog) {
-    try (Session session = entityManager.unwrap(Session.class)) {
-      session.save(trackedEntityDataValueChangeLog);
-    }
+    entityManager.unwrap(Session.class).save(trackedEntityDataValueChangeLog);
   }
 
   @Override
