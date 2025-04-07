@@ -77,7 +77,7 @@ public class AnalyticsZScoreSqlStatementProcessor implements OutlierSqlStatement
    */
   @Override
   public String getSqlStatement(OutlierRequest request) {
-    return getSqlStatement(request, true);
+    return getSqlStatement(request, false);
   }
 
   /**
