@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -31,24 +31,19 @@ package org.hisp.dhis.util;
 
 import static org.hisp.dhis.appmanager.AppStorageService.MANIFEST_FILENAME;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Spliterator;
 import java.util.Spliterators;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.LongAdder;
-import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -57,8 +52,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.appmanager.AppStorageSource;
-import org.hisp.dhis.jclouds.JCloudsStore;
-import org.jclouds.blobstore.domain.Blob;
 
 /**
  * @author Austin McGee
@@ -114,74 +107,35 @@ public class ZipFileUtils {
     return "";
   }
 
-  private static void unzipAllFiles(
-      ZipFile zipFile,
-      String topLevelFolder,
-      String appFolder,
-      JCloudsStore jCloudsStore,
-      AtomicBoolean zipBombDetected,
-      AtomicBoolean unzipFailure) {
+  private static void validateAllFiles(ZipFile zipFile, String topLevelFolder, String appFolder)
+      throws ZipBombException, ZipSlipException, IOException {
+    int entryCount = 0;
+    long totalUncompressedSize = 0;
 
-    final LongAdder totalUncompressedSize = new LongAdder();
-    final AtomicInteger entryCount = new AtomicInteger(0);
+    Enumeration<? extends ZipEntry> entries = zipFile.entries();
+    while (entries.hasMoreElements()) {
+      ZipEntry zipEntry = entries.nextElement();
 
-    zipFile.stream()
-        .forEach(
-            (Consumer<ZipEntry>)
-                zipEntry -> {
-                  // Skip the rest if we have failed (general failure or zip bomb detected)!
-                  if (unzipFailure.get() || zipBombDetected.get()) return;
+      if (++entryCount > MAX_ENTRIES) {
+        throw new ZipBombException(
+            "Maximum number of entries (%s) exceeded.".formatted(MAX_ENTRIES));
+      }
 
-                  if (entryCount.incrementAndGet() > MAX_ENTRIES) {
-                    log.error("Maximum number of entries ({}) exceeded.", MAX_ENTRIES);
-                    zipBombDetected.set(true);
-                    return;
-                  }
+      String filePath = getFilePath(topLevelFolder, appFolder, zipEntry);
+      // If it's the root folder, skip
+      if (filePath == null) continue;
 
-                  String filePath;
-                  try {
-                    filePath = validateFilePath(topLevelFolder, appFolder, zipEntry);
-                    // If it's the root folder, skip
-                    if (filePath == null) return;
+      validateSizes(zipEntry, totalUncompressedSize);
+      // Update totalUncompressedSize with the entry size
+      totalUncompressedSize += zipEntry.getSize();
+    }
 
-                  } catch (IOException e) {
-                    log.error("Unable validate zip file's name or path", e);
-                    unzipFailure.set(true);
-                    return;
-                  }
-
-                  try {
-                    validateSizes(zipEntry, totalUncompressedSize);
-                  } catch (IOException e) {
-                    log.error("Error during ZipBomb protection checks", e);
-                    zipBombDetected.set(true);
-                    return;
-                  }
-
-                  try (InputStream zipInputStream = zipFile.getInputStream(zipEntry)) {
-                    Blob blob =
-                        jCloudsStore
-                            .getBlobStore()
-                            .blobBuilder(filePath)
-                            .payload(zipInputStream)
-                            .contentLength(zipEntry.getSize())
-                            .build();
-                    jCloudsStore.putBlob(blob);
-
-                  } catch (IOException e) {
-                    log.error("Unable to store app file from zip manifestEntry", e);
-                    unzipFailure.set(true);
-                  } catch (RuntimeException e) {
-                    log.error("Runtime error processing app file from zip manifestEntry", e);
-                    unzipFailure.set(true);
-                  }
-                });
-
-    log.debug("zip done");
+    log.debug("Zip file was successfully unzipped");
   }
 
-  private static @CheckForNull String validateFilePath(
-      String topLevelFolder, String appFolder, ZipEntry zipEntry) throws IOException {
+  public static @CheckForNull String getFilePath(
+      String topLevelFolder, String appFolder, ZipEntry zipEntry)
+      throws IOException, ZipSlipException {
     String normalizedName = validateFilePaths(topLevelFolder, zipEntry.getName());
     if (normalizedName.isBlank()) {
       return null;
@@ -191,11 +145,12 @@ public class ZipFileUtils {
   }
 
   private static @Nonnull String validateFilePaths(String topLevelFolder, String filename)
-      throws IOException {
+      throws ZipSlipException {
     // Check for relative (..) and absolute paths in the file name
     File file = new File(filename);
     if (file.isAbsolute() || file.getPath().contains("..")) {
-      throw new IOException("Invalid zip manifestEntry name, contains possible path traversal");
+      throw new ZipSlipException(
+          "Invalid zip manifestEntry name, contains possible path traversal");
     }
 
     // Remove the prefix from the filename
@@ -205,28 +160,27 @@ public class ZipFileUtils {
     String normalizedName = FilenameUtils.normalize(filename);
     if (normalizedName == null) {
       // Normalization failed, likely due to invalid characters/sequences
-      throw new IOException("Invalid zip manifestEntry name, failed to normalize");
+      throw new ZipSlipException("Invalid zip manifestEntry name, failed to normalize");
     }
 
     return normalizedName;
   }
 
   private static @Nonnull String getSanitizedName(String appFolder, String normalizedName)
-      throws IOException {
+      throws ZipSlipException, IOException {
     String sanitizedName = normalizedName.replaceAll("^[./\\\\]+", "").replace('\\', '/');
-
     // Check sanitizedName is not trying to escape the appFolder
     String canonicalBasePath = new File(appFolder).getCanonicalPath();
     String canonicalDestPath = new File(appFolder, sanitizedName).getCanonicalPath();
     if (!canonicalDestPath.startsWith(canonicalBasePath + File.separator)) {
-      throw new IOException(
+      throw new ZipSlipException(
           "Invalid zip manifestEntry path after sanitization, potential traversal attempt");
     }
     return sanitizedName;
   }
 
-  private static void validateSizes(ZipEntry entry, LongAdder totalUncompressedSize)
-      throws IOException {
+  private static void validateSizes(ZipEntry entry, Long totalUncompressedSize)
+      throws ZipBombException {
     long entrySize = entry.getSize(); // Uncompressed size
     long compressedSize = entry.getCompressedSize();
     if (entrySize < 0) {
@@ -234,16 +188,16 @@ public class ZipFileUtils {
           "Invalid zip manifestEntry: Negative uncompressed size (%s) for manifestEntry"
               .formatted(entrySize);
       log.error(formatted);
-      throw new IOException(formatted);
+      throw new ZipBombException(formatted);
     }
 
-    totalUncompressedSize.add(entrySize);
-    if (totalUncompressedSize.sum() > MAX_TOTAL_UNCOMPRESSED_SIZE) {
+    totalUncompressedSize += entrySize;
+    if (totalUncompressedSize > MAX_TOTAL_UNCOMPRESSED_SIZE) {
       String formatted =
           "Zip bomb detected: Maximum total uncompressed size (%s) exceeded."
               .formatted(MAX_COMPRESSION_RATIO);
       log.error(formatted);
-      throw new IOException(formatted);
+      throw new ZipBombException(formatted);
     }
 
     if (compressedSize > 0) {
@@ -253,7 +207,7 @@ public class ZipFileUtils {
             "Zip bomb detected: Maximum compression ratio (%s) exceeded for manifestEntry, (Ratio: %s)."
                 .formatted(MAX_COMPRESSION_RATIO, String.format("%.2f", compressionRatio));
         log.error(formatted);
-        throw new IOException(formatted);
+        throw new ZipBombException(formatted);
       }
     }
   }
@@ -283,43 +237,10 @@ public class ZipFileUtils {
     return app;
   }
 
-  public static App unzip(
-      File file, App app, String appFolder, String topLevelFolder, JCloudsStore storage) {
-
+  public static void validateZip(File file, String appFolder, String topLevelFolder)
+      throws IOException, ZipBombException, ZipSlipException {
     try (ZipFile zipFile = new ZipFile(file)) {
-      final AtomicBoolean zipBombDetected = new AtomicBoolean(false);
-      final AtomicBoolean unzipFailure = new AtomicBoolean(false);
-
-      unzipAllFiles(zipFile, topLevelFolder, appFolder, storage, zipBombDetected, unzipFailure);
-
-      if (zipBombDetected.get()) {
-        log.error("Failed to install app: Zip bomb detected during processing.");
-        app.setAppState(AppStatus.INVALID_ZIP_FORMAT);
-        return app;
-      }
-
-      if (unzipFailure.get()) {
-        log.error("Failed to install app: Failure during unzipping");
-        app.setAppState(AppStatus.INVALID_ZIP_FORMAT);
-        return app;
-      }
-
-      // Set the app state to OK and return the app
-      app.setAppState(AppStatus.OK);
-      return app;
-
-    } catch (ZipException e) {
-      log.error("Failed to install app: Invalid ZIP format", e);
-      app.setAppState(AppStatus.INVALID_ZIP_FORMAT);
-    } catch (JsonParseException e) {
-      log.error("Failed to install app: Invalid manifest.webapp", e);
-      app.setAppState(AppStatus.INVALID_MANIFEST_JSON);
-    } catch (IOException e) {
-      log.error("Failed to install app: Could not save app", e);
-      app.setAppState(AppStatus.INSTALLATION_FAILED);
+      validateAllFiles(zipFile, topLevelFolder, appFolder);
     }
-
-    // Failed return
-    return app;
   }
 }

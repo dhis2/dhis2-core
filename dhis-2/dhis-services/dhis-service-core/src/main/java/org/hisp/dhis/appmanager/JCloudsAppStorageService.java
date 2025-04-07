@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.appmanager;
 
+import static org.hisp.dhis.util.ZipFileUtils.getFilePath;
 import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -39,6 +40,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -48,6 +50,8 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +63,9 @@ import org.hisp.dhis.datastore.DatastoreNamespace;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.fileresource.FileResourceContentStore;
 import org.hisp.dhis.jclouds.JCloudsStore;
+import org.hisp.dhis.util.ZipBombException;
 import org.hisp.dhis.util.ZipFileUtils;
+import org.hisp.dhis.util.ZipSlipException;
 import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.blobstore.domain.StorageMetadata;
 import org.jclouds.blobstore.options.ListContainerOptions;
@@ -207,6 +213,7 @@ public class JCloudsAppStorageService implements AppStorageService {
     try {
       topLevelFolder = ZipFileUtils.getTopLevelFolder(file);
       app = ZipFileUtils.readManifest(file, this.jsonMapper, topLevelFolder);
+
     } catch (IOException e) {
       log.error("Failed to install app: Missing manifest.webapp in zip");
       app.setAppState(AppStatus.MISSING_MANIFEST);
@@ -220,17 +227,49 @@ public class JCloudsAppStorageService implements AppStorageService {
       return app;
     }
 
-    App unzippedApp =
-        ZipFileUtils.unzip(file, app, installationFolder, topLevelFolder, jCloudsStore);
-    if (!unzippedApp.getAppState().ok()) {
-      // Remove unzipped data from failed installation
+    try {
+      ZipFileUtils.validateZip(file, installationFolder, topLevelFolder);
+
+      try (ZipFile zipFile = new ZipFile(file)) {
+        Enumeration<? extends ZipEntry> entries = zipFile.entries();
+        while (entries.hasMoreElements()) {
+          ZipEntry zipEntry = entries.nextElement();
+          String filePath = getFilePath(topLevelFolder, installationFolder, zipEntry);
+          // If it's the root folder, skip
+          if (filePath == null) continue;
+          try (InputStream zipInputStream = zipFile.getInputStream(zipEntry)) {
+            Blob blob =
+                jCloudsStore
+                    .getBlobStore()
+                    .blobBuilder(filePath)
+                    .payload(zipInputStream)
+                    .contentLength(zipEntry.getSize())
+                    .build();
+            jCloudsStore.putBlob(blob);
+          }
+        }
+      }
+
+      app.setAppState(AppStatus.OK);
+
+    } catch (IOException e) {
+      log.error("Failed to install app: IO Failure during unzipping", e);
+      app.setAppState(AppStatus.INVALID_ZIP_FORMAT);
+    } catch (ZipBombException e) {
+      log.error("Failed to install app: Possible ZipBomb detected", e);
+      app.setAppState(AppStatus.INVALID_ZIP_FORMAT);
+    } catch (ZipSlipException e) {
+      log.error("Failed to install app: Possible ZipSlip detected", e);
+      app.setAppState(AppStatus.INVALID_ZIP_FORMAT);
+    }
+
+    if (!app.getAppState().ok()) {
       deleteAppAsync(app);
       return app;
     }
 
     removePreviousVersions(app);
     logSuccess(app, installationFolder);
-
     return app;
   }
 
