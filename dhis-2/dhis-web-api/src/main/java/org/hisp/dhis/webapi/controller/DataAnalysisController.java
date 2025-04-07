@@ -73,7 +73,6 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.expression.Operator;
-import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
@@ -158,7 +157,7 @@ public class DataAnalysisController {
   @ResponseStatus(HttpStatus.OK)
   public @ResponseBody List<ValidationResultView> performValidationRulesAnalysis(
       @RequestBody ValidationRulesAnalysisParams validationRulesAnalysisParams, HttpSession session)
-      throws WebMessageException, BadRequestException {
+      throws WebMessageException {
     I18nFormat format = i18nManager.getI18nFormat();
 
     ValidationRuleGroup group = null;
@@ -172,16 +171,6 @@ public class DataAnalysisController {
       throw new WebMessageException(badRequest("No organisation unit defined"));
     }
 
-    int maxResults =
-        validationRulesAnalysisParams.getMaxResults() != null
-            ? validationRulesAnalysisParams.getMaxResults()
-            : ValidationService.MAX_INTERACTIVE_ALERTS;
-
-    final int MAX_ALLOWED_RESULTS = 50000;
-    if (maxResults <= 0 || maxResults > MAX_ALLOWED_RESULTS) {
-      throw new BadRequestException("maxResults must be between 1 and " + MAX_ALLOWED_RESULTS);
-    }
-
     ValidationAnalysisParams params =
         validationService
             .newParamsBuilder(
@@ -192,7 +181,7 @@ public class DataAnalysisController {
             .withIncludeOrgUnitDescendants(true)
             .withPersistResults(validationRulesAnalysisParams.isPersist())
             .withSendNotifications(validationRulesAnalysisParams.isNotification())
-            .withMaxResults(maxResults)
+            .withMaxResults(ValidationService.MAX_INTERACTIVE_ALERTS)
             .build();
 
     List<ValidationResult> validationResults =

@@ -44,8 +44,6 @@ public class ValidationRulesAnalysisParams {
 
   private boolean notification;
 
-  private Integer maxResults;
-
   public ValidationRulesAnalysisParams() {}
 
   public ValidationRulesAnalysisParams(
@@ -97,15 +95,6 @@ public class ValidationRulesAnalysisParams {
 
   public void setEndDate(String endDate) {
     this.endDate = endDate;
-  }
-
-  @JsonProperty
-  public Integer getMaxResults() {
-    return maxResults;
-  }
-
-  public void setMaxResults(Integer maxResults) {
-    this.maxResults = maxResults;
   }
 
   @JsonProperty
