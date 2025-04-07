@@ -28,6 +28,7 @@
 package org.hisp.dhis.appmanager;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.util.ZipFileUtils.getFilePath;
 import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
 
 import java.io.File;
@@ -36,12 +37,15 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -55,7 +59,9 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
+import org.hisp.dhis.util.ZipBombException;
 import org.hisp.dhis.util.ZipFileUtils;
+import org.hisp.dhis.util.ZipSlipException;
 import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobRequestSigner;
 import org.jclouds.blobstore.BlobStore;
@@ -329,17 +335,16 @@ public class JCloudsAppStorageService
     public App installApp( File file, String filename, Cache<App> appCache )
     {
         log.info( "Installing new app: {}", filename );
-
-        String appFolder = APPS_DIR + File.separator + filename.substring( 0, filename.lastIndexOf( '.' ) );
+        String installationFolder = APPS_DIR + File.separator + filename.substring( 0, filename.lastIndexOf( '.' ) );
 
         App app = new App();
-        String topLevelFolder;
+        app.setFolderName( installationFolder );
 
+        String topLevelFolder;
         try
         {
             topLevelFolder = ZipFileUtils.getTopLevelFolder( file );
             app = ZipFileUtils.readManifest( file, this.jsonMapper, topLevelFolder );
-            app.setFolderName( appFolder );
         }
         catch ( IOException e )
         {
@@ -348,20 +353,63 @@ public class JCloudsAppStorageService
             return app;
         }
 
-        App unzippedApp = ZipFileUtils.unzip( file, app, appFolder, topLevelFolder, blobStore, config );
-        if ( !unzippedApp.getAppState().ok() )
+        try
         {
+            ZipFileUtils.validateZip( file, installationFolder, topLevelFolder );
+
+            if ( !validateApp( app, appCache ) )
+            {
+                log.error( "Failed to install app: App validation failed" );
+                return app;
+            }
+
+            try ( ZipFile zipFile = new ZipFile( file ) )
+            {
+                Enumeration<? extends ZipEntry> entries = zipFile.entries();
+                while ( entries.hasMoreElements() )
+                {
+                    ZipEntry zipEntry = entries.nextElement();
+                    String filePath = getFilePath( topLevelFolder, installationFolder, zipEntry );
+                    // If it's the root folder, skip
+                    if ( filePath == null )
+                        continue;
+                    try ( InputStream zipInputStream = zipFile.getInputStream( zipEntry ) )
+                    {
+                        Blob blob = blobStore.blobBuilder( filePath )
+                            .payload( zipInputStream )
+                            .contentLength( zipEntry.getSize() )
+                            .build();
+                        blobStore.putBlob( config.container, blob );
+                    }
+                }
+            }
+
+            app.setAppState( AppStatus.OK );
+
+        }
+        catch ( IOException e )
+        {
+            log.error( "Failed to install app: IO Failure during unzipping", e );
+            app.setAppState( AppStatus.INVALID_ZIP_FORMAT );
+        }
+        catch ( ZipBombException e )
+        {
+            log.error( "Failed to install app: Possible ZipBomb detected", e );
+            app.setAppState( AppStatus.INVALID_ZIP_FORMAT );
+        }
+        catch ( ZipSlipException e )
+        {
+            log.error( "Failed to install app: Possible ZipSlip detected", e );
+            app.setAppState( AppStatus.INVALID_ZIP_FORMAT );
+        }
+
+        if ( !app.getAppState().ok() )
+        {
+            deleteApp( app );
             return app;
         }
 
-        if ( !validateApp( app, appCache ) )
-        {
-            log.error( "Failed to install app: App validation failed" );
-            return app;
-        }
-
-        logSuccess( app, appFolder );
-
+        logSuccess( app, installationFolder );
         return app;
     }
 
