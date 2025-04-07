@@ -40,12 +40,14 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @see org.hisp.dhis.analytics.common.QueryExecutor
  * @author maikel arabori
  */
 @Component
+@Transactional(readOnly = true)
 public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult> {
   @Nonnull private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 

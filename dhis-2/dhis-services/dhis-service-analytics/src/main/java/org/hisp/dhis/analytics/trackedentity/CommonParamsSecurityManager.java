@@ -73,6 +73,7 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This class is responsible for checking that the current user has access to the given {@link
@@ -82,6 +83,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class CommonParamsSecurityManager {
   private static final List<DimensionParamObjectType> SECURITY_CHECK_SKIP_TYPES =
       List.of(

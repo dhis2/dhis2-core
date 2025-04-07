@@ -49,6 +49,7 @@ import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Component that provides operations for generation or manipulation of Grid objects. It basically
@@ -58,6 +59,7 @@ import org.springframework.stereotype.Component;
  */
 @AllArgsConstructor
 @Component
+@Transactional(readOnly = true)
 public class GridAdaptor {
   private final HeaderParamsHandler headerParamsHandler;
 

@@ -55,6 +55,7 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service responsible exclusively for querying. Methods present on this class must not change any
@@ -64,6 +65,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class TrackedEntityAnalyticsQueryService {
 
   private final QueryExecutor<SqlQuery, SqlQueryResult> queryExecutor;
