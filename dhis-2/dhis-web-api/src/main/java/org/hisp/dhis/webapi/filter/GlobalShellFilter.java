@@ -174,8 +174,7 @@ public class GlobalShellFilter extends OncePerRequestFilter {
     boolean isServiceWorkerRequest = referer != null && referer.endsWith(SERVICE_WORKER_JS);
 
     String secFetchDest = request.getHeader(SEC_FETCH_DEST_HEADER);
-    boolean isIframeRequest =
-        secFetchDest != null && secFetchDest.equalsIgnoreCase("iframe");
+    boolean isIframeRequest = secFetchDest != null && secFetchDest.equalsIgnoreCase("iframe");
 
     log.debug(
         "redirectLegacyAppPaths: path = {}, queryString = {}, referer = {}",
