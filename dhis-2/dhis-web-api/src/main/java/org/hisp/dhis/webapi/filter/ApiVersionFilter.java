@@ -71,13 +71,14 @@ public class ApiVersionFilter implements Filter {
   private static final String API_VERSION_REGEX =
       "^(?<api>/api/)(?<apiversion>2[8-9]|3\\d|4[0-3])/(?<endpoint>.*)";
 
+  private static final Pattern API_VERSION_PATTERN = Pattern.compile(API_VERSION_REGEX);
+
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
       throws IOException, ServletException {
     HttpServletRequest req = (HttpServletRequest) request;
 
-    Pattern pattern = Pattern.compile(API_VERSION_REGEX);
-    Matcher matcher = pattern.matcher(req.getRequestURI());
+    Matcher matcher = API_VERSION_PATTERN.matcher(req.getRequestURI());
 
     while (matcher.find()) {
       String api = matcher.group("api");
