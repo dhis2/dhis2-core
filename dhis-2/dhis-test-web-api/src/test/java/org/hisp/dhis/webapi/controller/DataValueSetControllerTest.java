@@ -71,7 +71,7 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
         200,
         "OK",
         "Import was successful.",
-        POST("/38/dataValueSets/", "{}").content(HttpStatus.OK));
+        POST("/dataValueSets/", "{}").content(HttpStatus.OK));
   }
 
   @Test
@@ -90,7 +90,7 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
 
           String content =
               POST(
-                      "/38/dataValueSets/",
+                      "/dataValueSets/",
                       Body("<adx xmlns=\"urn:ihe:qrph:adx:2015\"></adx>"),
                       ContentType(CONTENT_TYPE_XML_ADX),
                       Accept(CONTENT_TYPE_XML))
@@ -119,7 +119,7 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
   void testPostDxf2DataValueSet() {
     String content =
         POST(
-                "/38/dataValueSets/",
+                "/dataValueSets/",
                 Body("<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\"></dataValueSet>"),
                 ContentType(APPLICATION_XML),
                 Accept(CONTENT_TYPE_XML))
@@ -147,7 +147,7 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
         200,
         "OK",
         "Import was successful.",
-        POST("/38/dataValueSets/", Body("abc"), ContentType("application/csv"))
+        POST("/dataValueSets/", Body("abc"), ContentType("application/csv"))
             .content(HttpStatus.OK));
   }
 

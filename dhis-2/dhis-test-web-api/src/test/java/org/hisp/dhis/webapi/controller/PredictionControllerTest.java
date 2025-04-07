@@ -53,7 +53,7 @@ class PredictionControllerTest extends PostgresControllerIntegrationTestBase {
         200,
         "OK",
         null,
-        POST("/38/predictions?startDate=2020-01-01&endDate=2021-01-01").content(HttpStatus.OK));
+        POST("/predictions?startDate=2020-01-01&endDate=2021-01-01").content(HttpStatus.OK));
   }
 
   @Test

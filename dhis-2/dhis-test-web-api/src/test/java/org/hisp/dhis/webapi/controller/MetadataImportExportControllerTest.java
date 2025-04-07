@@ -92,7 +92,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
         "OK",
         null,
         POST(
-                "/38/metadata",
+                "/metadata",
                 "{'organisationUnits':[{'name':'My Unit', 'shortName':'OU1', 'openingDate':"
                     + " '2020-01-01'}]}")
             .content(HttpStatus.OK));
@@ -100,7 +100,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
 
   @Test
   void testPostJsonMetadata_Empty() {
-    assertWebMessage("OK", 200, "OK", null, POST("/38/metadata", "{}").content(HttpStatus.OK));
+    assertWebMessage("OK", 200, "OK", null, POST("/metadata", "{}").content(HttpStatus.OK));
   }
 
   @Test
@@ -110,7 +110,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
         200,
         "OK",
         null,
-        POST("/38/metadata?classKey=ORGANISATION_UNIT", Body(","), ContentType("application/csv"))
+        POST("/metadata?classKey=ORGANISATION_UNIT", Body(","), ContentType("application/csv"))
             .content(HttpStatus.OK));
   }
 
@@ -121,7 +121,7 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
         200,
         "OK",
         null,
-        POST("/38/metadata/gml", Body("<metadata></metadata>"), ContentType("application/xml"))
+        POST("/metadata/gml", Body("<metadata></metadata>"), ContentType("application/xml"))
             .content(HttpStatus.OK));
   }
 

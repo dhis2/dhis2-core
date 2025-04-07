@@ -125,7 +125,7 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
       shouldGetChangeLogPagerWithNextAttributeWhenMultipleAttributesImportedAndFirstPageRequested() {
     JsonPage changeLogs =
         GET(
-                "40/tracker/trackedEntities/{id}/changeLogs?page={page}&pageSize={pageSize}",
+                "tracker/trackedEntities/{id}/changeLogs?page={page}&pageSize={pageSize}",
                 trackedEntity.getUid(),
                 "1",
                 "1")

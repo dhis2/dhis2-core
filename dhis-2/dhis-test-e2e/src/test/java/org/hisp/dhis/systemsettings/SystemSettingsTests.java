@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -40,6 +40,7 @@ import io.restassured.response.ValidatableResponse;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.RestApiActions;
 import org.hisp.dhis.test.e2e.actions.SystemSettingActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
@@ -76,12 +77,14 @@ class SystemSettingsTests extends ApiTest {
   private static final String CONTENT_TYPE_TEXT_PLAIN = "text/plain; charset=UTF-8";
 
   private SystemSettingActions systemSettingActions;
+  private RestApiActions systemSettingVersionActions;
 
   @BeforeEach
   public void setUp() {
     new TestCleanUp().deleteCreatedEntities("/systemSettings");
 
     systemSettingActions = new SystemSettingActions();
+    systemSettingVersionActions = new RestApiActions("/41/systemSettings");
 
     LoginActions loginActions = new LoginActions();
     loginActions.loginAsDefaultUser();
@@ -339,5 +342,16 @@ class SystemSettingsTests extends ApiTest {
         .validate()
         .statusCode(200)
         .body("keyGoogleMapsApiKey", emptyString());
+  }
+
+  @Test
+  @DisplayName(
+      "Calling the System Settings endpoint with an API version returns successful response")
+  void apiVersionCallSuccessTest() {
+    systemSettingVersionActions
+        .get("keyUiLocale")
+        .validate()
+        .statusCode(200)
+        .body("keyUiLocale", equalTo("en"));
   }
 }
