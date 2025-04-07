@@ -46,9 +46,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.junit.jupiter.api.Test;
 
-/**
- * @author Lars Helge Overland
- */
 class DataSetTest {
 
   @Test
