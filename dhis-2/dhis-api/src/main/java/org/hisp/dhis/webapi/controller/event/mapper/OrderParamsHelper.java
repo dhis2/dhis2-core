@@ -33,12 +33,9 @@ import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.Ord
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -58,26 +55,18 @@ public class OrderParamsHelper {
 
   public static final String ENROLLMENT_QUERY_ALIAS = "en";
 
-  public static List<OrderParam> toOrderParams(List<OrderCriteria> criteria) {
-    return Optional.ofNullable(criteria).orElse(Collections.emptyList()).stream()
-        .filter(Objects::nonNull)
-        .map(
-            orderCriteria -> new OrderParam(orderCriteria.getField(), orderCriteria.getDirection()))
-        .collect(Collectors.toList());
-  }
-
-  public static List<String> validateOrderParams(
-      List<OrderParam> orderParams, Map<String, TrackedEntityAttribute> attributes) {
+  public static List<String> validateOrderCriteria(
+      List<OrderCriteria> orders, Map<String, TrackedEntityAttribute> attributes) {
     List<String> errors = new ArrayList<>();
 
-    if (orderParams == null || orderParams.isEmpty()) {
+    if (orders == null || orders.isEmpty()) {
       return errors;
     }
 
-    for (OrderParam orderParam : orderParams) {
-      if (findColumn(orderParam.getField()).isEmpty()
-          && !attributes.containsKey(orderParam.getField())) {
-        errors.add("Invalid order property: " + orderParam.getField());
+    for (OrderCriteria orderCriteria : orders) {
+      if (findColumn(orderCriteria.getField()).isEmpty()
+          && !attributes.containsKey(orderCriteria.getField())) {
+        errors.add("Invalid order property: " + orderCriteria.getField());
       }
     }
 
