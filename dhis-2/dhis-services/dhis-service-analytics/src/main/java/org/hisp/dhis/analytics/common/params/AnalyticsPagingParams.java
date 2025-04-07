@@ -30,8 +30,8 @@
 package org.hisp.dhis.analytics.common.params;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
+import static org.hisp.dhis.common.Pager.DEFAULT_PAGE;
 import static org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
-import static org.hisp.dhis.webapi.controller.event.webrequest.PagingCriteria.DEFAULT_PAGE;
 
 import lombok.Builder;
 import lombok.Getter;
