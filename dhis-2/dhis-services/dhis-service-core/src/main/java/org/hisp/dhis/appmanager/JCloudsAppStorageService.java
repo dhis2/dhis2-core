@@ -436,7 +436,10 @@ public class JCloudsAppStorageService
             blobStore.removeBlob( config.container, resource.getName() );
         }
 
-        reservedNamespaces.remove( app.getActivities().getDhis().getNamespace(), app );
+        AppActivities activities = app.getActivities();
+        if(activities!=null){
+            reservedNamespaces.remove( activities.getDhis().getNamespace(), app );
+        }
 
         log.info( "Deleted app " + app.getName() );
     }
