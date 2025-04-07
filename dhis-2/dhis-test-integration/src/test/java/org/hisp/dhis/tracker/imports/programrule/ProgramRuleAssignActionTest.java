@@ -35,12 +35,14 @@ import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyWarnings;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1125;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1307;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1308;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1310;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
@@ -75,7 +77,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -102,6 +106,8 @@ class ProgramRuleAssignActionTest extends PostgresIntegrationTestBase {
 
   private DataElement dataElement2;
 
+  private DataElement optionDataElement;
+
   private TrackedEntityAttribute attribute1;
 
   @BeforeAll
@@ -114,6 +120,8 @@ class ProgramRuleAssignActionTest extends PostgresIntegrationTestBase {
     program = bundle.getPreheat().get(PreheatIdentifier.UID, Program.class, "BFcipDERJnf");
     dataElement1 = bundle.getPreheat().get(PreheatIdentifier.UID, DataElement.class, "DATAEL00001");
     dataElement2 = bundle.getPreheat().get(PreheatIdentifier.UID, DataElement.class, "DATAEL00002");
+    optionDataElement =
+        bundle.getPreheat().get(PreheatIdentifier.UID, DataElement.class, "DATAEL00005");
     attribute1 =
         bundle.getPreheat().get(PreheatIdentifier.UID, TrackedEntityAttribute.class, "dIVt4l5vIOa");
     TrackedEntityAttribute attribute2 =
@@ -282,6 +290,23 @@ class ProgramRuleAssignActionTest extends PostgresIntegrationTestBase {
     assertHasOnlyWarnings(importReport, E1308);
   }
 
+  @ParameterizedTest
+  @MethodSource("getOptions")
+  void shouldImportWithWarningWhenDataElementOfTypeOptionWithValidValueIsAssignedByAssignRule(
+      String option, boolean hasValidValue) throws IOException {
+    assignOptionProgramRule(option);
+    TrackerObjects trackerObjects =
+        testSetup.fromJson("tracker/programrule/event_update_datavalue_different_value.json");
+
+    ImportReport importReport =
+        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+
+    assertHasOnlyWarnings(importReport, E1308);
+    if (!hasValidValue) {
+      assertHasOnlyErrors(importReport, E1125);
+    }
+  }
+
   @Test
   void
       shouldImportWithWarningWhenDataElementWithDifferentAndEmptyValueIsAssignedByAssignRuleAndOverwriteKeyIsTrue()
@@ -347,6 +372,16 @@ class ProgramRuleAssignActionTest extends PostgresIntegrationTestBase {
     programRuleService.updateProgramRule(programRule);
   }
 
+  private void assignOptionProgramRule(String option) {
+    ProgramRule programRule = createProgramRule('O', program, null, "true");
+    programRuleService.addProgramRule(programRule);
+    ProgramRuleAction programRuleAction =
+        createProgramRuleAction(programRule, ASSIGN, optionDataElement, option);
+    programRuleActionService.addProgramRuleAction(programRuleAction);
+    programRule.getProgramRuleActions().add(programRuleAction);
+    programRuleService.updateProgramRule(programRule);
+  }
+
   private void assignToCalculatedValueProgramRule() {
     ProgramRule programRule = createProgramRule('I', program, null, "true");
     programRuleService.addProgramRule(programRule);
@@ -407,5 +442,12 @@ class ProgramRuleAssignActionTest extends PostgresIntegrationTestBase {
     programRuleAction.setData(data);
 
     return programRuleAction;
+  }
+
+  public Stream<Arguments> getOptions() {
+    return Stream.of(
+        Arguments.of("\"option1\"", true),
+        Arguments.of(null, true),
+        Arguments.of("\"invalidOption\"", false));
   }
 }

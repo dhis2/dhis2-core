@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,24 +27,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.type;
+package org.hisp.dhis.test.config;
 
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import java.util.Properties;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@OpenApi.Ignore
-@ApiVersion(DhisApiVersion.V31)
-public abstract class BaseWithVersionController {
-  @PostMapping("/{id}")
-  public void testWithId(@PathVariable String id, HttpServletResponse response) throws IOException {
-    response.getWriter().println(id);
-  }
-}
+public class PostgresTestConfigOverride extends Properties {}

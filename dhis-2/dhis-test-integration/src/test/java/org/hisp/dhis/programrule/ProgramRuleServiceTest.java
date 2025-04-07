@@ -352,7 +352,7 @@ class ProgramRuleServiceTest extends PostgresIntegrationTestBase {
 
     List<ProgramRule> rules =
         programRuleService.getProgramRulesByActionTypes(
-            programB, ProgramRuleActionType.SERVER_SUPPORTED_TYPES, null);
+            programB, ProgramRuleActionType.SERVER_SUPPORTED_TYPES);
 
     assertContainsOnly(rules, List.of(ruleD, ruleG));
   }

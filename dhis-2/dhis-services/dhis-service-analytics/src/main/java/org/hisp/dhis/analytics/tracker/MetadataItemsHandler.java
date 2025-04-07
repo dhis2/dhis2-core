@@ -75,7 +75,6 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.QueryFilter;
@@ -96,8 +95,6 @@ public class MetadataItemsHandler {
   private final UserService userService;
 
   private final OrganisationUnitResolver organisationUnitResolver;
-
-  private final IdentifiableObjectManager idObjectManager;
 
   /**
    * Adds meta data values to the given grid based on the given data query parameters.

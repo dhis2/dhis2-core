@@ -98,7 +98,7 @@
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>10.0.2</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>10.1</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.3</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
@@ -115,7 +115,7 @@
     <lettuce.version>6.5.5.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>11.4.1</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>11.6.0</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <ehcache3.version>3.10.8</ehcache3.version>
     <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
@@ -157,7 +157,7 @@
     <jfreechart-common.version>1.0.23</jfreechart-common.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
-    <poi.version>5.4.0</poi.version>
+    <poi.version>5.4.1</poi.version>
     <itext.version>2.1.7</itext.version>
 
     <!-- GIS -->
@@ -169,7 +169,7 @@
 
     <!-- Apache Artemis -->
     <artemis-jakarta.version>2.40.0</artemis-jakarta.version>
-    <netty-all.version>4.1.119.Final</netty-all.version>
+    <netty-all.version>4.2.0.Final</netty-all.version>
     <classgraph.version>4.8.179</classgraph.version>
 
     <!-- SMS/SMPP -->
@@ -181,13 +181,13 @@
     <jsoup.version>1.19.1</jsoup.version>
 
     <!-- Div. utils -->
-    <guava.version>33.4.5-jre</guava.version>
+    <guava.version>33.4.6-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
     <google-api-client.version>2.7.2</google-api-client.version>
-    <lombok.version>1.18.36</lombok.version>
+    <lombok.version>1.18.38</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
-    <joda-time.version>2.13.1</joda-time.version>
+    <joda-time.version>2.14.0</joda-time.version>
     <cron-utils.version>9.2.1</cron-utils.version>
     <commons-collections4.version>4.4</commons-collections4.version>
     <commons-beanutils.version>1.10.1</commons-beanutils.version>
@@ -200,7 +200,7 @@
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
     <httpcomponents-core.version>5.3.4</httpcomponents-core.version>
-    <httpcomponents-client5.version>5.4.2</httpcomponents-client5.version>
+    <httpcomponents-client5.version>5.4.3</httpcomponents-client5.version>
     <kafka.version>4.0.0</kafka.version>
 
     <!-- Monitoring -->
@@ -220,28 +220,28 @@
     <testcontainers.version>1.20.6</testcontainers.version>
     <jsonassert.version>1.5.3</jsonassert.version>
     <awaitility.version>4.3.0</awaitility.version>
-    <swagger.version>2.1.25</swagger.version>
+    <swagger.version>2.1.26</swagger.version>
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
     <h2.version>2.3.232</h2.version>
     <jakarta.persistence-api.version>3.2.0</jakarta.persistence-api.version>
 
     <!-- Maven plugin versions -->
-    <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
+    <maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
     <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
     <maven-exec-plugin.version>3.5.0</maven-exec-plugin.version>
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
-    <maven-failsafe-plugin.version>3.5.2</maven-failsafe-plugin.version>
+    <maven-failsafe-plugin.version>3.5.3</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
-    <restrict-imports-enforcer.version>2.6.0</restrict-imports-enforcer.version>
+    <restrict-imports-enforcer.version>2.6.1</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.18.0</versions-maven-plugin.version>
-    <dependency-check-maven.version>12.1.0</dependency-check-maven.version>
+    <dependency-check-maven.version>12.1.1</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.9.3.0</spotbugs-maven-plugin.version>
     <spotless.version>2.44.3</spotless.version>
-    <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+    <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.2.0</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.36</dhis-antlr-expression-parser.version>
     <jai-imageio.version>1.1.1</jai-imageio.version>
@@ -1881,7 +1881,7 @@
         <plugin>
           <groupId>org.sonarsource.scanner.maven</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
-          <version>5.0.0.4389</version>
+          <version>5.1.0.4751</version>
         </plugin>
         <plugin>
           <groupId>org.cyclonedx</groupId>
@@ -2061,7 +2061,7 @@ jasperreports.version=${jasperreports.version}
             </upToDateChecking>
             <java>
               <googleJavaFormat>
-                <version>1.24.0</version>
+                <version>1.26.0</version>
                 <style>GOOGLE</style>
               </googleJavaFormat>
               <trimTrailingWhitespace/>
@@ -2146,6 +2146,7 @@ jasperreports.version=${jasperreports.version}
               <ignoredUnusedDeclaredDependency>org.apache.activemq:artemis-jakarta-server</ignoredUnusedDeclaredDependency>
             </ignoredUnusedDeclaredDependencies>
             <ignoredUsedUndeclaredDependencies>
+              <ignoredUsedUndeclaredDependency>javax.cache:cache-api:jar</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.springframework.data:spring-data-redis:jar</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.flywaydb:flyway-core</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.antlr:antlr4-runtime</ignoredUsedUndeclaredDependency>

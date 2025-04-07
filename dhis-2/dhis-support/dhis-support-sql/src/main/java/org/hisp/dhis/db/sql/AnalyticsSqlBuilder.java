@@ -35,7 +35,7 @@ import java.time.format.DateTimeFormatter;
  * Interface for resolving specific SQL queries for analytics, that requires custom logic that can't
  * be resolved by the default <code>SqlBuilder</code> implementations.
  */
-public interface AnalyticsSqlBuilder {
+public interface AnalyticsSqlBuilder extends SqlBuilder {
 
   DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 

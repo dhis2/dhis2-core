@@ -35,9 +35,13 @@ import com.google.common.collect.Maps;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.notification.ProgramTemplateVariable;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -47,8 +51,12 @@ import org.springframework.stereotype.Component;
  * @author Halvdan Hoem Grelland
  */
 @Component
+@RequiredArgsConstructor
 public class ProgramNotificationMessageRenderer
     extends BaseNotificationMessageRenderer<Enrollment> {
+
+  private final OptionService optionService;
+
   public static final ImmutableMap<TemplateVariable, Function<Enrollment, String>>
       VARIABLE_RESOLVERS =
           new ImmutableMap.Builder<TemplateVariable, Function<Enrollment, String>>()
@@ -97,9 +105,7 @@ public class ProgramNotificationMessageRenderer
 
     return entity.getTrackedEntity().getTrackedEntityAttributeValues().stream()
         .filter(av -> attributeKeys.contains(av.getAttribute().getUid()))
-        .collect(
-            Collectors.toMap(
-                av -> av.getAttribute().getUid(), ProgramNotificationMessageRenderer::filterValue));
+        .collect(Collectors.toMap(av -> av.getAttribute().getUid(), this::filterValue));
   }
 
   @Override
@@ -123,7 +129,7 @@ public class ProgramNotificationMessageRenderer
   // Internal methods
   // -------------------------------------------------------------------------
 
-  private static String filterValue(TrackedEntityAttributeValue av) {
+  private String filterValue(TrackedEntityAttributeValue av) {
     String value = av.getPlainValue();
 
     if (value == null) {
@@ -133,7 +139,9 @@ public class ProgramNotificationMessageRenderer
     // If the AV has an OptionSet -> substitute value with the name of the
     // Option
     if (av.getAttribute().hasOptionSet()) {
-      value = av.getAttribute().getOptionSet().getOptionByCode(value).getName();
+      Optional<Option> option =
+          optionService.findOptionByCode(av.getAttribute().getOptionSet().getUid(), value);
+      if (option.isPresent()) value = option.get().getName();
     }
 
     return value != null ? value : MISSING_VALUE_REPLACEMENT;

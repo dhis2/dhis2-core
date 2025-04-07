@@ -123,7 +123,7 @@ class UserControllerTest {
   void updateUserGroups() {
     when(userService.getUser("def2")).thenReturn(user);
 
-    if (isInStatusUpdatedOK(createReportWith(Status.OK, report -> report.withStatsIncUpdated(1)))) {
+    if (isInStatusUpdatedOK(createReportWith(Status.OK, report -> report.updatedInc(1)))) {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
@@ -136,8 +136,7 @@ class UserControllerTest {
 
   @Test
   void updateUserGroupsNotOk() {
-    if (isInStatusUpdatedOK(
-        createReportWith(Status.ERROR, report -> report.withStatsIncUpdated(1)))) {
+    if (isInStatusUpdatedOK(createReportWith(Status.ERROR, report -> report.updatedInc(1)))) {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
@@ -147,7 +146,7 @@ class UserControllerTest {
 
   @Test
   void updateUserGroupsNotUpdated() {
-    if (isInStatusUpdatedOK(createReportWith(Status.OK, report -> report.withStatsIncCreated(1)))) {
+    if (isInStatusUpdatedOK(createReportWith(Status.OK, report -> report.createdInc(1)))) {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
@@ -167,7 +166,7 @@ class UserControllerTest {
     when(userService.getUser("def2")).thenReturn(user);
     when(userService.getUserByUsername(any())).thenReturn(currentUser);
 
-    if (isInStatusUpdatedOK(createReportWith(Status.OK, report -> report.withStatsIncUpdated(1)))) {
+    if (isInStatusUpdatedOK(createReportWith(Status.OK, report -> report.updatedInc(1)))) {
       userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 

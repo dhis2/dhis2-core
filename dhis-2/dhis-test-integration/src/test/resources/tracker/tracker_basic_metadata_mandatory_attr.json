@@ -970,8 +970,7 @@
         "F_APPROVE_DATA",
         "F_ACCEPT_DATA_LOWER_LEVELS",
         "F_EDIT_EXPIRED",
-        "F_APPROVE_DATA_LOWER_LEVELS",
-        "F_TRACKED_ENTITY_INSTANCE_ADD"
+        "F_APPROVE_DATA_LOWER_LEVELS"
       ],
       "id": "IIc7RL27ed9",
       "sharing": {
@@ -1011,8 +1010,7 @@
         "F_APPROVE_DATA",
         "F_ACCEPT_DATA_LOWER_LEVELS",
         "F_EDIT_EXPIRED",
-        "F_APPROVE_DATA_LOWER_LEVELS",
-        "F_TRACKED_ENTITY_INSTANCE_ADD"
+        "F_APPROVE_DATA_LOWER_LEVELS"
       ],
       "id": "hQIFfnE8ENH",
       "sharing": {

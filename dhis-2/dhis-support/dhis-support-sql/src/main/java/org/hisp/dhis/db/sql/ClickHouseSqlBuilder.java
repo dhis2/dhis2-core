@@ -37,10 +37,16 @@ import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Database;
+import org.hisp.dhis.db.model.DateUnit;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
 
+/**
+ * Implementation of {@link SqlBuilder} for ClickHouse.
+ *
+ * @author Lars Helge Overland
+ */
 @Getter
 @RequiredArgsConstructor
 public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
@@ -305,6 +311,16 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String log10(String expression) {
     return String.format("log10(%s)", expression);
+  }
+
+  @Override
+  public String stddev(String expression) {
+    return String.format("stddevSamp(%s)", expression);
+  }
+
+  @Override
+  public String variance(String expression) {
+    return String.format("varSamp(%s)", expression);
   }
 
   // Statements

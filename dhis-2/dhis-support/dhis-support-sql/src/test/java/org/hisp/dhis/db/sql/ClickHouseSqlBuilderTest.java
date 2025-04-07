@@ -142,10 +142,12 @@ class ClickHouseSqlBuilderTest {
   @Test
   void testQuoteAlias() {
     assertEquals(
-        "ax.\"Treated \"\"malaria\"\" at facility\"",
+        """
+        ax."Treated ""malaria"" at facility\"""",
         sqlBuilder.quote("ax", "Treated \"malaria\" at facility"));
     assertEquals(
-        "analytics.\"Patients on \"\"treatment\"\" for TB\"",
+        """
+        analytics."Patients on ""treatment"" for TB\"""",
         sqlBuilder.quote("analytics", "Patients on \"treatment\" for TB"));
     assertEquals("analytics.\"quarterly\"", sqlBuilder.quote("analytics", "quarterly"));
     assertEquals("dv.\"Fully immunized\"", sqlBuilder.quote("dv", "Fully immunized"));
@@ -154,7 +156,8 @@ class ClickHouseSqlBuilderTest {
   @Test
   void testQuoteAx() {
     assertEquals(
-        "ax.\"Treated \"\"malaria\"\" at facility\"",
+        """
+        ax."Treated ""malaria"" at facility\"""",
         sqlBuilder.quoteAx("Treated \"malaria\" at facility"));
     assertEquals("ax.\"quarterly\"", sqlBuilder.quoteAx("quarterly"));
     assertEquals("ax.\"Fully immunized\"", sqlBuilder.quoteAx("Fully immunized"));
@@ -254,10 +257,12 @@ class ClickHouseSqlBuilderTest {
   @Test
   void testJsonExtractObject() {
     assertEquals(
-        "JSONExtractString(JSONExtractRaw(ev.eventdatavalues, 'D7m8vpzxHDJ'), 'value')",
+        """
+        JSONExtractString(JSONExtractRaw(ev.eventdatavalues, 'D7m8vpzxHDJ'), 'value')""",
         sqlBuilder.jsonExtract("ev.eventdatavalues", "D7m8vpzxHDJ", "value"));
     assertEquals(
-        "JSONExtractString(JSONExtractRaw(ev.eventdatavalues, 'qrur9Dvnyt5'), 'value')",
+        """
+        JSONExtractString(JSONExtractRaw(ev.eventdatavalues, 'qrur9Dvnyt5'), 'value')""",
         sqlBuilder.jsonExtract("ev.eventdatavalues", "qrur9Dvnyt5", "value"));
   }
 
@@ -280,14 +285,16 @@ class ClickHouseSqlBuilderTest {
   @Test
   void testIfThen() {
     assertEquals(
-        "if(a.status = 'COMPLETE', a.eventdate, null)",
+        """
+        if(a.status = 'COMPLETE', a.eventdate, null)""",
         sqlBuilder.ifThen("a.status = 'COMPLETE'", "a.eventdate"));
   }
 
   @Test
   void testIfThenElse() {
     assertEquals(
-        "if(a.status = 'COMPLETE', a.eventdate, a.scheduleddate)",
+        """
+        if(a.status = 'COMPLETE', a.eventdate, a.scheduleddate)""",
         sqlBuilder.ifThenElse("a.status = 'COMPLETE'", "a.eventdate", "a.scheduleddate"));
   }
 
@@ -310,6 +317,16 @@ class ClickHouseSqlBuilderTest {
   @Test
   void testLog10() {
     assertEquals("log10(value)", sqlBuilder.log10("value"));
+  }
+
+  @Test
+  void testStandardDeviation() {
+    assertEquals("stddevSamp(value)", sqlBuilder.stddev("value"));
+  }
+
+  @Test
+  void testVariance() {
+    assertEquals("varSamp(value)", sqlBuilder.variance("value"));
   }
 
   // Statements

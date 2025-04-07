@@ -49,6 +49,7 @@ import java.util.Set;
 import java.util.function.LongSupplier;
 import java.util.stream.Stream;
 import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.mockito.MockSettings;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -72,8 +73,10 @@ record FakeRedis(
     RedisOperations<String, String> api) {
 
   static Notifier notifier(SystemSettings settings, LongSupplier clock) {
+    SystemSettingsService settingsService = mock(SystemSettingsService.class);
+    when(settingsService.getCurrentSettings()).thenReturn(settings);
     return new DefaultNotifier(
-        new RedisNotifierStore(new FakeRedis().api()), new ObjectMapper(), () -> settings, clock);
+        new RedisNotifierStore(new FakeRedis().api()), new ObjectMapper(), settingsService, clock);
   }
 
   FakeRedis() {

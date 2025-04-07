@@ -186,7 +186,7 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
       TrackedEntityTypeService trackedEntityTypeService,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder,
+      SqlBuilder sqlBuilder,
       AnalyticsSqlBuilder analyticsSqlBuilder) {
     super(
         idObjectManager,

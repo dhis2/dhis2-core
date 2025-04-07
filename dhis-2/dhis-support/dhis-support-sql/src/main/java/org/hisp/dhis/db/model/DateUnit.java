@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,27 +27,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.type;
-
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+package org.hisp.dhis.db.model;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Enumeration of time units.
+ *
+ * @author Lars Helge Overland
  */
-@OpenApi.Ignore
-@Controller
-@RequestMapping("/api/type/testDefaultAll")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-public class ApiTypeDefaultAllController {
-  @GetMapping
-  public void test(HttpServletResponse response) throws IOException {
-    response.getWriter().println("TEST");
-  }
+public enum DateUnit {
+  DAYS,
+  WEEKS,
+  MONTHS,
+  MINUTES,
+  YEARS
 }
