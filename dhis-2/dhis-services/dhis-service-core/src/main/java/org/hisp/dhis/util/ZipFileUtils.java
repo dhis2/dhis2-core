@@ -194,7 +194,7 @@ public class ZipFileUtils {
       String formatted =
           String.format(
               "Zip bomb detected: Maximum total uncompressed size (%s) exceeded.",
-              MAX_COMPRESSION_RATIO);
+              MAX_TOTAL_UNCOMPRESSED_SIZE);
       log.error(formatted);
       throw new ZipBombException(formatted);
     }
