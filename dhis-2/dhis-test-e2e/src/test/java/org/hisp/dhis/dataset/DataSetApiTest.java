@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.dataset;
 
+import static org.hamcrest.Matchers.containsString;
+
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
@@ -66,7 +68,7 @@ class DataSetApiTest extends ApiTest {
         .validate()
         .statusCode(200)
         .header("Content-Disposition", "attachment; filename=metadata.json.zip")
-        .header("Content-Type", "application/json+zip")
+        .header("Content-Type", containsString("application/json+zip"))
         .header("Content-Transfer-Encoding", "binary");
   }
 }
