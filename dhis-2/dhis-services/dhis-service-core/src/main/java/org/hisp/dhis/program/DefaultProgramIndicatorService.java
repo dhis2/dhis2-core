@@ -48,7 +48,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import lombok.Getter;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.Parser;
@@ -288,7 +287,6 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
     String cacheKey =
         getAnalyticsSqlCacheKey(
             expression, dataType, programIndicator, startDate, endDate, tableAlias, replaceNulls);
-    cacheKey = cacheKey + RandomStringUtils.secure().nextAlphabetic(10);
     return analyticsSqlCache.get(
         cacheKey,
         k ->

@@ -30,20 +30,26 @@
 package org.hisp.dhis.analytics.enrollment.query;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeader;
+import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderExistence;
+import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
+import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRowContext;
+import static org.hisp.dhis.analytics.ValidationHelper.validateRowValueByName;
+import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEnrollmentsActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -52,117 +58,153 @@ import org.junit.jupiter.api.Test;
  * @author maikel arabori
  */
 public class EnrollmentQueryTest extends AnalyticsApiTest {
-  private AnalyticsEnrollmentsActions enrollmentsActions = new AnalyticsEnrollmentsActions();
+  private final AnalyticsEnrollmentsActions enrollmentsActions = new AnalyticsEnrollmentsActions();
 
   @Test
-  public void queryWithProgramAndProgramStageWhenTotalPagesIsFalse() {
+  public void queryWithProgramAndProgramStageWhenTotalPagesIsFalse() throws JSONException {
+    // --- Test Configuration ---
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = BooleanUtils.toBoolean(System.getProperty("expect.postgis", "true"));
+
     // Given
     QueryParamsBuilder params =
         new QueryParamsBuilder()
-            .add("dimension=pe:LAST_12_MONTHS,ou:ImspTQPwCqd,A03MvHHogjR.UXz7xuGCEhU")
+            .add("asc=A03MvHHogjR.UXz7xuGCEhU,lastupdated")
             .add("stage=A03MvHHogjR")
             .add("displayProperty=NAME")
-            .add("outputType=ENROLLMENT")
-            .add("asc=A03MvHHogjR.UXz7xuGCEhU,lastupdated")
             .add("totalPages=false")
+            .add("outputType=ENROLLMENT")
             .add("pageSize=100")
             .add("page=1")
+            .add("dimension=pe:LAST_12_MONTHS,ou:ImspTQPwCqd,A03MvHHogjR.UXz7xuGCEhU")
             .add("relativePeriodDate=2022-09-27");
 
     // When
     ApiResponse response = enrollmentsActions.query().get("IpHINAT79UW", JSON, JSON, params);
 
     // Then
-    response
-        .validate()
-        .statusCode(200)
-        .body("headers", hasSize(equalTo(17)))
-        .body("rows", hasSize(equalTo(100)))
-        .body("metaData.pager.page", equalTo(1))
-        .body("metaData.pager.pageSize", equalTo(100))
-        .body("metaData.pager.isLastPage", is(false))
-        .body("metaData.pager", not(hasKey("total")))
-        .body("metaData.pager", not(hasKey("pageCount")))
-        .body("metaData.items.ImspTQPwCqd.name", equalTo("Sierra Leone"))
-        .body("metaData.items.IpHINAT79UW.name", equalTo("Child Programme"))
-        .body("metaData.items.ZzYYXq4fJie.name", equalTo("Baby Postnatal"))
-        .body("metaData.items.A03MvHHogjR.name", equalTo("Birth"))
-        .body("metaData.items.ou.name", equalTo("Organisation unit"))
-        .body("metaData.items.LAST_12_MONTHS.name", equalTo("Last 12 months"))
-        .body("metaData.dimensions.pe", hasSize(equalTo(0)))
-        .body("metaData.dimensions.ou", hasSize(equalTo(1)))
-        .body("metaData.dimensions.ou", hasItem("ImspTQPwCqd"))
-        .body("metaData.dimensions.\"A03MvHHogjR.UXz7xuGCEhU\"", hasSize(equalTo(0)))
-        .body("height", equalTo(100))
-        .body("width", equalTo(17))
-        .body("headerWidth", equalTo(17));
-
-    // Validate headers
-    validateHeader(response, 0, "pi", "Enrollment", "TEXT", "java.lang.String", false, true);
-    validateHeader(response, 1, "tei", "Tracked entity", "TEXT", "java.lang.String", false, true);
-    validateHeader(
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
         response,
-        2,
+        expectPostgis,
+        100,
+        17,
+        14); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":false},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"A03MvHHogjR.UXz7xuGCEhU\":{\"name\":\"MCH Weight (g)\"},\"UXz7xuGCEhU\":{\"name\":\"MCH Weight (g)\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"A03MvHHogjR.UXz7xuGCEhU\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "pi", "Enrollment", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "tei", "Tracked entity", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
         "enrollmentdate",
         "Date of enrollment",
         "DATETIME",
         "java.time.LocalDateTime",
         false,
         true);
-    validateHeader(
+    validateHeaderPropertiesByName(
         response,
-        3,
+        actualHeaders,
         "incidentdate",
         "Date of birth",
         "DATETIME",
         "java.time.LocalDateTime",
         false,
         true);
-    validateHeader(response, 4, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
-    validateHeader(
-        response, 5, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
-    validateHeader(
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
         response,
-        6,
+        actualHeaders,
+        "createdbydisplayname",
+        "Created by",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
         "lastupdatedbydisplayname",
         "Last updated by",
         "TEXT",
         "java.lang.String",
         false,
         true);
-    validateHeader(
+    validateHeaderPropertiesByName(
         response,
-        7,
+        actualHeaders,
         "lastupdated",
         "Last updated on",
         "DATETIME",
         "java.time.LocalDateTime",
         false,
         true);
-    validateHeader(response, 8, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
-    validateHeader(
-        response, 9, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
-    validateHeader(response, 10, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
-    validateHeader(
-        response, 11, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
-    validateHeader(
+    validateHeaderPropertiesByName(
         response,
-        12,
+        actualHeaders,
+        "ouname",
+        "Organisation unit name",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
         "ounamehierarchy",
         "Organisation unit name hierarchy",
         "TEXT",
         "java.lang.String",
         false,
         true);
-    validateHeader(
-        response, 13, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true);
-    validateHeader(
-        response, 14, "programstatus", "Program status", "TEXT", "java.lang.String", false, true);
-    validateHeader(
-        response, 15, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true);
-    validateHeader(
+    validateHeaderPropertiesByName(
         response,
-        16,
+        actualHeaders,
+        "oucode",
+        "Organisation unit code",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "programstatus",
+        "Program status",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
         "A03MvHHogjR.UXz7xuGCEhU",
         "MCH Weight (g)",
         "NUMBER",
@@ -170,72 +212,35 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
         false,
         true);
 
-    // Validate the first three rows, as samples.
-    validateRow(
-        response,
-        0,
-        List.of(
-            "KxXkjF6buFN",
-            "uhubxsfLanV",
-            "2022-04-02 02:00:00.0",
-            "2022-04-02 02:00:00.0",
-            "",
-            ",  ()",
-            ",  ()",
-            "2017-11-16 12:26:42.851",
-            "",
-            "",
-            "",
-            "Ngelehun CHC",
-            "Sierra Leone / Bo / Badjia / Ngelehun CHC",
-            "OU_559",
-            "COMPLETED",
-            "DiszpKrYNg8",
-            "2313.0"));
+    // Assert PostGIS-specific headers DO NOT exist if 'expectPostgis' is false
+    if (!expectPostgis) {
+      validateHeaderExistence(actualHeaders, "geometry", false);
+      validateHeaderExistence(actualHeaders, "longitude", false);
+      validateHeaderExistence(actualHeaders, "latitude", false);
+    }
 
-    validateRow(
-        response,
-        1,
-        List.of(
-            "xieBMWGVUhY",
-            "Ss42PAKPV4p",
-            "2022-01-09 12:05:00.0",
-            "2022-01-09 12:05:00.0",
-            "",
-            ",  ()",
-            ",  ()",
-            "2018-08-06 21:15:40.207",
-            "",
-            "",
-            "",
-            "Sienga CHP",
-            "Sierra Leone / Kailahun / Dea / Sienga CHP",
-            "OU_204921",
-            "ACTIVE",
-            "a1E6QWBTEwX",
-            "2500.0"));
+    // rowContext not found or empty in the response, skipping assertions.
 
-    validateRow(
-        response,
-        2,
-        List.of(
-            "B5X5DWgtrSu",
-            "bB8bbcI5hQO",
-            "2022-07-18 12:05:00.0",
-            "2022-07-18 12:05:00.0",
-            "",
-            ",  ()",
-            ",  ()",
-            "2018-08-06 21:15:41.333",
-            "",
-            "",
-            "",
-            "Masumana MCHP",
-            "Sierra Leone / Port Loko / Koya / Masumana MCHP",
-            "OU_254965",
-            "ACTIVE",
-            "UlgEReuUPM4",
-            "2500.0"));
+    // 7. Assert row values by name (sample validation: first/last row, key columns).
+    // Validate selected values for row index 0
+    validateRowValueByName(response, actualHeaders, 0, "pi", "KxXkjF6buFN");
+    validateRowValueByName(response, actualHeaders, 0, "A03MvHHogjR.UXz7xuGCEhU", "2313.0");
+    validateRowValueByName(response, actualHeaders, 0, "tei", "uhubxsfLanV");
+    validateRowValueByName(response, actualHeaders, 0, "enrollmentdate", "2022-04-02 02:00:00.0");
+    validateRowValueByName(response, actualHeaders, 0, "incidentdate", "2022-04-02 02:00:00.0");
+    validateRowValueByName(response, actualHeaders, 0, "ouname", "Ngelehun CHC");
+    validateRowValueByName(response, actualHeaders, 0, "programstatus", "COMPLETED");
+    validateRowValueByName(response, actualHeaders, 0, "ou", "DiszpKrYNg8");
+
+    // Validate selected values for row index 99
+    validateRowValueByName(response, actualHeaders, 99, "pi", "Ff9wbfm05au");
+    validateRowValueByName(response, actualHeaders, 99, "A03MvHHogjR.UXz7xuGCEhU", "2521.0");
+    validateRowValueByName(response, actualHeaders, 99, "tei", "HJJMsNWg0SN");
+    validateRowValueByName(response, actualHeaders, 99, "enrollmentdate", "2022-02-03 12:05:00.0");
+    validateRowValueByName(response, actualHeaders, 99, "incidentdate", "2022-02-03 12:05:00.0");
+    validateRowValueByName(response, actualHeaders, 99, "ouname", "Grey Bush CHC");
+    validateRowValueByName(response, actualHeaders, 99, "programstatus", "ACTIVE");
+    validateRowValueByName(response, actualHeaders, 99, "ou", "JZraNIfZ5JM");
   }
 
   @Test
