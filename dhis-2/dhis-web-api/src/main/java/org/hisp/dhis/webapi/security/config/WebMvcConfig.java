@@ -90,7 +90,6 @@ import org.springframework.web.servlet.config.annotation.ContentNegotiationConfi
 import org.springframework.web.servlet.config.annotation.DelegatingWebMvcConfiguration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.web.servlet.resource.PathResourceResolver;
 import org.springframework.web.servlet.resource.ResourceResolverChain;
 
@@ -252,17 +251,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
             pathExtensionNegotiationStrategy,
             new HeaderContentNegotiationStrategy(),
             new FixedContentNegotiationStrategy(MediaType.APPLICATION_JSON)));
-  }
-
-  @Override
-  protected RequestMappingHandlerMapping createRequestMappingHandlerMapping() {
-    RequestMappingHandlerMapping mapping = new RequestMappingHandlerMapping();
-    mapping.setOrder(0);
-    mapping.setContentNegotiationManager(mvcContentNegotiationManager());
-    mapping.setUseTrailingSlashMatch(true);
-    mapping.setUseSuffixPatternMatch(true);
-    mapping.setUseRegisteredSuffixPatternMatch(true);
-    return mapping;
   }
 
   @Override
