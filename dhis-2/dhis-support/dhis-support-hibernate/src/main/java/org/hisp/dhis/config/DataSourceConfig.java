@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.config;
 
-import com.google.common.base.MoreObjects;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import java.util.Objects;
@@ -47,15 +46,16 @@ import org.hibernate.engine.jdbc.internal.Formatter;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
-import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
 import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -67,13 +67,20 @@ public class DataSourceConfig {
 
   @Primary
   @Bean
-  public NamedParameterJdbcTemplate namedParameterJdbcTemplate(DataSource dataSource) {
+  public NamedParameterJdbcTemplate namedParameterJdbcTemplate(
+      @Qualifier("actualDataSource") DataSource dataSource) {
+    return new NamedParameterJdbcTemplate(dataSource);
+  }
+
+  @Bean
+  public NamedParameterJdbcTemplate readOnlyNamedParameterJdbcTemplate(
+      @Qualifier("readReplicaDataSource") DataSource dataSource) {
     return new NamedParameterJdbcTemplate(dataSource);
   }
 
   @Primary
   @Bean
-  public JdbcTemplate jdbcTemplate(DataSource dataSource) {
+  public JdbcTemplate jdbcTemplate(@Qualifier("actualDataSource") DataSource dataSource) {
     JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
     jdbcTemplate.setFetchSize(1000);
     return jdbcTemplate;
@@ -81,14 +88,48 @@ public class DataSourceConfig {
 
   @Bean
   public JdbcTemplate readOnlyJdbcTemplate(
-      DhisConfigurationProvider config, DataSource dataSource) {
-    ReadOnlyDataSourceManager manager = new ReadOnlyDataSourceManager(config);
+      @Qualifier("readReplicaDataSource") DataSource dataSource) {
+    JdbcTemplate readOnlyJdbcTemplate = new JdbcTemplate(dataSource);
+    readOnlyJdbcTemplate.setFetchSize(1000);
+    return readOnlyJdbcTemplate;
+  }
 
-    JdbcTemplate jdbcTemplate =
-        new JdbcTemplate(MoreObjects.firstNonNull(manager.getReadOnlyDataSource(), dataSource));
-    jdbcTemplate.setFetchSize(1000);
+  @Bean
+  public DataSource readReplicaDataSource(
+      DhisConfigurationProvider config,
+      @Qualifier("actualDataSource") DataSource actualDataSource) {
 
-    return jdbcTemplate;
+    if (!config.isTrackerReadReplicaEnabled()) {
+      log.info("Tracker Read replica is disabled. Using main database as dataSource");
+      return actualDataSource;
+    }
+    String jdbcUrl = config.getProperty(ConfigurationKey.TRACKER_READ_REPLICA_CONNECTION_URL);
+    String username = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
+
+    if (!StringUtils.hasText(jdbcUrl)) {
+      throw new IllegalStateException(
+          "Tracker Read replica is enabled but read replica connection url not specified in dhis.conf.");
+    }
+    log.info("Tracker Read replica is enabled");
+    String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
+
+    DbPoolConfig poolConfig =
+        DbPoolConfig.builder()
+            .dhisConfig(config)
+            .jdbcUrl(jdbcUrl)
+            .username(username)
+            .dbPoolType(dbPoolType)
+            .build();
+
+    try {
+      return DatabasePoolUtils.createDbPool(poolConfig);
+    } catch (SQLException | PropertyVetoException e) {
+      String message =
+          String.format(
+              "Connection test failed for tracker read replica database pool, jdbcUrl: '%s', user: '%s'",
+              jdbcUrl, username);
+      throw new IllegalStateException(message, e);
+    }
   }
 
   @Primary
