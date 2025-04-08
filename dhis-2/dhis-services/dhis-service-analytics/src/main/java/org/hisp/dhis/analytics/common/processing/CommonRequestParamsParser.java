@@ -90,10 +90,12 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /** Parser class for the common objects. */
 @Component
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class CommonRequestParamsParser implements Parser<CommonRequestParams, CommonParsedParams> {
   @Nonnull private final SystemSettingsProvider settingsProvider;
 
