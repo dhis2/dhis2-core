@@ -900,8 +900,6 @@ final class GistBuilder {
 
   private String createJsonFilterHQL(int index, Filter filter, String field) {
     return switch (filter.getOperator()) {
-      case EQ -> "%s = :f_%d".formatted(field, index);
-      case NE -> "%s != :f_%d".formatted(field, index);
       case EMPTY ->
           "(%1$s is null or %1$s = '{}' or %1$s = '[]' or %1$s = 'null')".formatted(field);
       case NOT_EMPTY ->
