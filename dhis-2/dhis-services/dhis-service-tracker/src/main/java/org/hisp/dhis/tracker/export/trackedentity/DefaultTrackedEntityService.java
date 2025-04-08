@@ -34,6 +34,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -56,8 +57,8 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
@@ -77,8 +78,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   private final TrackedEntityAuditService trackedEntityAuditService;
 
-  private final TrackerAccessManager trackerAccessManager;
-
   private final TrackerOwnershipManager ownershipAccessManager;
 
   private final TrackedEntityAggregate trackedEntityAggregate;
@@ -90,6 +89,8 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private final OperationsParamsValidator operationsParamsValidator;
 
   private final TrackedEntityOperationParamsMapper mapper;
+
+  private final TrackerProgramService trackerProgramService;
 
   @Override
   public FileResourceStream getFileResource(
@@ -276,9 +277,10 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
     trackedEntityAuditService.addTrackedEntityAudit(SEARCH, user.getUsername(), trackedEntities);
 
+    List<Program> programs = trackerProgramService.getAccessibleTrackerPrograms();
     // TODO(tracker): Push this filter into the store because it is breaking pagination
     return trackedEntities.stream()
-        .filter(filterAccessibleTrackedEntities(user, queryParams))
+        .filter(filterAccessibleTrackedEntities(user, queryParams, programs))
         .toList();
   }
 
@@ -288,7 +290,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private Predicate<TrackedEntity> filterAccessibleTrackedEntities(
-      UserDetails user, TrackedEntityQueryParams queryParams) {
+      UserDetails user, TrackedEntityQueryParams queryParams, List<Program> programs) {
     boolean skipOwnershipCheck = queryParams.getOrgUnitMode() == ALL;
 
     if (queryParams.hasEnrolledInTrackerProgram()) {
@@ -298,6 +300,12 @@ class DefaultTrackedEntityService implements TrackedEntityService {
               ownershipAccessManager.hasAccess(user, te, queryParams.getEnrolledInTrackerProgram());
     }
 
-    return te -> trackerAccessManager.canRead(user, te, skipOwnershipCheck).isEmpty();
+    return te ->
+        programs.stream()
+            .filter(
+                p ->
+                    Objects.equals(
+                        p.getTrackedEntityType().getUid(), te.getTrackedEntityType().getUid()))
+            .anyMatch(p -> ownershipAccessManager.hasAccess(user, te, p));
   }
 }
