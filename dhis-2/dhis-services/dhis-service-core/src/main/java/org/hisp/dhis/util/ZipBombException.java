@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.util;
 
-public class ZipBombException extends Throwable {
+public class ZipBombException extends Exception {
 
   public ZipBombException(String s) {
     super(s);
