@@ -349,9 +349,9 @@ class SystemSettingsTests extends ApiTest {
       "Calling the System Settings endpoint with an API version returns successful response")
   void apiVersionCallSuccessTest() {
     systemSettingVersionActions
-        .get("keyUiLocale")
+        .get("keyUiLocale", CONTENT_TYPE_TEXT_PLAIN, CONTENT_TYPE_TEXT_PLAIN, null)
         .validate()
         .statusCode(200)
-        .body("keyUiLocale", equalTo("en"));
+        .body(equalTo("en"));
   }
 }
