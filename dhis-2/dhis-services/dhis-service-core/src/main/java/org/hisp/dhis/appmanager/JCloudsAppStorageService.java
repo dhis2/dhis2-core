@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.appmanager;
 
-import static org.hisp.dhis.util.ZipFileUtils.getFilePath;
+import static org.hisp.dhis.util.ZipFileUtils.getFullFilePath;
 import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -177,15 +177,16 @@ public class JCloudsAppStorageService implements AppStorageService {
     String installationFolder =
         APPS_DIR + File.separator + filename.substring(0, filename.lastIndexOf('.'));
 
-    App app = new App();
-    app.setFolderName(installationFolder);
-
+    App app;
     String topLevelFolder;
     try {
       topLevelFolder = ZipFileUtils.getTopLevelFolder(file);
       app = ZipFileUtils.readManifest(file, this.jsonMapper, topLevelFolder);
+      app.setFolderName(installationFolder);
+      app.setAppStorageSource(AppStorageSource.JCLOUDS);
     } catch (IOException e) {
       log.error("Failed to install app: Missing manifest.webapp in zip");
+      app = new App();
       app.setAppState(AppStatus.MISSING_MANIFEST);
       return app;
     }
@@ -202,9 +203,12 @@ public class JCloudsAppStorageService implements AppStorageService {
         Enumeration<? extends ZipEntry> entries = zipFile.entries();
         while (entries.hasMoreElements()) {
           ZipEntry zipEntry = entries.nextElement();
-          String filePath = getFilePath(topLevelFolder, installationFolder, zipEntry);
+          String filePath = getFullFilePath(topLevelFolder, installationFolder, zipEntry);
           // If it's the root folder, skip
-          if (filePath == null) continue;
+          if (filePath == null) {
+            continue;
+          }
+
           try (InputStream zipInputStream = zipFile.getInputStream(zipEntry)) {
             Blob blob =
                 jCloudsStore

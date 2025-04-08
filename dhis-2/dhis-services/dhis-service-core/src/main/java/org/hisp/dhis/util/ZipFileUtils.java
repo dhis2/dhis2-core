@@ -119,7 +119,7 @@ public class ZipFileUtils {
         throw new ZipBombException(formatted);
       }
 
-      String filePath = getFilePath(topLevelFolder, appFolder, zipEntry);
+      String filePath = getFullFilePath(topLevelFolder, appFolder, zipEntry);
       // If it's the root folder, skip
       if (filePath == null) continue;
 
@@ -131,18 +131,18 @@ public class ZipFileUtils {
     log.debug("Zip file was successfully unzipped");
   }
 
-  public static @CheckForNull String getFilePath(
+  public static @CheckForNull String getFullFilePath(
       String topLevelFolder, String appFolder, ZipEntry zipEntry)
       throws IOException, ZipSlipException {
-    String normalizedName = validateFilePaths(topLevelFolder, zipEntry.getName());
+    String normalizedName = normalizeFilePath(topLevelFolder, zipEntry.getName());
     if (normalizedName.isBlank()) {
       return null;
     }
-    String sanitizedName = getSanitizedName(appFolder, normalizedName);
+    String sanitizedName = sanitizeFilePath(appFolder, normalizedName);
     return appFolder + File.separator + sanitizedName;
   }
 
-  private static @Nonnull String validateFilePaths(String topLevelFolder, String filename)
+  private static @Nonnull String normalizeFilePath(String topLevelFolder, String filename)
       throws ZipSlipException {
     // Check for relative (..) and absolute paths in the file name
     File file = new File(filename);
@@ -164,7 +164,7 @@ public class ZipFileUtils {
     return normalizedName;
   }
 
-  private static @Nonnull String getSanitizedName(String appFolder, String normalizedName)
+  private static @Nonnull String sanitizeFilePath(String appFolder, String normalizedName)
       throws ZipSlipException, IOException {
     String sanitizedName = normalizedName.replaceAll("^[./\\\\]+", "").replace('\\', '/');
     // Check sanitizedName is not trying to escape the appFolder
