@@ -37,6 +37,7 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -111,7 +112,7 @@ public class ZipFileUtils {
   private static void validateAllFiles(ZipFile zipFile, String topLevelFolder, String appFolder)
       throws ZipBombException, ZipSlipException, IOException {
     int entryCount = 0;
-    long totalUncompressedSize = 0;
+    final LongAdder totalUncompressedSize = new LongAdder();
 
     Enumeration<? extends ZipEntry> entries = zipFile.entries();
     while (entries.hasMoreElements()) {
@@ -127,8 +128,6 @@ public class ZipFileUtils {
       if (filePath == null) continue;
 
       validateSizes(zipEntry, totalUncompressedSize);
-      // Update totalUncompressedSize with the entry size
-      totalUncompressedSize += zipEntry.getSize();
     }
   }
 
@@ -178,8 +177,8 @@ public class ZipFileUtils {
     return sanitizedName;
   }
 
-  private static void validateSizes(ZipEntry entry, Long totalUncompressedSize)
-      throws ZipBombException {
+  private static void validateSizes(ZipEntry entry, LongAdder totalUncompressedSize)
+      throws IOException {
     long entrySize = entry.getSize(); // Uncompressed size
     long compressedSize = entry.getCompressedSize();
     if (entrySize < 0) {
@@ -188,17 +187,17 @@ public class ZipFileUtils {
               "Invalid zip manifestEntry: Negative uncompressed size (%s) for manifestEntry",
               entrySize);
       log.error(formatted);
-      throw new ZipBombException(formatted);
+      throw new IOException(formatted);
     }
 
-    totalUncompressedSize += entrySize;
-    if (totalUncompressedSize > MAX_TOTAL_UNCOMPRESSED_SIZE) {
+    totalUncompressedSize.add(entrySize);
+    if (totalUncompressedSize.sum() > MAX_TOTAL_UNCOMPRESSED_SIZE) {
       String formatted =
           String.format(
               "Zip bomb detected: Maximum total uncompressed size (%s) exceeded.",
               MAX_COMPRESSION_RATIO);
       log.error(formatted);
-      throw new ZipBombException(formatted);
+      throw new IOException(formatted);
     }
 
     if (compressedSize > 0) {
@@ -209,7 +208,7 @@ public class ZipFileUtils {
                 "Zip bomb detected: Maximum compression ratio (%s) exceeded for manifestEntry, (Ratio: %.2f).",
                 MAX_COMPRESSION_RATIO, compressionRatio);
         log.error(formatted);
-        throw new ZipBombException(formatted);
+        throw new IOException(formatted);
       }
     }
   }
