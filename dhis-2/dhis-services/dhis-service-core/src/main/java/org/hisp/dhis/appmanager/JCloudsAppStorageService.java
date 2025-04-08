@@ -337,18 +337,19 @@ public class JCloudsAppStorageService
         log.info( "Installing new app: {}", filename );
         String installationFolder = APPS_DIR + File.separator + filename.substring( 0, filename.lastIndexOf( '.' ) );
 
-        App app = new App();
-        app.setFolderName( installationFolder );
-
+        App app;
         String topLevelFolder;
         try
         {
             topLevelFolder = ZipFileUtils.getTopLevelFolder( file );
             app = ZipFileUtils.readManifest( file, this.jsonMapper, topLevelFolder );
+            app.setFolderName( installationFolder );
+            app.setAppStorageSource( AppStorageSource.JCLOUDS );
         }
         catch ( IOException e )
         {
             log.error( "Failed to install app: Missing manifest.webapp in zip" );
+            app = new App();
             app.setAppState( AppStatus.MISSING_MANIFEST );
             return app;
         }
@@ -437,7 +438,8 @@ public class JCloudsAppStorageService
         }
 
         AppActivities activities = app.getActivities();
-        if(activities!=null){
+        if ( activities != null )
+        {
             reservedNamespaces.remove( activities.getDhis().getNamespace(), app );
         }
 
