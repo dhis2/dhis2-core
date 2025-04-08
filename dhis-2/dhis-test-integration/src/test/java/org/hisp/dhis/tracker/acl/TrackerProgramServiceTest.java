@@ -104,7 +104,6 @@ class TrackerProgramServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnEmptyListWhenNoProgramAccessible() {
     makeProgramInaccessible("TsngICFQjvP");
-
     TrackedEntityType trackedEntityType = manager.get(TrackedEntityType.class, "Fa7NY4PW6DL");
     assertNotNull(trackedEntityType);
 
