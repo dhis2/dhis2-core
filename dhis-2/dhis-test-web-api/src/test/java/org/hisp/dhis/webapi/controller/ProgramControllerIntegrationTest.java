@@ -41,6 +41,7 @@ import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
@@ -90,6 +91,14 @@ class ProgramControllerIntegrationTest extends PostgresControllerIntegrationTest
         .content(HttpStatus.CREATED);
 
     POST("/metadata", Path.of("program/create_program.json")).content(HttpStatus.OK);
+  }
+
+  @Test
+  void testGistFilterCategoryMappings() {
+    JsonObject noMapping = GET("/programs/gist?filter=categoryMappings:empty").content();
+    JsonObject withMapping = GET("/programs/gist?filter=categoryMappings:!empty").content();
+    assertEquals(0, withMapping.getArray("programs").size());
+    assertEquals(1, noMapping.getArray("programs").size());
   }
 
   @Test
