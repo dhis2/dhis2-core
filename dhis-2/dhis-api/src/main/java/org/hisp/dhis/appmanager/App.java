@@ -40,6 +40,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
 import java.util.*;
 import javax.annotation.Nonnull;
+import org.apache.commons.lang3.SerializationUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.datastore.DatastoreNamespace;
 import org.hisp.dhis.util.ObjectUtils;
@@ -545,12 +546,14 @@ public class App implements Serializable {
     manifestTranslations = translations;
   }
 
-  public void localise(Locale userLocale) {
+  public App localise(Locale userLocale) {
+    App localisedApp = SerializationUtils.clone(this);
     if (!manifestTranslations.isEmpty()) {
-      for (AppShortcut shortcut : this.shortcuts) {
+      for (AppShortcut shortcut : localisedApp.shortcuts) {
         shortcut.setDisplayName(getTranslations(userLocale, shortcut.getName()));
       }
     }
+    return localisedApp;
   }
 
   private String getTranslations(Locale locale, String shortcutName) {
