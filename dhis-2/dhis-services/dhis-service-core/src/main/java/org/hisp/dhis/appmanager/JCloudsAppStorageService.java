@@ -183,14 +183,13 @@ public class JCloudsAppStorageService implements AppStorageService {
     try {
       topLevelFolder = ZipFileUtils.getTopLevelFolder(file);
       app = ZipFileUtils.readManifest(file, this.jsonMapper, topLevelFolder);
+      app.setFolderName(installationFolder);
 
     } catch (IOException e) {
       log.error("Failed to install app: Missing manifest.webapp in zip");
       app.setAppState(AppStatus.MISSING_MANIFEST);
       return app;
     }
-
-    app.setFolderName(installationFolder);
 
     try {
       ZipFileUtils.validateZip(file, installationFolder, topLevelFolder);
