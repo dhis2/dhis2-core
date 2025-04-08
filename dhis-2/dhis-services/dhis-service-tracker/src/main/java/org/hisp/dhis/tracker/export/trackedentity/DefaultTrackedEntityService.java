@@ -306,6 +306,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
                 p ->
                     Objects.equals(
                         p.getTrackedEntityType().getUid(), te.getTrackedEntityType().getUid()))
-            .anyMatch(p -> ownershipAccessManager.hasAccess(user, te, p));
+            .anyMatch(p -> skipOwnershipCheck || ownershipAccessManager.hasAccess(user, te, p));
   }
 }
