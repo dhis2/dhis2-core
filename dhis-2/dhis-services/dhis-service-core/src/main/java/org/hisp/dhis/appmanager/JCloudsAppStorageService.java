@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -207,20 +207,19 @@ public class JCloudsAppStorageService implements AppStorageService {
     String installationFolder =
         APPS_DIR + File.separator + filename.substring(0, filename.lastIndexOf('.'));
 
-    App app = new App();
+    App app;
     String topLevelFolder;
-
     try {
       topLevelFolder = ZipFileUtils.getTopLevelFolder(file);
       app = ZipFileUtils.readManifest(file, this.jsonMapper, topLevelFolder);
-
+      app.setFolderName(installationFolder);
+      app.setAppStorageSource(AppStorageSource.JCLOUDS);
     } catch (IOException e) {
       log.error("Failed to install app: Missing manifest.webapp in zip");
+      app = new App();
       app.setAppState(AppStatus.MISSING_MANIFEST);
       return app;
     }
-
-    app.setFolderName(installationFolder);
 
     if (!validateApp(app, appCache)) {
       log.error("Failed to install app: App validation failed");

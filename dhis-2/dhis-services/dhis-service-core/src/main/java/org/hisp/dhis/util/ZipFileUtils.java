@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -51,7 +51,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppStatus;
-import org.hisp.dhis.appmanager.AppStorageSource;
 
 /**
  * @author Austin McGee
@@ -228,12 +227,12 @@ public class ZipFileUtils {
       if (manifestEntry == null) {
         log.error("Failed to install app: Missing manifest.webapp in zip");
         app.setAppState(AppStatus.MISSING_MANIFEST);
+        return app;
       }
+
       InputStream inputStream = zip.getInputStream(manifestEntry);
       app = jsonMapper.readValue(inputStream, App.class);
-      app.setAppStorageSource(AppStorageSource.JCLOUDS);
     }
-
     return app;
   }
 
