@@ -191,10 +191,10 @@ class AppTest {
 
     var translationManifest = getTranslation(translationJSON);
     app.setManifestTranslations(translationManifest);
-    app.localise(new Locale("es"));
+    var result = app.localise(new Locale("es"));
 
-    assertEquals("ayuda", app.getShortcuts().get(0).getDisplayName());
-    assertEquals("informacion", app.getShortcuts().get(1).getDisplayName());
+    assertEquals("ayuda", result.getShortcuts().get(0).getDisplayName());
+    assertEquals("informacion", result.getShortcuts().get(1).getDisplayName());
   }
 
   @Test
@@ -224,11 +224,11 @@ class AppTest {
 
     var translationManifest = getTranslation(translationJSON);
     app.setManifestTranslations(translationManifest);
-    app.localise(new Locale("es", "CO"));
+    var result = app.localise(new Locale("es", "CO"));
 
-    assertEquals("ayuda (Colombia)", app.getShortcuts().get(0).getDisplayName());
-    assertEquals("informacion", app.getShortcuts().get(1).getDisplayName());
-    assertEquals("exit", app.getShortcuts().get(2).getDisplayName());
+    assertEquals("ayuda (Colombia)", result.getShortcuts().get(0).getDisplayName());
+    assertEquals("informacion", result.getShortcuts().get(1).getDisplayName());
+    assertEquals("exit", result.getShortcuts().get(2).getDisplayName());
   }
 
   @Test
@@ -250,11 +250,11 @@ class AppTest {
 
     var translationManifest = getTranslation(translationJSON);
     app.setManifestTranslations(translationManifest);
-    app.localise(new Locale("de"));
+    var result = app.localise(new Locale("de"));
 
-    assertEquals("help", app.getShortcuts().get(0).getDisplayName());
-    assertEquals("info", app.getShortcuts().get(1).getDisplayName());
-    assertEquals("exit", app.getShortcuts().get(2).getDisplayName());
+    assertEquals("help", result.getShortcuts().get(0).getDisplayName());
+    assertEquals("info", result.getShortcuts().get(1).getDisplayName());
+    assertEquals("exit", result.getShortcuts().get(2).getDisplayName());
   }
 
   @Test
@@ -289,12 +289,12 @@ class AppTest {
     Locale locale =
         new Locale.Builder().setLanguage("uz").setRegion("UZ").setScript("Cyrl").build();
 
-    app.localise(locale);
-    assertEquals("help (Uzbek Cyrillic)", app.getShortcuts().get(0).getDisplayName());
+    var result = app.localise(locale);
+    assertEquals("help (Uzbek Cyrillic)", result.getShortcuts().get(0).getDisplayName());
 
     locale = new Locale.Builder().setLanguage("uz").setRegion("UZ").setScript("Latn").build();
 
-    app.localise(locale);
-    assertEquals("help (Uzbek-Uzbekistan Latin)", app.getShortcuts().get(0).getDisplayName());
+    result = app.localise(locale);
+    assertEquals("help (Uzbek-Uzbekistan Latin)", result.getShortcuts().get(0).getDisplayName());
   }
 }
