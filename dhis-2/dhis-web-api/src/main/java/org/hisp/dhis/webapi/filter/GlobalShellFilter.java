@@ -60,6 +60,7 @@ public class GlobalShellFilter extends OncePerRequestFilter {
   public static final String BUNDLED_GLOBAL_SHELL_PATH = "dhis-web-" + BUNDLED_GLOBAL_SHELL_NAME;
   public static final String GLOBAL_SHELL_PATH_PREFIX = "/apps/";
   public static final String REFERER_HEADER = "Referer";
+  public static final String SEC_FETCH_DEST_HEADER = "Sec-Fetch-Dest";
   public static final String SERVICE_WORKER_JS = "/service-worker.js";
   public static final String REDIRECT_FALSE = "redirect=false";
   public static final String SHELL_FALSE = "shell=false";
@@ -172,13 +173,16 @@ public class GlobalShellFilter extends OncePerRequestFilter {
     String referer = request.getHeader(REFERER_HEADER);
     boolean isServiceWorkerRequest = referer != null && referer.endsWith(SERVICE_WORKER_JS);
 
+    String secFetchDest = request.getHeader(SEC_FETCH_DEST_HEADER);
+    boolean isIframeRequest = secFetchDest != null && secFetchDest.equalsIgnoreCase("iframe");
+
     log.debug(
         "redirectLegacyAppPaths: path = {}, queryString = {}, referer = {}",
         path,
         queryString,
         referer);
 
-    if (isIndexPath && !isServiceWorkerRequest && !hasRedirectFalse) {
+    if (isIndexPath && !isServiceWorkerRequest && !isIframeRequest && !hasRedirectFalse) {
       String targetPath = baseUrl + GLOBAL_SHELL_PATH_PREFIX + appName;
       targetPath = withQueryString(targetPath, queryString);
       response.sendRedirect(targetPath);
