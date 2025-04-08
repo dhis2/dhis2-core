@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004-2025, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +27,8 @@
  */
 package org.hisp.dhis.util;
 
-public class ZipSlipException extends Throwable
-{
-    public ZipSlipException( String s )
-    {
-        super( s );
-    }
+public class ZipSlipException extends Exception {
+  public ZipSlipException(String s) {
+    super(s);
+  }
 }

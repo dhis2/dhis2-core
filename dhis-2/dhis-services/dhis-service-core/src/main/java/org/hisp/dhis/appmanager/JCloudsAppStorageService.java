@@ -27,24 +27,21 @@
  */
 package org.hisp.dhis.appmanager;
 
+import static org.hisp.dhis.util.ZipFileUtils.getFilePath;
 import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +49,9 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.jclouds.JCloudsStore;
+import org.hisp.dhis.util.ZipBombException;
 import org.hisp.dhis.util.ZipFileUtils;
+import org.hisp.dhis.util.ZipSlipException;
 import org.jclouds.blobstore.BlobRequestSigner;
 import org.jclouds.blobstore.LocalBlobRequestSigner;
 import org.jclouds.blobstore.domain.Blob;
@@ -171,50 +170,42 @@ public class JCloudsAppStorageService implements AppStorageService {
   }
 
   @Override
-  public App installApp( File file, String filename, Cache<App> appCache )
-  {
-    log.info( "Installing new app: {}", filename );
-    String installationFolder = APPS_DIR + File.separator + filename.substring( 0, filename.lastIndexOf( '.' ) );
+  public App installApp(File file, String filename, Cache<App> appCache) {
+    log.info("Installing new app: {}", filename);
+    String installationFolder =
+        APPS_DIR + File.separator + filename.substring(0, filename.lastIndexOf('.'));
 
     App app;
     String topLevelFolder;
-    try
-    {
-      topLevelFolder = ZipFileUtils.getTopLevelFolder( file );
-      app = ZipFileUtils.readManifest( file, this.jsonMapper, topLevelFolder );
-      app.setFolderName( installationFolder );
-      app.setAppStorageSource( AppStorageSource.JCLOUDS );
-    }
-    catch ( IOException e )
-    {
-      log.error( "Failed to install app: Missing manifest.webapp in zip" );
+    try {
+      topLevelFolder = ZipFileUtils.getTopLevelFolder(file);
+      app = ZipFileUtils.readManifest(file, this.jsonMapper, topLevelFolder);
+      app.setFolderName(installationFolder);
+      app.setAppStorageSource(AppStorageSource.JCLOUDS);
+    } catch (IOException e) {
+      log.error("Failed to install app: Missing manifest.webapp in zip");
       app = new App();
-      app.setAppState( AppStatus.MISSING_MANIFEST );
+      app.setAppState(AppStatus.MISSING_MANIFEST);
       return app;
     }
 
-    try
-    {
-      ZipFileUtils.validateZip( file, installationFolder, topLevelFolder );
+    try {
+      ZipFileUtils.validateZip(file, installationFolder, topLevelFolder);
 
-      if ( !validateApp( app, appCache ) )
-      {
-        log.error( "Failed to install app: App validation failed" );
+      if (!validateApp(app, appCache)) {
+        log.error("Failed to install app: App validation failed");
         return app;
       }
 
-      try ( ZipFile zipFile = new ZipFile( file ) )
-      {
+      try (ZipFile zipFile = new ZipFile(file)) {
         Enumeration<? extends ZipEntry> entries = zipFile.entries();
-        while ( entries.hasMoreElements() )
-        {
+        while (entries.hasMoreElements()) {
           ZipEntry zipEntry = entries.nextElement();
-          String filePath = getFilePath( topLevelFolder, installationFolder, zipEntry );
+          String filePath = getFilePath(topLevelFolder, installationFolder, zipEntry);
           // If it's the root folder, skip
-          if ( filePath == null )
-            continue;
-          try ( InputStream zipInputStream = zipFile.getInputStream( zipEntry ) )
-          {
+          if (filePath == null) continue;
+
+          try (InputStream zipInputStream = zipFile.getInputStream(zipEntry)) {
             Blob blob =
                 jCloudsStore
                     .getBlobStore()
@@ -227,43 +218,35 @@ public class JCloudsAppStorageService implements AppStorageService {
         }
       }
 
-      app.setAppState( AppStatus.OK );
+      app.setAppState(AppStatus.OK);
 
-    }
-    catch ( IOException e )
-    {
-      log.error( "Failed to install app: IO Failure during unzipping", e );
-      app.setAppState( AppStatus.INVALID_ZIP_FORMAT );
-    }
-    catch ( ZipBombException e )
-    {
-      log.error( "Failed to install app: Possible ZipBomb detected", e );
-      app.setAppState( AppStatus.INVALID_ZIP_FORMAT );
-    }
-    catch ( ZipSlipException e )
-    {
-      log.error( "Failed to install app: Possible ZipSlip detected", e );
-      app.setAppState( AppStatus.INVALID_ZIP_FORMAT );
+    } catch (IOException e) {
+      log.error("Failed to install app: IO Failure during unzipping", e);
+      app.setAppState(AppStatus.INVALID_ZIP_FORMAT);
+    } catch (ZipBombException e) {
+      log.error("Failed to install app: Possible ZipBomb detected", e);
+      app.setAppState(AppStatus.INVALID_ZIP_FORMAT);
+    } catch (ZipSlipException e) {
+      log.error("Failed to install app: Possible ZipSlip detected", e);
+      app.setAppState(AppStatus.INVALID_ZIP_FORMAT);
     }
 
-    if ( !app.getAppState().ok() )
-    {
-      deleteApp( app );
+    if (!app.getAppState().ok()) {
+      deleteApp(app);
       return app;
     }
 
-    logSuccess( app, installationFolder );
+    logSuccess(app, installationFolder);
     return app;
   }
 
-  private static void logSuccess( App app, String appFolder )
-  {
+  private static void logSuccess(App app, String appFolder) {
     String namespace = app.getActivities().getDhis().getNamespace();
     log.info(
         "New app {} installed, Install path: {}, Namespace reserved: {}",
         app.getName(),
         appFolder,
-        (namespace != null && !namespace.isEmpty() ? namespace : "no namespace reserved") );
+        (namespace != null && !namespace.isEmpty() ? namespace : "no namespace reserved"));
   }
 
   @Override
