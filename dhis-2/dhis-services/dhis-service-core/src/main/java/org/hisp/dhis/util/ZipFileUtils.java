@@ -37,6 +37,7 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -108,7 +109,7 @@ public class ZipFileUtils {
   private static void validateAllFiles(ZipFile zipFile, String topLevelFolder, String appFolder)
       throws ZipBombException, ZipSlipException, IOException {
     int entryCount = 0;
-    long totalUncompressedSize = 0;
+    final LongAdder totalUncompressedSize = new LongAdder();
 
     Enumeration<? extends ZipEntry> entries = zipFile.entries();
     while (entries.hasMoreElements()) {
@@ -124,8 +125,6 @@ public class ZipFileUtils {
       if (filePath == null) continue;
 
       validateSizes(zipEntry, totalUncompressedSize);
-      // Update totalUncompressedSize with the entry size
-      totalUncompressedSize += zipEntry.getSize();
     }
 
     log.debug("Zip file was successfully unzipped");
@@ -177,7 +176,7 @@ public class ZipFileUtils {
     return sanitizedName;
   }
 
-  private static void validateSizes(ZipEntry entry, Long totalUncompressedSize)
+  private static void validateSizes(ZipEntry entry, LongAdder totalUncompressedSize)
       throws ZipBombException {
     long entrySize = entry.getSize(); // Uncompressed size
     long compressedSize = entry.getCompressedSize();
@@ -190,8 +189,8 @@ public class ZipFileUtils {
       throw new ZipBombException(formatted);
     }
 
-    totalUncompressedSize += entrySize;
-    if (totalUncompressedSize > MAX_TOTAL_UNCOMPRESSED_SIZE) {
+    totalUncompressedSize.add(entrySize);
+    if (totalUncompressedSize.sum() > MAX_TOTAL_UNCOMPRESSED_SIZE) {
       String formatted =
           String.format(
               "Zip bomb detected: Maximum total uncompressed size (%s) exceeded.",
