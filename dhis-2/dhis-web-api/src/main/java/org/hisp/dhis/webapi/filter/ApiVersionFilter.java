@@ -86,7 +86,7 @@ public class ApiVersionFilter implements Filter {
       String endpoint = matcher.group("endpoint");
 
       if (api != null && apiVersion != null && endpoint != null) {
-        RequestDispatcher dispatcher = req.getRequestDispatcher(api + endpoint);
+        RequestDispatcher dispatcher = req.getServletContext().getRequestDispatcher(api + endpoint);
         dispatcher.forward(request, response);
         return;
       }
