@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -48,7 +48,6 @@ import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.IntegrationTestBase;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.filter.ApiVersionFilter;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -94,7 +93,7 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
 
   @Autowired protected WebApplicationContext webApplicationContext;
 
-  @Autowired private ApiVersionFilter apiVersionFilter;
+  //  @Autowired private ApiVersionFilter apiVersionFilter;
 
   @Autowired private RenderService _renderService;
 
@@ -120,7 +119,7 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
 
     mvc =
         MockMvcBuilders.webAppContextSetup(webApplicationContext)
-            .addFilter(apiVersionFilter)
+            //            .addFilter(apiVersionFilter)
             .build();
 
     switchContextToUser(getAdminUser());
