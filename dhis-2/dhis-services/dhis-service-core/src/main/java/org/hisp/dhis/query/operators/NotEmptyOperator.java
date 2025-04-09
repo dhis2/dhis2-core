@@ -66,7 +66,7 @@ public class NotEmptyOperator<T extends Comparable<T>> extends Operator<T> {
 
   @Override
   public boolean test(Object value) {
-    if (value == null) return false;
+    if (value == null) return true;
     if (value instanceof Collection<?> c) return !c.isEmpty();
     if (value instanceof Map<?, ?> m) return !m.isEmpty();
     if (value instanceof String s) return !s.isEmpty();
