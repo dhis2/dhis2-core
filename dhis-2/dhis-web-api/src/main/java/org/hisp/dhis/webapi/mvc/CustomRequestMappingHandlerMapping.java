@@ -52,7 +52,7 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
   protected RequestMappingInfo getMappingForMethod(Method method, Class<?> handlerType) {
     RequestMappingInfo info = super.getMappingForMethod(method, handlerType);
 
-    if (info == null || info.getPatternValues().stream().noneMatch(s -> s.startsWith("/api/"))) {
+    if (info == null) {
       return null;
     }
 
