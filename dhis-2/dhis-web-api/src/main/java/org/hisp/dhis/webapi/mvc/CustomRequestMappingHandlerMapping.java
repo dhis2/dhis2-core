@@ -30,7 +30,6 @@
 package org.hisp.dhis.webapi.mvc;
 
 import java.lang.reflect.Method;
-import java.util.List;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.condition.PatternsRequestCondition;
 import org.springframework.web.servlet.mvc.condition.RequestMethodsRequestCondition;
@@ -45,10 +44,8 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  * <code>/api/40/icons</code> <br>
  * <code>/api/40/icons/{key}</code> <br>
  * <br>
- * It now provides a mapping for any endpoint starting with `/api/`, allowing any version from 28 to
- * 43. It also still allows the endpoint without any version e.g. <br>
- * <code>/api/icons/{key}</code> <br>
- * which is what we want clients to use exclusively in the future.
+ * It now provides only the base mappings (without versions) for any endpoint starting with <code>
+ * /api/</code>. No extra mappings are produced.
  */
 public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMapping {
   @Override
@@ -59,15 +56,6 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
       return null;
     }
 
-    // allow API calls with versions 28-43 in the path e.g. `/api/42/icons`
-    List<String> versionedApiEndpoints =
-        new java.util.ArrayList<>(
-            info.getPatternValues().stream()
-                .map(pv -> pv.replace("/api/", "/api/{apiVersion:^[2][8-9]|^[3][0-9]|^[4][0-3]$}/"))
-                .toList());
-    // allow original API path with no version in it e.g. `/api/icons
-    versionedApiEndpoints.addAll(info.getPatternValues());
-
     RequestMethodsRequestCondition methodsCondition = info.getMethodsCondition();
 
     if (methodsCondition.getMethods().isEmpty()) {
@@ -76,7 +64,7 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
 
     PatternsRequestCondition patternsRequestCondition =
         new PatternsRequestCondition(
-            versionedApiEndpoints.toArray(new String[] {}), null, null, true, true, null);
+            info.getPatternValues().toArray(new String[] {}), null, null, true, true, null);
     return new RequestMappingInfo(
         null,
         patternsRequestCondition,
