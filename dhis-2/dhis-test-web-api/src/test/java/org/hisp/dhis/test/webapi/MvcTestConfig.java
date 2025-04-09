@@ -49,6 +49,7 @@ import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.test.message.DefaultFakeMessageSender;
 import org.hisp.dhis.webapi.mvc.CurrentSystemSettingsHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
+import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
@@ -87,7 +88,6 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.handler.ConversionServiceExposingInterceptor;
-import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.web.servlet.resource.ResourceUrlProvider;
 import org.springframework.web.servlet.resource.ResourceUrlProviderExposingInterceptor;
 
@@ -132,10 +132,10 @@ public class MvcTestConfig implements WebMvcConfigurer {
 
   @Bean
   @Primary
-  public RequestMappingHandlerMapping requestMappingHandlerMapping(
+  public CustomRequestMappingHandlerMapping requestMappingHandlerMapping(
       FormattingConversionService mvcConversionService,
       ResourceUrlProvider mvcResourceUrlProvider) {
-    RequestMappingHandlerMapping mapping = new RequestMappingHandlerMapping();
+    CustomRequestMappingHandlerMapping mapping = new CustomRequestMappingHandlerMapping();
     mapping.setOrder(0);
     TestInterceptorRegistry registry = new TestInterceptorRegistry();
     addInterceptors(registry);
