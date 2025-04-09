@@ -245,6 +245,29 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
         30, (long) idObjectManager.getCountByLastUpdated(Event.class, todayMinusDays(30)));
     statistics.setEventCount(eventCount);
 
+    Map<Integer, Long> enrollmentCount = new HashMap<>();
+    enrollmentCount.put(
+        0,
+        (long)
+            idObjectManager.getCountByLastUpdated(
+                org.hisp.dhis.program.Enrollment.class, todayMinusDays(0)));
+    enrollmentCount.put(
+        1,
+        (long)
+            idObjectManager.getCountByLastUpdated(
+                org.hisp.dhis.program.Enrollment.class, todayMinusDays(1)));
+    enrollmentCount.put(
+        7,
+        (long)
+            idObjectManager.getCountByLastUpdated(
+                org.hisp.dhis.program.Enrollment.class, todayMinusDays(7)));
+    enrollmentCount.put(
+        30,
+        (long)
+            idObjectManager.getCountByLastUpdated(
+                org.hisp.dhis.program.Enrollment.class, todayMinusDays(30)));
+    statistics.setEnrollmentCount(enrollmentCount);
+
     statistics.setSystem(getDhis2Info());
 
     return statistics;
