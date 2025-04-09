@@ -37,7 +37,6 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.User;
@@ -155,22 +154,6 @@ public class NotificationTemplateMapper {
                   u -> u.setPhoneNumber(user.getPhoneNumber()))));
     }
     return userSnapshots;
-  }
-
-  private OrganisationUnit toOrganisationUnit(OrganisationUnitSnapshot organisationUnitSnapshot) {
-    return toBaseIdentifiableObject(
-        organisationUnitSnapshot,
-        OrganisationUnit::new,
-        List.of(
-            ou -> ou.setName(organisationUnitSnapshot.getName()),
-            ou -> ou.setDescription(organisationUnitSnapshot.getDescription()),
-            ou -> ou.setShortName(organisationUnitSnapshot.getShortName()),
-            ou ->
-                ou.setParent(
-                    organisationUnitSnapshot.getParent() != null
-                        ? toOrganisationUnit(organisationUnitSnapshot.getParent())
-                        : null),
-            ou -> ou.setUsers(toUsers(organisationUnitSnapshot.getUsers()))));
   }
 
   private <T extends IdentifiableObjectSnapshot> T toIdentifiableObjectSnapshot(
