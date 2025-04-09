@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -142,9 +142,9 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
             "springSecurityFilterChain", new DelegatingFilterProxy("springSecurityFilterChain"))
         .addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
 
-    context
-        .addFilter("ApiVersionFilter", new DelegatingFilterProxy("apiVersionFilter"))
-        .addMappingForUrlPatterns(null, true, "/*");
+    //    context
+    //        .addFilter("ApiVersionFilter", new DelegatingFilterProxy("apiVersionFilter"))
+    //        .addMappingForUrlPatterns(null, true, "/*");
 
     context
         .addFilter("RequestIdentifierFilter", new DelegatingFilterProxy("requestIdentifierFilter"))
