@@ -30,6 +30,7 @@
 package org.hisp.dhis.gist;
 
 import static java.util.Arrays.stream;
+import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -336,7 +337,7 @@ final class GistBuilder {
     String fields = createFieldsHQL();
     String accessFilters = createAccessFilterHQL(context, "e");
     String userFilters = createFiltersHQL();
-    String orders = createOrdersHQL();
+    String orders = createOrderByHQL();
     String elementTable = query.getElementType().getSimpleName();
     Owner owner = query.getOwner();
     if (owner == null) {
@@ -964,7 +965,17 @@ final class GistBuilder {
     }
   }
 
-  private String createOrdersHQL() {
+  private String createOrderByHQL() {
+    if (query.getOrders() == null || query.getOrders().isEmpty()) {
+      List<Property> orderBy =
+          context.getHome().getProperties().stream()
+              .filter(p -> p.getGistPreferences().getOrder() != null)
+              .sorted(comparingInt(a -> a.getGistPreferences().getOrder()))
+              .toList();
+      if (!orderBy.isEmpty()) {
+        return orderBy.stream().map(p -> p.getFieldName() + " asc").collect(joining(", "));
+      }
+    }
     return join(
         query.getOrders(),
         ",",
@@ -1023,13 +1034,10 @@ final class GistBuilder {
   }
 
   private String createOperatorRightSideHQL(Comparison operator) {
-    switch (operator) {
-      case NOT_IN:
-      case IN:
-        return ")";
-      default:
-        return "";
-    }
+    return switch (operator) {
+      case NOT_IN, IN -> ")";
+      default -> "";
+    };
   }
 
   private <T> String join(
@@ -1043,7 +1051,7 @@ final class GistBuilder {
     StringBuilder str = new StringBuilder();
     int i = 0;
     for (T e : elements) {
-      if (str.length() > 0) {
+      if (!str.isEmpty()) {
         str.append(delimiter);
       }
       str.append(elementFactory.apply(i++, e));
