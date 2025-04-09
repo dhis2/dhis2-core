@@ -29,13 +29,29 @@
  */
 package org.hisp.dhis.program.function;
 
+import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
+
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsConstants;
+import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 import org.hisp.dhis.parser.expression.statement.StatementBuilder;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
@@ -45,6 +61,7 @@ import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
  *
  * @author Jim Grace
  */
+@Slf4j
 public abstract class ProgramCountFunction extends ProgramExpressionItem {
 
   private static final String SQL_TEMPLATE =
@@ -61,6 +78,39 @@ public abstract class ProgramCountFunction extends ProgramExpressionItem {
 
   @Override
   public final Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    validateCountFunctionArgs(ctx);
+
+    ProgramContext context = new ProgramContext(ctx, visitor);
+    CommonExpressionVisitor sqlVisitor =
+        CommonExpressionVisitor.builder()
+            .sqlBuilder(visitor.getSqlBuilder())
+            .constantMap(visitor.getConstantMap())
+            .itemMap(visitor.getItemMap())
+            .itemMethod(ITEM_GET_SQL)
+            .params(visitor.getParams().toBuilder().dataType(DataType.NUMERIC).build())
+            .build();
+    String valueSql = castString(sqlVisitor.visit(ctx.expr(0)));
+
+    String boundaryHash =
+        generateBoundaryHash(context.programIndicator, context.startDate, context.endDate);
+
+    String functionName = getFunctionName();
+
+    String encodedValueSql =
+        Base64.getEncoder().encodeToString(valueSql.getBytes(StandardCharsets.UTF_8));
+
+    return String.format(
+        "__D2FUNC__(func='%s', ps='%s', de='%s', val64='%s', hash='%s', pi='%s')__",
+        functionName,
+        context.programStageId,
+        context.dataElementId,
+        encodedValueSql,
+        boundaryHash,
+        context.piUid);
+  }
+
+  // TODO remove
+  public final Object getSql2(ExprContext ctx, CommonExpressionVisitor visitor) {
     validateCountFunctionArgs(ctx);
 
     StatementBuilder sb = visitor.getStatementBuilder();
@@ -129,10 +179,67 @@ public abstract class ProgramCountFunction extends ProgramExpressionItem {
   // Supportive methods
   // -------------------------------------------------------------------------
 
+  /**
+   * Abstract method for subclasses to provide their specific function name (e.g., "countIfValue").
+   *
+   * @return The d2 function name.
+   */
+  protected abstract String getFunctionName();
+
   private void validateCountFunctionArgs(ExprContext ctx) {
     if (!(getProgramArgType(ctx) instanceof ProgramItemStageElement)) {
       throw new ParserExceptionWithoutContext(
           "First argument not supported for d2:count... functions: " + ctx.getText());
+    }
+  }
+
+  // TODO move to common package?
+  private static String generateBoundaryHash(
+      ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate) {
+    Set<AnalyticsPeriodBoundary> boundaries = programIndicator.getAnalyticsPeriodBoundaries();
+    if (boundaries == null || boundaries.isEmpty()) {
+      return "noboundaries";
+    }
+    List<String> boundaryInfoList = new ArrayList<>();
+    SimpleDateFormat dateFormat = new SimpleDateFormat(Period.DEFAULT_DATE_FORMAT);
+    for (AnalyticsPeriodBoundary boundary : boundaries) {
+      if (boundary != null) {
+        Date boundaryDate = boundary.getBoundaryDate(reportingStartDate, reportingEndDate);
+        String dateString = (boundaryDate != null) ? dateFormat.format(boundaryDate) : "null";
+        boundaryInfoList.add(boundary.getUid() + ":" + dateString);
+      }
+    }
+    Collections.sort(boundaryInfoList);
+    String boundaryConfigString = String.join(";", boundaryInfoList);
+    try {
+      MessageDigest md = MessageDigest.getInstance("SHA-1");
+      byte[] messageDigest = md.digest(boundaryConfigString.getBytes(StandardCharsets.UTF_8));
+      BigInteger no = new BigInteger(1, messageDigest);
+      return String.format("%040x", no);
+    } catch (NoSuchAlgorithmException e) {
+      log.error("SHA-1 Algorithm not found for boundary hashing. Falling back.", e);
+      return "hash_error_" + boundaryConfigString.hashCode();
+    }
+  }
+
+  public record ProgramContext(
+      String programStageId,
+      String dataElementId,
+      ProgramExpressionParams progParams,
+      ProgramIndicator programIndicator,
+      Date startDate,
+      Date endDate,
+      String piUid) {
+    public ProgramContext(ExprContext ctx, CommonExpressionVisitor visitor) {
+      this(
+          ctx.uid0.getText(), // programStageId
+          ctx.uid1.getText(), // dataElementId
+          visitor.getProgParams(), // progParams
+          visitor.getProgParams().getProgramIndicator(), // programIndicator
+          visitor.getProgParams().getReportingStartDate(), // startDate
+          visitor.getProgParams().getReportingEndDate(), // endDate
+          visitor.getProgParams().getProgramIndicator().getUid() // piUid
+          );
     }
   }
 }

@@ -52,4 +52,9 @@ public class D2Count extends ProgramCountFunction {
       ExprContext ctx, CommonExpressionVisitor visitor, String baseColumn) {
     return baseColumn + " is not null";
   }
+
+  @Override
+  protected String getFunctionName() {
+    return "count";
+  }
 }

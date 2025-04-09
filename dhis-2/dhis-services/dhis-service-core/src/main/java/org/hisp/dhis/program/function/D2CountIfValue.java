@@ -59,4 +59,9 @@ public class D2CountIfValue extends ProgramCountFunction {
       ExprContext ctx, CommonExpressionVisitor visitor, String baseColumn) {
     return baseColumn + " = " + visitor.visit(ctx.expr(0));
   }
+
+  @Override
+  protected String getFunctionName() {
+    return "countIfValue";
+  }
 }

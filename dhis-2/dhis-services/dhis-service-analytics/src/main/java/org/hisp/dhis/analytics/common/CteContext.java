@@ -35,6 +35,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
@@ -46,6 +47,7 @@ import org.hisp.dhis.program.ProgramStage;
  * additional information such as the program stage UID and other identifiers that are used to
  * generate the SQL query.
  */
+@Slf4j
 public class CteContext {
   private final Map<String, CteDefinition> cteDefinitions = new LinkedHashMap<>();
   public static final String ENROLLMENT_AGGR_BASE = "enrollment_aggr_base";
@@ -123,7 +125,38 @@ public class CteContext {
       ProgramIndicator programIndicator, String cteDefinition, boolean functionRequiresCoalesce) {
     cteDefinitions.put(
         programIndicator.getUid(),
-        new CteDefinition(programIndicator.getUid(), cteDefinition, functionRequiresCoalesce));
+        CteDefinition.forProgramIndicator(
+            programIndicator.getUid(), cteDefinition, functionRequiresCoalesce));
+  }
+
+  /**
+   * Adds a "Variable CTE" definition to the context. These CTEs are used to replace nested
+   * subqueries originating from V{...} variables in Program Indicators.
+   *
+   * @param key A unique key identifying this variable CTE instance (e.g.,
+   *     "varcte_column_piUid_offset").
+   * @param cteDefinitionSql The SQL body for the CTE.
+   * @param joinColumn The column to use when joining this CTE (e.g., "enrollment").
+   */
+  public void addVariableCte(String key, String cteDefinitionSql, String joinColumn) {
+    CteDefinition cteDef = CteDefinition.forVariable(key, cteDefinitionSql, joinColumn);
+    cteDefinitions.put(key, cteDef);
+  }
+
+  /**
+   * Adds a Program Stage / Data Element CTE definition to the context. This method now directly
+   * accepts a pre-constructed CteDefinition object.
+   *
+   * @param key The unique key identifying this PS/DE CTE instance.
+   * @param cteDefinition The fully constructed CteDefinition object.
+   */
+  public void addProgramStageDataElementCte(String key, CteDefinition cteDefinition) {
+
+    if (cteDefinition != null && key != null) {
+      cteDefinitions.put(key, cteDefinition);
+    } else {
+      log.error("Attempted to add null key or CteDefinition to CteContext"); // Replace with proper
+    }
   }
 
   /**
@@ -149,11 +182,43 @@ public class CteContext {
       ProgramStage programStage = item.getProgramStage();
       cteDefinitions.put(
           key,
-          new CteDefinition(
+          CteDefinition.forFilter(
               item.getItemId(),
               programStage == null ? null : programStage.getUid(),
-              cteDefinition,
-              true));
+              cteDefinition));
+    }
+  }
+
+  /**
+   * Adds a generic "Filter CTE" definition to the context, typically generated from analyzing PI
+   * filter strings.
+   *
+   * @param key A unique key identifying this filter CTE instance (e.g.,
+   *     "filtercte_column_op_value_piUid").
+   * @param cteDefinitionSql The SQL body for the CTE.
+   */
+  public void addFilterCte(String key, String cteDefinitionSql) {
+    // Use the existing constructor for Filter CTEs, providing the key as the 'itemId'
+    // and null for programStageUid, marking it as a filter.
+    CteDefinition cteDef =
+        CteDefinition.forFilter(
+            key, null, cteDefinitionSql); // key -> itemId, null -> psUid, true -> isFilter
+    cteDefinitions.put(key, cteDef);
+  }
+
+  /**
+   * Adds a D2 Function CTE definition to the context.
+   *
+   * @param key The unique key identifying this D2 Function CTE instance.
+   * @param cteDefinition The fully constructed CteDefinition object (should have type D2_FUNCTION).
+   */
+  public void addD2FunctionCte(String key, CteDefinition cteDefinition) {
+    if (cteDefinition != null
+        && key != null
+        && cteDefinition.getCteType() == CteDefinition.CteType.D2_FUNCTION) {
+      cteDefinitions.put(key, cteDefinition);
+    } else {
+      log.warn("Attempted to add invalid D2 Function CTE definition for key: {}", key);
     }
   }
 
@@ -184,6 +249,16 @@ public class CteContext {
     return cteDefinitions.keySet().stream()
         .filter(key -> !toExclude.contains(key))
         .collect(java.util.stream.Collectors.toSet());
+  }
+
+  /**
+   * Retrieves a CTE definition by its unique key.
+   *
+   * @param key the unique key of the CTE definition.
+   * @return the CteDefinition or null if not found.
+   */
+  public CteDefinition getDefinitionByKey(String key) {
+    return cteDefinitions.get(key);
   }
 
   public boolean containsCte(String cteName) {

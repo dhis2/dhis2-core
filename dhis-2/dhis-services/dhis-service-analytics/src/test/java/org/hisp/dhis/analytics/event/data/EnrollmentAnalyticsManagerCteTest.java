@@ -29,25 +29,15 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
-import static org.hisp.dhis.common.QueryOperator.IN;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.function.Consumer;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.setting.SystemSettings;
@@ -67,6 +57,19 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.function.Consumer;
+
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hisp.dhis.common.DimensionalObject.OPTION_SEP;
+import static org.hisp.dhis.common.QueryOperator.IN;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -84,6 +87,8 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
   @Mock private SqlRowSetMetaData rowSetMetaData;
 
   @Mock private ProgramIndicatorService programIndicatorService;
+
+  @Mock private DataElementService dataElementService;
 
   @Spy private PostgreSqlAnalyticsSqlBuilder sqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
 
@@ -113,7 +118,8 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
     when(rowSet.getMetaData()).thenReturn(rowSetMetaData);
     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
-        new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService, systemSettingsService);
+        new DefaultProgramIndicatorSubqueryBuilder(
+            programIndicatorService, systemSettingsService, new PostgreSqlBuilder(), dataElementService);
 
     subject =
         new JdbcEnrollmentAnalyticsManager(

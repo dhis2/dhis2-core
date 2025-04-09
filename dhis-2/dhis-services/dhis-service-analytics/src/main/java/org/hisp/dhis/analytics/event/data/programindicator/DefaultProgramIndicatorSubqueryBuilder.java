@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,20 +29,20 @@
  */
 package org.hisp.dhis.analytics.event.data.programindicator;
 
-import static org.hisp.dhis.analytics.DataType.BOOLEAN;
-import static org.hisp.dhis.analytics.DataType.NUMERIC;
-
 import com.google.common.base.Strings;
-import java.util.Date;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.common.CteContext;
+import org.hisp.dhis.analytics.common.CteDefinition;
+import org.hisp.dhis.analytics.common.CteDefinition.CteType;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -50,6 +50,17 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.analytics.DataType.BOOLEAN;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
+
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorSubqueryBuilder {
@@ -62,6 +73,8 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
 
   private final ProgramIndicatorService programIndicatorService;
   private final SystemSettingsService settingsService;
+  private final SqlBuilder sqlBuilder;
+  private final DataElementService dataElementService;
 
   @Override
   public String getAggregateClauseForProgramIndicator(
@@ -91,6 +104,14 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
     addCte(programIndicator, null, outerSqlEntity, earliestStartDate, latestDate, cteContext);
   }
 
+  /**
+   * Adds the main Program Indicator CTE definition to the context, handling filter and expression
+   * processing including placeholder substitution and CTE generation for V{...} variables.
+   * Implements a hybrid approach: simple V{...} comparisons in the filter generate dedicated Filter
+   * CTEs (joined via INNER JOIN), while V{...} used in the expression or complex filter parts
+   * generate Value CTEs (joined via LEFT JOIN) and the complex filter logic is applied in the WHERE
+   * clause of the main PI CTE.
+   */
   @Override
   public void addCte(
       ProgramIndicator programIndicator,
@@ -99,50 +120,230 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
       Date earliestStartDate,
       Date latestDate,
       CteContext cteContext) {
+    ProgramIndicatorPlaceholderUtils placeholderUtils =
+        new ProgramIndicatorPlaceholderUtils(dataElementService);
+    List<String> filterAliases = new ArrayList<>();
+    // For V{...} CTEs
+    Map<String, String> variableAliasMap = new HashMap<>();
+    // For #{...} CTEs
+    Map<String, String> psdeAliasMap = new HashMap<>();
+    // For d2 function CTEs
+    Map<String, String> d2FunctionAliasMap = new HashMap<>(); // Map for d2 func aliases
 
-    // Define aggregation function
     String function =
         TextUtils.emptyIfEqual(
             programIndicator.getAggregationTypeFallback().getValue(),
             AggregationType.CUSTOM.getValue());
 
-    String filter = "";
-    if (programIndicator.hasFilter()) {
-      String piResolvedSqlFilter =
-          getProgramIndicatorSql(
-              programIndicator.getFilter(),
-              NUMERIC,
-              programIndicator,
-              earliestStartDate,
-              latestDate);
-      filter = "where " + piResolvedSqlFilter;
-    }
+    // Analyze Filter & Generate Filter CTEs
+    String complexFilterString =
+        new ProgramIndicatorPlaceholderUtils(dataElementService).analyzeFilterAndGenerateFilterCtes(
+            programIndicator, cteContext, filterAliases, sqlBuilder, earliestStartDate, latestDate);
 
-    String piResolvedSql =
+    //  Get raw SQL (with potential placeholders from expression items)
+    String rawExpressionSql =
         getProgramIndicatorSql(
             programIndicator.getExpression(),
             NUMERIC,
             programIndicator,
             earliestStartDate,
             latestDate);
-    String cteSql =
-        "select enrollment, %s(%s) as value from %s as subax %s group by enrollment"
-            .formatted(function, piResolvedSql, getTableName(programIndicator), filter);
+    String rawComplexFilterSql = "";
+    if (!Strings.isNullOrEmpty(complexFilterString)) {
+      rawComplexFilterSql =
+          getProgramIndicatorSql(
+              complexFilterString, BOOLEAN, programIndicator, earliestStartDate, latestDate);
+    }
 
-    // Register the CTE and its column mapping
+    // Process V{...} placeholders
+    String processedSql1 =
+            placeholderUtils.processPlaceholdersAndGenerateVariableCtes(
+            rawExpressionSql,
+            programIndicator,
+            earliestStartDate,
+            latestDate,
+            cteContext,
+            variableAliasMap,
+            sqlBuilder);
+    String processedFilterSql1 =
+            placeholderUtils.processPlaceholdersAndGenerateVariableCtes(
+            rawComplexFilterSql,
+            programIndicator,
+            earliestStartDate,
+            latestDate,
+            cteContext,
+            variableAliasMap,
+            sqlBuilder);
+
+    // Process #{...} placeholders
+    String processedSql2 =
+            placeholderUtils.processPsDePlaceholdersAndGenerateCtes(
+            processedSql1,
+            programIndicator,
+            earliestStartDate,
+            latestDate,
+            cteContext,
+            psdeAliasMap,
+            sqlBuilder);
+    String processedFilterSql2 =
+            placeholderUtils.processPsDePlaceholdersAndGenerateCtes(
+            processedFilterSql1,
+            programIndicator,
+            earliestStartDate,
+            latestDate,
+            cteContext,
+            psdeAliasMap,
+            sqlBuilder);
+
+    // Process D2 Function placeholders
+    String finalProcessedExpressionSql =
+            placeholderUtils.processD2FunctionPlaceholdersAndGenerateCtes(
+            processedSql2,
+            programIndicator,
+            earliestStartDate,
+            latestDate,
+            cteContext,
+            d2FunctionAliasMap,
+            sqlBuilder);
+    String finalProcessedFilterSql =
+            placeholderUtils.processD2FunctionPlaceholdersAndGenerateCtes(
+            processedFilterSql2,
+            programIndicator,
+            earliestStartDate,
+            latestDate,
+            cteContext,
+            d2FunctionAliasMap,
+            sqlBuilder);
+
+    // Construct INNER JOIN SQL for Filters
+    String innerJoinSql =
+        filterAliases.stream()
+            .distinct() // Avoid joining the same filter CTE multiple times
+            .map(
+                alias -> {
+                  String key = findKeyForAlias(alias, cteContext);
+                  if (key == null) {
+                    log.error(
+                        "Cannot generate INNER JOIN for unknown filter CTE alias: {} for PI: {}",
+                        alias,
+                        programIndicator.getUid());
+                    return "";
+                  }
+                  return String.format(
+                      "inner join %s %s on %s.enrollment = %s.enrollment",
+                      key, alias, alias, SUBQUERY_TABLE_ALIAS);
+                })
+            .filter(join -> !join.isEmpty())
+            .collect(Collectors.joining(" "));
+
+    // Construct LEFT JOIN SQL for Value CTEs
+    String leftJoinSql = buildLeftJoinsForAllValueCtes(cteContext);
+
+    // Construct WHERE Clause for Complex Filters
+    String whereClause = "";
+    if (!Strings.isNullOrEmpty(finalProcessedFilterSql)) {
+      whereClause = "where " + finalProcessedFilterSql;
+    }
+
+    // Construct Main PI CTE SQL
+    String cteSql =
+        String.format(
+            "select %s.enrollment, %s(%s) as value from %s as %s %s %s %s group by %s.enrollment",
+            SUBQUERY_TABLE_ALIAS,
+            function,
+            finalProcessedExpressionSql,
+            getTableName(programIndicator),
+            SUBQUERY_TABLE_ALIAS,
+            innerJoinSql,
+            leftJoinSql,
+            whereClause,
+            SUBQUERY_TABLE_ALIAS);
+
+    // Register Main PI CTE
     cteContext.addProgramIndicatorCte(programIndicator, cteSql, requireCoalesce(function));
   }
 
   /**
-   * Determine if the aggregation function requires a COALESCE function to handle NULL values.
+   * Builds the LEFT JOIN clause string for all relevant value-providing CTEs based on their type.
    *
-   * @param function the aggregation function
-   * @return true if the function requires a COALESCE function, false otherwise
+   * @param cteContext The CTE context containing definitions.
+   * @return The combined LEFT JOIN SQL string.
    */
+  String buildLeftJoinsForAllValueCtes(CteContext cteContext) {
+    List<String> joinClauses = new ArrayList<>();
+
+    for (String key : cteContext.getCteKeys()) {
+      CteDefinition definition = cteContext.getDefinitionByKey(key);
+
+      if (definition == null) {
+        log.warn("Skipping join generation for null definition with key: {}", key);
+        continue;
+      }
+
+      // Skip types that shouldn't be joined here
+      if (definition.getCteType() == CteType.FILTER
+          || definition.getCteType() == CteType.PROGRAM_INDICATOR
+          || definition.getCteType() == CteType.BASE_AGGREGATION
+          || definition.getCteType()
+              == CteType.PROGRAM_STAGE) { // Assuming PROGRAM_STAGE CTEs are handled differently
+        continue;
+      }
+
+      String alias = definition.getAlias();
+      if (alias == null) {
+        log.warn("Skipping join generation for definition with null alias, key: {}", key);
+        continue;
+      }
+
+      String joinSql = null;
+      switch (definition.getCteType()) {
+        case VARIABLE:
+          // Variable CTEs (V{...}) always join on rn = 1
+          joinSql =
+              String.format(
+                  "left join %s %s on %s.enrollment = %s.enrollment and %s.rn = 1",
+                  key, alias, alias, SUBQUERY_TABLE_ALIAS, alias);
+          break;
+        case PSDE:
+          // PSDE CTEs (#{...}) join on rn = targetRank
+          Integer targetRank = definition.getTargetRank();
+          if (targetRank != null) {
+            joinSql =
+                String.format(
+                    "left join %s %s on %s.enrollment = %s.enrollment and %s.rn = %d",
+                    key, alias, alias, SUBQUERY_TABLE_ALIAS, alias, targetRank);
+          } else {
+            log.error(
+                "PSDE CTE definition for key '{}' is missing targetRank. Cannot generate join.",
+                key);
+          }
+          break;
+
+        case D2_FUNCTION:
+          // D2 Function CTEs (count(*)... group by enrollment) join only on enrollment
+          joinSql =
+              String.format(
+                  "left join %s %s on %s.enrollment = %s.enrollment",
+                  key, alias, alias, SUBQUERY_TABLE_ALIAS);
+          break;
+        default:
+          log.debug(
+              "Skipping join generation for unhandled or non-joinable CTE type: {} with key: {}",
+              definition.getCteType(),
+              key);
+          break;
+      }
+
+      if (joinSql != null) {
+        joinClauses.add(joinSql);
+      }
+    }
+
+    return String.join(" ", joinClauses);
+  }
+
   private boolean requireCoalesce(String function) {
     return switch (function.toLowerCase()) {
-      // removed "avg" from list because it seems that it does not require COALESCE
-      // even though it is an aggregation function
       case "count", "sum", "min", "max" -> true;
       default -> false;
     };
@@ -153,30 +354,16 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
         ANALYTICS_TYPE_MAP.get(programIndicator.getAnalyticsType()), programIndicator.getProgram());
   }
 
-  /**
-   * Generate a subquery based on the result of a Program Indicator and an (optional) Relationship
-   * Type
-   *
-   * @param programIndicator the {@link ProgramIndicator}.
-   * @param relationshipType the optional {@link RelationshipType} object
-   * @param outerSqlEntity the {@link AnalyticsType} object representing the outer SQL context.
-   * @param earliestStartDate reporting start date.
-   * @param latestDate reporting end date.
-   * @return a string containing a program indicator sub query.
-   */
   private String getAggregateClauseForPIandRelationshipType(
       ProgramIndicator programIndicator,
       RelationshipType relationshipType,
       AnalyticsType outerSqlEntity,
       Date earliestStartDate,
       Date latestDate) {
-    // Define aggregation function (avg, sum, ...) //
     String function =
         TextUtils.emptyIfEqual(
             programIndicator.getAggregationTypeFallback().getValue(),
             AggregationType.CUSTOM.getValue());
-
-    // Get sql construct from Program indicator expression //
     String aggregateSql =
         getProgramIndicatorSql(
             programIndicator.getExpression(),
@@ -184,19 +371,10 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
             programIndicator,
             earliestStartDate,
             latestDate);
-
-    // closes the function parenthesis ( avg( ... ) )
     aggregateSql += ")";
-
-    // Determine Table name from FROM clause
     aggregateSql += getFrom(programIndicator);
-
-    // Determine JOIN
     String where = getWhere(outerSqlEntity, programIndicator, relationshipType);
-
     aggregateSql += where;
-
-    // Get WHERE condition from Program indicator filter
     if (!Strings.isNullOrEmpty(programIndicator.getFilter())) {
       aggregateSql +=
           (where.isBlank() ? " WHERE " : " AND ")
@@ -209,7 +387,6 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
                   latestDate)
               + ")";
     }
-
     return "(SELECT " + function + " (" + aggregateSql + ")";
   }
 
@@ -221,20 +398,6 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
         + SUBQUERY_TABLE_ALIAS;
   }
 
-  /**
-   * Determine the join after the WHERE condition. The rules are:
-   *
-   * <p>1) outer = event | inner = enrollment -> en = ax.enrollment (enrollment is the enrollment
-   * linked to the inline event) 2) outer = enrollment | inner = event -> en = ax.enrollment 3)
-   * outer = event | inner = event -> ev = ax.event (inner operate on same event as outer) 4) outer
-   * = enrollment | inner = enrollment -> en = ax.enrollment (enrollment operates on the same
-   * enrollment as outer) 5) if RelationshipType, call the RelationshipTypeJoinGenerator
-   *
-   * @param outerSqlEntity the outer {@link AnalyticsType}.
-   * @param programIndicator the {@link ProgramIndicator}.
-   * @param relationshipType the optional {@link RelationshipType}.
-   * @return a SQL where clause.
-   */
   private String getWhere(
       AnalyticsType outerSqlEntity,
       ProgramIndicator programIndicator,
@@ -253,20 +416,9 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
         }
       }
     }
-
     return !condition.isEmpty() ? " WHERE " + condition : "";
   }
 
-  /**
-   * Returns a program indicator SQL query.
-   *
-   * @param expression the program indicator expression.
-   * @param dataType the {@link DataType}.
-   * @param programIndicator the {@link ProgramIndicator}.
-   * @param earliestStartDate the earliest start date.
-   * @param latestDate the latest start date.
-   * @return a program indicator SQL query.
-   */
   private String getProgramIndicatorSql(
       String expression,
       DataType dataType,
@@ -284,5 +436,16 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
 
   protected boolean useExperimentalAnalyticsQueryEngine() {
     return this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine();
+  }
+
+  private String findKeyForAlias(String alias, CteContext cteContext) {
+    for (String key : cteContext.getCteKeys()) {
+      CteDefinition definition = cteContext.getDefinitionByKey(key);
+      if (definition != null && alias.equals(definition.getAlias())) {
+        return key;
+      }
+    }
+    log.warn("Could not find key for CTE alias: {}", alias);
+    return null;
   }
 }

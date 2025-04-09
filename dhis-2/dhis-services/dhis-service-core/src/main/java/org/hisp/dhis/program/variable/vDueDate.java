@@ -39,8 +39,27 @@ import org.hisp.dhis.program.AnalyticsType;
  * @author Jim Grace
  */
 public class vDueDate extends ProgramDateVariable {
+
+  private static final String PLACEHOLDER_FORMAT =
+      "FUNC_CTE_VAR( type='vDueDate', column='scheduleddate', piUid='%s', psUid='null', offset='0')";
+
   @Override
   public Object getSql(CommonExpressionVisitor visitor) {
+    ProgramExpressionParams params = visitor.getProgParams();
+
+    if (params != null
+        && params.getProgramIndicator() != null
+        && AnalyticsType.ENROLLMENT == params.getProgramIndicator().getAnalyticsType()) {
+      String piUid = params.getProgramIndicator().getUid();
+      return String.format(PLACEHOLDER_FORMAT, piUid);
+    } else {
+      // For Event analytics context (or others), return the direct column name "scheduleddate"
+      return "scheduleddate";
+    }
+  }
+
+  // TODO remove
+  public Object getSql2(CommonExpressionVisitor visitor) {
     ProgramExpressionParams params = visitor.getProgParams();
 
     if (AnalyticsType.EVENT == params.getProgramIndicator().getAnalyticsType()) {

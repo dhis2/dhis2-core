@@ -31,18 +31,46 @@ package org.hisp.dhis.program.variable;
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
+import org.hisp.dhis.program.AnalyticsType;
 
 /**
  * @author Zubair Asghar
  */
 public class vEventStatus implements ProgramVariable {
+
+  // Placeholder format: FUNC_CTE_VAR( type='{type}', column='{column}', piUid='{piUid}',
+  // psUid='{psUid|null}', offset='{offset}')
+  private static final String PLACEHOLDER_FORMAT =
+      "FUNC_CTE_VAR( type='vEventStatus', column='eventstatus', piUid='%s', psUid='null', offset='0')";
+
+  @Override
+  public Object getSql(CommonExpressionVisitor visitor) {
+    ProgramExpressionParams params = visitor.getProgParams();
+
+    // Check if the context is Enrollment analytics
+    // Check for null params and programIndicator for safety
+    if (params != null
+        && params.getProgramIndicator() != null
+        && AnalyticsType.ENROLLMENT == params.getProgramIndicator().getAnalyticsType()) {
+      // Generate placeholder instead of subquery
+      String piUid = params.getProgramIndicator().getUid();
+      return String.format(PLACEHOLDER_FORMAT, piUid);
+    } else {
+      // For Event analytics or other contexts, return the direct column name
+      // This assumes event status is directly available in the event analytics table context
+      return "eventstatus";
+    }
+    // The original call to visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(...)
+    // is removed for the ENROLLMENT case as the placeholder replaces it.
+  }
+
   @Override
   public Object defaultVariableValue() {
     return "COMPLETED";
   }
 
-  @Override
-  public Object getSql(CommonExpressionVisitor visitor) {
+  // TODO remove
+  public Object getSql2(CommonExpressionVisitor visitor) {
     ProgramExpressionParams params = visitor.getProgParams();
 
     return visitor
