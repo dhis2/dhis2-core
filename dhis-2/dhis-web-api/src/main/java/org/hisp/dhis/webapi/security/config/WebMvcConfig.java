@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -69,6 +69,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.Resource;
 import org.springframework.format.FormatterRegistry;
+import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.FormHttpMessageConverter;
@@ -90,8 +91,10 @@ import org.springframework.web.servlet.config.annotation.ContentNegotiationConfi
 import org.springframework.web.servlet.config.annotation.DelegatingWebMvcConfiguration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.web.servlet.resource.PathResourceResolver;
 import org.springframework.web.servlet.resource.ResourceResolverChain;
+import org.springframework.web.servlet.resource.ResourceUrlProvider;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -251,6 +254,22 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
             pathExtensionNegotiationStrategy,
             new HeaderContentNegotiationStrategy(),
             new FixedContentNegotiationStrategy(MediaType.APPLICATION_JSON)));
+  }
+
+  @Override
+  public RequestMappingHandlerMapping requestMappingHandlerMapping(
+      ContentNegotiationManager contentNegotiationManager,
+      FormattingConversionService conversionService,
+      ResourceUrlProvider resourceUrlProvider) {
+    RequestMappingHandlerMapping mapping =
+        super.requestMappingHandlerMapping(
+            contentNegotiationManager, conversionService, resourceUrlProvider);
+    mapping.setOrder(0);
+    mapping.setContentNegotiationManager(mvcContentNegotiationManager());
+    mapping.setUseTrailingSlashMatch(true);
+    mapping.setUseSuffixPatternMatch(true);
+    mapping.setUseRegisteredSuffixPatternMatch(true);
+    return mapping;
   }
 
   @Override
