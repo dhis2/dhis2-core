@@ -34,9 +34,18 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 
+/**
+ * Service for fetching tracker programs (i.e., programs that require registration). ACL validations
+ * are performed automatically based on the currently logged-in user.
+ */
 public interface TrackerProgramService {
 
+  /** Retrieves the list of tracker programs accessible to the current user. */
   List<Program> getAccessibleTrackerPrograms();
 
+  /**
+   * Retrieves the list of tracker programs accessible to the current user that match the given
+   * tracked entity type. It is assumed that the user has access to the supplied trackedEntityType.
+   */
   List<Program> getAccessibleTrackerPrograms(@Nonnull TrackedEntityType trackedEntityType);
 }
