@@ -72,7 +72,9 @@ public class ValidationOutlierDetectionRequest {
     int maxLimit =
         isAnalytics
             ? systemSettingManager.getSystemSetting(SettingKey.ANALYTICS_MAX_LIMIT, Integer.class)
-            : 500;
+            : systemSettingManager.getSystemSetting(
+                SettingKey.DATA_QUALITY_MAX_LIMIT, Integer.class);
+
     ErrorMessage errorMessage = getErrorMessage(request, maxLimit);
 
     if (errorMessage != null) {

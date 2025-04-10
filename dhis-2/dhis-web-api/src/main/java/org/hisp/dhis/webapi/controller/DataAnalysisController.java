@@ -70,6 +70,7 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.expression.Operator;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
@@ -78,10 +79,14 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSetting;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.validation.Importance;
 import org.hisp.dhis.validation.ValidationAnalysisParams;
 import org.hisp.dhis.validation.ValidationResult;
@@ -124,6 +129,8 @@ public class DataAnalysisController {
 
   private static final String KEY_ORG_UNIT = "orgUnit";
 
+  @Autowired private SystemSettingManager systemSettingManager;
+
   @Autowired private ContextUtils contextUtils;
 
   @Autowired private I18nManager i18nManager;
@@ -150,6 +157,7 @@ public class DataAnalysisController {
 
   @Autowired private FollowupAnalysisService followupAnalysisService;
 
+
   @PostMapping(value = "/validationRules", consumes = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
   public @ResponseBody List<ValidationResultView> performValidationRulesAnalysis(
@@ -168,6 +176,19 @@ public class DataAnalysisController {
       throw new WebMessageException(badRequest("No organisation unit defined"));
     }
 
+    int maxResults =
+        validationRulesAnalysisParams.getMaxResults() != null
+            ? validationRulesAnalysisParams.getMaxResults()
+            : ValidationService.MAX_INTERACTIVE_ALERTS;
+
+    final int MAX_ALLOWED_RESULTS = systemSettingManager.getSystemSetting(
+        SettingKey.DATA_QUALITY_MAX_LIMIT, Integer.class);
+
+    if (maxResults <= 0 || maxResults > MAX_ALLOWED_RESULTS)
+    {
+      throw new WebMessageException( badRequest( "maxResults must be between 1 and " + MAX_ALLOWED_RESULTS ) );
+    }
+
     ValidationAnalysisParams params =
         validationService
             .newParamsBuilder(
@@ -178,7 +199,7 @@ public class DataAnalysisController {
             .withIncludeOrgUnitDescendants(true)
             .withPersistResults(validationRulesAnalysisParams.isPersist())
             .withSendNotifications(validationRulesAnalysisParams.isNotification())
-            .withMaxResults(ValidationService.MAX_INTERACTIVE_ALERTS)
+            .withMaxResults(maxResults)
             .build();
 
     List<ValidationResult> validationResults =
