@@ -233,7 +233,7 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
         + ")"
         + " and "
         + ouPathClause
-        + " and dv.value ~ '^(-)?[0-9]+(\\\\.[0-9]+)?$' \")"
+        + " and dv.value ~ '^(-)?[0-9]+(\\.[0-9]+)?$' \")"
         + " and dv.deleted is false)"
         + " select dvs.de_uid,"
         + " dvs.ou_uid,"
