@@ -167,9 +167,9 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
     String formattedDate = sdf.format(new Date());
 
-    Date today = sdf.parse(formattedDate);
+    Date todayDate = sdf.parse(formattedDate);
     ProgramNotificationInstanceParam param =
-        ProgramNotificationInstanceParam.builder().scheduledAt(today).build();
+        ProgramNotificationInstanceParam.builder().scheduledAt(todayDate).build();
 
     List<ProgramNotificationInstance> instancesForToday =
         programNotificationInstanceService.getProgramNotificationInstances(param);
@@ -179,7 +179,7 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
     // Only one instance is scheduled for today's date
     assertEquals(1, instancesForToday.size());
     ProgramNotificationInstance instanceForToday = instancesForToday.get(0);
-    assertEquals(instanceForToday.getScheduledAt(), today);
+    assertEquals(instanceForToday.getScheduledAt(), todayDate);
   }
 
   @Test
