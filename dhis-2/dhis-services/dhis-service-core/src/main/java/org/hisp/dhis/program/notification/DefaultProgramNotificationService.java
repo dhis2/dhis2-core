@@ -116,8 +116,6 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
   @NonNull private final ProgramNotificationTemplateService notificationTemplateService;
 
   @NonNull private final NotificationTemplateMapper notificationTemplateMapper;
-  private final ProgramNotificationService programNotificationService;
-  private final DefaultProgramNotificationInstanceService programNotificationInstanceService;
 
   // -------------------------------------------------------------------------
   // ProgramStageNotificationService implementation
@@ -162,7 +160,7 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
         progress.runStage(
             List.of(),
             () ->
-                programNotificationInstanceService.getProgramNotificationInstances(param).stream()
+                notificationInstanceService.getProgramNotificationInstances(param).stream()
                     .map(this::withTemplate)
                     .filter(this::hasTemplate)
                     .collect(toList()));
