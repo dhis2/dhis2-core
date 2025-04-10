@@ -239,9 +239,8 @@ public class AuthenticationController {
     // Default redirect URL
     String redirectUrl =
         request.getContextPath() + "/" + settingsProvider.getCurrentSettings().getStartModule();
-    if (!redirectUrl.endsWith("/")) {
-      redirectUrl += "/";
-    }
+    // Let the GlobalShellFilter redirect to apps
+    redirectUrl = redirectUrl.replaceFirst("/apps", "");
 
     // Check enforce verified email, redirect to the profile page if email is not verified
     boolean enforceVerifiedEmail = settingsProvider.getCurrentSettings().getEnforceVerifiedEmail();
@@ -264,11 +263,21 @@ public class AuthenticationController {
           redirectUrl =
               defaultSavedRequest.getRequestURI() + "?" + defaultSavedRequest.getQueryString();
         } else {
-          redirectUrl = defaultSavedRequest.getRequestURI();
+          String requestURI = defaultSavedRequest.getRequestURI();
+          if (!requestURI.equalsIgnoreCase("/")
+              && !requestURI.equalsIgnoreCase(request.getContextPath())
+              && !requestURI.equalsIgnoreCase(request.getContextPath() + "/")) {
+            redirectUrl = requestURI;
+          }
         }
       }
       this.requestCache.removeRequest(request, response);
     }
+
+    if (redirectUrl.endsWith("/")) {
+      return redirectUrl.substring(0, redirectUrl.length() - 1);
+    }
+
     return redirectUrl;
   }
 
