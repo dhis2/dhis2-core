@@ -34,6 +34,7 @@ import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLI
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -41,7 +42,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
@@ -75,7 +75,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -86,12 +85,12 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.program.notification.ProgramNotificationService")
 public class DefaultProgramNotificationService implements ProgramNotificationService {
-  private static final Predicate<NotificationInstanceWithTemplate> IS_SCHEDULED_BY_PROGRAM_RULE =
-      (iwt) ->
-          Objects.nonNull(iwt.getProgramNotificationInstance())
-              && PROGRAM_RULE.equals(iwt.getProgramNotificationTemplate().getNotificationTrigger())
-              && iwt.getProgramNotificationInstance().getScheduledAt() != null
-              && DateUtils.isToday(iwt.getProgramNotificationInstance().getScheduledAt());
+  /*private static final Predicate<NotificationInstanceWithTemplate> IS_SCHEDULED_BY_PROGRAM_RULE =
+  (iwt) ->
+      Objects.nonNull(iwt.getProgramNotificationInstance())
+          && PROGRAM_RULE.equals(iwt.getProgramNotificationTemplate().getNotificationTrigger())
+          && iwt.getProgramNotificationInstance().getScheduledAt() != null
+          && DateUtils.isToday(iwt.getProgramNotificationInstance().getScheduledAt());*/
 
   // -------------------------------------------------------------------------
   // Dependencies
@@ -107,6 +106,8 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
 
   @NonNull private final IdentifiableObjectManager identifiableObjectManager;
 
+  @NonNull private final ProgramNotificationInstanceService notificationInstanceService;
+
   @NonNull private final NotificationMessageRenderer<ProgramInstance> programNotificationRenderer;
 
   @NonNull
@@ -115,6 +116,8 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
   @NonNull private final ProgramNotificationTemplateService notificationTemplateService;
 
   @NonNull private final NotificationTemplateMapper notificationTemplateMapper;
+  private final ProgramNotificationService programNotificationService;
+  private final DefaultProgramNotificationInstanceService programNotificationInstanceService;
 
   // -------------------------------------------------------------------------
   // ProgramStageNotificationService implementation
@@ -148,14 +151,20 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
   public void sendScheduledNotifications(JobProgress progress) {
     progress.startingStage(
         "Fetching and filtering ProgramStageNotification messages scheduled by program rules");
+
+    ProgramNotificationInstanceParam param =
+        ProgramNotificationInstanceParam.builder()
+            .scheduledAt(LocalDate.now())
+            .notificationTrigger(PROGRAM_RULE)
+            .build();
+
     List<NotificationInstanceWithTemplate> instancesWithTemplates =
         progress.runStage(
             List.of(),
             () ->
-                identifiableObjectManager.getAll(ProgramNotificationInstance.class).stream()
+                programNotificationInstanceService.getProgramNotificationInstances(param).stream()
                     .map(this::withTemplate)
                     .filter(this::hasTemplate)
-                    .filter(IS_SCHEDULED_BY_PROGRAM_RULE)
                     .collect(toList()));
 
     progress.startingStage(

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.program.notification;
 
-import java.util.Date;
+import java.time.LocalDate;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -51,18 +51,22 @@ public class ProgramNotificationInstanceParam extends BaseNotificationParam {
       boolean skipPaging,
       ProgramInstance programInstance,
       ProgramStageInstance programStageInstance,
-      Date scheduledAt) {
+      NotificationTrigger notificationTrigger,
+      LocalDate scheduledAt) {
     super(page, pageSize, skipPaging);
     this.programInstance = programInstance;
     this.programStageInstance = programStageInstance;
     this.scheduledAt = scheduledAt;
+    this.notificationTrigger = notificationTrigger;
   }
 
   private ProgramInstance programInstance;
 
   private ProgramStageInstance programStageInstance;
 
-  private Date scheduledAt;
+  private LocalDate scheduledAt;
+
+  private NotificationTrigger notificationTrigger;
 
   public boolean hasProgramInstance() {
     return programInstance != null;
