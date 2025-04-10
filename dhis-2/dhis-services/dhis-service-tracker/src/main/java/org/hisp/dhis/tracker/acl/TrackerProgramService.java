@@ -30,24 +30,42 @@
 package org.hisp.dhis.tracker.acl;
 
 import java.util.List;
+import java.util.Objects;
 import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
+import org.springframework.stereotype.Service;
 
-/**
- * Service for fetching tracker programs (i.e., programs that require registration). ACL validations
- * are performed automatically based on the currently logged-in user.
- */
-public interface TrackerProgramService {
+@Service("org.hisp.dhis.tracker.acl.TrackerProgramService")
+@RequiredArgsConstructor
+public class TrackerProgramService {
 
-  /** Retrieves the list of tracker programs accessible to the current user. */
-  @Nonnull
-  List<Program> getAccessibleTrackerPrograms();
+  @Nonnull private final ProgramService programService;
+  @Nonnull private final AclService aclService;
 
-  /**
-   * Retrieves the list of tracker programs accessible to the current user that match the given
-   * tracked entity type. It is assumed that the user has access to the supplied trackedEntityType.
-   */
-  @Nonnull
-  List<Program> getAccessibleTrackerPrograms(@Nonnull TrackedEntityType trackedEntityType);
+  public @Nonnull List<Program> getAccessibleTrackerPrograms() {
+    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
+
+    return programService.getAllPrograms().stream()
+        .filter(p -> p.isRegistration() && aclService.canDataRead(user, p))
+        .toList();
+  }
+
+  public @Nonnull List<Program> getAccessibleTrackerPrograms(
+      @Nonnull TrackedEntityType trackedEntityType) {
+    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
+
+    return programService.getAllPrograms().stream()
+        .filter(
+            p ->
+                p.isRegistration()
+                    && Objects.equals(p.getTrackedEntityType().getUid(), trackedEntityType.getUid())
+                    && aclService.canDataRead(user, p))
+        .toList();
+  }
 }
