@@ -27,10 +27,15 @@
  */
 package org.hisp.dhis.programrule.engine;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -64,17 +69,21 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
 
   private ProgramRule programRule;
 
-  private ProgramRuleAction programRuleAction;
+  private ProgramRuleAction programRuleAction1;
+  private ProgramRuleAction programRuleAction2;
 
-  private ProgramNotificationTemplate programNotificationTemplate;
+  private ProgramNotificationTemplate programNotificationTemplateScheduledForToday;
+  private ProgramNotificationTemplate programNotificationTemplateScheduledForTomorrow;
 
   private OrganisationUnit organisationUnit;
 
   private TrackedEntityInstance trackedEntityInstance;
 
   private ProgramInstance programInstance;
-
   private ProgramInstance programInstanceB;
+
+  private String today = "'" + LocalDate.now() + "'";
+  private String tomorrow = "'" + LocalDate.now().plusDays(1) + "'";
 
   @Autowired private ProgramInstanceService programInstanceService;
 
@@ -103,17 +112,32 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
     programRule = createProgramRule('R', program);
     programRule.setCondition("true");
     manager.save(programRule);
-    programNotificationTemplate =
+    programNotificationTemplateScheduledForToday =
         createProgramNotificationTemplate(
             "test", 1, NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.USER_GROUP);
-    programNotificationTemplate.setAutoFields();
-    programNotificationTemplateService.save(programNotificationTemplate);
-    programRuleAction = createProgramRuleAction('A');
-    programRuleAction.setProgramRuleActionType(ProgramRuleActionType.SCHEDULEMESSAGE);
-    programRuleAction.setTemplateUid(programNotificationTemplate.getUid());
-    programRuleAction.setData("'2020-12-12'");
-    manager.save(programRuleAction);
-    programRule.getProgramRuleActions().add(programRuleAction);
+    programNotificationTemplateScheduledForToday.setAutoFields();
+    programNotificationTemplateService.save(programNotificationTemplateScheduledForToday);
+
+    programNotificationTemplateScheduledForTomorrow =
+        createProgramNotificationTemplate(
+            "test", 1, NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.USER_GROUP);
+    programNotificationTemplateScheduledForTomorrow.setAutoFields();
+    programNotificationTemplateService.save(programNotificationTemplateScheduledForTomorrow);
+
+    programRuleAction1 = createProgramRuleAction('A');
+    programRuleAction1.setProgramRuleActionType(ProgramRuleActionType.SCHEDULEMESSAGE);
+    programRuleAction1.setTemplateUid(programNotificationTemplateScheduledForToday.getUid());
+    programRuleAction1.setData(today);
+    manager.save(programRuleAction1);
+    programRule.getProgramRuleActions().add(programRuleAction1);
+
+    programRuleAction2 = createProgramRuleAction('B');
+    programRuleAction2.setProgramRuleActionType(ProgramRuleActionType.SCHEDULEMESSAGE);
+    programRuleAction2.setTemplateUid(programNotificationTemplateScheduledForTomorrow.getUid());
+    programRuleAction2.setData(tomorrow);
+    manager.save(programRuleAction2);
+    programRule.getProgramRuleActions().add(programRuleAction2);
+
     manager.update(programRule);
     programInstance = createProgramInstance(program, trackedEntityInstance, organisationUnit);
     programInstanceService.addProgramInstance(programInstance);
@@ -137,6 +161,28 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
   }
 
   @Test
+  void testGetProgramNotificationInstanceScheduledForToday() throws ParseException {
+    programRuleEngineService.evaluateEnrollmentAndRunEffects(programInstance.getId());
+
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd"); // Only include year, month, and day
+    String formattedDate = sdf.format(new Date());
+
+    Date today = sdf.parse(formattedDate);
+    ProgramNotificationInstanceParam param =
+        ProgramNotificationInstanceParam.builder().scheduledAt(today).build();
+
+    List<ProgramNotificationInstance> instancesForToday =
+        programNotificationInstanceService.getProgramNotificationInstances(param);
+
+    assertFalse(instancesForToday.isEmpty());
+
+    // Only fetch instance for today
+    assertEquals(1, instancesForToday.size());
+    ProgramNotificationInstance instanceForToday = instancesForToday.get(0);
+    assertEquals(instanceForToday.getScheduledAt(), today);
+  }
+
+  @Test
   void testDeleteProgramNotificationInstance() {
     programRuleEngineService.evaluateEnrollmentAndRunEffects(programInstanceB.getId());
     List<ProgramNotificationInstance> programNotificationInstances =
@@ -145,6 +191,7 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
     assertFalse(programNotificationInstances.isEmpty());
     assertSame(programInstanceB, programNotificationInstances.get(0).getProgramInstance());
     programNotificationInstanceService.delete(programNotificationInstances.get(0));
+    programNotificationInstanceService.delete(programNotificationInstances.get(1));
     List<ProgramNotificationInstance> instances =
         programNotificationInstanceService.getProgramNotificationInstances(
             ProgramNotificationInstanceParam.builder().programInstance(programInstanceB).build());

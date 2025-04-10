@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
-import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.program.ProgramInstanceService;
@@ -76,7 +76,7 @@ public class ProgramNotificationInstanceController {
   public @ResponseBody PagingWrapper<ProgramNotificationInstance> getScheduledMessage(
       @RequestParam(required = false) String programInstance,
       @RequestParam(required = false) String programStageInstance,
-      @RequestParam(required = false) LocalDate scheduledAt,
+      @RequestParam(required = false) Date scheduledAt,
       @RequestParam(required = false) boolean skipPaging,
       @RequestParam(required = false, defaultValue = "0") int page,
       @RequestParam(required = false, defaultValue = "50") int pageSize) {

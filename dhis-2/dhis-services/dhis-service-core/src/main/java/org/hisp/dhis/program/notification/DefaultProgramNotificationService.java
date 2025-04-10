@@ -34,7 +34,6 @@ import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLI
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -42,6 +41,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
@@ -85,12 +85,10 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.program.notification.ProgramNotificationService")
 public class DefaultProgramNotificationService implements ProgramNotificationService {
-  /*private static final Predicate<NotificationInstanceWithTemplate> IS_SCHEDULED_BY_PROGRAM_RULE =
-  (iwt) ->
-      Objects.nonNull(iwt.getProgramNotificationInstance())
-          && PROGRAM_RULE.equals(iwt.getProgramNotificationTemplate().getNotificationTrigger())
-          && iwt.getProgramNotificationInstance().getScheduledAt() != null
-          && DateUtils.isToday(iwt.getProgramNotificationInstance().getScheduledAt());*/
+  private static final Predicate<NotificationInstanceWithTemplate> IS_SCHEDULED_BY_PROGRAM_RULE =
+      (iwt) ->
+          Objects.nonNull(iwt.getProgramNotificationInstance())
+              && PROGRAM_RULE.equals(iwt.getProgramNotificationTemplate().getNotificationTrigger());
 
   // -------------------------------------------------------------------------
   // Dependencies
@@ -151,10 +149,7 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
         "Fetching and filtering ProgramStageNotification messages scheduled by program rules");
 
     ProgramNotificationInstanceParam param =
-        ProgramNotificationInstanceParam.builder()
-            .scheduledAt(LocalDate.now())
-            .notificationTrigger(PROGRAM_RULE)
-            .build();
+        ProgramNotificationInstanceParam.builder().scheduledAt(new Date()).build();
 
     List<NotificationInstanceWithTemplate> instancesWithTemplates =
         progress.runStage(
@@ -163,6 +158,7 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
                 notificationInstanceService.getProgramNotificationInstances(param).stream()
                     .map(this::withTemplate)
                     .filter(this::hasTemplate)
+                    .filter(IS_SCHEDULED_BY_PROGRAM_RULE)
                     .collect(toList()));
 
     progress.startingStage(

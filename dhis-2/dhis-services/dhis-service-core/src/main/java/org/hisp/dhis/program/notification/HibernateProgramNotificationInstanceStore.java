@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.program.notification;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -121,11 +118,7 @@ public class HibernateProgramNotificationInstanceStore
     }
 
     if (params.hasScheduledAt()) {
-      LocalDate scheduledDate = params.getScheduledAt();
-      LocalDateTime startOfDay = scheduledDate.atStartOfDay();
-      LocalDateTime endOfDay = scheduledDate.atTime(LocalTime.MAX);
-
-      predicates.add(root -> builder.between(root.get("scheduledAt"), startOfDay, endOfDay));
+      predicates.add(root -> builder.equal(root.get("scheduledAt"), params.getScheduledAt()));
     }
 
     return predicates;
