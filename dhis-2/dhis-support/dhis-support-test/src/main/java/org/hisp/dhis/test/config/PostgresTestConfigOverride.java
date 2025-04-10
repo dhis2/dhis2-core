@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,32 +27,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.servlet;
+package org.hisp.dhis.test.config;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import org.hisp.dhis.user.CurrentUserUtil;
+import java.util.Properties;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public class RedirectRootServlet extends HttpServlet {
-
-  @Override
-  protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-      throws IOException, ServletException {
-    boolean hasCurrentUser = CurrentUserUtil.hasCurrentUser();
-    if (hasCurrentUser) {
-      String referer = (String) req.getAttribute("origin");
-      req.setAttribute("origin", referer);
-      resp.sendRedirect(req.getContextPath() + "/dhis-web-dashboard/");
-    } else {
-      resp.setContentType("text/html");
-      resp.setStatus(HttpServletResponse.SC_OK);
-      resp.sendRedirect(req.getContextPath() + "/dhis-web-login/");
-    }
-  }
-}
+public class PostgresTestConfigOverride extends Properties {}

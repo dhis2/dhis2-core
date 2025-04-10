@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.http.HttpStatus.CONFLICT;
+import static org.hisp.dhis.http.HttpStatus.NOT_FOUND;
 import static org.hisp.dhis.http.HttpStatus.OK;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -58,6 +60,9 @@ import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class DataElementControllerTest extends H2ControllerIntegrationTestBase {
@@ -487,5 +492,38 @@ class DataElementControllerTest extends H2ControllerIntegrationTestBase {
     JsonDataElement updatedDataElement =
         GET("/dataElements/DeUid000002").content(OK).as(JsonDataElement.class);
     assertEquals(TEXT, updatedDataElement.getValueType(), "value type should be updated to TEXT");
+  }
+
+  @ParameterizedTest
+  @MethodSource("validApiPathFormats")
+  @DisplayName("Can make API call with different api version formats in path")
+  void canMakeApiCallWithVersionInPathTest(String endpointFormat) {
+    assertEquals(OK, GET(endpointFormat).status());
+  }
+
+  @ParameterizedTest
+  @MethodSource("invalidApiPathFormats")
+  @DisplayName("Cannot make API call with different api version formats in path")
+  void cannotMakeApiCallWithVersionInPathTest(String endpointFormat) {
+    assertEquals(NOT_FOUND, GET(endpointFormat).status());
+  }
+
+  public static Stream<Arguments> validApiPathFormats() {
+    return Stream.of(
+        Arguments.of("/43/dataElements"),
+        Arguments.of("/39/dataElements"),
+        Arguments.of("/30/dataElements"),
+        Arguments.of("/28/dataElements"),
+        Arguments.of("/dataElements"));
+  }
+
+  public static Stream<Arguments> invalidApiPathFormats() {
+    return Stream.of(
+        Arguments.of("/44/dataElements"),
+        Arguments.of("/99/dataElements"),
+        Arguments.of("/27/dataElements"),
+        Arguments.of("/333/dataElements"),
+        Arguments.of("/3/dataElements"),
+        Arguments.of("/test/dataElements"));
   }
 }

@@ -79,6 +79,8 @@ import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.AppHtmlTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -106,6 +108,7 @@ public class DefaultAppManager implements AppManager {
 
   private final I18nManager i18nManager;
 
+  @Autowired private UserService userService;
   @Autowired private ObjectMapper jsonMapper;
 
   /**
@@ -242,7 +245,27 @@ public class DefaultAppManager implements AppManager {
 
   @Override
   public List<WebModule> getMenu(String contextPath) {
-    return getAccessibleAppMenu(contextPath);
+    List<WebModule> modules = getAccessibleAppMenu(contextPath);
+
+    // Apply user-defined favorite apps order
+    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+
+    if (currentUser != null && currentUser.getApps() != null && !currentUser.getApps().isEmpty()) {
+      final List<String> userApps = new ArrayList<>(currentUser.getApps());
+
+      modules.sort(
+          (m1, m2) -> {
+            int i1 = userApps.indexOf(m1.getName());
+            int i2 = userApps.indexOf(m2.getName());
+
+            i1 = i1 == -1 ? 9999 : i1;
+            i2 = i2 == -1 ? 9999 : i2;
+
+            return Integer.compare(i1, i2);
+          });
+    }
+
+    return modules;
   }
 
   private List<WebModule> getAccessibleAppMenu(String contextPath) {
