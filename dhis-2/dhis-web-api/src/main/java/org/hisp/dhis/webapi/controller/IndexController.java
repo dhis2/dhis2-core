@@ -65,6 +65,8 @@ public class IndexController {
       HttpServletRequest request, HttpServletResponse response, SystemSettings settings)
       throws IOException {
     String redirectUrl = request.getContextPath() + "/" + settings.getStartModule();
+    // Let the GlobalShellFilter redirect to apps
+    redirectUrl = redirectUrl.replaceFirst("/apps", "");
 
     if (!redirectUrl.endsWith("/")) {
       redirectUrl += "/";
