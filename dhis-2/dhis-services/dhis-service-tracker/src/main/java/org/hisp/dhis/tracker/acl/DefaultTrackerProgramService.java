@@ -49,7 +49,7 @@ public class DefaultTrackerProgramService implements TrackerProgramService {
   @Nonnull private final AclService aclService;
 
   @Override
-  public List<Program> getAccessibleTrackerPrograms() {
+  public @Nonnull List<Program> getAccessibleTrackerPrograms() {
     UserDetails user = CurrentUserUtil.getCurrentUserDetails();
 
     return programService.getAllPrograms().stream()
@@ -58,7 +58,8 @@ public class DefaultTrackerProgramService implements TrackerProgramService {
   }
 
   @Override
-  public List<Program> getAccessibleTrackerPrograms(@Nonnull TrackedEntityType trackedEntityType) {
+  public @Nonnull List<Program> getAccessibleTrackerPrograms(
+      @Nonnull TrackedEntityType trackedEntityType) {
     UserDetails user = CurrentUserUtil.getCurrentUserDetails();
 
     return programService.getAllPrograms().stream()

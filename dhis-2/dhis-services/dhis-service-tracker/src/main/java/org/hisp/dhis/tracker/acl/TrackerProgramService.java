@@ -41,11 +41,13 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 public interface TrackerProgramService {
 
   /** Retrieves the list of tracker programs accessible to the current user. */
+  @Nonnull
   List<Program> getAccessibleTrackerPrograms();
 
   /**
    * Retrieves the list of tracker programs accessible to the current user that match the given
    * tracked entity type. It is assumed that the user has access to the supplied trackedEntityType.
    */
+  @Nonnull
   List<Program> getAccessibleTrackerPrograms(@Nonnull TrackedEntityType trackedEntityType);
 }
