@@ -78,7 +78,8 @@ public class ApiVersionFilter implements Filter {
       throws IOException, ServletException {
     HttpServletRequest req = (HttpServletRequest) request;
 
-    Matcher matcher = API_VERSION_PATTERN.matcher(req.getPathInfo());
+    Matcher matcher =
+        API_VERSION_PATTERN.matcher(req.getRequestURI().substring(req.getContextPath().length()));
 
     while (matcher.find()) {
       String api = matcher.group("api");
