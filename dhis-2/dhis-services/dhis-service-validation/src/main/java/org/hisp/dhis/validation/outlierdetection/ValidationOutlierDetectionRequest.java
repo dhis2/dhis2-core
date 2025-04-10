@@ -70,7 +70,10 @@ public class ValidationOutlierDetectionRequest {
   private ErrorMessage validateForErrorMessage(
       OutlierDetectionRequest request, boolean isAnalytics) {
 
-    int maxLimit = isAnalytics ? settingsProvider.getCurrentSettings().getAnalyticsMaxLimit() : 500;
+    int maxLimit =
+        isAnalytics
+            ? settingsProvider.getCurrentSettings().getAnalyticsMaxLimit()
+            : settingsProvider.getCurrentSettings().getDataQualityMaxLimit();
     ErrorMessage errorMessage = getErrorMessage(request, maxLimit);
 
     if (errorMessage != null) {

@@ -83,6 +83,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -154,6 +155,8 @@ public class DataAnalysisController {
 
   @Autowired private FollowupAnalysisService followupAnalysisService;
 
+  @Autowired private SystemSettingsProvider settingsProvider;
+
   @PostMapping(value = "/validationRules", consumes = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
   public @ResponseBody List<ValidationResultView> performValidationRulesAnalysis(
@@ -177,7 +180,8 @@ public class DataAnalysisController {
             ? validationRulesAnalysisParams.getMaxResults()
             : ValidationService.MAX_INTERACTIVE_ALERTS;
 
-    final int MAX_ALLOWED_RESULTS = 50000;
+    final int MAX_ALLOWED_RESULTS = settingsProvider.getCurrentSettings().getDataQualityMaxLimit();
+
     if (maxResults <= 0 || maxResults > MAX_ALLOWED_RESULTS) {
       throw new BadRequestException("maxResults must be between 1 and " + MAX_ALLOWED_RESULTS);
     }
