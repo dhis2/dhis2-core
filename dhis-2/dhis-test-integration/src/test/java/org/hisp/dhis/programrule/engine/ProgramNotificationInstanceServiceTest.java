@@ -164,7 +164,7 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
   void testGetProgramNotificationInstanceScheduledForToday() throws ParseException {
     programRuleEngineService.evaluateEnrollmentAndRunEffects(programInstance.getId());
 
-    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd"); // Only include year, month, and day
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
     String formattedDate = sdf.format(new Date());
 
     Date today = sdf.parse(formattedDate);
@@ -176,7 +176,7 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
 
     assertFalse(instancesForToday.isEmpty());
 
-    // Only fetch instance for today
+    // Only one instance is scheduled for today's date
     assertEquals(1, instancesForToday.size());
     ProgramNotificationInstance instanceForToday = instancesForToday.get(0);
     assertEquals(instanceForToday.getScheduledAt(), today);
