@@ -41,6 +41,10 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 
+/**
+ * Service for fetching tracker programs (i.e., programs that require registration). ACL validations
+ * are performed automatically based on the currently logged-in user.
+ */
 @Service("org.hisp.dhis.tracker.acl.TrackerProgramService")
 @RequiredArgsConstructor
 public class TrackerProgramService {
@@ -48,6 +52,7 @@ public class TrackerProgramService {
   @Nonnull private final ProgramService programService;
   @Nonnull private final AclService aclService;
 
+  /** Retrieves the list of tracker programs accessible to the current user. */
   public @Nonnull List<Program> getAccessibleTrackerPrograms() {
     UserDetails user = CurrentUserUtil.getCurrentUserDetails();
 
@@ -56,6 +61,10 @@ public class TrackerProgramService {
         .toList();
   }
 
+  /**
+   * Retrieves the list of tracker programs accessible to the current user that match the given
+   * tracked entity type. It is assumed that the user has access to the supplied trackedEntityType.
+   */
   public @Nonnull List<Program> getAccessibleTrackerPrograms(
       @Nonnull TrackedEntityType trackedEntityType) {
     UserDetails user = CurrentUserUtil.getCurrentUserDetails();
