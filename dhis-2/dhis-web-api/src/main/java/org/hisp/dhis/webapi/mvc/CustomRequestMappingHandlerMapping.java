@@ -32,7 +32,6 @@ package org.hisp.dhis.webapi.mvc;
 import java.lang.reflect.Method;
 import java.util.Set;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.servlet.mvc.condition.PatternsRequestCondition;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
@@ -52,7 +51,7 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
   protected RequestMappingInfo getMappingForMethod(Method method, Class<?> handlerType) {
     RequestMappingInfo info = super.getMappingForMethod(method, handlerType);
 
-    if (info == null || info.getPatternValues().stream().noneMatch(s -> s.startsWith("/api/"))) {
+    if (info == null) {
       return null;
     }
 
