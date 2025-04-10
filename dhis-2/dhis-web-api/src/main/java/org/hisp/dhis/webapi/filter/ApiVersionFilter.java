@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -78,7 +78,7 @@ public class ApiVersionFilter implements Filter {
       throws IOException, ServletException {
     HttpServletRequest req = (HttpServletRequest) request;
 
-    Matcher matcher = API_VERSION_PATTERN.matcher(req.getRequestURI());
+    Matcher matcher = API_VERSION_PATTERN.matcher(req.getPathInfo());
 
     while (matcher.find()) {
       String api = matcher.group("api");
