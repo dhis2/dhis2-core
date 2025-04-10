@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -30,9 +30,9 @@
 package org.hisp.dhis.webapi.mvc;
 
 import java.lang.reflect.Method;
+import java.util.Set;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.condition.PatternsRequestCondition;
-import org.springframework.web.servlet.mvc.condition.RequestMethodsRequestCondition;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
@@ -52,27 +52,32 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
   protected RequestMappingInfo getMappingForMethod(Method method, Class<?> handlerType) {
     RequestMappingInfo info = super.getMappingForMethod(method, handlerType);
 
-    if (info == null) {
+    if (info == null || info.getPatternValues().stream().noneMatch(s -> s.startsWith("/api/"))) {
       return null;
     }
 
-    RequestMethodsRequestCondition methodsCondition = info.getMethodsCondition();
+    Set<RequestMethod> methods = info.getMethodsCondition().getMethods();
 
-    if (methodsCondition.getMethods().isEmpty()) {
-      methodsCondition = new RequestMethodsRequestCondition(RequestMethod.GET);
+    if (methods.isEmpty()) {
+      methods.add(RequestMethod.GET);
     }
 
-    PatternsRequestCondition patternsRequestCondition =
-        new PatternsRequestCondition(
-            info.getPatternValues().toArray(new String[] {}), null, null, true, true, null);
-    return new RequestMappingInfo(
-        null,
-        patternsRequestCondition,
-        methodsCondition,
-        info.getParamsCondition(),
-        info.getHeadersCondition(),
-        info.getConsumesCondition(),
-        info.getProducesCondition(),
-        info.getCustomCondition());
+    //    PatternsRequestCondition patternsRequestCondition =
+    //        new PatternsRequestCondition(
+    //            info.getPatternValues().toArray(new String[] {}), null, null, true, true, null);
+
+    return RequestMappingInfo.paths(info.getPatternValues().toArray(new String[] {}))
+        .methods(methods.toArray(new RequestMethod[] {}))
+        .build();
+
+    //    return new RequestMappingInfo(
+    //        null,
+    //        patternsRequestCondition,
+    //        methodsCondition,
+    //        info.getParamsCondition(),
+    //        info.getHeadersCondition(),
+    //        info.getConsumesCondition(),
+    //        info.getProducesCondition(),
+    //        info.getCustomCondition());
   }
 }
