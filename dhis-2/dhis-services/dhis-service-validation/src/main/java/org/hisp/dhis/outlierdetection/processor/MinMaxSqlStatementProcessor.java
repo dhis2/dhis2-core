@@ -85,6 +85,7 @@ public class MinMaxSqlStatementProcessor implements OutlierSqlStatementProcessor
         + ouPathClause
         + " "
         + "and dv.deleted is false "
+        + " and dv.value ~ '^(-)?[0-9]+(\\\\.[0-9]+)?$' \") "
         +
         // Filter for values outside the min-max range
         "and (dv.value::double precision < mm.minimumvalue or dv.value::double precision > mm.maximumvalue) "

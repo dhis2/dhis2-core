@@ -152,7 +152,8 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
         + "and "
         + ouPathClause
         + " "
-        + "and dv.deleted is false"
+        + " and dv.deleted is false "
+        + " and dv.value ~ '^(-)?[0-9]+(\\.[0-9]+)?$' "
         + ") as dvs "
         +
         // Mean or Median and std dev mapping query
@@ -174,6 +175,7 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
         + ouPathClause
         + " "
         + "and dv.deleted is false "
+        + " and dv.value ~ '^(-)?[0-9]+(\\.[0-9]+)?$' "
         + "group by dv.dataelementid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid"
         + ") as stats "
         +
@@ -231,6 +233,7 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
         + ")"
         + " and "
         + ouPathClause
+        + " and dv.value ~ '^(-)?[0-9]+(\\\\.[0-9]+)?$' \")"
         + " and dv.deleted is false)"
         + " select dvs.de_uid,"
         + " dvs.ou_uid,"
