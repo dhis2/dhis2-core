@@ -84,6 +84,8 @@ class ValidationOutlierDetectionRequestTest {
     subject = new ValidationOutlierDetectionRequest(systemSettingManager);
     when(systemSettingManager.getSystemSetting(SettingKey.ANALYTICS_MAX_LIMIT, Integer.class))
         .thenReturn(500);
+    when(systemSettingManager.getSystemSetting(SettingKey.DATA_QUALITY_MAX_LIMIT, Integer.class))
+        .thenReturn(500);
     deA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
     deB = createDataElement('B', ValueType.INTEGER, AggregationType.SUM);
     deC = createDataElement('C', ValueType.NUMBER, AggregationType.SUM);
