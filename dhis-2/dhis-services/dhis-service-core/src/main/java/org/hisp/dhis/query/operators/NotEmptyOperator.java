@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,32 +40,36 @@ import java.util.Map;
 import org.hisp.dhis.query.planner.PropertyPath;
 
 /**
- * @author Viet Nguyen <viet@dhis2.org>
+ * @author Jan Bernitt
+ * @since 2.42
  */
-public class EmptyOperator<T extends Comparable<T>> extends Operator<T> {
-  public EmptyOperator() {
-    super("empty", List.of(Collection.class));
+public class NotEmptyOperator<T extends Comparable<T>> extends Operator<T> {
+
+  public NotEmptyOperator() {
+    super("!empty", List.of(Collection.class));
   }
 
   @Override
   public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, PropertyPath path) {
-    if (path.getProperty().isRelation()) return builder.isEmpty(root.get(path.getPath()));
+    if (path.getProperty().isRelation()) return builder.isNotEmpty(root.get(path.getPath()));
     // JSONB column backed collections
     Path<Object> p = root.get(path.getPath());
     Expression<String> pathAsText = p.as(String.class);
-    return builder.or(
-        builder.isNull(p),
-        builder.equal(pathAsText, builder.literal("null")),
-        builder.equal(pathAsText, builder.literal("[]")),
-        builder.equal(pathAsText, builder.literal("{}")));
+    return builder.and(
+        builder.isNotNull(p),
+        builder.notEqual(pathAsText, builder.literal("null")),
+        builder.not(
+            builder.or(
+                builder.equal(pathAsText, builder.literal("[]")),
+                builder.equal(pathAsText, builder.literal("{}")))));
   }
 
   @Override
   public boolean test(Object value) {
-    if (value == null) return false;
-    if (value instanceof Collection<?> c) return c.isEmpty();
-    if (value instanceof Map<?, ?> m) return m.isEmpty();
-    if (value instanceof String s) return s.isEmpty();
+    if (value == null) return true;
+    if (value instanceof Collection<?> c) return !c.isEmpty();
+    if (value instanceof Map<?, ?> m) return !m.isEmpty();
+    if (value instanceof String s) return !s.isEmpty();
     return false;
   }
 }

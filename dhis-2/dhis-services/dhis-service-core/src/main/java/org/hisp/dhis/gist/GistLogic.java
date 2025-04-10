@@ -119,8 +119,12 @@ final class GistLogic {
   }
 
   static boolean isCollectionSizeFilter(Filter filter, Property property) {
-    return filter.getOperator().isEmptinessCompare()
+    return property.isRelation() && filter.getOperator().isEmptinessCompare()
         || (filter.getOperator().isNumericCompare() && property.isCollection());
+  }
+
+  static boolean isJsonCollectionFilter(Filter filter, Property property) {
+    return property.isCollection() && !property.isRelation();
   }
 
   static boolean isStringLengthFilter(Filter filter, Property property) {
