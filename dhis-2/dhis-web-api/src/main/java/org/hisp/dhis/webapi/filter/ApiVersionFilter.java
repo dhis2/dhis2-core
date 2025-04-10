@@ -81,7 +81,7 @@ public class ApiVersionFilter implements Filter {
     Matcher matcher =
         API_VERSION_PATTERN.matcher(req.getRequestURI().substring(req.getContextPath().length()));
 
-    while (matcher.find()) {
+    if (matcher.matches()) {
       String api = matcher.group("api");
       String apiVersion = matcher.group("apiversion");
       String endpoint = matcher.group("endpoint");
