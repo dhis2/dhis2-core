@@ -58,7 +58,7 @@ class DataSetApiTest extends ApiTest {
   }
 
   @Test
-  @DisplayName("User can read a datastore entry with default public sharing")
+  @DisplayName("Downloading metadata  json as zip, has expected headers")
   void dataSetGetJsonZipTest() {
     ApiResponse response =
         dataSetApiActions.get(
