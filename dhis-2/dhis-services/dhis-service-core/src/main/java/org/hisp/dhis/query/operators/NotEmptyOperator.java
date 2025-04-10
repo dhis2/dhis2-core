@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,41 +27,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.introspection;
+package org.hisp.dhis.query.operators;
 
-import static org.hisp.dhis.system.util.AnnotationUtils.getAnnotation;
-
-import java.lang.reflect.Method;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
-import org.hisp.dhis.schema.GistPreferences;
-import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.schema.annotation.Gist;
+import org.hisp.dhis.query.planner.PropertyPath;
 
 /**
- * A {@link PropertyIntrospector} that adds information to existing {@link Property} values if they
- * are annotated with {@link org.hisp.dhis.schema.annotation.Gist}.
- *
  * @author Jan Bernitt
+ * @since 2.42
  */
-public class GistPropertyIntrospector implements PropertyIntrospector {
-  @Override
-  public void introspect(Class<?> klass, Map<String, Property> properties) {
-    for (Property property : properties.values()) {
-      if (property.getKlass() != null) {
-        initFromGistAnnotation(property);
-      }
-    }
+public class NotEmptyOperator<T extends Comparable<T>> extends Operator<T> {
+
+  public NotEmptyOperator() {
+    super("!empty", List.of(Collection.class));
   }
 
-  private void initFromGistAnnotation(Property property) {
-    Method getter = property.getGetterMethod();
-    if (getter != null) {
-      Gist gist = getAnnotation(getter, Gist.class);
-      if (gist != null) {
-        int order = gist.order();
-        property.setGistPreferences(
-            new GistPreferences(gist.included(), gist.transformation(), order <= 0 ? null : order));
-      }
-    }
+  @Override
+  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, PropertyPath path) {
+    if (path.getProperty().isRelation()) return builder.isNotEmpty(root.get(path.getPath()));
+    // JSONB column backed collections
+    Path<Object> p = root.get(path.getPath());
+    Expression<String> pathAsText = p.as(String.class);
+    return builder.and(
+        builder.isNotNull(p),
+        builder.notEqual(pathAsText, builder.literal("null")),
+        builder.not(
+            builder.or(
+                builder.equal(pathAsText, builder.literal("[]")),
+                builder.equal(pathAsText, builder.literal("{}")))));
+  }
+
+  @Override
+  public boolean test(Object value) {
+    if (value == null) return true;
+    if (value instanceof Collection<?> c) return !c.isEmpty();
+    if (value instanceof Map<?, ?> m) return !m.isEmpty();
+    if (value instanceof String s) return !s.isEmpty();
+    return false;
   }
 }

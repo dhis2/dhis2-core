@@ -72,6 +72,16 @@ public @interface Gist {
    */
   Transform transformation() default Transform.AUTO;
 
+  /**
+   * If an object type should not be sorted by their ID in case no order was specified in a paged
+   * query this marks the property or properties that should be added to the {@code order by} clause
+   * starting with 1 as the primary order, 2 for secondary and so on. 0 or negative values are
+   * ignored.
+   *
+   * @return the default order priority starting with 1
+   */
+  int order() default -1;
+
   enum Include {
     FALSE,
     TRUE,
