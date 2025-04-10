@@ -30,8 +30,9 @@
 package org.hisp.dhis.webapi.mvc;
 
 import java.lang.reflect.Method;
-import java.util.Set;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.mvc.condition.PatternsRequestCondition;
+import org.springframework.web.servlet.mvc.condition.RequestMethodsRequestCondition;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
@@ -55,28 +56,24 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
       return null;
     }
 
-    Set<RequestMethod> methods = info.getMethodsCondition().getMethods();
+    RequestMethodsRequestCondition methodsCondition = info.getMethodsCondition();
 
-    if (methods.isEmpty()) {
-      methods.add(RequestMethod.GET);
+    if (methodsCondition.getMethods().isEmpty()) {
+      methodsCondition.getMethods().add(RequestMethod.GET);
     }
 
-    //    PatternsRequestCondition patternsRequestCondition =
-    //        new PatternsRequestCondition(
-    //            info.getPatternValues().toArray(new String[] {}), null, null, true, true, null);
+    PatternsRequestCondition patternsRequestCondition =
+        new PatternsRequestCondition(
+            info.getPatternValues().toArray(new String[] {}), null, null, true, true, null);
 
-    return RequestMappingInfo.paths(info.getPatternValues().toArray(new String[] {}))
-        .methods(methods.toArray(new RequestMethod[] {}))
-        .build();
-
-    //    return new RequestMappingInfo(
-    //        null,
-    //        patternsRequestCondition,
-    //        methodsCondition,
-    //        info.getParamsCondition(),
-    //        info.getHeadersCondition(),
-    //        info.getConsumesCondition(),
-    //        info.getProducesCondition(),
-    //        info.getCustomCondition());
+    return new RequestMappingInfo(
+        null,
+        patternsRequestCondition,
+        methodsCondition,
+        info.getParamsCondition(),
+        info.getHeadersCondition(),
+        info.getConsumesCondition(),
+        info.getProducesCondition(),
+        info.getCustomCondition());
   }
 }
