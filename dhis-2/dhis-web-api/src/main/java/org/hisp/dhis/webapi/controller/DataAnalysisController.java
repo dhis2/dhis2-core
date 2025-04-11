@@ -46,6 +46,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -175,15 +176,11 @@ public class DataAnalysisController {
       throw new WebMessageException(badRequest("No organisation unit defined"));
     }
 
-    int maxResults =
-        validationRulesAnalysisParams.getMaxResults() != null
-            ? validationRulesAnalysisParams.getMaxResults()
-            : ValidationService.MAX_INTERACTIVE_ALERTS;
-
+    int maxResults = ObjectUtils.firstNonNull( validationRulesAnalysisParams.getMaxResults(), ValidationService.MAX_INTERACTIVE_ALERTS );
     final int MAX_ALLOWED_RESULTS = settingsProvider.getCurrentSettings().getDataQualityMaxLimit();
 
     if (maxResults <= 0 || maxResults > MAX_ALLOWED_RESULTS) {
-      throw new BadRequestException("maxResults must be between 1 and " + MAX_ALLOWED_RESULTS);
+      throw new BadRequestException("Max results must be between 1 and " + MAX_ALLOWED_RESULTS);
     }
 
     ValidationAnalysisParams params =
