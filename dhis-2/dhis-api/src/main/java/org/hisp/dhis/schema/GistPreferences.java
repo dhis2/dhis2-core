@@ -45,7 +45,7 @@ import org.hisp.dhis.schema.annotation.Gist.Include;
 @AllArgsConstructor
 public final class GistPreferences {
   public static final GistPreferences DEFAULT =
-      new GistPreferences(Include.AUTO, Gist.Transform.AUTO);
+      new GistPreferences(Include.AUTO, Gist.Transform.AUTO, null);
 
   /**
    * @see Gist#included()
@@ -56,4 +56,9 @@ public final class GistPreferences {
    * @see Gist#transformation()
    */
   @JsonProperty private final Gist.Transform transformation;
+
+  /**
+   * @see Gist#order()
+   */
+  @JsonProperty private final Integer order;
 }

@@ -30,6 +30,7 @@
 package org.hisp.dhis.gist;
 
 import static java.util.Arrays.stream;
+import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -41,6 +42,7 @@ import static org.hisp.dhis.gist.GistLogic.isAttributeValuesAttributePropertyPat
 import static org.hisp.dhis.gist.GistLogic.isAttributeValuesProperty;
 import static org.hisp.dhis.gist.GistLogic.isCollectionSizeFilter;
 import static org.hisp.dhis.gist.GistLogic.isHrefProperty;
+import static org.hisp.dhis.gist.GistLogic.isJsonCollectionFilter;
 import static org.hisp.dhis.gist.GistLogic.isNonNestedPath;
 import static org.hisp.dhis.gist.GistLogic.isPersistentCollectionField;
 import static org.hisp.dhis.gist.GistLogic.isPersistentReferenceField;
@@ -335,7 +337,7 @@ final class GistBuilder {
     String fields = createFieldsHQL();
     String accessFilters = createAccessFilterHQL(context, "e");
     String userFilters = createFiltersHQL();
-    String orders = createOrdersHQL();
+    String orders = createOrderByHQL();
     String elementTable = query.getElementType().getSimpleName();
     Owner owner = query.getOwner();
     if (owner == null) {
@@ -883,6 +885,8 @@ final class GistBuilder {
         fieldTemplate = "length(%s)";
       } else if (isCollectionSizeFilter(filter, property)) {
         fieldTemplate = "size(%s)";
+      } else if (isJsonCollectionFilter(filter, property)) {
+        return createJsonFilterHQL(index, filter, field);
       } else if (operator.isCaseInsensitive()) {
         fieldTemplate = "lower(%s)";
       }
@@ -893,6 +897,20 @@ final class GistBuilder {
       str.append(" :f_").append(index).append(createOperatorRightSideHQL(operator));
     }
     return str.toString();
+  }
+
+  private String createJsonFilterHQL(int index, Filter filter, String field) {
+    return switch (filter.getOperator()) {
+      case EMPTY ->
+          "(%1$s is null or %1$s = '{}' or %1$s = '[]' or %1$s = 'null')".formatted(field);
+      case NOT_EMPTY ->
+          "(%1$s is not null and %1$s != 'null' and not (%1$s = '[]' or %1$s = '{}'))"
+              .formatted(field);
+      default ->
+          throw new UnsupportedOperationException(
+              "Filter %s not supported for property %s since it is stored as JSONB"
+                  .formatted(filter.getOperator(), filter.getPropertyPath()));
+    };
   }
 
   private String createAccessFilterHQL(int index, Filter filter, String field) {
@@ -947,7 +965,17 @@ final class GistBuilder {
     }
   }
 
-  private String createOrdersHQL() {
+  private String createOrderByHQL() {
+    if (query.getOrders() == null || query.getOrders().isEmpty()) {
+      List<Property> orderBy =
+          context.getHome().getProperties().stream()
+              .filter(p -> p.getGistPreferences().getOrder() != null)
+              .sorted(comparingInt(a -> a.getGistPreferences().getOrder()))
+              .toList();
+      if (!orderBy.isEmpty()) {
+        return orderBy.stream().map(p -> p.getFieldName() + " asc").collect(joining(", "));
+      }
+    }
     return join(
         query.getOrders(),
         ",",
@@ -1006,13 +1034,10 @@ final class GistBuilder {
   }
 
   private String createOperatorRightSideHQL(Comparison operator) {
-    switch (operator) {
-      case NOT_IN:
-      case IN:
-        return ")";
-      default:
-        return "";
-    }
+    return switch (operator) {
+      case NOT_IN, IN -> ")";
+      default -> "";
+    };
   }
 
   private <T> String join(
@@ -1026,7 +1051,7 @@ final class GistBuilder {
     StringBuilder str = new StringBuilder();
     int i = 0;
     for (T e : elements) {
-      if (str.length() > 0) {
+      if (!str.isEmpty()) {
         str.append(delimiter);
       }
       str.append(elementFactory.apply(i++, e));

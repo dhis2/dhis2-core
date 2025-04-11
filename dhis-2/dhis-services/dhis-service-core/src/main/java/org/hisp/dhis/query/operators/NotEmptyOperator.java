@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,32 +27,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.servlet;
+package org.hisp.dhis.query.operators;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import org.hisp.dhis.user.CurrentUserUtil;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import org.hisp.dhis.query.planner.PropertyPath;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Jan Bernitt
+ * @since 2.42
  */
-public class RedirectRootServlet extends HttpServlet {
+public class NotEmptyOperator<T extends Comparable<T>> extends Operator<T> {
+
+  public NotEmptyOperator() {
+    super("!empty", List.of(Collection.class));
+  }
 
   @Override
-  protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-      throws IOException, ServletException {
-    boolean hasCurrentUser = CurrentUserUtil.hasCurrentUser();
-    if (hasCurrentUser) {
-      String referer = (String) req.getAttribute("origin");
-      req.setAttribute("origin", referer);
-      resp.sendRedirect(req.getContextPath() + "/dhis-web-dashboard/");
-    } else {
-      resp.setContentType("text/html");
-      resp.setStatus(HttpServletResponse.SC_OK);
-      resp.sendRedirect(req.getContextPath() + "/dhis-web-login/");
-    }
+  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, PropertyPath path) {
+    if (path.getProperty().isRelation()) return builder.isNotEmpty(root.get(path.getPath()));
+    // JSONB column backed collections
+    Path<Object> p = root.get(path.getPath());
+    Expression<String> pathAsText = p.as(String.class);
+    return builder.and(
+        builder.isNotNull(p),
+        builder.notEqual(pathAsText, builder.literal("null")),
+        builder.not(
+            builder.or(
+                builder.equal(pathAsText, builder.literal("[]")),
+                builder.equal(pathAsText, builder.literal("{}")))));
+  }
+
+  @Override
+  public boolean test(Object value) {
+    if (value == null) return true;
+    if (value instanceof Collection<?> c) return !c.isEmpty();
+    if (value instanceof Map<?, ?> m) return !m.isEmpty();
+    if (value instanceof String s) return !s.isEmpty();
+    return false;
   }
 }
