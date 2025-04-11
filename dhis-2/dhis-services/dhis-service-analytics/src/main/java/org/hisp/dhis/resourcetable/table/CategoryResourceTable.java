@@ -32,6 +32,7 @@ package org.hisp.dhis.resourcetable.table;
 import static java.lang.String.valueOf;
 import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.db.model.Table.toStaging;
+import static org.hisp.dhis.resourcetable.util.ColumnNameUtils.toValidColumnName;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import com.google.common.collect.Lists;
@@ -86,14 +87,18 @@ public class CategoryResourceTable implements ResourceTable {
     for (Category category : categories) {
       columns.addAll(
           List.of(
-              new Column(nameContext.uniqueName(category.getShortName()), DataType.VARCHAR_255),
+              new Column(
+                  nameContext.uniqueName(toValidColumnName(category.getShortName())),
+                  DataType.VARCHAR_255),
               new Column(category.getUid(), DataType.CHARACTER_11)));
     }
 
     for (CategoryOptionGroupSet groupSet : groupSets) {
       columns.addAll(
           List.of(
-              new Column(nameContext.uniqueName(groupSet.getShortName()), DataType.VARCHAR_255),
+              new Column(
+                  nameContext.uniqueName(toValidColumnName(groupSet.getShortName())),
+                  DataType.VARCHAR_255),
               new Column(groupSet.getUid(), DataType.CHARACTER_11)));
     }
 
@@ -125,12 +130,6 @@ public class CategoryResourceTable implements ResourceTable {
           replace(
               """
               (
-              select co.name from categoryoptioncombos_categoryoptions cocco \
-              inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid \
-              inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid \
-              where coc.categoryoptioncomboid = cocco.categoryoptioncomboid \
-              and cco.categoryid = ${categoryId} limit 1) as ${categoryName}, \
-              (
               select co.uid from categoryoptioncombos_categoryoptions cocco \
               inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid \
               inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid \
@@ -139,7 +138,7 @@ public class CategoryResourceTable implements ResourceTable {
               """,
               Map.of(
                   "categoryId", valueOf(category.getId()),
-                  "categoryName", quote(category.getName()),
+                  "categoryName", quote(toValidColumnName(category.getName())),
                   "categoryUid", quote(category.getUid())));
     }
 
@@ -147,13 +146,6 @@ public class CategoryResourceTable implements ResourceTable {
       sql +=
           replace(
               """
-              (
-              select cog.name from categoryoptioncombos_categoryoptions cocco \
-              inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid \
-              inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid \
-              inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid \
-              where coc.categoryoptioncomboid = cocco.categoryoptioncomboid \
-              and cogsm.categoryoptiongroupsetid = ${groupSetId} limit 1) as ${groupSetName}, \
               (
               select cog.uid from categoryoptioncombos_categoryoptions cocco \
               inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid \
@@ -164,7 +156,7 @@ public class CategoryResourceTable implements ResourceTable {
               """,
               Map.of(
                   "groupSetId", valueOf(groupSet.getId()),
-                  "groupSetName", quote(groupSet.getName()),
+                  "groupSetName", quote(toValidColumnName(groupSet.getName())),
                   "groupSetUid", quote(groupSet.getUid())));
     }
 
