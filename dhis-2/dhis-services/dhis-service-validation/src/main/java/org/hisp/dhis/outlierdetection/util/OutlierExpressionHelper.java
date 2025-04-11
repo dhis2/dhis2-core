@@ -27,10 +27,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.outlierdetection;
+package org.hisp.dhis.outlierdetection.util;
 
 public enum OutlierExpressionHelper {
-  // Enum constants
+  /**
+   * Regex pattern to identify strings that are valid for casting to PostgreSQL `double precision`
+   * (i.e., plain numeric values).
+   *
+   * <p>Pattern: ^-?[0-9]+(\.[0-9]+)?$
+   *
+   * <p>Matches: - "42" - "-3.14" - "0.5" - "0001.00"
+   *
+   * <p>Does not match: - "+5" - ".5" - "42." - "1e5" - " 5.5 " - "1,000.00"
+   *
+   * <p>This pattern is used to pre-filter text-based numeric values to avoid runtime casting
+   * exceptions when converting to double precision. Since data values are stored as strings in the
+   * database, there is no guarantee that the string representation of a number is valid for casting
+   * to double precision. Some edge cases may not be covered by this pattern, but integrity checks
+   * can help to identify such cases and fix them.
+   */
   NUMERIC_PATTERN("^-?[0-9]+(\\.[0-9]+)?$");
   private String key;
 
