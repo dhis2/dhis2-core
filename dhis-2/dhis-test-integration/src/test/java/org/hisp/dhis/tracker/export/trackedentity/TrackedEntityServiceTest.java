@@ -2442,6 +2442,20 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldReturnEmptyListWhenUserHasNoAccessToTETOfRequestedTE()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    makeTrackedEntityTypeDataInaccessible(trackedEntityTypeA);
+    TrackedEntityType trackedEntityType = createTrackedEntityType('B');
+    manager.save(trackedEntityType, false);
+    makeTrackedEntityTypeDataAndMetadataAccessible(trackedEntityType);
+
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder().trackedEntities(trackedEntityB).build();
+
+    assertIsEmpty(trackedEntityService.findTrackedEntities(operationParams));
+  }
+
+  @Test
   void shouldFailWhenRequestingSingleTEWithoutProgramAndUserCantEnrollTEAnywhere() {
     injectAdminIntoSecurityContext();
     programB.setAccessLevel(CLOSED);
@@ -2501,6 +2515,13 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   private void makeTrackedEntityTypeDataInaccessible(TrackedEntityType trackedEntityType) {
     injectSecurityContextUser(superuser);
     trackedEntityType.setSharing(Sharing.builder().publicAccess("rw------").build());
+    manager.update(trackedEntityType);
+    injectSecurityContextUser(user);
+  }
+
+  private void makeTrackedEntityTypeDataAndMetadataAccessible(TrackedEntityType trackedEntityType) {
+    injectSecurityContextUser(superuser);
+    trackedEntityType.setSharing(Sharing.builder().publicAccess("rwrw----").build());
     manager.update(trackedEntityType);
     injectSecurityContextUser(user);
   }

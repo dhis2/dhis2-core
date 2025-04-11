@@ -74,18 +74,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       return List.of();
     }
 
-    return canRead(user, trackedEntity, false);
-  }
-
-  @Override
-  public List<String> canRead(
-      @Nonnull UserDetails user,
-      @CheckForNull TrackedEntity trackedEntity,
-      boolean skipOwnershipCheck) {
-    if (user.isSuper() || trackedEntity == null) {
-      return List.of();
-    }
-
     TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
     if (!aclService.canDataRead(user, trackedEntityType)) {
       return List.of(
@@ -98,9 +86,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       return List.of("User has no access to any program");
     }
 
-    if (skipOwnershipCheck
-        || tetPrograms.stream()
-            .anyMatch(p -> ownershipAccessManager.hasAccess(user, trackedEntity, p))) {
+    if (tetPrograms.stream()
+        .anyMatch(p -> ownershipAccessManager.hasAccess(user, trackedEntity, p))) {
       return List.of();
     } else {
       return List.of(OWNERSHIP_ACCESS_DENIED);
@@ -507,11 +494,11 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     RelationshipItem from = relationship.getFrom();
     RelationshipItem to = relationship.getTo();
 
-    errors.addAll(canRead(user, from.getTrackedEntity(), false));
+    errors.addAll(canRead(user, from.getTrackedEntity()));
     errors.addAll(canRead(user, from.getEnrollment(), false));
     errors.addAll(canRead(user, from.getEvent(), false));
 
-    errors.addAll(canRead(user, to.getTrackedEntity(), false));
+    errors.addAll(canRead(user, to.getTrackedEntity()));
     errors.addAll(canRead(user, to.getEnrollment(), false));
     errors.addAll(canRead(user, to.getEvent(), false));
 

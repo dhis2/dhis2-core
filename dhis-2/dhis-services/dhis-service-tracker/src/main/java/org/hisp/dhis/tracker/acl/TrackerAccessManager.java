@@ -53,16 +53,6 @@ public interface TrackerAccessManager {
    */
   List<String> canRead(UserDetails user, TrackedEntity trackedEntity);
 
-  /**
-   * Check the data read permissions and ownership of a tracked entity given the programs for which
-   * the user has metadata access to. Ownership validations will be skipped if the flag is set to
-   * true.
-   *
-   * @return No errors if a user has access to at least one program
-   */
-  @Deprecated(forRemoval = true, since = "2.42")
-  List<String> canRead(UserDetails user, TrackedEntity trackedEntity, boolean skipOwnershipCheck);
-
   List<String> canWrite(UserDetails user, TrackedEntity trackedEntity);
 
   List<String> canRead(UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck);
