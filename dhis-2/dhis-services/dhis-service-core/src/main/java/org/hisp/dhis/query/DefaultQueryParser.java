@@ -146,6 +146,7 @@ public class DefaultQueryParser implements QueryParser {
       case "null" -> Filters.isNull(path);
       case "!null" -> Filters.isNotNull(path);
       case "empty" -> Filters.isEmpty(path);
+      case "!empty" -> Filters.isNotEmpty(path);
       default -> throw new QueryParserException("`" + operator + "` is not a valid operator.");
     };
   }
