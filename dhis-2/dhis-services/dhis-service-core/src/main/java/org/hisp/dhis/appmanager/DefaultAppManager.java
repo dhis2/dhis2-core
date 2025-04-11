@@ -283,7 +283,7 @@ public class DefaultAppManager implements AppManager {
             .map(
                 module -> {
                   String bundledAppNameTranslation =
-                      i18nManager.getI18n().getString(module.getName());
+                      i18nManager.getI18n().getString(module.getName(), module.getDisplayName());
                   module.setDisplayName(bundledAppNameTranslation);
                   return module;
                 })
