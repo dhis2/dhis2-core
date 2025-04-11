@@ -125,7 +125,7 @@ class IndicatorGroupSetResourceTableTest extends BaseResourceTableTest {
             new CategoryResourceTableTest.ExpessionAlias(
                 groupSets.get(2).getUid(), expectedExpression.formatted("3000")));
 
-    assertOnTables(selectStatement.getSelectItems(), expectedColumnAliases);
+    verifyPopulateStatement(selectStatement.getSelectItems(), expectedColumnAliases);
   }
 
   private IndicatorGroupSet withIdAndShortName(IndicatorGroupSet groupSet, int id) {

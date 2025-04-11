@@ -127,7 +127,7 @@ class DataElementGroupSetResourceTableTest extends BaseResourceTableTest {
             new CategoryResourceTableTest.ExpessionAlias(
                 groupSets.get(2).getUid(), expectedExpression.formatted("3000")));
 
-    assertOnTables(selectStatement.getSelectItems(), expectedColumnAliases);
+    verifyPopulateStatement(selectStatement.getSelectItems(), expectedColumnAliases);
   }
 
   private DataElementGroupSet withId(DataElementGroupSet groupSet, int id) {

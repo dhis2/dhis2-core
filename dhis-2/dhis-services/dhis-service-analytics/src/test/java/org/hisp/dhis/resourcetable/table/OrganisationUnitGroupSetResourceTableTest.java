@@ -126,7 +126,7 @@ class OrganisationUnitGroupSetResourceTableTest extends BaseResourceTableTest {
             new ExpessionAlias(
                 groupSets.get(2).getName(), expectedNameExpression.formatted("3000")),
             new ExpessionAlias(groupSets.get(2).getUid(), expectedExpression.formatted("3000")));
-    assertOnTables(selectStatement.getSelectItems(), expectedColumnAliases);
+    verifyPopulateStatement(selectStatement.getSelectItems(), expectedColumnAliases);
   }
 
   private OrganisationUnitGroupSet withId(OrganisationUnitGroupSet groupSet, int id) {

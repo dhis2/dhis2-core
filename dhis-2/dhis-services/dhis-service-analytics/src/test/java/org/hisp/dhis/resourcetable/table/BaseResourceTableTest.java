@@ -40,7 +40,15 @@ class BaseResourceTableTest extends TestBase {
 
   public record ExpessionAlias(String alias, String expression) {}
 
-  void assertOnTables(List<SelectItem> selectItems, List<ExpessionAlias> expectedColumnAliases) {
+  /**
+   * Verifies that the select statement has the expected number of columns and that the column
+   * aliases are in the expected order.
+   *
+   * @param selectItems the select items from the select statement using during the insert
+   * @param expectedColumnAliases the expected column aliases and expressions
+   */
+  void verifyPopulateStatement(
+      List<SelectItem> selectItems, List<ExpessionAlias> expectedColumnAliases) {
 
     assertEquals(
         expectedColumnAliases.size(),

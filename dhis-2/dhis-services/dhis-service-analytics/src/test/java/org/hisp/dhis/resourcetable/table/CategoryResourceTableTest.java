@@ -139,6 +139,6 @@ class CategoryResourceTableTest extends BaseResourceTableTest {
                 groupSets.get(2).getUid(),
                 "(select cog.uid from categoryoptioncombos_categoryoptions cocco inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid where coc.categoryoptioncomboid = cocco.categoryoptioncomboid and cogsm.categoryoptiongroupsetid = 0 limit 1)"));
 
-    assertOnTables(selectStatement.getSelectItems(), expectedColumnAliases);
+    verifyPopulateStatement(selectStatement.getSelectItems(), expectedColumnAliases);
   }
 }
