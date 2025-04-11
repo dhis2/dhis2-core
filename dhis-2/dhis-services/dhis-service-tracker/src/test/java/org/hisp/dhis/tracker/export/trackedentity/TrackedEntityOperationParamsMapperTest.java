@@ -66,7 +66,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsService;
@@ -74,6 +73,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
@@ -107,7 +107,7 @@ class TrackedEntityOperationParamsMapperTest {
 
   @Mock private OrganisationUnitService organisationUnitService;
 
-  @Mock private ProgramService programService;
+  @Mock private TrackerProgramService trackerProgramService;
 
   @Mock private TrackedEntityAttributeService attributeService;
 
@@ -169,7 +169,7 @@ class TrackedEntityOperationParamsMapperTest {
     programStage.setProgram(program);
     program.setProgramStages(Set.of(programStage));
 
-    when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
+    when(trackerProgramService.getAccessibleTrackerPrograms()).thenReturn(List.of(program));
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
 
     TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
@@ -535,7 +535,7 @@ class TrackedEntityOperationParamsMapperTest {
     when(aclService.canDataRead(currentUserWithOrgUnits, program)).thenReturn(true);
     program.setMinAttributesRequiredToSearch(0);
     program.setMaxTeiCountToReturn(1);
-    when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
+    when(trackerProgramService.getAccessibleTrackerPrograms()).thenReturn(List.of(program));
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder().orgUnitMode(ACCESSIBLE).build();

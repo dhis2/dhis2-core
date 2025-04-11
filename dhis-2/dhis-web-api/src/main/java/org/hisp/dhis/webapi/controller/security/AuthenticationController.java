@@ -239,8 +239,13 @@ public class AuthenticationController {
     // Default redirect URL
     String redirectUrl =
         request.getContextPath() + "/" + settingsProvider.getCurrentSettings().getStartModule();
+    // Let the GlobalShellFilter redirect to apps
+    redirectUrl = redirectUrl.replaceFirst("/apps", "");
+
+    // GlobalShellFilter prefer ending slash when we are using old style app name like:
+    // dhis-web-dashboard
     if (!redirectUrl.endsWith("/")) {
-      redirectUrl += "/";
+      redirectUrl = redirectUrl + "/";
     }
 
     // Check enforce verified email, redirect to the profile page if email is not verified
@@ -264,11 +269,18 @@ public class AuthenticationController {
           redirectUrl =
               defaultSavedRequest.getRequestURI() + "?" + defaultSavedRequest.getQueryString();
         } else {
-          redirectUrl = defaultSavedRequest.getRequestURI();
+          String requestURI = defaultSavedRequest.getRequestURI();
+          // Ignore saved requests that is just / or /CONTEXT_PATH(/)
+          if (!requestURI.equalsIgnoreCase("/")
+              && !requestURI.equalsIgnoreCase(request.getContextPath())
+              && !requestURI.equalsIgnoreCase(request.getContextPath() + "/")) {
+            redirectUrl = requestURI;
+          }
         }
       }
       this.requestCache.removeRequest(request, response);
     }
+
     return redirectUrl;
   }
 
