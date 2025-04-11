@@ -266,7 +266,6 @@
         "M_dhis-web-dashboard",
         "M_dhis-web-data-administration",
         "F_ACCEPT_DATA_LOWER_LEVELS",
-        "F_PROGRAM_TRACKED_ENTITY_ATTRIBUTE_GROUP_DELETE",
         "F_OPTIONGROUPSET_PUBLIC_ADD",
         "M_dhis-web-capture",
         "F_PROGRAM_INDICATOR_GROUP_PUBLIC_ADD",
