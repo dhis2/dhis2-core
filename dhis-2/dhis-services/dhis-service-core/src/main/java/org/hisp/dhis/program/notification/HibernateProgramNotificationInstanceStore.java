@@ -27,12 +27,18 @@
  */
 package org.hisp.dhis.program.notification;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
@@ -118,9 +124,30 @@ public class HibernateProgramNotificationInstanceStore
     }
 
     if (params.hasScheduledAt()) {
-      predicates.add(root -> builder.equal(root.get("scheduledAt"), params.getScheduledAt()));
+      Pair<Date, Date> scheduledAt = getStartAndEndOfDay(params.getScheduledAt());
+
+      predicates.add(
+          root ->
+              builder.and(
+                  builder.greaterThanOrEqualTo(root.get("scheduledAt"), scheduledAt.getLeft()),
+                  builder.lessThan(root.get("scheduledAt"), scheduledAt.getRight())));
     }
 
     return predicates;
+  }
+
+  public Pair<Date, Date> getStartAndEndOfDay(Date scheduledAt) {
+    ZoneId zoneId = ZoneId.systemDefault();
+    Instant instant = scheduledAt.toInstant();
+    LocalDate localDate = instant.atZone(zoneId).toLocalDate();
+
+    ZonedDateTime startOfDay = localDate.atStartOfDay(zoneId);
+
+    ZonedDateTime startOfNextDay = localDate.plusDays(1).atStartOfDay(zoneId);
+
+    Date start = Date.from(startOfDay.toInstant());
+    Date end = Date.from(startOfNextDay.toInstant());
+
+    return Pair.of(start, end);
   }
 }
