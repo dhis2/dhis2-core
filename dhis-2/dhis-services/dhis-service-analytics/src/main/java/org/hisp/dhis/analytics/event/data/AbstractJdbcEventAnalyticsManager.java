@@ -1291,8 +1291,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       // comparisons when NV is set as filter.
       if (!NV.equals(filter.getFilter())) {
         switch (filter.getOperator()) {
-            // Specific logic, so null and empty values are correctly
-            // handled for these filters.
+          // Specific logic, so null and empty values are correctly
+          // handled for these filters.
           case NEQ:
           case NE:
           case NIEQ:
