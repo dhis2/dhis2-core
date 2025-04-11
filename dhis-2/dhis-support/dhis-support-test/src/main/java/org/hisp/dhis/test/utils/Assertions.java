@@ -30,7 +30,6 @@
 package org.hisp.dhis.test.utils;
 
 import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -139,7 +138,6 @@ public final class Assertions {
    * Asserts that execution of the given executable throws an exception of the expected type,
    * returns the exception and that the error code of the exception equals the given error code.
    *
-   * @param <K>
    * @param expectedType the expected type.
    * @param errorCode the {@link ErrorCode}.
    * @param executable the {@link Executable}.
@@ -271,7 +269,7 @@ public final class Assertions {
    */
   public static void assertNotBlank(String actual) {
     assertNotNull(actual);
-    assertTrue(!actual.isBlank());
+    assertFalse(actual.isBlank());
   }
 
   /**
@@ -281,7 +279,7 @@ public final class Assertions {
    */
   public static void assertNotEmpty(String actual) {
     assertNotNull(actual);
-    assertTrue(!actual.isEmpty());
+    assertFalse(actual.isEmpty());
   }
 
   /**
@@ -292,7 +290,7 @@ public final class Assertions {
    */
   public static void assertNotEmpty(String actual, String message) {
     assertNotNull(actual, message);
-    assertTrue(!actual.isEmpty(), message);
+    assertFalse(actual.isEmpty(), message);
   }
 
   /**
@@ -303,7 +301,7 @@ public final class Assertions {
    */
   public static void assertNotEmpty(String actual, Supplier<String> messageSupplier) {
     assertNotNull(actual, messageSupplier);
-    assertTrue(!actual.isEmpty(), messageSupplier);
+    assertFalse(actual.isEmpty(), messageSupplier);
   }
 
   /**
@@ -333,10 +331,35 @@ public final class Assertions {
    * @param actual actual string which should contain the expected character sequence
    */
   public static void assertContains(CharSequence expected, String actual) {
-    assertNotEmpty(actual, () -> String.format("expected actual to contain '%s'", expected));
-    assertTrue(
-        actual.contains(expected),
+    assertContains(
+        expected,
+        actual,
         () -> String.format("expected actual to contain '%s', got '%s' instead", expected, actual));
+  }
+
+  /**
+   * Asserts that the given character sequence is contained within the actual string.
+   *
+   * @param expected expected character sequence to be contained within the actual string
+   * @param actual actual string which should contain the expected character sequence
+   * @param message fails with this supplied message
+   */
+  public static void assertContains(CharSequence expected, String actual, String message) {
+    assertNotEmpty(actual, () -> message);
+    assertTrue(actual.contains(expected), message);
+  }
+
+  /**
+   * Asserts that the given character sequence is contained within the actual string.
+   *
+   * @param expected expected character sequence to be contained within the actual string
+   * @param actual actual string which should contain the expected character sequence
+   * @param messageSupplier fails with this supplied message
+   */
+  public static void assertContains(
+      CharSequence expected, String actual, Supplier<String> messageSupplier) {
+    assertNotEmpty(actual, messageSupplier);
+    assertTrue(actual.contains(expected), messageSupplier);
   }
 
   /**
@@ -401,7 +424,7 @@ public final class Assertions {
       Function<String, List<String>> toParameterList =
           url -> {
             String params = url.substring(url.indexOf('?') + 1);
-            return stream(params.split("&")).collect(toUnmodifiableList());
+            return stream(params.split("&")).toList();
           };
       assertStartsWith(expected.substring(0, paramsStart + 1), actual);
       assertContainsOnly(toParameterList.apply(expected), toParameterList.apply(actual));

@@ -52,11 +52,9 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -69,6 +67,7 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -91,8 +90,6 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   @Autowired private EventService eventService;
 
   @Autowired private IdentifiableObjectManager manager;
-
-  @Autowired private DataElementService dataElementService;
 
   private OrganisationUnit orgUnit;
 
@@ -340,7 +337,175 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testExportEventsWhenFilteringByDataElementsLike()
+  void testExportEventsWhenFilteringByNumberAttributesUsingEq()
+      throws ForbiddenException, BadRequestException {
+    // shows number semantics are applied since 170.0 == 170, this would fail if we were to treat
+    // value type number as text "170.0" != "170"
+    TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "V66aa7a2122");
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnitMode(ACCESSIBLE)
+            .filterByAttribute(UID.of(attr), List.of(new QueryFilter(QueryOperator.EQ, "170")))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("pTzf9KYMk72"), events);
+  }
+
+  @Test
+  void testExportEventsWhenFilteringByIntegerAttributesUsingIn()
+      throws ForbiddenException, BadRequestException {
+    TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "integerAttr");
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnitMode(ACCESSIBLE)
+            .filterByAttribute(UID.of(attr), List.of(new QueryFilter(QueryOperator.IN, "70;72")))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM", "jxgFyJEMUPf"), events);
+  }
+
+  @Test
+  void testExportEventsWhenFilteringByTextAttributesUsingIn()
+      throws ForbiddenException, BadRequestException {
+    TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "toUpdate000");
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnitMode(ACCESSIBLE)
+            .filterByAttribute(
+                UID.of(attr), List.of(new QueryFilter(QueryOperator.IN, "Summer day;rainy Day")))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(
+        List.of(
+            "YKmfzHdjUDL",
+            "LCSfHnurnNB",
+            "SbUJzkxKYAG",
+            "gvULMgNiAfM",
+            "JaRDIvcEcEx",
+            "jxgFyJEMUPf",
+            "D9PbzJY8bJM",
+            "pTzf9KYMk72"),
+        events);
+  }
+
+  @Test
+  void testExportEventsWhenFilteringByIntegerAttributesUsingStartsWith()
+      throws ForbiddenException, BadRequestException {
+    // Operators sw is based on SQL like which is supported for numeric value types by not casting
+    // values i.e. treating them as strings
+    TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "integerAttr");
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnitMode(ACCESSIBLE)
+            .filterByAttribute(UID.of(attr), List.of(new QueryFilter(QueryOperator.SW, "7")))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM", "jxgFyJEMUPf"), events);
+  }
+
+  @Test
+  void testExportEventsWhenFilteringByTextAttributesUsingStartsWith()
+      throws ForbiddenException, BadRequestException {
+    TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "toUpdate000");
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnitMode(ACCESSIBLE)
+            .filterByAttribute(UID.of(attr), List.of(new QueryFilter(QueryOperator.SW, "RAiny")))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void testExportEventsWhenFilteringByTextAttributesUsingLike()
+      throws ForbiddenException, BadRequestException {
+    TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "notUpdated0");
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnitMode(ACCESSIBLE)
+            .filterByAttribute(
+                UID.of(attr), List.of(new QueryFilter(QueryOperator.LIKE, "0% Winter's")))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void testExportEventsWhenFilteringByIntegerAttributesUsingLessThan()
+      throws ForbiddenException, BadRequestException {
+    TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "integerAttr");
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnitMode(ACCESSIBLE)
+            .filterByAttribute(UID.of(attr), List.of(new QueryFilter(QueryOperator.LT, "71")))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void testExportEventsWhenFilteringByTextAttributesUsingLessThan()
+      throws ForbiddenException, BadRequestException {
+    TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "toUpdate000");
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnitMode(ACCESSIBLE)
+            .filterByAttribute(
+                UID.of(attr), List.of(new QueryFilter(QueryOperator.LT, "summer day")))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void testExportEventsWhenFilteringByTextAttributesUsingNotNull()
+      throws ForbiddenException, BadRequestException {
+    TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "notUpdated0");
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnitMode(ACCESSIBLE)
+            .filterByAttribute(UID.of(attr), List.of(new QueryFilter(QueryOperator.NNULL)))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void testExportEventsWhenFilteringByIntegerAttributesUsingNotNull()
+      throws ForbiddenException, BadRequestException {
+    TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "integerAttr");
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnitMode(ACCESSIBLE)
+            .trackedEntity(UID.of("dUE514NMOlo"))
+            .filterByAttribute(UID.of(attr), List.of(new QueryFilter(QueryOperator.NNULL)))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void testExportEventsWhenFilteringByTextDataElementsUsingLike()
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement(UID.of("DATAEL00001"));
     EventOperationParams params =
@@ -348,18 +513,16 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
             .programStage(programStage)
             .filterByDataElement(
-                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%val%")))
+                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "VaL")))
             .build();
 
     List<String> events = getEvents(params);
 
     assertContainsOnly(List.of("pTzf9KYMk72"), events);
-
-    new QueryItem(dataElement, QueryOperator.LIKE, "val", dataElement.getValueType(), null, null);
   }
 
   @Test
-  void testExportEventsWhenFilteringByDataElementsWithStatusFilter()
+  void testExportEventsWhenFilteringByTextDataElementsUsingSWWithStatusFilter()
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement(UID.of("DATAEL00001"));
 
@@ -369,7 +532,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .programStage(programStage)
             .enrollmentStatus(EnrollmentStatus.ACTIVE)
             .filterByDataElement(
-                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%val%")))
+                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.SW, "val")))
             .build();
 
     List<String> events = getEvents(params);
@@ -378,7 +541,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testExportEventsWhenFilteringByDataElementsWithProgramTypeFilter()
+  void testExportEventsWhenFilteringByTextDataElementsUsingEWWithProgramTypeFilter()
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement(UID.of("DATAEL00001"));
 
@@ -388,7 +551,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .programStage(programStage)
             .programType(ProgramType.WITH_REGISTRATION)
             .filterByDataElement(
-                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%val%")))
+                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.EW, "001")))
             .build();
 
     List<String> events = getEvents(params);
@@ -397,25 +560,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testExportEventsWhenFilteringByDataElementsEqual()
-      throws ForbiddenException, BadRequestException {
-    DataElement dataElement = dataElement(UID.of("DATAEL00001"));
-
-    EventOperationParams params =
-        operationParamsBuilder
-            .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
-            .programStage(programStage)
-            .filterByDataElement(
-                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%value00001%")))
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertContainsOnly(List.of("pTzf9KYMk72"), events);
-  }
-
-  @Test
-  void testExportEventsWhenFilteringByDataElementsIn()
+  void testExportEventsWhenFilteringByTextDataElementsUsingIn()
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement(UID.of("DATAEL00001"));
 
@@ -425,7 +570,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .programStage(programStage)
             .filterByDataElement(
                 UID.of(dataElement),
-                List.of(new QueryFilter(QueryOperator.IN, "value00001;value00002")))
+                List.of(new QueryFilter(QueryOperator.IN, "Value00001;Value00002")))
             .build();
 
     List<String> events = getEvents(params);
@@ -434,7 +579,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testExportEventsWhenFilteringByDataElementsWithCategoryOptionSuperUser()
+  void testExportEventsWhenFilteringByTextDataElementsUsingEqWithCategoryOptionSuperUser()
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement(UID.of("DATAEL00001"));
 
@@ -455,41 +600,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnEventsGivenCategoryOptionCombo() throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder
-            .orgUnit(UID.of("DiszpKrYNg8"))
-            .orgUnitMode(SELECTED)
-            .attributeCategoryCombo(UID.of("O4VaNks6tta"))
-            .attributeCategoryOptions(UID.of("xwZ2u3WyQR0", "M58XdOfhiJ7"))
-            .build();
-
-    List<Event> events = eventService.findEvents(params);
-
-    assertContainsOnly(List.of("kWjSezkXHVp", "OTmjvJDn0Fu"), uids(events));
-    List<Executable> executables =
-        events.stream()
-            .map(
-                e ->
-                    (Executable)
-                        () ->
-                            assertAll(
-                                "category options and combo of event " + e.getUid(),
-                                () ->
-                                    assertEquals(
-                                        "cr89ebDZrac", e.getAttributeOptionCombo().getUid()),
-                                () ->
-                                    assertContainsOnly(
-                                        Set.of("xwZ2u3WyQR0", "M58XdOfhiJ7"),
-                                        e.getAttributeOptionCombo().getCategoryOptions().stream()
-                                            .map(CategoryOption::getUid)
-                                            .collect(Collectors.toSet()))))
-            .toList();
-    assertAll("all events should have the same category option combo and options", executables);
-  }
-
-  @Test
-  void testExportEventsWhenFilteringByDataElementsWithCategoryOptionNotSuperUser()
+  void testExportEventsWhenFilteringByDataElementsUsingEqWithCategoryOptionNotSuperUser()
       throws ForbiddenException, BadRequestException {
     injectSecurityContextUser(
         createAndAddUser(false, "user", Set.of(orgUnit), Set.of(orgUnit), "F_EXPORT_DATA"));
@@ -512,7 +623,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testExportEventsWhenFilteringByDataElementsWithOptionSetEqual()
+  void testExportEventsWhenFilteringByDataElementsUsingOptionSetEqual()
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement(UID.of("DATAEL00005"));
     EventOperationParams params =
@@ -529,7 +640,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testExportEventsWhenFilteringByDataElementsWithOptionSetIn()
+  void testExportEventsWhenFilteringByDataElementsUsingOptionSetIn()
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement(UID.of("DATAEL00005"));
     EventOperationParams params =
@@ -546,7 +657,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testExportEventsWhenFilteringByDataElementsWithOptionSetLike()
+  void testExportEventsWhenFilteringByDataElementsUsingOptionSetLike()
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement(UID.of("DATAEL00005"));
     EventOperationParams params =
@@ -554,7 +665,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
             .programStage(programStage)
             .filterByDataElement(
-                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%opt%")))
+                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "opt")))
             .build();
 
     List<String> events = getEvents(params);
@@ -563,7 +674,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testExportEventsWhenFilteringByNumericDataElements()
+  void testExportEventsWhenFilteringByNumericDataElementsUsingComparisonRange()
       throws ForbiddenException, BadRequestException {
     DataElement dataElement = dataElement(UID.of("DATAEL00006"));
     EventOperationParams params =
@@ -580,6 +691,39 @@ class EventExporterTest extends PostgresIntegrationTestBase {
     List<String> events = getEvents(params);
 
     assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void testExportEventsWhenFilteringByNumericDataElementsUsingSWAndEW()
+      throws ForbiddenException, BadRequestException {
+    DataElement dataElement = dataElement(UID.of("DATAEL00006"));
+    EventOperationParams params =
+        operationParamsBuilder
+            .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
+            .programStage(programStage)
+            .filterByDataElement(
+                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.SW, "7")))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldFilterByEventsNumberDataValueUsingEq() throws ForbiddenException, BadRequestException {
+    // shows number semantics are applied since 15.0 == 15, this would fail if we were to treat
+    // value type number as text "15.0" != "15"
+    EventOperationParams params =
+        EventOperationParams.builder()
+            .eventParams(EventParams.FALSE)
+            .filterByDataElement(
+                UID.of("GieVkTxp4HH"), List.of(new QueryFilter(QueryOperator.EQ, "15.0")))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("kWjSezkXHVp", "QRYjLTiJTrA"), events);
   }
 
   @Test
@@ -652,6 +796,40 @@ class EventExporterTest extends PostgresIntegrationTestBase {
     List<String> events = getEvents(params);
 
     assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldReturnEventsGivenCategoryOptionCombo() throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnit(UID.of("DiszpKrYNg8"))
+            .orgUnitMode(SELECTED)
+            .attributeCategoryCombo(UID.of("O4VaNks6tta"))
+            .attributeCategoryOptions(UID.of("xwZ2u3WyQR0", "M58XdOfhiJ7"))
+            .build();
+
+    List<Event> events = eventService.findEvents(params);
+
+    assertContainsOnly(List.of("kWjSezkXHVp", "OTmjvJDn0Fu"), uids(events));
+    List<Executable> executables =
+        events.stream()
+            .map(
+                e ->
+                    (Executable)
+                        () ->
+                            assertAll(
+                                "category options and combo of event " + e.getUid(),
+                                () ->
+                                    assertEquals(
+                                        "cr89ebDZrac", e.getAttributeOptionCombo().getUid()),
+                                () ->
+                                    assertContainsOnly(
+                                        Set.of("xwZ2u3WyQR0", "M58XdOfhiJ7"),
+                                        e.getAttributeOptionCombo().getCategoryOptions().stream()
+                                            .map(CategoryOption::getUid)
+                                            .collect(Collectors.toSet()))))
+            .toList();
+    assertAll("all events should have the same category option combo and options", executables);
   }
 
   @Test
@@ -850,7 +1028,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
         operationParamsBuilder
             .orgUnit(orgUnit)
             .filterByAttribute(
-                UID.of("numericAttr"),
+                UID.of("integerAttr"),
                 List.of(
                     new QueryFilter(QueryOperator.LT, "77"),
                     new QueryFilter(QueryOperator.GT, "8")))
@@ -890,7 +1068,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .filterByAttribute(
                 UID.of("toUpdate000"), List.of(new QueryFilter(QueryOperator.EQ, "rainy day")))
             .filterByAttribute(
-                UID.of("notUpdated0"), List.of(new QueryFilter(QueryOperator.EQ, "winter day")))
+                UID.of("integerAttr"), List.of(new QueryFilter(QueryOperator.EQ, "70")))
             .build();
 
     List<String> trackedEntities =
@@ -1050,7 +1228,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   }
 
   private DataElement dataElement(UID uid) {
-    return dataElementService.getDataElement(uid.getValue());
+    return get(DataElement.class, uid.getValue());
   }
 
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {

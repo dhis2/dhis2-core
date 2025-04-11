@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import static org.hisp.dhis.test.utils.Assertions.assertContains;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -38,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SortDirection;
@@ -70,11 +69,12 @@ class EventQueryParamsTest extends TestBase {
     QueryFilter filter = new QueryFilter(QueryOperator.EQ, "summer day");
     params.filterBy(tea1, filter);
 
-    assertEquals(Map.of(tea1, List.of(filter)), params.getAttributes());
+    assertEquals(Set.of(tea1), params.getAttributes().keySet());
+    Map<TrackedEntityAttribute, List<JdbcPredicate>> attributes = params.getAttributes();
 
     params.orderBy(tea1, SortDirection.DESC);
 
-    assertEquals(Map.of(tea1, List.of(filter)), params.getAttributes());
+    assertEquals(attributes, params.getAttributes());
   }
 
   @Test
@@ -96,12 +96,13 @@ class EventQueryParamsTest extends TestBase {
     params.filterBy(de1, filter);
 
     assertTrue(params.hasDataElementFilter());
-    assertEquals(Map.of(de1, List.of(filter)), params.getDataElements());
+    assertEquals(Set.of(de1), params.getDataElements().keySet());
+    Map<DataElement, List<JdbcPredicate>> dataElements = params.getDataElements();
 
     params.orderBy(de1, SortDirection.ASC);
 
     assertTrue(params.hasDataElementFilter());
-    assertEquals(Map.of(de1, List.of(filter)), params.getDataElements());
+    assertEquals(dataElements, params.getDataElements());
   }
 
   @Test
@@ -110,51 +111,6 @@ class EventQueryParamsTest extends TestBase {
     de1.setValueType(ValueType.NUMBER);
     QueryFilter filter = new QueryFilter(QueryOperator.EQ, "not a number");
 
-    IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> params.filterBy(de1, filter));
-
-    assertContains("value type is numeric but the value", exception.getMessage());
-  }
-
-  @Test
-  void shouldFailIfFilterValueForNumericAttributeIsNotNumeric() {
-    EventQueryParams params = new EventQueryParams();
-    tea1.setValueType(ValueType.NUMBER);
-    QueryFilter filter = new QueryFilter(QueryOperator.EQ, "not a number");
-
-    IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> params.filterBy(tea1, filter));
-
-    assertContains("value type is numeric but the value", exception.getMessage());
-  }
-
-  @Test
-  void shouldNotValidateNonNumericDataElement() {
-    EventQueryParams params = new EventQueryParams();
-    de1.setValueType(ValueType.TEXT);
-    QueryFilter filter = new QueryFilter(QueryOperator.EQ, "not a number");
-
-    assertDoesNotThrow(() -> params.filterBy(de1, filter));
-    assertEquals(Map.of(de1, List.of(filter)), params.getDataElements());
-  }
-
-  @Test
-  void shouldNotValidateNonNumericAttribute() {
-    EventQueryParams params = new EventQueryParams();
-    tea1.setValueType(ValueType.TEXT);
-    QueryFilter filter = new QueryFilter(QueryOperator.EQ, "not a number");
-
-    assertDoesNotThrow(() -> params.filterBy(tea1, filter));
-    assertEquals(Map.of(tea1, List.of(filter)), params.getAttributes());
-  }
-
-  @Test
-  void shouldNotValidateUnaryOperator() {
-    EventQueryParams params = new EventQueryParams();
-    de1.setValueType(ValueType.INTEGER);
-    QueryFilter filter = new QueryFilter(QueryOperator.NNULL);
-
-    assertDoesNotThrow(() -> params.filterBy(de1, filter));
-    assertEquals(Map.of(de1, List.of(filter)), params.getDataElements());
+    assertThrows(IllegalArgumentException.class, () -> params.filterBy(de1, filter));
   }
 }

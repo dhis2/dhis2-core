@@ -751,7 +751,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   void shouldGetRelationshipsByTrackedEntityWithAttributesWithTrackerDataViewDefined() {
     RelationshipType relationshipType = manager.get(RelationshipType.class, "TV9oB9LT3sh");
     TrackerDataView trackerDataView = new TrackerDataView();
-    String expectedAttribute = "numericAttr";
+    String expectedAttribute = "integerAttr";
     trackerDataView.getAttributes().add(expectedAttribute);
     relationshipType.getFromConstraint().setTrackerDataView(trackerDataView);
     manager.save(relationshipType, false);

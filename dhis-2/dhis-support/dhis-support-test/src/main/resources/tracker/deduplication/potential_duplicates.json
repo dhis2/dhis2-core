@@ -65,7 +65,7 @@
           "valueType": "INTEGER",
           "attribute": {
             "idScheme": "UID",
-            "identifier": "numericAttr"
+            "identifier": "integerAttr"
           },
           "value": "88"
         }
@@ -111,7 +111,7 @@
           "valueType": "INTEGER",
           "attribute": {
             "idScheme": "UID",
-            "identifier": "numericAttr"
+            "identifier": "integerAttr"
           },
           "value": "70"
         }
@@ -148,7 +148,7 @@
           "valueType": "INTEGER",
           "attribute": {
             "idScheme": "UID",
-            "identifier": "numericAttr"
+            "identifier": "integerAttr"
           },
           "value": "72"
         }

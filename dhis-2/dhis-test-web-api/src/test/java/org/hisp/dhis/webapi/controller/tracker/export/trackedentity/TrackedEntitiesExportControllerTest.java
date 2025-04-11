@@ -260,7 +260,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   void getTrackedEntityByIdWithAttributesReturnsTrackedEntityTypeAttributesOnly() {
     TrackedEntity te = get(TrackedEntity.class, "dUE514NMOlo");
     // TETA
-    TrackedEntityAttribute tea1 = get(TrackedEntityAttribute.class, "numericAttr");
+    TrackedEntityAttribute tea1 = get(TrackedEntityAttribute.class, "integerAttr");
     TrackedEntityAttribute tea2 = get(TrackedEntityAttribute.class, "toUpdate000");
 
     JsonList<JsonAttribute> attributes =
@@ -279,7 +279,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     assertNotEmpty(te.getEnrollments(), "test expects a tracked entity with an enrollment");
     String program = te.getEnrollments().iterator().next().getProgram().getUid();
     // TETA
-    TrackedEntityAttribute tea1 = get(TrackedEntityAttribute.class, "numericAttr");
+    TrackedEntityAttribute tea1 = get(TrackedEntityAttribute.class, "integerAttr");
     TrackedEntityAttribute tea2 = get(TrackedEntityAttribute.class, "toUpdate000");
     // PTEA
     TrackedEntityAttribute tea3 = get(TrackedEntityAttribute.class, "dIVt4l5vIOa");

@@ -60,7 +60,7 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
   @Autowired private TestSetup testSetup;
   @Autowired private DhisConfigurationProvider config;
 
-  private final String trackedEntityAttribute = "numericAttr";
+  private final String trackedEntityAttribute = "integerAttr";
   private TrackedEntity trackedEntity;
 
   @BeforeEach

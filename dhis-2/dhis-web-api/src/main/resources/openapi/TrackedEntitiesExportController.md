@@ -318,12 +318,15 @@ Valid binary operators are:
 - `neq` - not equal to
 - `nieq` - not equal to
 - `in` - equal to one of the multiple values separated by semicolon ";"
-- `ilike` - is like (case-insensitive)
+- `ilike` - is like
 - `like` - like (free text match)
 - `nilike` - not like
 - `nlike` - not like
 - `sw` - starts with
 - `ew` - ends with
+
+Right now all matches are case-insensitive so for example `eq` and `ieq` (`i` for `insensitive`)
+behave in the same way.
 
 Valid unary operators are:
 - `null` - has no value

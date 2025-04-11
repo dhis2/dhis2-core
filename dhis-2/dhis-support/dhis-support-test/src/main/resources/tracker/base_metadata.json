@@ -1939,30 +1939,55 @@
       "valueType": "TEXT"
     },
     {
-      "id": "numericAttr",
+      "id": "integerAttr",
       "attributeValues": [
         {
           "attribute": {
             "id": "j45AR9cBQKc"
           },
-          "value": "attribute numericAttr"
+          "value": "attribute integerAttr"
         }
       ],
       "aggregationType": "NONE",
-      "code": "numericAttr code",
+      "code": "integerAttr code",
       "created": "2020-05-31T09:00:51.347",
-      "formName": "numeric-attribute",
+      "formName": "integer-attribute",
       "lastUpdated": "2020-05-31T11:41:22.414",
       "lastUpdatedBy": {
         "id": "tTgjgobT1oS"
       },
-      "name": "numeric-attribute",
+      "name": "integer-attribute",
       "pattern": "",
-      "shortName": "numeric-attribute",
+      "shortName": "integer-attribute",
       "user": {
         "id": "tTgjgobT1oS"
       },
       "valueType": "INTEGER"
+    },
+    {
+      "id": "V66aa7a2122",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "attribute V66aa7a2122"
+        }
+      ],
+      "aggregationType": "NONE",
+      "code": "V66aa7a2122 code",
+      "created": "2020-05-31T09:00:51.347",
+      "formName": "Weight in kg",
+      "lastUpdated": "2020-05-31T11:41:22.414",
+      "lastUpdatedBy": {
+        "id": "tTgjgobT1oS"
+      },
+      "name": "Weight",
+      "shortName": "wkg",
+      "user": {
+        "id": "tTgjgobT1oS"
+      },
+      "valueType": "NUMBER"
     },
     {
       "id": "toUpdate000",
@@ -2054,64 +2079,48 @@
       },
       "trackedEntityTypeAttributes": [
         {
-          "displayInList": true,
-          "displayName": "Person Given name",
-          "displayShortName": "null Given name",
           "id": "hKZ9AJpnVcG",
-          "name": "Person Given name",
+          "displayInList": true,
           "searchable": true,
           "trackedEntityAttribute": {
-            "id": "numericAttr"
+            "id": "integerAttr"
           },
           "trackedEntityType": {
             "id": "ja8NY4PW7Xm"
-          },
-          "valueType": "TEXT"
+          }
         },
         {
+          "id": "Z730757846a",
           "displayInList": true,
-          "displayName": "Person Given name",
-          "displayShortName": "null Given name",
-          "id": "dIVt4l5vIOa",
-          "name": "Person Given name",
           "searchable": true,
           "trackedEntityAttribute": {
-            "id": "numericAttr"
+            "id": "V66aa7a2122"
           },
           "trackedEntityType": {
             "id": "ja8NY4PW7Xm"
-          },
-          "valueType": "TEXT"
+          }
         },
         {
-          "displayInList": true,
-          "displayName": "Person Given name",
-          "displayShortName": "null Given name",
           "id": "EIVt4l5vIOa",
-          "name": "Person Given name",
+          "displayInList": true,
           "searchable": true,
           "trackedEntityAttribute": {
             "id": "toUpdate000"
           },
           "trackedEntityType": {
             "id": "ja8NY4PW7Xm"
-          },
-          "valueType": "TEXT"
+          }
         },
         {
-          "displayInList": true,
-          "displayName": "TA First name",
-          "displayShortName": "TA First name",
           "id": "FHVt4l5vIOb",
-          "name": "TA First name",
+          "displayInList": true,
           "searchable": true,
           "trackedEntityAttribute": {
             "id": "dIVt4l5vIOa"
           },
           "trackedEntityType": {
             "id": "ja8NY4PW7Xm"
-          },
-          "valueType": "TEXT"
+          }
         }
       ],
       "user": {
@@ -2164,7 +2173,7 @@
           "name": "Person Given name",
           "searchable": true,
           "trackedEntityAttribute": {
-            "id": "numericAttr"
+            "id": "integerAttr"
           },
           "trackedEntityType": {
             "id": "Fa7NY4PW6DL"

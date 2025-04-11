@@ -112,7 +112,7 @@ class OrderAndFilterTrackedEntityChangeLogTest extends PostgresIntegrationTestBa
     TrackedEntityChangeLogOperationParams params =
         TrackedEntityChangeLogOperationParams.builder().orderBy(field, sortDirection).build();
     String trackedEntity = "QS6w44flWAf";
-    String trackedEntityAttribute = "numericAttr";
+    String trackedEntityAttribute = "integerAttr";
     String updatedValue = "100";
 
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
@@ -138,7 +138,7 @@ class OrderAndFilterTrackedEntityChangeLogTest extends PostgresIntegrationTestBa
             .orderBy("createdAt", SortDirection.ASC)
             .build();
     String trackedEntity = "QS6w44flWAf";
-    String trackedEntityAttribute = "numericAttr";
+    String trackedEntityAttribute = "integerAttr";
     String updatedValue = "100";
 
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
@@ -164,7 +164,7 @@ class OrderAndFilterTrackedEntityChangeLogTest extends PostgresIntegrationTestBa
             .orderBy("attribute", SortDirection.ASC)
             .build();
     String trackedEntity = "QS6w44flWAf";
-    String trackedEntityAttribute = "numericAttr";
+    String trackedEntityAttribute = "integerAttr";
     String updatedValue = "100";
 
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
@@ -178,7 +178,9 @@ class OrderAndFilterTrackedEntityChangeLogTest extends PostgresIntegrationTestBa
             .toList();
 
     assertEquals(
-        List.of("numeric-attribute", "numeric-attribute", "to-update-tei-attribute"), changeLogs);
+        List.of(
+            "integer-attribute", "integer-attribute", "to-update-tei-attribute", "Weight in kg"),
+        changeLogs);
   }
 
   @Test
@@ -189,7 +191,7 @@ class OrderAndFilterTrackedEntityChangeLogTest extends PostgresIntegrationTestBa
             .orderBy("attribute", SortDirection.DESC)
             .build();
     String trackedEntity = "QS6w44flWAf";
-    String trackedEntityAttribute = "numericAttr";
+    String trackedEntityAttribute = "integerAttr";
     String updatedValue = "100";
 
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
@@ -203,7 +205,9 @@ class OrderAndFilterTrackedEntityChangeLogTest extends PostgresIntegrationTestBa
             .toList();
 
     assertEquals(
-        List.of("to-update-tei-attribute", "numeric-attribute", "numeric-attribute"), changeLogs);
+        List.of(
+            "Weight in kg", "to-update-tei-attribute", "integer-attribute", "integer-attribute"),
+        changeLogs);
   }
 
   @Test

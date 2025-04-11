@@ -230,6 +230,9 @@ Valid binary operators are:
 - `sw` - starts with
 - `ew` - ends with
 
+Right now all matches are case-insensitive so for example `eq` and `ieq` (`i` for `insensitive`)
+behave in the same way.
+
 Valid unary operators are:
 - `null` - has no value
 - `!null` - has a value

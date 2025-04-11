@@ -38,9 +38,12 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -108,6 +111,40 @@ public enum ValueType {
   public static final Set<ValueType> NUMERIC_TYPES =
       Stream.concat(INTEGER_TYPES.stream(), DECIMAL_TYPES.stream())
           .collect(Collectors.toUnmodifiableSet());
+
+  /**
+   * Maps the Java classes to their corresponding PostgreSQL <a
+   * href="https://www.postgresql.org/docs/current/datatype.html">data types</a>. Unfortunately,
+   * there is no public utility provided to us by the PostgreSQL JDBC driver. There are some
+   * locations in the driver code that we can refer to though such as <a
+   * href="https://github.com/pgjdbc/pgjdbc/blob/156d724e1d95052b41a19fb568b2f81919ae2197/pgjdbc/src/main/java/org/postgresql/jdbc/TypeInfoCache.java#L84">TypeInfoCache</a>.
+   *
+   * <p>Casting DB values or converting user input values to types other than {@code String}/{@code
+   * text} allows users to filter/compare using the semantic of a value type like numeric instead of
+   * only text. So far only numeric data values are cast/converted to one of <a
+   * href="https://www.postgresql.org/docs/current/datatype-numeric.html">PostgreSQL Numeric</a> in
+   * Tracker.
+   */
+  public static final Map<Class<?>, SqlType<?>> JAVA_TO_SQL_TYPES =
+      Map.of(
+          Integer.class, new SqlType<>(Types.INTEGER, "integer", Integer.class, Integer::valueOf),
+          Double.class,
+              new SqlType<>(
+                  Types.NUMERIC, "numeric", java.math.BigDecimal.class, java.math.BigDecimal::new),
+          String.class, new SqlType<>(Types.VARCHAR, "text", String.class, Function.identity()));
+
+  /**
+   * @param type java.sql.Types
+   * @param postgresName name of the postgres data type representing the java.sql.Types
+   * @param postgresClass java class used by the postgres jdbc driver to represent such a
+   *     java.sql.Type
+   * @param producer converts a string value of a value type into a value of the postgres class
+   */
+  public record SqlType<T>(
+      int type,
+      String postgresName,
+      Class<T> postgresClass,
+      java.util.function.Function<String, T> producer) {}
 
   @Deprecated private final Class<?> javaClass;
 
@@ -249,6 +286,19 @@ public enum ValueType {
   }
 
   /**
+   * Get the SQL type the data value's Java class maps to. Defaults to the {@code String.class}
+   * representation.
+   */
+  @Nonnull
+  public SqlType<?> getSqlType() {
+    SqlType<?> sqlType = JAVA_TO_SQL_TYPES.get(javaClass);
+    if (sqlType == null) {
+      sqlType = JAVA_TO_SQL_TYPES.get(String.class);
+    }
+    return sqlType;
+  }
+
+  /**
    * Returns a valid ValueType based on the given SQL type.
    *
    * @see java.sql.Types for valid integer values.
@@ -256,27 +306,16 @@ public enum ValueType {
    * @return the respective ValueType
    */
   public static ValueType getValueTypeFromSqlType(int type) {
-    switch (type) {
-      case Types.INTEGER:
-        return ValueType.INTEGER;
-      case Types.DECIMAL:
-      case Types.DOUBLE:
-      case Types.NUMERIC:
-      case Types.BIGINT:
-      case Types.FLOAT:
-        return ValueType.NUMBER;
-      case Types.BOOLEAN:
-        return ValueType.BOOLEAN;
-      case Types.DATE:
-        return ValueType.DATE;
-      case Types.TIMESTAMP_WITH_TIMEZONE:
-        return ValueType.DATETIME;
-      case Types.TIME:
-      case Types.TIME_WITH_TIMEZONE:
-        return ValueType.TIME;
-      default:
-        return ValueType.TEXT;
-    }
+    return switch (type) {
+      case Types.INTEGER -> ValueType.INTEGER;
+      case Types.DECIMAL, Types.DOUBLE, Types.NUMERIC, Types.BIGINT, Types.FLOAT ->
+          ValueType.NUMBER;
+      case Types.BOOLEAN -> ValueType.BOOLEAN;
+      case Types.DATE -> ValueType.DATE;
+      case Types.TIMESTAMP_WITH_TIMEZONE -> ValueType.DATETIME;
+      case Types.TIME, Types.TIME_WITH_TIMEZONE -> ValueType.TIME;
+      default -> ValueType.TEXT;
+    };
   }
 
   public static ValueType fromString(String valueType) throws IllegalArgumentException {
