@@ -120,6 +120,8 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
 
   @Mock private ProgramNotificationTemplateService notificationTemplateService;
 
+  @Mock private ProgramNotificationInstanceService notificationInstanceService;
+
   private NotificationTemplateMapper notificationTemplateMapper = new NotificationTemplateMapper();
 
   private DefaultProgramNotificationService programNotificationService;
@@ -197,6 +199,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
             this.programInstanceStore,
             this.programStageInstanceStore,
             this.manager,
+            this.notificationInstanceService,
             this.programNotificationRenderer,
             this.programStageNotificationRenderer,
             notificationTemplateService,
@@ -658,12 +661,12 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest {
               return new BatchResponseStatus(Collections.emptyList());
             });
 
-    when(manager.getAll(ProgramNotificationInstance.class))
-        .thenReturn(Collections.singletonList(programNotificationInstaceForToday));
-
     when(programNotificationRenderer.render(
             any(ProgramInstance.class), any(NotificationTemplate.class)))
         .thenReturn(notificationMessage);
+
+    when(notificationInstanceService.getProgramNotificationInstances(any()))
+        .thenReturn(List.of(programNotificationInstaceForToday));
 
     programNotificationService.sendScheduledNotifications(NoopJobProgress.INSTANCE);
 

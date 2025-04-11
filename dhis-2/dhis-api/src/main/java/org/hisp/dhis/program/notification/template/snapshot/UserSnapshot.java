@@ -40,6 +40,4 @@ public class UserSnapshot extends IdentifiableObjectSnapshot {
   private String email;
 
   private String phoneNumber;
-
-  private OrganisationUnitSnapshot organisationUnit;
 }
