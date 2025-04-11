@@ -30,19 +30,27 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.nio.file.Files.createTempDirectory;
+import static org.hisp.dhis.util.ZipFileUtils.MAX_ENTRIES;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppShortcut;
+import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
@@ -195,5 +203,97 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
 
     assertEquals("Category", secondShortcut.getName());
     assertEquals("#/categories", secondShortcut.getUrl());
+  }
+
+  @Test
+  void testInstalledEvilZipSlipApp() throws IOException {
+    App app =
+        appManager.installApp(new ClassPathResource("app/evil_app.zip").getFile(), "evil_app.zip");
+    assertEquals(AppStatus.INVALID_ZIP_FORMAT, app.getAppState());
+  }
+
+  @Test
+  void testInstalledEvilFlatZipBombApp() throws IOException {
+    App app =
+        appManager.installApp(
+            new ClassPathResource("app/flat_bomb.zip").getFile(), "flat_bomb.zip");
+    assertEquals(AppStatus.INVALID_ZIP_FORMAT, app.getAppState());
+  }
+
+  @Test
+  void testInstalledEvilNestedZipBombApp() throws IOException {
+    App app =
+        appManager.installApp(
+            new ClassPathResource("app/nested_bomb.zip").getFile(), "nested_bomb.zip");
+    // Should be OK, as the nested zips is not unpacked
+    assertEquals(AppStatus.OK, app.getAppState());
+  }
+
+  @Test
+  @DisplayName("Install app with zip slip vulnerability fails")
+  void testInstallZipSlipApp() throws IOException {
+    Map<String, byte[]> entries =
+        Map.of(
+            "manifest.webapp",
+            "{\"name\":\"Evil App\",\"version\":\"1.0\"}".getBytes(StandardCharsets.UTF_8),
+            "../../../../../../../../../../../../../../../../../../tmp/evil.txt",
+            "evil content".getBytes(StandardCharsets.UTF_8));
+
+    File evilZip = createTempZipFile(entries);
+    App app = appManager.installApp(evilZip, "evil_slip.zip");
+
+    AppStatus appState = app.getAppState();
+    assertTrue(
+        appState == AppStatus.INVALID_ZIP_FORMAT,
+        "App installation should fail due to path traversal attempt");
+
+    evilZip.delete();
+  }
+
+  @Test
+  @DisplayName("Install app with zip bomb vulnerability fails")
+  void testInstallZipBombWithTooManyEntriesApp() throws IOException {
+    // Create a small, highly compressible data block (e.g., 1KB of zeros)
+    byte[] compressibleData = new byte[1024]; // 1KB of zeros
+
+    // Create many entries pointing to the same compressible data
+    Map<String, byte[]> entries = new java.util.HashMap<>();
+    entries.put(
+        "manifest.webapp",
+        "{\"name\":\"Bomb App\",\"version\":\"1.0\"}".getBytes(StandardCharsets.UTF_8));
+
+    for (int i = 0; i < MAX_ENTRIES; i++) {
+      entries.put("file" + i + ".txt", compressibleData);
+    }
+
+    File bombZip = createTempZipFile(entries);
+    App app = appManager.installApp(bombZip, "bomb.zip");
+
+    AppStatus appState = app.getAppState();
+    assertTrue(
+        appState == AppStatus.INVALID_ZIP_FORMAT,
+        "App installation should fail due to zip bomb attempt");
+
+    bombZip.delete();
+  }
+
+  /**
+   * Creates a temporary zip file with the given entries.
+   *
+   * @throws IOException If an I/O error occurs.
+   */
+  private static File createTempZipFile(Map<String, byte[]> entries) throws IOException {
+    File tempFile = File.createTempFile("test", ".zip");
+    try (FileOutputStream fos = new FileOutputStream(tempFile);
+        ZipOutputStream zos = new ZipOutputStream(fos)) {
+
+      for (Map.Entry<String, byte[]> entry : entries.entrySet()) {
+        ZipEntry zipEntry = new ZipEntry(entry.getKey());
+        zos.putNextEntry(zipEntry);
+        zos.write(entry.getValue());
+        zos.closeEntry();
+      }
+    }
+    return tempFile;
   }
 }
