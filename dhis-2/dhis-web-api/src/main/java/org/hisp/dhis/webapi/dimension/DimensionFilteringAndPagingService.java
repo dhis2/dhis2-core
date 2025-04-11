@@ -45,11 +45,10 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
-import org.hisp.dhis.common.DimensionsCriteria;
+import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Service;
 
 @Service

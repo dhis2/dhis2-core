@@ -34,9 +34,9 @@ import java.util.List;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.tracker.FieldsRequestParam;
 import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
 

@@ -40,7 +40,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class Pager {
   public static final int DEFAULT_PAGE_SIZE = 50;
 
-  private int page = 1;
+  public static final int DEFAULT_PAGE = 1;
+
+  private int page = DEFAULT_PAGE;
 
   private long total = 0;
 
@@ -59,7 +61,7 @@ public class Pager {
 
   public Pager(int page, long total, int pageSize) {
     this.total = Math.max(total, 0);
-    this.pageSize = Math.max(pageSize, 1);
+    this.pageSize = Math.max(pageSize, DEFAULT_PAGE);
     this.page = getPageInternal(page);
   }
 
@@ -85,7 +87,7 @@ public class Pager {
    */
   private int getPageInternal(int page) {
     page = Math.min(page, getPageCount());
-    return Math.max(page, 1);
+    return Math.max(page, DEFAULT_PAGE);
   }
 
   public boolean pageSizeIsDefault() {

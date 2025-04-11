@@ -30,9 +30,9 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static java.util.Collections.emptySet;
+import static org.hisp.dhis.common.OrderCriteria.fromOrderString;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
-import static org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria.fromOrderString;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateFilter;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;

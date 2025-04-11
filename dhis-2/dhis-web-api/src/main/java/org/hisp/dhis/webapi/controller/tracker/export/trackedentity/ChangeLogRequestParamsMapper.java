@@ -35,12 +35,12 @@ import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.val
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogOperationParams.TrackedEntityChangeLogOperationParamsBuilder;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
 
 class ChangeLogRequestParamsMapper {

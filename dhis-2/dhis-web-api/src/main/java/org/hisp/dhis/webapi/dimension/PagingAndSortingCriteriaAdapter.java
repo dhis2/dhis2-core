@@ -27,21 +27,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest;
-
-import static java.util.stream.Collectors.partitioningBy;
-import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
+package org.hisp.dhis.webapi.dimension;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
+import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OrderCriteria;
 
 /**
  * simplest implementation of PagingCriteria and SortingCriteria
@@ -52,7 +48,11 @@ import org.hisp.dhis.common.OpenApi;
 @Data
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria, SortingCriteria {
+abstract class PagingAndSortingCriteriaAdapter {
+  private static final Integer DEFAULT_PAGE = 1;
+
+  private static final Integer DEFAULT_PAGE_SIZE = 50;
+
   /** Page number to return. */
   private Integer page;
 
@@ -69,50 +69,12 @@ public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria,
   private List<OrderCriteria> order = new ArrayList<>();
 
   @OpenApi.Ignore
-  public boolean isPagingRequest() {
-    return !toBooleanDefaultIfNull(isSkipPaging(), false);
-  }
+  Integer getFirstResult() {
+    Integer currentPage = Optional.ofNullable(getPage()).filter(p -> p > 0).orElse(DEFAULT_PAGE);
 
-  @Override
-  public List<OrderCriteria> getOrder() {
-    if (getAllowedOrderingFields().isEmpty()) {
-      return order;
-    }
+    Integer currentPageSize =
+        Optional.ofNullable(getPageSize()).filter(ps -> ps > 0).orElse(DEFAULT_PAGE_SIZE);
 
-    Map<Boolean, List<OrderCriteria>> orderCriteriaPartitionedByAllowance =
-        CollectionUtils.emptyIfNull(order).stream().collect(partitioningBy(this::isAllowed));
-
-    CollectionUtils.emptyIfNull(orderCriteriaPartitionedByAllowance.get(false))
-        .forEach(disallowedOrderFieldConsumer());
-
-    return orderCriteriaPartitionedByAllowance.get(true);
-  }
-
-  private boolean isAllowed(OrderCriteria orderCriteria) {
-    return getAllowedOrderingFields().contains(orderCriteria.getField());
-  }
-
-  protected Consumer<OrderCriteria> disallowedOrderFieldConsumer() {
-    return orderCriteria ->
-        log.warn("Ordering by " + orderCriteria.getField() + " is not supported");
-  }
-
-  @OpenApi.Ignore
-  public boolean isSortingRequest() {
-    return !CollectionUtils.emptyIfNull(getOrder()).isEmpty();
-  }
-
-  public Boolean isSkipPaging() {
-    return skipPaging;
-  }
-
-  /** Returns the page number, falls back to default value of 1 if not specified. */
-  public int getPageWithDefault() {
-    return page != null && page > 0 ? page : DEFAULT_PAGE;
-  }
-
-  /** Returns the page size, falls back to default value of 50 if not specified. */
-  public int getPageSizeWithDefault() {
-    return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
+    return (currentPage - 1) * currentPageSize;
   }
 }
