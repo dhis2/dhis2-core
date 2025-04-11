@@ -56,9 +56,9 @@ class CategoryResourceTableTest extends BaseResourceTableTest {
 
   private final List<CategoryOptionGroupSet> groupSets =
       List.of(
-          createCategoryOptionGroupSet('E'),
-          createCategoryOptionGroupSet('F'),
-          createCategoryOptionGroupSet('G'));
+          withId(createCategoryOptionGroupSet('E'), 1000),
+          withId(createCategoryOptionGroupSet('F'), 2000),
+          withId(createCategoryOptionGroupSet('G'), 3000));
 
   @BeforeEach
   void setUp() {
@@ -121,24 +121,47 @@ class CategoryResourceTableTest extends BaseResourceTableTest {
             new ExpessionAlias("cocuid", "coc.uid"),
             new ExpessionAlias("cocname", "coc.name"),
             new ExpessionAlias(
+                categories.get(0).getName(),
+                "(select co.name from categoryoptioncombos_categoryoptions cocco inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid where coc.categoryoptioncomboid = cocco.categoryoptioncomboid and cco.categoryid = 0 limit 1)"),
+            new ExpessionAlias(
                 categories.get(0).getUid(),
                 "(select co.uid from categoryoptioncombos_categoryoptions cocco inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid where coc.categoryoptioncomboid = cocco.categoryoptioncomboid and cco.categoryid = 0 limit 1)"),
+            new ExpessionAlias(
+                categories.get(1).getName(),
+                "(select co.name from categoryoptioncombos_categoryoptions cocco inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid where coc.categoryoptioncomboid = cocco.categoryoptioncomboid and cco.categoryid = 0 limit 1)"),
             new ExpessionAlias(
                 categories.get(1).getUid(),
                 "(select co.uid from categoryoptioncombos_categoryoptions cocco inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid where coc.categoryoptioncomboid = cocco.categoryoptioncomboid and cco.categoryid = 0 limit 1)"),
             new ExpessionAlias(
+                categories.get(2).getName(),
+                "(select co.name from categoryoptioncombos_categoryoptions cocco inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid where coc.categoryoptioncomboid = cocco.categoryoptioncomboid and cco.categoryid = 0 limit 1)"),
+            new ExpessionAlias(
                 categories.get(2).getUid(),
                 "(select co.uid from categoryoptioncombos_categoryoptions cocco inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid where coc.categoryoptioncomboid = cocco.categoryoptioncomboid and cco.categoryid = 0 limit 1)"),
             new ExpessionAlias(
+                groupSets.get(0).getName(),
+                "(select cog.name from categoryoptioncombos_categoryoptions cocco inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid where coc.categoryoptioncomboid = cocco.categoryoptioncomboid and cogsm.categoryoptiongroupsetid = 1000 limit 1)"),
+            new ExpessionAlias(
                 groupSets.get(0).getUid(),
-                "(select cog.uid from categoryoptioncombos_categoryoptions cocco inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid where coc.categoryoptioncomboid = cocco.categoryoptioncomboid and cogsm.categoryoptiongroupsetid = 0 limit 1)"),
+                "(select cog.uid from categoryoptioncombos_categoryoptions cocco inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid where coc.categoryoptioncomboid = cocco.categoryoptioncomboid and cogsm.categoryoptiongroupsetid = 1000 limit 1)"),
+            new ExpessionAlias(
+                groupSets.get(1).getName(),
+                "(select cog.name from categoryoptioncombos_categoryoptions cocco inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid where coc.categoryoptioncomboid = cocco.categoryoptioncomboid and cogsm.categoryoptiongroupsetid = 2000 limit 1)"),
             new ExpessionAlias(
                 groupSets.get(1).getUid(),
-                "(select cog.uid from categoryoptioncombos_categoryoptions cocco inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid where coc.categoryoptioncomboid = cocco.categoryoptioncomboid and cogsm.categoryoptiongroupsetid = 0 limit 1)"),
+                "(select cog.uid from categoryoptioncombos_categoryoptions cocco inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid where coc.categoryoptioncomboid = cocco.categoryoptioncomboid and cogsm.categoryoptiongroupsetid = 2000 limit 1)"),
+            new ExpessionAlias(
+                groupSets.get(2).getName(),
+                "(select cog.name from categoryoptioncombos_categoryoptions cocco inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid where coc.categoryoptioncomboid = cocco.categoryoptioncomboid and cogsm.categoryoptiongroupsetid = 3000 limit 1)"),
             new ExpessionAlias(
                 groupSets.get(2).getUid(),
-                "(select cog.uid from categoryoptioncombos_categoryoptions cocco inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid where coc.categoryoptioncomboid = cocco.categoryoptioncomboid and cogsm.categoryoptiongroupsetid = 0 limit 1)"));
+                "(select cog.uid from categoryoptioncombos_categoryoptions cocco inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid where coc.categoryoptioncomboid = cocco.categoryoptioncomboid and cogsm.categoryoptiongroupsetid = 3000 limit 1)"));
 
     verifyPopulateStatement(selectStatement.getSelectItems(), expectedColumnAliases);
+  }
+
+  private CategoryOptionGroupSet withId(CategoryOptionGroupSet groupSet, int id) {
+    groupSet.setId(id);
+    return groupSet;
   }
 }

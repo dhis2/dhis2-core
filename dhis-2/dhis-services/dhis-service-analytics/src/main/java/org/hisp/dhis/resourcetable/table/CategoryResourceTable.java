@@ -130,6 +130,12 @@ public class CategoryResourceTable implements ResourceTable {
           replace(
               """
               (
+              select co.name from categoryoptioncombos_categoryoptions cocco \
+              inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid \
+              inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid \
+              where coc.categoryoptioncomboid = cocco.categoryoptioncomboid \
+              and cco.categoryid = ${categoryId} limit 1) as ${categoryName}, \
+              (
               select co.uid from categoryoptioncombos_categoryoptions cocco \
               inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid \
               inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid \
@@ -146,6 +152,13 @@ public class CategoryResourceTable implements ResourceTable {
       sql +=
           replace(
               """
+              (
+              select cog.name from categoryoptioncombos_categoryoptions cocco \
+              inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid \
+              inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid \
+              inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid \
+              where coc.categoryoptioncomboid = cocco.categoryoptioncomboid \
+              and cogsm.categoryoptiongroupsetid = ${groupSetId} limit 1) as ${groupSetName}, \
               (
               select cog.uid from categoryoptioncombos_categoryoptions cocco \
               inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid \
