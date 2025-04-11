@@ -36,6 +36,7 @@ import static org.hisp.dhis.outlierdetection.OutliersSqlParamName.START_DATE;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
+import org.hisp.dhis.outlierdetection.OutlierExpressionHelper;
 import org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -85,7 +86,7 @@ public class MinMaxSqlStatementProcessor implements OutlierSqlStatementProcessor
         + ouPathClause
         + " "
         + "and dv.deleted is false "
-        + "and dv.value ~ '^[-+]?(?:\\d+(\\.\\d+)?|\\.\\d+)$' "
+        + "and dv.value ~ '" + OutlierExpressionHelper.NUMERIC_PATTERN.getKey() + "' "
         +
         // Filter for values outside the min-max range
         "and (dv.value::double precision < mm.minimumvalue or dv.value::double precision > mm.maximumvalue) "
