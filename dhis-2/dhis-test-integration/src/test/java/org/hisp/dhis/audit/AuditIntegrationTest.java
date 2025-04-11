@@ -95,7 +95,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
       override.put("audit.tracker", "CREATE");
       override.put("audit.aggregate", "CREATE");
       PostgresDhisConfigurationProvider postgresDhisConfigurationProvider =
-          new PostgresDhisConfigurationProvider();
+          new PostgresDhisConfigurationProvider(null);
       postgresDhisConfigurationProvider.addProperties(override);
       return postgresDhisConfigurationProvider;
     }

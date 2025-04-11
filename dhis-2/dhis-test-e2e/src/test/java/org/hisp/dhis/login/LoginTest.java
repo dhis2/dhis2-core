@@ -272,6 +272,37 @@ public class LoginTest extends BaseE2ETest {
     testRedirectWhenLoggedIn("dhis-web-dashboard", "dhis-web-dashboard/");
   }
 
+  @Test
+  void testRedirectIcon() {
+    testRedirectAsUser(
+        "/api/icons/medicines_positive/icon.svg", "api/icons/medicines_positive/icon");
+  }
+
+  @Test
+  void testJsonResponseForFailedLogin() {
+    try {
+      getWithWrongAuth("/me", Map.of());
+      fail("Should have thrown an exception");
+    } catch (HttpClientErrorException e) {
+      assertEquals(HttpStatus.UNAUTHORIZED, e.getStatusCode());
+      // Verify response is JSON format
+      String responseBody = e.getResponseBodyAsString();
+      assertTrue(responseBody.startsWith("{"), "Response should be in JSON format");
+      try {
+        // Parse response and verify it contains expected fields
+        JsonNode jsonNode = objectMapper.readTree(responseBody);
+        assertTrue(jsonNode.has("message"), "JSON response should contain 'message' field");
+        assertTrue(jsonNode.has("httpStatus"), "JSON response should contain 'httpStatus' field");
+        assertTrue(
+            jsonNode.has("httpStatusCode"), "JSON response should contain 'httpStatusCode' field");
+        assertEquals("Unauthorized", jsonNode.get("httpStatus").asText());
+        assertEquals(401, jsonNode.get("httpStatusCode").asInt());
+      } catch (JsonProcessingException ex) {
+        fail("Response is not valid JSON: " + responseBody);
+      }
+    }
+  }
+
   // --------------------------------------------------------------------------------------------
   // Helper classes and records
   // --------------------------------------------------------------------------------------------
@@ -463,6 +494,35 @@ public class LoginTest extends BaseE2ETest {
     ResponseEntity<String> redirResp =
         restTemplateNoRedirects.exchange(
             serverHostUrl + "dhis-web-dashboard", HttpMethod.GET, entity, String.class);
+    List<String> location = redirResp.getHeaders().get("Location");
+    assertNotNull(location);
+    assertEquals(1, location.size());
+    String actual = location.get(0);
+    assertEquals(redirectUrl, actual.replaceAll(serverHostUrl, ""));
+  }
+
+  public static void testRedirectAsUser(String url, String redirectUrl) {
+    // Disable auto-redirects
+    RestTemplate restTemplateNoRedirects = getRestTemplateNoRedirects();
+
+    // Do a valid login
+    HttpHeaders cookieHeaders = jsonHeaders();
+    ResponseEntity<LoginResponse> secondResponse =
+        restTemplateNoRedirects.postForEntity(
+            serverApiUrl + LOGIN_API_PATH,
+            new HttpEntity<>(
+                LoginRequest.builder().username("admin").password("district").build(),
+                cookieHeaders),
+            LoginResponse.class);
+    String cookie = extractSessionCookie(secondResponse);
+
+    // Test the redirect
+    HttpHeaders headers = jsonHeaders();
+    headers.set("Cookie", cookie);
+    HttpEntity<String> entity = new HttpEntity<>(headers);
+    ResponseEntity<String> redirResp =
+        restTemplateNoRedirects.exchange(serverHostUrl + url, HttpMethod.GET, entity, String.class);
+
     List<String> location = redirResp.getHeaders().get("Location");
     assertNotNull(location);
     assertEquals(1, location.size());
