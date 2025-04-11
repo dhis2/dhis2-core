@@ -34,7 +34,6 @@ import static org.hisp.dhis.tracker.acl.TrackerOwnershipManager.OWNERSHIP_ACCESS
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +44,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -67,7 +65,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   private final AclService aclService;
   private final TrackerOwnershipManager ownershipAccessManager;
-  private final ProgramService programService;
+  private final TrackerProgramService trackerProgramService;
 
   @Override
   public List<String> canRead(
@@ -76,7 +74,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       return List.of();
     }
 
-    return canRead(user, trackedEntity, programService.getAllPrograms(), false);
+    return canRead(user, trackedEntity, false);
   }
 
   @Override
@@ -88,37 +86,14 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       return List.of();
     }
 
-    return canRead(user, trackedEntity, programService.getAllPrograms(), skipOwnershipCheck);
-  }
-
-  private List<String> canRead(
-      @Nonnull UserDetails user,
-      @CheckForNull TrackedEntity trackedEntity,
-      List<Program> programs,
-      boolean skipOwnershipCheck) {
-
-    if (trackedEntity == null) {
-      return List.of();
-    }
-
     TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
-
     if (!aclService.canDataRead(user, trackedEntityType)) {
       return List.of(
           "User has no data read access to tracked entity type: " + trackedEntityType.getUid());
     }
 
     List<Program> tetPrograms =
-        programs.stream()
-            .filter(
-                p ->
-                    p.isRegistration()
-                        && Objects.equals(
-                            p.getTrackedEntityType().getUid(),
-                            trackedEntity.getTrackedEntityType().getUid())
-                        && aclService.canDataRead(user, p))
-            .toList();
-
+        trackerProgramService.getAccessibleTrackerPrograms(trackedEntityType);
     if (tetPrograms.isEmpty()) {
       return List.of("User has no access to any program");
     }
@@ -141,16 +116,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   @Override
   @Transactional(readOnly = true)
   public List<String> canWrite(@Nonnull UserDetails user, TrackedEntity trackedEntity) {
-    // always allow if user == null (internal process) or user is superuser
     if (user.isSuper() || trackedEntity == null) {
       return List.of();
     }
-
-    return canWrite(user, trackedEntity, programService.getAllPrograms());
-  }
-
-  private List<String> canWrite(
-      UserDetails user, TrackedEntity trackedEntity, List<Program> programs) {
 
     TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
 
@@ -160,14 +128,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     }
 
     List<Program> tetPrograms =
-        programs.stream()
-            .filter(
-                p ->
-                    p.isRegistration()
-                        && Objects.equals(
-                            p.getTrackedEntityType().getUid(),
-                            trackedEntity.getTrackedEntityType().getUid()))
-            .toList();
+        trackerProgramService.getAccessibleTrackerPrograms(trackedEntityType);
 
     if (tetPrograms.isEmpty()) {
       return List.of("User has no access to any program");
@@ -543,16 +504,14 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       errors.add("User has no data read access to relationshipType: " + relationshipType.getUid());
     }
 
-    List<Program> programs = programService.getAllPrograms();
-
     RelationshipItem from = relationship.getFrom();
     RelationshipItem to = relationship.getTo();
 
-    errors.addAll(canRead(user, from.getTrackedEntity(), programs, false));
+    errors.addAll(canRead(user, from.getTrackedEntity(), false));
     errors.addAll(canRead(user, from.getEnrollment(), false));
     errors.addAll(canRead(user, from.getEvent(), false));
 
-    errors.addAll(canRead(user, to.getTrackedEntity(), programs, false));
+    errors.addAll(canRead(user, to.getTrackedEntity(), false));
     errors.addAll(canRead(user, to.getEnrollment(), false));
     errors.addAll(canRead(user, to.getEvent(), false));
 
