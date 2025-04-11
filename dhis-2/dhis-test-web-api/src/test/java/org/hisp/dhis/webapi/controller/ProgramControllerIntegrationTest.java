@@ -102,6 +102,14 @@ class ProgramControllerIntegrationTest extends PostgresControllerIntegrationTest
   }
 
   @Test
+  void testFilterCategoryMappings() {
+    JsonObject noMapping = GET("/programs?filter=categoryMappings:empty").content();
+    JsonObject withMapping = GET("/programs?filter=categoryMappings:!empty").content();
+    assertEquals(0, withMapping.getArray("programs").size());
+    assertEquals(1, noMapping.getArray("programs").size());
+  }
+
+  @Test
   void shouldNotCopyTrackerProgramEnrollmentsWhenCopyingProgram() {
     OrganisationUnit orgUnit = orgUnitService.getOrganisationUnit(ORG_UNIT_UID);
     User user = createAndAddUser(true, "user", Set.of(orgUnit), Set.of(orgUnit));

@@ -57,12 +57,15 @@ class TrackerProgramServiceTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   private User regularUser;
+  private TrackedEntityType trackedEntityType;
 
   @BeforeAll
   void setUp() throws IOException {
     testSetup.importMetadata();
     regularUser = userService.getUser("Z7870757a75");
     injectSecurityContextUser(regularUser);
+    trackedEntityType = manager.get(TrackedEntityType.class, "Fa7NY4PW6DL");
+    assertNotNull(trackedEntityType);
   }
 
   @Test
@@ -84,18 +87,8 @@ class TrackerProgramServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldReturnAllAccessibleProgramsByTrackedEntityType() {
-    List<String> accessiblePrograms =
-        List.of(
-            "BFcipDERJnf",
-            "shPjYNifvMK",
-            "pcxIanBWlSY",
-            "UWRnoyBjvqi",
-            "YlUmbgnKWkd",
-            "SeeUNWLQmZk",
-            "sLngICFQjvH");
+    List<String> accessiblePrograms = List.of("TsngICFQjvP");
 
-    TrackedEntityType trackedEntityType = manager.get(TrackedEntityType.class, "ja8NY4PW7Xm");
-    assertNotNull(trackedEntityType);
     assertEquals(
         accessiblePrograms,
         getUids(trackerProgramService.getAccessibleTrackerPrograms(trackedEntityType)));
@@ -104,8 +97,6 @@ class TrackerProgramServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnEmptyListWhenNoProgramAccessible() {
     makeProgramInaccessible("TsngICFQjvP");
-    TrackedEntityType trackedEntityType = manager.get(TrackedEntityType.class, "Fa7NY4PW6DL");
-    assertNotNull(trackedEntityType);
 
     assertIsEmpty(trackerProgramService.getAccessibleTrackerPrograms(trackedEntityType));
   }

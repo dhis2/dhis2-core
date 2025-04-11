@@ -152,9 +152,7 @@ public class DefaultTrackedEntityFilterService implements TrackedEntityFilterSer
       Map<String, TrackedEntityAttribute> attributes =
           teaService.getAllTrackedEntityAttributes().stream()
               .collect(Collectors.toMap(TrackedEntityAttribute::getUid, att -> att));
-      errors.addAll(
-          OrderParamsHelper.validateOrderParams(
-              OrderParamsHelper.toOrderParams(orderCriteria), attributes));
+      errors.addAll(OrderParamsHelper.validateOrderCriteria(orderCriteria, attributes));
     }
   }
 
