@@ -27,9 +27,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.mapper;
+package org.hisp.dhis.trackedentityfilter;
 
-import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.OrderColumn.findColumn;
+import static org.hisp.dhis.trackedentityfilter.OrderParamsHelper.OrderColumn.findColumn;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,8 +40,8 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderParamsHelper {
