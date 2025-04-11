@@ -50,7 +50,6 @@ function start_dhis2() {
   java \
     -Ddhis2.home="$DHIS2_DHIS2_HOME_DIR" \
     -Dserver.port="$DHIS2_PORT" \
-    -javaagent:/opt/dhis2/glowroot/glowroot.jar \
     -jar "$(dirname "$0")/dhis-web-server/target/dhis.war"
 }
 
