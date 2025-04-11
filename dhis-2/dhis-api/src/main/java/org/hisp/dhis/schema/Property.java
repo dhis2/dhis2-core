@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.schema;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -446,6 +447,16 @@ public class Property implements Ordered, Klass {
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isManyToOne() {
     return manyToOne;
+  }
+
+  /**
+   * @return true only, if this property reflects a relation to another table in the DB. There might
+   *     be collections which are not actually relations since they store their data in a JSONB
+   *     column.
+   */
+  @JsonIgnore
+  public boolean isRelation() {
+    return oneToOne || oneToMany || manyToOne || manyToMany;
   }
 
   @JsonProperty

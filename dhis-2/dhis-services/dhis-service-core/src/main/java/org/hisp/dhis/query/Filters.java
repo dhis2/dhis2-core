@@ -40,6 +40,7 @@ import org.hisp.dhis.query.operators.LessEqualOperator;
 import org.hisp.dhis.query.operators.LessThanOperator;
 import org.hisp.dhis.query.operators.LikeOperator;
 import org.hisp.dhis.query.operators.MatchMode;
+import org.hisp.dhis.query.operators.NotEmptyOperator;
 import org.hisp.dhis.query.operators.NotEqualOperator;
 import org.hisp.dhis.query.operators.NotInOperator;
 import org.hisp.dhis.query.operators.NotLikeOperator;
@@ -125,6 +126,10 @@ public final class Filters {
 
   public static Filter isEmpty(String path) {
     return new Filter(path, new EmptyOperator<>());
+  }
+
+  public static Filter isNotEmpty(String path) {
+    return new Filter(path, new NotEmptyOperator<>());
   }
 
   public static Filter query(String query) {
