@@ -91,9 +91,9 @@ class ProgramNotificationServiceIntegrationTest extends SingleSetupIntegrationTe
     setUpScheduleMessage("V{current_date}", 'C');
     setUpScheduleMessage("'2025-01-01'", 'E');
 
-    ProgramInstance programInstance = programInstanceService.getProgramInstance(PI_UID);
+    ProgramInstance pi = programInstanceService.getProgramInstance(PI_UID);
     List<RuleEffect> ruleEffects =
-        programRuleEngineService.evaluateEnrollmentAndRunEffects(programInstance.getId());
+        programRuleEngineService.evaluateEnrollmentAndRunEffects(pi.getId());
     assertEquals(
         4, ruleEffects.size(), "Expected 3 rule effects for scheduled messages " + ruleEffects);
   }
