@@ -37,7 +37,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.common.OrderCriteria;
 
 /**
  * simplest implementation of PagingCriteria and SortingCriteria
