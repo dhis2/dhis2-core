@@ -1231,7 +1231,6 @@
       },
       "authorities": [
         "F_PROGRAM_INDICATOR_PUBLIC_ADD",
-        "F_SQLVIEW_EXECUTE",
         "F_USER_VIEW",
         "F_GENERATE_MIN_MAX_VALUES",
         "F_VALIDATIONRULE_PUBLIC_ADD",
@@ -1328,7 +1327,6 @@
         "M_dhis-web-menu-management",
         "F_REPORT_PUBLIC_ADD",
         "F_VALIDATIONRULEGROUP_DELETE",
-        "F_PROGRAM_TRACKED_ENTITY_ATTRIBUTE_GROUP_ADD",
         "F_COLOR_ADD",
         "F_OPTIONSET_PRIVATE_ADD",
         "F_PROGRAM_RULE_DELETE",
@@ -1473,7 +1471,6 @@
         "M_dhis-web-dashboard",
         "M_dhis-web-data-administration",
         "F_ACCEPT_DATA_LOWER_LEVELS",
-        "F_PROGRAM_TRACKED_ENTITY_ATTRIBUTE_GROUP_DELETE",
         "F_OPTIONGROUPSET_PUBLIC_ADD",
         "M_dhis-web-capture",
         "F_PROGRAM_INDICATOR_GROUP_PUBLIC_ADD",
