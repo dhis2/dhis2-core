@@ -152,11 +152,10 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
         + " "
         + "and "
         + ouPathClause
-        + " "
-        + " and dv.deleted is false "
-        + " and dv.value ~ '"
+        + " and dv.deleted is false"
+        + " and trim(dv.value) ~ '"
         + OutlierExpressionHelper.NUMERIC_PATTERN.getKey()
-        + "' "
+        + "'"
         + ") as dvs "
         +
         // Mean or Median and std dev mapping query
@@ -178,7 +177,7 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
         + ouPathClause
         + " "
         + "and dv.deleted is false "
-        + " and trim(dv.value) ~ '"
+        + "and trim(dv.value) ~ '"
         + OutlierExpressionHelper.NUMERIC_PATTERN.getKey()
         + "' "
         + "group by dv.dataelementid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid"
@@ -238,10 +237,11 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
         + ")"
         + " and "
         + ouPathClause
-        + " and dv.value ~ '"
+        + " and dv.deleted is false"
+        + " and trim(dv.value) ~ '"
         + OutlierExpressionHelper.NUMERIC_PATTERN.getKey()
         + "'"
-        + " and dv.deleted is false)"
+        + ")"
         + " select dvs.de_uid,"
         + " dvs.ou_uid,"
         + " dvs.coc_uid,"
@@ -255,7 +255,7 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
         + " dvs.pe_start_date,"
         + " dvs.pt_name,"
         + " stats.middle_value as middle_value,"
-        + " stats.std_dev      as std_dev,"
+        + " stats.std_dev as std_dev,"
         + " abs(dvs.value::double precision - stats.middle_value) as middle_value_abs_dev,"
         + " (case"
         + " when std_dev = 0 then 0"
