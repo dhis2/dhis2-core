@@ -1085,7 +1085,6 @@
       },
       "authorities": [
         "F_PROGRAM_INDICATOR_PUBLIC_ADD",
-        "F_SQLVIEW_EXECUTE",
         "F_USER_VIEW",
         "F_GENERATE_MIN_MAX_VALUES",
         "F_VALIDATIONRULE_PUBLIC_ADD",
