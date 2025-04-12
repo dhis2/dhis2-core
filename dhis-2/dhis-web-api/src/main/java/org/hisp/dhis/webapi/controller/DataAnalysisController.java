@@ -176,7 +176,10 @@ public class DataAnalysisController {
       throw new WebMessageException(badRequest("No organisation unit defined"));
     }
 
-    int maxResults = ObjectUtils.firstNonNull( validationRulesAnalysisParams.getMaxResults(), ValidationService.MAX_INTERACTIVE_ALERTS );
+    int maxResults =
+        ObjectUtils.firstNonNull(
+            validationRulesAnalysisParams.getMaxResults(),
+            ValidationService.MAX_INTERACTIVE_ALERTS);
     final int MAX_ALLOWED_RESULTS = settingsProvider.getCurrentSettings().getDataQualityMaxLimit();
 
     if (maxResults <= 0 || maxResults > MAX_ALLOWED_RESULTS) {
