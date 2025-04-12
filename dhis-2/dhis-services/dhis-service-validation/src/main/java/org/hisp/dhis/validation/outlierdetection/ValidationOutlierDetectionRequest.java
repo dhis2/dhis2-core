@@ -59,9 +59,9 @@ public class ValidationOutlierDetectionRequest {
 
     if (errorMessage != null) {
       log.warn(
-          String.format(
-              "Outlier detection request validation failed, code: '%s', message: '%s'",
-              errorMessage.getErrorCode(), errorMessage.getMessage()));
+          "Outlier detection request validation failed, code: '{}', message: '{}'",
+          errorMessage.getErrorCode(),
+          errorMessage.getMessage());
 
       throw new IllegalQueryException(errorMessage);
     }
@@ -70,7 +70,10 @@ public class ValidationOutlierDetectionRequest {
   private ErrorMessage validateForErrorMessage(
       OutlierDetectionRequest request, boolean isAnalytics) {
 
-    int maxLimit = isAnalytics ? settingsProvider.getCurrentSettings().getAnalyticsMaxLimit() : 500;
+    int maxLimit =
+        isAnalytics
+            ? settingsProvider.getCurrentSettings().getAnalyticsMaxLimit()
+            : settingsProvider.getCurrentSettings().getDataQualityMaxLimit();
     ErrorMessage errorMessage = getErrorMessage(request, maxLimit);
 
     if (errorMessage != null) {
