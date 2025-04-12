@@ -27,40 +27,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest;
+package org.hisp.dhis.webapi.dimension;
 
-import java.util.Optional;
-import org.hisp.dhis.common.OpenApi;
+import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.fail;
 
-/**
- * Paging parameters
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- */
-public interface PagingCriteria {
-  Integer DEFAULT_PAGE = 1;
+import org.junit.jupiter.api.Test;
 
-  Integer DEFAULT_PAGE_SIZE = 50;
+class PagingAndSortingCriteriaAdapterTest {
+  @Test
+  void shouldNotThrowExceptionWhenPagingTrueAndPageSizeIsNull() {
+    PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter =
+        new PagingAndSortingCriteriaAdapter() {
+          @Override
+          public Integer getPageSize() {
+            // Redundant just to make test more readable
+            return null;
+          }
+        };
+    try {
+      pagingAndSortingCriteriaAdapter.getSkipPaging();
+    } catch (Exception e) {
+      fail("Test was not meant to throw exception. Thrown exception is: " + e.getMessage());
+    }
+  }
 
-  /** Page number to return. */
-  Integer getPage();
-
-  /** Page size. */
-  Integer getPageSize();
-
-  /** Indicates whether to include the total number of pages in the paging response. */
-  boolean isTotalPages();
-
-  /** Indicates whether paging should be skipped. */
-  Boolean isSkipPaging();
-
-  @OpenApi.Ignore
-  default Integer getFirstResult() {
-    Integer page = Optional.ofNullable(getPage()).filter(p -> p > 0).orElse(DEFAULT_PAGE);
-
-    Integer pageSize =
-        Optional.ofNullable(getPageSize()).filter(ps -> ps > 0).orElse(DEFAULT_PAGE_SIZE);
-
-    return (page - 1) * pageSize;
+  @Test
+  void pagingIsEnabledByDefault() {
+    PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter =
+        new PagingAndSortingCriteriaAdapter() {};
+    assertFalse(toBooleanDefaultIfNull(pagingAndSortingCriteriaAdapter.getSkipPaging(), false));
   }
 }
