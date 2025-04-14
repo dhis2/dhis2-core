@@ -54,6 +54,7 @@ import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
@@ -145,6 +146,11 @@ public class QueryFilter {
     return null;
   }
 
+  /**
+   * Do not use this for JDBC template queries! This builds the SQL adding user input into it. So
+   * this opens up the possibility of SQL injection. SW and EW might also not properly escape like
+   * wildcards '%' and '_' while these operators are actually implemented using SQL like.
+   */
   public String getSqlFilter(final String encodedFilter) {
     return getSqlFilter(encodedFilter, false);
   }
@@ -183,10 +189,31 @@ public class QueryFilter {
     } else if (SW == operator) {
       return this.filter + "%";
     } else if (EW == operator) {
-      return "%" + this.filter + "";
+      return "%" + this.filter;
     }
 
     return this.filter;
+  }
+
+  /**
+   * Returns the query filter with pre-/suffixed (affixed) '%' wildcards if the operator is based on
+   * SQL <a
+   * href="https://www.postgresql.org/docs/current/functions-matching.html#FUNCTIONS-LIKE">like</a>
+   * (see {@link #OPERATOR_MAP}). Filters for non-like based operators are returned as is.
+   *
+   * <p>Make sure to escape like wildcards in user input before calling this method!
+   */
+  @Nonnull
+  public static String affixLikeWildcards(@Nonnull QueryOperator operator, @Nonnull String filter) {
+    if (operator.isLike()) {
+      return "%" + filter + "%";
+    } else if (operator == SW) {
+      return filter + "%";
+    } else if (operator == EW) {
+      return "%" + filter;
+    }
+
+    return filter;
   }
 
   public String getSqlFilter(

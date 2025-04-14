@@ -30,7 +30,6 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static java.util.Map.entry;
-import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 
@@ -39,7 +38,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.base.Strings;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -61,8 +59,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -83,6 +79,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.Page;
@@ -90,6 +87,7 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.event.JdbcPredicate.Parameter;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -135,8 +133,6 @@ class JdbcEventStore {
   private static final String EVENT_LASTUPDATED_GT = " ev.lastupdated >= ";
 
   private static final String SPACE = " ";
-
-  private static final String EQUALS = " = ";
 
   private static final String AND = " AND ";
 
@@ -607,75 +603,41 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    * applies when an attribute filter is specified.
    */
   private String getWhereClauseFromAttributeFilterConditions(
-      EventQueryParams params, MapSqlParameterSource mapSqlParameterSource, SqlHelper hlp) {
+      EventQueryParams params, MapSqlParameterSource sqlParameters, SqlHelper hlp) {
     StringBuilder fromBuilder = new StringBuilder();
-    for (Entry<TrackedEntityAttribute, List<QueryFilter>> queryItem :
+    for (Entry<TrackedEntityAttribute, List<JdbcPredicate>> item :
         params.getAttributes().entrySet()) {
-      TrackedEntityAttribute tea = queryItem.getKey();
-      String teaUid = tea.getUid();
-
       fromBuilder
           .append(hlp.whereAnd())
           .append(" TE.trackedentityid is not null ") // filters out results from event programs
-          .append(AND)
           .append(SPACE)
-          .append(
-              getAttributeFilterQuery(
-                  mapSqlParameterSource,
-                  queryItem.getValue(),
-                  teaUid,
-                  tea.getValueType().isNumeric()));
+          .append(mapFiltersToSql(item.getValue(), sqlParameters));
     }
     return fromBuilder.toString();
   }
 
-  private String getAttributeFilterQuery(
-      MapSqlParameterSource mapSqlParameterSource,
-      List<QueryFilter> filters,
-      String teaUid,
-      boolean isNumericTea) {
-    String teaValueCol = quote(teaUid);
+  private String mapFiltersToSql(List<JdbcPredicate> filters, MapSqlParameterSource sqlParameters) {
     if (filters.isEmpty()) {
       return "";
     }
 
-    StringBuilder query = new StringBuilder();
-    List<String> filterStrings = new ArrayList<>();
+    StringBuilder sql = new StringBuilder(AND + SPACE);
 
     for (int i = 0; i < filters.size(); i++) {
-      QueryFilter filter = filters.get(i);
-      final String queryCol =
-          isNumericTea ? castToNumber(teaValueCol + ".value") : lower(teaValueCol + ".value");
-      int itemType = isNumericTea ? Types.NUMERIC : Types.VARCHAR;
-      String parameterKey = "attributeFilter_%s_%d".formatted(teaUid, i);
+      JdbcPredicate filter = filters.get(i);
 
-      StringBuilder filterString = new StringBuilder();
-      filterString.append(queryCol).append(SPACE);
+      filter
+          .parameter()
+          .ifPresent(
+              (Parameter parameter) -> sqlParameters.addValue(parameter.name(), parameter.value()));
 
-      filterString.append(
-          switch (filter.getOperator()) {
-            case NULL, NNULL -> filter.getSqlOperator() + SPACE;
-            default -> {
-              mapSqlParameterSource.addValue(
-                  parameterKey,
-                  isNumericTea
-                      ? new BigDecimal(filter.getSqlBindFilter())
-                      : StringUtils.lowerCase(filter.getSqlBindFilter()),
-                  itemType);
-              yield new StringBuilder()
-                  .append(filter.getSqlOperator())
-                  .append(SPACE)
-                  .append(":")
-                  .append(parameterKey)
-                  .append(SPACE);
-            }
-          });
-
-      filterStrings.add(filterString.toString());
+      sql.append(filter.sql());
+      if (i + 1 < filters.size()) {
+        sql.append(SPACE + AND + SPACE);
+      }
     }
-    query.append(String.join(AND, filterStrings));
 
-    return query.toString();
+    return sql + SPACE;
   }
 
   /**
@@ -811,7 +773,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
                 mapSqlParameterSource,
                 user,
                 hlp,
-                dataElementFiltersSql(params, mapSqlParameterSource, hlp, selectBuilder)))
+                dataElementFiltersSql(params, mapSqlParameterSource)))
         .toString();
   }
 
@@ -830,7 +792,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         selectBuilder
             .append(
                 de.getValueType().isNumeric()
-                    ? castToNumber(dataValueValueSql)
+                    ? SqlUtils.castToNumeric(dataValueValueSql)
                     : lower(dataValueValueSql))
             .append(" as ")
             .append(de.getUid())
@@ -1241,92 +1203,14 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    * in where clause.
    */
   private StringBuilder dataElementFiltersSql(
-      EventQueryParams params,
-      MapSqlParameterSource mapSqlParameterSource,
-      SqlHelper hlp,
-      StringBuilder selectBuilder) {
-    int filterCount = 0;
+      EventQueryParams params, MapSqlParameterSource sqlParameters) {
+    StringBuilder sql = new StringBuilder();
 
-    StringBuilder eventDataValuesWhereSql = new StringBuilder();
-
-    for (Entry<DataElement, List<QueryFilter>> item : params.getDataElements().entrySet()) {
-      ++filterCount;
-
-      DataElement de = item.getKey();
-      List<QueryFilter> filters = item.getValue();
-      final String deUid = de.getUid();
-      final int itemValueType = de.getValueType().isNumeric() ? Types.NUMERIC : Types.VARCHAR;
-
-      final String dataValueValueSql = "ev.eventdatavalues #>> '{" + deUid + ", value}'";
-
-      String queryCol =
-          de.getValueType().isNumeric()
-              ? castToNumber(dataValueValueSql)
-              : lower(dataValueValueSql);
-      selectBuilder.append(", ").append(queryCol).append(" as ").append(deUid);
-
-      for (QueryFilter filter : filters) {
-        ++filterCount;
-        String bindParameter = "parameter_" + filterCount;
-
-        eventDataValuesWhereSql.append(hlp.whereAnd());
-
-        if (filter.getOperator().isUnary()) {
-          eventDataValuesWhereSql.append(unaryOperatorCondition(filter.getOperator(), deUid));
-        } else if (QueryOperator.IN.getValue().equalsIgnoreCase(filter.getSqlOperator())) {
-          mapSqlParameterSource.addValue(
-              bindParameter,
-              QueryFilter.getFilterItems(StringUtils.lowerCase(filter.getFilter())),
-              itemValueType);
-
-          eventDataValuesWhereSql.append(inCondition(filter, bindParameter, queryCol));
-        } else {
-          mapSqlParameterSource.addValue(
-              bindParameter,
-              de.getValueType().isNumeric()
-                  ? new BigDecimal(filter.getSqlBindFilter())
-                  : StringUtils.lowerCase(filter.getSqlBindFilter()),
-              itemValueType);
-
-          eventDataValuesWhereSql
-              .append(" ")
-              .append(queryCol)
-              .append(" ")
-              .append(filter.getSqlOperator())
-              .append(" ")
-              .append(":")
-              .append(bindParameter)
-              .append(" ");
-        }
-      }
+    for (Entry<DataElement, List<JdbcPredicate>> item : params.getDataElements().entrySet()) {
+      sql.append(mapFiltersToSql(item.getValue(), sqlParameters));
     }
 
-    return eventDataValuesWhereSql.append(" ");
-  }
-
-  private String unaryOperatorCondition(QueryOperator queryOperator, String deUid) {
-    return new StringBuilder()
-        .append(" ev.eventdatavalues->")
-        .append("'")
-        .append(deUid)
-        .append("' ")
-        .append(queryOperator.getValue())
-        .append(" ")
-        .toString();
-  }
-
-  private String inCondition(QueryFilter filter, String boundParameter, String queryCol) {
-    return new StringBuilder()
-        .append(" ")
-        .append(queryCol)
-        .append(" ")
-        .append(filter.getSqlOperator())
-        .append(" ")
-        .append("(")
-        .append(":")
-        .append(boundParameter)
-        .append(") ")
-        .toString();
+    return sql.append(" ");
   }
 
   private String eventStatusSql(
