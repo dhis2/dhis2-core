@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -49,7 +48,6 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -131,13 +129,13 @@ class EventQueryParams {
   private Set<UID> events = new HashSet<>();
 
   /** Each attribute will affect the final SQL query. Some attributes are filtered on. */
-  private final Map<TrackedEntityAttribute, List<QueryFilter>> attributes = new HashMap<>();
+  private final Map<TrackedEntityAttribute, List<JdbcPredicate>> attributes = new HashMap<>();
 
   /**
    * Each data element will affect the final SQL query. Some data elements are filtered on, while
    * data elements added via {@link #orderBy(DataElement, SortDirection)} will be ordered by.
    */
-  private final Map<DataElement, List<QueryFilter>> dataElements = new HashMap<>();
+  private final Map<DataElement, List<JdbcPredicate>> dataElements = new HashMap<>();
 
   private boolean hasDataElementFilter;
 
@@ -404,7 +402,7 @@ class EventQueryParams {
     return Collections.unmodifiableList(this.order);
   }
 
-  private Map<TrackedEntityAttribute, List<QueryFilter>> getOrderAttributes() {
+  private Map<TrackedEntityAttribute, List<JdbcPredicate>> getOrderAttributes() {
     return order.stream()
         .filter(o -> o.getField() instanceof TrackedEntityAttribute)
         .map(o -> (TrackedEntityAttribute) o.getField())
@@ -452,19 +450,18 @@ class EventQueryParams {
     return SetUtils.union(getOrderAttributes().keySet(), this.attributes.keySet());
   }
 
-  public Map<TrackedEntityAttribute, List<QueryFilter>> getAttributes() {
+  public Map<TrackedEntityAttribute, List<JdbcPredicate>> getAttributes() {
     return this.attributes;
   }
 
-  public Map<DataElement, List<QueryFilter>> getDataElements() {
+  public Map<DataElement, List<JdbcPredicate>> getDataElements() {
     return this.dataElements;
   }
 
   public EventQueryParams filterBy(
       @Nonnull TrackedEntityAttribute tea, @Nonnull QueryFilter filter) {
-    validateNumericFilterValue(tea, filter);
     this.attributes.putIfAbsent(tea, new ArrayList<>());
-    this.attributes.get(tea).add(filter);
+    this.attributes.get(tea).add(JdbcPredicate.of(tea, filter));
     return this;
   }
 
@@ -474,42 +471,16 @@ class EventQueryParams {
   }
 
   public EventQueryParams filterBy(@Nonnull DataElement de, @Nonnull QueryFilter filter) {
-    validateNumericFilterValue(de, filter);
     this.dataElements.putIfAbsent(de, new ArrayList<>());
-    this.dataElements.get(de).add(filter);
+    this.dataElements.get(de).add(JdbcPredicate.of(de, filter, "ev"));
     this.hasDataElementFilter = true;
     return this;
   }
 
   public EventQueryParams filterBy(DataElement de) {
-    this.dataElements.putIfAbsent(de, List.of(new QueryFilter(QueryOperator.NNULL)));
+    this.dataElements.putIfAbsent(
+        de, List.of(JdbcPredicate.of(de, new QueryFilter(QueryOperator.NNULL), "ev")));
     return this;
-  }
-
-  /**
-   * Validates that a binary filter's value for a numeric value type is actually numeric.
-   *
-   * <p>Uses BigDecimal as we use <code>cast(column as numeric)</code> in the SQL query. BigDecimal
-   * matches PostgreSQL's numeric type behavior.
-   *
-   * @see <a href="https://www.postgresql.org/docs/current/datatype-numeric.html">PostgreSQL Numeric
-   *     Type</a>
-   */
-  private void validateNumericFilterValue(
-      ValueTypedDimensionalItemObject item, QueryFilter filter) {
-    if (!item.getValueType().isNumeric() || filter.getOperator().isUnary()) {
-      return;
-    }
-
-    try {
-      new BigDecimal(filter.getFilter());
-    } catch (NumberFormatException e) {
-      String name = item instanceof TrackedEntityAttribute ? "attribute" : "data element";
-      throw new IllegalArgumentException(
-          String.format(
-              "Filter for %s %s is invalid. The %s value type is numeric but the value `%s` is not.",
-              name, item.getUid(), name, filter.getFilter()));
-    }
   }
 
   public EventQueryParams setIncludeDeleted(boolean includeDeleted) {

@@ -51,6 +51,10 @@ public class SqlUtils {
 
   public static final String SINGLE_QUOTE = "'";
 
+  public static final String PERCENT = "%";
+
+  public static final String UNDERSCORE = "_";
+
   public static final String SEPARATOR = ".";
 
   public static final String OPTION_SEP = ".";
@@ -110,6 +114,20 @@ public class SqlUtils {
   }
 
   /**
+   * Escapes {@code like} wildcards '%' and '_' in a given string using the default '\' escape
+   * character. Make sure to call this before inserting any like wildcard characters!
+   *
+   * <p>See <a
+   * href="https://www.postgresql.org/docs/current/functions-matching.html#FUNCTIONS-LIKE">PostgreSQL
+   * like</a>
+   */
+  public static String escapeLikeWildcards(String value) {
+    return value
+        .replace(PERCENT, (BACKSLASH + PERCENT))
+        .replace(UNDERSCORE, (BACKSLASH + UNDERSCORE));
+  }
+
+  /**
    * Appends an underscore and five character random suffix to the given relation.
    *
    * @param relation the relation.
@@ -134,12 +152,27 @@ public class SqlUtils {
   }
 
   /**
+   * Cast the given expression to a target type like {@code cast (X as integer)}.
+   *
+   * <p>See {@link <a
+   * href="https://www.postgresql.org/docs/current/sql-expressions.html#SQL-SYNTAX-TYPE-CASTS">PostgreSQL
+   * type casts</a>}
+   *
+   * @param expression the expression to cast
+   * @param type the target type to cast the expression to
+   * @return the type cast expression string
+   */
+  public static String cast(String expression, String type) {
+    return "cast (" + expression + " as " + type + ")";
+  }
+
+  /**
    * Cast the given value to numeric (cast(X as numeric).
    *
    * @param value the value.
    * @return a string with the numeric cast statement.
    */
-  public static String castToNumber(String value) {
+  public static String castToNumeric(String value) {
     return "cast (" + value + " as numeric)";
   }
 
