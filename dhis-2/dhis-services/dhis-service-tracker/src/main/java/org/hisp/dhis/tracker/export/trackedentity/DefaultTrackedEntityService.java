@@ -58,7 +58,6 @@ import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
-import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
@@ -89,8 +88,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private final OperationsParamsValidator operationsParamsValidator;
 
   private final TrackedEntityOperationParamsMapper mapper;
-
-  private final TrackerProgramService trackerProgramService;
 
   @Override
   public FileResourceStream getFileResource(
@@ -277,10 +274,9 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     }
     trackedEntityAuditService.addTrackedEntityAudit(SEARCH, user.getUsername(), trackedEntities);
 
-    List<Program> programs = trackerProgramService.getAccessibleTrackerPrograms();
     // TODO(tracker): Push this filter into the store because it is breaking pagination
     return trackedEntities.stream()
-        .filter(filterAccessibleTrackedEntities(user, queryParams, programs))
+        .filter(filterAccessibleTrackedEntities(user, queryParams))
         .toList();
   }
 
@@ -290,18 +286,18 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private Predicate<TrackedEntity> filterAccessibleTrackedEntities(
-      UserDetails user, TrackedEntityQueryParams queryParams, List<Program> programs) {
+      UserDetails user, TrackedEntityQueryParams queryParams) {
     boolean skipOwnershipCheck = queryParams.getOrgUnitMode() == ALL;
 
     if (queryParams.hasEnrolledInTrackerProgram()) {
-      return skipOwnershipCheck
-          ? te -> true
-          : te ->
-              ownershipAccessManager.hasAccess(user, te, queryParams.getEnrolledInTrackerProgram());
+      return te ->
+          skipOwnershipCheck
+              || ownershipAccessManager.hasAccess(
+                  user, te, queryParams.getEnrolledInTrackerProgram());
     }
 
     return te ->
-        programs.stream()
+        queryParams.getAccessibleTrackerPrograms().stream()
             .filter(
                 p ->
                     Objects.equals(
