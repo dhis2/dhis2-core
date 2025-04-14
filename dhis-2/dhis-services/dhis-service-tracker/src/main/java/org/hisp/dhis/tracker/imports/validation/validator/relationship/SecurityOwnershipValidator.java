@@ -30,7 +30,7 @@
 package org.hisp.dhis.tracker.imports.validation.validator.relationship;
 
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.tracker.acl.TrackerAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerDataAccessManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
@@ -45,7 +45,7 @@ import org.springframework.stereotype.Component;
     "org.hisp.dhis.tracker.imports.validation.validator.relationship.SecurityOwnershipValidator")
 @RequiredArgsConstructor
 class SecurityOwnershipValidator implements Validator<Relationship> {
-  private final TrackerAccessManager trackerAccessManager;
+  private final TrackerDataAccessManager trackerDataAccessManager;
 
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, Relationship relationship) {
@@ -53,14 +53,14 @@ class SecurityOwnershipValidator implements Validator<Relationship> {
     UserDetails user = bundle.getUser();
 
     if (strategy.isDelete()
-        && (!trackerAccessManager
+        && (!trackerDataAccessManager
             .canDelete(user, bundle.getPreheat().getRelationship(relationship))
             .isEmpty())) {
       reporter.addError(relationship, ValidationCode.E4020, user, relationship.getRelationship());
     }
 
     if (strategy.isCreate()
-        && (!trackerAccessManager
+        && (!trackerDataAccessManager
             .canWrite(
                 user, TrackerObjectsMapper.map(bundle.getPreheat(), relationship, bundle.getUser()))
             .isEmpty())) {

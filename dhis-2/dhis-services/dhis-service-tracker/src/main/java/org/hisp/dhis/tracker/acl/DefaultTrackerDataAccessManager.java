@@ -29,8 +29,8 @@
  */
 package org.hisp.dhis.tracker.acl;
 
-import static org.hisp.dhis.tracker.acl.TrackerOwnershipManager.NO_READ_ACCESS_TO_ORG_UNIT;
-import static org.hisp.dhis.tracker.acl.TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED;
+import static org.hisp.dhis.tracker.acl.TrackerOwnershipAccessManager.NO_READ_ACCESS_TO_ORG_UNIT;
+import static org.hisp.dhis.tracker.acl.TrackerOwnershipAccessManager.OWNERSHIP_ACCESS_DENIED;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,10 +61,10 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @RequiredArgsConstructor
 @Component
-public class DefaultTrackerAccessManager implements TrackerAccessManager {
+public class DefaultTrackerDataAccessManager implements TrackerDataAccessManager {
 
   private final AclService aclService;
-  private final TrackerOwnershipManager ownershipAccessManager;
+  private final TrackerOwnershipAccessManager ownershipAccessManager;
   private final TrackerProgramService trackerProgramService;
 
   @Override

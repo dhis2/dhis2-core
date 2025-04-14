@@ -55,7 +55,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.acl.TrackerOwnershipAccessManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -92,7 +92,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
   @Mock private AclService aclService;
 
-  @Mock private TrackerOwnershipManager ownershipAccessManager;
+  @Mock private TrackerOwnershipAccessManager ownershipAccessManager;
 
   private final UserDetails user = UserDetails.fromUser(makeUser("A"));
 

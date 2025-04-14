@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.tracker.acl;
 
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
@@ -39,20 +38,10 @@ import org.hisp.dhis.user.UserDetails;
 /**
  * @author Ameen Mohamed
  */
-public interface TrackerOwnershipManager {
+// TODO Rename this interface
+public interface TrackerOwnershipAccessManager {
   String OWNERSHIP_ACCESS_DENIED = "OWNERSHIP_ACCESS_DENIED";
-
-  String PROGRAM_ACCESS_CLOSED = "PROGRAM_ACCESS_CLOSED";
-
   String NO_READ_ACCESS_TO_ORG_UNIT = "User has no read access to organisation unit";
-
-  /**
-   * @param trackedEntity The tracked entity object
-   * @param program The program object
-   * @param orgUnit The org unit that has to become the owner
-   */
-  void transferOwnership(TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit)
-      throws ForbiddenException;
 
   /**
    * Check whether the user has access (as owner or has temporarily broken the glass) to the tracked
@@ -67,18 +56,6 @@ public interface TrackerOwnershipManager {
 
   boolean hasAccess(
       UserDetails user, String trackedEntity, OrganisationUnit organisationUnit, Program program);
-
-  /**
-   * Grant temporary ownership for a user for a specific tracked entity - program combination
-   *
-   * @param trackedEntity The tracked entity object
-   * @param program The program object
-   * @param user The user for which temporary access is granted.
-   * @param reason The reason for requesting temporary ownership
-   */
-  void grantTemporaryOwnership(
-      TrackedEntity trackedEntity, Program program, UserDetails user, String reason)
-      throws ForbiddenException;
 
   /**
    * Ownership check can be skipped if the user is superuser or if the program type is without
@@ -102,4 +79,18 @@ public interface TrackerOwnershipManager {
    * @return true if the owner is in the search scope, false otherwise
    */
   boolean isOwnerInUserSearchScope(UserDetails user, TrackedEntity trackedEntity, Program program);
+
+  /**
+   * Returns key used to store and retrieve cached records for ownership
+   *
+   * @return a String representing a record of ownership
+   */
+  String getOwnershipCacheKey(TrackedEntity trackedEntity, Program program);
+
+  /**
+   * Returns key used to store and retrieve cached records for ownership
+   *
+   * @return a String representing a record of ownership
+   */
+  String getTempOwnershipCacheKey(String teUid, String programUid, String userUid);
 }

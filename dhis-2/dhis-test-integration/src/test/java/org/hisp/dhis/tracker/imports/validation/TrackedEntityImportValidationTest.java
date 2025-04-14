@@ -45,13 +45,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TestSetup;
-import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
+import org.hisp.dhis.tracker.acl.TrackerOwnershipTransferManager;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -76,9 +79,11 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackerImportService trackerImportService;
 
-  @Autowired private TrackerOwnershipManager trackerOwnershipManager;
+  @Autowired private TrackerOwnershipTransferManager trackerOwnershipTransferManager;
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   private User importUser;
 
@@ -259,7 +264,7 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFailToDeleteWhenUserHasAccessToRegistrationUnitAndTEWasTransferred()
-      throws IOException, ForbiddenException {
+      throws IOException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/validations/enrollments_te_te-data.json");
@@ -269,11 +274,13 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
     manager.flush();
     manager.clear();
     TrackedEntity trackedEntity = manager.get(TrackedEntity.class, "Kj6vYde4LHh");
-    OrganisationUnit orgUnit = manager.get(OrganisationUnit.class, "QfUVllTs6cW");
     Program program = manager.get(Program.class, "E8o1E9tAppy");
-    trackerOwnershipManager.transferOwnership(trackedEntity, program, orgUnit);
+    OrganisationUnit orgUnit = manager.get(OrganisationUnit.class, "QfUVllTs6cS");
+    trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
+        trackedEntity, program, orgUnit);
     manager.flush();
     manager.clear();
+
     ImportReport importReport = deleteTransferredTrackedEntity(userService.getUser(USER_10));
     assertHasErrors(importReport, 1, ValidationCode.E1003);
   }
@@ -281,7 +288,7 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
   @Test
   void
       shouldFailToDeleteWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnitAndTEOUIsNotInCaptureScope()
-          throws IOException, ForbiddenException {
+          throws IOException, ForbiddenException, BadRequestException, NotFoundException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/validations/enrollments_te_te-data.json");
@@ -291,18 +298,20 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
     manager.flush();
     manager.clear();
     TrackedEntity trackedEntity = manager.get(TrackedEntity.class, "Kj6vYde4LHh");
-    OrganisationUnit orgUnit = manager.get(OrganisationUnit.class, "QfUVllTs6cW");
     Program program = manager.get(Program.class, "E8o1E9tAppy");
-    trackerOwnershipManager.transferOwnership(trackedEntity, program, orgUnit);
+    OrganisationUnit orgUnit = manager.get(OrganisationUnit.class, "QfUVllTs6cW");
+    trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
+        trackedEntity, program, orgUnit);
     manager.flush();
     manager.clear();
+
     ImportReport importReport = deleteTransferredTrackedEntity(userService.getUser(USER_9));
     assertHasErrors(importReport, 1, ValidationCode.E1000);
   }
 
   @Test
   void shouldDeleteWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnitAndTEOUIsInCaptureScope()
-      throws IOException, ForbiddenException {
+      throws IOException, ForbiddenException, BadRequestException, NotFoundException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/validations/enrollments_te_te-data.json");
@@ -312,9 +321,10 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
     manager.flush();
     manager.clear();
     TrackedEntity trackedEntity = manager.get(TrackedEntity.class, "Kj6vYde4LHh");
-    OrganisationUnit orgUnit = manager.get(OrganisationUnit.class, "QfUVllTs6cW");
     Program program = manager.get(Program.class, "E8o1E9tAppy");
-    trackerOwnershipManager.transferOwnership(trackedEntity, program, orgUnit);
+    OrganisationUnit orgUnit = manager.get(OrganisationUnit.class, "QfUVllTs6cW");
+    trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
+        trackedEntity, program, orgUnit);
     manager.flush();
     manager.clear();
     ImportReport importReport = deleteTransferredTrackedEntity(userService.getUser(USER_7));
@@ -323,7 +333,7 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFailToUpdateWhenUserHasAccessToRegistrationUnitAndTEWasTransferred()
-      throws IOException, ForbiddenException {
+      throws IOException, ForbiddenException, BadRequestException, NotFoundException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/validations/enrollments_te_te-data.json");
@@ -339,9 +349,10 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
     manager.flush();
     manager.clear();
     TrackedEntity trackedEntity = manager.get(TrackedEntity.class, "KKKKj6vYdes");
-    OrganisationUnit orgUnit = manager.get(OrganisationUnit.class, "QfUVllTs6cW");
     Program program = manager.get(Program.class, "E8o1E9tAppy");
-    trackerOwnershipManager.transferOwnership(trackedEntity, program, orgUnit);
+    OrganisationUnit orgUnit = manager.get(OrganisationUnit.class, "QfUVllTs6cW");
+    trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
+        trackedEntity, program, orgUnit);
     manager.flush();
     manager.clear();
     importReport = updateTransferredTrackedEntity(USER_10, UID.of("KKKKj6vYdes"));
@@ -350,7 +361,7 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldUpdateWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnit()
-      throws IOException, ForbiddenException {
+      throws IOException, ForbiddenException, BadRequestException, NotFoundException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/validations/enrollments_te_te-data.json");
@@ -361,9 +372,10 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
     manager.flush();
     manager.clear();
     TrackedEntity trackedEntity = manager.get(TrackedEntity.class, "Kj6vYde4LHh");
-    OrganisationUnit orgUnit = manager.get(OrganisationUnit.class, "QfUVllTs6cW");
     Program program = manager.get(Program.class, "E8o1E9tAppy");
-    trackerOwnershipManager.transferOwnership(trackedEntity, program, orgUnit);
+    OrganisationUnit orgUnit = manager.get(OrganisationUnit.class, "QfUVllTs6cW");
+    trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
+        trackedEntity, program, orgUnit);
     manager.flush();
     manager.clear();
     ImportReport importReport = updateTransferredTrackedEntity(USER_9, UID.of("Kj6vYde4LHh"));

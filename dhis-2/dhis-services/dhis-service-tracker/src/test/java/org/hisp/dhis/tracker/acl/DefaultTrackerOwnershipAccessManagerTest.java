@@ -34,6 +34,8 @@ import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createTrackedEntity;
 import static org.hisp.dhis.test.TestBase.createTrackedEntityType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -44,8 +46,11 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramOwnershipHistoryService;
 import org.hisp.dhis.program.ProgramService;
@@ -55,18 +60,24 @@ import org.hisp.dhis.program.ProgramTempOwnershipAuditService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @ExtendWith(MockitoExtension.class)
-class DefaultTrackerOwnershipManagerTest {
+class DefaultTrackerOwnershipAccessManagerTest {
 
   @Mock private UserService userService;
 
@@ -90,21 +101,30 @@ class DefaultTrackerOwnershipManagerTest {
 
   @Mock private AclService aclService;
 
-  @InjectMocks private DefaultTrackerOwnershipManager trackerOwnershipManager;
+  @Mock private TrackerOwnershipAccessManager trackerOwnershipAccessManager;
+
+  @Mock private TrackedEntityService trackedEntityService;
+
+  @Mock private TrackerProgramService trackerProgramService;
+
+  @Mock private OrganisationUnitService organisationUnitService;
+
+  @InjectMocks private TrackerOwnershipTransferManager trackerOwnershipTransferManager;
 
   private Program program;
   private UserDetails userDetails;
   private String reason;
   private OrganisationUnit orgUnit;
   private TrackedEntityType trackedEntityType;
+  private MockedStatic<SecurityContextHolder> mockedStatic;
 
   @BeforeEach
-  void setUp() {
+  void setUp() throws BadRequestException {
     when(cacheProvider.createProgramOwnerCache()).thenReturn(ownerCache);
     when(cacheProvider.createProgramTempOwnerCache()).thenReturn(tempOwnerCache);
 
-    trackerOwnershipManager =
-        new DefaultTrackerOwnershipManager(
+    trackerOwnershipTransferManager =
+        new TrackerOwnershipTransferManager(
             userService,
             trackedEntityProgramOwnerService,
             cacheProvider,
@@ -113,7 +133,11 @@ class DefaultTrackerOwnershipManagerTest {
             programOwnershipHistoryService,
             programService,
             manager,
-            aclService);
+            aclService,
+            trackerOwnershipAccessManager,
+            trackedEntityService,
+            trackerProgramService,
+            organisationUnitService);
 
     orgUnit = createOrganisationUnit("org unit");
     orgUnit.setPath(orgUnit.getUid());
@@ -121,23 +145,41 @@ class DefaultTrackerOwnershipManagerTest {
     program.setAccessLevel(AccessLevel.PROTECTED);
     trackedEntityType = createTrackedEntityType('A');
     program.setTrackedEntityType(trackedEntityType);
+    when(trackerProgramService.getTrackerProgram(UID.of(program))).thenReturn(program);
+
     User user = new User();
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
     userDetails = UserDetails.fromUser(user);
     reason = "breaking the glass";
 
-    when(ownerCache.get(any(), any())).thenReturn(orgUnit);
-    when(aclService.canDataRead(userDetails, program)).thenReturn(true);
+    mockedStatic = mockStatic(SecurityContextHolder.class);
+    SecurityContext context = mock(SecurityContext.class);
+    Authentication auth = mock(Authentication.class);
+
+    mockedStatic.when(SecurityContextHolder::getContext).thenReturn(context);
+    when(context.getAuthentication()).thenReturn(auth);
+    when(auth.isAuthenticated()).thenReturn(true);
+    when(auth.getPrincipal()).thenReturn(userDetails);
+  }
+
+  @AfterEach
+  void tearDown() {
+    mockedStatic.close();
   }
 
   @Test
   void shouldLogProgramOwnershipChangeWhenTrackedEntityTypeAuditEnabled()
-      throws ForbiddenException {
+      throws ForbiddenException, BadRequestException {
     TrackedEntity trackedEntity = createTrackedEntityWithAuditLog(true);
+    when(manager.get(TrackedEntity.class, trackedEntity.getUid())).thenReturn(trackedEntity);
+    when(trackerOwnershipAccessManager.isOwnerInUserSearchScope(
+            userDetails, trackedEntity, program))
+        .thenReturn(true);
     when(aclService.canDataRead(userDetails, trackedEntity.getTrackedEntityType()))
         .thenReturn(true);
 
-    trackerOwnershipManager.grantTemporaryOwnership(trackedEntity, program, userDetails, reason);
+    trackerOwnershipTransferManager.grantTemporaryOwnership(
+        UID.of(trackedEntity), UID.of(program), reason);
 
     verify(programTempOwnershipAuditService, times(1))
         .addProgramTempOwnershipAudit(any(ProgramTempOwnershipAudit.class));
@@ -145,12 +187,17 @@ class DefaultTrackerOwnershipManagerTest {
 
   @Test
   void shouldNotLogProgramOwnershipChangeWhenTrackedEntityTypeAuditDisabled()
-      throws ForbiddenException {
+      throws ForbiddenException, BadRequestException {
     TrackedEntity trackedEntity = createTrackedEntityWithAuditLog(false);
+    when(manager.get(TrackedEntity.class, trackedEntity.getUid())).thenReturn(trackedEntity);
+    when(trackerOwnershipAccessManager.isOwnerInUserSearchScope(
+            userDetails, trackedEntity, program))
+        .thenReturn(true);
     when(aclService.canDataRead(userDetails, trackedEntity.getTrackedEntityType()))
         .thenReturn(true);
 
-    trackerOwnershipManager.grantTemporaryOwnership(trackedEntity, program, userDetails, reason);
+    trackerOwnershipTransferManager.grantTemporaryOwnership(
+        UID.of(trackedEntity), UID.of(program), reason);
 
     verify(programTempOwnershipAuditService, never())
         .addProgramTempOwnershipAudit(any(ProgramTempOwnershipAudit.class));

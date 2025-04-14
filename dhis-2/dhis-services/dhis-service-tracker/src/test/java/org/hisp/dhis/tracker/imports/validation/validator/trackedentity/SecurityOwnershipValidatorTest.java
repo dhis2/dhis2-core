@@ -54,7 +54,7 @@ import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.acl.TrackerAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerDataAccessManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -92,13 +92,11 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
   @Mock private AclService aclService;
 
-  @Mock private TrackerAccessManager trackerAccessManager;
+  @Mock private TrackerDataAccessManager trackerDataAccessManager;
 
   private Reporter reporter;
 
   private OrganisationUnit organisationUnit;
-
-  private Program program;
 
   private UserDetails user;
 
@@ -119,7 +117,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
     trackedEntityType = createTrackedEntityType('A');
     trackedEntityType.setUid(TE_TYPE_ID);
-    program = createProgram('A');
+    Program program = createProgram('A');
     program.setUid(PROGRAM_ID);
     program.setProgramType(ProgramType.WITH_REGISTRATION);
     program.setTrackedEntityType(trackedEntityType);
@@ -130,7 +128,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
     reporter = new Reporter(idSchemes);
 
-    validator = new SecurityOwnershipValidator(aclService, trackerAccessManager);
+    validator = new SecurityOwnershipValidator(aclService, trackerDataAccessManager);
   }
 
   @Test
@@ -146,7 +144,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     TrackedEntity te = teWithEnrollments();
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.UPDATE);
-    when(trackerAccessManager.canWrite(any(), eq(te))).thenReturn(List.of());
+    when(trackerDataAccessManager.canWrite(any(), eq(te))).thenReturn(List.of());
     validator.validate(reporter, bundle, trackedEntity);
 
     assertIsEmpty(reporter.getErrors());
@@ -164,7 +162,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
     TrackedEntity te = teWithNoEnrollments();
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
-    when(trackerAccessManager.canWrite(any(), eq(te))).thenReturn(List.of());
+    when(trackerDataAccessManager.canWrite(any(), eq(te))).thenReturn(List.of());
 
     validator.validate(reporter, bundle, trackedEntity);
 
@@ -205,7 +203,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
     TrackedEntity te = teWithDeleteEnrollments();
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
-    when(trackerAccessManager.canWrite(any(), eq(te))).thenReturn(List.of());
+    when(trackerDataAccessManager.canWrite(any(), eq(te))).thenReturn(List.of());
 
     validator.validate(reporter, bundle, trackedEntity);
 
@@ -228,7 +226,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
 
-    when(trackerAccessManager.canWrite(userDetails, te)).thenReturn(List.of());
+    when(trackerDataAccessManager.canWrite(userDetails, te)).thenReturn(List.of());
 
     validator.validate(reporter, bundle, trackedEntity);
 
@@ -247,7 +245,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
     TrackedEntity te = teWithEnrollments();
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
-    when(trackerAccessManager.canWrite(any(), eq(te))).thenReturn(List.of());
+    when(trackerDataAccessManager.canWrite(any(), eq(te))).thenReturn(List.of());
 
     validator.validate(reporter, bundle, trackedEntity);
 
@@ -294,7 +292,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TE_TYPE_ID)))
         .thenReturn(trackedEntityType);
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
-    when(trackerAccessManager.canWrite(any(), eq(te))).thenReturn(List.of("error"));
+    when(trackerDataAccessManager.canWrite(any(), eq(te))).thenReturn(List.of("error"));
 
     validator.validate(reporter, bundle, trackedEntity);
 
