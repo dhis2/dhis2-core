@@ -43,7 +43,7 @@ import static org.hisp.dhis.gist.GistLogic.isAttributeValuesProperty;
 import static org.hisp.dhis.gist.GistLogic.isCollectionSizeFilter;
 import static org.hisp.dhis.gist.GistLogic.isHrefProperty;
 import static org.hisp.dhis.gist.GistLogic.isJsonCollectionFilter;
-import static org.hisp.dhis.gist.GistLogic.isNonNestedPath;
+import static org.hisp.dhis.gist.GistLogic.isNestedPath;
 import static org.hisp.dhis.gist.GistLogic.isPersistentCollectionField;
 import static org.hisp.dhis.gist.GistLogic.isPersistentReferenceField;
 import static org.hisp.dhis.gist.GistLogic.isStringLengthFilter;
@@ -463,7 +463,7 @@ final class GistBuilder {
       @SuppressWarnings("unchecked")
       Class<? extends IdentifiableObject> objType =
           (Class<? extends IdentifiableObject>)
-              (isNonNestedPath(path) ? query.getElementType() : property.getKlass());
+              (!isNestedPath(path) ? query.getElementType() : property.getKlass());
       addTransformer(
           row -> row[index] = access.asAccess(objType, (Sharing) row[sharingFieldIndex]));
       return HQL_NULL;
@@ -835,14 +835,31 @@ final class GistBuilder {
       return "jsonb_exists_any(e.attributeValues, (select array_agg(uid) from Attribute a where %s)) = true"
           .formatted(createFilterHQL(index, filter, "a." + filter.getPropertyPath()));
     }
-    if (!isNonNestedPath(propertyPath)) {
+    if (isNestedPath(propertyPath)) {
       List<Property> path = context.resolvePath(propertyPath);
+      if (filter.isSubSelect()) {
+        return createSubSelectFilterHQL(index, filter, path);
+      }
       if (isExistsInCollectionFilter(path)) {
         return createExistsFilterHQL(index, filter, path);
       }
     }
     String memberPath = filter.isAttribute() ? ATTRIBUTES_PROPERTY : getMemberPath(propertyPath);
     return createFilterHQL(index, filter, "e." + memberPath);
+  }
+
+  private String createSubSelectFilterHQL(int index, Filter filter, List<Property> path) {
+    String relationAlias = "ft_" + index;
+    String relationTable = path.get(0).getKlass().getSimpleName();
+    String relationProperty = path.get(0).getFieldName();
+    String operator = filter.getOperator() == Comparison.EQ && path.get(1).isUnique() ? "=" : "in";
+    return "%s.id %s (select id from %s %s where %s)"
+        .formatted(
+            relationProperty,
+            operator,
+            relationTable,
+            relationAlias,
+            createFilterHQL(index, filter, relationAlias + "." + path.get(1).getFieldName()));
   }
 
   private boolean isExistsInCollectionFilter(List<Property> path) {
@@ -935,7 +952,7 @@ final class GistBuilder {
           field,
           createAccessFilterHQL(filter, tableName));
     }
-    if (!isNonNestedPath(path)) {
+    if (isNestedPath(path)) {
       throw new UnsupportedOperationException("Access filter not supported for property: " + path);
     }
     // trivial case: the filter property is a non nested non-identifiable

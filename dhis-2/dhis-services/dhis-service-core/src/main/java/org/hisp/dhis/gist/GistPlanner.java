@@ -38,7 +38,7 @@ import static org.hisp.dhis.gist.GistLogic.isAttributePath;
 import static org.hisp.dhis.gist.GistLogic.isAttributeValuesAttributePropertyPath;
 import static org.hisp.dhis.gist.GistLogic.isCollectionSizeFilter;
 import static org.hisp.dhis.gist.GistLogic.isIncludedField;
-import static org.hisp.dhis.gist.GistLogic.isNonNestedPath;
+import static org.hisp.dhis.gist.GistLogic.isNestedPath;
 import static org.hisp.dhis.gist.GistLogic.isPersistentCollectionField;
 import static org.hisp.dhis.gist.GistLogic.isPersistentReferenceField;
 import static org.hisp.dhis.gist.GistLogic.parentPath;
@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
+import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -73,15 +74,15 @@ import org.hisp.dhis.schema.annotation.Gist.Transform;
  * @author Jan Bernitt
  */
 @AllArgsConstructor
-class GistPlanner {
+final class GistPlanner {
+
   private final GistQuery query;
-
   private final RelativePropertyContext context;
-
   private final GistAccessControl access;
 
   public GistQuery plan() {
-    return query.withFields(planFields()).withFilters(planFilters());
+    List<Field> fields = planFields();
+    return query.withFields(fields).withFilters(planFilters(fields));
   }
 
   private List<Field> planFields() {
@@ -99,13 +100,37 @@ class GistPlanner {
     return fields;
   }
 
-  private List<Filter> planFilters() {
+  private List<Filter> planFilters(List<Field> fields) {
     List<Filter> filters = query.getFilters();
     filters = withAttributeIdAsPropertyFilters(filters); // 1:1
     filters = withAttributeIdEqAsNotNullFilters(filters); // 1:1
     filters = withIdentifiableCollectionAutoIdFilters(filters); // 1:1
     filters = withCurrentUserDefaultForAccessFilters(filters); // 1:1
+    filters = withSubSelectForUnboundRelationFilters(filters, fields); // 1:1
     return filters;
+  }
+
+  /**
+   * Any filter that targets another table than the main table but which (table) is not used in the
+   * fields is turned into a sub-select filter.
+   */
+  private List<Filter> withSubSelectForUnboundRelationFilters(
+      List<Filter> filters, List<Field> fields) {
+    return map1to1(filters, f -> isUnboundSubSelect(f, fields), Filter::asSubSelect);
+  }
+
+  private boolean isUnboundSubSelect(@Nonnull Filter f, List<Field> fields) {
+    String path = f.getPropertyPath();
+    if (!path.contains(".")) return false;
+    if (context.resolve(path) == null) return false;
+    List<Property> segments = context.resolvePath(path);
+    if (segments.size() != 2 || !segments.get(0).isRelation()) return false;
+    String property = segments.get(0).getName();
+    return fields.stream()
+        .noneMatch(
+            field ->
+                field.getPropertyPath().equals(property)
+                    || field.getPropertyPath().startsWith(property + "."));
   }
 
   private List<Filter> withAttributeIdAsPropertyFilters(List<Filter> filters) {
@@ -316,7 +341,7 @@ class GistPlanner {
     List<Field> mapped = new ArrayList<>();
     for (Field f : fields) {
       String path = f.getPropertyPath();
-      if (!isNonNestedPath(path) && context.resolveMandatory(parentPath(path)).isCollection()) {
+      if (isNestedPath(path) && context.resolveMandatory(parentPath(path)).isCollection()) {
         String parentPath = parentPath(path);
         String propertyName = path.substring(path.lastIndexOf('.') + 1);
         Property collection = context.resolveMandatory(parentPath);
