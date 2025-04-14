@@ -56,6 +56,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.acl.TrackerDataAccessManager;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipAccessManager;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.FileResourceStream;
@@ -77,6 +78,8 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private final TrackedEntityAuditService trackedEntityAuditService;
 
   private final TrackerOwnershipAccessManager ownershipAccessManager;
+
+  private final TrackerDataAccessManager trackerDataAccessManager;
 
   private final TrackedEntityAggregate trackedEntityAggregate;
 
@@ -295,6 +298,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
               ownershipAccessManager.hasAccess(user, te, queryParams.getEnrolledInTrackerProgram());
     }
 
-    return te -> trackerAccessManager.canRead(user, te, skipOwnershipCheck).isEmpty();
+    return te -> trackerDataAccessManager.canRead(user, te, skipOwnershipCheck).isEmpty();
   }
 }
