@@ -38,7 +38,6 @@ import org.hisp.dhis.user.UserDetails;
 /**
  * @author Ameen Mohamed
  */
-// TODO Rename this interface
 public interface TrackerOwnershipAccessManager {
   String OWNERSHIP_ACCESS_DENIED = "OWNERSHIP_ACCESS_DENIED";
   String NO_READ_ACCESS_TO_ORG_UNIT = "User has no read access to organisation unit";

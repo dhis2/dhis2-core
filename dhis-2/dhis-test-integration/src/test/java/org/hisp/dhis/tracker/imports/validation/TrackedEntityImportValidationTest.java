@@ -45,16 +45,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
-import org.hisp.dhis.tracker.acl.TrackerOwnershipTransferManager;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -78,8 +74,6 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
   @Autowired private TestSetup testSetup;
 
   @Autowired private TrackerImportService trackerImportService;
-
-  @Autowired private TrackerOwnershipTransferManager trackerOwnershipTransferManager;
 
   @Autowired private IdentifiableObjectManager manager;
 
@@ -288,7 +282,7 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
   @Test
   void
       shouldFailToDeleteWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnitAndTEOUIsNotInCaptureScope()
-          throws IOException, ForbiddenException, BadRequestException, NotFoundException {
+          throws IOException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/validations/enrollments_te_te-data.json");
@@ -311,7 +305,7 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldDeleteWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnitAndTEOUIsInCaptureScope()
-      throws IOException, ForbiddenException, BadRequestException, NotFoundException {
+      throws IOException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/validations/enrollments_te_te-data.json");
@@ -333,7 +327,7 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFailToUpdateWhenUserHasAccessToRegistrationUnitAndTEWasTransferred()
-      throws IOException, ForbiddenException, BadRequestException, NotFoundException {
+      throws IOException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/validations/enrollments_te_te-data.json");
@@ -360,8 +354,7 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldUpdateWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnit()
-      throws IOException, ForbiddenException, BadRequestException, NotFoundException {
+  void shouldUpdateWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnit() throws IOException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/validations/enrollments_te_te-data.json");

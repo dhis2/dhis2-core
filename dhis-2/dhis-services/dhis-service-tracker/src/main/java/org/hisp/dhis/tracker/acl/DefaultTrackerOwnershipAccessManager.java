@@ -127,6 +127,16 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
         getOwner(trackedEntity, program, trackedEntity::getOrganisationUnit).getStoredPath());
   }
 
+  @Override
+  public String getOwnershipCacheKey(TrackedEntity trackedEntity, Program program) {
+    return trackedEntity.getUid() + "_" + program.getUid();
+  }
+
+  @Override
+  public String getTempOwnershipCacheKey(String teUid, String programUid, String userUid) {
+    return teUid + "-" + programUid + "-" + userUid;
+  }
+
   // -------------------------------------------------------------------------
   // Private Helper Methods
   // -------------------------------------------------------------------------
@@ -211,13 +221,5 @@ public class DefaultTrackerOwnershipAccessManager implements TrackerOwnershipAcc
         s ->
             programTempOwnerService.getValidTempOwnerRecordCount(program, trackedEntityUid, user)
                 > 0);
-  }
-
-  public String getOwnershipCacheKey(TrackedEntity trackedEntity, Program program) {
-    return trackedEntity.getUid() + "_" + program.getUid();
-  }
-
-  public String getTempOwnershipCacheKey(String teUid, String programUid, String userUid) {
-    return teUid + "-" + programUid + "-" + userUid;
   }
 }
