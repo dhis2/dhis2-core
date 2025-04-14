@@ -43,7 +43,6 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.UserDetails;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,7 +62,7 @@ public class TrackerProgramService {
    * the current user.
    */
   @Transactional(readOnly = true)
-  public @NotNull Program getTrackerProgram(@CheckForNull UID programUid)
+  public @Nonnull Program getTrackerProgram(@CheckForNull UID programUid)
       throws BadRequestException {
     if (programUid == null) {
       throw new BadRequestException("Provided program can't be null.");
