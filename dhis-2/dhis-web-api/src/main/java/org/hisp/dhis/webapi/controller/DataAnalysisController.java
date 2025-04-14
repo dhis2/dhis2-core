@@ -187,7 +187,6 @@ public class DataAnalysisController {
               "Max results must be greater than 0 and less than or equal to "
                   + MAX_ALLOWED_RESULTS));
     }
-    ;
 
     ValidationAnalysisParams params =
         validationService
