@@ -44,18 +44,16 @@ import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class OrderParamsHelper {
-  public static final String CREATED_ID = "created";
+class OrderParamsHelper {
+  static final String CREATED_ID = "created";
 
-  public static final String ORG_UNIT_NAME = "ouname";
+  static final String INACTIVE_ID = "inactive";
 
-  public static final String INACTIVE_ID = "inactive";
+  static final String MAIN_QUERY_ALIAS = "TE";
 
-  public static final String MAIN_QUERY_ALIAS = "TE";
+  static final String ENROLLMENT_QUERY_ALIAS = "en";
 
-  public static final String ENROLLMENT_QUERY_ALIAS = "en";
-
-  public static List<String> validateOrderCriteria(
+  static List<String> validateOrderCriteria(
       List<OrderCriteria> orders, Map<String, TrackedEntityAttribute> attributes) {
     List<String> errors = new ArrayList<>();
 
@@ -75,7 +73,7 @@ public class OrderParamsHelper {
 
   @Getter
   @AllArgsConstructor
-  public enum OrderColumn {
+  enum OrderColumn {
     TRACKEDENTITY("trackedEntity", "uid", MAIN_QUERY_ALIAS),
     CREATED_AT("createdAt", CREATED_ID, MAIN_QUERY_ALIAS),
     CREATED_AT_CLIENT("createdAtClient", "createdatclient", MAIN_QUERY_ALIAS),
@@ -93,7 +91,7 @@ public class OrderParamsHelper {
     /**
      * @return an Optional of an OrderColumn matching by property name
      */
-    public static Optional<OrderColumn> findColumn(String property) {
+    static Optional<OrderColumn> findColumn(String property) {
       return Arrays.stream(values())
           .filter(orderColumn -> orderColumn.getPropName().equals(property))
           .findFirst();
