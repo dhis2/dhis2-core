@@ -124,13 +124,9 @@ final class GistPlanner {
     if (!path.contains(".")) return false;
     if (context.resolve(path) == null) return false;
     List<Property> segments = context.resolvePath(path);
-    if (segments.size() != 2 || !segments.get(0).isRelation()) return false;
-    String property = segments.get(0).getName();
-    return fields.stream()
-        .noneMatch(
-            field ->
-                field.getPropertyPath().equals(property)
-                    || field.getPropertyPath().startsWith(property + "."));
+    if (segments.size() != 2) return false;
+    Property relation = segments.get(0);
+    return relation.isRelation();
   }
 
   private List<Filter> withAttributeIdAsPropertyFilters(List<Filter> filters) {

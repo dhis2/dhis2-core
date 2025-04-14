@@ -849,17 +849,25 @@ final class GistBuilder {
   }
 
   private String createSubSelectFilterHQL(int index, Filter filter, List<Property> path) {
+    Property relation = path.get(0);
+    Property match = path.get(1);
     String relationAlias = "ft_" + index;
-    String relationTable = path.get(0).getKlass().getSimpleName();
-    String relationProperty = path.get(0).getFieldName();
-    String operator = filter.getOperator() == Comparison.EQ && path.get(1).isUnique() ? "=" : "in";
-    return "%s.id %s (select id from %s %s where %s)"
+    String relationProperty = relation.getFieldName();
+    if (relation.isCollection()) {
+      return "exists (select 1 from e.%s %s where %s)"
+          .formatted(
+              relationProperty,
+              relationAlias,
+              createFilterHQL(index, filter, relationAlias + "." + match.getFieldName()));
+    }
+    String relationTable = relation.getKlass().getSimpleName();
+    return "exists (select 1 from %s %s where %s = e.%s and %s)"
         .formatted(
-            relationProperty,
-            operator,
             relationTable,
             relationAlias,
-            createFilterHQL(index, filter, relationAlias + "." + path.get(1).getFieldName()));
+            relationAlias,
+            relationProperty,
+            createFilterHQL(index, filter, relationAlias + "." + match.getFieldName()));
   }
 
   private boolean isExistsInCollectionFilter(List<Property> path) {
