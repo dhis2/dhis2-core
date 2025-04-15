@@ -106,7 +106,7 @@ final class GistPlanner {
     filters = withAttributeIdEqAsNotNullFilters(filters); // 1:1
     filters = withIdentifiableCollectionAutoIdFilters(filters); // 1:1
     filters = withCurrentUserDefaultForAccessFilters(filters); // 1:1
-    filters = withSubSelectForUnboundRelationFilters(filters, fields); // 1:1
+    filters = withSubSelectForUnboundRelationFilters(filters); // 1:1
     return filters;
   }
 
@@ -114,19 +114,17 @@ final class GistPlanner {
    * Any filter that targets another table than the main table but which (table) is not used in the
    * fields is turned into a sub-select filter.
    */
-  private List<Filter> withSubSelectForUnboundRelationFilters(
-      List<Filter> filters, List<Field> fields) {
-    return map1to1(filters, f -> isUnboundSubSelect(f, fields), Filter::asSubSelect);
+  private List<Filter> withSubSelectForUnboundRelationFilters(List<Filter> filters) {
+    return map1to1(filters, this::isUnboundSubSelect, Filter::asSubSelect);
   }
 
-  private boolean isUnboundSubSelect(@Nonnull Filter f, List<Field> fields) {
+  private boolean isUnboundSubSelect(@Nonnull Filter f) {
     String path = f.getPropertyPath();
     if (!path.contains(".")) return false;
     if (context.resolve(path) == null) return false;
     List<Property> segments = context.resolvePath(path);
     if (segments.size() != 2) return false;
-    Property relation = segments.get(0);
-    return relation.isRelation();
+    return segments.get(0).isRelation();
   }
 
   private List<Filter> withAttributeIdAsPropertyFilters(List<Filter> filters) {
