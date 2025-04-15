@@ -34,7 +34,6 @@ import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.DorisSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -62,8 +61,6 @@ import static org.mockito.Mockito.when;
 class AggregationLevelsHelperTest {
 
   @Mock private JdbcTemplate jdbcTemplate;
-
-  @Mock private SqlBuilder sqlBuilder;
 
   @Mock private Table mockTable;
 
