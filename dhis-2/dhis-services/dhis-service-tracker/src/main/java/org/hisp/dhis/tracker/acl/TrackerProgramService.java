@@ -38,6 +38,7 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
@@ -63,7 +64,7 @@ public class TrackerProgramService {
    */
   @Transactional(readOnly = true)
   public @Nonnull Program getTrackerProgram(@CheckForNull UID programUid)
-      throws BadRequestException {
+      throws BadRequestException, ForbiddenException {
     if (programUid == null) {
       throw new BadRequestException("Provided program can't be null.");
     }
@@ -78,7 +79,7 @@ public class TrackerProgramService {
           String.format("Provided program, %s, is not a tracker program.", programUid));
     }
     if (!aclService.canDataRead(getCurrentUserDetails(), program)) {
-      throw new BadRequestException(
+      throw new ForbiddenException(
           String.format(
               "Current user doesn't have access to the provided program %s.", programUid));
     }

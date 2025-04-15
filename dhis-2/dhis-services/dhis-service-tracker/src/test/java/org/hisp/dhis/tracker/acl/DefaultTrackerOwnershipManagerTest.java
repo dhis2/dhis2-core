@@ -112,7 +112,7 @@ class DefaultTrackerOwnershipManagerTest {
   private MockedStatic<CurrentUserUtil> mockedStatic;
 
   @BeforeEach
-  void setUp() throws BadRequestException {
+  void setUp() throws BadRequestException, ForbiddenException {
     when(cacheProvider.createProgramOwnerCache()).thenReturn(ownerCache);
     when(cacheProvider.createProgramTempOwnerCache()).thenReturn(tempOwnerCache);
 
