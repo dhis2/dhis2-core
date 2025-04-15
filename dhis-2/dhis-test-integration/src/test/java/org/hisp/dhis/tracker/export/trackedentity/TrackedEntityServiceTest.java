@@ -73,8 +73,8 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.AssignedUserQueryParam;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
@@ -198,9 +198,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   private Relationship relationshipE;
 
-  private static List<String> uids(
-      Collection<? extends BaseIdentifiableObject> identifiableObjects) {
-    return identifiableObjects.stream().map(BaseIdentifiableObject::getUid).toList();
+  private static List<String> uids(Collection<? extends IdentifiableObject> identifiableObjects) {
+    return identifiableObjects.stream().map(IdentifiableObject::getUid).toList();
   }
 
   @BeforeEach
@@ -1194,14 +1193,14 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     Set<String> deletedEnrollments =
         trackedEntity.getEnrollments().stream()
             .filter(Enrollment::isDeleted)
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet());
     assertIsEmpty(deletedEnrollments);
     Set<String> deletedEvents =
         trackedEntity.getEnrollments().stream()
             .flatMap(enrollment -> enrollment.getEvents().stream())
             .filter(Event::isDeleted)
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet());
     assertIsEmpty(deletedEvents);
 
@@ -1218,7 +1217,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     deletedEnrollments =
         trackedEntity.getEnrollments().stream()
             .filter(Enrollment::isDeleted)
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet());
     assertContainsOnly(Set.of(enrollmentA.getUid()), deletedEnrollments);
 
@@ -1230,7 +1229,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     deletedEvents =
         events.stream()
             .filter(Event::isDeleted)
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet());
     assertContainsOnly(Set.of(eventA.getUid()), deletedEvents);
 

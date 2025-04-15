@@ -54,7 +54,7 @@ import java.util.function.Function;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UidObject;
 import org.hisp.dhis.feedback.ErrorCode;
 
@@ -248,12 +248,10 @@ public class DimensionIdentifierHelper {
               ", ",
               label,
               getDisplayNameWithOffset(
-                  dimensionIdentifier.getProgram(),
-                  BaseIdentifiableObject::getDisplayName,
-                  useOffset),
+                  dimensionIdentifier.getProgram(), IdentifiableObject::getDisplayName, useOffset),
               getDisplayNameWithOffset(
                   dimensionIdentifier.getProgramStage(),
-                  BaseIdentifiableObject::getDisplayName,
+                  IdentifiableObject::getDisplayName,
                   useOffset))
           .trim();
     } else if (dimensionIdentifier.isEnrollmentDimension()) {
@@ -261,9 +259,7 @@ public class DimensionIdentifierHelper {
               ", ",
               label,
               getDisplayNameWithOffset(
-                  dimensionIdentifier.getProgram(),
-                  BaseIdentifiableObject::getDisplayName,
-                  useOffset))
+                  dimensionIdentifier.getProgram(), IdentifiableObject::getDisplayName, useOffset))
           .trim();
     }
     return label;

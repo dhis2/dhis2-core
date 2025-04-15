@@ -52,8 +52,8 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
 import org.hisp.dhis.dataset.DataSet;
@@ -249,7 +249,7 @@ class DataApprovalServiceCategoryOptionGroupTest extends PostgresIntegrationTest
     return new HashSet<>(Arrays.asList(users));
   }
 
-  private void setAccess(BaseIdentifiableObject object, UserGroup... userGroups) {
+  private void setAccess(IdentifiableObject object, UserGroup... userGroups) {
     object.getSharing().setPublicAccess(ACCESS_NONE);
     // Needed for sharing to work
     object.getSharing().setOwner(userA);

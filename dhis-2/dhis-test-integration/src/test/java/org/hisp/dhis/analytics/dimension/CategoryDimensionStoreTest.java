@@ -37,8 +37,8 @@ import org.hisp.dhis.analytics.CategoryDimensionStore;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
@@ -98,7 +98,7 @@ class CategoryDimensionStoreTest extends PostgresIntegrationTestBase {
     List<String> cos =
         cdsByCategoryOption.stream()
             .flatMap(cd -> cd.getItems().stream())
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .toList();
 
     assertEquals(3, cos.size(), "3 CategoryOptions should be present");

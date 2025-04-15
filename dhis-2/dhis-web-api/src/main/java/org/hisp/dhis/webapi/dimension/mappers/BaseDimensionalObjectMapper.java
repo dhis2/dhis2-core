@@ -34,7 +34,7 @@ import lombok.Getter;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.webapi.dimension.BaseDimensionMapper;
 import org.hisp.dhis.webapi.dimension.DimensionResponse;
@@ -44,7 +44,7 @@ import org.springframework.stereotype.Service;
 public class BaseDimensionalObjectMapper extends BaseDimensionMapper {
 
   @Getter
-  private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses =
+  private final Set<Class<? extends IdentifiableObject>> supportedClasses =
       Set.of(CategoryOptionGroupSet.class, Category.class);
 
   /** maps base dimensional object to DimensionResponse, adding dimensionType */

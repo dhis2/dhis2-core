@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -74,7 +74,7 @@ class CategoryStoreTest extends PostgresIntegrationTestBase {
     List<String> categoryOptions =
         categoriesByCategoryOption.stream()
             .flatMap(c -> c.getCategoryOptions().stream())
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .toList();
 
     assertEquals(3, categoryOptions.size(), "3 CategoryOptions should be present");

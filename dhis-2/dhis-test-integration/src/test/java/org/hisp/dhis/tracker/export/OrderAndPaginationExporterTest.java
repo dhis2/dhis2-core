@@ -41,7 +41,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryFilter;
@@ -1525,7 +1524,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
     return uids(relationshipService.findRelationships(params));
   }
 
-  private static List<String> uids(List<? extends BaseIdentifiableObject> identifiableObject) {
-    return identifiableObject.stream().map(BaseIdentifiableObject::getUid).toList();
+  private static List<String> uids(List<? extends IdentifiableObject> identifiableObject) {
+    return identifiableObject.stream().map(IdentifiableObject::getUid).toList();
   }
 }
