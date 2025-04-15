@@ -113,7 +113,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   /** Cache for storing recent temporary ownership checks */
   private final Cache<Boolean> tempOwnerCache;
 
-  /** Transfers the ownership of the given TE - program pair, to the specified org unit. */
   @Override
   @Transactional
   // TODO(tracker) This method should accept a tracked entity UID instead. The problem is, we can't
@@ -131,9 +130,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
           "Tracked entity not transferred. Org unit supplied does not exist.");
     }
 
-    UserDetails currentUser = getCurrentUserDetails();
-
-    if (hasAccess(currentUser, trackedEntity, program)) {
+    if (hasAccess(getCurrentUserDetails(), trackedEntity, program)) {
       if (!programService.hasOrgUnit(program, orgUnit)) {
         throw new ForbiddenException(
             String.format(
@@ -168,18 +165,13 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     }
   }
 
-  /**
-   * Grant temporary ownership for a user for a specific tracked entity - program combination
-   *
-   * @param trackedEntityUid The UID of the tracked entity object
-   * @param programUid The UID of the program object
-   * @param reason The reason for requesting temporary ownership
-   */
+  @Override
   @Transactional
   public void grantTemporaryOwnership(UID trackedEntityUid, UID programUid, String reason)
       throws ForbiddenException, BadRequestException {
     if (trackedEntityUid == null) {
-      throw new BadRequestException("Provided tracked entity can't be null.");
+      throw new BadRequestException(
+          "Temporary ownership not created. Provided tracked entity can't be null.");
     }
     UserDetails user = getCurrentUserDetails();
     // TODO(tracker) jdbc-hibernate: check the impact on performance
@@ -308,13 +300,21 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
         getOwner(trackedEntity, program, trackedEntity::getOrganisationUnit).getStoredPath());
   }
 
-  @Override
-  public String getOwnershipCacheKey(TrackedEntity trackedEntity, Program program) {
+  /**
+   * Returns key used to store and retrieve cached records for ownership
+   *
+   * @return a String representing a record of ownership
+   */
+  private String getOwnershipCacheKey(TrackedEntity trackedEntity, Program program) {
     return trackedEntity.getUid() + "_" + program.getUid();
   }
 
-  @Override
-  public String getTempOwnershipCacheKey(String teUid, String programUid, String userUid) {
+  /**
+   * Returns key used to store and retrieve cached records for ownership
+   *
+   * @return a String representing a record of ownership
+   */
+  private String getTempOwnershipCacheKey(String teUid, String programUid, String userUid) {
     return teUid + "-" + programUid + "-" + userUid;
   }
 

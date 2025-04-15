@@ -360,7 +360,9 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
                 trackerOwnershipManager.grantTemporaryOwnership(
                     null, UID.of(programA), "test temporary ownership"));
 
-    assertEquals("Provided tracked entity can't be null.", exception.getMessage());
+    assertEquals(
+        "Temporary ownership not created. Provided tracked entity can't be null.",
+        exception.getMessage());
   }
 
   @Test

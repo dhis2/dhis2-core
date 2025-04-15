@@ -96,18 +96,4 @@ public interface TrackerOwnershipManager {
    * @return true if the owner is in the search scope, false otherwise
    */
   boolean isOwnerInUserSearchScope(UserDetails user, TrackedEntity trackedEntity, Program program);
-
-  /**
-   * Returns key used to store and retrieve cached records for ownership
-   *
-   * @return a String representing a record of ownership
-   */
-  String getOwnershipCacheKey(TrackedEntity trackedEntity, Program program);
-
-  /**
-   * Returns key used to store and retrieve cached records for ownership
-   *
-   * @return a String representing a record of ownership
-   */
-  String getTempOwnershipCacheKey(String teUid, String programUid, String userUid);
 }
