@@ -191,7 +191,7 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
 
   @Test
   @Timeout(value = 20, unit = TimeUnit.SECONDS)
-  void testShouldGetScheduledNotificationInstanceWithoutTimeout() {
+  void testShouldGetAndSendScheduledNotificationInstanceWithoutTimeout() {
     List<ProgramNotificationInstance> instances = programNotificationInstanceService.getAll();
     assertEquals(
         2, instances.size(), "Expected 2 rule effects for scheduled messages " + instances);
