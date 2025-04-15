@@ -87,7 +87,6 @@ public class AggregationLevelsHelper {
 
   /** Fetches all column names from the target table. */
   private List<String> getColumnNames(Table table) {
-
     if (table.getColumns().isEmpty()) {
       Table parent = table.getParent();
       if (parent != null) {
@@ -146,7 +145,6 @@ public class AggregationLevelsHelper {
    * @param aggregationLevel the maximum oulevel to retain; higher levels will be nullified
    */
   void withInsertAndDelete(Table table, Collection<String> dataElements, int aggregationLevel) {
-
     String mainTable = table.getName();
     String stagingTable = mainTable + "_staging_" + System.currentTimeMillis();
 
@@ -241,7 +239,6 @@ public class AggregationLevelsHelper {
    * @param aggregationLevel the maximum oulevel to retain; higher levels will be nullified
    */
   void withUpdate(Table table, Collection<String> dataElements, int aggregationLevel) {
-
     StringBuilder sql = new StringBuilder("update ${tableName} set ");
 
     for (int i = 0; i < aggregationLevel; i++) {
