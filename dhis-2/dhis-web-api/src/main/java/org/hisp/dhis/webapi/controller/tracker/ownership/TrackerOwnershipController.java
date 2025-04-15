@@ -41,7 +41,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.tracker.acl.TrackerOwnershipTransferManager;
+import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +63,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class TrackerOwnershipController {
 
-  @Autowired private TrackerOwnershipTransferManager trackerOwnershipTransferManager;
+  @Autowired private TrackerOwnershipManager trackerOwnershipManager;
 
   @Autowired protected FieldFilterService fieldFilterService;
 
@@ -79,7 +79,7 @@ public class TrackerOwnershipController {
   public WebMessage updateTrackerProgramOwner(
       @RequestParam UID trackedEntity, @RequestParam UID program, @RequestParam UID orgUnit)
       throws ForbiddenException, NotFoundException, BadRequestException {
-    trackerOwnershipTransferManager.transferOwnership(trackedEntity, program, orgUnit);
+    trackerOwnershipManager.transferOwnership(trackedEntity, program, orgUnit);
 
     return ok("Ownership transferred");
   }
@@ -89,7 +89,7 @@ public class TrackerOwnershipController {
   public WebMessage grantTemporaryAccess(
       @RequestParam UID trackedEntity, @RequestParam String reason, @RequestParam UID program)
       throws ForbiddenException, BadRequestException {
-    trackerOwnershipTransferManager.grantTemporaryOwnership(trackedEntity, program, reason);
+    trackerOwnershipManager.grantTemporaryOwnership(trackedEntity, program, reason);
 
     return ok("Temporary Ownership granted");
   }

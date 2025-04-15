@@ -60,7 +60,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
-import org.hisp.dhis.tracker.acl.TrackerOwnershipAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityEnrollmentParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
@@ -75,9 +75,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-class TrackerOwnershipAccessManagerTest extends PostgresIntegrationTestBase {
+class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
 
-  @Autowired private TrackerOwnershipAccessManager trackerOwnershipAccessManager;
+  @Autowired private TrackerOwnershipManager trackerOwnershipManager;
 
   @Autowired
   private org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService trackedEntityService;
@@ -202,9 +202,9 @@ class TrackerOwnershipAccessManagerTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldHaveAccessWhenProgramProtectedAndUserInCaptureScope() {
-    assertTrue(trackerOwnershipAccessManager.hasAccess(userDetailsA, trackedEntityA1, programA));
+    assertTrue(trackerOwnershipManager.hasAccess(userDetailsA, trackedEntityA1, programA));
     assertTrue(
-        trackerOwnershipAccessManager.hasAccess(
+        trackerOwnershipManager.hasAccess(
             userDetailsA,
             trackedEntityA1.getUid(),
             trackedEntityA1.getOrganisationUnit(),
@@ -213,9 +213,9 @@ class TrackerOwnershipAccessManagerTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldNotHaveAccessWhenProgramProtectedAndUserNotInSearchScopeNorHasTemporaryAccess() {
-    assertFalse(trackerOwnershipAccessManager.hasAccess(userDetailsB, trackedEntityA1, programA));
+    assertFalse(trackerOwnershipManager.hasAccess(userDetailsB, trackedEntityA1, programA));
     assertFalse(
-        trackerOwnershipAccessManager.hasAccess(
+        trackerOwnershipManager.hasAccess(
             UserDetails.fromUser(userB),
             trackedEntityA1.getUid(),
             trackedEntityA1.getOrganisationUnit(),
@@ -238,10 +238,9 @@ class TrackerOwnershipAccessManagerTest extends PostgresIntegrationTestBase {
     userB.setTeiSearchOrganisationUnits(Set.of(organisationUnitA));
     userService.updateUser(userB);
     assertFalse(
-        trackerOwnershipAccessManager.hasAccess(
-            UserDetails.fromUser(userB), trackedEntityA1, programA));
+        trackerOwnershipManager.hasAccess(UserDetails.fromUser(userB), trackedEntityA1, programA));
     assertFalse(
-        trackerOwnershipAccessManager.hasAccess(
+        trackerOwnershipManager.hasAccess(
             UserDetails.fromUser(userB),
             trackedEntityA1.getUid(),
             trackedEntityA1.getOrganisationUnit(),
@@ -261,9 +260,9 @@ class TrackerOwnershipAccessManagerTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldHaveAccessWhenProgramClosedAndUserInCaptureScope() {
-    assertTrue(trackerOwnershipAccessManager.hasAccess(userDetailsB, trackedEntityB1, programB));
+    assertTrue(trackerOwnershipManager.hasAccess(userDetailsB, trackedEntityB1, programB));
     assertTrue(
-        trackerOwnershipAccessManager.hasAccess(
+        trackerOwnershipManager.hasAccess(
             userDetailsB,
             trackedEntityB1.getUid(),
             trackedEntityB1.getOrganisationUnit(),

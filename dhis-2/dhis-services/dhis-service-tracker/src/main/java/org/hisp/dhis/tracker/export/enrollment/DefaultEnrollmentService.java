@@ -54,8 +54,8 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.acl.TrackerDataAccessManager;
-import org.hisp.dhis.tracker.acl.TrackerOwnershipAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
@@ -74,11 +74,11 @@ class DefaultEnrollmentService implements EnrollmentService {
 
   private final RelationshipService relationshipService;
 
-  private final TrackerOwnershipAccessManager trackerOwnershipAccessManager;
+  private final TrackerOwnershipManager trackerOwnershipManager;
 
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
-  private final TrackerDataAccessManager trackerDataAccessManager;
+  private final TrackerAccessManager trackerAccessManager;
 
   private final EnrollmentOperationParamsMapper paramsMapper;
 
@@ -265,11 +265,9 @@ class DefaultEnrollmentService implements EnrollmentService {
     for (Enrollment enrollment : enrollments) {
       if (enrollment != null
           && (orgUnitMode == ALL
-              || trackerOwnershipAccessManager.hasAccess(
+              || trackerOwnershipManager.hasAccess(
                   currentUser, enrollment.getTrackedEntity(), enrollment.getProgram()))
-          && trackerDataAccessManager
-              .canRead(currentUser, enrollment, orgUnitMode == ALL)
-              .isEmpty()) {
+          && trackerAccessManager.canRead(currentUser, enrollment, orgUnitMode == ALL).isEmpty()) {
         enrollmentList.add(getEnrollment(enrollment, params, includeDeleted));
       }
     }

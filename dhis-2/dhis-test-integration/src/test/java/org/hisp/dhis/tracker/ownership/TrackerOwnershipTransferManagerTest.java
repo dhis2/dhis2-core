@@ -69,8 +69,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
-import org.hisp.dhis.tracker.acl.TrackerOwnershipAccessManager;
-import org.hisp.dhis.tracker.acl.TrackerOwnershipTransferManager;
+import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityEnrollmentParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
@@ -88,9 +87,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
 
-  @Autowired private TrackerOwnershipAccessManager trackerOwnershipAccessManager;
-
-  @Autowired private TrackerOwnershipTransferManager trackerOwnershipTransferManager;
+  @Autowired private TrackerOwnershipManager trackerOwnershipManager;
 
   @Autowired
   private org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService trackedEntityService;
@@ -205,13 +202,13 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
   @Test
   void shouldFailWhenGrantingTemporaryOwnershipAndUserNotInSearchScope() {
     injectSecurityContext(userDetailsB);
-    assertTrue(trackerOwnershipAccessManager.hasAccess(userDetailsA, trackedEntityA1, programA));
-    assertFalse(trackerOwnershipAccessManager.hasAccess(userDetailsB, trackedEntityA1, programA));
+    assertTrue(trackerOwnershipManager.hasAccess(userDetailsA, trackedEntityA1, programA));
+    assertFalse(trackerOwnershipManager.hasAccess(userDetailsB, trackedEntityA1, programA));
     Exception exception =
         assertThrows(
             ForbiddenException.class,
             () ->
-                trackerOwnershipTransferManager.grantTemporaryOwnership(
+                trackerOwnershipManager.grantTemporaryOwnership(
                     UID.of(trackedEntityA1), UID.of(programA), "testing reason"));
 
     assertEquals(
@@ -273,12 +270,12 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
     userDetailsB = UserDetails.fromUser(userB);
     injectSecurityContext(userDetailsB);
 
-    trackerOwnershipTransferManager.grantTemporaryOwnership(
+    trackerOwnershipManager.grantTemporaryOwnership(
         UID.of(trackedEntityA1), UID.of(programA), "test protected program");
 
-    assertTrue(trackerOwnershipAccessManager.hasAccess(userDetailsB, trackedEntityA1, programA));
+    assertTrue(trackerOwnershipManager.hasAccess(userDetailsB, trackedEntityA1, programA));
     assertTrue(
-        trackerOwnershipAccessManager.hasAccess(
+        trackerOwnershipManager.hasAccess(
             userDetailsB,
             trackedEntityA1.getUid(),
             trackedEntityA1.getOrganisationUnit(),
@@ -300,7 +297,7 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
         assertThrows(
             ForbiddenException.class,
             () ->
-                trackerOwnershipTransferManager.grantTemporaryOwnership(
+                trackerOwnershipManager.grantTemporaryOwnership(
                     UID.of(trackedEntityA1), UID.of(program), "test temporary ownership"));
 
     assertContains(
@@ -313,7 +310,7 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
         assertThrows(
             ForbiddenException.class,
             () ->
-                trackerOwnershipTransferManager.grantTemporaryOwnership(
+                trackerOwnershipManager.grantTemporaryOwnership(
                     UID.of(trackedEntityA1), UID.of(programA), "test temporary ownership"));
 
     assertEquals(
@@ -327,7 +324,7 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
         Assertions.assertThrows(
             BadRequestException.class,
             () ->
-                trackerOwnershipTransferManager.grantTemporaryOwnership(
+                trackerOwnershipManager.grantTemporaryOwnership(
                     UID.of(trackedEntityA1), null, "test temporary ownership"));
 
     assertEquals("Provided program can't be null.", exception.getMessage());
@@ -345,7 +342,7 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
         Assertions.assertThrows(
             BadRequestException.class,
             () ->
-                trackerOwnershipTransferManager.grantTemporaryOwnership(
+                trackerOwnershipManager.grantTemporaryOwnership(
                     UID.of(trackedEntityA1), UID.of(eventProgram), "test temporary ownership"));
 
     assertEquals(
@@ -360,7 +357,7 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
         assertThrows(
             BadRequestException.class,
             () ->
-                trackerOwnershipTransferManager.grantTemporaryOwnership(
+                trackerOwnershipManager.grantTemporaryOwnership(
                     null, UID.of(programA), "test temporary ownership"));
 
     assertEquals("Provided tracked entity can't be null.", exception.getMessage());
@@ -376,7 +373,7 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
         assertThrows(
             BadRequestException.class,
             () ->
-                trackerOwnershipTransferManager.grantTemporaryOwnership(
+                trackerOwnershipManager.grantTemporaryOwnership(
                     UID.of(trackedEntityA1), UID.of(programA), "test temporary ownership"));
 
     assertStartsWith(
@@ -396,7 +393,7 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
         assertThrows(
             ForbiddenException.class,
             () ->
-                trackerOwnershipTransferManager.grantTemporaryOwnership(
+                trackerOwnershipManager.grantTemporaryOwnership(
                     UID.of(trackedEntityA1), UID.of(programA), "test temporary ownership"));
 
     assertStartsWith(
@@ -418,7 +415,7 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
         assertThrows(
             ForbiddenException.class,
             () ->
-                trackerOwnershipTransferManager.grantTemporaryOwnership(
+                trackerOwnershipManager.grantTemporaryOwnership(
                     UID.of(trackedEntityA1), UID.of(programA), "test temporary ownership"));
 
     assertStartsWith(
@@ -542,7 +539,7 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
         assertThrows(
             ForbiddenException.class,
             () ->
-                trackerOwnershipTransferManager.transferOwnership(
+                trackerOwnershipManager.transferOwnership(
                     UID.of(trackedEntityA1), UID.of(programA), madeUpOrgUnit));
     assertEquals("Org unit supplied does not exist.", exception.getMessage());
   }
@@ -550,7 +547,7 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
   private void transferOwnership(
       TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit)
       throws ForbiddenException, BadRequestException, NotFoundException {
-    trackerOwnershipTransferManager.transferOwnership(
+    trackerOwnershipManager.transferOwnership(
         UID.of(trackedEntity), UID.of(program), UID.of(orgUnit));
   }
 

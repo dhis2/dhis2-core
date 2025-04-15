@@ -47,7 +47,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.acl.TrackerDataAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Service;
@@ -59,7 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultRelationshipService implements RelationshipService {
   private static final RelationshipItemMapper RELATIONSHIP_ITEM_MAPPER =
       Mappers.getMapper(RelationshipItemMapper.class);
-  private final TrackerDataAccessManager trackerDataAccessManager;
+  private final TrackerAccessManager trackerAccessManager;
   private final HibernateRelationshipStore relationshipStore;
   private final RelationshipOperationParamsMapper mapper;
 
@@ -84,7 +84,7 @@ public class DefaultRelationshipService implements RelationshipService {
                     || ri.getRelationship().getRelationshipType().isBidirectional())
         .filter(
             ri ->
-                trackerDataAccessManager
+                trackerAccessManager
                     .canRead(CurrentUserUtil.getCurrentUserDetails(), ri.getRelationship())
                     .isEmpty())
         .map(RELATIONSHIP_ITEM_MAPPER::map)
@@ -167,7 +167,7 @@ public class DefaultRelationshipService implements RelationshipService {
   private List<Relationship> map(List<Relationship> relationships) {
     List<Relationship> result = new ArrayList<>(relationships.size());
     for (Relationship relationship : relationships) {
-      if (trackerDataAccessManager
+      if (trackerAccessManager
           .canRead(CurrentUserUtil.getCurrentUserDetails(), relationship)
           .isEmpty()) {
         result.add(map(relationship));

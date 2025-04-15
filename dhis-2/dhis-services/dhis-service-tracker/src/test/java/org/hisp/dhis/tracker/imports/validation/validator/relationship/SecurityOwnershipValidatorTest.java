@@ -43,7 +43,7 @@ import java.util.List;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.acl.TrackerDataAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -67,7 +67,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
   @Mock private TrackerPreheat preheat;
 
-  @Mock private TrackerDataAccessManager trackerDataAccessManager;
+  @Mock private TrackerAccessManager trackerAccessManager;
 
   private org.hisp.dhis.relationship.Relationship convertedRelationship;
 
@@ -77,7 +77,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
   @BeforeEach
   public void setUp() {
-    validator = new SecurityOwnershipValidator(trackerDataAccessManager);
+    validator = new SecurityOwnershipValidator(trackerAccessManager);
     MetadataIdentifier relationshipTypeUid = MetadataIdentifier.ofUid("relationshipType");
 
     when(bundle.getPreheat()).thenReturn(preheat);
@@ -105,7 +105,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     SystemUser user = new SystemUser();
     when(bundle.getStrategy(relationship)).thenReturn(CREATE);
     when(bundle.getUser()).thenReturn(user);
-    when(trackerDataAccessManager.canWrite(any(), eq(convertedRelationship))).thenReturn(List.of());
+    when(trackerAccessManager.canWrite(any(), eq(convertedRelationship))).thenReturn(List.of());
 
     validator.validate(reporter, bundle, relationship);
 
@@ -117,7 +117,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
     SystemUser user = new SystemUser();
     when(bundle.getStrategy(relationship)).thenReturn(CREATE);
     when(bundle.getUser()).thenReturn(user);
-    when(trackerDataAccessManager.canWrite(any(), eq(convertedRelationship)))
+    when(trackerAccessManager.canWrite(any(), eq(convertedRelationship)))
         .thenReturn(List.of("error"));
 
     validator.validate(reporter, bundle, relationship);
@@ -129,8 +129,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
   void shouldDeleteWhenUserHasWriteAccessToRelationship() {
     when(bundle.getStrategy(relationship)).thenReturn(DELETE);
     when(preheat.getRelationship(relationship)).thenReturn(convertedRelationship);
-    when(trackerDataAccessManager.canDelete(any(), eq(convertedRelationship)))
-        .thenReturn(List.of());
+    when(trackerAccessManager.canDelete(any(), eq(convertedRelationship))).thenReturn(List.of());
 
     validator.validate(reporter, bundle, relationship);
 
@@ -141,7 +140,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
   void shouldFailToDeleteWhenUserHasNoWriteAccessToRelationship() {
     when(bundle.getStrategy(relationship)).thenReturn(DELETE);
     when(preheat.getRelationship(relationship)).thenReturn(convertedRelationship);
-    when(trackerDataAccessManager.canDelete(any(), eq(convertedRelationship)))
+    when(trackerAccessManager.canDelete(any(), eq(convertedRelationship)))
         .thenReturn(List.of("error"));
 
     validator.validate(reporter, bundle, relationship);

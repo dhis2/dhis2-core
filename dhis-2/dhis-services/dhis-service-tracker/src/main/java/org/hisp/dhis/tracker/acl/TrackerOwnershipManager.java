@@ -29,6 +29,10 @@
  */
 package org.hisp.dhis.tracker.acl;
 
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
@@ -38,9 +42,23 @@ import org.hisp.dhis.user.UserDetails;
 /**
  * @author Ameen Mohamed
  */
-public interface TrackerOwnershipAccessManager {
+public interface TrackerOwnershipManager {
   String OWNERSHIP_ACCESS_DENIED = "OWNERSHIP_ACCESS_DENIED";
   String NO_READ_ACCESS_TO_ORG_UNIT = "User has no read access to organisation unit";
+
+  /** Transfers the ownership of the given TE - program pair, to the specified org unit. */
+  void transferOwnership(UID trackedEntityUid, UID programUid, UID orgUnitUid)
+      throws ForbiddenException, BadRequestException, NotFoundException;
+
+  /**
+   * Grant temporary ownership for a user for a specific tracked entity - program combination
+   *
+   * @param trackedEntityUid The UID of the tracked entity object
+   * @param programUid The UID of the program object
+   * @param reason The reason for requesting temporary ownership
+   */
+  void grantTemporaryOwnership(UID trackedEntityUid, UID programUid, String reason)
+      throws ForbiddenException, BadRequestException;
 
   /**
    * Check whether the user has access (as owner or has temporarily broken the glass) to the tracked

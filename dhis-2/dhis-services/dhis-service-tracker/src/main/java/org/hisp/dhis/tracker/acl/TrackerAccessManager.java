@@ -44,7 +44,7 @@ import org.hisp.dhis.user.UserDetails;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface TrackerDataAccessManager {
+public interface TrackerAccessManager {
   /**
    * Check the data read permissions and ownership of a tracked entity given the programs for which
    * the user has metadata access to.

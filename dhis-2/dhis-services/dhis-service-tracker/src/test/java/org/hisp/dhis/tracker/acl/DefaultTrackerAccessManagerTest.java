@@ -49,9 +49,9 @@ import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DefaultTrackerDataAccessManagerTest {
+class DefaultTrackerAccessManagerTest {
 
-  @InjectMocks private DefaultTrackerDataAccessManager trackerAccessManager;
+  @InjectMocks private DefaultTrackerAccessManager trackerAccessManager;
 
   private Program program;
 

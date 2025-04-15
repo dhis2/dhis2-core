@@ -39,7 +39,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.tracker.acl.TrackerDataAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.stereotype.Component;
 
@@ -52,7 +52,7 @@ import org.springframework.stereotype.Component;
 class RelationshipOperationParamsMapper {
 
   private final HibernateRelationshipStore relationshipStore;
-  private final TrackerDataAccessManager trackerDataAccessManager;
+  private final TrackerAccessManager trackerAccessManager;
 
   public RelationshipQueryParams map(@Nonnull RelationshipOperationParams params)
       throws NotFoundException, ForbiddenException {
@@ -83,7 +83,7 @@ class RelationshipOperationParamsMapper {
         relationshipStore
             .findTrackedEntity(trackedEntityUid, includeDeleted)
             .orElseThrow(() -> new NotFoundException(TrackedEntity.class, trackedEntityUid));
-    if (!trackerDataAccessManager
+    if (!trackerAccessManager
         .canRead(CurrentUserUtil.getCurrentUserDetails(), trackedEntity)
         .isEmpty()) {
       throw new ForbiddenException(TrackedEntity.class, trackedEntityUid);
@@ -97,7 +97,7 @@ class RelationshipOperationParamsMapper {
         relationshipStore
             .findEnrollment(enrollmentUid, includeDeleted)
             .orElseThrow(() -> new NotFoundException(Enrollment.class, enrollmentUid));
-    if (!trackerDataAccessManager
+    if (!trackerAccessManager
         .canRead(CurrentUserUtil.getCurrentUserDetails(), enrollment, false)
         .isEmpty()) {
       throw new ForbiddenException(Enrollment.class, enrollmentUid);
@@ -111,7 +111,7 @@ class RelationshipOperationParamsMapper {
         relationshipStore
             .findEvent(eventUid, includeDeleted)
             .orElseThrow(() -> new NotFoundException(Event.class, eventUid));
-    if (!trackerDataAccessManager
+    if (!trackerAccessManager
         .canRead(CurrentUserUtil.getCurrentUserDetails(), event, false)
         .isEmpty()) {
       throw new ForbiddenException(Event.class, eventUid);

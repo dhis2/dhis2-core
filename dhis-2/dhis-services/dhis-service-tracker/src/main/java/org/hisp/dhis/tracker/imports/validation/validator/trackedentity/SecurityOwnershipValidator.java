@@ -38,7 +38,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.acl.TrackerDataAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
@@ -59,7 +59,7 @@ class SecurityOwnershipValidator
     implements Validator<org.hisp.dhis.tracker.imports.domain.TrackedEntity> {
   @Nonnull private final AclService aclService;
 
-  @Nonnull private final TrackerDataAccessManager trackerDataAccessManager;
+  @Nonnull private final TrackerAccessManager trackerAccessManager;
 
   @Override
   public void validate(
@@ -95,7 +95,7 @@ class SecurityOwnershipValidator
 
     if (!strategy.isCreate()) {
       TrackedEntity te = bundle.getPreheat().getTrackedEntity(trackedEntity.getTrackedEntity());
-      if (!trackerDataAccessManager.canWrite(user, te).isEmpty()) {
+      if (!trackerAccessManager.canWrite(user, te).isEmpty()) {
         reporter.addError(trackedEntity, ValidationCode.E1003, user.getUid(), te.getUid());
       }
     }
