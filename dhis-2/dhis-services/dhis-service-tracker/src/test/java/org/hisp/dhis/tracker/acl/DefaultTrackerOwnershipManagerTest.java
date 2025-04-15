@@ -118,17 +118,17 @@ class DefaultTrackerOwnershipManagerTest {
 
     trackerOwnershipManager =
         new DefaultTrackerOwnershipManager(
+            userService,
             trackedEntityProgramOwnerService,
             cacheProvider,
+            programTempOwnershipAuditService,
             programTempOwnerService,
+            programOwnershipHistoryService,
             programService,
             trackerProgramService,
             organisationUnitService,
-            programOwnershipHistoryService,
-            userService,
-            programTempOwnershipAuditService,
-            aclService,
-            manager);
+            manager,
+            aclService);
 
     orgUnit = createOrganisationUnit("org unit");
     orgUnit.setPath(orgUnit.getUid());

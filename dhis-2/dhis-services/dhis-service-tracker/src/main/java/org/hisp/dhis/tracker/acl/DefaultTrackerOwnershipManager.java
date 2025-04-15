@@ -70,41 +70,41 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   private static final int TEMPORARY_OWNERSHIP_VALIDITY_IN_HOURS = 3;
 
   private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
+  private final ProgramTempOwnershipAuditService programTempOwnershipAuditService;
   private final ProgramTempOwnerService programTempOwnerService;
-  private final ProgramService programService;
   private final TrackerProgramService trackerProgramService;
   private final OrganisationUnitService organisationUnitService;
   private final ProgramOwnershipHistoryService programOwnershipHistoryService;
   private final UserService userService;
-  private final ProgramTempOwnershipAuditService programTempOwnershipAuditService;
-  private final AclService aclService;
+  private final ProgramService programService;
   private final IdentifiableObjectManager manager;
+  private final AclService aclService;
 
   public DefaultTrackerOwnershipManager(
+      UserService userService,
       TrackedEntityProgramOwnerService trackedEntityProgramOwnerService,
       CacheProvider cacheProvider,
+      ProgramTempOwnershipAuditService programTempOwnershipAuditService,
       ProgramTempOwnerService programTempOwnerService,
+      ProgramOwnershipHistoryService programOwnershipHistoryService,
       ProgramService programService,
       TrackerProgramService trackerProgramService,
       OrganisationUnitService organisationUnitService,
-      ProgramOwnershipHistoryService programOwnershipHistoryService,
-      UserService userService,
-      ProgramTempOwnershipAuditService programTempOwnershipAuditService,
-      AclService aclService,
-      IdentifiableObjectManager manager) {
+      IdentifiableObjectManager manager,
+      AclService aclService) {
 
+    this.userService = userService;
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
+    this.programTempOwnershipAuditService = programTempOwnershipAuditService;
+    this.programOwnershipHistoryService = programOwnershipHistoryService;
     this.programTempOwnerService = programTempOwnerService;
     this.programService = programService;
     this.trackerProgramService = trackerProgramService;
     this.organisationUnitService = organisationUnitService;
-    this.programOwnershipHistoryService = programOwnershipHistoryService;
-    this.userService = userService;
-    this.programTempOwnershipAuditService = programTempOwnershipAuditService;
-    this.aclService = aclService;
     this.manager = manager;
     this.ownerCache = cacheProvider.createProgramOwnerCache();
     this.tempOwnerCache = cacheProvider.createProgramTempOwnerCache();
+    this.aclService = aclService;
   }
 
   /** Cache for storing recent ownership checks */
