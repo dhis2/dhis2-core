@@ -459,18 +459,16 @@ public final class GistQuery {
   @Getter
   @AllArgsConstructor(access = AccessLevel.PRIVATE)
   public static final class Filter {
+
     @JsonProperty private final int group;
-
     @JsonProperty private final String propertyPath;
-
     @JsonProperty private final Comparison operator;
-
     @JsonProperty private final String[] value;
-
     @JsonProperty private final boolean attribute;
+    @JsonProperty private final boolean subSelect;
 
     public Filter(String propertyPath, Comparison operator, String... value) {
-      this(0, propertyPath, operator, value, false);
+      this(0, propertyPath, operator, value, false, false);
     }
 
     public Filter withPropertyPath(String path) {
@@ -481,14 +479,25 @@ public final class GistQuery {
       return new Filter(propertyPath, operator, value);
     }
 
+    /**
+     * @return A new filter modified to be considered an attribute value match for the UID given by
+     *     the path
+     */
     public Filter asAttribute() {
-      return new Filter(group, propertyPath, operator, value, true);
+      return new Filter(group, propertyPath, operator, value, true, subSelect);
+    }
+
+    /**
+     * @return a new filter modified to use a sub-select query to match
+     */
+    public Filter asSubSelect() {
+      return new Filter(group, propertyPath, operator, value, attribute, true);
     }
 
     public Filter inGroup(int group) {
       return group == this.group
           ? this
-          : new Filter(group, propertyPath, operator, value, attribute);
+          : new Filter(group, propertyPath, operator, value, attribute, subSelect);
     }
 
     /**
