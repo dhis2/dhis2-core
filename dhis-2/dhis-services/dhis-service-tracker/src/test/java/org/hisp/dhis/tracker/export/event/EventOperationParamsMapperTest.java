@@ -81,9 +81,10 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.tracker.export.JdbcPredicate;
+import org.hisp.dhis.tracker.export.JdbcPredicate.Parameter;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.tracker.export.event.JdbcPredicate.Parameter;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
@@ -560,17 +561,17 @@ class EventOperationParamsMapperTest {
 
   private static void assertQueryFilterValue(
       JdbcPredicate actual, String sqlOperator, SqlParameterValue value) {
-    assertContains(sqlOperator, actual.sql());
+    assertContains(sqlOperator, actual.getSql());
 
     if (value != null) {
-      assertTrue(actual.parameter().isPresent(), "expected a parameter but got none");
-      Parameter parameter = actual.parameter().get();
+      assertTrue(actual.getParameter().isPresent(), "expected a getParameter but got none");
+      Parameter parameter = actual.getParameter().get();
       assertEquals(value.getSqlType(), parameter.value().getSqlType());
       assertEquals(value.getValue(), parameter.value().getValue());
     } else {
       assertTrue(
-          actual.parameter().isEmpty(),
-          () -> "parameter should be empty but got " + actual.parameter().get());
+          actual.getParameter().isEmpty(),
+          () -> "getParameter should be empty but got " + actual.getParameter().get());
     }
   }
 }

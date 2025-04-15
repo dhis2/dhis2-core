@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.tracker.export;
 
 import static org.hisp.dhis.common.QueryFilter.affixLikeWildcards;
 import static org.hisp.dhis.system.util.SqlUtils.escapeLikeWildcards;
@@ -36,8 +36,12 @@ import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import java.sql.Types;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import javax.annotation.Nonnull;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
@@ -53,9 +57,9 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 /**
  * JdbcPredicate turns a {@link QueryFilter} on a data element or tracked entity attribute into a
  * SQL predicate with an optional JDBC parameter (right-hand side operand of the SQL operator). The
- * {@link #sql()} can be inserted into a SQL statement where clause. User input in the {@link
- * QueryFilter#getFilter()} is transformed into the {@link #parameter()}. Non-unary operators will
- * have a parameter which must be added to the JDBC template parameter source like {@link
+ * {@link #getSql()} can be inserted into a SQL statement where clause. User input in the {@link
+ * QueryFilter#getFilter()} is transformed into the {@link #getParameter()}. Non-unary operators
+ * will have a parameter which must be added to the JDBC template parameter source like {@link
  * MapSqlParameterSource}!
  *
  * <p>These are some of the transformations we need to do on user input
@@ -81,9 +85,18 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  * JdbcPredicate ensures we never pass a collection with multiple elements to such operators as this
  * leads to a {@code BadSqlGrammarException}.
  */
-record JdbcPredicate(String sql, Optional<Parameter> parameter) {
-  record Parameter(String name, SqlParameterValue value) {}
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@Value
+public class JdbcPredicate {
+  String sql;
+  Optional<Parameter> parameter;
 
+  public record Parameter(String name, SqlParameterValue value) {}
+
+  /**
+   * The SQL generated for tracked entity attributes expects a table alias of the tracked entity
+   * attribute {@code UID} to access the attribute value using {@code 'uid'.value}.
+   */
   public static JdbcPredicate of(@Nonnull TrackedEntityAttribute tea, @Nonnull QueryFilter filter) {
     Parameter parameter = parseFilterValue(tea, filter);
     String sql = generateSql(tea, filter, parameter);
@@ -118,7 +131,7 @@ record JdbcPredicate(String sql, Optional<Parameter> parameter) {
       values = List.of(value);
     }
 
-    ValueType.SqlType<?> sqlType =
+    SqlType<?> sqlType =
         operator.isCastOperand()
             ? valueTypedObject.getValueType().getSqlType()
             : ValueType.JAVA_TO_SQL_TYPES.get(String.class);
@@ -136,9 +149,7 @@ record JdbcPredicate(String sql, Optional<Parameter> parameter) {
   }
 
   private static Object convertValues(
-      ValueTypedDimensionalItemObject valueTypeObject,
-      ValueType.SqlType<?> sqlType,
-      List<String> values) {
+      ValueTypedDimensionalItemObject valueTypeObject, SqlType<?> sqlType, List<String> values) {
     return values.stream()
         .map(
             value -> {
@@ -201,7 +212,7 @@ record JdbcPredicate(String sql, Optional<Parameter> parameter) {
     String leftOperand;
     if (operator.isUnary()) {
       // `ev.eventdatavalues->'vANAXwtLwcT'` is not null is different from `lower(ev.eventdatavalues
-      // #>> '{deabcdefghB, value}') is not null`
+      // #>> '{vANAXwtLwcT, value}') is not null`
       leftOperand = table + ".eventdatavalues -> '" + de.getUid() + "'";
     } else if (operator.isCastOperand() && de.getValueType().getSqlType().type() != Types.VARCHAR) {
       SqlType<?> sqlType = de.getValueType().getSqlType();
@@ -226,5 +237,38 @@ record JdbcPredicate(String sql, Optional<Parameter> parameter) {
     }
 
     return " :" + name;
+  }
+
+  /**
+   * Map a list of predicates to a compound predicate adding any named parameters to the given
+   * parameter source.
+   *
+   * <p>You need to make sure to prefix the resulting SQL with {@code and} or suffix with a space or
+   * {@code and} if needed.
+   */
+  @Nonnull
+  public static <T extends ValueTypedDimensionalItemObject> String mapPredicatesToSql(
+      @Nonnull Map<T, List<JdbcPredicate>> predicates,
+      @Nonnull MapSqlParameterSource sqlParameters) {
+    boolean first = true;
+    StringBuilder sql = new StringBuilder();
+    for (List<JdbcPredicate> values : predicates.values()) {
+      for (JdbcPredicate predicate : values) {
+        if (first) {
+          first = false;
+        } else {
+          sql.append(" and ");
+        }
+        sql.append(predicate.getSql());
+
+        predicate
+            .getParameter()
+            .ifPresent(
+                (Parameter parameter) ->
+                    sqlParameters.addValue(parameter.name(), parameter.value()));
+      }
+    }
+
+    return sql.toString();
   }
 }
