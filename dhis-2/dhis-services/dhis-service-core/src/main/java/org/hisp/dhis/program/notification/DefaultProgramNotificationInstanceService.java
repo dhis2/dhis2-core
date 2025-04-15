@@ -121,4 +121,10 @@ public class DefaultProgramNotificationInstanceService
   public void delete(ProgramNotificationInstance programNotificationInstance) {
     notificationInstanceStore.delete(programNotificationInstance);
   }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<ProgramNotificationInstance> getAll() {
+    return notificationInstanceStore.getAll();
+  }
 }
