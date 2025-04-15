@@ -46,13 +46,13 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.util.ObjectUtils;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.tracker.export.FilterParser;
 
 /**
