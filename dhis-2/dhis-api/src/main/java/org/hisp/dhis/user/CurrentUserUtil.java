@@ -57,6 +57,8 @@ public class CurrentUserUtil {
       throw new IllegalStateException("No authenticated user found");
     }
 
+    // add comment to test PR in IM
+
     Object principal = authentication.getPrincipal();
 
     if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
