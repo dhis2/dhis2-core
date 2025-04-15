@@ -93,6 +93,10 @@ public class JdbcPredicate {
 
   public record Parameter(String name, SqlParameterValue value) {}
 
+  /**
+   * The SQL generated for tracked entity attributes expects a table alias of the tracked entity
+   * attribute {@code UID} to access the attribute value using {@code 'uid'.value}.
+   */
   public static JdbcPredicate of(@Nonnull TrackedEntityAttribute tea, @Nonnull QueryFilter filter) {
     Parameter parameter = parseFilterValue(tea, filter);
     String sql = generateSql(tea, filter, parameter);
