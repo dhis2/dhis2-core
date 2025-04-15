@@ -27,17 +27,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest;
+package org.hisp.dhis.common;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.SortDirection;
 
 /**
  * This class is used as a container for order parameters and is deserialized from web requests
@@ -63,7 +61,7 @@ public class OrderCriteria {
     return Arrays.stream(s.split(","))
         .filter(StringUtils::isNotBlank)
         .map(OrderCriteria::valueOf)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   /**

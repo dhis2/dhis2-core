@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.acl;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -82,7 +83,8 @@ class TrackerProgramServiceTest extends PostgresIntegrationTestBase {
             "TsngICFQjvH",
             "TsngICFQjvP");
 
-    assertEquals(accessiblePrograms, getUids(trackerProgramService.getAccessibleTrackerPrograms()));
+    assertContainsOnly(
+        accessiblePrograms, getUids(trackerProgramService.getAccessibleTrackerPrograms()));
   }
 
   @Test

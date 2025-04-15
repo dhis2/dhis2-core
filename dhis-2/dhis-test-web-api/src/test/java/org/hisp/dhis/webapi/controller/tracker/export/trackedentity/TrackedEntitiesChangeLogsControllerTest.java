@@ -60,7 +60,7 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
   @Autowired private TestSetup testSetup;
   @Autowired private DhisConfigurationProvider config;
 
-  private final String trackedEntityAttribute = "numericAttr";
+  private final String trackedEntityAttribute = "integerAttr";
   private TrackedEntity trackedEntity;
 
   @BeforeEach
@@ -189,19 +189,19 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
         GET(
                 "/tracker/trackedEntities/{id}/changeLogs?page={page}&pageSize={pageSize}",
                 trackedEntity.getUid(),
-                "5",
+                "6",
                 "1")
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
     JsonPager pager = changeLogs.getPager();
     assertAll(
-        () -> assertEquals(5, pager.getPage()),
+        () -> assertEquals(6, pager.getPage()),
         () -> assertEquals(1, pager.getPageSize()),
         () ->
             assertPagerLink(
                 pager.getPrevPage(),
-                4,
+                5,
                 1,
                 String.format(
                     "http://localhost/api/tracker/trackedEntities/%s/changeLogs",
@@ -217,14 +217,14 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
                 "/tracker/trackedEntities/{id}/changeLogs?page={page}&pageSize={pageSize}",
                 trackedEntity.getUid(),
                 "1",
-                "5")
+                "6")
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
     JsonPager pagerObject = changeLogs.getPager();
     assertAll(
         () -> assertEquals(1, pagerObject.getPage()),
-        () -> assertEquals(5, pagerObject.getPageSize()),
+        () -> assertEquals(6, pagerObject.getPageSize()),
         () -> assertHasNoMember(pagerObject, "prevPage", "nextPage", "total", "pageCount"));
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,40 +27,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest;
+package org.hisp.dhis.dxf2.webmessage.responses;
 
-import java.util.Optional;
-import org.hisp.dhis.common.OpenApi;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import javax.annotation.Nonnull;
+import lombok.Builder;
+import lombok.Data;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
-/**
- * Paging parameters
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
- */
-public interface PagingCriteria {
-  Integer DEFAULT_PAGE = 1;
+@Data
+@Builder
+public class TrackerJobWebMessageResponse implements WebMessageResponse {
 
-  Integer DEFAULT_PAGE_SIZE = 50;
+  @JsonProperty private final String id;
+  @JsonProperty private final String location;
 
-  /** Page number to return. */
-  Integer getPage();
-
-  /** Page size. */
-  Integer getPageSize();
-
-  /** Indicates whether to include the total number of pages in the paging response. */
-  boolean isTotalPages();
-
-  /** Indicates whether paging should be skipped. */
-  Boolean isSkipPaging();
-
-  @OpenApi.Ignore
-  default Integer getFirstResult() {
-    Integer page = Optional.ofNullable(getPage()).filter(p -> p > 0).orElse(DEFAULT_PAGE);
-
-    Integer pageSize =
-        Optional.ofNullable(getPageSize()).filter(ps -> ps > 0).orElse(DEFAULT_PAGE_SIZE);
-
-    return (page - 1) * pageSize;
+  @Nonnull
+  @Override
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return TrackerJobWebMessageResponse.class;
   }
 }
