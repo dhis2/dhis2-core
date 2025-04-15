@@ -119,5 +119,5 @@ public class OutlierDetectionUtils {
    * to double precision. Some edge cases may not be covered by this pattern, but integrity checks
    * can help to identify such cases and fix them.
    */
-  public static final String PG_DOUBLE_REGEX = "^[+-]?([0-9]*[.])?[0-9]+$";
+  public static final String PG_DOUBLE_REGEX = "^-?[0-9]+(\\.[0-9]+)?$";
 }
