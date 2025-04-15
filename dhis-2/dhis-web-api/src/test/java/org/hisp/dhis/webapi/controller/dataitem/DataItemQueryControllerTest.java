@@ -50,7 +50,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dxf2.common.OrderParams;
@@ -99,7 +99,7 @@ class DataItemQueryControllerTest {
     final Map<String, String> anyUrlParameters = new HashMap<>();
     final OrderParams anyOrderParams = new OrderParams();
     final User anyUser = new User();
-    final Set<Class<? extends BaseIdentifiableObject>> targetEntities =
+    final Set<Class<? extends IdentifiableObject>> targetEntities =
         new HashSet<>(singletonList(Indicator.class));
     final List<DataItem> itemsFound = singletonList(new DataItem());
 
@@ -127,7 +127,7 @@ class DataItemQueryControllerTest {
     final Map<String, String> anyUrlParameters = new HashMap<>();
     final OrderParams anyOrderParams = new OrderParams();
     final User anyUser = new User();
-    final Set<Class<? extends BaseIdentifiableObject>> targetEntities =
+    final Set<Class<? extends IdentifiableObject>> targetEntities =
         new HashSet<>(singletonList(Indicator.class));
     final List<DataItem> itemsFound = emptyList();
 
@@ -154,7 +154,7 @@ class DataItemQueryControllerTest {
     final Map<String, String> anyUrlParameters = new HashMap<>();
     final OrderParams anyOrderParams = new OrderParams();
     final User anyUser = new User();
-    final Set<Class<? extends BaseIdentifiableObject>> targetEntities =
+    final Set<Class<? extends IdentifiableObject>> targetEntities =
         new HashSet<>(singletonList(Indicator.class));
     final boolean invalidAcl = false;
 

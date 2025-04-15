@@ -31,7 +31,7 @@ package org.hisp.dhis.eventhook;
 
 import com.google.common.base.CaseFormat;
 import java.util.Map;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobStatus;
 
@@ -39,11 +39,11 @@ import org.hisp.dhis.scheduling.JobStatus;
  * @author Morten Olav Hansen
  */
 public final class EventUtils {
-  public static Event metadataCreate(BaseIdentifiableObject object) {
+  public static Event metadataCreate(IdentifiableObject object) {
     return metadata(object, "create");
   }
 
-  public static Event metadataUpdate(BaseIdentifiableObject object) {
+  public static Event metadataUpdate(IdentifiableObject object) {
     return metadata(object, "update");
   }
 
@@ -57,7 +57,7 @@ public final class EventUtils {
         .build();
   }
 
-  private static Event metadata(BaseIdentifiableObject object, String op) {
+  private static Event metadata(IdentifiableObject object, String op) {
     String name = camelCase(object.getClass().getSimpleName());
 
     return Event.builder()

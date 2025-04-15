@@ -48,8 +48,8 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataapproval.DataApproval;
@@ -762,14 +762,14 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertTrue(
         allCategoryOptionCombos.stream()
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet())
             .contains(cocTarget.getUid()),
         "Target COC should be present");
     assertTrue(
         Collections.disjoint(
             allCategoryOptionCombos.stream()
-                .map(BaseIdentifiableObject::getUid)
+                .map(IdentifiableObject::getUid)
                 .collect(Collectors.toSet()),
             Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())),
         "Source COC should not be present");
@@ -825,7 +825,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertTrue(
         Collections.disjoint(
             allCategoryOptionCombos.stream()
-                .map(BaseIdentifiableObject::getUid)
+                .map(IdentifiableObject::getUid)
                 .collect(Collectors.toSet()),
             Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())),
         "Source COC should not be present");
@@ -885,7 +885,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertTrue(
         Collections.disjoint(
             allCategoryOptionCombos.stream()
-                .map(BaseIdentifiableObject::getUid)
+                .map(IdentifiableObject::getUid)
                 .collect(Collectors.toSet()),
             Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())),
         "Source COC should not be present");
@@ -945,7 +945,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertTrue(
         Collections.disjoint(
             allCategoryOptionCombos.stream()
-                .map(BaseIdentifiableObject::getUid)
+                .map(IdentifiableObject::getUid)
                 .collect(Collectors.toSet()),
             Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())),
         "Source COC should not be present");
@@ -1014,7 +1014,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
         "Target COC should be present");
     assertFalse(
         allCategoryOptionCombos.stream()
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet())
             .contains(cocDuplicate.getUid()),
         "Source COC should not be present");
@@ -1066,14 +1066,14 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertTrue(
         allCategoryOptionCombos.stream()
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet())
             .contains(cocTarget.getUid()),
         "Target COC should be present");
     assertTrue(
         Collections.disjoint(
             allCategoryOptionCombos.stream()
-                .map(BaseIdentifiableObject::getUid)
+                .map(IdentifiableObject::getUid)
                 .collect(Collectors.toSet()),
             Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())),
         "Source COC should not be present");
@@ -1128,7 +1128,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertTrue(
         Collections.disjoint(
             allCategoryOptionCombos.stream()
-                .map(BaseIdentifiableObject::getUid)
+                .map(IdentifiableObject::getUid)
                 .collect(Collectors.toSet()),
             Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())),
         "Source COC should not be present");
@@ -1188,7 +1188,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertTrue(
         Collections.disjoint(
             allCategoryOptionCombos.stream()
-                .map(BaseIdentifiableObject::getUid)
+                .map(IdentifiableObject::getUid)
                 .collect(Collectors.toSet()),
             Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())),
         "Source COC should not be present");
@@ -1248,7 +1248,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertTrue(
         Collections.disjoint(
             allCategoryOptionCombos.stream()
-                .map(BaseIdentifiableObject::getUid)
+                .map(IdentifiableObject::getUid)
                 .collect(Collectors.toSet()),
             Set.of(cocDuplicate.getUid(), cocDuplicate2.getUid())),
         "Source COC should not be present");
@@ -1317,7 +1317,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
         "Target COC should be present");
     assertFalse(
         allCategoryOptionCombos.stream()
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet())
             .contains(cocDuplicate.getUid()),
         "Source COC should not be present");
@@ -1494,7 +1494,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
     assertFalse(
         allCategoryOptionCombos.stream()
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet())
             .contains(cocDuplicate.getUid()),
         "Source COC should not be present");
@@ -1584,7 +1584,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
     assertFalse(
         allCategoryOptionCombos.stream()
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet())
             .contains(cocDuplicate.getUid()),
         "Source COC should not be present");
@@ -1673,7 +1673,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
     assertFalse(
         allCategoryOptionCombos.stream()
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet())
             .contains(cocDuplicate.getUid()),
         "Source COC should not be present");
@@ -1763,7 +1763,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
     assertFalse(
         allCategoryOptionCombos.stream()
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet())
             .contains(cocDuplicate.getUid()),
         "Source COC should not be present");
@@ -1854,7 +1854,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
     assertFalse(
         allCategoryOptionCombos.stream()
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet())
             .contains(cocDuplicate.getUid()),
         "Source COC should not be present");
@@ -1914,7 +1914,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(5, allCategoryOptionCombos.size(), "Expect 5 COCs present");
     assertTrue(
         allCategoryOptionCombos.stream()
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet())
             .contains(cocTarget.getUid()));
     assertCocCountAfterAutoGenerate(5);
@@ -1965,7 +1965,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
     assertFalse(
         allCategoryOptionCombos.stream()
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet())
             .contains(cocDuplicate.getUid()),
         "Source COC should not be present");
@@ -2018,7 +2018,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
     assertFalse(
         allCategoryOptionCombos.stream()
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet())
             .contains(cocDuplicate.getUid()),
         "Source COC should not be present");
@@ -2080,7 +2080,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
     assertFalse(
         allCategoryOptionCombos.stream()
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet())
             .contains(cocDuplicate.getUid()),
         "Source COC should not be present");
@@ -2142,7 +2142,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
     assertFalse(
         allCategoryOptionCombos.stream()
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet())
             .contains(cocDuplicate.getUid()),
         "Source COC should not be present");
@@ -2204,7 +2204,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertTrue(allCategoryOptionCombos.contains(cocTarget), "Target COC should be present");
     assertFalse(
         allCategoryOptionCombos.stream()
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet())
             .contains(cocDuplicate.getUid()),
         "Source COC should not be present");

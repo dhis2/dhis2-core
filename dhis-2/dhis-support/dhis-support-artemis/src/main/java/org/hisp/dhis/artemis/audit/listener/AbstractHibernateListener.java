@@ -53,6 +53,7 @@ import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
@@ -289,10 +290,7 @@ public abstract class AbstractHibernateListener {
   }
 
   private Object getId(Object object) {
-    if (BaseIdentifiableObject.class.isAssignableFrom(object.getClass())) {
-      return ((BaseIdentifiableObject) object).getUid();
-    }
-
+    if (object instanceof IdentifiableObject obj) return obj.getUid();
     return object;
   }
 

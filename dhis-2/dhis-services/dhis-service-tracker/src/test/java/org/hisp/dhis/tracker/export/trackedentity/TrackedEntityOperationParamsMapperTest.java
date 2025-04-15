@@ -51,8 +51,8 @@ import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -287,7 +287,7 @@ class TrackedEntityOperationParamsMapperTest {
     // equals() is not helpful
     assertContainsOnly(
         UID.toValueList(List.of(TEA_1_UID, TEA_2_UID)),
-        items.keySet().stream().map(BaseIdentifiableObject::getUid).toList());
+        items.keySet().stream().map(IdentifiableObject::getUid).toList());
 
     // QueryItem equals() does not take the QueryFilter into account so
     // assertContainsOnly alone does not ensure operators and filter value
@@ -341,7 +341,7 @@ class TrackedEntityOperationParamsMapperTest {
     // equals() is not helpful
     assertContainsOnly(
         List.of(TEA_1_UID.getValue()),
-        items.keySet().stream().map(BaseIdentifiableObject::getUid).toList());
+        items.keySet().stream().map(IdentifiableObject::getUid).toList());
 
     // QueryItem equals() does not take the QueryFilter into account so
     // assertContainsOnly alone does not ensure operators and filter value

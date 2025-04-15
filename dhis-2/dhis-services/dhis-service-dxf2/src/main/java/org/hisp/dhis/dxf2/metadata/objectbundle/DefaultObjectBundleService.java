@@ -43,7 +43,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hisp.dhis.cache.HibernateCacheManager;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -261,7 +260,7 @@ public class DefaultObjectBundleService implements ObjectBundleService {
         IdentifiableObject::getName,
         object -> {
           objectBundleHooks.getObjectHooks(object).forEach(hook -> hook.postCreate(object, bundle));
-          eventHookPublisher.publishEvent(metadataCreate((BaseIdentifiableObject) object));
+          eventHookPublisher.publishEvent(metadataCreate(object));
         });
 
     return typeReport;
@@ -348,7 +347,7 @@ public class DefaultObjectBundleService implements ObjectBundleService {
         object -> {
           T persistedObject = bundle.getPreheat().get(bundle.getPreheatIdentifier(), object);
           hooks.forEach(hook -> hook.postUpdate(persistedObject, bundle));
-          eventHookPublisher.publishEvent(metadataUpdate((BaseIdentifiableObject) object));
+          eventHookPublisher.publishEvent(metadataUpdate(object));
         });
 
     return typeReport;
