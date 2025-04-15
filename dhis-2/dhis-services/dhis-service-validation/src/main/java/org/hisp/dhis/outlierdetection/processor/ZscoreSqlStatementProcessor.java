@@ -43,7 +43,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.outlierdetection.Order;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils;
-import org.hisp.dhis.outlierdetection.util.OutlierExpressionHelper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Component;
@@ -154,7 +153,7 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
         + ouPathClause
         + " and dv.deleted is false"
         + " and trim(dv.value) ~ '"
-        + OutlierExpressionHelper.NUMERIC_PATTERN.getKey()
+        + OutlierDetectionUtils.PG_DOUBLE_REGEX
         + "'"
         + ") as dvs "
         +
@@ -178,7 +177,7 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
         + " "
         + "and dv.deleted is false "
         + "and trim(dv.value) ~ '"
-        + OutlierExpressionHelper.NUMERIC_PATTERN.getKey()
+        + OutlierDetectionUtils.PG_DOUBLE_REGEX
         + "' "
         + "group by dv.dataelementid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid"
         + ") as stats "
@@ -239,7 +238,7 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
         + ouPathClause
         + " and dv.deleted is false"
         + " and trim(dv.value) ~ '"
-        + OutlierExpressionHelper.NUMERIC_PATTERN.getKey()
+        + OutlierDetectionUtils.PG_DOUBLE_REGEX
         + "'"
         + ")"
         + " select dvs.de_uid,"
