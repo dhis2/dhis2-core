@@ -36,7 +36,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -49,60 +51,58 @@ import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
+import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Zubair Asghar
  */
 class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
+  private static final int TEST_USER_COUNT = 30;
+
+  @Autowired private ProgramInstanceService programInstanceService;
+  @Autowired private ProgramNotificationService programNotificationService;
+  @Autowired private ProgramService programService;
+  @Autowired private TrackedEntityInstanceService trackedEntityInstanceService;
+  @Autowired private ProgramNotificationTemplateService programNotificationTemplateService;
+  @Autowired private ProgramNotificationInstanceService programNotificationInstanceService;
+  @Autowired private OrganisationUnitService organisationUnitService;
+  @Autowired private IdentifiableObjectManager manager;
+  @Autowired private ProgramRuleEngineService programRuleEngineService;
+  @Autowired private UserService _userService;
 
   private Program program;
-
   private ProgramRule programRule;
-
   private ProgramRuleAction programRuleAction1;
   private ProgramRuleAction programRuleAction2;
-
   private ProgramNotificationTemplate programNotificationTemplateScheduledForToday;
   private ProgramNotificationTemplate programNotificationTemplateScheduledForTomorrow;
-
   private OrganisationUnit organisationUnit;
-
   private TrackedEntityInstance trackedEntityInstance;
-
   private ProgramInstance programInstance;
   private ProgramInstance programInstanceB;
+  private UserGroup userGroup;
 
   private String today = "'" + LocalDate.now() + "'";
   private String tomorrow = "'" + LocalDate.now().plusDays(1) + "'";
 
-  @Autowired private ProgramInstanceService programInstanceService;
-
-  @Autowired private ProgramService programService;
-
-  @Autowired private TrackedEntityInstanceService trackedEntityInstanceService;
-
-  @Autowired private ProgramNotificationTemplateService programNotificationTemplateService;
-
-  @Autowired private ProgramNotificationInstanceService programNotificationInstanceService;
-
-  @Autowired private OrganisationUnitService organisationUnitService;
-
-  @Autowired private IdentifiableObjectManager manager;
-
-  @Autowired private ProgramRuleEngineService programRuleEngineService;
-
   @Override
   protected void setUpTest() throws Exception {
+    userService = _userService;
     organisationUnit = createOrganisationUnit('O');
     organisationUnitService.addOrganisationUnit(organisationUnit);
     program = createProgram('P');
@@ -112,15 +112,23 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
     programRule = createProgramRule('R', program);
     programRule.setCondition("true");
     manager.save(programRule);
+
+    userGroup = createUserGroup('U', new HashSet<>());
+    manager.save(userGroup);
+
+    createAndAddUsersToUserGroupAndOrgUnit();
+
     programNotificationTemplateScheduledForToday =
         createProgramNotificationTemplate(
             "test", 1, NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.USER_GROUP);
+    programNotificationTemplateScheduledForToday.setRecipientUserGroup(userGroup);
     programNotificationTemplateScheduledForToday.setAutoFields();
     programNotificationTemplateService.save(programNotificationTemplateScheduledForToday);
 
     programNotificationTemplateScheduledForTomorrow =
         createProgramNotificationTemplate(
             "test", 1, NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.USER_GROUP);
+    programNotificationTemplateScheduledForTomorrow.setRecipientUserGroup(userGroup);
     programNotificationTemplateScheduledForTomorrow.setAutoFields();
     programNotificationTemplateService.save(programNotificationTemplateScheduledForTomorrow);
 
@@ -143,11 +151,12 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
     programInstanceService.addProgramInstance(programInstance);
     programInstanceB = createProgramInstance(program, trackedEntityInstance, organisationUnit);
     programInstanceService.addProgramInstance(programInstanceB);
+
+    programRuleEngineService.evaluateEnrollmentAndRunEffects(programInstance.getId());
   }
 
   @Test
   void testGetProgramNotificationInstance() {
-    programRuleEngineService.evaluateEnrollmentAndRunEffects(programInstance.getId());
     List<ProgramNotificationInstance> programNotificationInstances =
         programNotificationInstanceService.getProgramNotificationInstances(
             ProgramNotificationInstanceParam.builder().programInstance(programInstance).build());
@@ -162,8 +171,6 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
 
   @Test
   void testGetProgramNotificationInstanceScheduledForToday() throws ParseException {
-    programRuleEngineService.evaluateEnrollmentAndRunEffects(programInstance.getId());
-
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
     String formattedDate = sdf.format(new Date());
 
@@ -183,6 +190,16 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
   }
 
   @Test
+  @Timeout(value = 20, unit = TimeUnit.SECONDS)
+  void testShouldGetScheduledNotificationInstanceWithoutTimeout() {
+    List<ProgramNotificationInstance> instances = programNotificationInstanceService.getAll();
+    assertEquals(
+        2, instances.size(), "Expected 2 rule effects for scheduled messages " + instances);
+
+    programNotificationService.sendScheduledNotifications(NoopJobProgress.INSTANCE);
+  }
+
+  @Test
   void testDeleteProgramNotificationInstance() {
     programRuleEngineService.evaluateEnrollmentAndRunEffects(programInstanceB.getId());
     List<ProgramNotificationInstance> programNotificationInstances =
@@ -196,5 +213,13 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
         programNotificationInstanceService.getProgramNotificationInstances(
             ProgramNotificationInstanceParam.builder().programInstance(programInstanceB).build());
     assertTrue(instances.isEmpty());
+  }
+
+  private void createAndAddUsersToUserGroupAndOrgUnit() {
+    for (int i = 1; i <= TEST_USER_COUNT; i++) {
+      User user = createAndAddUser("user" + i, organisationUnit, "ALL");
+      userGroup.getMembers().add(user);
+      organisationUnit.getUsers().add(user);
+    }
   }
 }
