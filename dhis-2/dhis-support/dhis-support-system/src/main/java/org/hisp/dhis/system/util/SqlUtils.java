@@ -152,6 +152,16 @@ public class SqlUtils {
   }
 
   /**
+   * Cast the given value to numeric (cast(X as numeric).
+   *
+   * @param value the value.
+   * @return a string with the numeric cast statement.
+   */
+  public static String castToNumeric(String value) {
+    return cast(value, "numeric");
+  }
+
+  /**
    * Cast the given expression to a target type like {@code cast (X as integer)}.
    *
    * <p>See {@link <a
@@ -164,16 +174,6 @@ public class SqlUtils {
    */
   public static String cast(String expression, String type) {
     return "cast (" + expression + " as " + type + ")";
-  }
-
-  /**
-   * Cast the given value to numeric (cast(X as numeric).
-   *
-   * @param value the value.
-   * @return a string with the numeric cast statement.
-   */
-  public static String castToNumeric(String value) {
-    return "cast (" + value + " as numeric)";
   }
 
   /**
