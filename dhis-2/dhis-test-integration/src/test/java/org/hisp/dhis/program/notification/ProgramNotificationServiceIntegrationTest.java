@@ -30,6 +30,7 @@ package org.hisp.dhis.program.notification;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.text.ParseException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -48,6 +49,9 @@ import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +61,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class ProgramNotificationServiceIntegrationTest extends SingleSetupIntegrationTestBase {
   private static final String PI_UID = "PI_UID";
+  private static final int TEST_USER_COUNT = 30;
 
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private ProgramNotificationService programNotificationService;
@@ -64,15 +69,18 @@ class ProgramNotificationServiceIntegrationTest extends SingleSetupIntegrationTe
   @Autowired private ProgramRuleEngineService programRuleEngineService;
   @Autowired private ProgramRuleService programRuleService;
   @Autowired private ProgramRuleActionService programRuleActionService;
+  @Autowired protected UserService _userService;
 
   private Program program;
   private OrganisationUnit organisationUnit;
   private ProgramRule programRule;
   private ProgramInstance programInstance;
   private TrackedEntityInstance trackedEntityInstance;
+  private UserGroup userGroup;
 
   @Override
   public void setUpTest() throws ParseException {
+    userService = _userService;
     organisationUnit = createOrganisationUnit('O');
     manager.save(organisationUnit);
     program = createProgram('P', Set.of(), organisationUnit);
@@ -81,11 +89,17 @@ class ProgramNotificationServiceIntegrationTest extends SingleSetupIntegrationTe
     programRule.setCondition("true");
     manager.save(programRule);
 
+    userGroup = createUserGroup('U', new HashSet<>());
+    manager.save(userGroup);
+
     trackedEntityInstance = createTrackedEntityInstance('T', organisationUnit);
     manager.save(trackedEntityInstance);
     programInstance = createProgramInstance(program, trackedEntityInstance, organisationUnit);
     programInstance.setUid(PI_UID);
     manager.save(programInstance);
+
+    createAndAddUsersToUserGroupAndOrgUnit();
+
     setUpScheduleMessage("V{current_date}", 'A');
     setUpScheduleMessage("V{current_date}", 'B');
     setUpScheduleMessage("V{current_date}", 'C');
@@ -99,7 +113,7 @@ class ProgramNotificationServiceIntegrationTest extends SingleSetupIntegrationTe
   }
 
   @Test
-  @Timeout(value = 1, unit = TimeUnit.MINUTES)
+  @Timeout(value = 30, unit = TimeUnit.SECONDS)
   void testScheduledNotificationShouldBeTriggeredBeforeTimeout() {
     /* No assertions are made here because this test is intended to verify that
     scheduled notifications are fetched and processed within the specified time limit
@@ -129,7 +143,17 @@ class ProgramNotificationServiceIntegrationTest extends SingleSetupIntegrationTe
     pnt.setMessageTemplate("message_template");
     pnt.setDeliveryChannels(Set.of());
     pnt.setSubjectTemplate("subject_template");
+    pnt.setRecipientUserGroup(userGroup);
+    pnt.setNotificationRecipient(ProgramNotificationRecipient.USER_GROUP);
     pnt.setNotificationTrigger(NotificationTrigger.PROGRAM_RULE);
     return pnt;
+  }
+
+  private void createAndAddUsersToUserGroupAndOrgUnit() {
+    for (int i = 1; i <= TEST_USER_COUNT; i++) {
+      User user = createAndAddUser("user" + i, organisationUnit, "ALL");
+      userGroup.getMembers().add(user);
+      organisationUnit.getUsers().add(user);
+    }
   }
 }
