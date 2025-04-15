@@ -27,17 +27,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.event;
+package org.hisp.dhis.tracker.export;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.tracker.export.JdbcPredicate.mapPredicatesToSql;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.sql.Types;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
@@ -45,21 +48,19 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.export.event.JdbcPredicate.Parameter;
+import org.hisp.dhis.tracker.export.JdbcPredicate.Parameter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.SqlParameterValue;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 class JdbcPredicateTest {
-
   private TrackedEntityAttribute tea;
   private DataElement de;
 
   @BeforeEach
   void setUp() {
-    tea = new TrackedEntityAttribute();
-    tea.setValueType(ValueType.TEXT);
-    tea.setUid(UID.generate().getValue());
+    tea = trackedEntityAttribute();
 
     de = new DataElement();
     de.setValueType(ValueType.TEXT);
@@ -77,7 +78,7 @@ class JdbcPredicateTest {
 """
 lower("%s".value) is not null"""
             .formatted(tea.getUid()),
-        filter.sql());
+        filter.getSql());
     assertNoParameter(filter);
   }
 
@@ -91,7 +92,7 @@ lower("%s".value) is not null"""
 """
 ev.eventdatavalues -> '%s' is not null"""
             .formatted(de.getUid()),
-        filter.sql());
+        filter.getSql());
     assertNoParameter(filter);
   }
 
@@ -105,7 +106,7 @@ ev.eventdatavalues -> '%s' is not null"""
 """
 lower("%s".value) in (:"""
             .formatted(tea.getUid()),
-        filter.sql());
+        filter.getSql());
     assertParameter(tea, filter, Types.VARCHAR, "summer", "winter", "spring");
   }
 
@@ -119,7 +120,7 @@ lower("%s".value) in (:"""
 """
 lower(ev.eventdatavalues #>> '{%s, value}') in (:"""
             .formatted(de.getUid()),
-        filter.sql());
+        filter.getSql());
     assertParameter(de, filter, Types.VARCHAR, "summer", "winter", "spring");
   }
 
@@ -134,7 +135,7 @@ lower(ev.eventdatavalues #>> '{%s, value}') in (:"""
 """
 cast ("%s".value as integer) in (:"""
             .formatted(tea.getUid()),
-        filter.sql());
+        filter.getSql());
     assertParameter(tea, filter, Types.INTEGER, 42, 17, 7);
   }
 
@@ -149,7 +150,7 @@ cast ("%s".value as integer) in (:"""
 """
 cast (ev.eventdatavalues #>> '{%s, value}' as integer) in (:"""
             .formatted(de.getUid()),
-        filter.sql());
+        filter.getSql());
     assertParameter(de, filter, Types.INTEGER, 42, 17, 7);
   }
 
@@ -164,7 +165,7 @@ cast (ev.eventdatavalues #>> '{%s, value}' as integer) in (:"""
 """
 cast ("%s".value as numeric) in (:"""
             .formatted(tea.getUid()),
-        filter.sql());
+        filter.getSql());
     assertParameter(
         tea,
         filter,
@@ -185,7 +186,7 @@ cast ("%s".value as numeric) in (:"""
 """
 lower("%s".value) like :"""
             .formatted(tea.getUid()),
-        filter.sql());
+        filter.getSql());
     assertParameter(tea, filter, Types.VARCHAR, "%80\\%\\_60\\%");
   }
 
@@ -200,7 +201,7 @@ lower("%s".value) like :"""
 """
 lower("%s".value) = :"""
             .formatted(tea.getUid()),
-        filter.sql());
+        filter.getSql());
     assertParameter(tea, filter, Types.VARCHAR, "summer % day");
   }
 
@@ -215,7 +216,7 @@ lower("%s".value) = :"""
 """
 lower("%s".value) = :"""
             .formatted(tea.getUid()),
-        filter.sql());
+        filter.getSql());
     assertParameter(tea, filter, Types.VARCHAR, "42.5");
   }
 
@@ -230,7 +231,7 @@ lower("%s".value) = :"""
 """
 cast ("%s".value as numeric) = :"""
             .formatted(tea.getUid()),
-        filter.sql());
+        filter.getSql());
     assertParameter(tea, filter, Types.NUMERIC, new java.math.BigDecimal("42.5"));
   }
 
@@ -245,7 +246,7 @@ cast ("%s".value as numeric) = :"""
 """
 cast ("%s".value as integer) = :"""
             .formatted(tea.getUid()),
-        filter.sql());
+        filter.getSql());
     assertParameter(tea, filter, Types.INTEGER, 42);
   }
 
@@ -260,7 +261,7 @@ cast ("%s".value as integer) = :"""
 """
 lower("%s".value) > :"""
             .formatted(tea.getUid()),
-        filter.sql());
+        filter.getSql());
     assertParameter(tea, filter, Types.VARCHAR, "2013-04-01");
   }
 
@@ -274,7 +275,7 @@ lower("%s".value) > :"""
 """
 lower("%s".value) like :"""
             .formatted(tea.getUid()),
-        filter.sql());
+        filter.getSql());
     assertParameter(tea, filter, Types.VARCHAR, "%summer%");
   }
 
@@ -288,7 +289,7 @@ lower("%s".value) like :"""
 """
 lower("%s".value) like :"""
             .formatted(tea.getUid()),
-        filter.sql());
+        filter.getSql());
     assertParameter(tea, filter, Types.VARCHAR, "summer%");
   }
 
@@ -302,7 +303,7 @@ lower("%s".value) like :"""
 """
 lower("%s".value) like :"""
             .formatted(tea.getUid()),
-        filter.sql());
+        filter.getSql());
     assertParameter(tea, filter, Types.VARCHAR, "%summer");
   }
 
@@ -351,10 +352,88 @@ lower("%s".value) like :"""
     assertContains("value type is NUMBER but the value `not a number`", exception.getMessage());
   }
 
+  @Test
+  void shouldMapPredicatesMap() {
+    MapSqlParameterSource params = new MapSqlParameterSource();
+
+    String sql = mapPredicatesToSql(Map.of(), params);
+
+    assertEquals("", sql);
+  }
+
+  @Test
+  void shouldMapPredicatesMapWithEmptyPredicates() {
+    TrackedEntityAttribute tea2 = trackedEntityAttribute();
+    MapSqlParameterSource params = new MapSqlParameterSource();
+
+    String sql = mapPredicatesToSql(Map.of(tea, List.of(), tea2, List.of()), params);
+
+    assertEquals("", sql);
+  }
+
+  @Test
+  void shouldMapPredicates() {
+    QueryFilter notNull = new QueryFilter(QueryOperator.NNULL);
+    TrackedEntityAttribute tea2 = trackedEntityAttribute();
+    TrackedEntityAttribute tea3 = trackedEntityAttribute();
+
+    // use LinkedHashMap for deterministic order so assertion is not flaky
+    Map<TrackedEntityAttribute, List<JdbcPredicate>> predicates = new LinkedHashMap<>();
+    predicates.put(tea, List.of(JdbcPredicate.of(tea, notNull), JdbcPredicate.of(tea, notNull)));
+    predicates.put(tea2, List.of(JdbcPredicate.of(tea2, notNull)));
+    predicates.put(tea3, List.of());
+
+    MapSqlParameterSource params = new MapSqlParameterSource();
+
+    String sql = mapPredicatesToSql(predicates, params);
+
+    assertEquals(
+"""
+lower("%s".value) is not null and lower("%s".value) is not null and lower("%s".value) is not null"""
+            .formatted(tea.getUid(), tea.getUid(), tea2.getUid()),
+        sql);
+  }
+
+  @Test
+  void shouldMapPredicateParameters() {
+    QueryFilter eq = new QueryFilter(QueryOperator.EQ, "blue");
+
+    // use LinkedHashMap for deterministic order so assertion is not flaky
+    Map<TrackedEntityAttribute, List<JdbcPredicate>> predicates = new LinkedHashMap<>();
+    JdbcPredicate predicate = JdbcPredicate.of(tea, eq);
+    predicates.put(tea, List.of(predicate));
+
+    MapSqlParameterSource params = new MapSqlParameterSource();
+
+    String sql = mapPredicatesToSql(predicates, params);
+
+    assertStartsWith(
+"""
+lower("%s".value) = :"""
+            .formatted(tea.getUid()),
+        sql);
+    assertTrue(predicate.getParameter().isPresent(), "expected a getParameter in the predicate");
+    Parameter parameter = predicate.getParameter().get();
+    assertTrue(
+        params.hasValue(parameter.name()),
+        "expected the predicates getParameter in the getParameter source");
+    assertEquals(
+        predicate.getParameter().get().value(),
+        params.getValue(predicate.getParameter().get().name()),
+        "expected the predicates getParameter in the getParameter source");
+  }
+
+  private static TrackedEntityAttribute trackedEntityAttribute() {
+    TrackedEntityAttribute tea = new TrackedEntityAttribute();
+    tea.setValueType(ValueType.TEXT);
+    tea.setUid(UID.generate().getValue());
+    return tea;
+  }
+
   private static void assertNoParameter(JdbcPredicate filter) {
     assertTrue(
-        filter.parameter().isEmpty(),
-        () -> "parameter should be empty but got " + filter.parameter().get());
+        filter.getParameter().isEmpty(),
+        () -> "getParameter should be empty but got " + filter.getParameter().get());
   }
 
   private static void assertParameter(
@@ -362,20 +441,20 @@ lower("%s".value) like :"""
       JdbcPredicate filter,
       int expectedType,
       Object... expectedValue) {
-    assertTrue(filter.parameter().isPresent(), "expected a parameter but got none");
-    Parameter parameter = filter.parameter().get();
+    assertTrue(filter.getParameter().isPresent(), "expected a getParameter but got none");
+    Parameter parameter = filter.getParameter().get();
     assertStartsWith("filter_" + valueTypedObject.getUid(), parameter.name());
     assertContains(
         ":" + parameter.name(),
-        filter.sql(),
-        ("SQL `%s` must reference parameter `%s`").formatted(filter.sql(), parameter.name()));
+        filter.getSql(),
+        ("SQL `%s` must reference getParameter `%s`").formatted(filter.getSql(), parameter.name()));
 
     SqlParameterValue sqlParameterValue = parameter.value();
     assertAll(
         "assert SqlParameterValue",
         () ->
             assertEquals(
-                expectedType, sqlParameterValue.getSqlType(), "mismatch in java.sql.Types"),
+                expectedType, sqlParameterValue.getSqlType(), "mismatch in java.getSql.Types"),
         () -> assertEquals(List.of(expectedValue), sqlParameterValue.getValue()));
   }
 }

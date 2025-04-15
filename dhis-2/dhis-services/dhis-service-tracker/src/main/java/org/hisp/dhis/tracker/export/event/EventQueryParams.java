@@ -58,56 +58,57 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.export.JdbcPredicate;
 import org.hisp.dhis.tracker.export.Order;
 
 /**
  * @author Lars Helge Overland
  */
 class EventQueryParams {
-  private Program program;
+  @Getter private Program program;
 
-  private ProgramStage programStage;
+  @Getter private ProgramStage programStage;
 
-  private EnrollmentStatus enrollmentStatus;
+  @Getter private EnrollmentStatus enrollmentStatus;
 
-  private ProgramType programType;
+  @Getter private ProgramType programType;
 
-  private Boolean followUp;
+  @Getter private Boolean followUp;
 
-  private OrganisationUnit orgUnit;
+  @Getter private OrganisationUnit orgUnit;
 
-  private OrganisationUnitSelectionMode orgUnitMode;
+  @Getter private OrganisationUnitSelectionMode orgUnitMode;
 
-  private TrackedEntity trackedEntity;
+  @Getter private TrackedEntity trackedEntity;
 
-  private Date occurredStartDate;
+  @Getter private Date occurredStartDate;
 
-  private Date occurredEndDate;
+  @Getter private Date occurredEndDate;
 
-  private EventStatus eventStatus;
+  @Getter private EventStatus eventStatus;
 
-  private Date updatedAtStartDate;
+  @Getter private Date updatedAtStartDate;
 
-  private Date updatedAtEndDate;
+  @Getter private Date updatedAtEndDate;
 
   /** The last updated duration filter. */
-  private String updatedAtDuration;
+  @Getter private String updatedAtDuration;
 
-  private Date scheduleAtStartDate;
+  @Getter private Date scheduleAtStartDate;
 
-  private Date scheduleAtEndDate;
+  @Getter private Date scheduleAtEndDate;
 
-  private Date enrollmentEnrolledBefore;
+  @Getter private Date enrollmentEnrolledBefore;
 
-  private Date enrollmentEnrolledAfter;
+  @Getter private Date enrollmentEnrolledAfter;
 
-  private Date enrollmentOccurredBefore;
+  @Getter private Date enrollmentOccurredBefore;
 
-  private Date enrollmentOccurredAfter;
+  @Getter private Date enrollmentOccurredAfter;
 
-  private CategoryOptionCombo categoryOptionCombo;
+  @Getter private CategoryOptionCombo categoryOptionCombo;
 
-  private boolean includeRelationships;
+  @Getter private boolean includeRelationships;
 
   /**
    * Events can be ordered by field names (given as {@link String}), data elements (given as {@link
@@ -122,35 +123,36 @@ class EventQueryParams {
    */
   private final List<Order> order = new ArrayList<>();
 
-  private boolean includeAttributes;
+  @Getter private boolean includeAttributes;
 
-  private boolean includeAllDataElements;
+  @Getter private boolean includeAllDataElements;
 
-  private Set<UID> events = new HashSet<>();
+  @Getter private Set<UID> events = new HashSet<>();
 
   /** Each attribute will affect the final SQL query. Some attributes are filtered on. */
+  @Getter
   private final Map<TrackedEntityAttribute, List<JdbcPredicate>> attributes = new HashMap<>();
 
   /**
    * Each data element will affect the final SQL query. Some data elements are filtered on, while
    * data elements added via {@link #orderBy(DataElement, SortDirection)} will be ordered by.
    */
-  private final Map<DataElement, List<JdbcPredicate>> dataElements = new HashMap<>();
+  @Getter private final Map<DataElement, List<JdbcPredicate>> dataElements = new HashMap<>();
 
   private boolean hasDataElementFilter;
 
-  private boolean includeDeleted;
+  @Getter private boolean includeDeleted;
 
-  private Set<UID> accessiblePrograms;
+  @Getter private Set<UID> accessiblePrograms;
 
-  private Set<UID> accessibleProgramStages;
+  @Getter private Set<UID> accessibleProgramStages;
 
-  private boolean synchronizationQuery;
+  @Getter private boolean synchronizationQuery;
 
   /** Indicates a point in the time used to decide the data that should not be synchronized */
-  private Date skipChangedBefore;
+  @Getter private Date skipChangedBefore;
 
-  private Set<UID> enrollments;
+  @Getter private Set<UID> enrollments;
 
   @Getter private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
@@ -189,17 +191,9 @@ class EventQueryParams {
     return this.hasDataElementFilter;
   }
 
-  public Program getProgram() {
-    return program;
-  }
-
   public EventQueryParams setProgram(Program program) {
     this.program = program;
     return this;
-  }
-
-  public ProgramStage getProgramStage() {
-    return programStage;
   }
 
   public EventQueryParams setProgramStage(ProgramStage programStage) {
@@ -207,17 +201,9 @@ class EventQueryParams {
     return this;
   }
 
-  public EnrollmentStatus getEnrollmentStatus() {
-    return enrollmentStatus;
-  }
-
   public EventQueryParams setEnrollmentStatus(EnrollmentStatus enrollmentStatus) {
     this.enrollmentStatus = enrollmentStatus;
     return this;
-  }
-
-  public ProgramType getProgramType() {
-    return programType;
   }
 
   public EventQueryParams setProgramType(ProgramType programType) {
@@ -225,26 +211,14 @@ class EventQueryParams {
     return this;
   }
 
-  public Boolean getFollowUp() {
-    return followUp;
-  }
-
   public EventQueryParams setFollowUp(Boolean followUp) {
     this.followUp = followUp;
     return this;
   }
 
-  public OrganisationUnit getOrgUnit() {
-    return orgUnit;
-  }
-
   public EventQueryParams setOrgUnit(OrganisationUnit orgUnit) {
     this.orgUnit = orgUnit;
     return this;
-  }
-
-  public OrganisationUnitSelectionMode getOrgUnitMode() {
-    return orgUnitMode;
   }
 
   public EventQueryParams setOrgUnitMode(OrganisationUnitSelectionMode orgUnitMode) {
@@ -263,17 +237,9 @@ class EventQueryParams {
     return this;
   }
 
-  public TrackedEntity getTrackedEntity() {
-    return trackedEntity;
-  }
-
   public EventQueryParams setTrackedEntity(TrackedEntity trackedEntity) {
     this.trackedEntity = trackedEntity;
     return this;
-  }
-
-  public Date getOccurredStartDate() {
-    return occurredStartDate;
   }
 
   public EventQueryParams setOccurredStartDate(Date occurredStartDate) {
@@ -281,17 +247,9 @@ class EventQueryParams {
     return this;
   }
 
-  public Date getOccurredEndDate() {
-    return occurredEndDate;
-  }
-
   public EventQueryParams setOccurredEndDate(Date occurredEndDate) {
     this.occurredEndDate = occurredEndDate;
     return this;
-  }
-
-  public EventStatus getEventStatus() {
-    return eventStatus;
   }
 
   public EventQueryParams setEventStatus(EventStatus eventStatus) {
@@ -299,17 +257,9 @@ class EventQueryParams {
     return this;
   }
 
-  public Date getUpdatedAtStartDate() {
-    return updatedAtStartDate;
-  }
-
   public EventQueryParams setUpdatedAtStartDate(Date updatedAtStartDate) {
     this.updatedAtStartDate = updatedAtStartDate;
     return this;
-  }
-
-  public Date getUpdatedAtEndDate() {
-    return updatedAtEndDate;
   }
 
   public EventQueryParams setUpdatedAtEndDate(Date updatedAtEndDate) {
@@ -317,17 +267,9 @@ class EventQueryParams {
     return this;
   }
 
-  public String getUpdatedAtDuration() {
-    return updatedAtDuration;
-  }
-
   public EventQueryParams setUpdatedAtDuration(String updatedAtDuration) {
     this.updatedAtDuration = updatedAtDuration;
     return this;
-  }
-
-  public Date getScheduleAtStartDate() {
-    return scheduleAtStartDate;
   }
 
   public EventQueryParams setScheduledStartDate(Date scheduleAtStartDate) {
@@ -335,17 +277,9 @@ class EventQueryParams {
     return this;
   }
 
-  public Date getScheduleAtEndDate() {
-    return scheduleAtEndDate;
-  }
-
   public EventQueryParams setScheduledEndDate(Date scheduleAtEndDate) {
     this.scheduleAtEndDate = scheduleAtEndDate;
     return this;
-  }
-
-  public Date getEnrollmentEnrolledBefore() {
-    return enrollmentEnrolledBefore;
   }
 
   public EventQueryParams setEnrollmentEnrolledBefore(Date enrollmentEnrolledBefore) {
@@ -353,17 +287,9 @@ class EventQueryParams {
     return this;
   }
 
-  public Date getEnrollmentEnrolledAfter() {
-    return enrollmentEnrolledAfter;
-  }
-
   public EventQueryParams setEnrollmentEnrolledAfter(Date enrollmentEnrolledAfter) {
     this.enrollmentEnrolledAfter = enrollmentEnrolledAfter;
     return this;
-  }
-
-  public Date getEnrollmentOccurredBefore() {
-    return enrollmentOccurredBefore;
   }
 
   public EventQueryParams setEnrollmentOccurredBefore(Date enrollmentOccurredBefore) {
@@ -371,26 +297,14 @@ class EventQueryParams {
     return this;
   }
 
-  public Date getEnrollmentOccurredAfter() {
-    return enrollmentOccurredAfter;
-  }
-
   public EventQueryParams setEnrollmentOccurredAfter(Date enrollmentOccurredAfter) {
     this.enrollmentOccurredAfter = enrollmentOccurredAfter;
     return this;
   }
 
-  public boolean isIncludeAttributes() {
-    return includeAttributes;
-  }
-
   public EventQueryParams setIncludeAttributes(boolean includeAttributes) {
     this.includeAttributes = includeAttributes;
     return this;
-  }
-
-  public boolean isIncludeAllDataElements() {
-    return includeAllDataElements;
   }
 
   public EventQueryParams setIncludeAllDataElements(boolean includeAllDataElements) {
@@ -427,17 +341,9 @@ class EventQueryParams {
     return this;
   }
 
-  public CategoryOptionCombo getCategoryOptionCombo() {
-    return categoryOptionCombo;
-  }
-
   public EventQueryParams setCategoryOptionCombo(CategoryOptionCombo categoryOptionCombo) {
     this.categoryOptionCombo = categoryOptionCombo;
     return this;
-  }
-
-  public Set<UID> getEvents() {
-    return events;
   }
 
   public EventQueryParams setEvents(Set<UID> events) {
@@ -448,14 +354,6 @@ class EventQueryParams {
   /** Returns attributes that are only ordered by and not present in any filter. */
   public Set<TrackedEntityAttribute> leftJoinAttributes() {
     return SetUtils.union(getOrderAttributes().keySet(), this.attributes.keySet());
-  }
-
-  public Map<TrackedEntityAttribute, List<JdbcPredicate>> getAttributes() {
-    return this.attributes;
-  }
-
-  public Map<DataElement, List<JdbcPredicate>> getDataElements() {
-    return this.dataElements;
   }
 
   public EventQueryParams filterBy(
@@ -488,21 +386,9 @@ class EventQueryParams {
     return this;
   }
 
-  public boolean isIncludeDeleted() {
-    return this.includeDeleted;
-  }
-
-  public Set<UID> getAccessiblePrograms() {
-    return accessiblePrograms;
-  }
-
   public EventQueryParams setAccessiblePrograms(Set<UID> accessiblePrograms) {
     this.accessiblePrograms = accessiblePrograms;
     return this;
-  }
-
-  public Set<UID> getAccessibleProgramStages() {
-    return accessibleProgramStages;
   }
 
   public EventQueryParams setAccessibleProgramStages(Set<UID> accessibleProgramStages) {
@@ -514,17 +400,9 @@ class EventQueryParams {
     return accessiblePrograms != null && accessibleProgramStages != null;
   }
 
-  public boolean isSynchronizationQuery() {
-    return synchronizationQuery;
-  }
-
   public EventQueryParams setSynchronizationQuery(boolean synchronizationQuery) {
     this.synchronizationQuery = synchronizationQuery;
     return this;
-  }
-
-  public Date getSkipChangedBefore() {
-    return skipChangedBefore;
   }
 
   public EventQueryParams setSkipChangedBefore(Date skipChangedBefore) {
@@ -532,17 +410,9 @@ class EventQueryParams {
     return this;
   }
 
-  public Set<UID> getEnrollments() {
-    return enrollments;
-  }
-
   public EventQueryParams setEnrollments(Set<UID> enrollments) {
     this.enrollments = enrollments;
     return this;
-  }
-
-  public boolean isIncludeRelationships() {
-    return includeRelationships;
   }
 
   public EventQueryParams setIncludeRelationships(boolean includeRelationships) {
