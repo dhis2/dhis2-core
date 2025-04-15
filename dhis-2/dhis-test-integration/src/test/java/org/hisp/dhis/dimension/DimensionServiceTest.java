@@ -726,7 +726,6 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
     assertEquals(THIS_WEEK.name(), eventVisualization.getRawPeriods().get(3));
   }
 
-
   @Test
   void testMergeAnalyticalEventObjectWithMultiRelativeAndNonRelativePeriods() {
     // Given
@@ -754,7 +753,8 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
             new BaseDimensionalObject(
                 DimensionalObject.PERIOD_DIM_ID,
                 DimensionType.PERIOD,
-                Lists.newArrayList(peLast6Months, peLast5Years, peLast3days, peThisWeek, peA, peB)));
+                Lists.newArrayList(
+                    peLast6Months, peLast5Years, peLast3days, peThisWeek, peA, peB)));
 
     // When
     dimensionService.mergeAnalyticalObject(eventVisualization);

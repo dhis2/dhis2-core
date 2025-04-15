@@ -32,7 +32,6 @@ package org.hisp.dhis.common;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -713,8 +712,8 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
       // For backward compatibility, where periods are not in the "raw" list yet.
       if (rawPeriods != null && rawPeriods.isEmpty()) {
-        rawPeriods.addAll(getPeriods().stream().map(period -> period.getDimensionItem()).collect(
-            toSet()));
+        rawPeriods.addAll(
+            getPeriods().stream().map(period -> period.getDimensionItem()).collect(toSet()));
       }
 
       for (String period : rawPeriods) {
