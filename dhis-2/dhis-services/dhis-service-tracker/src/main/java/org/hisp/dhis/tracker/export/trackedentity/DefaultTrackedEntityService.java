@@ -77,9 +77,9 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
   private final TrackedEntityAuditService trackedEntityAuditService;
 
-  private final TrackerOwnershipManager ownershipAccessManager;
-
   private final TrackerAccessManager trackerAccessManager;
+
+  private final TrackerOwnershipManager ownershipAccessManager;
 
   private final TrackedEntityAggregate trackedEntityAggregate;
 

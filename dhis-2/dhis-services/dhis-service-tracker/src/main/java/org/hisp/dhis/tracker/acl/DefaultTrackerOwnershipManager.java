@@ -300,24 +300,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
         getOwner(trackedEntity, program, trackedEntity::getOrganisationUnit).getStoredPath());
   }
 
-  /**
-   * Returns key used to store and retrieve cached records for ownership
-   *
-   * @return a String representing a record of ownership
-   */
-  private String getOwnershipCacheKey(TrackedEntity trackedEntity, Program program) {
-    return trackedEntity.getUid() + "_" + program.getUid();
-  }
-
-  /**
-   * Returns key used to store and retrieve cached records for ownership
-   *
-   * @return a String representing a record of ownership
-   */
-  private String getTempOwnershipCacheKey(String teUid, String programUid, String userUid) {
-    return teUid + "-" + programUid + "-" + userUid;
-  }
-
   // -------------------------------------------------------------------------
   // Private Helper Methods
   // -------------------------------------------------------------------------
@@ -402,5 +384,23 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
         s ->
             programTempOwnerService.getValidTempOwnerRecordCount(program, trackedEntityUid, user)
                 > 0);
+  }
+
+  /**
+   * Returns key used to store and retrieve cached records for ownership
+   *
+   * @return a String representing a record of ownership
+   */
+  private String getOwnershipCacheKey(TrackedEntity trackedEntity, Program program) {
+    return trackedEntity.getUid() + "_" + program.getUid();
+  }
+
+  /**
+   * Returns key used to store and retrieve cached records for ownership
+   *
+   * @return a String representing a record of ownership
+   */
+  private String getTempOwnershipCacheKey(String teUid, String programUid, String userUid) {
+    return teUid + "-" + programUid + "-" + userUid;
   }
 }

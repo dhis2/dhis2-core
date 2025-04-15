@@ -98,6 +98,8 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
   private OrganisationUnit organisationUnit;
 
+  private Program program;
+
   private UserDetails user;
 
   private TrackedEntityType trackedEntityType;
@@ -117,7 +119,7 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
     trackedEntityType = createTrackedEntityType('A');
     trackedEntityType.setUid(TE_TYPE_ID);
-    Program program = createProgram('A');
+    program = createProgram('A');
     program.setUid(PROGRAM_ID);
     program.setProgramType(ProgramType.WITH_REGISTRATION);
     program.setTrackedEntityType(trackedEntityType);
