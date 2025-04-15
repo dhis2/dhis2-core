@@ -45,6 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -258,7 +259,7 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFailToDeleteWhenUserHasAccessToRegistrationUnitAndTEWasTransferred()
-      throws IOException {
+      throws IOException, BadRequestException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/validations/enrollments_te_te-data.json");
@@ -282,7 +283,7 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
   @Test
   void
       shouldFailToDeleteWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnitAndTEOUIsNotInCaptureScope()
-          throws IOException {
+          throws IOException, BadRequestException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/validations/enrollments_te_te-data.json");
@@ -305,7 +306,7 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldDeleteWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnitAndTEOUIsInCaptureScope()
-      throws IOException {
+      throws IOException, BadRequestException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/validations/enrollments_te_te-data.json");
@@ -327,7 +328,7 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFailToUpdateWhenUserHasAccessToRegistrationUnitAndTEWasTransferred()
-      throws IOException {
+      throws IOException, BadRequestException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/validations/enrollments_te_te-data.json");
@@ -354,7 +355,8 @@ class TrackedEntityImportValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldUpdateWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnit() throws IOException {
+  void shouldUpdateWhenTEWasTransferredAndUserHasAccessToTransferredOrgUnit()
+      throws IOException, BadRequestException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/validations/enrollments_te_te-data.json");

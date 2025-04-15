@@ -42,7 +42,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -117,23 +116,19 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   /** Transfers the ownership of the given TE - program pair, to the specified org unit. */
   @Override
   @Transactional
-  public void transferOwnership(UID trackedEntityUid, UID programUid, UID orgUnitUid)
-      throws ForbiddenException, BadRequestException, NotFoundException {
-    // Can't use the trackerEntityService because of a cyclic dependency, validate manually for now
-    /*    TrackedEntity trackedEntity =
-    trackedEntityService.getTrackedEntity(
-        trackedEntityUid, programUid, TrackedEntityParams.FALSE);*/
-
-    // TODO Use validateTrackedEntity
-    // + check the TE is enrolled in the given program
-    // + check user has access to TE/program owner
-
-    TrackedEntity trackedEntity = manager.get(TrackedEntity.class, trackedEntityUid);
+  // TODO(tracker) This method should accept a tracked entity UID instead. The problem is, we can't
+  // use the TrackedEntityService as it introduces a cyclic dependency. That's because the ownership
+  // manager is used to filter TEs after hitting the database. As soon as we move those filters into
+  // the store to fix the pagination issue, we should be able to use the TrackedEntityService here,
+  // so we can run all validations in this service instead of the controller.
+  public void transferOwnership(TrackedEntity trackedEntity, UID programUid, UID orgUnitUid)
+      throws ForbiddenException, BadRequestException {
     Program program = trackerProgramService.getTrackerProgram(programUid);
     OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(orgUnitUid.getValue());
 
     if (orgUnit == null) {
-      throw new ForbiddenException("Org unit supplied does not exist.");
+      throw new ForbiddenException(
+          "Tracked entity not transferred. Org unit supplied does not exist.");
     }
 
     UserDetails currentUser = getCurrentUserDetails();
@@ -142,7 +137,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       if (!programService.hasOrgUnit(program, orgUnit)) {
         throw new ForbiddenException(
             String.format(
-                "The program %s is not associated to the org unit %s",
+                "Tracked entity not transferred. The program %s is not associated to the org unit %s",
                 program.getUid(), orgUnit.getUid()));
       }
 
@@ -169,7 +164,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     } else {
       log.error("Unauthorized attempt to change ownership");
       throw new ForbiddenException(
-          "User does not have access to change ownership for the entity-program combination");
+          "Tracked entity not transferred. User does not have access to change ownership for the entity-program combination");
     }
   }
 

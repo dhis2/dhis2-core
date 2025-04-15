@@ -249,7 +249,9 @@ class OwnershipTest extends PostgresIntegrationTestBase {
     assertNoErrors(updatedReport);
     assertEquals(1, updatedReport.getStats().getDeleted());
     trackerOwnershipManager.transferOwnership(
-        UID.of("IOR1AXXl24H"), UID.of("BFcipDERJnf"), UID.of("B1nCbRV3qtP"));
+        manager.get(TrackedEntity.class, "IOR1AXXl24H"),
+        UID.of("BFcipDERJnf"),
+        UID.of("B1nCbRV3qtP"));
     params.setImportStrategy(TrackerImportStrategy.CREATE);
     trackerObjects.getEnrollments().get(0).setEnrollment(UID.generate());
     updatedReport = trackerImportService.importTracker(params, trackerObjects);
@@ -279,7 +281,9 @@ class OwnershipTest extends PostgresIntegrationTestBase {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = testSetup.fromJson("tracker/ownership_enrollment.json");
     trackerOwnershipManager.transferOwnership(
-        UID.of("IOR1AXXl24H"), UID.of("BFcipDERJnf"), UID.of("B1nCbRV3qtP"));
+        manager.get(TrackedEntity.class, "IOR1AXXl24H"),
+        UID.of("BFcipDERJnf"),
+        UID.of("B1nCbRV3qtP"));
     params.setImportStrategy(TrackerImportStrategy.DELETE);
     ImportReport updatedReport = trackerImportService.importTracker(params, trackerObjects);
     assertEquals(1, updatedReport.getStats().getIgnored());
@@ -291,7 +295,9 @@ class OwnershipTest extends PostgresIntegrationTestBase {
       throws IOException, ForbiddenException, BadRequestException, NotFoundException {
     // Change ownership
     trackerOwnershipManager.transferOwnership(
-        UID.of("IOR1AXXl24H"), UID.of("BFcipDERJnf"), UID.of("B1nCbRV3qtP"));
+        manager.get(TrackedEntity.class, "IOR1AXXl24H"),
+        UID.of("BFcipDERJnf"),
+        UID.of("B1nCbRV3qtP"));
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = testSetup.fromJson("tracker/ownership_enrollment.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);

@@ -47,7 +47,7 @@ public interface TrackerOwnershipManager {
   String NO_READ_ACCESS_TO_ORG_UNIT = "User has no read access to organisation unit";
 
   /** Transfers the ownership of the given TE - program pair, to the specified org unit. */
-  void transferOwnership(UID trackedEntityUid, UID programUid, UID orgUnitUid)
+  void transferOwnership(TrackedEntity trackedEntity, UID programUid, UID orgUnitUid)
       throws ForbiddenException, BadRequestException, NotFoundException;
 
   /**

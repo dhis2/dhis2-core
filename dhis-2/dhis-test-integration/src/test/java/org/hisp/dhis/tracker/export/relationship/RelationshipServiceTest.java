@@ -273,7 +273,8 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldNotReturnRelationshipWhenTeIsTransferredAndUserHasNoAccessToAtLeastOneProgram() {
+  void shouldNotReturnRelationshipWhenTeIsTransferredAndUserHasNoAccessToAtLeastOneProgram()
+      throws BadRequestException {
     injectAdminIntoSecurityContext();
 
     TrackedEntityType trackedEntityType = createTrackedEntityType('X');

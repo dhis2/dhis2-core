@@ -35,7 +35,6 @@ import static org.hisp.dhis.test.TestBase.createTrackedEntity;
 import static org.hisp.dhis.test.TestBase.createTrackedEntityType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -61,6 +60,7 @@ import org.hisp.dhis.program.ProgramTempOwnershipAuditService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -72,9 +72,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultTrackerOwnershipManagerTest {
@@ -112,7 +109,7 @@ class DefaultTrackerOwnershipManagerTest {
   private String reason;
   private OrganisationUnit orgUnit;
   private TrackedEntityType trackedEntityType;
-  private MockedStatic<SecurityContextHolder> mockedStatic;
+  private MockedStatic<CurrentUserUtil> mockedStatic;
 
   @BeforeEach
   void setUp() throws BadRequestException {
@@ -146,14 +143,8 @@ class DefaultTrackerOwnershipManagerTest {
     userDetails = UserDetails.fromUser(user);
     reason = "breaking the glass";
 
-    mockedStatic = mockStatic(SecurityContextHolder.class);
-    SecurityContext context = mock(SecurityContext.class);
-    Authentication auth = mock(Authentication.class);
-
-    mockedStatic.when(SecurityContextHolder::getContext).thenReturn(context);
-    when(context.getAuthentication()).thenReturn(auth);
-    when(auth.isAuthenticated()).thenReturn(true);
-    when(auth.getPrincipal()).thenReturn(userDetails);
+    mockedStatic = mockStatic(CurrentUserUtil.class);
+    mockedStatic.when(CurrentUserUtil::getCurrentUserDetails).thenReturn(userDetails);
   }
 
   @AfterEach

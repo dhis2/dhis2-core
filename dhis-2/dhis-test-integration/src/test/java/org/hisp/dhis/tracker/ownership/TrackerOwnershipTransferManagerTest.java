@@ -526,7 +526,7 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
             () -> transferOwnership(trackedEntityA1, programA, notAssociatedOrgUnit));
     assertEquals(
         String.format(
-            "The program %s is not associated to the org unit %s",
+            "Tracked entity not transferred. The program %s is not associated to the org unit %s",
             programA.getUid(), notAssociatedOrgUnit.getUid()),
         exception.getMessage());
   }
@@ -540,15 +540,16 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
             ForbiddenException.class,
             () ->
                 trackerOwnershipManager.transferOwnership(
-                    UID.of(trackedEntityA1), UID.of(programA), madeUpOrgUnit));
-    assertEquals("Org unit supplied does not exist.", exception.getMessage());
+                    trackedEntityA1, UID.of(programA), madeUpOrgUnit));
+    assertEquals(
+        "Tracked entity not transferred. Org unit supplied does not exist.",
+        exception.getMessage());
   }
 
   private void transferOwnership(
       TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit)
       throws ForbiddenException, BadRequestException, NotFoundException {
-    trackerOwnershipManager.transferOwnership(
-        UID.of(trackedEntity), UID.of(program), UID.of(orgUnit));
+    trackerOwnershipManager.transferOwnership(trackedEntity, UID.of(program), UID.of(orgUnit));
   }
 
   private TrackedEntityOperationParams createOperationParams() {

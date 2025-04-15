@@ -45,6 +45,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
@@ -124,7 +125,7 @@ class EventSecurityImportValidationTest extends PostgresIntegrationTestBase {
   private User importUser;
 
   @BeforeAll
-  void setUp() throws IOException {
+  void setUp() throws IOException, BadRequestException {
     testSetup.importMetadata("tracker/tracker_basic_metadata.json");
 
     importUser = userService.getUser("tTgjgobT1oS");
@@ -207,10 +208,7 @@ class EventSecurityImportValidationTest extends PostgresIntegrationTestBase {
     manager.save(enrollmentA);
     maleA.getEnrollments().add(enrollmentA);
     manager.update(maleA);
-    trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
-        maleA, programA, organisationUnitA);
-
-    trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
         maleA, programA, organisationUnitA);
     manager.update(programA);
     OrganisationUnit qfUVllTs6cS = organisationUnitService.getOrganisationUnit("QfUVllTs6cS");
