@@ -111,7 +111,7 @@ public class OutlierDetectionUtils {
    *
    * <p>Matches: - "42" - "-3.14" - "0.5" - "0001.00"
    *
-   * <p>Does not match: - "+5" - ".5" - "42." - "1e5" - " 5.5 " - "1,000.00"
+   * <p>Does not match: - "+5" - ".5" - "42." - "1e5" - "1,000.00"
    *
    * <p>This pattern is used to pre-filter text-based numeric values to avoid runtime casting
    * exceptions when converting to double precision. Since data values are stored as strings in the
