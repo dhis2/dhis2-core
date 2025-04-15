@@ -194,7 +194,7 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
   void testShouldGetAndSendScheduledNotificationInstanceWithoutTimeout() {
     List<ProgramNotificationInstance> instances = programNotificationInstanceService.getAll();
     assertEquals(
-        2, instances.size(), "Expected 2 rule effects for scheduled messages " + instances);
+        2, instances.size(), "Expected 2 notifications for scheduled messages " + instances);
 
     programNotificationService.sendScheduledNotifications(NoopJobProgress.INSTANCE);
   }
