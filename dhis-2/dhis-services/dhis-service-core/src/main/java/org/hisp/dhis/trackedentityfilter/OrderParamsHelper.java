@@ -27,57 +27,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.mapper;
+package org.hisp.dhis.trackedentityfilter;
 
-import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.OrderColumn.findColumn;
+import static org.hisp.dhis.trackedentityfilter.OrderParamsHelper.OrderColumn.findColumn;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class OrderParamsHelper {
-  public static final String CREATED_ID = "created";
+class OrderParamsHelper {
+  static final String CREATED_ID = "created";
 
-  public static final String ORG_UNIT_NAME = "ouname";
+  static final String INACTIVE_ID = "inactive";
 
-  public static final String INACTIVE_ID = "inactive";
+  static final String MAIN_QUERY_ALIAS = "TE";
 
-  public static final String MAIN_QUERY_ALIAS = "TE";
+  static final String ENROLLMENT_QUERY_ALIAS = "en";
 
-  public static final String ENROLLMENT_QUERY_ALIAS = "en";
-
-  public static List<OrderParam> toOrderParams(List<OrderCriteria> criteria) {
-    return Optional.ofNullable(criteria).orElse(Collections.emptyList()).stream()
-        .filter(Objects::nonNull)
-        .map(
-            orderCriteria -> new OrderParam(orderCriteria.getField(), orderCriteria.getDirection()))
-        .collect(Collectors.toList());
-  }
-
-  public static List<String> validateOrderParams(
-      List<OrderParam> orderParams, Map<String, TrackedEntityAttribute> attributes) {
+  static List<String> validateOrderCriteria(
+      List<OrderCriteria> orders, Map<String, TrackedEntityAttribute> attributes) {
     List<String> errors = new ArrayList<>();
 
-    if (orderParams == null || orderParams.isEmpty()) {
+    if (orders == null || orders.isEmpty()) {
       return errors;
     }
 
-    for (OrderParam orderParam : orderParams) {
-      if (findColumn(orderParam.getField()).isEmpty()
-          && !attributes.containsKey(orderParam.getField())) {
-        errors.add("Invalid order property: " + orderParam.getField());
+    for (OrderCriteria orderCriteria : orders) {
+      if (findColumn(orderCriteria.getField()).isEmpty()
+          && !attributes.containsKey(orderCriteria.getField())) {
+        errors.add("Invalid order property: " + orderCriteria.getField());
       }
     }
 
@@ -86,7 +73,7 @@ public class OrderParamsHelper {
 
   @Getter
   @AllArgsConstructor
-  public enum OrderColumn {
+  enum OrderColumn {
     TRACKEDENTITY("trackedEntity", "uid", MAIN_QUERY_ALIAS),
     CREATED_AT("createdAt", CREATED_ID, MAIN_QUERY_ALIAS),
     CREATED_AT_CLIENT("createdAtClient", "createdatclient", MAIN_QUERY_ALIAS),
@@ -104,7 +91,7 @@ public class OrderParamsHelper {
     /**
      * @return an Optional of an OrderColumn matching by property name
      */
-    public static Optional<OrderColumn> findColumn(String property) {
+    static Optional<OrderColumn> findColumn(String property) {
       return Arrays.stream(values())
           .filter(orderColumn -> orderColumn.getPropName().equals(property))
           .findFirst();

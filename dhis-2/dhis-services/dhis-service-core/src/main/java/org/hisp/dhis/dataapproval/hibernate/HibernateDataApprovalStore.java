@@ -55,7 +55,7 @@ import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataapproval.DataApproval;
@@ -291,8 +291,7 @@ public class HibernateDataApprovalStore extends HibernateGenericStore<DataApprov
             ? null
             : "{"
                 + String.join(
-                    ",",
-                    currentUser.getGroups().stream().map(BaseIdentifiableObject::getUid).toList())
+                    ",", currentUser.getGroups().stream().map(IdentifiableObject::getUid).toList())
                 + "}";
 
     final String co_group_sharing_check_query =

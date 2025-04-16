@@ -52,7 +52,7 @@ import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
@@ -222,13 +222,13 @@ public class TrackedEntityAggregate {
     // Add all tet attributes
     Set<String> allowedAttributeUids =
         trackedEntityTypeAttributes.stream()
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet());
 
     if (ctx.getQueryParams().hasEnrolledInTrackerProgram()) {
       allowedAttributeUids.addAll(
           teaByProgram.get(ctx.getQueryParams().getEnrolledInTrackerProgram()).stream()
-              .map(BaseIdentifiableObject::getUid)
+              .map(IdentifiableObject::getUid)
               .collect(Collectors.toSet()));
     }
 

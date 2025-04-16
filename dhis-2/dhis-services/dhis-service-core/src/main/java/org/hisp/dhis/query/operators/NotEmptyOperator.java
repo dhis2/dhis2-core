@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,52 +27,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest;
+package org.hisp.dhis.query.operators;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.util.Collection;
-import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
+import org.hisp.dhis.query.planner.PropertyPath;
 
-@Getter
-public class PagingWrapper<T> {
-  @JsonIgnore private final String identifier;
+/**
+ * @author Jan Bernitt
+ * @since 2.42
+ */
+public class NotEmptyOperator<T extends Comparable<T>> extends Operator<T> {
 
-  @JsonIgnore @JsonAnyGetter private Map<String, Collection<T>> elements = new LinkedHashMap<>();
-
-  @JsonUnwrapped private Pager pager;
-
-  public PagingWrapper(String identifier) {
-    this.identifier = identifier;
+  public NotEmptyOperator() {
+    super("!empty", List.of(Collection.class));
   }
 
-  public PagingWrapper<T> withPager(Pager pager) {
-    PagingWrapper<T> pagingWrapper = new PagingWrapper<>(identifier);
-    pagingWrapper.pager = pager;
-    pagingWrapper.elements = elements;
-    return pagingWrapper;
+  @Override
+  public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, PropertyPath path) {
+    if (path.getProperty().isRelation()) return builder.isNotEmpty(root.get(path.getPath()));
+    // JSONB column backed collections
+    Path<Object> p = root.get(path.getPath());
+    Expression<String> pathAsText = p.as(String.class);
+    return builder.and(
+        builder.isNotNull(p),
+        builder.notEqual(pathAsText, builder.literal("null")),
+        builder.not(
+            builder.or(
+                builder.equal(pathAsText, builder.literal("[]")),
+                builder.equal(pathAsText, builder.literal("{}")))));
   }
 
-  @Data
-  @Builder
-  public static class Pager {
-    @Builder.Default @JsonProperty private Integer page = 1;
-
-    @JsonProperty private Long total;
-
-    @JsonProperty private Integer pageCount;
-
-    @Builder.Default @JsonProperty
-    private Integer pageSize = org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
-
-    @JsonProperty private String nextPage;
-
-    @JsonProperty private String prevPage;
+  @Override
+  public boolean test(Object value) {
+    if (value == null) return true;
+    if (value instanceof Collection<?> c) return !c.isEmpty();
+    if (value instanceof Map<?, ?> m) return !m.isEmpty();
+    if (value instanceof String s) return !s.isEmpty();
+    return false;
   }
 }

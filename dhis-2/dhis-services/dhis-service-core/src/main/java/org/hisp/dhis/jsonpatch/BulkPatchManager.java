@@ -35,7 +35,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
@@ -146,7 +145,7 @@ public class BulkPatchManager {
     }
 
     // we don't allow changing UIDs
-    ((BaseIdentifiableObject) patchedObject.get()).setUid(id);
+    patchedObject.get().setUid(id);
   }
 
   private static TypeReport createTypeReport(Class<?> klass, String id, ErrorReport errorReport) {

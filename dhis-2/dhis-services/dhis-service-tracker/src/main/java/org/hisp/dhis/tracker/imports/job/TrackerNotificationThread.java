@@ -31,7 +31,7 @@ package org.hisp.dhis.tracker.imports.job;
 
 import java.util.Map;
 import java.util.function.Consumer;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.security.SecurityContextRunnable;
@@ -81,7 +81,7 @@ public class TrackerNotificationThread extends SecurityContextRunnable {
 
     for (NotificationTrigger trigger : notificationDataBundle.getTriggers()) {
       if (serviceMapper.containsKey(trigger)) {
-        BaseIdentifiableObject object =
+        IdentifiableObject object =
             manager.get(notificationDataBundle.getKlass(), notificationDataBundle.getObject());
         if (object != null) {
           serviceMapper.get(trigger).accept(object.getId());

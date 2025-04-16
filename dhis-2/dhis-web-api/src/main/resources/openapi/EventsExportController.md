@@ -212,23 +212,30 @@ case-insensitive. A user needs metadata read access to the data element and data
 program (if the program is without registration) or the program stage (if the program is with
 registration).
 
+All of the following operators are supported regardless of the value type. Values are compared using
+text comparison unless stated otherwise. Integer and decimal value types are treated as Postgres
+integer and numeric data types for the specified operators.
+
 Valid binary operators are:
-- `eq` - equal to
+- `eq` - equal to (uses integer/numeric semantics for integer/decimal value types)
 - `ieq` - equal to
-- `ge` - greater than or equal to
-- `gt` - greater than
-- `le` - less than or equal to
-- `lt` - less than
-- `ne` - not equal to
-- `neq` - not equal to
+- `ge` - greater than or equal to (uses integer/number semantics for integer/decimal value types)
+- `gt` - greater than (uses integer/number semantics for integer/decimal value types)
+- `le` - less than or equal to (uses integer/number semantics for integer/decimal value types)
+- `lt` - less than (uses integer/number semantics for integer/decimal value types)
+- `ne` - not equal to (uses integer/number semantics for integer/decimal value types)
+- `neq` - not equal to (uses integer/number semantics for integer/decimal value types)
 - `nieq` - not equal to
-- `in` - equal to one of the multiple values separated by semicolon ";"
-- `ilike` - is like (case-insensitive)
+- `in` - equal to one of the multiple values separated by semicolon ";" (uses integer/number semantics for integer/decimal value types)
+- `ilike` - is like
 - `like` - like (free text match)
 - `nilike` - not like
 - `nlike` - not like
 - `sw` - starts with
 - `ew` - ends with
+
+Right now all matches are case-insensitive so for example `eq` and `ieq` (`i` for `insensitive`)
+behave in the same way.
 
 Valid unary operators are:
 - `null` - has no value
@@ -254,23 +261,30 @@ case-insensitive. A user needs metadata read access to the attribute and data re
 program (if the program is without registration) or the program stage (if the program is with
 registration).
 
+All of the following operators are supported regardless of the value type. Values are compared using
+text comparison unless stated otherwise. Integer and decimal value types are treated as Postgres
+integer and numeric data types for the specified operators.
+
 Valid binary operators are:
-- `eq` - equal to
+- `eq` - equal to (uses integer/numeric semantics for integer/decimal value types)
 - `ieq` - equal to
-- `ge` - greater than or equal to
-- `gt` - greater than
-- `le` - less than or equal to
-- `lt` - less than
-- `ne` - not equal to
-- `neq` - not equal to
+- `ge` - greater than or equal to (uses integer/number semantics for integer/decimal value types)
+- `gt` - greater than (uses integer/number semantics for integer/decimal value types)
+- `le` - less than or equal to (uses integer/number semantics for integer/decimal value types)
+- `lt` - less than (uses integer/number semantics for integer/decimal value types)
+- `ne` - not equal to (uses integer/number semantics for integer/decimal value types)
+- `neq` - not equal to (uses integer/number semantics for integer/decimal value types)
 - `nieq` - not equal to
-- `in` - equal to one of the multiple values separated by semicolon ";"
-- `ilike` - is like (case-insensitive)
+- `in` - equal to one of the multiple values separated by semicolon ";" (uses integer/number semantics for integer/decimal value types)
+- `ilike` - is like
 - `like` - like (free text match)
 - `nilike` - not like
 - `nlike` - not like
 - `sw` - starts with
 - `ew` - ends with
+
+Right now all matches are case-insensitive so for example `eq` and `ieq` (`i` for `insensitive`)
+behave in the same way.
 
 Valid unary operators are:
 - `null` - has no value
