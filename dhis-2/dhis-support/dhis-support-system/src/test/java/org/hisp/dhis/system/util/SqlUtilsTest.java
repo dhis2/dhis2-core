@@ -53,14 +53,17 @@ class SqlUtilsTest {
 
   @Test
   void testSingleQuote() {
-    assertEquals("'jkhYg65ThbF'", SqlUtils.singleQuote("jkhYg65ThbF"));
-    assertEquals("'Some ''special'' value'", SqlUtils.singleQuote("Some 'special' value"));
-    assertEquals("'Another \"strange\" value'", SqlUtils.singleQuote("Another \"strange\" value"));
-    assertEquals("'John White'", SqlUtils.singleQuote("John White"));
+    assertEquals("'jkhYg65ThbF'", SqlUtils.singleQuoteAndEscape("jkhYg65ThbF"));
+    assertEquals("'Some ''special'' value'", SqlUtils.singleQuoteAndEscape("Some 'special' value"));
     assertEquals(
-        "'Main St 1\\\\nSmallwille\\\\n'", SqlUtils.singleQuote("Main St 1\\nSmallwille\\n"));
+        "'Another \"strange\" value'", SqlUtils.singleQuoteAndEscape("Another \"strange\" value"));
+    assertEquals("'John White'", SqlUtils.singleQuoteAndEscape("John White"));
     assertEquals(
-        "'Provided ''Rx01'' to patient'", SqlUtils.singleQuote("Provided 'Rx01' to patient"));
+        "'Main St 1\\\\nSmallwille\\\\n'",
+        SqlUtils.singleQuoteAndEscape("Main St 1\\nSmallwille\\n"));
+    assertEquals(
+        "'Provided ''Rx01'' to patient'",
+        SqlUtils.singleQuoteAndEscape("Provided 'Rx01' to patient"));
   }
 
   @Test

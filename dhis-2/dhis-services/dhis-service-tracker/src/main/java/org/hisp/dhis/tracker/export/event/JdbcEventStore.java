@@ -28,11 +28,16 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static java.util.Map.entry;
+import static org.hisp.dhis.common.QueryFilter.affixLikeWildcards;
+import static org.hisp.dhis.common.QueryFilter.getFilterItems;
 import static org.hisp.dhis.common.ValueType.NUMERIC_TYPES;
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
+import static org.hisp.dhis.system.util.SqlUtils.escapeLikeWildcards;
+import static org.hisp.dhis.system.util.SqlUtils.escapeSingleQuotes;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
+import static org.hisp.dhis.system.util.SqlUtils.singleQuoteAndEscape;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -58,6 +63,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -640,7 +646,7 @@ class JdbcEventStore implements EventStore {
           .append(AND)
           .append(teaCol + ".UID")
           .append(EQUALS)
-          .append(singleQuote(teaUid));
+          .append(singleQuoteAndEscape(teaUid));
 
       sql.append(
           getAttributeFilterQuery(
@@ -671,7 +677,7 @@ class JdbcEventStore implements EventStore {
               NUMERIC_TYPES.stream()
                   .map(Enum::name)
                   .map(StringUtils::lowerCase)
-                  .map(SqlUtils::singleQuote)
+                  .map(SqlUtils::singleQuoteAndEscape)
                   .collect(Collectors.joining(",")))
           .append(")")
           .append(" then ");
@@ -680,12 +686,10 @@ class JdbcEventStore implements EventStore {
     List<String> filterStrings = new ArrayList<>();
     for (QueryFilter filter : filters) {
       StringBuilder filterString = new StringBuilder();
+
       final String queryCol =
           isNumericTea ? castToNumber(teaValueCol + ".value") : lower(teaValueCol + ".value");
-      final Object encodedFilter =
-          isNumericTea
-              ? Double.valueOf(filter.getFilter())
-              : StringUtils.lowerCase(filter.getSqlFilter(filter.getFilter()));
+      final Object encodedFilter = parseFilterValue(isNumericTea, filter);
       filterString
           .append(queryCol)
           .append(SPACE)
@@ -701,6 +705,44 @@ class JdbcEventStore implements EventStore {
     }
 
     return query.toString();
+  }
+
+  @Nonnull
+  private static Object parseFilterValue(boolean isNumericTea, QueryFilter filter) {
+    final Object encodedFilter;
+    // pre-process values
+    // so far all DHIS2 operators are implemented using case-insensitive matching in tracker, so
+    // ILIKE == LIKE, EQ == IEQ, ...
+    String value = filter.getFilter().toLowerCase();
+    QueryOperator operator = filter.getOperator();
+    if (operator.isIn()) {
+      if (isNumericTea) {
+        encodedFilter =
+            getFilterItems(value).stream()
+                .map(i -> Double.valueOf(i).toString())
+                .collect(Collectors.joining(",", "(", ")"));
+      } else {
+        // we need to escape single quotes and wrap the string in single quotes as we are not using
+        // JDBC parameters like >=v42 in which
+        // case this would be done for us
+        encodedFilter =
+            getFilterItems(escapeSingleQuotes(value)).stream()
+                .map(SqlUtils::singleQuote)
+                .collect(Collectors.joining(",", "(", ")"));
+      }
+    } else if (operator.isLikeBased()) {
+      // we need to escape single quotes as we are not using JDBC parameters like >=v42 in which
+      // case this would be done for us
+      encodedFilter =
+          singleQuote(affixLikeWildcards(operator, escapeLikeWildcards(escapeSingleQuotes(value))));
+    } else {
+      if (isNumericTea) {
+        encodedFilter = Double.valueOf(filter.getFilter());
+      } else {
+        encodedFilter = singleQuote(escapeSingleQuotes(value));
+      }
+    }
+    return encodedFilter;
   }
 
   /**
@@ -1331,7 +1373,7 @@ class JdbcEventStore implements EventStore {
             if (QueryOperator.IN.getValue().equalsIgnoreCase(filter.getSqlOperator())) {
               mapSqlParameterSource.addValue(
                   bindParameter,
-                  QueryFilter.getFilterItems(StringUtils.lowerCase(filter.getFilter())),
+                  getFilterItems(StringUtils.lowerCase(filter.getFilter())),
                   itemType);
 
               eventDataValuesWhereSql.append(inCondition(filter, bindParameter, queryCol));
@@ -1353,7 +1395,7 @@ class JdbcEventStore implements EventStore {
             if (QueryOperator.IN.getValue().equalsIgnoreCase(filter.getSqlOperator())) {
               mapSqlParameterSource.addValue(
                   bindParameter,
-                  QueryFilter.getFilterItems(StringUtils.lowerCase(filter.getFilter())),
+                  getFilterItems(StringUtils.lowerCase(filter.getFilter())),
                   itemType);
 
               optionValueConditionBuilder.append(" and ");
