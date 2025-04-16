@@ -200,6 +200,21 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldFailWhenGrantingTemporaryOwnershipIfTrackedEntityDoesNotExist() {
+    injectSecurityContext(userDetailsB);
+    Exception exception =
+        assertThrows(
+            NotFoundException.class,
+            () ->
+                trackerOwnershipManager.grantTemporaryOwnership(
+                    UID.generate(), UID.of(programA), "testing reason"));
+
+    assertEquals(
+        "Temporary ownership not created. Tracked entity supplied does not exist.",
+        exception.getMessage());
+  }
+
+  @Test
   void shouldFailWhenGrantingTemporaryOwnershipAndUserNotInSearchScope() {
     injectSecurityContext(userDetailsB);
     assertTrue(trackerOwnershipManager.hasAccess(userDetailsA, trackedEntityA1, programA));
@@ -264,7 +279,7 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldHaveAccessWhenProgramProtectedAndHasTemporaryAccess()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     userB.setTeiSearchOrganisationUnits(Set.of(organisationUnitA));
     userService.updateUser(userB);
     userDetailsB = UserDetails.fromUser(userB);
@@ -318,19 +333,6 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldFailWhenGrantingTemporaryAccessIfProgramIsNull() {
-    injectSecurityContext(userDetailsB);
-    Exception exception =
-        Assertions.assertThrows(
-            BadRequestException.class,
-            () ->
-                trackerOwnershipManager.grantTemporaryOwnership(
-                    UID.of(trackedEntityA1), null, "test temporary ownership"));
-
-    assertEquals("Provided program can't be null.", exception.getMessage());
-  }
-
-  @Test
   void shouldFailWhenGrantingTemporaryAccessIfProgramIsNotTrackerProgram() {
     Program eventProgram = createProgram(PROTECTED, 'F');
     eventProgram.setProgramType(WITHOUT_REGISTRATION);
@@ -347,21 +349,6 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
 
     assertEquals(
         "Provided program, " + eventProgram.getUid() + ", is not a tracker program.",
-        exception.getMessage());
-  }
-
-  @Test
-  void shouldFailWhenGrantingTemporaryAccessIfTrackedEntitySuppliedIsNull() {
-    injectSecurityContext(userDetailsA);
-    Exception exception =
-        assertThrows(
-            BadRequestException.class,
-            () ->
-                trackerOwnershipManager.grantTemporaryOwnership(
-                    null, UID.of(programA), "test temporary ownership"));
-
-    assertEquals(
-        "Temporary ownership not created. Provided tracked entity can't be null.",
         exception.getMessage());
   }
 

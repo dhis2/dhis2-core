@@ -33,7 +33,6 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.List;
 import java.util.Objects;
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
@@ -63,12 +62,8 @@ public class TrackerProgramService {
    * the current user.
    */
   @Transactional(readOnly = true)
-  public @Nonnull Program getTrackerProgram(@CheckForNull UID programUid)
+  public @Nonnull Program getTrackerProgram(@Nonnull UID programUid)
       throws BadRequestException, ForbiddenException {
-    if (programUid == null) {
-      throw new BadRequestException("Provided program can't be null.");
-    }
-
     Program program = programService.getProgram(programUid.getValue());
     if (program == null) {
       throw new BadRequestException(

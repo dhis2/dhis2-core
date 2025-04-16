@@ -49,6 +49,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -154,7 +155,7 @@ class DefaultTrackerOwnershipManagerTest {
 
   @Test
   void shouldLogProgramOwnershipChangeWhenTrackedEntityTypeAuditEnabled()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     TrackedEntity trackedEntity = createTrackedEntityWithAuditLog(true);
     when(manager.get(TrackedEntity.class, trackedEntity.getUid())).thenReturn(trackedEntity);
     when(ownerCache.get(anyString(), any())).thenReturn(orgUnit);
@@ -169,7 +170,7 @@ class DefaultTrackerOwnershipManagerTest {
 
   @Test
   void shouldNotLogProgramOwnershipChangeWhenTrackedEntityTypeAuditDisabled()
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     TrackedEntity trackedEntity = createTrackedEntityWithAuditLog(false);
     when(manager.get(TrackedEntity.class, trackedEntity.getUid())).thenReturn(trackedEntity);
     when(ownerCache.get(anyString(), any())).thenReturn(orgUnit);

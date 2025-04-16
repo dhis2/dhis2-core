@@ -116,14 +116,6 @@ class TrackerProgramServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldFailWhenRequestingSingleProgramWithNullParameter() {
-    Exception exception =
-        assertThrows(
-            BadRequestException.class, () -> trackerProgramService.getTrackerProgram(null));
-    assertEquals("Provided program can't be null.", exception.getMessage());
-  }
-
-  @Test
   void shouldFailWhenRequestingSingleProgramThatDoesNotExist() {
     UID madeUpUid = UID.generate();
 

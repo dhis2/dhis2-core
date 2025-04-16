@@ -93,7 +93,7 @@ public class TrackerOwnershipController {
   @ResponseBody
   public WebMessage grantTemporaryAccess(
       @RequestParam UID trackedEntity, @RequestParam String reason, @RequestParam UID program)
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     trackerOwnershipManager.grantTemporaryOwnership(trackedEntity, program, reason);
 
     return ok("Temporary Ownership granted");

@@ -34,6 +34,7 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.hisp.dhis.cache.Cache;
@@ -42,6 +43,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -120,7 +122,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   // manager is used to filter TEs after hitting the database. As soon as we move those filters into
   // the store to fix the pagination issue, we should be able to use the TrackedEntityService here,
   // so we can run all validations in this service instead of the controller.
-  public void transferOwnership(TrackedEntity trackedEntity, UID programUid, UID orgUnitUid)
+  public void transferOwnership(
+      @Nonnull TrackedEntity trackedEntity, @Nonnull UID programUid, @Nonnull UID orgUnitUid)
       throws ForbiddenException, BadRequestException {
     Program program = trackerProgramService.getTrackerProgram(programUid);
     OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(orgUnitUid.getValue());
@@ -167,12 +170,9 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
   @Override
   @Transactional
-  public void grantTemporaryOwnership(UID trackedEntityUid, UID programUid, String reason)
-      throws ForbiddenException, BadRequestException {
-    if (trackedEntityUid == null) {
-      throw new BadRequestException(
-          "Temporary ownership not created. Provided tracked entity can't be null.");
-    }
+  public void grantTemporaryOwnership(
+      @Nonnull UID trackedEntityUid, @Nonnull UID programUid, String reason)
+      throws ForbiddenException, BadRequestException, NotFoundException {
     UserDetails user = getCurrentUserDetails();
     // TODO(tracker) jdbc-hibernate: check the impact on performance
     TrackedEntity trackedEntity = manager.get(TrackedEntity.class, trackedEntityUid.getValue());
@@ -200,9 +200,9 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   }
 
   private void validateTrackedEntity(TrackedEntity trackedEntity, UserDetails user)
-      throws ForbiddenException {
+      throws ForbiddenException, NotFoundException {
     if (trackedEntity == null) {
-      throw new ForbiddenException(
+      throw new NotFoundException(
           "Temporary ownership not created. Tracked entity supplied does not exist.");
     }
 
