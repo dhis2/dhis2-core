@@ -107,15 +107,26 @@ public class DefaultAnalyticalObjectImportHandler implements AnalyticalObjectImp
     if (dimObjects != null) {
       for (DimensionalObject dimObject : dimObjects) {
         if (dimObject.hasItems()) {
-          for (DimensionalItemObject item : dimObject.getItems()) {
-            String period = item.getUid();
-            Period isoPeriod = PeriodType.getPeriodFromIsoString(period);
-
-            if (RelativePeriodEnum.contains(period) || isoPeriod != null) {
-              rawPeriods.add(period);
-            }
-          }
+          addRawPeriods(dimObject, rawPeriods);
         }
+      }
+    }
+  }
+
+  /**
+   * Adds to the Set of periods, the periods present in the given list of {@link DimensionalObject},
+   * if any.
+   *
+   * @param dimObject the {@link DimensionalObject} where to get the periods from.
+   * @param rawPeriods the list of periods.
+   */
+  private void addRawPeriods(DimensionalObject dimObject, Set<String> rawPeriods) {
+    for (DimensionalItemObject item : dimObject.getItems()) {
+      String period = item.getUid();
+      Period isoPeriod = PeriodType.getPeriodFromIsoString(period);
+
+      if (RelativePeriodEnum.contains(period) || isoPeriod != null) {
+        rawPeriods.add(period);
       }
     }
   }
