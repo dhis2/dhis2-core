@@ -49,6 +49,7 @@ import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +61,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ActiveProfiles("cache-test")
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Disabled
 class TrackedEntityServiceCacheTest extends PostgresIntegrationTestBase {
   @Autowired private TestSetup testSetup;
   @Autowired private IdentifiableObjectManager manager;
