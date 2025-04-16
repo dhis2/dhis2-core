@@ -31,12 +31,14 @@ package org.hisp.dhis.category;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -49,8 +51,10 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderColumn;
+import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.persistence.Transient;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -66,14 +70,28 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.attribute.AttributeValuesDeserializer;
+import org.hisp.dhis.attribute.AttributeValuesSerializer;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
+import org.hisp.dhis.common.annotation.Description;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Gist;
+import org.hisp.dhis.schema.annotation.Gist.Include;
+import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.schema.annotation.Property.Value;
+import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.schema.annotation.PropertyTransformer;
+import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.security.acl.Access;
+import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -83,9 +101,11 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author Abyot Aselefew
  */
+@Entity
+@Table(name = "categorycombo")
 @Setter
 @JacksonXmlRootElement(localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0)
-public class CategoryCombo  implements SystemDefaultMetadataObject, IdentifiableObject {
+public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableObject {
   public static final String DEFAULT_CATEGORY_COMBO_NAME = "default";
 
   @Id
@@ -118,19 +138,19 @@ public class CategoryCombo  implements SystemDefaultMetadataObject, Identifiable
   @Type(
       type = "jblTranslations",
       parameters = {@Parameter(name = "clazz", value = "org.hisp.dhis.translation.Translation")})
-  private String translations;
+  private Set<Translation> translations;
 
   @OneToMany
   @JoinTable(
       name = "categorycombos_categories",
       joinColumns =
-      @JoinColumn(
-          name = "categorycomboid",
-          foreignKey = @ForeignKey(name = "fk_categorycombos_categories_categorycomboid")),
+          @JoinColumn(
+              name = "categorycomboid",
+              foreignKey = @ForeignKey(name = "fk_categorycombos_categories_categorycomboid")),
       inverseJoinColumns =
-      @JoinColumn(
-          name = "categoryid",
-          foreignKey = @ForeignKey(name = "fk_categorycombo_categoryid")))
+          @JoinColumn(
+              name = "categoryid",
+              foreignKey = @ForeignKey(name = "fk_categorycombo_categoryid")))
   @OrderColumn(name = "sort_order")
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private List<Category> categories;
@@ -139,13 +159,13 @@ public class CategoryCombo  implements SystemDefaultMetadataObject, Identifiable
   @JoinTable(
       name = "categorycombos_optioncombos",
       joinColumns =
-      @JoinColumn(
-          name = "categorycomboid",
-          foreignKey = @ForeignKey(name = "fk_categorycombos_optioncombos_categorycomboid")),
+          @JoinColumn(
+              name = "categorycomboid",
+              foreignKey = @ForeignKey(name = "fk_categorycombos_optioncombos_categorycomboid")),
       inverseJoinColumns =
-      @JoinColumn(
-          name = "categoryoptioncomboid",
-          foreignKey = @ForeignKey(name = "fk_categorycombo_categoryoptioncomboid")))
+          @JoinColumn(
+              name = "categoryoptioncomboid",
+              foreignKey = @ForeignKey(name = "fk_categorycombo_categoryoptioncomboid")))
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private Set<CategoryOptionCombo> optionCombos;
 
@@ -162,7 +182,15 @@ public class CategoryCombo  implements SystemDefaultMetadataObject, Identifiable
 
   @Column(name = "sharing")
   @Type(type = "jsbObjectSharing")
-  private String sharing;
+  private Sharing sharing;
+
+  // -------------------------------------------------------------------------
+  // Transient fields
+  // -------------------------------------------------------------------------
+  /** Access information for this object. Applies to current user. */
+  @Transient private Access access;
+
+  @Transient private AttributeValues attributeValues = AttributeValues.empty();
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -369,37 +397,97 @@ public class CategoryCombo  implements SystemDefaultMetadataObject, Identifiable
     this.skipTotal = skipTotal;
   }
 
-  // -------------------------------------------------------------------------
-  // Implementation methods from IdentifiableObject
-  // -------------------------------------------------------------------------
   @Override
+  @JsonProperty(value = "id")
+  @JacksonXmlProperty(localName = "id", isAttribute = true)
+  @Description("The Unique Identifier for this Object.")
+  @Property(value = PropertyType.IDENTIFIER, required = Value.FALSE)
+  @PropertyRange(min = 11, max = 11)
+  public String getUid() {
+    return uid;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @Description("The unique code for this Object.")
+  @Property(PropertyType.IDENTIFIER)
   public String getCode() {
     return code;
   }
 
   @Override
-  public String getDisplayName() {
-    return "";
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @Description("The name of this Object. Required and unique.")
+  @PropertyRange(min = 1)
+  public String getName() {
+    return name;
   }
 
   @Override
+  @Sortable(whenPersisted = false)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "name", key = "NAME")
+  public String getDisplayName() {
+    return name;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @Description("The date this object was created.")
+  @Property(value = PropertyType.DATE, required = Value.FALSE)
   public Date getCreated() {
     return created;
   }
 
   @Override
-  public Date getLastUpdated() {
-    return lastUpdated;
-  }
-
-  @Override
+  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
+  @JsonProperty
+  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
+  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
+  @PropertyTransformer(UserPropertyTransformer.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public User getLastUpdatedBy() {
     return lastUpdatedBy;
   }
 
   @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @Description("The date this object was last updated.")
+  @Property(value = PropertyType.DATE, required = Value.FALSE)
+  public Date getLastUpdated() {
+    return lastUpdated;
+  }
+
+  @Override
+  @OpenApi.Property(BaseIdentifiableObject.AttributeValue[].class)
+  @JsonProperty("attributeValues")
+  @JsonDeserialize(using = AttributeValuesDeserializer.class)
+  @JsonSerialize(using = AttributeValuesSerializer.class)
   public AttributeValues getAttributeValues() {
-    return null;
+    return attributeValues;
+  }
+
+  @Override
+  @Sortable(value = false)
+  @Gist(included = Include.FALSE)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Sharing getSharing() {
+    return sharing;
+  }
+
+  @Override
+  @Sortable(value = false)
+  @Gist(included = Include.FALSE)
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JacksonXmlProperty(localName = "access", namespace = DxfNamespaces.DXF_2_0)
+  public Access getAccess() {
+    return access;
   }
 
   @Override
@@ -410,9 +498,6 @@ public class CategoryCombo  implements SystemDefaultMetadataObject, Identifiable
 
   @Override
   public void removeAttributeValue(String attributeId) {}
-
-  @Override
-  public void setAccess(Access access) {}
 
   @Override
   public Set<String> getFavorites() {
@@ -440,15 +525,11 @@ public class CategoryCombo  implements SystemDefaultMetadataObject, Identifiable
   }
 
   @Override
-  public void setUser(User user) {}
-
-  @Override
-  public Access getAccess() {
-    return null;
+  public void setUser(User user) {
+    // TODO remove this after implementing functions for using Owner
+    setCreatedBy(createdBy == null ? user : createdBy);
+    setOwner(user != null ? user.getUid() : null);
   }
-
-  @Override
-  public void setSharing(Sharing sharing) {}
 
   @Override
   public String getPropertyValue(IdScheme idScheme) {
@@ -459,6 +540,9 @@ public class CategoryCombo  implements SystemDefaultMetadataObject, Identifiable
   public String getDisplayPropertyValue(IdScheme idScheme) {
     return "";
   }
+
+  @Override
+  public void setOwner(String owner) {}
 
   @Override
   public int compareTo(@NotNull IdentifiableObject o) {
@@ -473,16 +557,6 @@ public class CategoryCombo  implements SystemDefaultMetadataObject, Identifiable
   @Override
   public void setHref(String link) {}
 
-  @Override
-  public String getUid() {
-    return "";
-  }
-
-  @Override
-  public Sharing getSharing() {
-    return null;
-  }
-
   public Set<Translation> getTranslations() {
     return translations == null ? Collections.emptySet() : new HashSet<>();
   }
@@ -493,11 +567,7 @@ public class CategoryCombo  implements SystemDefaultMetadataObject, Identifiable
   }
 
   @Override
-  public String getName() {
-    return name;
-  }
-
-  @Override
+  @JsonProperty
   public User getCreatedBy() {
     return createdBy;
   }

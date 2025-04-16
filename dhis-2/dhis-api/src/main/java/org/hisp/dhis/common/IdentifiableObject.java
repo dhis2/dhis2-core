@@ -107,7 +107,7 @@ public interface IdentifiableObject
   Sharing getSharing();
 
   void setSharing(Sharing sharing);
-
+  
   // -----------------------------------------------------------------------------
   // Utility methods
   // -----------------------------------------------------------------------------
@@ -142,7 +142,7 @@ public interface IdentifiableObject
 
   void setLastUpdatedBy(User user);
 
-  void setAutoFields();
+  void setCreated(Date created);
 
   default void setAutoFields() {
     if (getUid() == null || getUid().isEmpty()) {
