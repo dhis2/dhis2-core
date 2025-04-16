@@ -55,7 +55,7 @@ import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.NoOpCache;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dataitem.query.QueryExecutor;
@@ -124,7 +124,7 @@ class ResponseHandlerTest {
   void testAddPaginationToNodeWithSuccess() {
     // Given
     final RootNode anyRootNode = new RootNode("any");
-    final Set<Class<? extends BaseIdentifiableObject>> anyTargetEntities =
+    final Set<Class<? extends IdentifiableObject>> anyTargetEntities =
         Set.of(Indicator.class, DataSet.class);
     final Set<String> anyFilters = newHashSet("any");
     final User anyUser = new User();
@@ -147,7 +147,7 @@ class ResponseHandlerTest {
   void testAddPaginationToNodeWhenPagingIsFalse() {
     // Given
     final RootNode anyRootNode = new RootNode("any");
-    final Set<Class<? extends BaseIdentifiableObject>> anyTargetEntities =
+    final Set<Class<? extends IdentifiableObject>> anyTargetEntities =
         Set.of(Indicator.class, DataSet.class);
     final Set<String> anyFilters = newHashSet("any");
     final User anyUser = new User();
@@ -168,7 +168,7 @@ class ResponseHandlerTest {
   void testAddPaginationToNodeWhenTargetEntitiesIsEmpty() {
     // Given
     final RootNode anyRootNode = new RootNode("any");
-    final Set<Class<? extends BaseIdentifiableObject>> emptyTargetEntities = emptySet();
+    final Set<Class<? extends IdentifiableObject>> emptyTargetEntities = emptySet();
     final Set<String> anyFilters = newHashSet("any");
     final User anyUser = new User();
     final WebOptions anyWebOptions = mockWebOptions(10, 1);

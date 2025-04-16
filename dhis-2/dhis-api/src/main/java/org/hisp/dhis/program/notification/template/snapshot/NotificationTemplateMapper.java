@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -159,7 +160,7 @@ public class NotificationTemplateMapper {
   }
 
   private <T extends IdentifiableObjectSnapshot> T toIdentifiableObjectSnapshot(
-      BaseIdentifiableObject from,
+      IdentifiableObject from,
       Supplier<T> instanceSupplier,
       Collection<Consumer<T>> instanceTransformers) {
     Optional<T> optionalInstance =

@@ -46,7 +46,7 @@ import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataitem.DataItem;
@@ -154,7 +154,7 @@ public class DataItemQueryController {
     checkOrderParams(orderParams.getOrders());
 
     // Extracting the target entities to be queried.
-    Set<Class<? extends BaseIdentifiableObject>> targetEntities =
+    Set<Class<? extends IdentifiableObject>> targetEntities =
         dataItemServiceFacade.extractTargetEntities(filters);
 
     // Checking if the user can read all the target entities.
@@ -175,9 +175,9 @@ public class DataItemQueryController {
   }
 
   private void checkAuthorization(
-      User currentUser, Set<Class<? extends BaseIdentifiableObject>> entities) {
+      User currentUser, Set<Class<? extends IdentifiableObject>> entities) {
     if (isNotEmpty(entities)) {
-      for (Class<? extends BaseIdentifiableObject> entity : entities) {
+      for (Class<? extends IdentifiableObject> entity : entities) {
         if (!aclService.canRead(UserDetails.fromUser(currentUser), entity)) {
           throw new IllegalQueryException(
               new ErrorMessage(E3012, currentUser.getUsername(), entity.getSimpleName()));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +27,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.dxf2.webmessage.responses;
 
-import java.util.Set;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import javax.annotation.Nonnull;
+import lombok.Builder;
+import lombok.Data;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
-@Getter
-@Setter
-@NoArgsConstructor
-public class DimensionsCriteria extends PagingAndSortingCriteriaAdapter {
-  private Set<String> filter;
+@Data
+@Builder
+public class TrackerJobWebMessageResponse implements WebMessageResponse {
 
-  private boolean paging = true;
+  @JsonProperty private final String id;
+  @JsonProperty private final String location;
+
+  @Nonnull
+  @Override
+  public Class<? extends WebMessageResponse> getResponseClassType() {
+    return TrackerJobWebMessageResponse.class;
+  }
 }

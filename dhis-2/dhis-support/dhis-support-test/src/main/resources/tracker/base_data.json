@@ -65,9 +65,17 @@
           "valueType": "INTEGER",
           "attribute": {
             "idScheme": "UID",
-            "identifier": "numericAttr"
+            "identifier": "integerAttr"
           },
           "value": "88"
+        },
+        {
+          "valueType": "NUMBER",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "V66aa7a2122"
+          },
+          "value": "170.0"
         }
       ]
     },
@@ -105,15 +113,23 @@
             "idScheme": "UID",
             "identifier": "notUpdated0"
           },
-          "value": "winter day"
+          "value": "20% winter's day"
         },
         {
           "valueType": "INTEGER",
           "attribute": {
             "idScheme": "UID",
-            "identifier": "numericAttr"
+            "identifier": "integerAttr"
           },
           "value": "70"
+        },
+        {
+          "valueType": "NUMBER",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "V66aa7a2122"
+          },
+          "value": "170.7"
         },
         {
           "attribute": {
@@ -155,7 +171,7 @@
           "valueType": "INTEGER",
           "attribute": {
             "idScheme": "UID",
-            "identifier": "numericAttr"
+            "identifier": "integerAttr"
           },
           "value": "72"
         }
@@ -192,7 +208,7 @@
           "valueType": "INTEGER",
           "attribute": {
             "idScheme": "UID",
-            "identifier": "numericAttr"
+            "identifier": "integerAttr"
           },
           "value": "89"
         }
@@ -229,7 +245,7 @@
           "valueType": "INTEGER",
           "attribute": {
             "idScheme": "UID",
-            "identifier": "numericAttr"
+            "identifier": "integerAttr"
           },
           "value": "91"
         }
@@ -266,7 +282,7 @@
           "valueType": "INTEGER",
           "attribute": {
             "idScheme": "UID",
-            "identifier": "numericAttr"
+            "identifier": "integerAttr"
           },
           "value": "90"
         }
@@ -771,7 +787,7 @@
             "idScheme": "UID",
             "identifier": "GieVkTxp4HH"
           },
-          "value": "15"
+          "value": "15.0"
         },
         {
           "dataElement": {

@@ -80,7 +80,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -3149,7 +3148,7 @@ public abstract class TestBase {
             coc -> {
               Set<String> categoryOptions =
                   coc.getCategoryOptions().stream()
-                      .map(BaseIdentifiableObject::getName)
+                      .map(IdentifiableObject::getName)
                       .collect(Collectors.toSet());
               return categoryOptions.containsAll(List.of(co1, co2));
             })
