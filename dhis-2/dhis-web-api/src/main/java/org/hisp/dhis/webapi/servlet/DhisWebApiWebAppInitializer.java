@@ -144,7 +144,7 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
 
     context
         .addFilter("ApiVersionFilter", new DelegatingFilterProxy("apiVersionFilter"))
-        .addMappingForUrlPatterns(null, true, "/*");
+        .addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/api/*");
 
     context
         .addFilter("RequestIdentifierFilter", new DelegatingFilterProxy("requestIdentifierFilter"))

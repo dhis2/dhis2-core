@@ -29,17 +29,18 @@
  */
 package org.hisp.dhis.webapi.filter;
 
-import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
  * Filters calls matching <code>/api/{version}/{endpoint}</code>, where version is a number between
@@ -65,8 +66,10 @@ import org.springframework.stereotype.Component;
  *
  * @author david mackessy
  */
+@Slf4j
 @Component
-public class ApiVersionFilter implements Filter {
+@RequiredArgsConstructor
+public class ApiVersionFilter extends OncePerRequestFilter {
 
   private static final String API_VERSION_REGEX =
       "^(?<api>/api/)(?<apiversion>2[8-9]|3\\d|4[0-3])/(?<endpoint>.*)";
@@ -74,9 +77,9 @@ public class ApiVersionFilter implements Filter {
   private static final Pattern API_VERSION_PATTERN = Pattern.compile(API_VERSION_REGEX);
 
   @Override
-  public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+  protected void doFilterInternal(
+      HttpServletRequest req, HttpServletResponse res, FilterChain chain)
       throws IOException, ServletException {
-    HttpServletRequest req = (HttpServletRequest) request;
 
     Matcher matcher =
         API_VERSION_PATTERN.matcher(req.getRequestURI().substring(req.getContextPath().length()));
@@ -87,11 +90,34 @@ public class ApiVersionFilter implements Filter {
       String endpoint = matcher.group("endpoint");
 
       if (api != null && apiVersion != null && endpoint != null) {
-        RequestDispatcher dispatcher = req.getServletContext().getRequestDispatcher(api + endpoint);
-        dispatcher.forward(request, response);
+        String forwardUri = api + endpoint;
+
+        HttpServletRequest wrappedRequest =
+            new HttpServletRequestWrapper(req) {
+              @Override
+              public String getRequestURI() {
+                return req.getContextPath() + forwardUri;
+              }
+
+              @Override
+              public String getServletPath() {
+                return forwardUri;
+              }
+
+              @Override
+              public String getContextPath() {
+                return req.getContextPath();
+              }
+
+              @Override
+              public String getPathInfo() {
+                return null;
+              }
+            };
+        chain.doFilter(wrappedRequest, res);
         return;
       }
     }
-    chain.doFilter(request, response);
+    chain.doFilter(req, res);
   }
 }
