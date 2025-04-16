@@ -66,7 +66,7 @@ import org.springframework.transaction.annotation.Transactional;
 class ProgramNotificationInstanceServiceTest extends PostgresIntegrationTestBase {
   private static final int TEST_USER_COUNT = 60;
   private static final Supplier<Date> NOW = () -> Date.from(Instant.now());
-  private static final int EXPECTED_NOTIFICATIONS = 12;
+  private static final int EXPECTED_NOTIFICATIONS = 15;
 
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private NotificationSender notificationSender;
