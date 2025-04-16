@@ -195,10 +195,10 @@ public abstract class AbstractCrudController<
     final T patchedObject = doPatch(patch, persistedObject);
 
     // Do not allow changing IDs
-    ((BaseIdentifiableObject) patchedObject).setId(persistedObject.getId());
+    patchedObject.setId(persistedObject.getId());
 
     // Do not allow changing UIDs
-    ((BaseIdentifiableObject) patchedObject).setUid(persistedObject.getUid());
+    patchedObject.setUid(persistedObject.getUid());
 
     prePatchEntity(persistedObject, patchedObject);
 
@@ -422,7 +422,7 @@ public abstract class AbstractCrudController<
     }
 
     T parsed = deserializeJsonEntity(request);
-    ((BaseIdentifiableObject) parsed).setUid(pvUid);
+    parsed.setUid(pvUid);
 
     preUpdateEntity(persisted, parsed);
 
@@ -459,7 +459,7 @@ public abstract class AbstractCrudController<
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
       throws NotFoundException, ForbiddenException, IOException {
-    BaseIdentifiableObject persistedObject = (BaseIdentifiableObject) getEntity(pvUid);
+    IdentifiableObject persistedObject = getEntity(pvUid);
 
     if (!aclService.canUpdate(currentUser, persistedObject)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object.");

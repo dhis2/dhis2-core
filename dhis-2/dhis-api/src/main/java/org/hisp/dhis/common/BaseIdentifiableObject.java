@@ -298,6 +298,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   }
 
   /** Clears out cache when setting translations. */
+  @Override
   public void setTranslations(Set<Translation> translations) {
     this.translationCache.clear();
     this.translations = translations;
@@ -470,6 +471,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
   // -------------------------------------------------------------------------
 
   /** Set auto-generated fields on save or update */
+  @Override
   public void setAutoFields() {
     if (uid == null || uid.isEmpty()) {
       setUid(CodeGenerator.generateUid());

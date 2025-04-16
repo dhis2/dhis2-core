@@ -38,8 +38,8 @@ import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -315,7 +315,7 @@ class CategoryOptionComboStoreTest extends PostgresIntegrationTestBase {
     List<String> cos =
         cocsByCategoryOption.stream()
             .flatMap(coc -> coc.getCategoryOptions().stream())
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .toList();
 
     assertEquals(8, cos.size(), "8 CategoryOptions should be present");
