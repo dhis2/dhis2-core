@@ -97,6 +97,14 @@
       <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+    </dependency>
   </dependencies>
 
   <build>
@@ -167,27 +175,35 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
-        <configuration>
-          <executable>npm</executable>
-          <arguments>
-            <argument>run</argument>
-            <argument>bundle-apps</argument>
-          </arguments>
-          <environmentVariables>
-            <BUILD_DIR>${project.build.directory}/classes/static</BUILD_DIR>
-            <ARTIFACT_ID>dhis-web-apps</ARTIFACT_ID>
-            <APPS>./apps-to-bundle.json</APPS>
-            <DEFAULT_BRANCH>master</DEFAULT_BRANCH>
-          </environmentVariables>
-          <skip>${skip.bundle.apps}</skip>
-        </configuration>
         <executions>
           <execution>
             <id>bundle-apps</id>
             <goals>
-              <goal>exec</goal>
+              <goal>java</goal>
             </goals>
             <phase>prepare-package</phase>
+            <configuration>
+              <mainClass>org.hisp.dhis.web.appbundler.AppBundler</mainClass>
+              <systemProperties>
+                <property>
+                  <key>BUILD_DIR</key>
+                  <value>${project.build.directory}/classes/static</value>
+                </property>
+                <property>
+                  <key>ARTIFACT_ID</key>
+                  <value>dhis-web-apps</value>
+                </property>
+                <property>
+                  <key>APPS</key>
+                  <value>./bundled-apps.json</value>
+                </property>
+                <property>
+                  <key>DEFAULT_BRANCH</key>
+                  <value>master</value>
+                </property>
+              </systemProperties>
+              <skip>${skip.bundle.apps}</skip>
+            </configuration>
           </execution>
         </executions>
       </plugin>
