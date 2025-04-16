@@ -27,32 +27,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.servlet;
+package org.hisp.dhis.webapi.dimension;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import org.hisp.dhis.user.CurrentUserUtil;
+import java.util.Set;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public class RedirectRootServlet extends HttpServlet {
+@Getter
+@Setter
+@NoArgsConstructor
+public class DimensionsCriteria extends PagingAndSortingCriteriaAdapter {
+  private Set<String> filter;
 
-  @Override
-  protected void doGet(HttpServletRequest req, HttpServletResponse resp)
-      throws IOException, ServletException {
-    boolean hasCurrentUser = CurrentUserUtil.hasCurrentUser();
-    if (hasCurrentUser) {
-      String referer = (String) req.getAttribute("origin");
-      req.setAttribute("origin", referer);
-      resp.sendRedirect(req.getContextPath() + "/dhis-web-dashboard/");
-    } else {
-      resp.setContentType("text/html");
-      resp.setStatus(HttpServletResponse.SC_OK);
-      resp.sendRedirect(req.getContextPath() + "/dhis-web-login/");
-    }
-  }
+  private boolean paging = true;
 }

@@ -49,7 +49,7 @@ import com.google.gson.JsonElement;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
@@ -712,8 +712,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("admin", lastUpdatedByAdmin.getUsername());
 
     // switch to new user & add usergroup to new user
-    String role =
-        newUser.getUserRoles().stream().map(BaseIdentifiableObject::getUid).findFirst().get();
+    String role = newUser.getUserRoles().stream().map(IdentifiableObject::getUid).findFirst().get();
     switchToNewUser(newUser);
     PUT(
             "/users/" + newUser.getUid(),
@@ -778,8 +777,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     manager.clear();
 
     // switch to new user & assign usergroup to new user
-    String role =
-        newUser.getUserRoles().stream().map(BaseIdentifiableObject::getUid).findFirst().get();
+    String role = newUser.getUserRoles().stream().map(IdentifiableObject::getUid).findFirst().get();
     switchToNewUser(newUser);
     PUT(
             "/users/" + newUser.getUid(),

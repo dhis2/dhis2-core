@@ -41,7 +41,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryFilter;
@@ -145,7 +144,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .organisationUnits(orgUnit)
             .orgUnitMode(DESCENDANTS)
             .trackedEntityType(trackedEntityType)
-            .orderBy(UID.of("numericAttr"), SortDirection.ASC)
+            .orderBy(UID.of("integerAttr"), SortDirection.ASC)
             .build();
 
     Page<String> firstPage =
@@ -187,7 +186,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .orgUnitMode(SELECTED)
             .program(UID.of("BFcipDERJnf"))
             .trackedEntities(UID.of("QS6w44flWAf", "dUE514NMOlo"))
-            .orderBy(UID.of("numericAttr"), SortDirection.ASC)
+            .orderBy(UID.of("integerAttr"), SortDirection.ASC)
             .build();
 
     Page<String> firstPage =
@@ -477,7 +476,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .orgUnitMode(SELECTED)
             .trackedEntityType(trackedEntityType)
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
-            .filterBy(UID.of("numericAttr"), List.of(new QueryFilter(QueryOperator.LT, "75")))
+            .filterBy(UID.of("integerAttr"), List.of(new QueryFilter(QueryOperator.LT, "75")))
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -493,8 +492,8 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .organisationUnits(orgUnit)
             .orgUnitMode(SELECTED)
             .trackedEntityType(trackedEntityType)
-            .filterBy(UID.of("numericAttr"), List.of(new QueryFilter(QueryOperator.LT, "75")))
-            .orderBy(UID.of("numericAttr"), SortDirection.DESC)
+            .filterBy(UID.of("integerAttr"), List.of(new QueryFilter(QueryOperator.LT, "75")))
+            .orderBy(UID.of("integerAttr"), SortDirection.DESC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -534,7 +533,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .trackedEntities(UID.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityType(trackedEntityType)
             .orderBy(UID.of("toDelete000"), SortDirection.DESC)
-            .orderBy(UID.of("numericAttr"), SortDirection.ASC)
+            .orderBy(UID.of("integerAttr"), SortDirection.ASC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -552,7 +551,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .trackedEntities(UID.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityType(trackedEntityType)
             .orderBy(UID.of("toDelete000"), SortDirection.DESC)
-            .orderBy(UID.of("numericAttr"), SortDirection.DESC)
+            .orderBy(UID.of("integerAttr"), SortDirection.DESC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -1525,7 +1524,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
     return uids(relationshipService.findRelationships(params));
   }
 
-  private static List<String> uids(List<? extends BaseIdentifiableObject> identifiableObject) {
-    return identifiableObject.stream().map(BaseIdentifiableObject::getUid).toList();
+  private static List<String> uids(List<? extends IdentifiableObject> identifiableObject) {
+    return identifiableObject.stream().map(IdentifiableObject::getUid).toList();
   }
 }

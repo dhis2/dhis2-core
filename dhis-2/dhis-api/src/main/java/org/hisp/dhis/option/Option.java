@@ -41,6 +41,7 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.SortableObject;
 import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Property;
 
 /**
@@ -96,6 +97,7 @@ public class Option extends BaseNameableObject implements MetadataObject, Sortab
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
   @Property(PropertyType.TEXT)
+  @Gist(order = 2)
   public String getCode() {
     return super.getCode();
   }
@@ -103,6 +105,7 @@ public class Option extends BaseNameableObject implements MetadataObject, Sortab
   @JsonProperty
   @JsonSerialize(as = BaseIdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Gist(order = 1)
   public OptionSet getOptionSet() {
     return optionSet;
   }

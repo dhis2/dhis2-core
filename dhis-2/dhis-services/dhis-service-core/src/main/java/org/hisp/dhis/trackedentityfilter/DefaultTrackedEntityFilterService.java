@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -43,8 +44,6 @@ import org.hisp.dhis.programstagefilter.DateFilterPeriod;
 import org.hisp.dhis.programstagefilter.DatePeriodType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -152,9 +151,7 @@ public class DefaultTrackedEntityFilterService implements TrackedEntityFilterSer
       Map<String, TrackedEntityAttribute> attributes =
           teaService.getAllTrackedEntityAttributes().stream()
               .collect(Collectors.toMap(TrackedEntityAttribute::getUid, att -> att));
-      errors.addAll(
-          OrderParamsHelper.validateOrderParams(
-              OrderParamsHelper.toOrderParams(orderCriteria), attributes));
+      errors.addAll(OrderParamsHelper.validateOrderCriteria(orderCriteria, attributes));
     }
   }
 

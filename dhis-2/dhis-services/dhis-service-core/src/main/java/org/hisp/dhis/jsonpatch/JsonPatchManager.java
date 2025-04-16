@@ -38,6 +38,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Collection;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
@@ -110,7 +111,7 @@ public class JsonPatchManager {
           continue;
         }
 
-        if (BaseIdentifiableObject.class.isAssignableFrom(property.getItemKlass())
+        if (IdentifiableObject.class.isAssignableFrom(property.getItemKlass())
             && !EmbeddedObject.class.isAssignableFrom(property.getItemKlass())) {
           ArrayNode arrayNode = jsonMapper.createArrayNode();
 
@@ -118,7 +119,7 @@ public class JsonPatchManager {
               item ->
                   arrayNode.add(
                       jsonMapper.valueToTree(
-                          shallowCopyIdentifiableObject((BaseIdentifiableObject) item))));
+                          shallowCopyIdentifiableObject((IdentifiableObject) item))));
 
           node.set(property.getCollectionName(), arrayNode);
         } else {
@@ -136,7 +137,7 @@ public class JsonPatchManager {
    * @param source the BaseIdentifiableObject to be cloned.
    * @return a new BaseIdentifiableObject with id and uid properties.
    */
-  private BaseIdentifiableObject shallowCopyIdentifiableObject(BaseIdentifiableObject source) {
+  private BaseIdentifiableObject shallowCopyIdentifiableObject(IdentifiableObject source) {
     BaseIdentifiableObject clone = new BaseIdentifiableObject();
     clone.setId(source.getId());
     clone.setUid(source.getUid());
