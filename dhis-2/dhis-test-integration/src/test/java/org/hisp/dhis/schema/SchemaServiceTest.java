@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
+import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -149,5 +150,12 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
     assertEquals(PropertyType.BOOLEAN, isDefault.getPropertyType());
     assertNotNull(isDefault.getGetterMethod(), "getter is null");
     assertNotNull(isDefault.getSetterMethod(), "setter is null");
+  }
+
+  @Test
+  void testDashboardItemTextTranslatable() {
+    Schema schema = schemaService.getDynamicSchema(DashboardItem.class);
+    Property text = schema.getProperty("text");
+    assertTrue(text.isTranslatable());
   }
 }
