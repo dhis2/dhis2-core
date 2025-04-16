@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,31 +27,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.hibernate;
+package org.hisp.dhis.hibernate.jsonb.type;
 
-import jakarta.persistence.EntityManager;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.hibernate.SharingHibernateGenericStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.hibernate.annotations.Parameter;
+import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.TypeDefs;
 
-/**
- * This class contains methods for generating predicates which are used for validating sharing
- * access permission.
- */
-@Slf4j
-public class SharingHibernateGenericStoreImpl<T extends IdentifiableObject>
-    extends InternalHibernateGenericStoreImpl<T> implements SharingHibernateGenericStore<T> {
-  public SharingHibernateGenericStoreImpl(
-      EntityManager entityManager,
-      JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher,
-      Class<T> clazz,
-      AclService aclService,
-      boolean cacheable) {
-    super(entityManager, jdbcTemplate, publisher, clazz, aclService, cacheable);
-  }
-}
+@TypeDefs({
+  @TypeDef(
+      name = "jblTranslations",
+      typeClass = JsonSetBinaryType.class,
+      parameters = {@Parameter(name = "clazz", value = "org.hisp.dhis.translation.Translation")})
+})
+public class UserTypeConfig {}

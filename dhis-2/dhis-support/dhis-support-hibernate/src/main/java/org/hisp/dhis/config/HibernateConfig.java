@@ -123,9 +123,9 @@ public class HibernateConfig {
     adapter.setDatabasePlatform(dhisConfig.getProperty(ConfigurationKey.CONNECTION_DIALECT));
     LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
     factory.setJpaVendorAdapter(adapter);
+    factory.setDataSource(dataSource);
     factory.setPersistenceUnitName("dhis");
     factory.setPersistenceProviderClass(HibernatePersistenceProvider.class);
-    factory.setDataSource(dataSource);
     factory.setPackagesToScan("org.hisp.dhis");
     factory.setMappingResources(loadResources());
     factory.setJpaProperties(getAdditionalProperties(dhisConfig));
@@ -163,6 +163,7 @@ public class HibernateConfig {
     properties.put(
         "hibernate.current_session_context_class",
         "org.springframework.orm.hibernate5.SpringSessionContext");
+    properties.put(AvailableSettings.USE_ENTITY_WHERE_CLAUSE_FOR_COLLECTIONS, false);
 
     if ("true".equals(dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE))) {
       properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "true");

@@ -35,43 +35,134 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderColumn;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import lombok.Setter;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Parameter;
+import org.hibernate.annotations.Type;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
+import org.hisp.dhis.security.acl.Access;
+import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Abyot Aselefew
  */
+@Setter
 @JacksonXmlRootElement(localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0)
-public class CategoryCombo extends BaseIdentifiableObject implements SystemDefaultMetadataObject {
+public class CategoryCombo  implements SystemDefaultMetadataObject, IdentifiableObject {
   public static final String DEFAULT_CATEGORY_COMBO_NAME = "default";
 
-  /** The categories combined in this combo in the order they are used as a category combination */
-  private List<Category> categories = new ArrayList<>();
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "categorycomboid")
+  private long id;
 
-  /**
-   * A set of category option combinations. Use getSortedOptionCombos() to get a sorted list of
-   * category option combinations.
-   */
-  private Set<CategoryOptionCombo> optionCombos = new HashSet<>();
+  @Column(name = "uid", unique = true, nullable = false, length = 11)
+  private String uid;
 
-  /**
-   * Type of data dimension. Category combinations of type DISAGGREGATION can be linked to data
-   * elements, whereas type ATTRIBUTE can be linked to data sets.
-   */
+  @Column(name = "code", unique = true, nullable = true, length = 50)
+  private String code;
+
+  @Column(name = "created", nullable = false, updatable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  private Date created;
+
+  @Column(name = "lastUpdated", nullable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  private Date lastUpdated;
+
+  @ManyToOne
+  @JoinColumn(name = "lastupdatedby", foreignKey = @ForeignKey(name = "fk_lastupdateby_userid"))
+  private User lastUpdatedBy;
+
+  @Column(name = "name", nullable = false, unique = true, length = 230)
+  private String name;
+
+  @Column(name = "translations")
+  @Type(
+      type = "jblTranslations",
+      parameters = {@Parameter(name = "clazz", value = "org.hisp.dhis.translation.Translation")})
+  private String translations;
+
+  @OneToMany
+  @JoinTable(
+      name = "categorycombos_categories",
+      joinColumns =
+      @JoinColumn(
+          name = "categorycomboid",
+          foreignKey = @ForeignKey(name = "fk_categorycombos_categories_categorycomboid")),
+      inverseJoinColumns =
+      @JoinColumn(
+          name = "categoryid",
+          foreignKey = @ForeignKey(name = "fk_categorycombo_categoryid")))
+  @OrderColumn(name = "sort_order")
+  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  private List<Category> categories;
+
+  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @JoinTable(
+      name = "categorycombos_optioncombos",
+      joinColumns =
+      @JoinColumn(
+          name = "categorycomboid",
+          foreignKey = @ForeignKey(name = "fk_categorycombos_optioncombos_categorycomboid")),
+      inverseJoinColumns =
+      @JoinColumn(
+          name = "categoryoptioncomboid",
+          foreignKey = @ForeignKey(name = "fk_categorycombo_categoryoptioncomboid")))
+  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  private Set<CategoryOptionCombo> optionCombos;
+
+  @Column(name = "datadimensiontype", nullable = false)
+  @Enumerated(EnumType.STRING)
   private DataDimensionType dataDimensionType;
 
-  /** Indicates whether to skip total values for the categories in reports. */
+  @Column(name = "skiptotal", nullable = false)
   private boolean skipTotal;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "userid", foreignKey = @ForeignKey(name = "fk_categorycombo_userid"))
+  private User createdBy;
+
+  @Column(name = "sharing")
+  @Type(type = "jsbObjectSharing")
+  private String sharing;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -276,5 +367,138 @@ public class CategoryCombo extends BaseIdentifiableObject implements SystemDefau
 
   public void setSkipTotal(boolean skipTotal) {
     this.skipTotal = skipTotal;
+  }
+
+  // -------------------------------------------------------------------------
+  // Implementation methods from IdentifiableObject
+  // -------------------------------------------------------------------------
+  @Override
+  public String getCode() {
+    return code;
+  }
+
+  @Override
+  public String getDisplayName() {
+    return "";
+  }
+
+  @Override
+  public Date getCreated() {
+    return created;
+  }
+
+  @Override
+  public Date getLastUpdated() {
+    return lastUpdated;
+  }
+
+  @Override
+  public User getLastUpdatedBy() {
+    return lastUpdatedBy;
+  }
+
+  @Override
+  public AttributeValues getAttributeValues() {
+    return null;
+  }
+
+  @Override
+  public void setAttributeValues(AttributeValues attributeValues) {}
+
+  @Override
+  public void addAttributeValue(String attributeUid, String value) {}
+
+  @Override
+  public void removeAttributeValue(String attributeId) {}
+
+  @Override
+  public void setAccess(Access access) {}
+
+  @Override
+  public Set<String> getFavorites() {
+    return Set.of();
+  }
+
+  @Override
+  public boolean isFavorite() {
+    return false;
+  }
+
+  @Override
+  public boolean setAsFavorite(UserDetails user) {
+    return false;
+  }
+
+  @Override
+  public boolean removeAsFavorite(UserDetails user) {
+    return false;
+  }
+
+  @Override
+  public User getUser() {
+    return null;
+  }
+
+  @Override
+  public void setUser(User user) {}
+
+  @Override
+  public Access getAccess() {
+    return null;
+  }
+
+  @Override
+  public void setSharing(Sharing sharing) {}
+
+  @Override
+  public String getPropertyValue(IdScheme idScheme) {
+    return "";
+  }
+
+  @Override
+  public String getDisplayPropertyValue(IdScheme idScheme) {
+    return "";
+  }
+
+  @Override
+  public int compareTo(@NotNull IdentifiableObject o) {
+    return 0;
+  }
+
+  @Override
+  public String getHref() {
+    return "";
+  }
+
+  @Override
+  public void setHref(String link) {}
+
+  @Override
+  public String getUid() {
+    return "";
+  }
+
+  @Override
+  public Sharing getSharing() {
+    return null;
+  }
+
+  public Set<Translation> getTranslations() {
+    return translations == null ? Collections.emptySet() : new HashSet<>();
+  }
+
+  @Override
+  public long getId() {
+    return id;
+  }
+
+  @Override
+  public String getName() {
+    return name;
+  }
+
+  @Override
+  public User getCreatedBy() {
+    return createdBy;
   }
 }

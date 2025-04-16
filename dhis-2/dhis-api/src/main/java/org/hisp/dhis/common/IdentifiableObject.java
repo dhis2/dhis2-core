@@ -46,6 +46,13 @@ import org.hisp.dhis.user.sharing.Sharing;
 @OpenApi.Kind("IdentifiableObject")
 public interface IdentifiableObject
     extends PrimaryKeyObject, LinkableObject, Comparable<IdentifiableObject>, Serializable {
+  void setUid(String uid);
+  void setCreated( Date created );
+  void setLastUpdated( Date updated );
+  void setLastUpdatedBy( User lastUpdatedBy );
+  void setName( String name );
+  void setCode( String code );
+  
   String getCode();
 
   String getName();
@@ -120,5 +127,19 @@ public interface IdentifiableObject
 
   default boolean hasSharing() {
     return getSharing() != null;
+  }
+
+  default void setAutoFields() {
+    if (getUid() == null || getUid().isEmpty()) {
+      setUid(CodeGenerator.generateUid());
+    }
+
+    Date date = new Date();
+
+    if (getCreated() == null) {
+      setCreated(date);
+    }
+
+    setLastUpdated(date);
   }
 }
