@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -105,9 +105,9 @@ class ProgramNotificationInstanceServiceTest extends PostgresIntegrationTestBase
         "Expected " + EXPECTED_NOTIFICATIONS + " notification instances, but got " + instances);
   }
 
-  private String createNotification(String str) {
+  private String createNotification() {
     ProgramNotificationTemplate pnt = new ProgramNotificationTemplate();
-    pnt.setName("Test-PNT-Schedule" + str);
+    pnt.setName("Test-PNT-Schedule");
     pnt.setMessageTemplate("message_template");
     pnt.setDeliveryChannels(Set.of());
     pnt.setSubjectTemplate("subject_template");
@@ -134,9 +134,8 @@ class ProgramNotificationInstanceServiceTest extends PostgresIntegrationTestBase
   }
 
   List<Notification> getNotifications() {
-    return IntStream.range(0, EXPECTED_NOTIFICATIONS)
-        .mapToObj(i -> ("A" + i))
-        .map(str -> new Notification(UID.of(createNotification(str)), NOW.get()))
+    return Stream.generate(() -> new Notification(UID.of(createNotification()), NOW.get()))
+        .limit(EXPECTED_NOTIFICATIONS)
         .toList();
   }
 }
