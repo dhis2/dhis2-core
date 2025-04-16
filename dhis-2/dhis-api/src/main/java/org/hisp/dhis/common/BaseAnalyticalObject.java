@@ -711,9 +711,12 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
       List<Period> periodList = new ArrayList<>();
 
       // For backward compatibility, where periods are not in the "raw" list yet.
-      if (rawPeriods != null && rawPeriods.isEmpty()) {
+      if (rawPeriods != null) {
         rawPeriods.addAll(
-            getPeriods().stream().map(period -> period.getDimensionItem()).collect(toSet()));
+            getPeriods().stream()
+                .filter(period -> !rawPeriods.contains(period.getDimensionItem()))
+                .map(period -> period.getDimensionItem())
+                .collect(toSet()));
       }
 
       for (String period : rawPeriods) {

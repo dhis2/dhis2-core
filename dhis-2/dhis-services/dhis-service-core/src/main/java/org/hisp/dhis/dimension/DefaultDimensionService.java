@@ -560,14 +560,11 @@ public class DefaultDimensionService implements DimensionService {
             }
           }
         } else if (PERIOD.equals(type)) {
-          List<RelativePeriodEnum> enums = new ArrayList<>();
           List<Period> periods = new UniqueArrayList<>();
           Set<String> allPeriods = new LinkedHashSet<>();
 
           for (String period : uids) {
-            if (RelativePeriodEnum.contains(period)) {
-              // periods.add(new Period(RelativePeriodEnum.valueOf(period)));
-            } else {
+            if (!RelativePeriodEnum.contains(period)) {
               Period isoPeriod = PeriodType.getPeriodFromIsoString(period);
 
               if (isoPeriod != null) {
@@ -577,7 +574,7 @@ public class DefaultDimensionService implements DimensionService {
 
             allPeriods.add(period);
           }
-          // TODO Maikel: Set periods as well
+
           object.setRawPeriods(new ArrayList<>(allPeriods));
           object.setPeriods(periodService.reloadPeriods(new ArrayList<>(periods)));
         } else if (ORGANISATION_UNIT.equals(type)) {
