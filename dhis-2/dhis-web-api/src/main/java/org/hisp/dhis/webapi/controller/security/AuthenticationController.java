@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -74,8 +74,6 @@ import org.springframework.security.web.authentication.session.SessionFixationPr
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.savedrequest.DefaultSavedRequest;
-import org.springframework.security.web.savedrequest.RequestCache;
-import org.springframework.security.web.savedrequest.SavedRequest;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -108,7 +106,6 @@ public class AuthenticationController {
 
   @Autowired private DhisConfigurationProvider dhisConfig;
   @Autowired private SystemSettingsProvider settingsProvider;
-  @Autowired private RequestCache requestCache;
   @Autowired private SessionRegistry sessionRegistry;
   @Autowired private UserService userService;
 
@@ -255,30 +252,6 @@ public class AuthenticationController {
       if (!userDetails.isEmailVerified()) {
         return request.getContextPath() + "/dhis-web-user-profile/#/profile";
       }
-    }
-
-    // Check for saved request, i.e. the user has tried to access a page directly before logging in.
-    SavedRequest savedRequest = requestCache.getRequest(request, null);
-    if (savedRequest != null) {
-      DefaultSavedRequest defaultSavedRequest = (DefaultSavedRequest) savedRequest;
-      // Check saved request to avoid redirecting to non-html pages, e.g. images.
-      // If the saved request is not filtered, the user will be redirected to the saved request,
-      // otherwise the default redirect URL is used.
-      if (!filterSavedRequest(defaultSavedRequest)) {
-        if (defaultSavedRequest.getQueryString() != null) {
-          redirectUrl =
-              defaultSavedRequest.getRequestURI() + "?" + defaultSavedRequest.getQueryString();
-        } else {
-          String requestURI = defaultSavedRequest.getRequestURI();
-          // Ignore saved requests that is just / or /CONTEXT_PATH(/)
-          if (!requestURI.equalsIgnoreCase("/")
-              && !requestURI.equalsIgnoreCase(request.getContextPath())
-              && !requestURI.equalsIgnoreCase(request.getContextPath() + "/")) {
-            redirectUrl = requestURI;
-          }
-        }
-      }
-      this.requestCache.removeRequest(request, response);
     }
 
     return redirectUrl;
