@@ -944,6 +944,43 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
+  void testEnrollmentFilterTextAttributesUsingIn() throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnitUid(orgUnit.getUid())
+            .attributeFilters(
+                Map.of(
+                    "toUpdate000",
+                    List.of(new QueryFilter(QueryOperator.IN, "rainy day;summer day"))))
+            .build();
+
+    Set<String> trackedEntities =
+        eventService.getEvents(params).stream()
+            .map(event -> event.getEnrollment().getTrackedEntity().getUid())
+            .collect(Collectors.toSet());
+
+    assertContainsOnly(Set.of("dUE514NMOlo", "QS6w44flWAf"), trackedEntities);
+  }
+
+  @Test
+  void testEnrollmentFilterNumericAttributesUsingIn()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnitUid(orgUnit.getUid())
+            .attributeFilters(
+                Map.of("numericAttr", List.of(new QueryFilter(QueryOperator.IN, "70;88"))))
+            .build();
+
+    Set<String> trackedEntities =
+        eventService.getEvents(params).stream()
+            .map(event -> event.getEnrollment().getTrackedEntity().getUid())
+            .collect(Collectors.toSet());
+
+    assertContainsOnly(Set.of("dUE514NMOlo", "QS6w44flWAf"), trackedEntities);
+  }
+
+  @Test
   void testEnrollmentFilterAttributes() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         operationParamsBuilder

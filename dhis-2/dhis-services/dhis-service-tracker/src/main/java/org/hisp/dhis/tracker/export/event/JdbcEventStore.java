@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static java.util.Map.entry;
+import static org.hisp.dhis.common.QueryFilter.getFilterItems;
 import static org.hisp.dhis.common.ValueType.NUMERIC_TYPES;
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
@@ -682,10 +683,19 @@ class JdbcEventStore implements EventStore {
       StringBuilder filterString = new StringBuilder();
       final String queryCol =
           isNumericTea ? castToNumber(teaValueCol + ".value") : lower(teaValueCol + ".value");
-      final Object encodedFilter =
-          isNumericTea
-              ? Double.valueOf(filter.getFilter())
-              : StringUtils.lowerCase(filter.getSqlFilter(filter.getFilter()));
+      final Object encodedFilter;
+      if (isNumericTea) {
+        if (filter.isOperator(QueryOperator.IN)) {
+          encodedFilter =
+              getFilterItems(filter.getFilter()).stream()
+                  .map(i -> Double.valueOf(i).toString())
+                  .collect(Collectors.joining(",", "(", ")"));
+        } else {
+          encodedFilter = Double.valueOf(filter.getFilter());
+        }
+      } else {
+        encodedFilter = StringUtils.lowerCase(filter.getSqlFilter(filter.getFilter()));
+      }
       filterString
           .append(queryCol)
           .append(SPACE)
@@ -1331,7 +1341,7 @@ class JdbcEventStore implements EventStore {
             if (QueryOperator.IN.getValue().equalsIgnoreCase(filter.getSqlOperator())) {
               mapSqlParameterSource.addValue(
                   bindParameter,
-                  QueryFilter.getFilterItems(StringUtils.lowerCase(filter.getFilter())),
+                  getFilterItems(StringUtils.lowerCase(filter.getFilter())),
                   itemType);
 
               eventDataValuesWhereSql.append(inCondition(filter, bindParameter, queryCol));
@@ -1353,7 +1363,7 @@ class JdbcEventStore implements EventStore {
             if (QueryOperator.IN.getValue().equalsIgnoreCase(filter.getSqlOperator())) {
               mapSqlParameterSource.addValue(
                   bindParameter,
-                  QueryFilter.getFilterItems(StringUtils.lowerCase(filter.getFilter())),
+                  getFilterItems(StringUtils.lowerCase(filter.getFilter())),
                   itemType);
 
               optionValueConditionBuilder.append(" and ");
