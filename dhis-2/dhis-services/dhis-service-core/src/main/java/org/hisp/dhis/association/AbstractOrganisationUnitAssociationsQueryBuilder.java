@@ -34,7 +34,7 @@ import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.EXTRACT_PATH_TEX
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.HAS_USER_GROUP_IDS;
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.HAS_USER_ID;
 import static org.hisp.dhis.security.acl.AclService.LIKE_READ_METADATA;
-import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
+import static org.hisp.dhis.system.util.SqlUtils.singleQuoteAndEscape;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -153,14 +153,14 @@ public abstract class AbstractOrganisationUnitAssociationsQueryBuilder {
   private String getOwnerCondition(String userUid) {
     return String.join(
         " or ",
-        jsonbFunction(EXTRACT_PATH_TEXT, "owner") + " = " + singleQuote(userUid),
+        jsonbFunction(EXTRACT_PATH_TEXT, "owner") + " = " + singleQuoteAndEscape(userUid),
         jsonbFunction(EXTRACT_PATH_TEXT, "owner") + " is null");
   }
 
   private String getPublicSharingCondition(String access) {
     return String.join(
         " or ",
-        jsonbFunction(EXTRACT_PATH_TEXT, "public") + " like " + singleQuote(access),
+        jsonbFunction(EXTRACT_PATH_TEXT, "public") + " like " + singleQuoteAndEscape(access),
         jsonbFunction(EXTRACT_PATH_TEXT, "public") + " is null");
   }
 
@@ -189,7 +189,7 @@ public abstract class AbstractOrganisationUnitAssociationsQueryBuilder {
         String.join(
             ",",
             "inner_query_alias.sharing",
-            Arrays.stream(params).map(SqlUtils::singleQuote).collect(joining(","))),
+            Arrays.stream(params).map(SqlUtils::singleQuoteAndEscape).collect(joining(","))),
         ")");
   }
 
@@ -200,7 +200,7 @@ public abstract class AbstractOrganisationUnitAssociationsQueryBuilder {
   private String getUidsFilter(Set<String> uids) {
     return T_ALIAS
         + ".uid in ("
-        + uids.stream().map(SqlUtils::singleQuote).collect(joining(","))
+        + uids.stream().map(SqlUtils::singleQuoteAndEscape).collect(joining(","))
         + ")";
   }
 

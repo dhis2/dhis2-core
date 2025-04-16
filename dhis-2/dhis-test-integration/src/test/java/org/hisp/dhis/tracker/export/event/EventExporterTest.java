@@ -346,7 +346,7 @@ class EventExporterTest extends TrackerTest {
             .enrollments(Set.of("nxP7UnKhomJ"))
             .programStageUid(programStage.getUid())
             .dataElementFilters(
-                Map.of("DATAEL00001", List.of(new QueryFilter(QueryOperator.LIKE, "%val%"))))
+                Map.of("DATAEL00001", List.of(new QueryFilter(QueryOperator.LIKE, "val"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -367,7 +367,7 @@ class EventExporterTest extends TrackerTest {
             .programStageUid(programStage.getUid())
             .programStatus(ProgramStatus.ACTIVE)
             .dataElementFilters(
-                Map.of(dataElement.getUid(), List.of(new QueryFilter(QueryOperator.LIKE, "%val%"))))
+                Map.of(dataElement.getUid(), List.of(new QueryFilter(QueryOperator.LIKE, "val"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -386,7 +386,7 @@ class EventExporterTest extends TrackerTest {
             .programStageUid(programStage.getUid())
             .programType(ProgramType.WITH_REGISTRATION)
             .dataElementFilters(
-                Map.of(dataElement.getUid(), List.of(new QueryFilter(QueryOperator.LIKE, "%val%"))))
+                Map.of(dataElement.getUid(), List.of(new QueryFilter(QueryOperator.LIKE, "val"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -406,7 +406,7 @@ class EventExporterTest extends TrackerTest {
             .dataElementFilters(
                 Map.of(
                     dataElement.getUid(),
-                    List.of(new QueryFilter(QueryOperator.LIKE, "%value00001%"))))
+                    List.of(new QueryFilter(QueryOperator.LIKE, "value00001"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -685,7 +685,7 @@ class EventExporterTest extends TrackerTest {
             .enrollments(Set.of("nxP7UnKhomJ"))
             .programStageUid(programStage.getUid())
             .dataElementFilters(
-                Map.of(dataElement.getUid(), List.of(new QueryFilter(QueryOperator.LIKE, "%opt%"))))
+                Map.of(dataElement.getUid(), List.of(new QueryFilter(QueryOperator.LIKE, "opt"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -997,6 +997,61 @@ class EventExporterTest extends TrackerTest {
     assertContainsOnly(List.of("QS6w44flWAf"), trackedEntities);
   }
 
+  // add the same tests to the tracked entity service? can I copy the filter service test? and add
+  // the SW one
+  // add the same tests to filter for a DE
+  @Test
+  void shouldExportEventsWhenFilteringByTextAttributesUsingSW()
+      throws ForbiddenException, BadRequestException {
+    // TODO(ivo) add backslash to value as well?
+    // the single quote was not escaped and the like wildcards were also not escaped
+    // lower("notUpdated0".value) like '0% winter'%'
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnitMode(ACCESSIBLE)
+            .attributeFilters(
+                Map.of("notUpdated0", List.of(new QueryFilter(QueryOperator.SW, "20% Winter'"))))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldExportEventsWhenFilteringByTextAttributesUsingEW()
+      throws ForbiddenException, BadRequestException {
+    // the single quote was not escaped and the like wildcards are not escaped
+    // lower("notUpdated0".value) like '0% winter'%'
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnitMode(ACCESSIBLE)
+            .attributeFilters(
+                Map.of("notUpdated0", List.of(new QueryFilter(QueryOperator.EW, "% Winter's day"))))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldExportEventsWhenFilteringByTextAttributesUsingLike()
+      throws ForbiddenException, BadRequestException {
+    // the single quote is not escaped
+    // lower("notUpdated0".value) like '%0\% winter's%'
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnitMode(ACCESSIBLE)
+            .attributeFilters(
+                Map.of("notUpdated0", List.of(new QueryFilter(QueryOperator.LIKE, "0% Winter's"))))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
   @Test
   void testEnrollmentFilterAttributesWithMultipleFiltersOnDifferentAttributes()
       throws ForbiddenException, BadRequestException {
@@ -1008,7 +1063,7 @@ class EventExporterTest extends TrackerTest {
                     "toUpdate000",
                     List.of(new QueryFilter(QueryOperator.EQ, "rainy day")),
                     "notUpdated0",
-                    List.of(new QueryFilter(QueryOperator.EQ, "winter day"))))
+                    List.of(new QueryFilter(QueryOperator.EQ, "20% winter's day"))))
             .build();
 
     List<String> trackedEntities =

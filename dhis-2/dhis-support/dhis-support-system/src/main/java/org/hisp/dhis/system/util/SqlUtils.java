@@ -45,6 +45,10 @@ public class SqlUtils {
 
   public static final String SINGLE_QUOTE = "'";
 
+  public static final String PERCENT = "%";
+
+  public static final String UNDERSCORE = "_";
+
   public static final String SEPARATOR = ".";
 
   public static final String OPTION_SEP = ".";
@@ -80,14 +84,19 @@ public class SqlUtils {
   }
 
   /**
-   * Single quotes the given relation (typically a value). Escapes characters including single quote
-   * and backslash.
+   * Single quotes the given relation (typically a value) and escapes characters including single
+   * quote and backslash.
    *
    * @param value the value.
    * @return the single quoted relation.
    */
+  public static String singleQuoteAndEscape(String value) {
+    return singleQuote(escape(value));
+  }
+
+  /** Single quotes the given value. */
   public static String singleQuote(String value) {
-    return SINGLE_QUOTE + escape(value) + SINGLE_QUOTE;
+    return SINGLE_QUOTE + value + SINGLE_QUOTE;
   }
 
   /**
@@ -101,6 +110,30 @@ public class SqlUtils {
     return value
         .replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE))
         .replace(BACKSLASH, (BACKSLASH + BACKSLASH));
+  }
+
+  /**
+   * Only escapes single quotes in given value. This is needed for SQL text literals containing
+   * single-quotes as text literals use single-quotes as the literal delimiter.
+   */
+  public static String escapeSingleQuotes(String value) {
+    return value.replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE));
+  }
+
+  /**
+   * Escapes {@code like} wildcards '%' and '_' and the default escape character '\' in a given
+   * string using the default escape character. This expects you to use the default escape
+   * character. Make sure to call this before inserting any like wildcard characters!
+   *
+   * <p>See <a
+   * href="https://www.postgresql.org/docs/current/functions-matching.html#FUNCTIONS-LIKE">PostgreSQL
+   * like</a>
+   */
+  public static String escapeLikeWildcards(String value) {
+    return value
+        .replace(BACKSLASH, (BACKSLASH + BACKSLASH))
+        .replace(PERCENT, (BACKSLASH + PERCENT))
+        .replace(UNDERSCORE, (BACKSLASH + UNDERSCORE));
   }
 
   /**
