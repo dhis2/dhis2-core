@@ -34,10 +34,10 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.test.TestBase.getDate;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.util.DateUtils.parseDate;
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -45,13 +45,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import java.sql.Types;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -59,6 +59,8 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.UidObject;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -74,6 +76,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.export.JdbcPredicate;
+import org.hisp.dhis.tracker.export.JdbcPredicate.Parameter;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
@@ -81,12 +85,12 @@ import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.jdbc.core.SqlParameterValue;
 
 @MockitoSettings(strictness = Strictness.LENIENT) // common setup
 @ExtendWith(MockitoExtension.class)
@@ -134,6 +138,8 @@ class TrackedEntityOperationParamsMapperTest {
   private OrganisationUnit orgUnit2;
 
   private TrackedEntityType trackedEntityType;
+  private TrackedEntityAttribute tea1;
+  private TrackedEntityAttribute tea2;
 
   @BeforeEach
   public void setUp() {
@@ -172,10 +178,12 @@ class TrackedEntityOperationParamsMapperTest {
     when(programService.getProgram(PROGRAM_UID.getValue())).thenReturn(program);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
 
-    TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
+    tea1 = new TrackedEntityAttribute();
+    tea1.setValueType(ValueType.INTEGER);
     tea1.setUid(TEA_1_UID.getValue());
 
-    TrackedEntityAttribute tea2 = new TrackedEntityAttribute();
+    tea2 = new TrackedEntityAttribute();
+    tea2.setValueType(ValueType.TEXT);
     tea2.setUid(TEA_2_UID.getValue());
 
     when(attributeService.getTrackedEntityAttribute(TEA_1_UID.getValue())).thenReturn(tea1);
@@ -281,40 +289,21 @@ class TrackedEntityOperationParamsMapperTest {
 
     TrackedEntityQueryParams params = mapper.map(operationParams, user);
 
-    Map<TrackedEntityAttribute, List<QueryFilter>> items = params.getFilters();
-    assertNotNull(items);
-    // mapping to UIDs as the error message by just relying on QueryItem
-    // equals() is not helpful
-    assertContainsOnly(
-        UID.toValueList(List.of(TEA_1_UID, TEA_2_UID)),
-        items.keySet().stream().map(BaseIdentifiableObject::getUid).toList());
+    Map<TrackedEntityAttribute, List<JdbcPredicate>> attributes = params.getFilters();
+    assertNotNull(attributes);
+    assertEquals(2, attributes.size());
 
-    // QueryItem equals() does not take the QueryFilter into account so
-    // assertContainsOnly alone does not ensure operators and filter value
-    // are correct
-    // the following block is needed because of that
-    // assertion is order independent as the order of QueryItems is not
-    // guaranteed
-    Map<UID, QueryFilter> expectedFilters =
-        Map.of(
-            TEA_1_UID,
-            new QueryFilter(QueryOperator.EQ, "2"),
-            TEA_2_UID,
-            new QueryFilter(QueryOperator.LIKE, "foo"));
-    assertAll(
-        items.entrySet().stream()
-            .map(
-                i ->
-                    (Executable)
-                        () -> {
-                          String uid = i.getKey().getUid();
-                          QueryFilter expected = expectedFilters.get(UID.of(uid));
-                          assertEquals(
-                              expected,
-                              i.getValue().get(0),
-                              () -> String.format("QueryFilter mismatch for TEA with UID %s", uid));
-                        })
-            .toList());
+    assertContainsOnly(List.of(tea1, tea2), attributes.keySet());
+
+    List<JdbcPredicate> tea1Filters = attributes.get(tea1);
+    assertEquals(1, tea1Filters.size());
+    assertQueryFilterValue(
+        tea1Filters.get(0), "=", new SqlParameterValue(Types.INTEGER, List.of(2)));
+
+    List<JdbcPredicate> tea2Filters = attributes.get(tea2);
+    assertEquals(1, tea2Filters.size());
+    assertQueryFilterValue(
+        tea2Filters.get(0), "like", new SqlParameterValue(Types.VARCHAR, List.of("%foo%")));
   }
 
   @Test
@@ -335,20 +324,20 @@ class TrackedEntityOperationParamsMapperTest {
 
     TrackedEntityQueryParams params = mapper.map(operationParams, user);
 
-    Map<TrackedEntityAttribute, List<QueryFilter>> items = params.getFilters();
-    assertNotNull(items);
-    // mapping to UIDs as the error message by just relying on QueryItem
-    // equals() is not helpful
+    Map<TrackedEntityAttribute, List<JdbcPredicate>> attributes = params.getFilters();
+    assertNotNull(attributes);
+    assertEquals(1, attributes.size());
+
     assertContainsOnly(
         List.of(TEA_1_UID.getValue()),
-        items.keySet().stream().map(BaseIdentifiableObject::getUid).toList());
+        attributes.keySet().stream().map(UidObject::getUid).toList());
 
-    // QueryItem equals() does not take the QueryFilter into account so
-    // assertContainsOnly alone does not ensure operators and filter value
-    // are correct
-    assertContainsOnly(
-        Set.of(new QueryFilter(QueryOperator.GT, "10"), new QueryFilter(QueryOperator.LT, "20")),
-        items.values().stream().findAny().get());
+    List<JdbcPredicate> tea1Filters = attributes.get(tea1);
+    assertEquals(2, tea1Filters.size());
+    assertQueryFilterValue(
+        tea1Filters.get(0), ">", new SqlParameterValue(Types.INTEGER, List.of(10)));
+    assertQueryFilterValue(
+        tea1Filters.get(1), "<", new SqlParameterValue(Types.INTEGER, List.of(20)));
   }
 
   @Test
@@ -545,5 +534,21 @@ class TrackedEntityOperationParamsMapperTest {
             ForbiddenException.class, () -> mapper.map(operationParams, currentUserWithOrgUnits));
 
     assertEquals("User has no access to any Tracked Entity Type", exception.getMessage());
+  }
+
+  private static void assertQueryFilterValue(
+      JdbcPredicate actual, String sqlOperator, SqlParameterValue value) {
+    assertContains(sqlOperator, actual.getSql());
+
+    if (value != null) {
+      assertTrue(actual.getParameter().isPresent(), "expected a getParameter but got none");
+      Parameter parameter = actual.getParameter().get();
+      assertEquals(value.getSqlType(), parameter.value().getSqlType());
+      assertEquals(value.getValue(), parameter.value().getValue());
+    } else {
+      assertTrue(
+          actual.getParameter().isEmpty(),
+          () -> "getParameter should be empty but got " + actual.getParameter().get());
+    }
   }
 }
