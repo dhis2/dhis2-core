@@ -150,19 +150,34 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     TrackedEntity hibernateTrackedEntity = manager.get(TrackedEntity.class, trackedEntity.getUid());
     TrackedEntityProgramOwner teProgramOwner =
         trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(trackedEntity, program);
-    if (teProgramOwner != null && !teProgramOwner.getOrganisationUnit().equals(orgUnit)) {
-      ProgramOwnershipHistory programOwnershipHistory =
-          new ProgramOwnershipHistory(
-              program,
-              hibernateTrackedEntity,
-              teProgramOwner.getOrganisationUnit(),
-              teProgramOwner.getLastUpdated(),
-              teProgramOwner.getCreatedBy());
-      programOwnershipHistoryService.addProgramOwnershipHistory(programOwnershipHistory);
-      trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
-          hibernateTrackedEntity, program, orgUnit);
-      ownerCache.invalidate(getOwnershipCacheKey(trackedEntity, program));
+    // TODO(tracker) As soon as we use the trackedEntityService in this method, remove this
+    // validation, as that's already validated in the query when fetching a trackedEntity with a
+    // program
+    if (teProgramOwner == null) {
+      throw new BadRequestException(
+          String.format(
+              "Tracked entity not transferred. No owner found for the combination of tracked entity %s and program %s",
+              trackedEntity.getUid(), programUid));
     }
+
+    if (teProgramOwner.getOrganisationUnit().equals(orgUnit)) {
+      throw new BadRequestException(
+          String.format(
+              "Tracked entity not transferred. The owner of the tracked entity %s and program %s is already %s",
+              trackedEntity.getUid(), programUid, orgUnitUid));
+    }
+
+    ProgramOwnershipHistory programOwnershipHistory =
+        new ProgramOwnershipHistory(
+            program,
+            hibernateTrackedEntity,
+            teProgramOwner.getOrganisationUnit(),
+            teProgramOwner.getLastUpdated(),
+            teProgramOwner.getCreatedBy());
+    programOwnershipHistoryService.addProgramOwnershipHistory(programOwnershipHistory);
+    trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
+        hibernateTrackedEntity, program, orgUnit);
+    ownerCache.invalidate(getOwnershipCacheKey(trackedEntity, program));
   }
 
   @Override

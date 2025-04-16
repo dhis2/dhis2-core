@@ -535,6 +535,36 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
         exception.getMessage());
   }
 
+  @Test
+  void shouldNotTransferOwnershipIfNoOwnerFound() {
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> transferOwnership(trackedEntityB1, programA, organisationUnitA));
+    assertEquals(
+        "Tracked entity not transferred. No owner found for the combination of tracked entity "
+            + trackedEntityB1.getUid()
+            + " and program "
+            + programA.getUid(),
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldNotTransferOwnershipIfSuppliedOrgUnitIsAlreadyOwner() {
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> transferOwnership(trackedEntityA1, programA, organisationUnitA));
+    assertEquals(
+        "Tracked entity not transferred. The owner of the tracked entity "
+            + trackedEntityA1.getUid()
+            + " and program "
+            + programA.getUid()
+            + " is already "
+            + organisationUnitA.getUid(),
+        exception.getMessage());
+  }
+
   private void transferOwnership(
       TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit)
       throws ForbiddenException, BadRequestException, NotFoundException {
