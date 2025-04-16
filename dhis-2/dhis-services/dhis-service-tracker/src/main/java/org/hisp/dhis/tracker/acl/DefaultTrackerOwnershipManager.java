@@ -124,47 +124,44 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   // so we can run all validations in this service instead of the controller.
   public void transferOwnership(
       @Nonnull TrackedEntity trackedEntity, @Nonnull UID programUid, @Nonnull UID orgUnitUid)
-      throws ForbiddenException, BadRequestException {
+      throws ForbiddenException, BadRequestException, NotFoundException {
     Program program = trackerProgramService.getTrackerProgram(programUid);
     OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(orgUnitUid.getValue());
 
     if (orgUnit == null) {
-      throw new ForbiddenException(
+      throw new NotFoundException(
           "Tracked entity not transferred. Org unit supplied does not exist.");
     }
 
-    if (hasAccess(getCurrentUserDetails(), trackedEntity, program)) {
-      if (!programService.hasOrgUnit(program, orgUnit)) {
-        throw new ForbiddenException(
-            String.format(
-                "Tracked entity not transferred. The program %s is not associated to the org unit %s",
-                program.getUid(), orgUnit.getUid()));
-      }
-
-      TrackedEntityProgramOwner teProgramOwner =
-          trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(trackedEntity, program);
-
-      // TODO(tracker) jdbc-hibernate: check the impact on performance
-      TrackedEntity hibernateTrackedEntity =
-          manager.get(TrackedEntity.class, trackedEntity.getUid());
-      if (teProgramOwner != null && !teProgramOwner.getOrganisationUnit().equals(orgUnit)) {
-        ProgramOwnershipHistory programOwnershipHistory =
-            new ProgramOwnershipHistory(
-                program,
-                hibernateTrackedEntity,
-                teProgramOwner.getOrganisationUnit(),
-                teProgramOwner.getLastUpdated(),
-                teProgramOwner.getCreatedBy());
-        programOwnershipHistoryService.addProgramOwnershipHistory(programOwnershipHistory);
-        trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
-            hibernateTrackedEntity, program, orgUnit);
-      }
-
-      ownerCache.invalidate(getOwnershipCacheKey(trackedEntity, program));
-    } else {
+    if (!hasAccess(getCurrentUserDetails(), trackedEntity, program)) {
       log.error("Unauthorized attempt to change ownership");
       throw new ForbiddenException(
           "Tracked entity not transferred. User does not have access to change ownership for the entity-program combination");
+    }
+
+    if (!programService.hasOrgUnit(program, orgUnit)) {
+      throw new ForbiddenException(
+          String.format(
+              "Tracked entity not transferred. The program %s is not associated to the org unit %s",
+              program.getUid(), orgUnit.getUid()));
+    }
+
+    // TODO(tracker) jdbc-hibernate: check the impact on performance
+    TrackedEntity hibernateTrackedEntity = manager.get(TrackedEntity.class, trackedEntity.getUid());
+    TrackedEntityProgramOwner teProgramOwner =
+        trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(trackedEntity, program);
+    if (teProgramOwner != null && !teProgramOwner.getOrganisationUnit().equals(orgUnit)) {
+      ProgramOwnershipHistory programOwnershipHistory =
+          new ProgramOwnershipHistory(
+              program,
+              hibernateTrackedEntity,
+              teProgramOwner.getOrganisationUnit(),
+              teProgramOwner.getLastUpdated(),
+              teProgramOwner.getCreatedBy());
+      programOwnershipHistoryService.addProgramOwnershipHistory(programOwnershipHistory);
+      trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
+          hibernateTrackedEntity, program, orgUnit);
+      ownerCache.invalidate(getOwnershipCacheKey(trackedEntity, program));
     }
   }
 

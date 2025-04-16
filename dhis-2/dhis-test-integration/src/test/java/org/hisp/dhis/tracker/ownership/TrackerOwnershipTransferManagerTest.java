@@ -526,7 +526,7 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
 
     Exception exception =
         assertThrows(
-            ForbiddenException.class,
+            NotFoundException.class,
             () ->
                 trackerOwnershipManager.transferOwnership(
                     trackedEntityA1, UID.of(programA), madeUpOrgUnit));
