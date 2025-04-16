@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -206,7 +206,7 @@ class EnrollmentOperationParamsMapperTest {
     assertEquals(
         user.getUserEffectiveSearchOrgUnitIds(),
         params.getOrganisationUnits().stream()
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet()));
   }
 
@@ -222,7 +222,7 @@ class EnrollmentOperationParamsMapperTest {
     assertEquals(
         user.getUserOrgUnitIds(),
         params.getOrganisationUnits().stream()
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet()));
   }
 

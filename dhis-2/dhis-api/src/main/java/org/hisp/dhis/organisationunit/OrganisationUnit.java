@@ -61,6 +61,7 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.SortProperty;
@@ -660,9 +661,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
     List<OrganisationUnit> ancestors = getAncestors(roots);
 
     builder.append(
-        ancestors.stream()
-            .map(BaseIdentifiableObject::getName)
-            .collect(Collectors.joining(delimiter)));
+        ancestors.stream().map(IdentifiableObject::getName).collect(Collectors.joining(delimiter)));
 
     if (includeThis) {
       builder.append(delimiter).append(name);
