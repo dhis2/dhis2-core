@@ -55,7 +55,6 @@ import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -186,6 +185,15 @@ public class TrackedEntityAggregate {
 
               Stream<String> teUidStream = trackedEntities.keySet().parallelStream();
 
+              Set<String> teasInProgram;
+              if (ctx.getQueryParams().hasEnrolledInTrackerProgram()) {
+                teasInProgram =
+                    trackedEntityAttributeService.getTrackedEntityAttributesInProgram(
+                        ctx.getQueryParams().getEnrolledInTrackerProgram());
+              } else {
+                teasInProgram = Set.of();
+              }
+
               return teUidStream
                   .map(
                       uid -> {
@@ -193,10 +201,9 @@ public class TrackedEntityAggregate {
                         te.setTrackedEntityAttributeValues(
                             filterAttributes(
                                 attributes.get(uid),
-                                ownedTeis.get(uid),
                                 trackedEntityAttributeService
                                     .getTrackedEntityAttributesByTrackedEntityTypes(),
-                                trackedEntityAttributeService.getTrackedEntityAttributesByProgram(),
+                                teasInProgram,
                                 ctx));
                         te.setEnrollments(new HashSet<>(enrollments.get(uid)));
                         te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
@@ -211,9 +218,8 @@ public class TrackedEntityAggregate {
   /** Filter attributes based on queryParams, ownership and superuser status */
   private Set<TrackedEntityAttributeValue> filterAttributes(
       Collection<TrackedEntityAttributeValue> attributes,
-      Collection<String> programs,
       Set<TrackedEntityAttribute> trackedEntityTypeAttributes,
-      Map<Program, Set<TrackedEntityAttribute>> teaByProgram,
+      Set<String> teasInProgram,
       Context ctx) {
     if (attributes.isEmpty()) {
       return Set.of();
@@ -226,10 +232,7 @@ public class TrackedEntityAggregate {
             .collect(Collectors.toSet());
 
     if (ctx.getQueryParams().hasEnrolledInTrackerProgram()) {
-      allowedAttributeUids.addAll(
-          teaByProgram.get(ctx.getQueryParams().getEnrolledInTrackerProgram()).stream()
-              .map(IdentifiableObject::getUid)
-              .collect(Collectors.toSet()));
+      allowedAttributeUids.addAll(teasInProgram);
     }
 
     return attributes.stream()

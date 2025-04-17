@@ -34,7 +34,6 @@ import static java.util.stream.Collectors.toList;
 import com.google.common.collect.ImmutableSet;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnull;
@@ -312,8 +311,8 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
 
   @Override
   @Transactional(readOnly = true)
-  public Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram() {
-    return this.trackedEntityAttributeStore.getTrackedEntityAttributesByProgram();
+  public Set<String> getTrackedEntityAttributesInProgram(Program program) {
+    return this.trackedEntityAttributeStore.getTrackedEntityAttributesInProgram(program);
   }
 
   private String validateImage(String uid) {

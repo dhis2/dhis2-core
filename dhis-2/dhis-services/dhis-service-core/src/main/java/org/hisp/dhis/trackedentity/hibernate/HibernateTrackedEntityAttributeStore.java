@@ -29,14 +29,11 @@
  */
 package org.hisp.dhis.trackedentity.hibernate;
 
-import com.google.common.collect.Sets;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hibernate.query.Query;
@@ -137,29 +134,15 @@ public class HibernateTrackedEntityAttributeStore
   }
 
   @Override
-  @SuppressWarnings({"unchecked", "rawtypes"})
-  public Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram() {
-    Map<Program, Set<TrackedEntityAttribute>> result = new HashMap<>();
-
+  public Set<String> getTrackedEntityAttributesInProgram(Program program) {
     TypedQuery<ProgramTrackedEntityAttribute> query =
         entityManager.createQuery(
-            "select distinct pa from Program p inner join p.programAttributes pa",
+            "select distinct pa from Program p inner join p.programAttributes pa where p.uid = :program",
             ProgramTrackedEntityAttribute.class);
+    query.setParameter("program", program.getUid());
 
-    List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = query.getResultList();
-
-    for (ProgramTrackedEntityAttribute programTrackedEntityAttribute :
-        programTrackedEntityAttributes) {
-      if (!result.containsKey(programTrackedEntityAttribute.getProgram())) {
-        result.put(
-            programTrackedEntityAttribute.getProgram(),
-            Sets.newHashSet(programTrackedEntityAttribute.getAttribute()));
-      } else {
-        result
-            .get(programTrackedEntityAttribute.getProgram())
-            .add(programTrackedEntityAttribute.getAttribute());
-      }
-    }
-    return result;
+    return query.getResultList().stream()
+        .map(pa -> pa.getAttribute().getUid())
+        .collect(Collectors.toSet());
   }
 }
