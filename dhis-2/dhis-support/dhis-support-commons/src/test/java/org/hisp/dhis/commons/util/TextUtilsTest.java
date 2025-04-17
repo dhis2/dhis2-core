@@ -242,9 +242,7 @@ class TextUtilsTest {
     assertThrows(
         IllegalArgumentException.class,
         () ->
-            TextUtils.replace(
-                "Welcome ${first_name} ${last_name}",
-                new MapBuilder<String, String>().put("first_name", "John").build()));
+            TextUtils.replace("Welcome ${first_name} ${last_name}", Map.of("first_name", "John")));
   }
 
   @Test
@@ -252,11 +250,7 @@ class TextUtilsTest {
     assertEquals(
         "Welcome John",
         TextUtils.replace(
-            "Welcome ${first_name}",
-            new MapBuilder<String, String>()
-                .put("first_name", "John")
-                .put("last_name", "Bond")
-                .build()));
+            "Welcome ${first_name}", Map.of("first_name", "John", "last_name", "Bond")));
   }
 
   @Test

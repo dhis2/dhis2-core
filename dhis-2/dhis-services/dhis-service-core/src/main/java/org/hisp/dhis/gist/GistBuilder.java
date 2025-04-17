@@ -934,7 +934,6 @@ final class GistBuilder {
     if (operator.isAccessCompare()) {
       return createAccessFilterHQL(index, filter, field);
     }
-    StringBuilder str = new StringBuilder();
     String template = "${property}";
     if (filter.isAttribute()) {
       template =
