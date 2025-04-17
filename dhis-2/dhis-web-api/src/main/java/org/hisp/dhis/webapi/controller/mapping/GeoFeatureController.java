@@ -36,7 +36,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.render.RenderService;
@@ -91,7 +90,6 @@ public class GeoFeatureController {
       @RequestParam(required = false) String coordinateField,
       @RequestParam(defaultValue = "false", value = "includeGroupSets") boolean rpIncludeGroupSets,
       @RequestParam Map<String, String> parameters,
-      DhisApiVersion apiVersion,
       HttpServletRequest request,
       HttpServletResponse response) {
     WebOptions options = new WebOptions(parameters);
@@ -100,7 +98,6 @@ public class GeoFeatureController {
     List<GeoFeature> features =
         geoFeatureService.getGeoFeatures(
             GeoFeatureService.Parameters.builder()
-                .apiVersion(apiVersion)
                 .displayProperty(displayProperty)
                 .includeGroupSets(includeGroupSets)
                 .request(request)
@@ -129,7 +126,6 @@ public class GeoFeatureController {
       @RequestParam(defaultValue = "callback") String callback,
       @RequestParam(defaultValue = "false", value = "includeGroupSets") boolean rpIncludeGroupSets,
       @RequestParam Map<String, String> parameters,
-      DhisApiVersion apiVersion,
       HttpServletRequest request,
       HttpServletResponse response)
       throws IOException {
@@ -139,7 +135,6 @@ public class GeoFeatureController {
     List<GeoFeature> features =
         geoFeatureService.getGeoFeatures(
             GeoFeatureService.Parameters.builder()
-                .apiVersion(apiVersion)
                 .displayProperty(displayProperty)
                 .includeGroupSets(includeGroupSets)
                 .request(request)

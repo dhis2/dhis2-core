@@ -143,7 +143,7 @@ class TrackedEntitiesChangeLogsControllerTest extends PostgresControllerIntegrat
                 2,
                 1,
                 String.format(
-                    "http://localhost/api/tracker/trackedEntities/%s/changeLogs",
+                    "http://localhost/api/40/tracker/trackedEntities/%s/changeLogs",
                     trackedEntity.getUid())));
   }
 

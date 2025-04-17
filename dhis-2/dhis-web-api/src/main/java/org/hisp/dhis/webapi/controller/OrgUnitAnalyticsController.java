@@ -34,7 +34,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import jakarta.servlet.http.HttpServletResponse;
 import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
@@ -67,7 +66,6 @@ public class OrgUnitAnalyticsController {
       @RequestParam String ou,
       @RequestParam String ougs,
       @RequestParam(required = false) String columns,
-      DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
     OrgUnitQueryParams params = analyticsService.getParams(ou, ougs, columns);
@@ -81,7 +79,6 @@ public class OrgUnitAnalyticsController {
       @RequestParam String ou,
       @RequestParam String ougs,
       @RequestParam(required = false) String columns,
-      DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
     OrgUnitQueryParams params = analyticsService.getParams(ou, ougs, columns);
@@ -96,7 +93,6 @@ public class OrgUnitAnalyticsController {
       @RequestParam String ou,
       @RequestParam String ougs,
       @RequestParam(required = false) String columns,
-      DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
     OrgUnitQueryParams params = analyticsService.getParams(ou, ougs, columns);
@@ -111,7 +107,6 @@ public class OrgUnitAnalyticsController {
       @RequestParam String ou,
       @RequestParam String ougs,
       @RequestParam(required = false) String columns,
-      DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
     OrgUnitQueryParams params = analyticsService.getParams(ou, ougs, columns);

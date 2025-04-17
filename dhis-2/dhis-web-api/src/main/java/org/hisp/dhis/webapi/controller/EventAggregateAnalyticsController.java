@@ -58,7 +58,6 @@ import org.hisp.dhis.analytics.event.EventAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.EventAggregateService;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 import org.hisp.dhis.common.Grid;
@@ -114,9 +113,8 @@ public class EventAggregateAnalyticsController {
   public @ResponseBody Grid getExplainAggregateJson( // JSON, JSONP
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, true, AGGREGATE);
+    EventQueryParams params = getEventQueryParams(program, criteria, true, AGGREGATE);
 
     configResponseForJson(response);
 
@@ -139,9 +137,8 @@ public class EventAggregateAnalyticsController {
   public @ResponseBody Grid getAggregateJson( // JSON, JSONP
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
+    EventQueryParams params = getEventQueryParams(program, criteria, false, AGGREGATE);
 
     configResponseForJson(response);
 
@@ -153,12 +150,11 @@ public class EventAggregateAnalyticsController {
   public void getAggregateXml(
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
     toXml(
         getAggregatedGridWithAttachment(
-            criteria, program, apiVersion, CONTENT_TYPE_XML, "events.xml", response),
+            criteria, program, CONTENT_TYPE_XML, "events.xml", response),
         response.getOutputStream());
   }
 
@@ -166,12 +162,11 @@ public class EventAggregateAnalyticsController {
   public void getAggregateXls(
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
     toXls(
         getAggregatedGridWithAttachment(
-            criteria, program, apiVersion, CONTENT_TYPE_EXCEL, "events.xls", response),
+            criteria, program, CONTENT_TYPE_EXCEL, "events.xls", response),
         response.getOutputStream());
   }
 
@@ -179,12 +174,11 @@ public class EventAggregateAnalyticsController {
   public void getAggregateXlsx(
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
     toXlsx(
         getAggregatedGridWithAttachment(
-            criteria, program, apiVersion, CONTENT_TYPE_EXCEL, "events.xlsx", response),
+            criteria, program, CONTENT_TYPE_EXCEL, "events.xlsx", response),
         response.getOutputStream());
   }
 
@@ -192,12 +186,11 @@ public class EventAggregateAnalyticsController {
   public void getAggregateCsv(
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
     toCsv(
         getAggregatedGridWithAttachment(
-            criteria, program, apiVersion, CONTENT_TYPE_CSV, "events.csv", response),
+            criteria, program, CONTENT_TYPE_CSV, "events.csv", response),
         response.getWriter());
   }
 
@@ -205,12 +198,11 @@ public class EventAggregateAnalyticsController {
   public void getAggregateHtml(
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
     toHtml(
         getAggregatedGridWithAttachment(
-            criteria, program, apiVersion, CONTENT_TYPE_HTML, "events.html", response),
+            criteria, program, CONTENT_TYPE_HTML, "events.html", response),
         response.getWriter());
   }
 
@@ -218,12 +210,11 @@ public class EventAggregateAnalyticsController {
   public void getAggregateHtmlCss(
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
     toHtmlCss(
         getAggregatedGridWithAttachment(
-            criteria, program, apiVersion, CONTENT_TYPE_HTML, "events.html", response),
+            criteria, program, CONTENT_TYPE_HTML, "events.html", response),
         response.getWriter());
   }
 
@@ -252,11 +243,10 @@ public class EventAggregateAnalyticsController {
   private Grid getAggregatedGridWithAttachment(
       EventsAnalyticsQueryCriteria criteria,
       String program,
-      DhisApiVersion apiVersion,
       String contentType,
       String file,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
+    EventQueryParams params = getEventQueryParams(program, criteria, false, AGGREGATE);
 
     contextUtils.configureResponse(response, contentType, RESPECT_SYSTEM_SETTING, file, false);
 
@@ -267,7 +257,6 @@ public class EventAggregateAnalyticsController {
   private EventQueryParams getEventQueryParams(
       String program,
       EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       boolean analyzeOnly,
       EndpointAction endpointAction) {
     SystemSettings settings = settingsProvider.getCurrentSettings();
@@ -281,7 +270,6 @@ public class EventAggregateAnalyticsController {
                 (EventsAnalyticsQueryCriteria)
                     criteria.withEndpointAction(endpointAction).withEndpointItem(EVENT))
             .program(program)
-            .apiVersion(apiVersion)
             .build();
 
     return eventDataService.getFromRequest(request, analyzeOnly);

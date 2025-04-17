@@ -46,7 +46,6 @@ import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.AggregateAnalyticsQueryCriteria;
 import org.hisp.dhis.common.DataQueryRequest;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
@@ -94,103 +93,68 @@ public class AnalyticsController {
       value = RESOURCE_PATH + EXPLAIN_PATH,
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   public @ResponseBody Grid getExplainJson( // JSON
-      AggregateAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response) {
-    return getGrid(criteria, apiVersion, ContextUtils.CONTENT_TYPE_JSON, response, true);
+      AggregateAnalyticsQueryCriteria criteria, HttpServletResponse response) {
+    return getGrid(criteria, ContextUtils.CONTENT_TYPE_JSON, response, true);
   }
 
   @GetMapping(
       value = RESOURCE_PATH,
       produces = {APPLICATION_JSON_VALUE, "application/javascript"})
   public @ResponseBody Grid getJson( // JSON, JSONP
-      AggregateAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response) {
-    return getGrid(criteria, apiVersion, ContextUtils.CONTENT_TYPE_JSON, response);
+      AggregateAnalyticsQueryCriteria criteria, HttpServletResponse response) {
+    return getGrid(criteria, ContextUtils.CONTENT_TYPE_JSON, response);
   }
 
   @GetMapping(value = RESOURCE_PATH + ".xml")
-  public void getXml(
-      AggregateAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response)
+  public void getXml(AggregateAnalyticsQueryCriteria criteria, HttpServletResponse response)
       throws Exception {
     GridUtils.toXml(
-        getGrid(criteria, apiVersion, ContextUtils.CONTENT_TYPE_XML, response),
-        response.getOutputStream());
+        getGrid(criteria, ContextUtils.CONTENT_TYPE_XML, response), response.getOutputStream());
   }
 
   @GetMapping(value = RESOURCE_PATH + ".html")
-  public void getHtml(
-      AggregateAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response)
+  public void getHtml(AggregateAnalyticsQueryCriteria criteria, HttpServletResponse response)
       throws Exception {
     GridUtils.toHtml(
-        getGrid(criteria, apiVersion, ContextUtils.CONTENT_TYPE_HTML, response),
-        response.getWriter());
+        getGrid(criteria, ContextUtils.CONTENT_TYPE_HTML, response), response.getWriter());
   }
 
   @GetMapping(value = RESOURCE_PATH + ".html+css")
-  public void getHtmlCss(
-      AggregateAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response)
+  public void getHtmlCss(AggregateAnalyticsQueryCriteria criteria, HttpServletResponse response)
       throws Exception {
     GridUtils.toHtmlCss(
-        getGrid(criteria, apiVersion, ContextUtils.CONTENT_TYPE_HTML, response),
-        response.getWriter());
+        getGrid(criteria, ContextUtils.CONTENT_TYPE_HTML, response), response.getWriter());
   }
 
   @GetMapping(value = RESOURCE_PATH + ".csv")
-  public void getCsv(
-      AggregateAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response)
+  public void getCsv(AggregateAnalyticsQueryCriteria criteria, HttpServletResponse response)
       throws Exception {
     GridUtils.toCsv(
-        getGridWithAttachment(
-            criteria, apiVersion, ContextUtils.CONTENT_TYPE_CSV, "data.csv", response),
+        getGridWithAttachment(criteria, ContextUtils.CONTENT_TYPE_CSV, "data.csv", response),
         response.getWriter());
   }
 
   @GetMapping(value = RESOURCE_PATH + ".xls")
-  public void getXls(
-      AggregateAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response)
+  public void getXls(AggregateAnalyticsQueryCriteria criteria, HttpServletResponse response)
       throws Exception {
     GridUtils.toXls(
-        getGridWithAttachment(
-            criteria, apiVersion, ContextUtils.CONTENT_TYPE_EXCEL, "data.xls", response),
+        getGridWithAttachment(criteria, ContextUtils.CONTENT_TYPE_EXCEL, "data.xls", response),
         response.getOutputStream());
   }
 
   @GetMapping(value = RESOURCE_PATH + ".xlsx")
-  public void getXlsx(
-      AggregateAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response)
+  public void getXlsx(AggregateAnalyticsQueryCriteria criteria, HttpServletResponse response)
       throws Exception {
     GridUtils.toXlsx(
-        getGridWithAttachment(
-            criteria, apiVersion, ContextUtils.CONTENT_TYPE_EXCEL, "data.xlsx", response),
+        getGridWithAttachment(criteria, ContextUtils.CONTENT_TYPE_EXCEL, "data.xlsx", response),
         response.getOutputStream());
   }
 
   @GetMapping(value = RESOURCE_PATH + ".jrxml")
-  public void getJrxml(
-      AggregateAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response)
+  public void getJrxml(AggregateAnalyticsQueryCriteria criteria, HttpServletResponse response)
       throws Exception {
     DataQueryRequest request =
-        DataQueryRequest.newBuilder()
-            .fromCriteria(criteria)
-            .apiVersion(apiVersion)
-            .skipMeta(true)
-            .build();
+        DataQueryRequest.newBuilder().fromCriteria(criteria).skipMeta(true).build();
 
     DataQueryParams params = dataQueryService.getFromRequest(request);
 
@@ -210,10 +174,8 @@ public class AnalyticsController {
       value = RESOURCE_PATH + "/debug/sql",
       produces = {TEXT_HTML_VALUE, TEXT_PLAIN_VALUE})
   public @ResponseBody String getDebugSql(
-      AggregateAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response) {
-    DataQueryParams params = dataQueryService.getFromRequest(fromCriteria(criteria, apiVersion));
+      AggregateAnalyticsQueryCriteria criteria, HttpServletResponse response) {
+    DataQueryParams params = dataQueryService.getFromRequest(fromCriteria(criteria));
 
     contextUtils.configureAnalyticsResponse(
         response,
@@ -232,11 +194,8 @@ public class AnalyticsController {
 
   @GetMapping(value = RESOURCE_PATH + RAW_DATA_PATH + ".json")
   public @ResponseBody Grid getRawDataJson(
-      AggregateAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response) {
-    DataQueryRequest request =
-        DataQueryRequest.newBuilder().fromCriteria(criteria).apiVersion(apiVersion).build();
+      AggregateAnalyticsQueryCriteria criteria, HttpServletResponse response) {
+    DataQueryRequest request = DataQueryRequest.newBuilder().fromCriteria(criteria).build();
 
     DataQueryParams params = dataQueryService.getFromRequest(request);
 
@@ -252,13 +211,9 @@ public class AnalyticsController {
   }
 
   @GetMapping(value = RESOURCE_PATH + RAW_DATA_PATH + ".csv")
-  public void getRawDataCsv(
-      AggregateAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response)
+  public void getRawDataCsv(AggregateAnalyticsQueryCriteria criteria, HttpServletResponse response)
       throws Exception {
-    DataQueryRequest request =
-        DataQueryRequest.newBuilder().fromCriteria(criteria).apiVersion(apiVersion).build();
+    DataQueryRequest request = DataQueryRequest.newBuilder().fromCriteria(criteria).build();
 
     DataQueryParams params = dataQueryService.getFromRequest(request);
 
@@ -281,10 +236,8 @@ public class AnalyticsController {
 
   @GetMapping(value = RESOURCE_PATH + DATA_VALUE_SET_PATH + ".xml")
   public @ResponseBody DataValueSet getDataValueSetXml(
-      AggregateAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response) {
-    DataQueryParams params = dataQueryService.getFromRequest(fromCriteria(criteria, apiVersion));
+      AggregateAnalyticsQueryCriteria criteria, HttpServletResponse response) {
+    DataQueryParams params = dataQueryService.getFromRequest(fromCriteria(criteria));
 
     contextUtils.configureAnalyticsResponse(
         response,
@@ -299,10 +252,8 @@ public class AnalyticsController {
 
   @GetMapping(value = RESOURCE_PATH + DATA_VALUE_SET_PATH + ".json")
   public @ResponseBody DataValueSet getDataValueSetJson(
-      AggregateAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response) {
-    DataQueryParams params = dataQueryService.getFromRequest(fromCriteria(criteria, apiVersion));
+      AggregateAnalyticsQueryCriteria criteria, HttpServletResponse response) {
+    DataQueryParams params = dataQueryService.getFromRequest(fromCriteria(criteria));
 
     contextUtils.configureAnalyticsResponse(
         response,
@@ -317,11 +268,8 @@ public class AnalyticsController {
 
   @GetMapping(value = RESOURCE_PATH + DATA_VALUE_SET_PATH + ".csv")
   public void getDataValueSetCsv(
-      AggregateAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      HttpServletResponse response)
-      throws Exception {
-    DataQueryParams params = dataQueryService.getFromRequest(fromCriteria(criteria, apiVersion));
+      AggregateAnalyticsQueryCriteria criteria, HttpServletResponse response) throws Exception {
+    DataQueryParams params = dataQueryService.getFromRequest(fromCriteria(criteria));
 
     contextUtils.configureAnalyticsResponse(
         response,
@@ -348,20 +296,16 @@ public class AnalyticsController {
   // -------------------------------------------------------------------------
 
   private Grid getGrid(
-      AggregateAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
-      String contentType,
-      HttpServletResponse response) {
-    return getGrid(criteria, apiVersion, contentType, response, false);
+      AggregateAnalyticsQueryCriteria criteria, String contentType, HttpServletResponse response) {
+    return getGrid(criteria, contentType, response, false);
   }
 
   private Grid getGrid(
       AggregateAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       String contentType,
       HttpServletResponse response,
       boolean analyzeOnly) {
-    DataQueryParams params = dataQueryService.getFromRequest(fromCriteria(criteria, apiVersion));
+    DataQueryParams params = dataQueryService.getFromRequest(fromCriteria(criteria));
     params.setDownloadFlag(!ContextUtils.CONTENT_TYPE_JSON.equals(contentType));
 
     if (isNotBlank(configurationProvider.getServerBaseUrl())) {
@@ -389,11 +333,10 @@ public class AnalyticsController {
 
   private Grid getGridWithAttachment(
       AggregateAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       String contentType,
       String file,
       HttpServletResponse response) {
-    DataQueryParams params = dataQueryService.getFromRequest(fromCriteria(criteria, apiVersion));
+    DataQueryParams params = dataQueryService.getFromRequest(fromCriteria(criteria));
     params.setDownloadFlag(!ContextUtils.CONTENT_TYPE_JSON.equals(contentType));
 
     contextUtils.configureAnalyticsResponse(
@@ -408,8 +351,7 @@ public class AnalyticsController {
         params, getItemsFromParam(criteria.getColumns()), getItemsFromParam(criteria.getRows()));
   }
 
-  private DataQueryRequest fromCriteria(
-      AggregateAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion) {
-    return DataQueryRequest.newBuilder().fromCriteria(criteria).apiVersion(apiVersion).build();
+  private DataQueryRequest fromCriteria(AggregateAnalyticsQueryCriteria criteria) {
+    return DataQueryRequest.newBuilder().fromCriteria(criteria).build();
   }
 }

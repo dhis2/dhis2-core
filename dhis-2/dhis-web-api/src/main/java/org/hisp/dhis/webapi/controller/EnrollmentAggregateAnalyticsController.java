@@ -60,7 +60,6 @@ import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.EnrollmentAggregateService;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.Grid;
@@ -110,9 +109,8 @@ public class EnrollmentAggregateAnalyticsController {
   public @ResponseBody Grid getExplainAggregateJson( // JSON, JSONP
       @PathVariable String program,
       EnrollmentAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, true);
+    EventQueryParams params = getEventQueryParams(program, criteria, true);
 
     Grid grid = enrollmentAggregateService.getEnrollments(params);
     contextUtils.configureResponse(response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING);
@@ -131,9 +129,8 @@ public class EnrollmentAggregateAnalyticsController {
   public @ResponseBody Grid getAggregateJson( // JSON, JSONP
       @PathVariable String program,
       EnrollmentAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false);
+    EventQueryParams params = getEventQueryParams(program, criteria, false);
 
     contextUtils.configureResponse(response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING);
 
@@ -145,9 +142,8 @@ public class EnrollmentAggregateAnalyticsController {
   public void getAggregateXml(
       @PathVariable String program,
       EnrollmentAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false);
+    EventQueryParams params = getEventQueryParams(program, criteria, false);
 
     contextUtils.configureResponse(
         response, CONTENT_TYPE_XML, RESPECT_SYSTEM_SETTING, "enrollments.xml", false);
@@ -160,9 +156,8 @@ public class EnrollmentAggregateAnalyticsController {
   public void getAggregateXls(
       @PathVariable String program,
       EnrollmentAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false);
+    EventQueryParams params = getEventQueryParams(program, criteria, false);
 
     contextUtils.configureResponse(
         response, CONTENT_TYPE_EXCEL, RESPECT_SYSTEM_SETTING, "enrollments.xls", true);
@@ -175,9 +170,8 @@ public class EnrollmentAggregateAnalyticsController {
   public void getAggregateXlsx(
       @PathVariable String program,
       EnrollmentAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false);
+    EventQueryParams params = getEventQueryParams(program, criteria, false);
 
     contextUtils.configureResponse(
         response, CONTENT_TYPE_EXCEL, RESPECT_SYSTEM_SETTING, "enrollments.xlsx", true);
@@ -190,9 +184,8 @@ public class EnrollmentAggregateAnalyticsController {
   public void getAggregateCsv(
       @PathVariable String program,
       EnrollmentAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false);
+    EventQueryParams params = getEventQueryParams(program, criteria, false);
 
     contextUtils.configureResponse(
         response, CONTENT_TYPE_CSV, RESPECT_SYSTEM_SETTING, "enrollments.csv", true);
@@ -205,9 +198,8 @@ public class EnrollmentAggregateAnalyticsController {
   public void getAggregateHtml(
       @PathVariable String program,
       EnrollmentAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false);
+    EventQueryParams params = getEventQueryParams(program, criteria, false);
 
     contextUtils.configureResponse(
         response, CONTENT_TYPE_HTML, RESPECT_SYSTEM_SETTING, "enrollments.html", false);
@@ -220,9 +212,8 @@ public class EnrollmentAggregateAnalyticsController {
   public void getAggregateHtmlCss(
       @PathVariable String program,
       EnrollmentAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false);
+    EventQueryParams params = getEventQueryParams(program, criteria, false);
 
     contextUtils.configureResponse(
         response, CONTENT_TYPE_HTML, RESPECT_SYSTEM_SETTING, "enrollments.html", false);
@@ -249,7 +240,6 @@ public class EnrollmentAggregateAnalyticsController {
   private EventQueryParams getEventQueryParams(
       @PathVariable String program,
       EnrollmentAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       boolean analyzeOnly) {
     SystemSettings settings = settingsProvider.getCurrentSettings();
     criteria.definePageSize(settings.getAnalyticsMaxLimit());
@@ -262,7 +252,6 @@ public class EnrollmentAggregateAnalyticsController {
                 (EnrollmentAnalyticsQueryCriteria)
                     criteria.withEndpointAction(AGGREGATE).withEndpointItem(ENROLLMENT))
             .program(program)
-            .apiVersion(apiVersion)
             .build();
 
     return eventDataQueryService.getFromRequest(request, analyzeOnly);
