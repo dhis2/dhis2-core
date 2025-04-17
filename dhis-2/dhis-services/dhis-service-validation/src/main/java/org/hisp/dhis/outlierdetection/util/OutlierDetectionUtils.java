@@ -114,9 +114,9 @@ public class OutlierDetectionUtils {
    * <p>This pattern is used to pre-filter text-based numeric values to avoid runtime casting
    * exceptions when converting to double precision. Since data values are stored as strings in the
    * database, there is no guarantee that the string representation of a number is valid for casting
-   * to double precision. Some edge cases which might be able to be cast to doubles by Postgres may not
-   * be covered by this pattern. In practice, they should not occur in most DHIS2 systems which use the API
-   * to import data. Integrity checks can help to identify such cases and fix them.
+   * to double precision. Some edge cases which might be able to be cast to doubles by Postgres may
+   * not be covered by this pattern. In practice, they should not occur in most DHIS2 systems which
+   * use the API to import data. Integrity checks can help to identify such cases and fix them.
    */
   public static final String PG_DOUBLE_REGEX = "^[+-]?((\\d{1,309}(\\.\\d*)?)|(\\.\\d+))$";
 }

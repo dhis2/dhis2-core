@@ -40,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
 import java.util.List;
+import java.util.Random;
 import java.util.regex.Pattern;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryRuntimeException;
@@ -153,10 +154,11 @@ class OutlierDetectionUtilsTest {
     }
     StringBuilder digits = new StringBuilder();
     // Be sure we do not start with 0
-    digits.append((int) (Math.random() * 9) + 1);
+    Random random = new Random();
+    digits.append(random.nextInt(9) + 1);
     // Generate the remaining digits (0-9)
     for (int i = 1; i < totalDigits; i++) {
-      digits.append((int) (Math.random() * 10));
+      digits.append(random.nextInt(10));
     }
     return digits.toString();
   }
