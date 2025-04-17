@@ -332,14 +332,14 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  public void testDisplayNameWithNoTranslation() {
+  void testDisplayNameWithNoTranslation() {
     DataElement dataElementA = createDataElement('A');
     manager.save(dataElementA);
     assertEquals("DataElementA", dataElementA.getDisplayName());
   }
 
   @Test
-  public void testDashboardItemTextTranslation() {
+  void testDashboardItemTextTranslation() {
     DashboardItem dashboardItem = new DashboardItem();
     dashboardItem.setText("Dashboard Item");
     dashboardItem.setAutoFields();
