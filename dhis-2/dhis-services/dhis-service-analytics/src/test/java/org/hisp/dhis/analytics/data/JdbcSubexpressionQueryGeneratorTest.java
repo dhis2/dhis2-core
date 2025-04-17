@@ -208,7 +208,7 @@ class JdbcSubexpressionQueryGeneratorTest {
             .build();
 
     JdbcSubexpressionQueryGenerator target =
-        new JdbcSubexpressionQueryGenerator(manager, params, DATA_VALUE);
+        new JdbcSubexpressionQueryGenerator(jam, params, DATA_VALUE);
 
     String expected =
         """
