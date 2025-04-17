@@ -52,7 +52,6 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -103,8 +102,7 @@ public class TrackedEntityAggregate {
   public List<TrackedEntity> find(
       List<TrackedEntityIdentifiers> identifiers,
       TrackedEntityParams params,
-      TrackedEntityQueryParams queryParams,
-      OrganisationUnitSelectionMode orgUnitMode) {
+      TrackedEntityQueryParams queryParams) {
     if (identifiers.isEmpty()) {
       return Collections.emptyList();
     }
