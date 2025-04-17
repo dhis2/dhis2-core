@@ -39,6 +39,6 @@ import org.hisp.dhis.util.DateUtils;
 public class vCurrentDate extends ProgramDateVariable {
   @Override
   public Object getSql(CommonExpressionVisitor visitor) {
-    return SqlUtils.singleQuote(DateUtils.getLongDate());
+    return SqlUtils.singleQuoteAndEscape(DateUtils.getLongDate());
   }
 }

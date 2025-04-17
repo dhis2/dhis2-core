@@ -952,7 +952,7 @@ public class JdbcEventStore implements EventStore {
           .append(AND)
           .append(teaCol + ".UID")
           .append(EQUALS)
-          .append(SqlUtils.singleQuote(queryItem.getItem().getUid()));
+          .append(SqlUtils.singleQuoteAndEscape(queryItem.getItem().getUid()));
 
       attributes.append(getAttributeFilterQuery(queryItem, teaCol, teaValueCol));
     }
@@ -977,7 +977,7 @@ public class JdbcEventStore implements EventStore {
                 NUMERIC_TYPES.stream()
                     .map(Enum::name)
                     .map(StringUtils::lowerCase)
-                    .map(SqlUtils::singleQuote)
+                    .map(SqlUtils::singleQuoteAndEscape)
                     .collect(Collectors.joining(",")))
             .append(")")
             .append(" then ");

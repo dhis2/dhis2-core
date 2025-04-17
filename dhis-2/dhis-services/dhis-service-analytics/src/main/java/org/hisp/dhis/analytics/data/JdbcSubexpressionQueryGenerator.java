@@ -52,7 +52,7 @@ import static org.hisp.dhis.commons.collection.CollectionUtils.addUnique;
 import static org.hisp.dhis.parser.expression.ParserUtils.castSql;
 import static org.hisp.dhis.subexpression.SubexpressionDimensionItem.getItemColumnName;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
+import static org.hisp.dhis.system.util.SqlUtils.singleQuoteAndEscape;
 
 import java.util.List;
 import org.hisp.dhis.analytics.AggregationType;
@@ -186,7 +186,8 @@ public class JdbcSubexpressionQueryGenerator {
     String dimensions =
         jam.getCommaDelimitedQuotedDimensionColumns(paramsWithoutData.getDimensions());
 
-    String data = singleQuote(subex.getDimensionItemWithQueryModsId()) + " as " + quote(DX);
+    String data =
+        singleQuoteAndEscape(subex.getDimensionItemWithQueryModsId()) + " as " + quote(DX);
 
     String aggregate = getHighLevelAggregateFunction();
 

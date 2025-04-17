@@ -330,7 +330,7 @@ public class DatastoreQueryBuilder {
    */
   private static String toPathSegments(String path) {
     return Arrays.stream(path.split("\\."))
-        .map(SqlUtils::singleQuote)
+        .map(SqlUtils::singleQuoteAndEscape)
         .collect(Collectors.joining(", "));
   }
 }
