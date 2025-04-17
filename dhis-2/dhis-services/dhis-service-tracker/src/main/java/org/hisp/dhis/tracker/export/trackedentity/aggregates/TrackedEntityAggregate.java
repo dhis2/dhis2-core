@@ -190,8 +190,7 @@ public class TrackedEntityAggregate {
                                 attributes.get(uid),
                                 trackedEntityAttributeService
                                     .getTrackedEntityAttributesByTrackedEntityTypes(),
-                                teasInProgram,
-                                ctx));
+                                teasInProgram));
                         te.setEnrollments(new HashSet<>(enrollments.get(uid)));
                         te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
                         return te;
@@ -206,8 +205,7 @@ public class TrackedEntityAggregate {
   private Set<TrackedEntityAttributeValue> filterAttributes(
       Collection<TrackedEntityAttributeValue> attributes,
       Set<TrackedEntityAttribute> trackedEntityTypeAttributes,
-      Set<String> teasInProgram,
-      Context ctx) {
+      Set<String> teasInProgram) {
     if (attributes.isEmpty()) {
       return Set.of();
     }
@@ -218,9 +216,7 @@ public class TrackedEntityAggregate {
             .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet());
 
-    if (ctx.getQueryParams().hasEnrolledInTrackerProgram()) {
-      allowedAttributeUids.addAll(teasInProgram);
-    }
+    allowedAttributeUids.addAll(teasInProgram);
 
     return attributes.stream()
         .filter(av -> allowedAttributeUids.contains(av.getAttribute().getUid()))
