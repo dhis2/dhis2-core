@@ -50,7 +50,6 @@ import org.hisp.dhis.test.message.DefaultFakeMessageSender;
 import org.hisp.dhis.webapi.mvc.CurrentSystemSettingsHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
-import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.SystemSettingsInterceptor;
@@ -271,14 +270,8 @@ public class MvcTestConfig implements WebMvcConfigurer {
     registry.addConverter(new FieldPathConverter());
   }
 
-  @Bean
-  public DhisApiVersionHandlerMethodArgumentResolver dhisApiVersionHandlerMethodArgumentResolver() {
-    return new DhisApiVersionHandlerMethodArgumentResolver();
-  }
-
   @Override
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-    resolvers.add(dhisApiVersionHandlerMethodArgumentResolver());
     resolvers.add(currentUserHandlerMethodArgumentResolver);
     resolvers.add(currentSystemSettingsHandlerMethodArgumentResolver);
   }

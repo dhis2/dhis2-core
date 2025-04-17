@@ -33,7 +33,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateMandatoryDeprecatedUidParameter;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
@@ -51,7 +50,6 @@ import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -69,7 +67,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
     classifiers = {"team:tracker", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/tracker/ownership")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class TrackerOwnershipController {
 
   @Autowired private TrackerOwnershipManager trackerOwnershipAccessManager;

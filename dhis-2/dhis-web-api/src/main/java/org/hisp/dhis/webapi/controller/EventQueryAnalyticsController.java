@@ -30,8 +30,6 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.hisp.dhis.common.DhisApiVersion.ALL;
-import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.OTHER;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.EVENT;
@@ -81,7 +79,6 @@ import org.hisp.dhis.webapi.dimension.DimensionMapperService;
 import org.hisp.dhis.webapi.dimension.DimensionResponse;
 import org.hisp.dhis.webapi.dimension.DimensionsCriteria;
 import org.hisp.dhis.webapi.dimension.EventAnalyticsPrefixStrategy;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -94,7 +91,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
     entity = Event.class,
     classifiers = {"team:analytics", "purpose:analytics"})
 @Controller
-@ApiVersion({DEFAULT, ALL})
 @AllArgsConstructor
 @RequestMapping("/api/analytics/events")
 public class EventQueryAnalyticsController {

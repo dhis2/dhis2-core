@@ -37,6 +37,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -46,7 +47,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * Filters calls matching <code>/api/{version}/{endpoint}</code>, where version is a number between
  * 28-43 inclusive.<br>
  * When there is no match, the request gets processed as normal.<br>
- * When there is a match, it gets dispatched with the version part removed e.g. <code>
+ * When there is a match, the original request gets wrapped in a new request, which includes the
+ * target endpoint with the version stripped out.<br>
+ * e.g. <code>
  * /api/42/icons</code> gets dispatched to <code>/api/icons</code><br>
  * Regex match examples: <br>
  * <code>/api/42/icons</code> -> match <br>
@@ -78,7 +81,7 @@ public class ApiVersionFilter extends OncePerRequestFilter {
 
   @Override
   protected void doFilterInternal(
-      HttpServletRequest req, HttpServletResponse res, FilterChain chain)
+      @Nonnull HttpServletRequest req, @Nonnull HttpServletResponse res, @Nonnull FilterChain chain)
       throws IOException, ServletException {
 
     Matcher matcher =
@@ -90,28 +93,16 @@ public class ApiVersionFilter extends OncePerRequestFilter {
       String endpoint = matcher.group("endpoint");
 
       if (api != null && apiVersion != null && endpoint != null) {
-        String forwardUri = api + endpoint;
+        String versionlessEndpoint = api + endpoint;
 
+        // this will keep all properties of the original request, except for the overridden method
         HttpServletRequest wrappedRequest =
             new HttpServletRequestWrapper(req) {
               @Override
               public String getRequestURI() {
-                return req.getContextPath() + forwardUri;
-              }
-
-              @Override
-              public String getServletPath() {
-                return forwardUri;
-              }
-
-              @Override
-              public String getContextPath() {
-                return req.getContextPath();
-              }
-
-              @Override
-              public String getPathInfo() {
-                return req.getPathInfo();
+                // req.getContextPath() is needed for deployments in Tomcat with a custom context
+                // e.g. /dhis
+                return req.getContextPath() + versionlessEndpoint;
               }
             };
         chain.doFilter(wrappedRequest, res);

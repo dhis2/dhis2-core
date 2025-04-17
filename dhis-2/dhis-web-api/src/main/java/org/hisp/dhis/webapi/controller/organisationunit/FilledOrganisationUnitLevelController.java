@@ -39,7 +39,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -47,7 +46,6 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -67,7 +65,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/api/filledOrganisationUnitLevels")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class FilledOrganisationUnitLevelController {
   private final ObjectMapper jsonMapper;
 
