@@ -1457,7 +1457,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testEventProgramIndicatorCategoryMappings() {
     ProgramIndicator pi = createProgramIndicatorB(EVENT, "V{event_count}", null, SUM);
-    pi.setCategoryMappingIds(Set.of(cmA.getId(), cmB.getId()));
+    pi.setCategoryMappingIds(List.of(cmA.getId(), cmB.getId()));
     pi.setAttributeCombo(ccA);
 
     EventQueryParams params =
