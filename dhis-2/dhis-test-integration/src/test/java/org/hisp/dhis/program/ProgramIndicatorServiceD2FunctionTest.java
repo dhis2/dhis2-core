@@ -29,6 +29,14 @@
  */
 package org.hisp.dhis.program;
 
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashSet;
+import java.util.Set;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
@@ -43,15 +51,6 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashSet;
-import java.util.Set;
-
-import static org.hisp.dhis.analytics.DataType.NUMERIC;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author Jim Grace
@@ -190,7 +189,7 @@ class ProgramIndicatorServiceD2FunctionTest extends PostgresIntegrationTestBase 
   void testD2Count() {
     assertEquals(
         "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentA\" is not null and \"DataElmentA\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
-            normalizeSql(getSql("d2:count(#{ProgrmStagA.DataElmentA})")));
+        normalizeSql(getSql("d2:count(#{ProgrmStagA.DataElmentA})")));
     assertEquals(
         "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentA\" is not null and \"DataElmentA\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
         normalizeSql(getSqlEnrollment("d2:count(#{ProgrmStagA.DataElmentA})")));
@@ -202,14 +201,16 @@ class ProgramIndicatorServiceD2FunctionTest extends PostgresIntegrationTestBase 
         "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment "
             + "and \"DataElmentA\" is not null and \"DataElmentA\"::numeric >= coalesce(case when ax.\"ps\" = 'Program000B' then \"DataElmentB\" else null end::numeric,0) "
             + "and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
-        normalizeSql(getSql(
-            "d2:countIfCondition( #{ProgrmStagA.DataElmentA}, ' >= #{Program000B.DataElmentB}')")));
+        normalizeSql(
+            getSql(
+                "d2:countIfCondition( #{ProgrmStagA.DataElmentA}, ' >= #{Program000B.DataElmentB}')")));
     assertEquals(
         "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentA\" is not null and \"DataElmentA\"::numeric >= coalesce("
             + "(select \"DataElmentB\" from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentB\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'Program000B' order by occurreddate desc limit 1 )::numeric,0) "
             + "and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
-        normalizeSql(getSqlEnrollment(
-            "d2:countIfCondition( #{ProgrmStagA.DataElmentA}, \" >= #{Program000B.DataElmentB}\")")));
+        normalizeSql(
+            getSqlEnrollment(
+                "d2:countIfCondition( #{ProgrmStagA.DataElmentA}, \" >= #{Program000B.DataElmentB}\")")));
   }
 
   @Test
