@@ -31,9 +31,12 @@ package org.hisp.dhis.gist;
 
 import static java.util.Arrays.stream;
 import static java.util.Comparator.comparingInt;
+import static java.util.Map.entry;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.common.collection.CollectionUtils.merge;
+import static org.hisp.dhis.commons.util.TextUtils.replace;
 import static org.hisp.dhis.gist.GistLogic.attributePath;
 import static org.hisp.dhis.gist.GistLogic.getBaseType;
 import static org.hisp.dhis.gist.GistLogic.isAccessProperty;
@@ -334,64 +337,75 @@ final class GistBuilder {
    */
 
   public String buildFetchHQL() {
-    String fields = createFieldsHQL();
-    String accessFilters = createAccessFilterHQL(context, "e");
-    String userFilters = createFiltersHQL();
-    String orders = createOrderByHQL();
-    String elementTable = query.getElementType().getSimpleName();
     Owner owner = query.getOwner();
+    Map<String, String> variables =
+        Map.ofEntries(
+            entry("fields", createFieldsHQL()),
+            entry("table", query.getElementType().getSimpleName()),
+            entry("filter", createFiltersHQL()),
+            entry("access", createAccessFilterHQL(context, "e")),
+            entry("order", createOrderByHQL()));
     if (owner == null) {
-      return String.format(
-          "select %s from %s e where (%s) and (%s) order by %s",
-          fields, elementTable, userFilters, accessFilters, orders);
+      return replace(
+          "select ${fields} from ${table} e where (${filter}) and (${access}) order by ${order}",
+          variables);
     }
-    String ownerTable = owner.getType().getSimpleName();
-    String collectionName =
+    String property =
         context
             .switchedTo(owner.getType())
             .resolveMandatory(owner.getCollectionProperty())
             .getFieldName();
+    variables =
+        merge(
+            variables,
+            Map.ofEntries(
+                entry("owner", owner.getType().getSimpleName()), entry("property", property)));
     if (!query.isInverse()) {
-      return String.format(
-          "select %s from %s o inner join o.%s as e where o.uid = :OwnerId and (%s) and (%s) order by %s",
-          fields, ownerTable, collectionName, userFilters, accessFilters, orders);
+      return replace(
+          "select ${fields} from ${owner} o inner join o.${property} as e where o.uid = :OwnerId and (${filter}) and (${access}) order by ${order}",
+          variables);
     }
-    return String.format(
-        "select %s from %s o, %s e where o.uid = :OwnerId and e not in elements(o.%s) and (%s) and (%s) order by %s",
-        fields, ownerTable, elementTable, collectionName, userFilters, accessFilters, orders);
+    return replace(
+        "select ${fields} from ${owner} o, ${table} e where o.uid = :OwnerId and e not in elements(o.${property}) and (${filter}) and (${access}) order by ${order}",
+        variables);
   }
 
   public String buildCountHQL() {
-    String userFilters = createFiltersHQL();
-    String accessFilters = createAccessFilterHQL(context, "e");
-    String elementTable = query.getElementType().getSimpleName();
+    Map<String, String> variables =
+        Map.ofEntries(
+            entry("table", query.getElementType().getSimpleName()),
+            entry("filter", createFiltersHQL()),
+            entry("access", createAccessFilterHQL(context, "e")));
     Owner owner = query.getOwner();
     if (owner == null) {
-      return String.format(
-          "select count(*) from %s e where (%s) and (%s)",
-          elementTable, userFilters, accessFilters);
+      return replace(
+          "select count(*) from ${table} e where (${filter}) and (${access})", variables);
     }
-    String ownerTable = owner.getType().getSimpleName();
-    String collectionName =
+    String property =
         context
             .switchedTo(owner.getType())
             .resolveMandatory(owner.getCollectionProperty())
             .getFieldName();
+    variables =
+        merge(
+            variables,
+            Map.ofEntries(
+                entry("owner", owner.getType().getSimpleName()), entry("property", property)));
     if (!query.isInverse()) {
-      return String.format(
-          "select count(*) from %s o left join o.%s as e where o.uid = :OwnerId and (%s) and (%s)",
-          ownerTable, collectionName, userFilters, accessFilters);
+      return replace(
+          "select count(*) from ${owner} o left join o.${property} as e where o.uid = :OwnerId and (${filter}) and (${access})",
+          variables);
     }
-    return String.format(
-        "select count(*) from %s o, %s e where o.uid = :OwnerId and e not in elements(o.%s) and (%s) and (%s)",
-        ownerTable, elementTable, collectionName, userFilters, accessFilters);
+    return replace(
+        "select count(*) from ${owner} o, ${table} e where o.uid = :OwnerId and e not in elements(o.${property}) and (${filter}) and (${access})",
+        variables);
   }
 
-  private String createAccessFilterHQL(RelativePropertyContext context, String tableName) {
+  private String createAccessFilterHQL(RelativePropertyContext context, String alias) {
     if (!isFilterBySharing(context)) {
       return "1=1";
     }
-    return access.createAccessFilterHQL(tableName);
+    return access.createAccessFilterHQL(alias);
   }
 
   private boolean isFilterBySharing(RelativePropertyContext context) {
@@ -497,10 +511,7 @@ final class GistBuilder {
     }
     String[] sources = field.getTransformationArgument().split(",");
     List<Method> setters =
-        stream(sources)
-            .map(context::resolveMandatory)
-            .map(Property::getSetterMethod)
-            .collect(toList());
+        stream(sources).map(context::resolveMandatory).map(Property::getSetterMethod).toList();
     int[] indexes =
         stream(sources)
             .mapToInt(srcProperty -> getSameParentFieldIndex(path, srcProperty))
@@ -520,21 +531,25 @@ final class GistBuilder {
   }
 
   private String createReferenceFieldHQL(int index, Field field) {
-    String tableName = "t_" + index;
     String path = field.getPropertyPath();
     Property property = context.resolveMandatory(path);
     RelativePropertyContext fieldContext = context.switchedTo(property.getKlass());
     String propertyName = determineReferenceProperty(field, fieldContext, false);
     Schema propertySchema = fieldContext.getHome();
+    Map<String, String> variables =
+        Map.ofEntries(
+            entry("alias", "t_" + index),
+            entry("table", property.getKlass().getSimpleName()),
+            entry("path", getMemberPath(path)));
     if (propertyName == null || propertySchema.getRelativeApiEndpoint() == null) {
       // embed the object directly
       if (!property.isRequired()) {
-        return String.format(
-            "(select %1$s from %2$s %1$s where %1$s = e.%3$s)",
-            tableName, property.getKlass().getSimpleName(), getMemberPath(path));
+        return replace(
+            "(select ${alias} from ${table} ${alias} where ${alias} = e.${path})", variables);
       }
-      return "e." + getMemberPath(path);
+      return replace("e.${property}", variables);
     }
+    variables = merge(variables, Map.of("property", propertyName));
 
     if (property.isIdentifiableObject()) {
       String endpointRoot = getEndpointRoot(property);
@@ -554,11 +569,11 @@ final class GistBuilder {
       addTransformer(row -> row[index] = toIdObject(row[index]));
     }
     if (property.isRequired()) {
-      return "e." + getMemberPath(path) + "." + propertyName;
+      return replace("e.${path}.${property}", variables);
     }
-    return String.format(
-        "(select %1$s.%2$s from %3$s %1$s where %1$s = e.%4$s)",
-        tableName, propertyName, property.getKlass().getSimpleName(), getMemberPath(path));
+    return replace(
+        "(select ${alias}.${property} from ${table} ${alias} where ${alias} = e.${path})",
+        variables);
   }
 
   private String createCollectionFieldHQL(int index, Field field) {
@@ -607,18 +622,27 @@ final class GistBuilder {
 
   private String createSizeTransformerHQL(
       int index, Field field, Property property, String compare) {
-    String tableName = "t_" + index;
+    String alias = "t_" + index;
     RelativePropertyContext fieldContext = context.switchedTo(property.getItemKlass());
-    String memberPath = getMemberPath(field.getPropertyPath());
 
+    Map<String, String> variables =
+        Map.ofEntries(
+            entry("alias", alias),
+            entry("path", getMemberPath(field.getPropertyPath())),
+            entry("compare", compare));
     if (!isFilterBySharing(fieldContext)) {
       // generates better SQL in case no access control is needed
-      return String.format("size(e.%s) %s", memberPath, compare);
+      return replace("size(e.${path}) ${compare}", variables);
     }
-    String accessFilter = createAccessFilterHQL(fieldContext, tableName);
-    return String.format(
-        "(select count(*) %5$s from %2$s %1$s where %1$s in elements(e.%3$s) and %4$s)",
-        tableName, property.getItemKlass().getSimpleName(), memberPath, accessFilter, compare);
+    variables =
+        merge(
+            variables,
+            Map.ofEntries(
+                entry("table", property.getItemKlass().getSimpleName()),
+                entry("access", createAccessFilterHQL(fieldContext, alias))));
+    return replace(
+        "(select count(*) ${compare} from ${table} ${alias} where ${alias} in elements(e.${path}) and ${access})",
+        variables);
   }
 
   private String createIdsTransformerHQL(int index, Field field, Property property) {
@@ -643,15 +667,17 @@ final class GistBuilder {
       // give up
       return createSizeTransformerHQL(index, field, property, "");
     }
-    String tableName = "t_" + index;
-    String accessFilter = createAccessFilterHQL(itemContext, tableName);
-    return String.format(
-        "(select array_agg(%1$s.%2$s) from %3$s %1$s where %1$s in elements(e.%4$s) and %5$s)",
-        tableName,
-        propertyName,
-        property.getItemKlass().getSimpleName(),
-        getMemberPath(field.getPropertyPath()),
-        accessFilter);
+    String alias = "t_" + index;
+    Map<String, String> variables =
+        Map.ofEntries(
+            entry("alias", alias),
+            entry("table", property.getItemKlass().getSimpleName()),
+            entry("property", propertyName),
+            entry("path", getMemberPath(field.getPropertyPath())),
+            entry("access", createAccessFilterHQL(itemContext, alias)));
+    return replace(
+        "(select array_agg(${alias}.${property}) from ${table} ${alias} where ${alias} in elements(e.${path}) and ${access})",
+        variables);
   }
 
   private String createMultiPluckTransformerHQL(int index, Field field, Property property) {
@@ -665,12 +691,11 @@ final class GistBuilder {
         p ->
             p.getFieldName()
                 + (IdentifiableObject.class.isAssignableFrom(p.getKlass()) ? ".uid" : "");
-    String tableName = "t_" + index;
+    String alias = "t_" + index;
     String pluckedObj =
         plucked.stream()
-            .map(p -> String.format("'%3$s', %1$s.%2$s", tableName, path.apply(p), p.getName()))
+            .map(p -> String.format("'%3$s', %1$s.%2$s", alias, path.apply(p), p.getName()))
             .collect(joining(","));
-    String accessFilter = createAccessFilterHQL(itemContext, tableName);
 
     addTransformer(
         row ->
@@ -679,13 +704,16 @@ final class GistBuilder {
                     ? null
                     : Stream.of((String[]) row[index]).map(JsonNode::of).toArray(JsonNode[]::new));
 
-    return String.format(
-        "(select array_agg(json_build_object(%2$s)) from %3$s %1$s where %1$s in elements(e.%4$s) and %5$s)",
-        tableName,
-        pluckedObj,
-        property.getItemKlass().getSimpleName(),
-        getMemberPath(field.getPropertyPath()),
-        accessFilter);
+    Map<String, String> variables =
+        Map.ofEntries(
+            entry("alias", alias),
+            entry("table", property.getItemKlass().getSimpleName()),
+            entry("pluck", pluckedObj),
+            entry("path", getMemberPath(field.getPropertyPath())),
+            entry("access", createAccessFilterHQL(itemContext, alias)));
+    return replace(
+        "(select array_agg(json_build_object(${pluck})) from ${table} ${alias} where ${alias} in elements(e.${path}) and ${access})",
+        variables);
   }
 
   private String determineReferenceProperty(
@@ -734,17 +762,20 @@ final class GistBuilder {
 
   private String createHasMemberTransformerHQL(
       int index, Field field, Property property, String compare) {
-    String tableName = "t_" + index;
-    String accessFilter =
-        createAccessFilterHQL(context.switchedTo(property.getItemKlass()), tableName);
-    return String.format(
-        "(select count(*) %6$s from %2$s %1$s where %1$s in elements(e.%3$s) and %1$s.uid = :p_%4$s and %5$s)",
-        tableName,
-        property.getItemKlass().getSimpleName(),
-        getMemberPath(field.getPropertyPath()),
-        field.getPropertyPath(),
-        accessFilter,
-        compare);
+    String alias = "t_" + index;
+    Map<String, String> variables =
+        Map.ofEntries(
+            entry(
+                "access",
+                createAccessFilterHQL(context.switchedTo(property.getItemKlass()), alias)),
+            entry("alias", alias),
+            entry("table", property.getItemKlass().getSimpleName()),
+            entry("path", getMemberPath(field.getPropertyPath())),
+            entry("property", field.getPropertyPath()),
+            entry("compare", compare));
+    return replace(
+        "(select count(*) ${compare} from ${table} ${alias} where ${alias} in elements(e.${path}) and ${alias}.uid = :p_${property} and ${access})",
+        variables);
   }
 
   @SuppressWarnings("unchecked")
@@ -832,8 +863,9 @@ final class GistBuilder {
     String propertyPath = filter.getPropertyPath();
     if (isAttributeValuesAttributePropertyPath(propertyPath)) {
       filter = filter.withPropertyPath(attributePath(propertyPath));
-      return "jsonb_exists_any(e.attributeValues, (select array_agg(uid) from Attribute a where %s)) = true"
-          .formatted(createFilterHQL(index, filter, "a." + filter.getPropertyPath()));
+      return replace(
+          "jsonb_exists_any(e.attributeValues, (select array_agg(uid) from Attribute a where ${filter})) = true",
+          Map.of("filter", createFilterHQL(index, filter, "a." + filter.getPropertyPath())));
     }
     if (isNestedPath(propertyPath)) {
       List<Property> path = context.resolvePath(propertyPath);
@@ -850,24 +882,20 @@ final class GistBuilder {
 
   private String createSubSelectFilterHQL(int index, Filter filter, List<Property> path) {
     Property relation = path.get(0);
-    Property match = path.get(1);
-    String relationAlias = "ft_" + index;
-    String relationProperty = relation.getFieldName();
-    if (relation.isCollection()) {
-      return "exists (select 1 from e.%s %s where %s)"
-          .formatted(
-              relationProperty,
-              relationAlias,
-              createFilterHQL(index, filter, relationAlias + "." + match.getFieldName()));
-    }
-    String relationTable = relation.getKlass().getSimpleName();
-    return "exists (select 1 from %s %s where %s = e.%s and %s)"
-        .formatted(
-            relationTable,
-            relationAlias,
-            relationAlias,
-            relationProperty,
-            createFilterHQL(index, filter, relationAlias + "." + match.getFieldName()));
+    String alias = "ft_" + index;
+    Map<String, String> variables =
+        Map.ofEntries(
+            entry("alias", alias),
+            entry("property", relation.getFieldName()),
+            entry("table", relation.getKlass().getSimpleName()),
+            entry(
+                "filter",
+                createFilterHQL(index, filter, alias + "." + path.get(1).getFieldName())));
+    if (relation.isCollection())
+      return replace("exists (select 1 from e.${property} ${alias} where ${filter})", variables);
+    return replace(
+        "exists (select 1 from ${table} ${alias} where ${alias} = e.${property} and ${filter})",
+        variables);
   }
 
   private boolean isExistsInCollectionFilter(List<Property> path) {
@@ -880,17 +908,20 @@ final class GistBuilder {
   private String createExistsFilterHQL(int index, Filter filter, List<Property> path) {
     Property compared = path.get(path.size() - 1);
     Property collection = path.get(path.size() - 2);
-    String tableName = "ft_" + index;
+    String alias = "ft_" + index;
     String pathToCollection =
         path.size() == 2
             ? path.get(0).getFieldName()
             : path.get(0).getFieldName() + "." + path.get(1).getFieldName();
-    return String.format(
-        "exists (select 1 from %2$s %1$s where %1$s in elements(e.%3$s) and %4$s)",
-        tableName,
-        collection.getItemKlass().getSimpleName(),
-        pathToCollection,
-        createFilterHQL(index, filter, tableName + "." + compared.getFieldName()));
+    Map<String, String> variables =
+        Map.ofEntries(
+            entry("table", collection.getItemKlass().getSimpleName()),
+            entry("alias", alias),
+            entry("path", pathToCollection),
+            entry("filter", createFilterHQL(index, filter, alias + "." + compared.getFieldName())));
+    return replace(
+        "exists (select 1 from ${table} ${alias} where ${alias} in elements(e.${path}) and ${filter})",
+        variables);
   }
 
   private String createFilterHQL(int index, Filter filter, String field) {
@@ -899,38 +930,46 @@ final class GistBuilder {
       return createAccessFilterHQL(index, filter, field);
     }
     StringBuilder str = new StringBuilder();
-    String fieldTemplate = "%s";
+    String template = "${property}";
     if (filter.isAttribute()) {
-      fieldTemplate = "jsonb_extract_path_text(%s, '" + filter.getPropertyPath() + "', 'value')";
+      template =
+          "jsonb_extract_path_text(${property}, '" + filter.getPropertyPath() + "', 'value')";
     } else {
       Property property = context.resolveMandatory(filter.getPropertyPath());
       if (property.getPropertyType() == PropertyType.PASSWORD)
         throw new IllegalQueryException("Filter not allowed: " + filter);
       if (isStringLengthFilter(filter, property)) {
-        fieldTemplate = "length(%s)";
+        template = "length(${property})";
       } else if (isCollectionSizeFilter(filter, property)) {
-        fieldTemplate = "size(%s)";
+        template = "size(${property})";
       } else if (isJsonCollectionFilter(filter, property)) {
-        return createJsonFilterHQL(index, filter, field);
+        return createJsonCollectionFilterHQL(filter, field);
       } else if (operator.isCaseInsensitive()) {
-        fieldTemplate = "lower(%s)";
+        template = "lower(${property})";
       }
     }
-    str.append(String.format(fieldTemplate, field));
-    str.append(" ").append(createOperatorLeftSideHQL(operator));
-    if (!operator.isUnary()) {
-      str.append(" :f_").append(index).append(createOperatorRightSideHQL(operator));
-    }
-    return str.toString();
+    String param = ":f_" + index;
+    Map<String, String> variables =
+        Map.ofEntries(
+            entry("left", replace(template, Map.of("property", field))),
+            entry("op", operator.getSql()),
+            entry("right", operator.isMultiValue() ? "(" + param + ")" : param));
+    return operator.isUnary()
+        ? replace("${left} ${op}", variables)
+        : replace("${left} ${op} ${right}", variables);
   }
 
-  private String createJsonFilterHQL(int index, Filter filter, String field) {
+  private String createJsonCollectionFilterHQL(Filter filter, String property) {
+    Map<String, String> variables = Map.of("property", property);
     return switch (filter.getOperator()) {
       case EMPTY ->
-          "(%1$s is null or %1$s = '{}' or %1$s = '[]' or %1$s = 'null')".formatted(field);
+          replace(
+              "(${property} is null or ${property} = '{}' or ${property} = '[]' or ${property} = 'null')",
+              variables);
       case NOT_EMPTY ->
-          "(%1$s is not null and %1$s != 'null' and not (%1$s = '[]' or %1$s = '{}'))"
-              .formatted(field);
+          replace(
+              "(${property} is not null and ${property} != 'null' and not (${property} = '[]' or ${property} = '{}'))",
+              variables);
       default ->
           throw new UnsupportedOperationException(
               "Filter %s not supported for property %s since it is stored as JSONB"
@@ -938,27 +977,26 @@ final class GistBuilder {
     };
   }
 
-  private String createAccessFilterHQL(int index, Filter filter, String field) {
+  private String createAccessFilterHQL(int index, Filter filter, String property) {
     String path = filter.getPropertyPath();
-    Property property = context.resolveMandatory(path);
-    String tableName = "ft_" + index;
-
-    if (isPersistentCollectionField(property)
-        && IdentifiableObject.class.isAssignableFrom(property.getItemKlass())) {
-      return String.format(
-          "exists (select %1$s from %2$s %1$s where %1$s in elements(%3$s) and %4$s)",
-          tableName,
-          property.getItemKlass().getSimpleName(),
-          field,
-          createAccessFilterHQL(filter, tableName));
+    Property p = context.resolveMandatory(path);
+    String alias = "ft_" + index;
+    Map<String, String> variables =
+        Map.ofEntries(
+            entry("alias", alias),
+            entry("table", p.getItemKlass().getSimpleName()),
+            entry("property", property),
+            entry("filter", createAccessFilterHQL(filter, alias)));
+    if (isPersistentCollectionField(p)
+        && IdentifiableObject.class.isAssignableFrom(p.getItemKlass())) {
+      return replace(
+          "exists (select ${alias} from ${table} ${alias} where ${alias} in elements(${property}) and ${filter})",
+          variables);
     }
-    if (isPersistentReferenceField(property) && property.isIdentifiableObject()) {
-      return String.format(
-          "%3$s in (select %1$s from %2$s %1$s where %4$s)",
-          tableName,
-          property.getKlass().getSimpleName(),
-          field,
-          createAccessFilterHQL(filter, tableName));
+    if (isPersistentReferenceField(p) && p.isIdentifiableObject()) {
+      variables = merge(variables, Map.of("table", p.getKlass().getSimpleName()));
+      return replace(
+          "${property} in (select ${alias} from ${table} ${alias} where ${filter})", variables);
     }
     if (isNestedPath(path)) {
       throw new UnsupportedOperationException("Access filter not supported for property: " + path);
@@ -968,10 +1006,10 @@ final class GistBuilder {
     return createAccessFilterHQL(filter, "e");
   }
 
-  private String createAccessFilterHQL(Filter filter, String tableName) {
+  private String createAccessFilterHQL(Filter filter, String alias) {
     String userId = filter.getValue()[0];
     return JpaQueryUtils.generateHqlQueryForSharingCheck(
-        tableName, getAccessPattern(filter), userId, support.getUserGroupIdsByUserId(userId));
+        alias, getAccessPattern(filter), userId, support.getUserGroupIdsByUserId(userId));
   }
 
   private String getAccessPattern(Filter filter) {
@@ -1010,59 +1048,6 @@ final class GistBuilder {
                 + getMemberPath(order.getPropertyPath())
                 + " "
                 + order.getDirection().name().toLowerCase());
-  }
-
-  private String createOperatorLeftSideHQL(Comparison operator) {
-    switch (operator) {
-      case NULL:
-        return "is null";
-      case NOT_NULL:
-        return "is not null";
-      case EQ:
-      case IEQ:
-        return "=";
-      case NE:
-        return "!=";
-      case LT:
-        return "<";
-      case GT:
-        return ">";
-      case LE:
-        return "<=";
-      case GE:
-        return ">=";
-      case IN:
-        return "in (";
-      case NOT_IN:
-        return "not in (";
-      case EMPTY:
-        return "= 0";
-      case NOT_EMPTY:
-        return "> 0";
-      case LIKE:
-      case STARTS_LIKE:
-      case ENDS_LIKE:
-      case ILIKE:
-      case STARTS_WITH:
-      case ENDS_WITH:
-        return "like";
-      case NOT_LIKE:
-      case NOT_STARTS_LIKE:
-      case NOT_ENDS_LIKE:
-      case NOT_ILIKE:
-      case NOT_STARTS_WITH:
-      case NOT_ENDS_WITH:
-        return "not like";
-      default:
-        return "";
-    }
-  }
-
-  private String createOperatorRightSideHQL(Comparison operator) {
-    return switch (operator) {
-      case NOT_IN, IN -> ")";
-      default -> "";
-    };
   }
 
   private <T> String join(
