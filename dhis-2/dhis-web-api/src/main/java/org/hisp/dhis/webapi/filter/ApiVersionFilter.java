@@ -111,7 +111,7 @@ public class ApiVersionFilter extends OncePerRequestFilter {
 
               @Override
               public String getPathInfo() {
-                return null;
+                return req.getPathInfo();
               }
             };
         chain.doFilter(wrappedRequest, res);
