@@ -104,18 +104,61 @@ class OutlierDetectionUtilsTest {
     assertTrue(matches("0.0"));
     assertTrue(matches("0001.00"));
     assertTrue(matches("-0.5"));
+    assertTrue(matches("+42"));
+    assertTrue(matches(".5"));
+    assertTrue(matches("42."));
+    // Some massive number but still castable to double
+    assertTrue(matches(randomNumericString(15, 0)));
+    assertTrue(matches(randomNumericString(15, 5)));
+    assertTrue(matches(randomNumericString(309, 0)));
+    assertTrue(matches(randomNumericString(309, 100)));
+    assertTrue(matches(randomNumericString(0, 3000)));
   }
 
   @Test
   void shouldNotMatchInvalidNumbers() {
-    assertFalse(matches("+42"));
-    assertFalse(matches(".5"));
-    assertFalse(matches("42."));
+
     assertFalse(matches("1e5"));
     assertFalse(matches("1,000"));
     assertFalse(matches("abc"));
     assertFalse(matches(""));
+    assertFalse(matches("      "));
     assertFalse(matches(null));
+    assertFalse(matches("1.2.3"));
+    assertFalse(matches("1.2e3"));
+    assertFalse(matches("1.2e-3"));
+    assertFalse(matches(randomNumericString(310, 0)));
+    assertFalse(matches(randomNumericString(5000, 0)));
+  }
+
+  private String randomNumericString(Integer integerPart, Integer fractionalPart) {
+    if (integerPart == null || fractionalPart == null) {
+      return null;
+    }
+    String numericString = "";
+    if (integerPart > 0) {
+      numericString += randomDigits(integerPart);
+    }
+
+    if (fractionalPart > 0) {
+      numericString += "." + randomDigits(fractionalPart);
+    }
+
+    return numericString;
+  }
+
+  private String randomDigits(Integer totalDigits) {
+    if (totalDigits == null || totalDigits <= 0) {
+      return null;
+    }
+    StringBuilder digits = new StringBuilder();
+    // Be sure we do not start with 0
+    digits.append((int) (Math.random() * 9) + 1);
+    // Generate the remaining digits (0-9)
+    for (int i = 1; i < totalDigits; i++) {
+      digits.append((int) (Math.random() * 10));
+    }
+    return digits.toString();
   }
 
   private boolean matches(String value) {
