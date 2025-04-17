@@ -39,7 +39,6 @@ import java.util.stream.Collectors;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
@@ -135,14 +134,12 @@ public class HibernateTrackedEntityAttributeStore
 
   @Override
   public Set<String> getTrackedEntityAttributesInProgram(Program program) {
-    TypedQuery<ProgramTrackedEntityAttribute> query =
+    TypedQuery<String> query =
         entityManager.createQuery(
-            "select distinct pa from Program p inner join p.programAttributes pa where p.uid = :program",
-            ProgramTrackedEntityAttribute.class);
+            "select distinct pa.attribute.uid from Program p inner join p.programAttributes pa where p.uid = :program",
+            String.class);
     query.setParameter("program", program.getUid());
 
-    return query.getResultList().stream()
-        .map(pa -> pa.getAttribute().getUid())
-        .collect(Collectors.toSet());
+    return new HashSet<>(query.getResultList());
   }
 }
