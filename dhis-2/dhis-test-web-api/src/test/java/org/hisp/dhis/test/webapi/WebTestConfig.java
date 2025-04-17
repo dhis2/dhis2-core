@@ -47,7 +47,7 @@ import org.springframework.security.web.savedrequest.RequestCache;
 public class WebTestConfig {
   @Bean
   public RequestCache requestCache() {
-    return new HttpSessionRequestCache();
+//    return new HttpSessionRequestCache();
   }
 
   @Bean

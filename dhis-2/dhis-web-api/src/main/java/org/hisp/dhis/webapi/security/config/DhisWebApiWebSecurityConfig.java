@@ -80,6 +80,11 @@ import org.springframework.security.oauth2.server.resource.web.DefaultBearerToke
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.csrf.CsrfTokenRequestHandler;
+import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.header.HeaderWriterFilter;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -204,23 +209,24 @@ public class DhisWebApiWebSecurityConfig {
 
   @Bean
   protected SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//    if (dhisConfig.isEnabled(ConfigurationKey.CSRF_ENABLED)) {
+    if (dhisConfig.isEnabled(ConfigurationKey.CSRF_ENABLED)) {
 //      http.csrf(
 //              c ->
 //                  c.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
 //                      .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
 //          .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
-//    } else {
-//      http.csrf(AbstractHttpConfigurer::disable);
-//    }
+    } else {
+      http.csrf(AbstractHttpConfigurer::disable);
+    }
 
     http.cors(Customizer.withDefaults());
-    http.requestCache(c -> new NullRequestCache());
+//    http.requestCache(c -> new NullRequestCache());
+    http.requestCache().disable();
 
     configureMatchers(http);
-    configureCspFilter(http, dhisConfig, configurationService);
-    configureApiTokenAuthorizationFilter(http);
-    configureOAuthTokenFilters(http);
+//    configureCspFilter(http, dhisConfig, configurationService);
+//    configureApiTokenAuthorizationFilter(http);
+//    configureOAuthTokenFilters(http);
 
     setHttpHeaders(http);
 
@@ -253,121 +259,115 @@ public class DhisWebApiWebSecurityConfig {
 
     Set<String> providerIds = dhisOidcProviderRepository.getAllRegistrationId();
     http.authorizeHttpRequests(
-            authorize -> {
-              providerIds.forEach(
-                  providerId ->
-                      authorize
-                          .requestMatchers(
-                              new AntPathRequestMatcher("/oauth2/authorization/" + providerId))
-                          .permitAll()
-                          .requestMatchers(new AntPathRequestMatcher("/oauth2/code/" + providerId))
-                          .permitAll());
+        authorize -> {
+          providerIds.forEach(
+              providerId ->
+                  authorize
+                      .requestMatchers(
+                          new AntPathRequestMatcher("/oauth2/authorization/" + providerId))
+                      .permitAll()
+                      .requestMatchers(new AntPathRequestMatcher("/oauth2/code/" + providerId))
+                      .permitAll());
 
-              authorize
-                  .requestMatchers(analyticsPluginResources())
-                  .permitAll()
+          authorize
+              .requestMatchers(analyticsPluginResources())
+              .permitAll()
 
-                  // BUNDLED APPS
-                  ////////////////////////////////////////////////////////////////////////////////////////////////
+              // BUNDLED APPS
+              ////////////////////////////////////////////////////////////////////////////////////////////////
 
-                  /////////////////////////////////////////////////////////////////////////////////////////////////
-                  .requestMatchers(new AntPathRequestMatcher("/oauth2/authorize"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/oauth2/token"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-login/**"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/api/apps/login/**"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/login.html"))
-                  .permitAll()
-                  .requestMatchers(
-                      new AntPathRequestMatcher("/dhis-web-commons/security/login.action"))
-                  .permitAll()
+              /////////////////////////////////////////////////////////////////////////////////////////////////
+              .requestMatchers(new AntPathRequestMatcher("/oauth2/authorize"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/oauth2/token"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/dhis-web-login/**"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/api/apps/login/**"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/login.html"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/dhis-web-commons/security/login.action"))
+              .permitAll()
 
-                  /////////////////////////////////////////////////////////////////////////////////////////////////
+              /////////////////////////////////////////////////////////////////////////////////////////////////
 
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-commons/oidc/**"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-commons/javascripts/**"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-commons/css/**"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-commons/flags/**"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-commons/fonts/**"))
-                  .permitAll()
-                  .requestMatchers(
-                      new AntPathRequestMatcher("/dhis-web-commons/security/logo_front.png"))
-                  .permitAll()
-                  .requestMatchers(
-                      new AntPathRequestMatcher("/dhis-web-commons/security/logo_mobile.png"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/external-static/**"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/favicon.ico"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher("/static/**"))
-                  .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/dhis-web-commons/oidc/**"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/dhis-web-commons/javascripts/**"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/dhis-web-commons/css/**"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/dhis-web-commons/flags/**"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/dhis-web-commons/fonts/**"))
+              .permitAll()
+              .requestMatchers(
+                  new AntPathRequestMatcher("/dhis-web-commons/security/logo_front.png"))
+              .permitAll()
+              .requestMatchers(
+                  new AntPathRequestMatcher("/dhis-web-commons/security/logo_mobile.png"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/external-static/**"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/favicon.ico"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/static/**"))
+              .permitAll()
 
-                  ///////////////////////////////////////////////////////////////////////////////////////////////
+              ///////////////////////////////////////////////////////////////////////////////////////////////
 
-                  .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/locales/ui"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/loginConfig"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/auth/login"))
-                  .permitAll()
-                  .requestMatchers(
-                      new AntPathRequestMatcher(apiContextPath + "/**/auth/forgotPassword"))
-                  .permitAll()
-                  .requestMatchers(
-                      new AntPathRequestMatcher(apiContextPath + "/**/auth/passwordReset"))
-                  .permitAll()
-                  .requestMatchers(
-                      new AntPathRequestMatcher(apiContextPath + "/**/auth/registration"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/auth/invite"))
-                  .permitAll()
-                  .requestMatchers(
-                      new AntPathRequestMatcher(apiContextPath + "/**/authentication/login"))
-                  .permitAll()
-                  // Needs to be here because this overrides the previous one
-                  .requestMatchers(
-                      new AntPathRequestMatcher(apiContextPath + "/**/account/recovery"))
-                  .permitAll()
-                  .requestMatchers(
-                      new AntPathRequestMatcher(apiContextPath + "/**/account/restore"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/account"))
-                  .permitAll()
-                  .requestMatchers(
-                      new AntPathRequestMatcher(apiContextPath + "/**/staticContent/**"))
-                  .permitAll()
-                  .requestMatchers(
-                      new AntPathRequestMatcher(apiContextPath + "/**/externalFileResources/**"))
-                  .permitAll()
-                  .requestMatchers(
-                      new AntPathRequestMatcher(apiContextPath + "/**/files/style/external"))
-                  .permitAll()
-                  .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/publicKeys/**"))
-                  .permitAll()
+              .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/locales/ui"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/loginConfig"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/auth/login"))
+              .permitAll()
+              .requestMatchers(
+                  new AntPathRequestMatcher(apiContextPath + "/**/auth/forgotPassword"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/auth/passwordReset"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/auth/registration"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/auth/invite"))
+              .permitAll()
+              .requestMatchers(
+                  new AntPathRequestMatcher(apiContextPath + "/**/authentication/login"))
+              .permitAll()
+              // Needs to be here because this overrides the previous one
+              .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/account/recovery"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/account/restore"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/account"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/staticContent/**"))
+              .permitAll()
+              .requestMatchers(
+                  new AntPathRequestMatcher(apiContextPath + "/**/externalFileResources/**"))
+              .permitAll()
+              .requestMatchers(
+                  new AntPathRequestMatcher(apiContextPath + "/**/files/style/external"))
+              .permitAll()
+              .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/publicKeys/**"))
+              .permitAll()
 
-                  ///////////////////////////////////////////////////////////////////////////////////////////////
+              ///////////////////////////////////////////////////////////////////////////////////////////////
 
-                  .requestMatchers(new AntPathRequestMatcher("/oauth2/**"))
-                  .permitAll()
+              .requestMatchers(new AntPathRequestMatcher("/oauth2/**"))
+              .permitAll()
 
-                  ///////////////////////////////////////////////////////////////////////////////////////////////
+              ///////////////////////////////////////////////////////////////////////////////////////////////
 
-                  .requestMatchers(new AntPathRequestMatcher("/**"))
-                  .authenticated();
-            })
+              .requestMatchers(new AntPathRequestMatcher("/**"))
+              .authenticated();
+        });
 
         /// HTTP BASIC///////////////////////////////////////
-        .httpBasic()
-        .authenticationDetailsSource(httpBasicWebAuthenticationDetailsSource)
-        .authenticationEntryPoint(formLoginBasicAuthenticationEntryPoint());
+//        .httpBasic()
+//        .authenticatiosSource(httpBasicWebAuthenticationDetailsSource)
+//        .authenticationEntryPoint(formLoginBasicAuthenticationEntryPoint());
 //        .addObjectPostProcessor(
 //            new ObjectPostProcessor<BasicAuthenticationFilter>() {
 //              @Override
@@ -380,18 +380,19 @@ public class DhisWebApiWebSecurityConfig {
 //            });
 
     /// OIDC /////////
-    http.oauth2Login(
-            oauth2 ->
-                oauth2
-                    .tokenEndpoint()
-                    .accessTokenResponseClient(jwtPrivateCodeTokenResponseClient)
-                    .and()
-                    .failureUrl("/dhis-web-login/?oidcFailure=true")
-                    .clientRegistrationRepository(dhisOidcProviderRepository)
-                    .loginProcessingUrl("/oauth2/code/*")
-                    .authorizationEndpoint()
-                    .authorizationRequestResolver(dhisCustomAuthorizationRequestResolver))
+//    http.oauth2Login(
+//            oauth2 ->
+//                oauth2
+//                    .tokenEndpoint()
+//                    .accessTokenResponseClient(jwtPrivateCodeTokenResponseClient)
+//                    .and()
+//                    .failureUrl("/dhis-web-login/?oidcFailure=true")
+//                    .clientRegistrationRepository(dhisOidcProviderRepository)
+//                    .loginProcessingUrl("/oauth2/code/*")
+//                    .authorizationEndpoint()
+//                    .authorizationRequestResolver(dhisCustomAuthorizationRequestResolver))
 
+    http
         ///////////////
         .exceptionHandling()
         .authenticationEntryPoint(entryPoint())
@@ -404,6 +405,7 @@ public class DhisWebApiWebSecurityConfig {
         .deleteCookies("JSESSIONID")
         .and()
         ////////////////////
+//        .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.NEVER));
         .sessionManagement()
         .sessionFixation()
         .migrateSession()

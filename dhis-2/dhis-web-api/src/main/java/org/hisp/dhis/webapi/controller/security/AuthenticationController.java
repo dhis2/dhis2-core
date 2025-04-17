@@ -133,12 +133,12 @@ public class AuthenticationController {
         new ConcurrentSessionControlAuthenticationStrategy(sessionRegistry);
     concurrentStrategy.setMaximumSessions(maxSessions);
 
-    sessionStrategy =
-        new CompositeSessionAuthenticationStrategy(
-            List.of(
-                concurrentStrategy,
-                new SessionFixationProtectionStrategy(),
-                new RegisterSessionAuthenticationStrategy(sessionRegistry)));
+//    sessionStrategy =
+//        new CompositeSessionAuthenticationStrategy(
+//            List.of(
+//                concurrentStrategy,
+//                new SessionFixationProtectionStrategy(),
+//                new RegisterSessionAuthenticationStrategy(sessionRegistry)));
   }
 
   @PostMapping("/login")
