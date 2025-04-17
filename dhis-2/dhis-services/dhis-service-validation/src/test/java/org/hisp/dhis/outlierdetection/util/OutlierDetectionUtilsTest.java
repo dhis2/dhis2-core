@@ -40,7 +40,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
 import java.util.List;
-import java.util.Random;
 import java.util.regex.Pattern;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryRuntimeException;
@@ -108,12 +107,19 @@ class OutlierDetectionUtilsTest {
     assertTrue(matches("+42"));
     assertTrue(matches(".5"));
     assertTrue(matches("42."));
-    // Some massive number but still castable to double
-    assertTrue(matches(randomNumericString(15, 0)));
-    assertTrue(matches(randomNumericString(15, 5)));
-    assertTrue(matches(randomNumericString(309, 0)));
-    assertTrue(matches(randomNumericString(309, 100)));
-    assertTrue(matches(randomNumericString(0, 3000)));
+    assertTrue(matches("123456789012345"));
+    assertTrue(matches("12345.67890"));
+    assertTrue(
+        matches(
+            "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"));
+    assertTrue(
+        matches(
+            "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.1234567890"));
+    assertTrue(
+        matches(
+            ".12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"));
+    String nines308 = generateNines(309);
+    assertTrue(matches(nines308));
   }
 
   @Test
@@ -128,39 +134,12 @@ class OutlierDetectionUtilsTest {
     assertFalse(matches("1.2.3"));
     assertFalse(matches("1.2e3"));
     assertFalse(matches("1.2e-3"));
-    assertFalse(matches(randomNumericString(310, 0)));
-    assertFalse(matches(randomNumericString(5000, 0)));
+    String nines309 = generateNines(310);
+    assertFalse(matches(nines309));
   }
 
-  private String randomNumericString(Integer integerPart, Integer fractionalPart) {
-    if (integerPart == null || fractionalPart == null) {
-      return null;
-    }
-    String numericString = "";
-    if (integerPart > 0) {
-      numericString += randomDigits(integerPart);
-    }
-
-    if (fractionalPart > 0) {
-      numericString += "." + randomDigits(fractionalPart);
-    }
-
-    return numericString;
-  }
-
-  private String randomDigits(Integer totalDigits) {
-    if (totalDigits == null || totalDigits <= 0) {
-      return null;
-    }
-    StringBuilder digits = new StringBuilder();
-    // Be sure we do not start with 0
-    Random random = new Random();
-    digits.append(random.nextInt(9) + 1);
-    // Generate the remaining digits (0-9)
-    for (int i = 1; i < totalDigits; i++) {
-      digits.append(random.nextInt(10));
-    }
-    return digits.toString();
+  private String generateNines(int length) {
+    return "9".repeat(Math.max(0, length));
   }
 
   private boolean matches(String value) {
