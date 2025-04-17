@@ -203,7 +203,7 @@
     <param name="clazz">org.hisp.dhis.program.ProgramCategoryMapping</param>
   </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonSetBinaryType" name="jsbString">
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jsbStringList">
     <param name="clazz">java.lang.String</param>
   </typedef>
 

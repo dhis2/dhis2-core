@@ -71,7 +71,7 @@
     <many-to-one name="attributeCombo" class="org.hisp.dhis.category.CategoryCombo"
                  column="attributecomboid" foreign-key="fk_programindicator_attributecomboid" not-null="true" />
 
-    <property name="categoryMappingIds" type="jsbString" column="categorymappingids" />
+    <property name="categoryMappingIds" type="jsbStringList" column="categorymappingids" />
 
     <property name="displayInForm" />
 
