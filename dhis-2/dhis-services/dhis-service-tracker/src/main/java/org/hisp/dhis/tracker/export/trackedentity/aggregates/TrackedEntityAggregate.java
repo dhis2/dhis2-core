@@ -31,7 +31,6 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.AsyncUtils.conditionalAsyncFetch;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolManager.getPool;
 
@@ -162,18 +161,9 @@ public class TrackedEntityAggregate {
         supplyAsync(() -> trackedEntityStore.getAttributes(ids), getPool());
 
     /*
-     * Async fetch Owned TE mapped to the provided program attributes by
-     * TrackedEntity id
-     */
-    final CompletableFuture<Multimap<String, String>> ownedTeiAsync =
-        conditionalAsyncFetch(
-            user.isPresent(),
-            () -> trackedEntityStore.getOwnedTrackedEntities(ids, ctx, orgUnitMode == ALL),
-            getPool());
-    /*
      * Execute all queries and merge the results
      */
-    return allOf(trackedEntitiesAsync, attributesAsync, enrollmentsAsync, ownedTeiAsync)
+    return allOf(trackedEntitiesAsync, attributesAsync, enrollmentsAsync)
         .thenApplyAsync(
             fn -> {
               Map<String, TrackedEntity> trackedEntities = trackedEntitiesAsync.join();
@@ -181,7 +171,6 @@ public class TrackedEntityAggregate {
               Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
               Multimap<String, Enrollment> enrollments = enrollmentsAsync.join();
               Multimap<String, TrackedEntityProgramOwner> programOwners = programOwnersAsync.join();
-              Multimap<String, String> ownedTeis = ownedTeiAsync.join();
 
               Stream<String> teUidStream = trackedEntities.keySet().parallelStream();
 
