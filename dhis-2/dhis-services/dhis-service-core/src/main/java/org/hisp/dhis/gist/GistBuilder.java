@@ -533,13 +533,14 @@ final class GistBuilder {
   private String createReferenceFieldHQL(int index, Field field) {
     String path = field.getPropertyPath();
     Property property = context.resolveMandatory(path);
-    RelativePropertyContext fieldContext = context.switchedTo(property.getKlass());
+    Class<?> table = property.getKlass();
+    RelativePropertyContext fieldContext = context.switchedTo(table);
     String propertyName = determineReferenceProperty(field, fieldContext, false);
     Schema propertySchema = fieldContext.getHome();
     Map<String, String> variables =
         Map.ofEntries(
-            entry("alias", "t_" + index),
-            entry("table", property.getKlass().getSimpleName()),
+            entry("alias", alias(table, index)),
+            entry("table", table.getSimpleName()),
             entry("path", getMemberPath(path)));
     if (propertyName == null || propertySchema.getRelativeApiEndpoint() == null) {
       // embed the object directly
@@ -547,7 +548,7 @@ final class GistBuilder {
         return replace(
             "(select ${alias} from ${table} ${alias} where ${alias} = e.${path})", variables);
       }
-      return replace("e.${property}", variables);
+      return replace("e.${path}", variables);
     }
     variables = merge(variables, Map.of("property", propertyName));
 
@@ -622,8 +623,9 @@ final class GistBuilder {
 
   private String createSizeTransformerHQL(
       int index, Field field, Property property, String compare) {
-    String alias = "t_" + index;
-    RelativePropertyContext fieldContext = context.switchedTo(property.getItemKlass());
+    Class<?> table = property.getItemKlass();
+    String alias = alias(table, index);
+    RelativePropertyContext fieldContext = context.switchedTo(table);
 
     Map<String, String> variables =
         Map.ofEntries(
@@ -638,7 +640,7 @@ final class GistBuilder {
         merge(
             variables,
             Map.ofEntries(
-                entry("table", property.getItemKlass().getSimpleName()),
+                entry("table", table.getSimpleName()),
                 entry("access", createAccessFilterHQL(fieldContext, alias))));
     return replace(
         "(select count(*) ${compare} from ${table} ${alias} where ${alias} in elements(e.${path}) and ${access})",
@@ -651,7 +653,8 @@ final class GistBuilder {
 
   private String createPluckTransformerHQL(int index, Field field, Property property) {
     String plucked = field.getTransformationArgument();
-    RelativePropertyContext itemContext = context.switchedTo(property.getItemKlass());
+    Class<?> table = property.getItemKlass();
+    RelativePropertyContext itemContext = context.switchedTo(table);
     List<Property> pluckedProperties =
         plucked == null || plucked.isEmpty()
             ? List.of()
@@ -663,15 +666,15 @@ final class GistBuilder {
       return createMultiPluckTransformerHQL(index, field, property);
     }
     String propertyName = determineReferenceProperty(field, itemContext, true);
-    if (propertyName == null || property.getItemKlass() == Period.class) {
+    if (propertyName == null || table == Period.class) {
       // give up
       return createSizeTransformerHQL(index, field, property, "");
     }
-    String alias = "t_" + index;
+    String alias = alias(table, index);
     Map<String, String> variables =
         Map.ofEntries(
             entry("alias", alias),
-            entry("table", property.getItemKlass().getSimpleName()),
+            entry("table", table.getSimpleName()),
             entry("property", propertyName),
             entry("path", getMemberPath(field.getPropertyPath())),
             entry("access", createAccessFilterHQL(itemContext, alias)));
@@ -681,7 +684,8 @@ final class GistBuilder {
   }
 
   private String createMultiPluckTransformerHQL(int index, Field field, Property property) {
-    RelativePropertyContext itemContext = context.switchedTo(property.getItemKlass());
+    Class<?> table = property.getItemKlass();
+    RelativePropertyContext itemContext = context.switchedTo(table);
     List<Property> plucked =
         Stream.of(field.getTransformationArgument().split(","))
             .map(itemContext::resolveMandatory)
@@ -691,7 +695,7 @@ final class GistBuilder {
         p ->
             p.getFieldName()
                 + (IdentifiableObject.class.isAssignableFrom(p.getKlass()) ? ".uid" : "");
-    String alias = "t_" + index;
+    String alias = alias(table, index);
     String pluckedObj =
         plucked.stream()
             .map(p -> String.format("'%3$s', %1$s.%2$s", alias, path.apply(p), p.getName()))
@@ -707,7 +711,7 @@ final class GistBuilder {
     Map<String, String> variables =
         Map.ofEntries(
             entry("alias", alias),
-            entry("table", property.getItemKlass().getSimpleName()),
+            entry("table", table.getSimpleName()),
             entry("pluck", pluckedObj),
             entry("path", getMemberPath(field.getPropertyPath())),
             entry("access", createAccessFilterHQL(itemContext, alias)));
@@ -762,14 +766,13 @@ final class GistBuilder {
 
   private String createHasMemberTransformerHQL(
       int index, Field field, Property property, String compare) {
-    String alias = "t_" + index;
+    Class<?> table = property.getItemKlass();
+    String alias = alias(table, index);
     Map<String, String> variables =
         Map.ofEntries(
-            entry(
-                "access",
-                createAccessFilterHQL(context.switchedTo(property.getItemKlass()), alias)),
+            entry("access", createAccessFilterHQL(context.switchedTo(table), alias)),
             entry("alias", alias),
-            entry("table", property.getItemKlass().getSimpleName()),
+            entry("table", table.getSimpleName()),
             entry("path", getMemberPath(field.getPropertyPath())),
             entry("property", field.getPropertyPath()),
             entry("compare", compare));
@@ -882,12 +885,13 @@ final class GistBuilder {
 
   private String createSubSelectFilterHQL(int index, Filter filter, List<Property> path) {
     Property relation = path.get(0);
-    String alias = "ft_" + index;
+    Class<?> table = relation.getKlass();
+    String alias = alias(table, index);
     Map<String, String> variables =
         Map.ofEntries(
             entry("alias", alias),
             entry("property", relation.getFieldName()),
-            entry("table", relation.getKlass().getSimpleName()),
+            entry("table", table.getSimpleName()),
             entry(
                 "filter",
                 createFilterHQL(index, filter, alias + "." + path.get(1).getFieldName())));
@@ -908,14 +912,15 @@ final class GistBuilder {
   private String createExistsFilterHQL(int index, Filter filter, List<Property> path) {
     Property compared = path.get(path.size() - 1);
     Property collection = path.get(path.size() - 2);
-    String alias = "ft_" + index;
+    Class<?> table = collection.getItemKlass();
+    String alias = alias(table, index);
     String pathToCollection =
         path.size() == 2
             ? path.get(0).getFieldName()
             : path.get(0).getFieldName() + "." + path.get(1).getFieldName();
     Map<String, String> variables =
         Map.ofEntries(
-            entry("table", collection.getItemKlass().getSimpleName()),
+            entry("table", table.getSimpleName()),
             entry("alias", alias),
             entry("path", pathToCollection),
             entry("filter", createFilterHQL(index, filter, alias + "." + compared.getFieldName())));
@@ -980,15 +985,15 @@ final class GistBuilder {
   private String createAccessFilterHQL(int index, Filter filter, String property) {
     String path = filter.getPropertyPath();
     Property p = context.resolveMandatory(path);
-    String alias = "ft_" + index;
+    Class<?> table = p.getItemKlass();
+    String alias = alias(table, index);
     Map<String, String> variables =
         Map.ofEntries(
             entry("alias", alias),
-            entry("table", p.getItemKlass().getSimpleName()),
+            entry("table", table.getSimpleName()),
             entry("property", property),
             entry("filter", createAccessFilterHQL(filter, alias)));
-    if (isPersistentCollectionField(p)
-        && IdentifiableObject.class.isAssignableFrom(p.getItemKlass())) {
+    if (isPersistentCollectionField(p) && IdentifiableObject.class.isAssignableFrom(table)) {
       return replace(
           "exists (select ${alias} from ${table} ${alias} where ${alias} in elements(${property}) and ${filter})",
           variables);
@@ -1004,6 +1009,16 @@ final class GistBuilder {
     // trivial case: the filter property is a non nested non-identifiable
     // property => access check applied to gist item element
     return createAccessFilterHQL(filter, "e");
+  }
+
+  private static String alias(Class<?> table, int uniqueId) {
+    return table
+            .getSimpleName()
+            .chars()
+            .filter(Character::isUpperCase)
+            .collect(StringBuilder::new, (sb, ch) -> sb.append((char) ch), StringBuilder::append)
+            .toString()
+        + uniqueId;
   }
 
   private String createAccessFilterHQL(Filter filter, String alias) {
