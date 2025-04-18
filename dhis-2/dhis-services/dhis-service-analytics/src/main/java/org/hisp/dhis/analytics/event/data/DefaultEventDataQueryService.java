@@ -198,7 +198,6 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
             .withPaging(request.isPaging())
             .withTotalPages(request.isTotalPages())
             .withEnrollmentStatuses(request.getEnrollmentStatus())
-            .withApiVersion(request.getApiVersion())
             .withLocale(locale)
             .withEnhancedConditions(request.isEnhancedConditions())
             .withEndpointItem(request.getEndpointItem())

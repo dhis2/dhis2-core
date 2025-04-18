@@ -48,7 +48,6 @@ import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.webapi.mvc.CurrentSystemSettingsHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
-import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.SystemSettingsInterceptor;
@@ -169,14 +168,8 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     return new StandardServletMultipartResolver();
   }
 
-  @Bean
-  public DhisApiVersionHandlerMethodArgumentResolver dhisApiVersionHandlerMethodArgumentResolver() {
-    return new DhisApiVersionHandlerMethodArgumentResolver();
-  }
-
   @Override
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-    resolvers.add(dhisApiVersionHandlerMethodArgumentResolver());
     resolvers.add(currentUserHandlerMethodArgumentResolver);
     resolvers.add(currentSystemSettingsHandlerMethodArgumentResolver);
   }
@@ -245,7 +238,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Override
   public ContentNegotiationManager mvcContentNegotiationManager() {
     CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy =
-        new CustomPathExtensionContentNegotiationStrategy(mediaTypeMap);
+        new CustomPathExtensionContentNegotiationStrategy(MEDIA_TYPE_MAP);
     pathExtensionNegotiationStrategy.setUseRegisteredExtensionsOnly(true);
 
     return new ContentNegotiationManager(
@@ -286,7 +279,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
         .mediaType("xml", MediaType.APPLICATION_XML);
   }
 
-  private Map<String, MediaType> mediaTypeMap =
+  public static final Map<String, MediaType> MEDIA_TYPE_MAP =
       new ImmutableMap.Builder<String, MediaType>()
           .put("json", MediaType.APPLICATION_JSON)
           .put("json.gz", parseMediaType("application/json+gzip"))

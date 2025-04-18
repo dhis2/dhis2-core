@@ -86,7 +86,6 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DataDimensionItemType;
 import org.hisp.dhis.common.DateRange;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionItemObjectValue;
 import org.hisp.dhis.common.DimensionType;
@@ -347,9 +346,6 @@ public class DataQueryParams {
   /** The organisation unit field used as basis for aggregation in the hierarchy. */
   protected OrgUnitField orgUnitField = DEFAULT_ORG_UNIT_FIELD;
 
-  /** The API version used for the request. */
-  protected DhisApiVersion apiVersion = DhisApiVersion.DEFAULT;
-
   /** The database locale for the user making the request, can be null. */
   protected Locale locale;
 
@@ -527,7 +523,6 @@ public class DataQueryParams {
     params.order = this.order;
     params.timeField = this.timeField;
     params.orgUnitField = this.orgUnitField;
-    params.apiVersion = this.apiVersion;
     params.locale = this.locale;
     params.currentUser = this.currentUser;
     params.partitions = new Partitions(this.partitions);
@@ -619,7 +614,6 @@ public class DataQueryParams {
         .add("timeField", timeField)
         .add("orgUnitField", orgUnitField)
         .add("expressiondimensionitems", getExpressionDimensionItemsExpressions())
-        .addIgnoreNull("apiVersion", apiVersion)
         .addIgnoreNull("locale", locale);
   }
 
@@ -1945,7 +1939,6 @@ public class DataQueryParams {
         .add("Aggregation type", aggregationType)
         .add("Measure criteria", measureCriteria)
         .add("Output format", outputFormat)
-        .add("API version", apiVersion)
         .add("Locale", locale)
         .toString();
   }
@@ -2076,10 +2069,6 @@ public class DataQueryParams {
 
   public OrgUnitField getOrgUnitField() {
     return orgUnitField;
-  }
-
-  public DhisApiVersion getApiVersion() {
-    return apiVersion;
   }
 
   public String getServerBaseUrl() {
@@ -3082,11 +3071,6 @@ public class DataQueryParams {
 
     public Builder withOrgUnitField(OrgUnitField orgUnitField) {
       this.params.orgUnitField = orgUnitField;
-      return this;
-    }
-
-    public Builder withApiVersion(DhisApiVersion apiVersion) {
-      this.params.apiVersion = apiVersion;
       return this;
     }
 

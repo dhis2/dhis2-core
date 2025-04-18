@@ -38,7 +38,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -51,7 +50,6 @@ import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.webapi.controller.tracker.RequestHandler;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -66,7 +64,6 @@ import org.springframework.web.bind.annotation.RestController;
     classifiers = {"team:tracker", "purpose:data"})
 @RestController
 @RequestMapping(produces = APPLICATION_JSON_VALUE, value = "/api/tracker/relationships")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 class RelationshipsExportController {
 
   protected static final String RELATIONSHIPS = "relationships";

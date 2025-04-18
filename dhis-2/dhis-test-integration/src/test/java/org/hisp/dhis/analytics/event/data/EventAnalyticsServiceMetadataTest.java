@@ -42,7 +42,6 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
@@ -247,7 +246,6 @@ class EventAnalyticsServiceMetadataTest extends PostgresIntegrationTestBase {
             .addItemFilter(qiB)
             .withSkipData(true)
             .withSkipMeta(false)
-            .withApiVersion(DhisApiVersion.V29)
             .build();
     Grid grid = eventAggregateService.getAggregatedData(params);
     Map<String, Object> metadata = grid.getMetaData();

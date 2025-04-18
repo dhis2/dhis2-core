@@ -38,7 +38,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.MetadataValidationException;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
@@ -55,7 +54,6 @@ import org.hisp.dhis.metadata.MetadataProposeParams;
 import org.hisp.dhis.metadata.MetadataWorkflowService;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.webapi.controller.AbstractGistReadOnlyController;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -78,7 +76,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @Controller
 @RequestMapping("/api/metadata/proposals")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class MetadataWorkflowController extends AbstractGistReadOnlyController<MetadataProposal> {

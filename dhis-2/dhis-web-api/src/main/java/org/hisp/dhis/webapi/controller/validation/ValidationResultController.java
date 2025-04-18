@@ -35,7 +35,6 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -50,7 +49,6 @@ import org.hisp.dhis.validation.ValidationResultService;
 import org.hisp.dhis.validation.ValidationResultsDeletionRequest;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 import org.hisp.dhis.webapi.controller.AbstractFullReadOnlyController;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -67,7 +65,6 @@ import org.springframework.web.bind.annotation.RestController;
 @OpenApi.EntityType(ValidationResult.class)
 @RestController
 @RequestMapping("/api/validationResults")
-@ApiVersion({DhisApiVersion.ALL, DhisApiVersion.DEFAULT})
 @RequiredArgsConstructor
 public class ValidationResultController {
 

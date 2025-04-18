@@ -32,7 +32,6 @@ package org.hisp.dhis.webapi.controller.user;
 import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UserOrgUnitType;
@@ -44,7 +43,6 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserLookup;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.user.UserLookups;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -63,7 +61,6 @@ import org.springframework.web.bind.annotation.RestController;
     classifiers = {"team:platform", "purpose:metadata"})
 @RestController
 @RequestMapping("/api/userLookup")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class UserLookupController {
 
   private final UserService userService;

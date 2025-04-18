@@ -43,11 +43,9 @@ import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.ImageTranscoder;
 import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.apache.fop.svg.PDFTranscoder;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.system.util.CodecUtils;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -60,7 +58,6 @@ import org.springframework.web.bind.annotation.RequestParam;
     classifiers = {"team:platform", "purpose:support"})
 @Controller
 @RequestMapping
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class SvgConversionController {
   @Autowired private ContextUtils contextUtils;
 

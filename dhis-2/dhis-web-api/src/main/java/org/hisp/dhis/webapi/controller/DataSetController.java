@@ -63,7 +63,6 @@ import javax.xml.transform.stream.StreamSource;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DisplayDensity;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -93,7 +92,6 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.Query;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.FormUtils;
 import org.hisp.dhis.webapi.view.ClassPathUriResolver;
 import org.hisp.dhis.webapi.webdomain.form.Form;
@@ -370,7 +368,6 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
   }
 
   @PostMapping(value = "/{uid}/form", consumes = APPLICATION_JSON_VALUE)
-  @ApiVersion(value = DhisApiVersion.ALL)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void updateCustomDataEntryFormJson(
       @PathVariable("uid") String uid, HttpServletRequest request) throws WebMessageException {

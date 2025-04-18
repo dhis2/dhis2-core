@@ -34,14 +34,12 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import jakarta.servlet.http.HttpServletResponse;
 import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.grid.GridUtils;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -56,7 +54,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
     entity = DataValue.class,
     classifiers = {"team:analytics", "purpose:analytics"})
 @Controller
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class OrgUnitAnalyticsController {
   private static final String RESOURCE_PATH = "/api/orgUnitAnalytics";
 
@@ -69,7 +66,6 @@ public class OrgUnitAnalyticsController {
       @RequestParam String ou,
       @RequestParam String ougs,
       @RequestParam(required = false) String columns,
-      DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
     OrgUnitQueryParams params = analyticsService.getParams(ou, ougs, columns);
@@ -83,7 +79,6 @@ public class OrgUnitAnalyticsController {
       @RequestParam String ou,
       @RequestParam String ougs,
       @RequestParam(required = false) String columns,
-      DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
     OrgUnitQueryParams params = analyticsService.getParams(ou, ougs, columns);
@@ -98,7 +93,6 @@ public class OrgUnitAnalyticsController {
       @RequestParam String ou,
       @RequestParam String ougs,
       @RequestParam(required = false) String columns,
-      DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
     OrgUnitQueryParams params = analyticsService.getParams(ou, ougs, columns);
@@ -113,7 +107,6 @@ public class OrgUnitAnalyticsController {
       @RequestParam String ou,
       @RequestParam String ougs,
       @RequestParam(required = false) String columns,
-      DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
     OrgUnitQueryParams params = analyticsService.getParams(ou, ougs, columns);

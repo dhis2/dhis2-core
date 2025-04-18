@@ -35,7 +35,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
@@ -57,7 +56,6 @@ import org.hisp.dhis.tracker.deduplication.PotentialDuplicateForbiddenException;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.webapi.controller.tracker.RequestHandler;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -76,7 +74,6 @@ import org.springframework.web.client.HttpStatusCodeException;
     classifiers = {"team:tracker", "purpose:data"})
 @RestController
 @RequestMapping("/api/potentialDuplicates")
-@ApiVersion(include = {DhisApiVersion.ALL, DhisApiVersion.DEFAULT})
 @RequiredArgsConstructor
 public class DeduplicationController {
   private final DeduplicationService deduplicationService;

@@ -48,7 +48,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -78,7 +77,6 @@ import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
 import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -95,7 +93,6 @@ import org.springframework.web.bind.annotation.RestController;
     classifiers = {"team:tracker", "purpose:data"})
 @RestController
 @RequestMapping("/api/tracker/trackedEntities")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 class TrackedEntitiesExportController {
 
   protected static final String TRACKED_ENTITIES = "trackedEntities";

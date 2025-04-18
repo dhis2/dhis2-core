@@ -37,7 +37,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.List;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
@@ -56,7 +55,6 @@ import org.hisp.dhis.sms.config.SmsConfiguration;
 import org.hisp.dhis.sms.config.SmsConfigurationManager;
 import org.hisp.dhis.sms.config.SmsGateway;
 import org.hisp.dhis.sms.config.SmsGatewayConfig;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -75,7 +73,6 @@ import org.springframework.web.bind.annotation.RestController;
     classifiers = {"team:tracker", "purpose:metadata"})
 @RestController
 @RequestMapping("/api/gateways")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class SmsGatewayController {
   // -------------------------------------------------------------------------
   // Dependencies

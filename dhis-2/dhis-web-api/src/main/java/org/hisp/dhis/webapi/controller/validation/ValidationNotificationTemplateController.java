@@ -29,11 +29,9 @@
  */
 package org.hisp.dhis.webapi.controller.validation;
 
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -42,6 +40,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @Controller
 @RequestMapping("/api/validationNotificationTemplates")
-@ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class ValidationNotificationTemplateController
     extends AbstractCrudController<ValidationNotificationTemplate, GetObjectListParams> {}

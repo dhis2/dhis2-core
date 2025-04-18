@@ -69,7 +69,6 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DataQueryRequest;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
@@ -144,7 +143,6 @@ public class GeoFeatureService {
             .displayProperty(parameters.getDisplayProperty())
             .relativePeriodDate(parameters.getRelativePeriodDate())
             .userOrgUnit(parameters.getUserOrgUnit())
-            .apiVersion(parameters.getApiVersion())
             .build();
 
     DataQueryParams params = dataQueryService.getFromRequest(dataQueryRequest);
@@ -486,9 +484,6 @@ public class GeoFeatureService {
 
     /** whether to include organisation unit group sets. */
     private boolean includeGroupSets;
-
-    /** DHIS2 Api Version. */
-    private DhisApiVersion apiVersion;
   }
 
   /**

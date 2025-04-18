@@ -47,7 +47,6 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
@@ -84,7 +83,6 @@ import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.Dashboard;
 import org.springframework.http.HttpStatus;
@@ -112,7 +110,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
     group = OpenApi.Document.GROUP_QUERY,
     classifiers = {"team:platform", "purpose:metadata"})
 @Controller
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequestMapping("/api/me")
 @RequiredArgsConstructor
 public class MeController {
@@ -367,7 +364,6 @@ public class MeController {
   @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PostMapping(value = "/dashboard/interpretations/read")
   @ResponseStatus(value = HttpStatus.NO_CONTENT)
-  @ApiVersion(include = {DhisApiVersion.ALL, DhisApiVersion.DEFAULT})
   public void updateInterpretationsLastRead() {
     interpretationService.updateCurrentUserLastChecked();
   }
