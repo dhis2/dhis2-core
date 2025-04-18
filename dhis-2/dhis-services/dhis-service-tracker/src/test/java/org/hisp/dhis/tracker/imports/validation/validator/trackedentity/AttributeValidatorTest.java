@@ -64,7 +64,6 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.util.Constant;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
-import org.hisp.dhis.tracker.imports.validation.service.attribute.TrackedAttributeValidationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -89,8 +88,6 @@ class AttributeValidatorTest {
   @Mock private TrackerPreheat preheat;
 
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
-
-  @Mock private TrackedAttributeValidationService teAttrService;
 
   @Mock private OptionService optionService;
 
@@ -394,7 +391,7 @@ class AttributeValidatorTest {
     TrackedEntity te = TrackedEntity.builder().trackedEntity(UID.generate()).build();
     validator.validateAttributeValue(reporter, te, trackedEntityAttribute, "value");
 
-    assertHasError(reporter, te, ValidationCode.E1085);
+    assertHasError(reporter, te, ValidationCode.E1007);
   }
 
   @Test

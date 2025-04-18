@@ -29,12 +29,26 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator;
 
-import static org.hisp.dhis.system.util.ValidationUtils.valueIsValid;
+import static org.hisp.dhis.datavalue.DataValue.TRUE;
+import static org.hisp.dhis.system.util.MathUtils.isBool;
+import static org.hisp.dhis.system.util.MathUtils.isCoordinate;
+import static org.hisp.dhis.system.util.MathUtils.isInteger;
+import static org.hisp.dhis.system.util.MathUtils.isNegativeInteger;
+import static org.hisp.dhis.system.util.MathUtils.isNumeric;
+import static org.hisp.dhis.system.util.MathUtils.isPercentage;
+import static org.hisp.dhis.system.util.MathUtils.isPositiveInteger;
+import static org.hisp.dhis.system.util.MathUtils.isUnitInterval;
+import static org.hisp.dhis.system.util.MathUtils.isZeroOrPositiveInteger;
+import static org.hisp.dhis.system.util.ValidationUtils.emailIsValid;
+import static org.hisp.dhis.system.util.ValidationUtils.isPhoneNumber;
+import static org.hisp.dhis.system.util.ValidationUtils.isValidLetter;
+import static org.hisp.dhis.system.util.ValidationUtils.timeIsValid;
+import static org.hisp.dhis.system.util.ValidationUtils.urlIsValid;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1009;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1077;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1084;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1085;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1112;
+import static org.hisp.dhis.util.DateUtils.dateIsValid;
+import static org.hisp.dhis.util.DateUtils.dateTimeIsValid;
 
 import java.util.List;
 import java.util.Objects;
@@ -42,6 +56,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -53,21 +68,19 @@ import org.hisp.dhis.tracker.imports.preheat.UniqueAttributeValue;
 import org.hisp.dhis.tracker.imports.util.Constant;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
-import org.hisp.dhis.tracker.imports.validation.service.attribute.TrackedAttributeValidationService;
 
 /**
  * @author Luciano Fiandesio
  */
 public abstract class AttributeValidator {
-
-  private final TrackedAttributeValidationService teAttrService;
+  private final FileResourceService fileResourceService;
 
   private final DhisConfigurationProvider dhisConfigurationProvider;
 
   protected AttributeValidator(
-      TrackedAttributeValidationService teAttrService,
+      FileResourceService fileResourceService,
       DhisConfigurationProvider dhisConfigurationProvider) {
-    this.teAttrService = teAttrService;
+    this.fileResourceService = fileResourceService;
     this.dhisConfigurationProvider = dhisConfigurationProvider;
   }
 
@@ -78,47 +91,64 @@ public abstract class AttributeValidator {
       Attribute attr,
       TrackedEntityAttribute teAttr) {
     ValueType valueType = teAttr.getValueType();
+    String value = attr.getValue();
 
-    String error;
+    boolean isValid =
+        value == null
+            || value.trim().isEmpty()
+            || switch (valueType) {
+              case TEXT, LONG_TEXT, MULTI_TEXT, TRACKER_ASSOCIATE, REFERENCE, GEOJSON -> true;
+              case LETTER -> isValidLetter(value);
+              case NUMBER -> isNumeric(value);
+              case UNIT_INTERVAL -> isUnitInterval(value);
+              case PERCENTAGE -> isPercentage(value);
+              case INTEGER -> isInteger(value);
+              case INTEGER_POSITIVE -> isPositiveInteger(value);
+              case INTEGER_NEGATIVE -> isNegativeInteger(value);
+              case INTEGER_ZERO_OR_POSITIVE -> isZeroOrPositiveInteger(value);
+              case PHONE_NUMBER -> isPhoneNumber(value);
+              case EMAIL -> emailIsValid(value);
+              case BOOLEAN -> isBool(value.toLowerCase());
+              case TRUE_ONLY -> TRUE.equalsIgnoreCase(value);
+              case DATE -> dateIsValid(value);
+              case DATETIME, AGE -> dateTimeIsValid(value);
+              case COORDINATE -> isCoordinate(value);
+              case URL -> urlIsValid(value);
+              case FILE_RESOURCE -> fileResourceService.getFileResource(value) != null;
+              case IMAGE -> isValidImage(value);
+              case ORGANISATION_UNIT -> bundle.getPreheat().getOrganisationUnit(value) != null;
+              case TIME -> timeIsValid(value);
+              case USERNAME -> bundle.getPreheat().getUserByUsername(value).isPresent();
+            };
+    String error = null;
+    if (!isValid) {
+      error =
+          String.format(
+              "The attribute value type is %s but the value `%s` is not.", valueType, value);
+    }
 
-    if (valueType.equals(ValueType.ORGANISATION_UNIT)) {
-      error =
-          bundle.getPreheat().getOrganisationUnit(attr.getValue()) == null
-              ? " Value " + attr.getValue() + " is not a valid org unit value"
-              : null;
-    } else if (valueType.equals(ValueType.USERNAME)) {
-      error =
-          bundle.getPreheat().getUserByUsername(attr.getValue()).isPresent()
-              ? null
-              : " Value " + attr.getValue() + " is not a valid username value";
-    } else {
-      // We need to do try/catch here since validateValueType() since
-      // validateValueType can cast IllegalArgumentException e.g.
-      // on at
-      // org.joda.time.format.DateTimeFormatter.parseDateTime(DateTimeFormatter.java:945)
-      try {
-        error = teAttrService.validateValueType(teAttr, attr.getValue());
-      } catch (Exception e) {
-        error = e.getMessage();
-      }
+    if (valueType.isFile()) {
+      validateFileNotAlreadyAssigned(reporter, bundle, dto, attr.getValue());
     }
 
     if (error != null) {
       reporter.addError(dto, ValidationCode.E1007, valueType, error);
-    } else if (valueType.isFile()) {
-      validateFileNotAlreadyAssigned(reporter, bundle, dto, attr.getValue());
     }
   }
 
-  protected void validateFileNotAlreadyAssigned(
+  private boolean isValidImage(String value) {
+    FileResource fileResource = fileResourceService.getFileResource(value);
+
+    return fileResource != null && Constant.VALID_IMAGE_FORMATS.contains(fileResource.getFormat());
+  }
+
+  private void validateFileNotAlreadyAssigned(
       Reporter reporter,
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.TrackerDto trackerDto,
       String value) {
 
     FileResource fileResource = bundle.getPreheat().get(FileResource.class, value);
-
-    reporter.addErrorIfNull(fileResource, trackerDto, E1084, value);
 
     if (bundle.getStrategy(trackerDto).isCreate()) {
       reporter.addErrorIf(
@@ -157,11 +187,6 @@ public abstract class AttributeValidator {
         E1112,
         value,
         encryptionStatus.getKey());
-
-    // Uses ValidationUtils to check that the data value corresponds to the
-    // data value type set on the attribute
-    final String result = valueIsValid(value, tea.getValueType());
-    reporter.addErrorIf(() -> result != null, trackerDto, E1085, tea, result);
   }
 
   protected void validateAttributeUniqueness(

@@ -38,6 +38,7 @@ import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils
 import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -51,7 +52,6 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
-import org.hisp.dhis.tracker.imports.validation.service.attribute.TrackedAttributeValidationService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -65,10 +65,10 @@ class AttributeValidator
   private final OptionService optionService;
 
   public AttributeValidator(
-      TrackedAttributeValidationService teAttrService,
+      FileResourceService fileResourceService,
       DhisConfigurationProvider dhisConfigurationProvider,
       OptionService optionService) {
-    super(teAttrService, dhisConfigurationProvider);
+    super(fileResourceService, dhisConfigurationProvider);
     this.optionService = optionService;
   }
 

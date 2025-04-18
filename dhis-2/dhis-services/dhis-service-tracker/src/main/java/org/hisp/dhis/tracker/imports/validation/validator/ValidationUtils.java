@@ -42,7 +42,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
@@ -242,21 +241,6 @@ public class ValidationUtils {
 
     if (!isValid) {
       reporter.addError(dto, ValidationCode.E1125, value, optionalObject.getOptionSet().getUid());
-    }
-  }
-
-  /**
-   * Check if the given UID has a valid format.
-   *
-   * @param checkUid a UID to be checked
-   * @param reporter a {@see Reporter} to which the error is added
-   * @param dto the dto to which the report will be linked to
-   * @param args list of arguments for the Error report
-   */
-  public static void checkUidFormat(
-      String checkUid, Reporter reporter, TrackerDto dto, Object... args) {
-    if (!CodeGenerator.isValidUid(checkUid)) {
-      reporter.addError(dto, ValidationCode.E1048, checkUid, args[0], args[1]);
     }
   }
 }
