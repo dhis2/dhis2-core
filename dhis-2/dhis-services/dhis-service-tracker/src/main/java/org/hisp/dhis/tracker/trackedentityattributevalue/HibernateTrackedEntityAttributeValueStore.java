@@ -35,7 +35,6 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.query.Query;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -61,40 +60,11 @@ class HibernateTrackedEntityAttributeValueStore
     getSession().save(attributeValue);
   }
 
-  public int deleteByTrackedEntity(TrackedEntity trackedEntity) {
-    Query<TrackedEntityAttributeValue> query =
-        getQuery("delete from TrackedEntityAttributeValue where trackedEntity = :trackedEntity");
-    query.setParameter("trackedEntity", trackedEntity);
-    return query.executeUpdate();
-  }
-
-  public TrackedEntityAttributeValue get(
-      TrackedEntity trackedEntity, TrackedEntityAttribute attribute) {
-    String query =
-        " from TrackedEntityAttributeValue v where v.trackedEntity =:trackedEntity and attribute =:attribute";
-
-    Query<TrackedEntityAttributeValue> typedQuery =
-        getQuery(query)
-            .setParameter("trackedEntity", trackedEntity)
-            .setParameter("attribute", attribute);
-
-    return getSingleResult(typedQuery);
-  }
-
   public List<TrackedEntityAttributeValue> get(TrackedEntity trackedEntity) {
     String query = " from TrackedEntityAttributeValue v where v.trackedEntity =:trackedEntity";
 
     Query<TrackedEntityAttributeValue> typedQuery =
         getQuery(query).setParameter("trackedEntity", trackedEntity);
-
-    return getList(typedQuery);
-  }
-
-  public List<TrackedEntityAttributeValue> get(TrackedEntityAttribute attribute) {
-    String query = " from TrackedEntityAttributeValue v where v.attribute =:attribute";
-
-    Query<TrackedEntityAttributeValue> typedQuery =
-        getQuery(query).setParameter("attribute", attribute);
 
     return getList(typedQuery);
   }
@@ -108,29 +78,6 @@ class HibernateTrackedEntityAttributeValueStore
         getQuery(query)
             .setParameter("attribute", attribute)
             .setParameter("values", values.stream().map(StringUtils::lowerCase).toList());
-
-    return getList(typedQuery);
-  }
-
-  public List<TrackedEntityAttributeValue> get(TrackedEntityAttribute attribute, String value) {
-    String query =
-        " from TrackedEntityAttributeValue v where v.attribute =:attribute and lower(v.plainValue) like :value";
-
-    Query<TrackedEntityAttributeValue> typedQuery =
-        getQuery(query)
-            .setParameter("attribute", attribute)
-            .setParameter("value", StringUtils.lowerCase(value));
-
-    return getList(typedQuery);
-  }
-
-  public List<TrackedEntityAttributeValue> get(TrackedEntity trackedEntity, Program program) {
-    String query =
-        " from TrackedEntityAttributeValue v where v.trackedEntity =:trackedEntity and v.attribute.program =:program";
-
-    Query<TrackedEntityAttributeValue> typedQuery = getQuery(query);
-    typedQuery.setParameter("trackedEntity", trackedEntity);
-    typedQuery.setParameter("program", program);
 
     return getList(typedQuery);
   }
