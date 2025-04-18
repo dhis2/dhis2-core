@@ -60,7 +60,7 @@ public class RestApiActions {
   private String baseUri;
 
   public RestApiActions(final String endpoint) {
-    this.baseUri = "http://localhost:8080/dhis/api/"; // RestAssured.baseURI;
+    this.baseUri = RestAssured.baseURI;
     this.endpoint = endpoint;
   }
 
