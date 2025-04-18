@@ -38,6 +38,7 @@ import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dependsOn.DependencySetupException;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.hisp.dhis.helpers.config.TestConfiguration;
 
 /**
  * Template implementation of {@link ResourceService} that covers the common HTTP interactions and
@@ -61,7 +62,8 @@ public abstract class BaseResourceService implements ResourceService {
   @Override
   public Optional<String> lookup(String code) throws DependencySetupException {
 
-    LoginActions.addAuthenticationHeader("admin", "district");
+    LoginActions.addAuthenticationHeader(
+        TestConfiguration.get().adminUserUsername(), TestConfiguration.get().adminUserPassword());
     log.debug("Looking up {} by code='{}'", label, code);
 
     QueryParamsBuilder q =
