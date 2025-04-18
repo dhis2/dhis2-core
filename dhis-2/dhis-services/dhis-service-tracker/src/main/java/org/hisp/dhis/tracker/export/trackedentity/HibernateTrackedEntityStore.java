@@ -593,17 +593,26 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   /**
-   * Generates an INNER JOIN for organisation units. If a program is specified, we join on program
-   * ownership (PO), if not we join the PO or the registering TE unit. Based on the ouMode, they
-   * will boil down to either DESCENDANTS (requiring matching on the org unit's PATH), CHILDREN
-   * (matching on the org unit's PATH or any of its immediate children), SELECTED (matching the
-   * specified org unit id) or ALL (no constraints).
+   * Generates an INNER JOIN for organisation units in a SQL query.
    *
-   * <p>Depending on the program access level, it will also make sure the owner of the TE is in the
-   * appropriate scope (either search or capture). This condition only applies when the org unit
-   * mode is not `ALL` and the user is not super.
+   * <p>If a program is specified, the join is based on program ownership (PO). If no program is
+   * specified, the join is based either on program ownership or the tracked entity's registering
+   * unit.
    *
-   * @return a SQL INNER JOIN for organisation units
+   * <p>The specific JOIN conditions depend on the {@code ouMode}:
+   *
+   * <ul>
+   *   <li>{@code DESCENDANTS} – matches organisation units using the org unit's PATH
+   *   <li>{@code CHILDREN} – matches the org unit's PATH or any of its immediate children
+   *   <li>{@code SELECTED} – matches the specified org unit ID directly
+   *   <li>{@code ALL} – no org unit constraints are applied
+   * </ul>
+   *
+   * <p>If the org unit mode is not {@code ALL} and the user has no superuser privileges, the method
+   * also ensures that the tracked entity owner falls within the appropriate access scope (either
+   * search or capture).
+   *
+   * @return a SQL INNER JOIN clause for organisation units
    */
   private String getFromSubQueryJoinOrgUnitConditions(
       TrackedEntityQueryParams params, MapSqlParameterSource sqlParams) {
