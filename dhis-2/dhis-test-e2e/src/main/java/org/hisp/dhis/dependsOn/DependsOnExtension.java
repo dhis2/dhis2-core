@@ -64,8 +64,6 @@ public class DependsOnExtension
       return;
     }
 
-    List<String> createdUids = new ArrayList<>();
-
     for (String file : depends.files()) {
       String resourcePath = "dependencies/" + file;
       log.info("Processing dependency file '{}'", resourcePath);
