@@ -30,7 +30,6 @@
 package org.hisp.dhis.trackedentity;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
@@ -74,10 +73,9 @@ public interface TrackedEntityAttributeStore
   Set<TrackedEntityAttribute> getAllSearchableAndUniqueTrackedEntityAttributes();
 
   /**
-   * Fetches all {@link TrackedEntityAttribute} and groups them by {@link Program}
+   * Fetches all {@link TrackedEntityAttribute} UIDs of the given {@link Program}
    *
-   * @return a Map, where the key is the {@link Program} and the values is a Set of {@link
-   *     TrackedEntityAttribute} associated to the {@link Program} in the key
+   * @return a Set of {@link TrackedEntityAttribute} UIDs
    */
-  Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram();
+  Set<String> getTrackedEntityAttributesInProgram(Program program);
 }
