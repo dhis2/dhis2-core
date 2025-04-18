@@ -1,8 +1,7 @@
 name: Destroy instance
 
 on:
-  pull_request:
-    types: [closed, unlabeled]
+  workflow_dispatch:  # Only manual trigger, no automatic triggers
 
 # Cancel previous runs of the same workflow and PR number or branch/tag
 concurrency:
