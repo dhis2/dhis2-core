@@ -301,13 +301,17 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
 
     String sql = test("d2:count(#{ProgrmStagA.DataElmentA})");
     assertThat(
-        sql,
+        normalize(sql),
         is(
-            "(select count(\"DataElmentA\") "
-                + "from analytics_event_Program000A "
-                + "where analytics_event_Program000A.enrollment = ax.enrollment "
-                + "and \"DataElmentA\" is not null and \"DataElmentA\" is not null "
-                + "and ps = 'ProgrmStagA')"));
+            normalize(
+                """
+                (select count("DataElmentA")
+                from analytics_event_Program000A
+                where analytics_event_Program000A.enrollment = ax.enrollment
+                and "DataElmentA" is not null
+                and "DataElmentA" is not null
+                and ps = 'ProgrmStagA')
+                """)));
   }
 
   @Test
@@ -319,14 +323,15 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
 
     String sql = test("d2:count(#{ProgrmStagA.DataElmentA})");
     assertThat(
-        sql,
+        normalize(sql),
         is(
-            "(select count(\"DataElmentA\") "
-                + "from analytics_event_Program000A "
-                + "where analytics_event_Program000A.enrollment = ax.enrollment "
-                + "and \"DataElmentA\" is not null and \"DataElmentA\" is not null "
-                + "and occurreddate < cast( '2021-01-01' as date ) "
-                + "and ps = 'ProgrmStagA')"));
+            normalize(
+                "(select count(\"DataElmentA\") "
+                    + "from analytics_event_Program000A "
+                    + "where analytics_event_Program000A.enrollment = ax.enrollment "
+                    + "and \"DataElmentA\" is not null and \"DataElmentA\" is not null "
+                    + "and occurreddate < cast( '2021-01-01' as date ) "
+                    + "and ps = 'ProgrmStagA')")));
   }
 
   @Test
@@ -338,14 +343,15 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
 
     String sql = test("d2:count(#{ProgrmStagA.DataElmentA})");
     assertThat(
-        sql,
+        normalize(sql),
         is(
-            "(select count(\"DataElmentA\") "
-                + "from analytics_event_Program000A "
-                + "where analytics_event_Program000A.enrollment = ax.enrollment "
-                + "and \"DataElmentA\" is not null and \"DataElmentA\" is not null "
-                + "and occurreddate >= cast( '2020-01-01' as date ) "
-                + "and ps = 'ProgrmStagA')"));
+            normalize(
+                "(select count(\"DataElmentA\") "
+                    + "from analytics_event_Program000A "
+                    + "where analytics_event_Program000A.enrollment = ax.enrollment "
+                    + "and \"DataElmentA\" is not null and \"DataElmentA\" is not null "
+                    + "and occurreddate >= cast( '2020-01-01' as date ) "
+                    + "and ps = 'ProgrmStagA')")));
   }
 
   @Test
@@ -357,14 +363,15 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
 
     String sql = test("d2:count(#{ProgrmStagA.DataElmentA})");
     assertThat(
-        sql,
+        normalize(sql),
         is(
-            "(select count(\"DataElmentA\") "
-                + "from analytics_event_Program000A "
-                + "where analytics_event_Program000A.enrollment = ax.enrollment "
-                + "and \"DataElmentA\" is not null and \"DataElmentA\" is not null "
-                + "and occurreddate < cast( '2021-01-01' as date ) and occurreddate >= cast( '2020-01-01' as date ) "
-                + "and ps = 'ProgrmStagA')"));
+            normalize(
+                "(select count(\"DataElmentA\") "
+                    + "from analytics_event_Program000A "
+                    + "where analytics_event_Program000A.enrollment = ax.enrollment "
+                    + "and \"DataElmentA\" is not null and \"DataElmentA\" is not null "
+                    + "and occurreddate < cast( '2021-01-01' as date ) and occurreddate >= cast( '2020-01-01' as date ) "
+                    + "and ps = 'ProgrmStagA')")));
   }
 
   @Test
@@ -377,12 +384,13 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
 
     String sql = test("d2:countIfCondition(#{ProgrmStagA.DataElmentA},'>5')");
     assertThat(
-        sql,
+        normalize(sql),
         is(
-            "(select count(\"DataElmentA\") "
-                + "from analytics_event_Program000A "
-                + "where analytics_event_Program000A.enrollment = ax.enrollment "
-                + "and \"DataElmentA\" is not null and \"DataElmentA\"::numeric > 5::numeric and ps = 'ProgrmStagA')"));
+            normalize(
+                "(select count(\"DataElmentA\") "
+                    + "from analytics_event_Program000A "
+                    + "where analytics_event_Program000A.enrollment = ax.enrollment "
+                    + "and \"DataElmentA\" is not null and \"DataElmentA\"::numeric > 5::numeric and ps = 'ProgrmStagA')")));
   }
 
   @Test
@@ -400,14 +408,15 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
     String sql =
         test("d2:countIfCondition(#{ProgrmStagA.DataElmentA},'>#{ProgrmStagA.DataElmentE}')");
     assertThat(
-        sql,
+        normalize(sql),
         is(
-            "(select count(\"DataElmentA\") "
-                + "from analytics_event_Program000A "
-                + "where analytics_event_Program000A.enrollment = ax.enrollment "
-                + "and \"DataElmentA\" is not null and \"DataElmentA\"::numeric > "
-                + "coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentE\" else null end::numeric,0) "
-                + "and ps = 'ProgrmStagA')"));
+            normalize(
+                "(select count(\"DataElmentA\") "
+                    + "from analytics_event_Program000A "
+                    + "where analytics_event_Program000A.enrollment = ax.enrollment "
+                    + "and \"DataElmentA\" is not null and \"DataElmentA\"::numeric > "
+                    + "coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentE\" else null end::numeric,0) "
+                    + "and ps = 'ProgrmStagA')")));
   }
 
   @Test
@@ -417,13 +426,14 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
 
     String sql = test("d2:countIfValue(#{ProgrmStagA.DataElmentA},55)");
     assertThat(
-        sql,
+        normalize(sql),
         is(
-            "(select count(\"DataElmentA\") "
-                + "from analytics_event_Program000A "
-                + "where analytics_event_Program000A.enrollment = ax.enrollment "
-                + "and \"DataElmentA\" is not null and \"DataElmentA\" = 55::numeric "
-                + "and ps = 'ProgrmStagA')"));
+            normalize(
+                "(select count(\"DataElmentA\") "
+                    + "from analytics_event_Program000A "
+                    + "where analytics_event_Program000A.enrollment = ax.enrollment "
+                    + "and \"DataElmentA\" is not null and \"DataElmentA\" = 55::numeric "
+                    + "and ps = 'ProgrmStagA')")));
   }
 
   @Test
@@ -435,13 +445,14 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
 
     String sql = test("d2:countIfValue(#{ProgrmStagA.DataElmentA},'ABC')");
     assertThat(
-        sql,
+        normalize(sql),
         is(
-            "(select count(\"DataElmentA\") "
-                + "from analytics_event_Program000A "
-                + "where analytics_event_Program000A.enrollment = ax.enrollment "
-                + "and \"DataElmentA\" is not null and \"DataElmentA\" = 'ABC' "
-                + "and ps = 'ProgrmStagA')"));
+            normalize(
+                "(select count(\"DataElmentA\") "
+                    + "from analytics_event_Program000A "
+                    + "where analytics_event_Program000A.enrollment = ax.enrollment "
+                    + "and \"DataElmentA\" is not null and \"DataElmentA\" = 'ABC' "
+                    + "and ps = 'ProgrmStagA')")));
   }
 
   @Test
@@ -891,5 +902,9 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
   private void setBoundaries(Set<AnalyticsPeriodBoundary> boundaries) {
     programIndicator.setAnalyticsPeriodBoundaries(boundaries);
     programIndicator.setAnalyticsType(ENROLLMENT);
+  }
+
+  private String normalize(String sql) {
+    return sql.replaceAll("\\s+", " ").trim();
   }
 }

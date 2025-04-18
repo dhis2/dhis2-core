@@ -30,13 +30,19 @@
 package org.hisp.dhis.program.function;
 
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
 import static org.hisp.dhis.antlr.AntlrParserUtils.trimQuotes;
 import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_DOUBLE_VALUE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
+import java.util.regex.Pattern;
+import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
+import org.hisp.dhis.program.ProgramIndicatorService;
 
 /**
  * Program indicator function: d2 count if condition
@@ -57,23 +63,106 @@ public class D2CountIfCondition extends ProgramCountFunction {
     return DEFAULT_DOUBLE_VALUE;
   }
 
+  /**
+   * Generates the complete SQL condition predicate for the {@code d2:countIfCondition} function.
+   * The resulting predicate includes the correctly quoted and "casted" column name on the left-hand
+   * side and the correctly "casted" literal value from the condition string on the right-hand side,
+   * suitable for the target database.
+   *
+   * <p>This method uses a workaround to leverage the {@link
+   * ProgramIndicatorService#getAnalyticsSql} method for generating the database-specific SQL for
+   * the operator and the "casted" literal value (the right-hand side of the comparison). The {@code
+   * getAnalyticsSql} service requires a complete, valid expression to process.
+   *
+   * <p>The workaround proceeds as follows:
+   *
+   * <ol>
+   *   <li>A complete dummy expression is constructed by prepending "0" to the condition literal
+   *       (e.g., if the condition is {@code "< 11"}, the dummy expression is {@code "0<11"}).
+   *   <li>{@code getAnalyticsSql} is called with this dummy expression. This generates the {@code
+   *       fullDummyConditionSql}, containing the SQL for the dummy '0', the operator, and the
+   *       correctly casted literal value (e.g., {@code "CAST(0 AS DECIMAL) < CAST(11 AS
+   *       DECIMAL)"}). This step effectively forces the service to produce the desired operator and
+   *       casted right-hand side.
+   *   <li>To isolate the unwanted SQL representation of the dummy '0', {@code getAnalyticsSql} is
+   *       called again with just "0". This generates the {@code dummyZeroSql} (e.g., {@code "CAST(0
+   *       AS DECIMAL)"}).
+   *   <li>The {@code dummyZeroSql} string is removed from the beginning of the {@code
+   *       fullDummyConditionSql} string. This leaves only the desired operator and the correctly
+   *       casted right-hand side (e.g., {@code " < CAST(11 AS DECIMAL)"}).
+   *   <li>Separately, the {@link SqlBuilder} is used to generate the correctly quoted and casted
+   *       SQL for the actual data element column (the left-hand side), using the provided {@code
+   *       baseColumnName}.
+   *   <li>Finally, the casted left-hand side is combined with the extracted operator and right-hand
+   *       side to form the complete predicate string.
+   * </ol>
+   *
+   * @param ctx the expression context
+   * @param visitor the expression visitor
+   * @param baseColumnName the database-specifically quoted column name for the data element.
+   * @return the complete conditional SQL predicate string (e.g., "cast(\"column\" as numeric) <
+   *     11::numeric" or "cast(`column` as decimal) < CAST(11 AS DECIMAL)").
+   */
   @Override
-  public String getConditionSql(ExprContext ctx, CommonExpressionVisitor visitor) {
-    String conditionExpression = getConditionalExpression(ctx);
+  public String getConditionSql(
+      ExprContext ctx, CommonExpressionVisitor visitor, String baseColumnName) {
+    // Get condition literal (e.g., "< 11")
+    ExpressionParser.StringLiteralContext conditionNode = ctx.stringLiteral();
+    if (conditionNode == null) {
+      throw new ParserExceptionWithoutContext(
+          "Condition string literal is missing in d2:countIfCondition");
+    }
+    // This contains the condition string (e.g., "< 11")
+    String conditionLiteral = trimQuotes(conditionNode.getText());
+
+    // Dummy expression (e.g., "0 < 11")
+    String dummyConditionExpression = "0" + conditionLiteral;
 
     ProgramExpressionParams params = visitor.getProgParams();
+    ProgramIndicatorService service = visitor.getProgramIndicatorService();
+    SqlBuilder sqlBuilder = visitor.getSqlBuilder();
 
-    String conditionSql =
-        visitor
-            .getProgramIndicatorService()
-            .getAnalyticsSql(
-                conditionExpression,
-                BOOLEAN,
-                params.getProgramIndicator(),
-                params.getReportingStartDate(),
-                params.getReportingEndDate());
+    //  Get SQL for the full dummy condition
+    String fullDummyConditionSql =
+        service.getAnalyticsSql(
+            dummyConditionExpression,
+            BOOLEAN,
+            params.getProgramIndicator(),
+            params.getReportingStartDate(),
+            params.getReportingEndDate());
 
-    return conditionSql.substring(1);
+    // Get SQL for the dummy '0' value
+    // Get the full expression only for the dummy '0' value
+    // e.g. `CAST(0 as decimal)` or `0::numeric`
+    String dummyZeroSql =
+        service.getAnalyticsSql(
+            "0",
+            NUMERIC, // Or appropriate domain/type hint
+            params.getProgramIndicator(),
+            params.getReportingStartDate(),
+            params.getReportingEndDate());
+
+    // Extract the operator and right-hand side from the dummy SQL
+    //    Example: If fullDummyConditionSql is "CAST(0 AS T) < CAST(11 AS T)"
+    //             and dummyZeroSql is "CAST(0 AS T)", we want " < CAST(11 AS T)".
+    //    Use replaceFirst, ensuring pattern quoting.
+    String operatorAndRightHandSide =
+        fullDummyConditionSql
+            .replaceFirst(
+                Pattern.quote(dummyZeroSql), "" // Replace with empty string
+                )
+            .trim(); // Trim leading space if any
+
+    // 7. Generate the correctly quoted *and casted* SQL for the actual data element column
+    //    using the provided baseColumnName.
+    String castedLeftHandSide = sqlBuilder.cast(baseColumnName, NUMERIC);
+
+    // Combine the casted left side with the operator and right side
+    // Add space
+
+    // Return the complete condition predicate
+    // e.g., "cast(`col` as DECIMAL) < CAST(11 AS DECIMAL)"
+    return castedLeftHandSide + " " + operatorAndRightHandSide;
   }
 
   // -------------------------------------------------------------------------
