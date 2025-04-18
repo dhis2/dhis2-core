@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS in_program_organisationunits_organisationunitid ON program_organisationunits (organisationunitid);
