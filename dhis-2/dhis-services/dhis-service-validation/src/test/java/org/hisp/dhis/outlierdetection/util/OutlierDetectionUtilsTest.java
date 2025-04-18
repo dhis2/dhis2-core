@@ -118,13 +118,12 @@ class OutlierDetectionUtilsTest {
     assertTrue(
         matches(
             ".12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"));
-    String nines308 = generateNines(309);
-    assertTrue(matches(nines308));
+    String bigNumber = "9".repeat(15) + "0".repeat(292);
+    assertTrue(matches(bigNumber));
   }
 
   @Test
   void shouldNotMatchInvalidNumbers() {
-
     assertFalse(matches("1e5"));
     assertFalse(matches("1,000"));
     assertFalse(matches("abc"));
@@ -134,12 +133,13 @@ class OutlierDetectionUtilsTest {
     assertFalse(matches("1.2.3"));
     assertFalse(matches("1.2e3"));
     assertFalse(matches("1.2e-3"));
-    String nines309 = generateNines(310);
-    assertFalse(matches(nines309));
-  }
 
-  private String generateNines(int length) {
-    return "9".repeat(Math.max(0, length));
+    String tooBig = "1" + "0".repeat(308);
+    assertEquals(309, tooBig.length());
+    assertFalse(matches(tooBig));
+
+    String giantNumber = "9".repeat(500);
+    assertFalse(matches(giantNumber));
   }
 
   private boolean matches(String value) {
