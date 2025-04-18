@@ -32,6 +32,12 @@ package org.hisp.dhis.tracker.export.trackedentity;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Map.entry;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
@@ -52,7 +58,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -130,6 +135,10 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   private final SystemSettingsProvider settingsProvider;
 
   private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+  private Set<OrganisationUnit> effectiveSearchOrgUnits;
+
+  private Set<OrganisationUnit> captureScopeOrgUnits;
 
   public HibernateTrackedEntityStore(
       EntityManager entityManager,
@@ -392,7 +401,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             // WHERE
             .append(getWhereClauseFromFilterConditions(params, sqlParameters, whereAnd))
             .append(getFromSubQueryTrackedEntityConditions(whereAnd, params))
-            .append(getFromSubQueryEnrollmentConditions(whereAnd, params));
+            .append(getFromSubQueryEnrollmentConditions(whereAnd, params))
+            .append(getFromSubQueryOwnershipConditions(whereAnd, params, sqlParameters));
 
     if (!isCountQuery) {
       fromSubQuery
@@ -599,6 +609,13 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   private String getFromSubQueryJoinOrgUnitConditions(TrackedEntityQueryParams params) {
     StringBuilder orgUnits = new StringBuilder();
 
+    UserDetails userDetails = getCurrentUserDetails();
+    effectiveSearchOrgUnits =
+        new HashSet<>(
+            organisationUnitStore.getByUid(userDetails.getUserEffectiveSearchOrgUnitIds()));
+    captureScopeOrgUnits =
+        new HashSet<>(organisationUnitStore.getByUid(userDetails.getUserOrgUnitIds()));
+
     handleOrganisationUnits(params);
 
     orgUnits
@@ -610,11 +627,11 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       return orgUnits.toString();
     }
 
-    if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)) {
+    if (params.isOrganisationUnitMode(DESCENDANTS)) {
       orgUnits.append(getDescendantsQuery(params));
-    } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
+    } else if (params.isOrganisationUnitMode(CHILDREN)) {
       orgUnits.append(getChildrenQuery(params));
-    } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED)) {
+    } else if (params.isOrganisationUnitMode(SELECTED)) {
       orgUnits.append(getSelectedQuery(params));
     }
 
@@ -625,19 +642,16 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    * Prepares the organisation units of the given parameters to simplify querying. Mode ACCESSIBLE
    * is converted to DESCENDANTS for organisation units linked to the search scope of the given
    * user. Mode CAPTURE is converted to DESCENDANTS too, but using organisation units linked to the
-   * user's capture scope, and mode CHILDREN is converted to SELECTED for organisation units
-   * including all their children. Mode can be DESCENDANTS, SELECTED, ALL only after invoking this
-   * method.
+   * user's capture scope. After invoking this method, org unit mode can only be either of
+   * DESCENDANTS, CHILDREN, SELECTED or ALL.
    */
   private void handleOrganisationUnits(TrackedEntityQueryParams params) {
-    UserDetails user = getCurrentUserDetails();
-    if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
-      params.setOrgUnits(
-          new HashSet<>(organisationUnitStore.getByUid(user.getUserEffectiveSearchOrgUnitIds())));
-      params.setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
-    } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CAPTURE)) {
-      params.setOrgUnits(new HashSet<>(organisationUnitStore.getByUid(user.getUserOrgUnitIds())));
-      params.setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
+    if (params.isOrganisationUnitMode(ACCESSIBLE)) {
+      params.setOrgUnits(effectiveSearchOrgUnits);
+      params.setOrgUnitMode(DESCENDANTS);
+    } else if (params.isOrganisationUnitMode(CAPTURE)) {
+      params.setOrgUnits(captureScopeOrgUnits);
+      params.setOrgUnitMode(DESCENDANTS);
     }
   }
 
@@ -800,6 +814,35 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     program.append(") ");
 
     return program.toString();
+  }
+
+  /**
+   * Generates the WHERE-clause related to the TE ownership. It will find the tracked entity whose
+   * owner is in the appropriate user scope (depending on the program access level). This condition
+   * only applies when the org unit mode is not `ALL` and the user is not super.
+   */
+  private String getFromSubQueryOwnershipConditions(
+      SqlHelper whereAnd, TrackedEntityQueryParams params, MapSqlParameterSource sqlParams) {
+    if (params.isOrganisationUnitMode(ALL) || getCurrentUserDetails().isSuper()) {
+      return "";
+    }
+
+    sqlParams.addValue(
+        "effectiveSearchScopeOrgUnitPaths",
+        effectiveSearchOrgUnits.stream()
+            .map(ou -> ou.getStoredPath() + "%")
+            .toArray(String[]::new));
+    sqlParams.addValue(
+        "captureScopeOrgUnitPaths",
+        captureScopeOrgUnits.stream().map(ou -> ou.getStoredPath() + "%").toArray(String[]::new));
+
+    return new StringBuilder()
+        .append(whereAnd.whereAnd())
+        .append(
+            "((P.accesslevel in ('OPEN', 'AUDITED') and (OU.path like any (:effectiveSearchScopeOrgUnitPaths))) ")
+        .append(
+            "or (P.accesslevel in ('PROTECTED', 'CLOSED') and (OU.path like any (:captureScopeOrgUnitPaths)))) ")
+        .toString();
   }
 
   /**
