@@ -161,15 +161,6 @@ public interface TrackedEntityAttributeService {
   List<TrackedEntityAttribute> getTrackedEntityAttributesByDisplayOnVisitSchedule(
       boolean displayOnVisitSchedule);
 
-  /**
-   * Validate value against tracked entity attribute value type.
-   *
-   * @param trackedEntityAttribute TrackedEntityAttribute
-   * @param value Value
-   * @return null if valid, a message if not
-   */
-  String validateValueType(TrackedEntityAttribute trackedEntityAttribute, String value);
-
   @Transactional(readOnly = true)
   List<TrackedEntityAttribute> getAllUniqueTrackedEntityAttributes();
 

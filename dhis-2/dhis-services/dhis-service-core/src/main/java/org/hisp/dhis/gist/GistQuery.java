@@ -246,48 +246,50 @@ public final class GistQuery {
 
   public enum Comparison {
     // identity/numeric comparison
-    NULL("null"),
-    NOT_NULL("!null"),
-    EQ("eq"),
-    IEQ("ieq"),
-    NE("!eq", "ne", "neq"),
+    NULL("is null", "null"),
+    NOT_NULL("is not null", "!null"),
+    EQ("=", "eq"),
+    IEQ("=", "ieq"),
+    NE("!=", "!eq", "ne", "neq"),
 
     // numeric comparison
-    LT("lt"),
-    LE("le", "lte"),
-    GT("gt"),
-    GE("ge", "gte"),
+    LT("<", "lt"),
+    LE("<=", "le", "lte"),
+    GT(">", "gt"),
+    GE(">=", "ge", "gte"),
 
     // collection operations
-    IN("in"),
-    NOT_IN("!in"),
-    EMPTY("empty"),
-    NOT_EMPTY("!empty"),
+    IN("in", "in"),
+    NOT_IN("not in", "!in"),
+    EMPTY("= 0", "empty"),
+    NOT_EMPTY("> 0", "!empty"),
 
     // string comparison
-    LIKE("like"),
-    NOT_LIKE("!like"),
-    STARTS_LIKE("$like"),
-    NOT_STARTS_LIKE("!$like"),
-    ENDS_LIKE("like$"),
-    NOT_ENDS_LIKE("!like$"),
-    ILIKE("ilike"),
-    NOT_ILIKE("!ilike"),
-    STARTS_WITH("$ilike", "startswith"),
-    NOT_STARTS_WITH("!$ilike", "!startswith"),
-    ENDS_WITH("ilike$", "endswith"),
-    NOT_ENDS_WITH("!ilike$", "!endswith"),
+    LIKE("like", "like"),
+    NOT_LIKE("not like", "!like"),
+    STARTS_LIKE("like", "$like"),
+    NOT_STARTS_LIKE("not like", "!$like"),
+    ENDS_LIKE("like", "like$"),
+    NOT_ENDS_LIKE("not like", "!like$"),
+    ILIKE("like", "ilike"),
+    NOT_ILIKE("not like", "!ilike"),
+    STARTS_WITH("like", "$ilike", "startswith"),
+    NOT_STARTS_WITH("not like", "!$ilike", "!startswith"),
+    ENDS_WITH("like", "ilike$", "endswith"),
+    NOT_ENDS_WITH("not like", "!ilike$", "!endswith"),
 
     // access checks
-    CAN_READ("canread"),
-    CAN_WRITE("canwrite"),
-    CAN_DATA_READ("candataread"),
-    CAN_DATA_WRITE("candatawrite"),
-    CAN_ACCESS("canaccess");
+    CAN_READ("", "canread"),
+    CAN_WRITE("", "canwrite"),
+    CAN_DATA_READ("", "candataread"),
+    CAN_DATA_WRITE("", "candatawrite"),
+    CAN_ACCESS("", "canaccess");
 
+    @Getter private final String sql;
     private final String[] symbols;
 
-    Comparison(String... symbols) {
+    Comparison(String sql, String... symbols) {
+      this.sql = sql;
       this.symbols = symbols;
     }
 
