@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.tracker.acl;
 
+import javax.annotation.Nonnull;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -59,7 +61,10 @@ public interface TrackedEntityProgramOwnerService {
    * then this method will fail.
    */
   void updateTrackedEntityProgramOwner(
-      TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit);
+      @Nonnull TrackedEntity trackedEntity,
+      @Nonnull Program program,
+      @Nonnull OrganisationUnit orgUnit)
+      throws BadRequestException;
 
   /**
    * Create a new program owner ou for a tracked entity. If an owner previously exist, then this

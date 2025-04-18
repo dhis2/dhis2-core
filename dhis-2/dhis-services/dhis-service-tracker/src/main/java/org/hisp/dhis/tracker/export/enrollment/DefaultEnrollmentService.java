@@ -74,7 +74,7 @@ class DefaultEnrollmentService implements EnrollmentService {
 
   private final RelationshipService relationshipService;
 
-  private final TrackerOwnershipManager trackerOwnershipAccessManager;
+  private final TrackerOwnershipManager trackerOwnershipManager;
 
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
@@ -265,7 +265,7 @@ class DefaultEnrollmentService implements EnrollmentService {
     for (Enrollment enrollment : enrollments) {
       if (enrollment != null
           && (orgUnitMode == ALL
-              || trackerOwnershipAccessManager.hasAccess(
+              || trackerOwnershipManager.hasAccess(
                   currentUser, enrollment.getTrackedEntity(), enrollment.getProgram()))
           && trackerAccessManager.canRead(currentUser, enrollment, orgUnitMode == ALL).isEmpty()) {
         enrollmentList.add(getEnrollment(enrollment, params, includeDeleted));

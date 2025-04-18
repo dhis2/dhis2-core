@@ -207,10 +207,7 @@ class EventSecurityImportValidationTest extends PostgresIntegrationTestBase {
     manager.save(enrollmentA);
     maleA.getEnrollments().add(enrollmentA);
     manager.update(maleA);
-    trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
-        maleA, programA, organisationUnitA);
-
-    trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
         maleA, programA, organisationUnitA);
     manager.update(programA);
     OrganisationUnit qfUVllTs6cS = organisationUnitService.getOrganisationUnit("QfUVllTs6cS");

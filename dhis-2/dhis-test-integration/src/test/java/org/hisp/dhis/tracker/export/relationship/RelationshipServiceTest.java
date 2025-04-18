@@ -58,7 +58,6 @@ import org.hisp.dhis.test.utils.RelationshipUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
-import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeAll;
@@ -77,11 +76,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired private TrackerOwnershipManager trackerOwnershipAccessManager;
-
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
-
-  private Date enrollmentDate;
 
   private TrackedEntity teA;
 
@@ -113,15 +108,13 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
   private User user;
 
-  private Program program;
-
   private ProgramStage programStage;
 
   private TrackedEntityType trackedEntityType;
 
   @BeforeAll
   void setUp() {
-    enrollmentDate = new Date();
+    Date enrollmentDate = new Date();
 
     orgUnitA = createOrganisationUnit('A');
     manager.save(orgUnitA, false);
@@ -147,7 +140,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     inaccessibleTe = createTrackedEntity(orgUnitA, inaccessibleTrackedEntityType);
     manager.save(inaccessibleTe, false);
 
-    program = createProgram('A', new HashSet<>(), orgUnitA);
+    Program program = createProgram('A', new HashSet<>(), orgUnitA);
     program.setProgramType(ProgramType.WITH_REGISTRATION);
     program.setTrackedEntityType(trackedEntityType);
     manager.save(program, false);
@@ -281,7 +274,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldNotReturnRelationshipWhenTeIsTransferredAndUserHasNoAccessToAtLeastOneProgram()
-      throws ForbiddenException {
+      throws BadRequestException {
     injectAdminIntoSecurityContext();
 
     TrackedEntityType trackedEntityType = createTrackedEntityType('X');
@@ -301,7 +294,8 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
         trackedEntityFrom, program, orgUnitA);
 
-    trackerOwnershipAccessManager.transferOwnership(trackedEntityFrom, program, orgUnitB);
+    trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
+        trackedEntityFrom, program, orgUnitB);
 
     TrackedEntity trackedEntityTo = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(trackedEntityTo);
