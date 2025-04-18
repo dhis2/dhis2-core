@@ -101,7 +101,7 @@ class ProgramCategoryMappingValidatorTest extends PostgresIntegrationTestBase {
   private ProgramCategoryMapping cm3;
 
   private Set<ProgramCategoryMapping> categoryMappings;
-  private Set<String> categoryMappingIds;
+  private List<String> categoryMappingIds;
 
   private static final String CM1_ID = "catMapping1";
   private static final String CM2_ID = "catMapping2";
@@ -225,7 +225,7 @@ class ProgramCategoryMappingValidatorTest extends PostgresIntegrationTestBase {
 
     categoryMappings = Set.of(cm1, cm2, cm3);
 
-    categoryMappingIds = Set.of(CM1_ID, CM2_ID, CM3_ID);
+    categoryMappingIds = List.of(CM1_ID, CM2_ID, CM3_ID);
   }
 
   @Test
@@ -312,7 +312,7 @@ class ProgramCategoryMappingValidatorTest extends PostgresIntegrationTestBase {
     // Given
     Program program = createProgram(categoryMappings);
     ProgramIndicator programIndicator =
-        createProgramIndicator(program, Set.of("NoMappingId", CM2_ID, CM3_ID));
+        createProgramIndicator(program, List.of("NoMappingId", CM2_ID, CM3_ID));
 
     // When throws
     ConflictException thrown =
@@ -331,7 +331,7 @@ class ProgramCategoryMappingValidatorTest extends PostgresIntegrationTestBase {
   void testResolveProgramIndicatorCategoryMappingsMissingMapping() {
     // Given
     Program program = createProgram(Set.of(cm2, cm3));
-    ProgramIndicator programIndicator = createProgramIndicator(program, Set.of(CM2_ID, CM3_ID));
+    ProgramIndicator programIndicator = createProgramIndicator(program, List.of(CM2_ID, CM3_ID));
 
     // When throws
     ConflictException thrown =
@@ -356,7 +356,7 @@ class ProgramCategoryMappingValidatorTest extends PostgresIntegrationTestBase {
   }
 
   /** Creates a program with a set of category mapping references. */
-  private ProgramIndicator createProgramIndicator(Program program, Set<String> mappingIds) {
+  private ProgramIndicator createProgramIndicator(Program program, List<String> mappingIds) {
     ProgramIndicator programIndicator =
         createProgramIndicator('A', program, "dummy expression", "dummy filter");
     programIndicator.setUid("programIndA");

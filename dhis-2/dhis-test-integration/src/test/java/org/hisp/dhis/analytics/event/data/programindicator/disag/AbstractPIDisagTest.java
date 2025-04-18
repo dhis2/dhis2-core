@@ -254,7 +254,7 @@ abstract class AbstractPIDisagTest extends PostgresIntegrationTestBase {
     programIndicator = createProgramIndicator('A', program, "42", "true");
     programIndicator.setCategoryCombo(catComboA);
     programIndicator.setAttributeCombo(catComboB);
-    programIndicator.setCategoryMappingIds(Set.of(CM1_ID, CM2_ID, CM3_ID));
+    programIndicator.setCategoryMappingIds(List.of(CM1_ID, CM2_ID, CM3_ID));
     programIndicator.setAggregateExportDataElement(OUTPUT_DE);
     manager.save(programIndicator);
 

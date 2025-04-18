@@ -459,7 +459,7 @@ class CopyServiceTest extends TestBase {
 
   private Set<ProgramIndicator> createIndicators(Program program) {
     ProgramIndicator pi = createProgramIndicator('a', program, "exp", "ind");
-    pi.setCategoryMappingIds(Set.of("nAigheQuae3", "SOongooCa6F", "seiDoh0AeNg"));
+    pi.setCategoryMappingIds(List.of("nAigheQuae3", "SOongooCa6F", "seiDoh0AeNg"));
     return Set.of(pi);
   }
 

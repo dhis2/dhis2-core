@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
@@ -108,7 +107,7 @@ class ProgramIndicatorStoreTest extends PostgresIntegrationTestBase {
     Program program = createProgram('p');
     identifiableObjectManager.save(program);
 
-    Set<String> ids = Set.of("OIR9ahphaec", "IOhquup3yoo", "Sasiayi0Jee", "QUfahM4tho3");
+    List<String> ids = List.of("OIR9ahphaec", "IOhquup3yoo", "Sasiayi0Jee", "QUfahM4tho3");
     ProgramIndicator pi = createProgramIndicator('1', program, "#{999999.de1}", "");
     pi.setCategoryMappingIds(ids);
     programIndicatorStore.save(pi);

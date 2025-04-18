@@ -39,8 +39,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -132,7 +134,7 @@ public class ProgramIndicator extends BaseDataDimensionalItemObject implements M
   private CategoryCombo attributeCombo;
 
   /** Category mapping UIDs for both COC and AOC PI disaggregation */
-  private Set<String> categoryMappingIds = new HashSet<>();
+  private List<String> categoryMappingIds = new ArrayList<>();
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -472,11 +474,11 @@ public class ProgramIndicator extends BaseDataDimensionalItemObject implements M
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Set<String> getCategoryMappingIds() {
+  public List<String> getCategoryMappingIds() {
     return categoryMappingIds;
   }
 
-  public void setCategoryMappingIds(Set<String> categoryMappingIds) {
+  public void setCategoryMappingIds(List<String> categoryMappingIds) {
     this.categoryMappingIds = categoryMappingIds;
   }
 
