@@ -47,6 +47,7 @@ import org.hisp.dhis.fieldfiltering.FieldPathConverter;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.webapi.mvc.CurrentSystemSettingsHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
+import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.SystemSettingsInterceptor;
@@ -249,7 +250,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
 
   @Override
   protected RequestMappingHandlerMapping createRequestMappingHandlerMapping() {
-    RequestMappingHandlerMapping mapping = new RequestMappingHandlerMapping();
+    CustomRequestMappingHandlerMapping mapping = new CustomRequestMappingHandlerMapping();
     mapping.setOrder(0);
     mapping.setContentNegotiationManager(mvcContentNegotiationManager());
     mapping.setUseTrailingSlashMatch(true);
