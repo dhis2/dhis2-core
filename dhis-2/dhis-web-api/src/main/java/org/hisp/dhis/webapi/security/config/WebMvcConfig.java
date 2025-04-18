@@ -238,7 +238,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Override
   public ContentNegotiationManager mvcContentNegotiationManager() {
     CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy =
-        new CustomPathExtensionContentNegotiationStrategy(mediaTypeMap);
+        new CustomPathExtensionContentNegotiationStrategy(MEDIA_TYPE_MAP);
     pathExtensionNegotiationStrategy.setUseRegisteredExtensionsOnly(true);
 
     return new ContentNegotiationManager(
@@ -279,7 +279,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
         .mediaType("xml", MediaType.APPLICATION_XML);
   }
 
-  private Map<String, MediaType> mediaTypeMap =
+  public static final Map<String, MediaType> MEDIA_TYPE_MAP =
       new ImmutableMap.Builder<String, MediaType>()
           .put("json", MediaType.APPLICATION_JSON)
           .put("json.gz", parseMediaType("application/json+gzip"))
