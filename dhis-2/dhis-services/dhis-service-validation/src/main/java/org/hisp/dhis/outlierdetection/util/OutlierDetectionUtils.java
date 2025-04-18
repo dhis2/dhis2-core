@@ -105,19 +105,42 @@ public class OutlierDetectionUtils {
 
   /**
    * Regex pattern to identify strings that are valid for casting to PostgreSQL `double precision`
-   * (i.e., plain numeric values).
+   * (i.e., plain numeric values without scientific notation).
    *
-   * <p>Pattern: ^-?[0-9]+(\.[0-9]+)?$
+   * <p>Matches examples:
    *
-   * <p>Matches: - "42" - "-3.14" - "0.5" - "0001.00"
+   * <ul>
+   *   <li>"42"
+   *   <li>"-3.14"
+   *   <li>"0.5"
+   *   <li>"0001.00"
+   * </ul>
    *
-   * <p>Does not match: - "+5" - ".5" - "42." - "1e5" - "1,000.00"
+   * <p>Does not match examples:
+   *
+   * <ul>
+   *   <li>"1e5" (scientific notation)
+   *   <li>"1,000.00" (comma separator)
+   *   <li>"abc123" (non-numeric characters)
+   *   <li>"11.11.11" (multiple decimal points)
+   *   <li>"" (empty string)
+   *   <li>" " (whitespace)
+   * </ul>
    *
    * <p>This pattern is used to pre-filter text-based numeric values to avoid runtime casting
-   * exceptions when converting to double precision. Since data values are stored as strings in the
-   * database, there is no guarantee that the string representation of a number is valid for casting
-   * to double precision. Some edge cases may not be covered by this pattern, but integrity checks
-   * can help to identify such cases and fix them.
+   * exceptions when converting to `double precision` in SQL. Since data values are stored as
+   * strings in the database, there is no guarantee that the string representation is safely
+   * castable.
+   *
+   * <p>Some rare edge cases that PostgreSQL could technically cast (e.g., extremely large valid
+   * doubles) may not be matched by this pattern and would thus be excluded. In practice, such cases
+   * are highly unlikely in DHIS2 systems. Integrity checks can also detect and correct such
+   * anomalies if needed.
+   *
+   * <p>Note: We deliberately limit the integer part to a maximum of 307 digits (instead of the
+   * PostgreSQL theoretical maximum of 308 digits) as a practical safety margin. This avoids
+   * requiring a full numeric parse and comparison in Java, which would not be feasible within the
+   * SQL-based validation approach.
    */
-  public static final String PG_DOUBLE_REGEX = "^-?[0-9]+(\\.[0-9]+)?$";
+  public static final String PG_DOUBLE_REGEX = "^[+-]?((\\d{1,307}(\\.\\d*)?)|(\\.\\d+))$";
 }

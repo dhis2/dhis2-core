@@ -104,18 +104,42 @@ class OutlierDetectionUtilsTest {
     assertTrue(matches("0.0"));
     assertTrue(matches("0001.00"));
     assertTrue(matches("-0.5"));
+    assertTrue(matches("+42"));
+    assertTrue(matches(".5"));
+    assertTrue(matches("42."));
+    assertTrue(matches("123456789012345"));
+    assertTrue(matches("12345.67890"));
+    assertTrue(
+        matches(
+            "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"));
+    assertTrue(
+        matches(
+            "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890.1234567890"));
+    assertTrue(
+        matches(
+            ".12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890"));
+    String bigNumber = "9".repeat(15) + "0".repeat(292);
+    assertTrue(matches(bigNumber));
   }
 
   @Test
   void shouldNotMatchInvalidNumbers() {
-    assertFalse(matches("+42"));
-    assertFalse(matches(".5"));
-    assertFalse(matches("42."));
     assertFalse(matches("1e5"));
     assertFalse(matches("1,000"));
     assertFalse(matches("abc"));
     assertFalse(matches(""));
+    assertFalse(matches("      "));
     assertFalse(matches(null));
+    assertFalse(matches("1.2.3"));
+    assertFalse(matches("1.2e3"));
+    assertFalse(matches("1.2e-3"));
+
+    String tooBig = "1" + "0".repeat(308);
+    assertEquals(309, tooBig.length());
+    assertFalse(matches(tooBig));
+
+    String giantNumber = "9".repeat(500);
+    assertFalse(matches(giantNumber));
   }
 
   private boolean matches(String value) {
