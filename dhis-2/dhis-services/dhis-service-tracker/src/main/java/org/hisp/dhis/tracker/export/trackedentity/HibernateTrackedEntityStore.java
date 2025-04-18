@@ -136,10 +136,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-  private Set<OrganisationUnit> effectiveSearchOrgUnits;
-
-  private Set<OrganisationUnit> captureScopeOrgUnits;
-
   public HibernateTrackedEntityStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
@@ -392,7 +388,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             // INNER JOIN on constraints
             .append(joinPrograms(params))
             .append(getFromSubQueryJoinProgramOwnerConditions(params))
-            .append(getFromSubQueryJoinOrgUnitConditions(params))
+            .append(getFromSubQueryJoinOrgUnitConditions(params, sqlParameters))
             .append(getFromSubQueryJoinEnrollmentConditions(params))
 
             // LEFT JOIN attributes we need to sort on and/or filter by.
@@ -401,8 +397,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             // WHERE
             .append(getWhereClauseFromFilterConditions(params, sqlParameters, whereAnd))
             .append(getFromSubQueryTrackedEntityConditions(whereAnd, params))
-            .append(getFromSubQueryEnrollmentConditions(whereAnd, params))
-            .append(getFromSubQueryOwnershipConditions(whereAnd, params, sqlParameters));
+            .append(getFromSubQueryEnrollmentConditions(whereAnd, params));
 
     if (!isCountQuery) {
       fromSubQuery
@@ -599,41 +594,55 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   /**
    * Generates an INNER JOIN for organisation units. If a program is specified, we join on program
-   * ownership (PO), if not we check whether the user has access to the TE/program pair owner. Based
-   * on the ouMode, they will boil down to either DESCENDANTS (requiring matching on the org unit's
-   * PATH), CHILDREN (matching on the org unit's PATH or any of its immediate children), SELECTED
-   * (matching the specified org unit id) or ALL (no constraints).
+   * ownership (PO), if not we join the PO or the registering TE unit. Based on the ouMode, they
+   * will boil down to either DESCENDANTS (requiring matching on the org unit's PATH), CHILDREN
+   * (matching on the org unit's PATH or any of its immediate children), SELECTED (matching the
+   * specified org unit id) or ALL (no constraints).
+   *
+   * <p>Depending on the program access level, it will also make sure the owner of the TE is in the
+   * appropriate scope (either search or capture). This condition only applies when the org unit
+   * mode is not `ALL` and the user is not super.
    *
    * @return a SQL INNER JOIN for organisation units
    */
-  private String getFromSubQueryJoinOrgUnitConditions(TrackedEntityQueryParams params) {
+  private String getFromSubQueryJoinOrgUnitConditions(
+      TrackedEntityQueryParams params, MapSqlParameterSource sqlParams) {
     StringBuilder orgUnits = new StringBuilder();
 
     UserDetails userDetails = getCurrentUserDetails();
-    effectiveSearchOrgUnits =
-        new HashSet<>(
-            organisationUnitStore.getByUid(userDetails.getUserEffectiveSearchOrgUnitIds()));
-    captureScopeOrgUnits =
-        new HashSet<>(organisationUnitStore.getByUid(userDetails.getUserOrgUnitIds()));
+    Set<OrganisationUnit> effectiveSearchOrgUnits =
+        getOrgUnitsFromUids(userDetails.getUserEffectiveSearchOrgUnitIds());
+    Set<OrganisationUnit> captureScopeOrgUnits =
+        getOrgUnitsFromUids(userDetails.getUserOrgUnitIds());
 
-    handleOrganisationUnits(params);
+    handleOrganisationUnits(params, effectiveSearchOrgUnits, captureScopeOrgUnits);
 
     orgUnits
         .append(" INNER JOIN organisationunit OU ")
         .append("ON OU.organisationunitid = ")
         .append(getOwnerOrgUnit(params));
 
-    if (!params.hasOrganisationUnits()) {
+    if (params.hasOrganisationUnits()) {
+      if (params.isOrganisationUnitMode(DESCENDANTS)) {
+        orgUnits.append(getDescendantsQuery(params));
+      } else if (params.isOrganisationUnitMode(CHILDREN)) {
+        orgUnits.append(getChildrenQuery(params));
+      } else if (params.isOrganisationUnitMode(SELECTED)) {
+        orgUnits.append(getSelectedQuery(params));
+      }
+    }
+
+    if (params.isOrganisationUnitMode(ALL) || getCurrentUserDetails().isSuper()) {
       return orgUnits.toString();
     }
 
-    if (params.isOrganisationUnitMode(DESCENDANTS)) {
-      orgUnits.append(getDescendantsQuery(params));
-    } else if (params.isOrganisationUnitMode(CHILDREN)) {
-      orgUnits.append(getChildrenQuery(params));
-    } else if (params.isOrganisationUnitMode(SELECTED)) {
-      orgUnits.append(getSelectedQuery(params));
-    }
+    sqlParams.addValue("effectiveSearchScopePaths", getOrgUnitsPathArray(effectiveSearchOrgUnits));
+    sqlParams.addValue("captureScopePaths", getOrgUnitsPathArray(captureScopeOrgUnits));
+
+    orgUnits.append(
+        "and ((P.accesslevel in ('OPEN', 'AUDITED') and (OU.path like any (:effectiveSearchScopePaths))) ");
+    orgUnits.append(
+        "or (P.accesslevel in ('PROTECTED', 'CLOSED') and (OU.path like any (:captureScopePaths)))) ");
 
     return orgUnits.toString();
   }
@@ -645,7 +654,10 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    * user's capture scope. After invoking this method, org unit mode can only be either of
    * DESCENDANTS, CHILDREN, SELECTED or ALL.
    */
-  private void handleOrganisationUnits(TrackedEntityQueryParams params) {
+  private void handleOrganisationUnits(
+      TrackedEntityQueryParams params,
+      Set<OrganisationUnit> effectiveSearchOrgUnits,
+      Set<OrganisationUnit> captureScopeOrgUnits) {
     if (params.isOrganisationUnitMode(ACCESSIBLE)) {
       params.setOrgUnits(effectiveSearchOrgUnits);
       params.setOrgUnitMode(DESCENDANTS);
@@ -653,6 +665,14 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       params.setOrgUnits(captureScopeOrgUnits);
       params.setOrgUnitMode(DESCENDANTS);
     }
+  }
+
+  private Set<OrganisationUnit> getOrgUnitsFromUids(Set<String> uids) {
+    return new HashSet<>(organisationUnitStore.getByUid(uids));
+  }
+
+  private String[] getOrgUnitsPathArray(Set<OrganisationUnit> orgUnits) {
+    return orgUnits.stream().map(ou -> ou.getStoredPath() + "%").toArray(String[]::new);
   }
 
   private String getOwnerOrgUnit(TrackedEntityQueryParams params) {
@@ -814,35 +834,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     program.append(") ");
 
     return program.toString();
-  }
-
-  /**
-   * Generates the WHERE-clause related to the TE ownership. It will find the tracked entity whose
-   * owner is in the appropriate user scope (depending on the program access level). This condition
-   * only applies when the org unit mode is not `ALL` and the user is not super.
-   */
-  private String getFromSubQueryOwnershipConditions(
-      SqlHelper whereAnd, TrackedEntityQueryParams params, MapSqlParameterSource sqlParams) {
-    if (params.isOrganisationUnitMode(ALL) || getCurrentUserDetails().isSuper()) {
-      return "";
-    }
-
-    sqlParams.addValue(
-        "effectiveSearchScopeOrgUnitPaths",
-        effectiveSearchOrgUnits.stream()
-            .map(ou -> ou.getStoredPath() + "%")
-            .toArray(String[]::new));
-    sqlParams.addValue(
-        "captureScopeOrgUnitPaths",
-        captureScopeOrgUnits.stream().map(ou -> ou.getStoredPath() + "%").toArray(String[]::new));
-
-    return new StringBuilder()
-        .append(whereAnd.whereAnd())
-        .append(
-            "((P.accesslevel in ('OPEN', 'AUDITED') and (OU.path like any (:effectiveSearchScopeOrgUnitPaths))) ")
-        .append(
-            "or (P.accesslevel in ('PROTECTED', 'CLOSED') and (OU.path like any (:captureScopeOrgUnitPaths)))) ")
-        .toString();
   }
 
   /**
