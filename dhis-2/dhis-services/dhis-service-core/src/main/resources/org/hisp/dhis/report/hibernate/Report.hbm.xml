@@ -29,7 +29,7 @@
 
     <property name="designContent" type="text" />
 
-    <property name="rawRelativePeriods" column="relativeperiods" type="jbList"/>
+    <property name="rawPeriods" column="relativeperiods" type="jbList"/>
 
     <many-to-one name="visualization" class="org.hisp.dhis.visualization.Visualization" column="visualizationid"
       foreign-key="fk_report_visualizationid" />

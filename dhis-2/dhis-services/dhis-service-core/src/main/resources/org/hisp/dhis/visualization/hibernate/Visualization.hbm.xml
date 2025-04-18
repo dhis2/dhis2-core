@@ -211,7 +211,7 @@
 
     <property name="endDate"/>
 
-    <property name="rawRelativePeriods" column="relativeperiods" type="jbList"/>
+    <property name="rawPeriods" column="relativeperiods" type="jbList"/>
 
     <property name="fontStyle" type="jbVisualizationFontStyle"/>
 
