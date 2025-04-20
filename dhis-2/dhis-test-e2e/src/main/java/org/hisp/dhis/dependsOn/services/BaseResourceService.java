@@ -54,7 +54,7 @@ public abstract class BaseResourceService implements ResourceService {
   private final String label; // "Indicator" OR "ProgramIndicator"
 
   protected BaseResourceService(String basePath, String jsonCollection, String label) {
-    this.client = new RestApiActions(basePath);
+    this.client = new RestApiActions(basePath).setBaseUri(TestConfiguration.get().baseUrl());
     this.jsonCollection = jsonCollection;
     this.label = label;
   }
