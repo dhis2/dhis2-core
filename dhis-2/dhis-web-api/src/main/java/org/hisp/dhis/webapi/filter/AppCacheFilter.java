@@ -55,7 +55,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
-//@WebFilter(urlPatterns = {"*.appcache"})
+@WebFilter(urlPatterns = {"*.appcache"})
 public class AppCacheFilter implements Filter {
 
   @Autowired private SystemService systemService;

@@ -42,6 +42,8 @@ import java.util.Base64;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.slf4j.MDC;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -74,8 +76,15 @@ public class RequestIdentifierFilter extends OncePerRequestFilter {
       throws ServletException, IOException {
     if (enabled) {
       try {
-        MDC.put(SESSION_ID_KEY, IDENTIFIER_PREFIX + hashToBase64(req.getSession().getId()));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String current = MDC.get(SESSION_ID_KEY);
+        if (current != null
+            && authentication != null
+            && authentication.isAuthenticated()
+            && !authentication.getPrincipal().equals("anonymousUser")) {
 
+          MDC.put(SESSION_ID_KEY, IDENTIFIER_PREFIX + hashToBase64(req.getSession().getId()));
+        }
       } catch (NoSuchAlgorithmException e) {
         log.error(String.format("Invalid Hash algorithm provided (%s)", HASH_ALGO), e);
       }

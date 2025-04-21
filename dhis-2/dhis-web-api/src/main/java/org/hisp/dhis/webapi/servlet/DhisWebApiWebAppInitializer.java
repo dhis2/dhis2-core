@@ -59,21 +59,21 @@ import org.springframework.web.servlet.DispatcherServlet;
 public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
   @Override
   public void onStartup(ServletContext context) {
-//    context.getSessionCookieConfig().setName("JSESSIONID");
-//    context.getSessionCookieConfig().setHttpOnly(true);
-//
-//    boolean httpsOnly = getConfig().isEnabled(ConfigurationKey.SERVER_HTTPS);
-//    log.info(String.format("Configuring cookies, HTTPS only: %b", httpsOnly));
-//    if (httpsOnly) {
-//      context.getSessionCookieConfig().setSecure(true);
-//      log.info("HTTPS only is enabled, cookies configured as secure");
-//    }
-//
-//    String sameSite = getConfig().getProperty(ConfigurationKey.SESSION_COOKIE_SAME_SITE);
-//    log.info("SameSite cookie attribute set to: " + sameSite);
-//    if (sameSite != null) {
-//      context.getSessionCookieConfig().setAttribute("SameSite", sameSite);
-//    }
+    context.getSessionCookieConfig().setName("JSESSIONID");
+    context.getSessionCookieConfig().setHttpOnly(true);
+
+    boolean httpsOnly = getConfig().isEnabled(ConfigurationKey.SERVER_HTTPS);
+    log.info(String.format("Configuring cookies, HTTPS only: %b", httpsOnly));
+    if (httpsOnly) {
+      context.getSessionCookieConfig().setSecure(true);
+      log.info("HTTPS only is enabled, cookies configured as secure");
+    }
+
+    String sameSite = getConfig().getProperty(ConfigurationKey.SESSION_COOKIE_SAME_SITE);
+    log.info("SameSite cookie attribute set to: " + sameSite);
+    if (sameSite != null) {
+      context.getSessionCookieConfig().setAttribute("SameSite", sameSite);
+    }
 
     context.setSessionTrackingModes(EnumSet.of(SessionTrackingMode.COOKIE));
 
@@ -102,11 +102,11 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
   public static void setupServlets(
       ServletContext context, AnnotationConfigWebApplicationContext webApplicationContext) {
 
-//    context
-//        .addFilter(
-//            "SpringSessionRepositoryFilter",
-  //            new DelegatingFilterProxy("springSessionRepositoryFilter"))
-//        .addMappingForUrlPatterns(null, false, "/*");
+    context
+        .addFilter(
+            "SpringSessionRepositoryFilter",
+            new DelegatingFilterProxy("springSessionRepositoryFilter"))
+        .addMappingForUrlPatterns(null, false, "/*");
 
     DispatcherServlet servlet = new DispatcherServlet(webApplicationContext);
     ServletRegistration.Dynamic dispatcher = context.addServlet("dispatcher", servlet);
@@ -115,13 +115,13 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
     dispatcher.addMapping("/*");
     dispatcher.setMultipartConfig(new MultipartConfigElement(""));
 
-//    context
-//        .addServlet("TempGetAppMenuServlet", TempGetAppMenuServlet.class)
-//        .addMapping("/dhis-web-commons/menu/getModules.action");
+    context
+        .addServlet("TempGetAppMenuServlet", TempGetAppMenuServlet.class)
+        .addMapping("/dhis-web-commons/menu/getModules.action");
 
-//    context
-//        .addFilter("webMetricsFilter", new DelegatingFilterProxy("webMetricsFilter"))
-//        .addMappingForUrlPatterns(null, false, "/api/*");
+    context
+        .addFilter("webMetricsFilter", new DelegatingFilterProxy("webMetricsFilter"))
+        .addMappingForUrlPatterns(null, false, "/api/*");
 
     FilterRegistration.Dynamic openSessionInViewFilter =
         context.addFilter("openSessionInViewFilter", OpenEntityManagerInViewFilter.class);
@@ -130,40 +130,40 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
     openSessionInViewFilter.addMappingForUrlPatterns(null, false, "/*");
     openSessionInViewFilter.addMappingForServletNames(null, false, "dispatcher");
 
-//    FilterRegistration.Dynamic characterEncodingFilter =
-//        context.addFilter("characterEncodingFilter", CharacterEncodingFilter.class);
-//    characterEncodingFilter.setInitParameter("encoding", "UTF-8");
-//    characterEncodingFilter.setInitParameter("forceEncoding", "true");
-//    characterEncodingFilter.addMappingForUrlPatterns(null, false, "/*");
-//    characterEncodingFilter.addMappingForServletNames(null, false, "dispatcher");
+    FilterRegistration.Dynamic characterEncodingFilter =
+        context.addFilter("characterEncodingFilter", CharacterEncodingFilter.class);
+    characterEncodingFilter.setInitParameter("encoding", "UTF-8");
+    characterEncodingFilter.setInitParameter("forceEncoding", "true");
+    characterEncodingFilter.addMappingForUrlPatterns(null, false, "/*");
+    characterEncodingFilter.addMappingForServletNames(null, false, "dispatcher");
 
     context
         .addFilter(
             "springSecurityFilterChain", new DelegatingFilterProxy("springSecurityFilterChain"))
         .addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
 
-//    context
-//        .addFilter("RequestIdentifierFilter", new DelegatingFilterProxy("requestIdentifierFilter"))
-//        .addMappingForUrlPatterns(null, true, "/*");
-//
-//    /* Intercept index.html, plugin.html, and other html requests to inject no-cache
-//      headers using ContextUtils.setNoStore(response).
-//    */
-//    context
-//        .addFilter("AppHtmlNoCacheFilter", new DelegatingFilterProxy("appHtmlNoCacheFilter"))
-//        .addMappingForUrlPatterns(null, true, "/*");
-//
-//    context
-//        .addFilter("GlobalShellFilter", new DelegatingFilterProxy("globalShellFilter"))
-//        .addMappingForUrlPatterns(null, true, "/*");
-//
-//    context
-//        .addFilter("AppOverrideFilter", new DelegatingFilterProxy("appOverrideFilter"))
-//        .addMappingForUrlPatterns(null, true, "/*");
+    context
+        .addFilter("RequestIdentifierFilter", new DelegatingFilterProxy("requestIdentifierFilter"))
+        .addMappingForUrlPatterns(null, true, "/*");
 
-//    context
-//        .addServlet("RootPageServlet", LoginFallbackServlet.class)
-//        .addMapping("/login.html", "/dhis-web-commons/security/login.action");
+    /* Intercept index.html, plugin.html, and other html requests to inject no-cache
+      headers using ContextUtils.setNoStore(response).
+    */
+    context
+        .addFilter("AppHtmlNoCacheFilter", new DelegatingFilterProxy("appHtmlNoCacheFilter"))
+        .addMappingForUrlPatterns(null, true, "/*");
+
+    context
+        .addFilter("GlobalShellFilter", new DelegatingFilterProxy("globalShellFilter"))
+        .addMappingForUrlPatterns(null, true, "/*");
+
+    context
+        .addFilter("AppOverrideFilter", new DelegatingFilterProxy("appOverrideFilter"))
+        .addMappingForUrlPatterns(null, true, "/*");
+
+    context
+        .addServlet("RootPageServlet", LoginFallbackServlet.class)
+        .addMapping("/login.html", "/dhis-web-commons/security/login.action");
 
     String profile = System.getProperty("spring.profiles.active");
     if (profile == null || !profile.equals("embeddedJetty")) {
