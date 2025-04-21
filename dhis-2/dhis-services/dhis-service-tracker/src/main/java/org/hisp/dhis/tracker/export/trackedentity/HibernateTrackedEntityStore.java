@@ -624,7 +624,13 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     Set<OrganisationUnit> captureScopeOrgUnits =
         getOrgUnitsFromUids(userDetails.getUserOrgUnitIds());
 
-    handleOrganisationUnits(params, effectiveSearchOrgUnits, captureScopeOrgUnits);
+    if (params.isOrganisationUnitMode(ACCESSIBLE)) {
+      params.setOrgUnits(effectiveSearchOrgUnits);
+      params.setOrgUnitMode(DESCENDANTS);
+    } else if (params.isOrganisationUnitMode(CAPTURE)) {
+      params.setOrgUnits(captureScopeOrgUnits);
+      params.setOrgUnitMode(DESCENDANTS);
+    }
 
     orgUnits
         .append(" INNER JOIN organisationunit OU ")
@@ -654,26 +660,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         "or (P.accesslevel in ('PROTECTED', 'CLOSED') and (OU.path like any (:captureScopePaths)))) ");
 
     return orgUnits.toString();
-  }
-
-  /**
-   * Prepares the organisation units of the given parameters to simplify querying. Mode ACCESSIBLE
-   * is converted to DESCENDANTS for organisation units linked to the search scope of the given
-   * user. Mode CAPTURE is converted to DESCENDANTS too, but using organisation units linked to the
-   * user's capture scope. After invoking this method, org unit mode can only be either of
-   * DESCENDANTS, CHILDREN, SELECTED or ALL.
-   */
-  private void handleOrganisationUnits(
-      TrackedEntityQueryParams params,
-      Set<OrganisationUnit> effectiveSearchOrgUnits,
-      Set<OrganisationUnit> captureScopeOrgUnits) {
-    if (params.isOrganisationUnitMode(ACCESSIBLE)) {
-      params.setOrgUnits(effectiveSearchOrgUnits);
-      params.setOrgUnitMode(DESCENDANTS);
-    } else if (params.isOrganisationUnitMode(CAPTURE)) {
-      params.setOrgUnits(captureScopeOrgUnits);
-      params.setOrgUnitMode(DESCENDANTS);
-    }
   }
 
   private Set<OrganisationUnit> getOrgUnitsFromUids(Set<String> uids) {

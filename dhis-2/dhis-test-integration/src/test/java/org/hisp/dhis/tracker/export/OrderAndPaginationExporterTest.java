@@ -225,10 +225,11 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     Page<String> paginatedEntities =
         trackedEntityService
-            .findTrackedEntities(params, PageParams.of(1, 10, false))
+            .findTrackedEntities(params, PageParams.of(1, 10, true))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertContainsOnly(List.of("woitxQbWYNq", "guVNoAerxWo"), paginatedEntities.getItems());
+    assertEquals(2, paginatedEntities.getTotal());
   }
 
   @Test
