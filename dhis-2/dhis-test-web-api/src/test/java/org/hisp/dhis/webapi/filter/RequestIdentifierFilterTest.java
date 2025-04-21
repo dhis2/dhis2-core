@@ -40,6 +40,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import java.util.List;
 import java.util.function.Consumer;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,6 +49,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.MDC;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * @author Luciano Fiandesio
@@ -73,6 +79,15 @@ class RequestIdentifierFilterTest {
 
   @Test
   void testIsEnabled() throws Exception {
+
+    Authentication authentication =
+        new UsernamePasswordAuthenticationToken(
+            "admin", "admin", List.of((GrantedAuthority) () -> "ALL"));
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(authentication);
+
+    SecurityContextHolder.setContext(context);
+
     init(true);
     doFilter(
         request -> {

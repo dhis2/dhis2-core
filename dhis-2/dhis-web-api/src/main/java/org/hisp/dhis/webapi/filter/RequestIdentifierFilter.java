@@ -77,9 +77,7 @@ public class RequestIdentifierFilter extends OncePerRequestFilter {
     if (enabled) {
       try {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String current = MDC.get(SESSION_ID_KEY);
-        if (current != null
-            && authentication != null
+        if (authentication != null
             && authentication.isAuthenticated()
             && !authentication.getPrincipal().equals("anonymousUser")) {
 
