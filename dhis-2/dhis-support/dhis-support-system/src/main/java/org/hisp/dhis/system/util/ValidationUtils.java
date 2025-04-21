@@ -547,40 +547,17 @@ public class ValidationUtils {
     }
 
     // Value type grouped checks.
-    switch (valueType) {
-      case INTEGER:
-      case INTEGER_POSITIVE:
-      case INTEGER_NEGATIVE:
-      case INTEGER_ZERO_OR_POSITIVE:
-        return isInteger(trim(value));
-      case NUMBER:
-      case UNIT_INTERVAL:
-      case PERCENTAGE:
-        return isValidDouble(parseDouble(trim(value)));
-      case BOOLEAN:
-      case TRUE_ONLY:
-        return isBool(defaultIfBlank(BOOLEAN_VALUES.get(lowerCase(trim(value))), EMPTY));
-      case DATE:
-        return dateIsValid(trim(value));
-      case TIME:
-        return timeIsValid(trim(value));
-      case DATETIME:
-        return dateTimeIsValid(trim(value));
-      case LONG_TEXT:
-      case MULTI_TEXT:
-      case PHONE_NUMBER:
-      case EMAIL:
-      case TEXT:
-      case LETTER:
-      case COORDINATE:
-      case URL:
-      case FILE_RESOURCE:
-      case IMAGE:
-      case USERNAME:
-      case GEOJSON:
-      default:
-        return true;
-    }
+    return switch (valueType) {
+      case INTEGER, INTEGER_POSITIVE, INTEGER_NEGATIVE, INTEGER_ZERO_OR_POSITIVE ->
+          isInteger(trim(value));
+      case NUMBER, UNIT_INTERVAL, PERCENTAGE -> isValidDouble(parseDouble(trim(value)));
+      case BOOLEAN, TRUE_ONLY ->
+          isBool(defaultIfBlank(BOOLEAN_VALUES.get(lowerCase(trim(value))), EMPTY));
+      case DATE -> dateIsValid(trim(value));
+      case TIME -> timeIsValid(trim(value));
+      case DATETIME -> dateTimeIsValid(trim(value));
+      default -> true;
+    };
   }
 
   public static boolean isValidLetter(String value) {
