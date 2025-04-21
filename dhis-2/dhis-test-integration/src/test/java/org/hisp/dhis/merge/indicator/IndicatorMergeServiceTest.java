@@ -39,7 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.analytics.Sorting;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.configuration.Configuration;
@@ -250,7 +250,7 @@ class IndicatorMergeServiceTest extends PostgresIntegrationTestBase {
     assertEquals(1, group1.getMembers().size());
     assertEquals(
         List.of(validTarget.getUid()),
-        group1.getMembers().stream().map(BaseIdentifiableObject::getUid).toList());
+        group1.getMembers().stream().map(IdentifiableObject::getUid).toList());
 
     // data sets are updated
     DataSet dataSet1 = manager.get(DataSet.class, dataSet.getUid());

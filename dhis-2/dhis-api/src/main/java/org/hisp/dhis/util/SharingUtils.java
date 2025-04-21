@@ -36,7 +36,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.ImmutableList;
 import java.util.function.UnaryOperator;
 import org.apache.commons.collections4.MapUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -78,7 +78,7 @@ public class SharingUtils {
     return mapper;
   }
 
-  public static String sharingToString(BaseIdentifiableObject object, String currentUserName) {
+  public static String sharingToString(IdentifiableObject object, String currentUserName) {
     StringBuilder builder =
         new StringBuilder()
             .append("'")

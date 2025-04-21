@@ -52,8 +52,8 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -164,7 +164,7 @@ class ValidationResultStoreTest extends PostgresIntegrationTestBase {
 
   private CategoryOptionGroupSet optionGroupSetB;
 
-  private void setPrivateAccess(BaseIdentifiableObject object, UserGroup... userGroups) {
+  private void setPrivateAccess(IdentifiableObject object, UserGroup... userGroups) {
     object.getSharing().setOwner(userZ);
     object.getSharing().setPublicAccess(ACCESS_NONE);
     for (UserGroup group : userGroups) {

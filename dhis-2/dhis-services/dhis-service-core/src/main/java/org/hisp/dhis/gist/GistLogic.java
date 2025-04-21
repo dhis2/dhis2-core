@@ -77,8 +77,8 @@ final class GistLogic {
     return p.isCollection() ? p.getItemKlass() : p.getKlass();
   }
 
-  static boolean isNonNestedPath(String path) {
-    return path.indexOf('.') < 0;
+  static boolean isNestedPath(String path) {
+    return path.indexOf('.') >= 0;
   }
 
   static boolean isAttributePath(String path) {
@@ -94,11 +94,11 @@ final class GistLogic {
   }
 
   static String parentPath(String path) {
-    return isNonNestedPath(path) ? "" : path.substring(0, path.lastIndexOf('.'));
+    return !isNestedPath(path) ? "" : path.substring(0, path.lastIndexOf('.'));
   }
 
   static String pathOnSameParent(String path, String property) {
-    return isNonNestedPath(path) ? property : parentPath(path) + '.' + property;
+    return !isNestedPath(path) ? property : parentPath(path) + '.' + property;
   }
 
   static boolean isHrefProperty(Property p) {

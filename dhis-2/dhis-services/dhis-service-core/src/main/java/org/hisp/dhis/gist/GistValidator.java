@@ -33,7 +33,7 @@ import static java.util.Arrays.stream;
 import static org.hisp.dhis.gist.GistLogic.attributePath;
 import static org.hisp.dhis.gist.GistLogic.getBaseType;
 import static org.hisp.dhis.gist.GistLogic.isAttributeValuesAttributePropertyPath;
-import static org.hisp.dhis.gist.GistLogic.isNonNestedPath;
+import static org.hisp.dhis.gist.GistLogic.isNestedPath;
 
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -104,7 +104,7 @@ final class GistValidator {
       return;
     }
     Property field = context.resolveMandatory(path);
-    if (!isNonNestedPath(path)) {
+    if (isNestedPath(path)) {
       List<Property> pathElements = context.resolvePath(path);
       Property head = pathElements.get(0);
       if (head.isCollection() && head.isPersisted()) {
@@ -174,7 +174,7 @@ final class GistValidator {
     if (!access.canRead(query.getElementType(), path)) {
       throw createNoReadAccess(f, query.getElementType());
     }
-    if (!isNonNestedPath(path)) {
+    if (isNestedPath(path)) {
       Schema fieldOwner = context.switchedTo(path).getHome();
       @SuppressWarnings("unchecked")
       Class<? extends PrimaryKeyObject> ownerType =
