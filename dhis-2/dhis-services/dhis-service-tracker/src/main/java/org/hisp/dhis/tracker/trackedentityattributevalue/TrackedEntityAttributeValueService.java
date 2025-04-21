@@ -54,31 +54,12 @@ public interface TrackedEntityAttributeValueService {
   void deleteTrackedEntityAttributeValue(TrackedEntityAttributeValue attributeValue);
 
   /**
-   * Retrieve a {@link TrackedEntityAttributeValue} on a {@link TrackedEntity} and {@link
-   * TrackedEntityAttribute}
-   *
-   * @param attribute {@link TrackedEntityAttribute}
-   * @return TrackedEntityAttributeValue
-   */
-  TrackedEntityAttributeValue getTrackedEntityAttributeValue(
-      TrackedEntity instance, TrackedEntityAttribute attribute);
-
-  /**
    * Retrieve {@link TrackedEntityAttributeValue} of a {@link TrackedEntity}
    *
    * @param instance TrackedEntityAttributeValue
    * @return TrackedEntityAttributeValue list
    */
   List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(TrackedEntity instance);
-
-  /**
-   * Retrieve {@link TrackedEntityAttributeValue} of a {@link TrackedEntityAttribute}
-   *
-   * @param attribute {@link TrackedEntityAttribute}
-   * @return TrackedEntityAttributeValue list
-   */
-  List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
-      TrackedEntityAttribute attribute);
 
   /**
    * Retrieve a list of {@link TrackedEntityAttributeValue} that matches the values and the tea
