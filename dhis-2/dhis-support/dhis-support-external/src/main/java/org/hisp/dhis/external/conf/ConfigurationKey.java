@@ -751,7 +751,7 @@ public enum ConfigurationKey {
 
   // Enable saved requests, this will save the URL the user tries to access before they are logged
   // in, and redirect to that URL after they are logged in. Default OFF
-  LOGIN_SAVED_REQUESTS_ENABLE("login.saved.requests.enable", Constants.OFF, false);
+  LOGIN_SAVED_REQUESTS_ENABLE("login.saved.requests.enable", Constants.ON, false);
 
   private final String key;
 
