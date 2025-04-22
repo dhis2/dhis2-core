@@ -56,7 +56,7 @@ class NumericPatternSqlStatementProcessorTest {
 
   @BeforeEach
   public void setUp() {
-    subject = new NumericPatternSqlStatementProcessor();
+    subject = new InvalidNumericPatternSqlStatementProcessor();
 
     deA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
     deB = createDataElement('B', ValueType.INTEGER, AggregationType.SUM);

@@ -50,7 +50,7 @@ public class DefaultOutlierDetectionService {
 
   private final ZScoreOutlierDetectionManager zScoreOutlierDetection;
   private final MinMaxOutlierDetectionManager minMaxOutlierDetection;
-  private final NumericPatternOutlierDetectionManager numericPatternOutlierDetection;
+  private final InvalidNumericPatternOutlierDetectionManager numericPatternOutlierDetection;
 
   /**
    * Transform the incoming request into api response (json).
@@ -107,7 +107,7 @@ public class DefaultOutlierDetectionService {
     return switch (request.getAlgorithm()) {
       case Z_SCORE, MOD_Z_SCORE -> zScoreOutlierDetection.getOutlierValues(request);
       case MIN_MAX -> minMaxOutlierDetection.getOutlierValues(request);
-      case NUMERIC_PATTERN -> numericPatternOutlierDetection.getOutlierValues(request);
+      case INVALID_NUMERIC -> numericPatternOutlierDetection.getOutlierValues(request);
     };
   }
 }

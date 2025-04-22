@@ -46,8 +46,8 @@ import org.springframework.stereotype.Repository;
  * @author Jason P. Pickering
  */
 @Repository
-public class NumericPatternOutlierDetectionManager extends AbstractOutlierDetectionManager {
-  protected NumericPatternOutlierDetectionManager(
+public class InvalidNumericPatternOutlierDetectionManager extends AbstractOutlierDetectionManager {
+  protected InvalidNumericPatternOutlierDetectionManager(
       NamedParameterJdbcTemplate jdbcTemplate,
       @Qualifier("numericPatternSqlStatementProcessor")
           OutlierSqlStatementProcessor sqlStatementProcessor) {

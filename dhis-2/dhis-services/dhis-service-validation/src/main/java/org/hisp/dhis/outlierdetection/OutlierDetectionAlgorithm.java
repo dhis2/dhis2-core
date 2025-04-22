@@ -38,5 +38,5 @@ public enum OutlierDetectionAlgorithm {
   Z_SCORE,
   MIN_MAX,
   MOD_Z_SCORE,
-  NUMERIC_PATTERN;
+  INVALID_NUMERIC;
 }

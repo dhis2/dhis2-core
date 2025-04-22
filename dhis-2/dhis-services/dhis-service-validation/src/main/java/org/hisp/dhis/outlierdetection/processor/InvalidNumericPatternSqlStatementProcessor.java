@@ -45,7 +45,7 @@ import org.springframework.stereotype.Component;
  * @author Jason P. Pickering
  */
 @Component
-public class NumericPatternSqlStatementProcessor implements OutlierSqlStatementProcessor {
+public class InvalidNumericPatternSqlStatementProcessor implements OutlierSqlStatementProcessor {
   @Override
   public String getSqlStatement(OutlierDetectionRequest request) {
     if (request == null) {
