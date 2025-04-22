@@ -632,14 +632,19 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     String columnExpression = getColumnExpression(attribute.getValueType(), "value");
     String numericClause = getNumericClause("value");
+
     String query =
         """
-        \s(select l.uid from ${maplegend} l \
-        inner join trackedentityattributevalue av on l.startvalue <= ${selectClause} \
-        and l.endvalue > ${selectClause} \
-        and l.maplegendsetid=${legendSetId} \
-        and av.trackedentityid=en.trackedentityid \
-        and av.trackedentityattributeid=${attributeId} ${numericClause}) as ${column}""";
+            \s(select l.uid \
+              FROM   ${maplegend} l \
+              JOIN   trackedentityattributevalue av \
+                     ON av.trackedentityattributeid=${attributeId} \
+                    ${numericClause} \
+                    AND l.maplegendsetid=${legendSetId} \
+                    AND l.startvalue <= CAST(av.value AS BIGINT) \
+                    AND l.endvalue   > CAST(av.value AS BIGINT) \
+              WHERE  av.trackedentityid = en.trackedentityid \
+              LIMIT  1) AS ${column}""";
 
     return attribute.getLegendSets().stream()
         .map(
