@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.test.config;
 
+import javax.annotation.Nullable;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,8 +41,10 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class PostgresTestConfig {
+
   @Bean
-  public DhisConfigurationProvider dhisConfigurationProvider() {
-    return new PostgresDhisConfigurationProvider();
+  public DhisConfigurationProvider dhisConfigurationProvider(
+      @Nullable PostgresTestConfigOverride overrides) {
+    return new PostgresDhisConfigurationProvider(overrides);
   }
 }

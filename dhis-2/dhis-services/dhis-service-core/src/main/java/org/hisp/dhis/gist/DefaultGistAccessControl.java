@@ -161,8 +161,8 @@ public class DefaultGistAccessControl implements GistAccessControl {
   }
 
   @Override
-  public String createAccessFilterHQL(String tableName) {
+  public String createAccessFilterHQL(String alias) {
     return JpaQueryUtils.generateHqlQueryForSharingCheck(
-        tableName, currentUser, AclService.LIKE_READ_METADATA);
+        alias, currentUser, AclService.LIKE_READ_METADATA);
   }
 }

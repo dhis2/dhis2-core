@@ -32,8 +32,8 @@ package org.hisp.dhis.webapi.dimension.mappers;
 import java.util.Set;
 import lombok.Getter;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -46,7 +46,7 @@ import org.springframework.stereotype.Service;
 public class BaseDimensionalItemObjectMapper extends BaseDimensionMapper {
 
   @Getter
-  private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses =
+  private final Set<Class<? extends IdentifiableObject>> supportedClasses =
       Set.of(ProgramIndicator.class, TrackedEntityAttribute.class);
 
   /**

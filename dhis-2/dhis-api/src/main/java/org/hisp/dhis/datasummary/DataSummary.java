@@ -60,5 +60,7 @@ public class DataSummary {
 
   @JsonProperty private Map<Integer, Long> eventCount = new HashMap<>();
 
+  @JsonProperty private Map<Integer, Long> enrollmentCount = new HashMap<>();
+
   @JsonProperty private Dhis2Info system;
 }

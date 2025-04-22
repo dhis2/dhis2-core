@@ -304,6 +304,10 @@ public non-sealed interface SystemSettings extends Settings {
     return asInt("keyAnalyticsMaxLimit", 100000);
   }
 
+  default int getDataQualityMaxLimit() {
+    return asInt("keyDataQualityMaxLimit", 500);
+  }
+
   default boolean getIncludeZeroValuesInAnalytics() {
     return asBoolean("keyIncludeZeroValuesInAnalytics", false);
   }

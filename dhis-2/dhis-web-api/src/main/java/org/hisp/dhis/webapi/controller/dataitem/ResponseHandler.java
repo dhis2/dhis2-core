@@ -44,7 +44,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dataitem.query.QueryExecutor;
@@ -128,7 +128,7 @@ class ResponseHandler {
    */
   void addPaginationToNode(
       RootNode rootNode,
-      Set<Class<? extends BaseIdentifiableObject>> targetEntities,
+      Set<Class<? extends IdentifiableObject>> targetEntities,
       User currentUser,
       WebOptions options,
       Set<String> filters) {
@@ -156,7 +156,7 @@ class ResponseHandler {
   }
 
   private long countEntityRowsTotal(
-      Set<Class<? extends BaseIdentifiableObject>> targetEntities,
+      Set<Class<? extends IdentifiableObject>> targetEntities,
       WebOptions options,
       MapSqlParameterSource paramsMap) {
     // Calculate pagination.
@@ -170,7 +170,7 @@ class ResponseHandler {
 
   private String createPageCountingCacheKey(
       User currentUser,
-      Set<Class<? extends BaseIdentifiableObject>> targetEntities,
+      Set<Class<? extends IdentifiableObject>> targetEntities,
       Set<String> filters,
       WebOptions options) {
     return currentUser.getUsername()

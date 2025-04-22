@@ -45,7 +45,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -232,7 +231,7 @@ public class SharingController {
       return conflict("Type " + type + " is not supported.");
     }
 
-    BaseIdentifiableObject object = (BaseIdentifiableObject) manager.getNoAcl(sharingClass, id);
+    IdentifiableObject object = manager.getNoAcl(sharingClass, id);
 
     if (object == null) {
       return notFound("Object of type " + type + " with ID " + id + " was not found.");

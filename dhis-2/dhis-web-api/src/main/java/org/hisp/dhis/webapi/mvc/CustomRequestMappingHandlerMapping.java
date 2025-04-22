@@ -30,12 +30,7 @@
 package org.hisp.dhis.webapi.mvc;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.core.annotation.AnnotationUtils;
+import java.util.List;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.condition.PatternsRequestCondition;
 import org.springframework.web.servlet.mvc.condition.RequestMethodsRequestCondition;
@@ -43,18 +38,17 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 /**
- * This class is a custom implementation of the RequestMappingHandlerMapping class. It is used to
- * handle the versioning of the API endpoints. The class overrides the getMappingForMethod method to
- * add the versioning to the API endpoints.
- *
- * <p>During startup of the application, the Spring framework will create a
- * RequestMappingHandlerMapping bean. This bean is responsible for mapping the request to the
- * appropriate controller method. By creating a custom implementation of the
- * RequestMappingHandlerMapping class, we can add the versioning to the API endpoints.
- *
- * <p>
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * This class used to create ~50k API mappings for all versions of the App for each controller
+ * method e.g. <br>
+ * <code>/api/39/icons</code> <br>
+ * <code>/api/39/icons/{key}</code> <br>
+ * <code>/api/40/icons</code> <br>
+ * <code>/api/40/icons/{key}</code> <br>
+ * <br>
+ * It now provides a mapping for any endpoint starting with `/api/`, allowing any version from 28 to
+ * 43. It also still allows the endpoint without any version e.g. <br>
+ * <code>/api/icons/{key}</code> <br>
+ * which is what we want clients to use exclusively in the future.
  */
 public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMapping {
   @Override
@@ -65,12 +59,14 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
       return null;
     }
 
-    ApiVersion typeApiVersion = AnnotationUtils.findAnnotation(handlerType, ApiVersion.class);
-    ApiVersion methodApiVersion = AnnotationUtils.findAnnotation(method, ApiVersion.class);
-
-    if (typeApiVersion == null && methodApiVersion == null) {
-      return info;
-    }
+    // allow API calls with versions 28-43 in the path e.g. `/api/42/icons`
+    List<String> versionedApiEndpoints =
+        new java.util.ArrayList<>(
+            info.getPatternValues().stream()
+                .map(pv -> pv.replace("/api/", "/api/{apiVersion:^[2][8-9]|^[3][0-9]|^[4][0-3]$}/"))
+                .toList());
+    // allow original API path with no version in it e.g. `/api/icons
+    versionedApiEndpoints.addAll(info.getPatternValues());
 
     RequestMethodsRequestCondition methodsCondition = info.getMethodsCondition();
 
@@ -78,21 +74,9 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
       methodsCondition = new RequestMethodsRequestCondition(RequestMethod.GET);
     }
 
-    Set<String> rqmPatterns = info.getPatternsCondition().getPatterns();
-    Set<String> allPaths = new HashSet<>();
-
-    Set<DhisApiVersion> versions = getVersions(typeApiVersion, methodApiVersion);
-
-    for (String path : rqmPatterns) {
-      versions.stream()
-          .filter(version -> !version.isIgnore())
-          .forEach(version -> addVersionedPath(version, path, allPaths));
-    }
-
     PatternsRequestCondition patternsRequestCondition =
         new PatternsRequestCondition(
-            allPaths.toArray(new String[] {}), null, null, true, true, null);
-
+            versionedApiEndpoints.toArray(new String[] {}), null, null, true, true, null);
     return new RequestMappingInfo(
         null,
         patternsRequestCondition,
@@ -102,55 +86,5 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
         info.getConsumesCondition(),
         info.getProducesCondition(),
         info.getCustomCondition());
-  }
-
-  private static void addVersionedPath(DhisApiVersion version, String path, Set<String> allPaths) {
-    // Normalize path to start with "/api/"
-    String normalizedPath = path.startsWith("/api/") ? path : path.replaceFirst("^api/", "/api/");
-
-    // Skip path that don't start with "/api/"
-    if (!normalizedPath.startsWith("/api/")) {
-      return;
-    }
-
-    // Check if the path corresponds directly to a versioned API endpoint
-    if (normalizedPath.startsWith("/api/" + version.getVersionString())) {
-      allPaths.add(normalizedPath);
-      return;
-    }
-
-    // Remove the leading "/api/" for further processing
-    String pathWithoutApi = normalizedPath.substring(5); // Skip "/api/"
-
-    // Add the versioned API path
-    allPaths.add("/api/" + version.getVersionString() + "/" + pathWithoutApi);
-  }
-
-  private Set<DhisApiVersion> getVersions(ApiVersion typeApiVersion, ApiVersion methodApiVersion) {
-    Set<DhisApiVersion> includes = new HashSet<>();
-    Set<DhisApiVersion> excludes = new HashSet<>();
-
-    if (typeApiVersion != null) {
-      includes.addAll(Arrays.asList(typeApiVersion.include()));
-      excludes.addAll(Arrays.asList(typeApiVersion.exclude()));
-    }
-
-    if (methodApiVersion != null) {
-      includes.addAll(Arrays.asList(methodApiVersion.include()));
-      excludes.addAll(Arrays.asList(methodApiVersion.exclude()));
-    }
-
-    if (includes.contains(DhisApiVersion.ALL)) {
-      boolean includeDefault = includes.contains(DhisApiVersion.DEFAULT);
-      includes = new HashSet<>(Arrays.asList(DhisApiVersion.values()));
-
-      if (!includeDefault) {
-        includes.remove(DhisApiVersion.DEFAULT);
-      }
-    }
-
-    includes.removeAll(excludes);
-
-    return includes;
   }
 }

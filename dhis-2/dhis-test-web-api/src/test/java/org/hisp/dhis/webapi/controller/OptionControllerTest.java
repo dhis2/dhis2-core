@@ -34,9 +34,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
+import org.hisp.dhis.test.webapi.json.domain.JsonOption;
 import org.hisp.dhis.test.webapi.json.domain.JsonOptionSet;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
@@ -141,5 +143,12 @@ class OptionControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(
         List.of("this-is-a", "this-is-b"),
         set.getOptions().toList(JsonIdentifiableObject::getDescription));
+
+    JsonList<JsonOption> options =
+        GET("/options/gist?headless=true&filter=optionSet.id:eq:{id}", id)
+            .content()
+            .asList(JsonOption.class);
+    assertEquals(2, options.size());
+    assertEquals(List.of("Anna", "Betta"), options.toList(JsonIdentifiableObject::getName));
   }
 }

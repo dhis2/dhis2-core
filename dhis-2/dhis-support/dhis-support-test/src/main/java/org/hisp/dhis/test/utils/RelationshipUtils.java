@@ -31,7 +31,6 @@ package org.hisp.dhis.test.utils;
 
 import java.util.Objects;
 import org.apache.commons.lang3.ObjectUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.relationship.Relationship;
@@ -96,7 +95,7 @@ public class RelationshipUtils {
     throw new IllegalStateException("Unable to determine uid for relationship item");
   }
 
-  private static UID getUidOrNull(BaseIdentifiableObject baseIdentifiableObject) {
+  private static UID getUidOrNull(IdentifiableObject baseIdentifiableObject) {
     return Objects.isNull(baseIdentifiableObject) ? null : UID.of(baseIdentifiableObject);
   }
 
