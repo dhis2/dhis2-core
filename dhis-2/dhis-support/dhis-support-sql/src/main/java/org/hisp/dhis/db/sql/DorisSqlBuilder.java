@@ -185,7 +185,7 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public boolean supportsCorrelatedSubquery() {
-    return true;
+    return false;
   }
 
   @Override
