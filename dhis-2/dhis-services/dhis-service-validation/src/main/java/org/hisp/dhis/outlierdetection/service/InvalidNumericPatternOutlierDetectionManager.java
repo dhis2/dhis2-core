@@ -49,7 +49,7 @@ import org.springframework.stereotype.Repository;
 public class InvalidNumericPatternOutlierDetectionManager extends AbstractOutlierDetectionManager {
   protected InvalidNumericPatternOutlierDetectionManager(
       NamedParameterJdbcTemplate jdbcTemplate,
-      @Qualifier("numericPatternSqlStatementProcessor")
+      @Qualifier("invalidNumericPatternSqlStatementProcessor")
           OutlierSqlStatementProcessor sqlStatementProcessor) {
     super(jdbcTemplate, sqlStatementProcessor);
   }

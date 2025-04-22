@@ -80,9 +80,10 @@ public class InvalidNumericPatternSqlStatementProcessor implements OutlierSqlSta
         + "and "
         + ouPathClause
         + " and dv.deleted is false"
-        + " and trim(dv.value) !~ '"
+        + " and (trim(dv.value) !~ '"
         + OutlierDetectionUtils.PG_DOUBLE_REGEX
         + "'"
+        + " or length(split_part(trim(dv.value), '.', 1)) > 307)"
         + " limit :"
         + MAX_RESULTS.getKey()
         + ";";

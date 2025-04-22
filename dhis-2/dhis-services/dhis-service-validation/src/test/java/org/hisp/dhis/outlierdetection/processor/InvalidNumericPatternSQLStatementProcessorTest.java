@@ -99,7 +99,7 @@ class NumericPatternSqlStatementProcessorTest {
       and pe.enddate <= :end_date
       and (ou."path" like '/ouabcdefghA%' or ou."path" like '/ouabcdefghB%')
       and dv.deleted is false
-      and trim(dv.value) !~ '^-?[0-9]+(\\.[0-9]+)?$'
+      and (trim(dv.value) !~ '^-?[0-9]+(\\.[0-9]+)?$' or length(split_part(trim(dv.value), '.', 1)) > 307)
       limit :max_results;
       """;
 
