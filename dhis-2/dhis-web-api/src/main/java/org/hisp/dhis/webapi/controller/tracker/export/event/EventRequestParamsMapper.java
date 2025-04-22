@@ -48,11 +48,14 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.export.event.EventFields;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
 import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.springframework.stereotype.Component;
@@ -66,7 +69,7 @@ import org.springframework.stereotype.Component;
 class EventRequestParamsMapper {
   private static final Set<String> ORDERABLE_FIELD_NAMES = EventMapper.ORDERABLE_FIELDS.keySet();
 
-  private final EventFieldsParamMapper eventsMapper;
+  private final FieldFilterService fieldFilterService;
 
   public EventOperationParams map(
       EventRequestParams eventRequestParams, TrackerIdSchemeParams idSchemeParams)
@@ -137,7 +140,11 @@ class EventRequestParamsMapper {
             .events(eventRequestParams.getEvents())
             .enrollments(eventRequestParams.getEnrollments())
             .includeDeleted(eventRequestParams.isIncludeDeleted())
-            .eventParams(eventsMapper.map(eventRequestParams.getFields()))
+            .fields(
+                EventFields.of(
+                    f ->
+                        fieldFilterService.filterIncludes(
+                            Event.class, eventRequestParams.getFields(), f)))
             .idSchemeParams(idSchemeParams);
 
     mapOrderParam(builder, eventRequestParams.getOrder());

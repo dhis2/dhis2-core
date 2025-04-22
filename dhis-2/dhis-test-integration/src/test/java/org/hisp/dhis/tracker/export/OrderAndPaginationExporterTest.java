@@ -67,7 +67,6 @@ import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
-import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
@@ -132,8 +131,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
     // expect to be run by the importUser
     injectSecurityContextUser(importUser);
 
-    eventParamsBuilder = EventOperationParams.builder().eventParams(EventParams.FALSE);
-    eventParamsBuilder.orgUnitMode(SELECTED);
+    eventParamsBuilder = EventOperationParams.builder().orgUnitMode(SELECTED);
   }
 
   @Test
