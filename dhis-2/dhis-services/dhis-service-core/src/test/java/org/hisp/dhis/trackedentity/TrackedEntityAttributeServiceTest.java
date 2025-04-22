@@ -91,8 +91,6 @@ class TrackedEntityAttributeServiceTest {
     trackedEntityAttributeService =
         new DefaultTrackedEntityAttributeService(
             attributeStore,
-            programService,
-            trackedEntityTypeService,
             fileResourceService,
             userService,
             aclService,
