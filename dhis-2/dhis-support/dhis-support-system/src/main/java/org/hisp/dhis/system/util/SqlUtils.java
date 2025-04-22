@@ -45,9 +45,15 @@ public class SqlUtils {
 
   public static final String SINGLE_QUOTE = "'";
 
+  public static final String PERCENT = "%";
+
+  public static final String UNDERSCORE = "_";
+
   public static final String SEPARATOR = ".";
 
   public static final String OPTION_SEP = ".";
+
+  private static final String BACKSLASH = "\\";
 
   /**
    * Quotes the given relation (typically a column). Quotes part of the given relation are encoded
@@ -84,10 +90,38 @@ public class SqlUtils {
    * @param relation the relation (typically a column).
    * @return the single-quoted relation.
    */
-  public static String singleQuote(String relation) {
+  public static String singleQuoteAndEscape(String relation) {
     String rel = relation.replaceAll(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE));
+    return singleQuote(rel);
+  }
 
-    return SINGLE_QUOTE + rel + SINGLE_QUOTE;
+  /** Single quotes the given value. */
+  public static String singleQuote(String value) {
+    return SINGLE_QUOTE + value + SINGLE_QUOTE;
+  }
+
+  /**
+   * Only escapes single quotes in given value. This is needed for SQL text literals containing
+   * single-quotes as text literals use single-quotes as the literal delimiter.
+   */
+  public static String escapeSingleQuotes(String value) {
+    return value.replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE));
+  }
+
+  /**
+   * Escapes {@code like} wildcards '%' and '_' and the default escape character '\' in a given
+   * string using the default escape character. This expects you to use the default escape
+   * character. Make sure to call this before inserting any like wildcard characters!
+   *
+   * <p>See <a
+   * href="https://www.postgresql.org/docs/current/functions-matching.html#FUNCTIONS-LIKE">PostgreSQL
+   * like</a>
+   */
+  public static String escapeLikeWildcards(String value) {
+    return value
+        .replace(BACKSLASH, (BACKSLASH + BACKSLASH))
+        .replace(PERCENT, (BACKSLASH + PERCENT))
+        .replace(UNDERSCORE, (BACKSLASH + UNDERSCORE));
   }
 
   /**

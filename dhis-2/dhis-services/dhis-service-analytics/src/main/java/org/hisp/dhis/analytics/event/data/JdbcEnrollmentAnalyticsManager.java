@@ -689,13 +689,16 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       sb.append(" and executiondate >= ");
 
       sb.append(
-          String.format("%s ", SqlUtils.singleQuote(DateUtils.getMediumDateString(startDate))));
+          String.format(
+              "%s ", SqlUtils.singleQuoteAndEscape(DateUtils.getMediumDateString(startDate))));
     }
 
     if (endDate != null) {
       sb.append(" and executiondate <= ");
 
-      sb.append(String.format("%s ", SqlUtils.singleQuote(DateUtils.getMediumDateString(endDate))));
+      sb.append(
+          String.format(
+              "%s ", SqlUtils.singleQuoteAndEscape(DateUtils.getMediumDateString(endDate))));
     }
 
     return sb.toString();
