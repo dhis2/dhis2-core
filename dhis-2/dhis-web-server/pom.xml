@@ -170,7 +170,6 @@
         </plugin>
       </plugins>
     </pluginManagement>
-    <!-- nodejs is expected to be present to clone bundled apps -->
     <plugins>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -186,6 +185,10 @@
               <mainClass>org.hisp.dhis.web.appbundler.AppBundler</mainClass>
               <systemProperties>
                 <property>
+                  <key>DOWNLOAD_DIR</key>
+                  <value>${project.basedir}/bundled_apps</value>
+                </property>
+                <property>
                   <key>BUILD_DIR</key>
                   <value>${project.build.directory}/classes/static</value>
                 </property>
@@ -194,8 +197,8 @@
                   <value>dhis-web-apps</value>
                 </property>
                 <property>
-                  <key>APPS</key>
-                  <value>./bundled-apps.json</value>
+                  <key>APP_LIST</key>
+                  <value>${project.basedir}/bundled-apps.json</value>
                 </property>
                 <property>
                   <key>DEFAULT_BRANCH</key>

@@ -40,21 +40,23 @@ public class AppBundler {
   private static final String BUNDLE_INFO_FILE = "apps-bundle.json";
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
-  private final String buildDir;
+  private final String downloadDir;
   private final String artifactId;
   private final String appListPath;
   private final String defaultBranch;
   private final AppBundleInfo bundleInfo;
+  private final String buildDir;
 
   /**
    * Constructs an AppBundler with the specified parameters.
    *
-   * @param buildDir the directory where the app ZIP files will be stored
+   * @param downloadDir the directory where the app ZIP files will be stored
    * @param artifactId the artifact ID for the bundle
    * @param appListPath the path to the JSON file containing the list of apps to bundle
    * @param defaultBranch the default branch to use if none is specified in the app URL
    */
-  public AppBundler(String buildDir, String artifactId, String appListPath, String defaultBranch) {
+  public AppBundler(String downloadDir, String buildDir, String artifactId, String appListPath, String defaultBranch) {
+    this.downloadDir = downloadDir;
     this.buildDir = buildDir;
     this.artifactId = artifactId;
     this.appListPath = appListPath;
@@ -69,20 +71,21 @@ public class AppBundler {
    */
   public void execute() throws IOException {
     logger.error("Starting app bundling process");
+    logger.error("Download directory: {}", downloadDir);
     logger.error("Build directory: {}", buildDir);
     logger.error("Artifact ID: {}", artifactId);
     logger.error("App list path: {}", appListPath);
     logger.error("Default branch: {}", defaultBranch);
 
-    // Create build directory if it doesn't exist
-    Path buildDirPath = Paths.get(buildDir);
-    Files.createDirectories(buildDirPath);
+    // Create download directory if it doesn't exist
+    Path downloadDirPath = Paths.get(downloadDir);
+    Files.createDirectories(downloadDirPath);
 
-    // Create artifact directory
-    Path artifactDir = buildDirPath.resolve(artifactId);
+    // Create download artifact directory
+    Path artifactDir = downloadDirPath.resolve(artifactId);
     Files.createDirectories(artifactDir);
 
-    // Create checksums directory
+    // Create download checksums directory
     Path checksumDir = artifactDir.resolve(CHECKSUM_DIR);
     Files.createDirectories(checksumDir);
 
@@ -99,8 +102,37 @@ public class AppBundler {
       }
     }
 
+    // --- Start Copying downloaded apps to build directory ---
+    Path targetArtifactDir = Paths.get(buildDir).resolve(artifactId);
+    try {
+      Files.createDirectories(targetArtifactDir);
+      logger.error("Ensured target artifact directory exists: {}", targetArtifactDir);
+
+      for (AppBundleInfo.AppInfo app : bundleInfo.getApps()) {
+        Path sourceZipPath = downloadDirPath.resolve(artifactId).resolve(app.getName() + ".zip");
+        Path destZipPath = targetArtifactDir.resolve(app.getName() + ".zip");
+
+        if (Files.exists(sourceZipPath)) {
+          Files.copy(
+              sourceZipPath, destZipPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+          logger.error("Copied {} to {}", sourceZipPath, destZipPath);
+        } else {
+          logger.warn(
+              "Source zip file not found, skipping copy for app {}: {}",
+              app.getName(),
+              sourceZipPath);
+        }
+      }
+      logger.error("Finished copying app bundles to build directory.");
+
+    } catch (IOException e) {
+      logger.error("Error copying app bundles to build directory: {}", e.getMessage(), e);
+      throw new IOException("Failed to copy app bundles to build directory", e);
+    }
+    // --- End Copying ---
+
     // Write bundle info file
-    Path bundleInfoPath = artifactDir.resolve(BUNDLE_INFO_FILE);
+    Path bundleInfoPath = targetArtifactDir.resolve(BUNDLE_INFO_FILE);
     objectMapper.writerWithDefaultPrettyPrinter().writeValue(bundleInfoPath.toFile(), bundleInfo);
     logger.error("Wrote bundle info to {}", bundleInfoPath);
     logger.error("App bundling process completed successfully");
@@ -139,9 +171,6 @@ public class AppBundler {
 
     logger.error("Processing app: {}/{} (branch: {})", owner, repo, branch);
 
-    // Construct the ZIP download URL
-    String zipUrl = appUrl;
-
     // Generate a filename for the ZIP file
     String zipName = repo + ".zip";
     Path zipPath = targetDir.resolve(zipName);
@@ -153,7 +182,7 @@ public class AppBundler {
     appInfo.setBranch(branch);
 
     // Check if we already have the latest version
-    String etag = downloadIfChanged(zipUrl, zipPath, checksumDir.resolve(repo + ".checksum"));
+    String etag = downloadIfChanged(appUrl, zipPath, checksumDir.resolve(repo + ".checksum"));
     if (etag == null) {
       appInfo.setEtag(Files.readString(checksumDir.resolve(repo + ".checksum")));
     } else {
@@ -184,17 +213,17 @@ public class AppBundler {
     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
     TrustManager[] trustAllCerts =
         new TrustManager[] {
-          new X509TrustManager() {
-            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-              return null;
+            new X509TrustManager() {
+              public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                return null;
+              }
+
+              public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+
+              public void checkServerTrusted(X509Certificate[] certs, String authType) {}
             }
-
-            public void checkClientTrusted(X509Certificate[] certs, String authType) {}
-
-            public void checkServerTrusted(X509Certificate[] certs, String authType) {}
-          }
         };
-    SSLContext sc = null;
+    SSLContext sc;
     try {
       sc = SSLContext.getInstance("TLS");
       sc.init(null, trustAllCerts, new java.security.SecureRandom());
@@ -268,21 +297,23 @@ public class AppBundler {
   public static void main(String[] args) {
     try {
       // Read properties using System.getProperty
+      String downloadDir = System.getProperty("DOWNLOAD_DIR");
       String buildDir = System.getProperty("BUILD_DIR");
       String artifactId = System.getProperty("ARTIFACT_ID");
-      String appListPath = System.getProperty("APPS");
+      String appListPath = System.getProperty("APP_LIST");
       String defaultBranch = System.getProperty("DEFAULT_BRANCH");
       // log all the properties
+      logger.error("DOWNLOAD_DIR: {}", downloadDir);
       logger.error("BUILD_DIR: {}", buildDir);
       logger.error("ARTIFACT_ID: {}", artifactId);
-      logger.error("APPS: {}", appListPath);
+      logger.error("APP_LIST: {}", appListPath);
       logger.error("DEFAULT_BRANCH: {}", defaultBranch);
-      if (buildDir == null || artifactId == null || appListPath == null) {
-        logger.error("System properties BUILD_DIR, ARTIFACT_ID, and APPS must be set");
+      if (downloadDir == null || buildDir == null || artifactId == null || appListPath == null) {
+        logger.error("System properties DOWNLOAD_DIR, BUILD_DIR, ARTIFACT_ID, and APPS must be set");
         System.exit(1);
       }
 
-      AppBundler bundler = new AppBundler(buildDir, artifactId, appListPath, defaultBranch);
+      AppBundler bundler = new AppBundler(downloadDir, buildDir, artifactId, appListPath, defaultBranch);
       bundler.execute();
     } catch (Exception e) {
       logger.error("Error executing app bundler: {}", e.getMessage(), e);

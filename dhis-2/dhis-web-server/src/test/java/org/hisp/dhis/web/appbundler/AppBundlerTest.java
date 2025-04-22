@@ -19,6 +19,7 @@ class AppBundlerTest {
 
   private File appListFile;
   private String buildDir;
+  private String downloadDir;
   private String artifactId;
 
   @BeforeEach
@@ -34,6 +35,7 @@ class AppBundlerTest {
 
     // Set up build directory
     buildDir = tempDir.resolve("build").toString();
+    downloadDir = tempDir.resolve("download").toString();
     artifactId = "dhis-web-apps";
   }
 
@@ -41,25 +43,33 @@ class AppBundlerTest {
   void testAppBundlerCreatesCorrectStructure() throws IOException {
     // Execute the app bundler
     AppBundler bundler =
-        new AppBundler(buildDir, artifactId, appListFile.getAbsolutePath(), "master");
+        new AppBundler(downloadDir, buildDir, artifactId, appListFile.getAbsolutePath(), "master");
     bundler.execute();
 
     // Verify the directory structure
-    Path artifactDir = Path.of(buildDir).resolve(artifactId);
-    assertTrue(Files.exists(artifactDir), "Artifact directory should exist");
+    Path buildDirPath = Path.of(buildDir).resolve(artifactId);
+    assertTrue(Files.exists(buildDirPath), "Build directory should exist");
 
-    Path checksumDir = artifactDir.resolve("checksums");
+    Path downloadArtifactDir = Path.of(downloadDir).resolve(artifactId);
+    assertTrue(Files.exists(downloadArtifactDir), "Artifact download directory should exist");
+
+    Path checksumDir = downloadArtifactDir.resolve("checksums");
     assertTrue(Files.exists(checksumDir), "Checksums directory should exist");
 
-    Path bundleInfoFile = artifactDir.resolve("apps-bundle.json");
-    assertTrue(Files.exists(bundleInfoFile), "Bundle info file should exist");
-
     // Settings app should be downloaded
-    Path settingsAppZip = artifactDir.resolve("settings-app.zip");
+    Path settingsAppZip = downloadArtifactDir.resolve("settings-app.zip");
     assertTrue(Files.exists(settingsAppZip), "Settings app ZIP should exist");
 
     // Dashboard app should be downloaded
-    Path dashboardAppZip = artifactDir.resolve("dashboard-app.zip");
+    Path dashboardAppZip = downloadArtifactDir.resolve("dashboard-app.zip");
     assertTrue(Files.exists(dashboardAppZip), "Dashboard app ZIP should exist");
+
+    // Check apps are copied to the build dir.
+    Path dashboardAppZipInBuild = buildDirPath.resolve("dashboard-app.zip");
+    assertTrue(Files.exists(dashboardAppZipInBuild), "Copied dashboard app ZIP should exist");
+
+    // Check bundle file is made
+    Path bundleInfoFile = buildDirPath.resolve("apps-bundle.json");
+    assertTrue(Files.exists(bundleInfoFile), "Bundle info file should exist");
   }
 }
