@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.Assertions.assertHasTimeStamp;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
@@ -145,7 +146,6 @@ class EventExporterTest extends TrackerTest {
             fromJson("tracker/event_and_enrollment.json", importUser.getUid())));
     orgUnit = get(OrganisationUnit.class, "h4w96yEMlzO");
     programStage = get(ProgramStage.class, "NpsdDv6kKSO");
-    ProgramStage programStage1 = get(ProgramStage.class, "qLZC0lvvxQH");
     program = programStage.getProgram();
     trackedEntityInstance = get(TrackedEntityInstance.class, "dUE514NMOlo");
 
@@ -988,6 +988,37 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
+  void testEnrollmentFilterTextAttributesUsingIn() {
+    EventQueryParams params = new EventQueryParams();
+    params.setOrgUnitSelectionMode(SELECTED);
+    params.setOrgUnit(orgUnit);
+    params.addFilterAttributes(
+        List.of(queryItem("toUpdate000", QueryOperator.IN, "Rainy day;summer Day")));
+
+    List<String> trackedEntities =
+        eventService.getEvents(params).getEvents().stream()
+            .map(Event::getTrackedEntityInstance)
+            .collect(Collectors.toList());
+
+    assertContainsOnly(Set.of("dUE514NMOlo", "QS6w44flWAf"), trackedEntities);
+  }
+
+  @Test
+  void testEnrollmentFilterNumericAttributesUsingIn() {
+    EventQueryParams params = new EventQueryParams();
+    params.setOrgUnitSelectionMode(SELECTED);
+    params.setOrgUnit(orgUnit);
+    params.addFilterAttributes(List.of(queryItem("numericAttr", QueryOperator.IN, "70;88")));
+
+    List<String> trackedEntities =
+        eventService.getEvents(params).getEvents().stream()
+            .map(Event::getTrackedEntityInstance)
+            .collect(Collectors.toList());
+
+    assertContainsOnly(Set.of("dUE514NMOlo", "QS6w44flWAf"), trackedEntities);
+  }
+
+  @Test
   void testEnrollmentFilterAttributes() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(SELECTED);
@@ -1004,6 +1035,51 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldExportEventsWhenFilteringByTextAttributesUsingSW() {
+    EventQueryParams params = new EventQueryParams();
+    params.setOrgUnitSelectionMode(ACCESSIBLE);
+    params.addFilterAttributes(
+        List.of(queryItem("notUpdated0", QueryOperator.SW, "20% \\Winter'")));
+
+    List<String> events =
+        eventService.getEvents(params).getEvents().stream()
+            .map(Event::getUid)
+            .collect(Collectors.toList());
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldExportEventsWhenFilteringByTextAttributesUsingEW() {
+    EventQueryParams params = new EventQueryParams();
+    params.setOrgUnitSelectionMode(ACCESSIBLE);
+    params.addFilterAttributes(
+        List.of(queryItem("notUpdated0", QueryOperator.EW, "% \\Winter's day")));
+
+    List<String> events =
+        eventService.getEvents(params).getEvents().stream()
+            .map(Event::getUid)
+            .collect(Collectors.toList());
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldExportEventsWhenFilteringByTextAttributesUsingLike() {
+    EventQueryParams params = new EventQueryParams();
+    params.setOrgUnitSelectionMode(ACCESSIBLE);
+    params.addFilterAttributes(
+        List.of(queryItem("notUpdated0", QueryOperator.LIKE, "0% \\Winter's")));
+
+    List<String> events =
+        eventService.getEvents(params).getEvents().stream()
+            .map(Event::getUid)
+            .collect(Collectors.toList());
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
   void testEnrollmentFilterAttributesWithMultipleFiltersOnDifferentAttributes() {
     EventQueryParams params = new EventQueryParams();
     params.setOrgUnitSelectionMode(SELECTED);
@@ -1012,7 +1088,7 @@ class EventExporterTest extends TrackerTest {
     params.addFilterAttributes(
         List.of(
             queryItem("toUpdate000", QueryOperator.EQ, "rainy day"),
-            queryItem("notUpdated0", QueryOperator.EQ, "winter day")));
+            queryItem("notUpdated0", QueryOperator.EQ, "20% \\winter's day")));
 
     List<String> trackedEntities =
         eventService.getEvents(params).getEvents().stream()
