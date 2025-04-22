@@ -18,7 +18,7 @@
 
         <property name="description" type="text"/>
 
-        <property name="rawRelativePeriods" column="relativeperiods" type="jbList"/>
+        <property name="rawPeriods" column="relativeperiods" type="jbList"/>
 
         <list name="organisationUnits" table="eventvisualization_organisationunits">
             <cache usage="read-write"/>
