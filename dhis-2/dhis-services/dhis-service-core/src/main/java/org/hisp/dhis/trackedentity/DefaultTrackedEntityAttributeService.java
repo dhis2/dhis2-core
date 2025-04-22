@@ -34,7 +34,6 @@ import static java.util.stream.Collectors.toList;
 import com.google.common.collect.ImmutableSet;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnull;
@@ -46,7 +45,6 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.MathUtils;
@@ -74,10 +72,6 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
   // -------------------------------------------------------------------------
 
   private final TrackedEntityAttributeStore attributeStore;
-
-  private final ProgramService programService;
-
-  private final TrackedEntityTypeService trackedEntityTypeService;
 
   private final FileResourceService fileResourceService;
 
@@ -312,8 +306,8 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
 
   @Override
   @Transactional(readOnly = true)
-  public Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram() {
-    return this.trackedEntityAttributeStore.getTrackedEntityAttributesByProgram();
+  public Set<String> getTrackedEntityAttributesInProgram(@Nonnull Program program) {
+    return this.trackedEntityAttributeStore.getTrackedEntityAttributesInProgram(program);
   }
 
   private String validateImage(String uid) {
