@@ -252,7 +252,7 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
         TrackedEntityOperationParams.builder()
             .organisationUnits(orgUnit)
             .orgUnitMode(SELECTED)
-            .filterBy(UID.of(attr), List.of(new QueryFilter(QueryOperator.LIKE, "0% Winter's")))
+            .filterBy(UID.of(attr), List.of(new QueryFilter(QueryOperator.LIKE, "0% \\Winter's")))
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -575,7 +575,7 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
         operationParamsBuilder
             .orgUnitMode(ACCESSIBLE)
             .filterByAttribute(
-                UID.of(attr), List.of(new QueryFilter(QueryOperator.LIKE, "0% Winter's")))
+                UID.of(attr), List.of(new QueryFilter(QueryOperator.LIKE, "0% \\Winter's")))
             .build();
 
     List<String> events = getEvents(params);

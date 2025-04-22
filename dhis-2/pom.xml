@@ -115,7 +115,7 @@
     <lettuce.version>6.5.5.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>11.7.1</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>11.7.2</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <ehcache3.version>3.10.8</ehcache3.version>
     <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
@@ -127,7 +127,7 @@
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.10.1</datasource-proxy.version>
     <mysql-connector-j.version>9.2.0</mysql-connector-j.version>
-    <clickhouse-jdbc.version>0.8.3</clickhouse-jdbc.version>
+    <clickhouse-jdbc.version>0.8.4</clickhouse-jdbc.version>
 
     <!-- Servlet -->
     <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
