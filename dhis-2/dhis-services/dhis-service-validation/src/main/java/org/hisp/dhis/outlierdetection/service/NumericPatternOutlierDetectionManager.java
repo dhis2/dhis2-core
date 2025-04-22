@@ -41,10 +41,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
+
 /**
  * @author Jason P. Pickering
  */
-
 @Repository
 public class NumericPatternOutlierDetectionManager extends AbstractOutlierDetectionManager {
   protected NumericPatternOutlierDetectionManager(
