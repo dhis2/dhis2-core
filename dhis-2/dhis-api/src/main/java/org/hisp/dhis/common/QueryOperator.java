@@ -31,6 +31,8 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.replaceOnce;
 
+import java.util.EnumSet;
+import java.util.Set;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -59,6 +61,17 @@ public enum QueryOperator {
   ILIKE("ilike"),
   NILIKE("not ilike");
 
+  private static final Set<QueryOperator> LIKE_OPERATORS = EnumSet.of(LIKE, NLIKE, ILIKE, NILIKE);
+
+  /**
+   * All query operators that are implemented using the SQL {@code like} operator (see {@link
+   * #value}).
+   *
+   * <p>This is a union of {@link #LIKE_OPERATORS} and SW, EW. So keep it in sync!
+   */
+  private static final Set<QueryOperator> LIKE_BASED_OPERATORS =
+      EnumSet.of(LIKE, NLIKE, ILIKE, NILIKE, SW, EW);
+
   private final String value;
 
   private final boolean nullAllowed;
@@ -78,6 +91,15 @@ public enum QueryOperator {
     }
 
     return valueOf(string.toUpperCase());
+  }
+
+  public boolean isLike() {
+    return LIKE_OPERATORS.contains(this);
+  }
+
+  /** Returns true if this query operator is implemented using the SQL {@code like} operator. */
+  public boolean isLikeBased() {
+    return LIKE_BASED_OPERATORS.contains(this);
   }
 
   public boolean isIn() {
