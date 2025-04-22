@@ -114,8 +114,9 @@ public class SqlUtils {
   }
 
   /**
-   * Escapes {@code like} wildcards '%' and '_' in a given string using the default '\' escape
-   * character. Make sure to call this before inserting any like wildcard characters!
+   * Escapes {@code like} wildcards '%' and '_' and the default escape character '\' in a given
+   * string using the default escape character. This expects you to use the default escape character
+   * '\' in your SQL. Make sure to call this before inserting any like wildcard characters!
    *
    * <p>See <a
    * href="https://www.postgresql.org/docs/current/functions-matching.html#FUNCTIONS-LIKE">PostgreSQL
@@ -123,6 +124,7 @@ public class SqlUtils {
    */
   public static String escapeLikeWildcards(String value) {
     return value
+        .replace(BACKSLASH, (BACKSLASH + BACKSLASH))
         .replace(PERCENT, (BACKSLASH + PERCENT))
         .replace(UNDERSCORE, (BACKSLASH + UNDERSCORE));
   }
