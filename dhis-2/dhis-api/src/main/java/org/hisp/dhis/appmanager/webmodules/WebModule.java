@@ -77,7 +77,7 @@ public class WebModule {
     String launchUrl = app.getLaunchUrl();
     if (app.isBundled()) {
       basePath = "/api/apps/" + app.getKey();
-      launchUrl = launchUrl.replaceAll("dhis-web-", "api/apps/");
+      launchUrl = launchUrl.replace("dhis-web-", "api/apps/");
     }
 
     boolean hasIcon = app.getIcons() != null && app.getIcons().getIcon48() != null;
