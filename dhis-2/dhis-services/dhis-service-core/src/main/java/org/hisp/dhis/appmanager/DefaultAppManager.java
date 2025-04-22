@@ -505,9 +505,9 @@ public class DefaultAppManager implements AppManager {
     jCloudsAppStorageService.discoverInstalledApps().values().stream()
         .forEach(app -> discoveredApps.putIfAbsent(app.getKey(), app));
 
-//    // Only add bundled apps if an override with the same key hasn't already been installed
-//    bundledAppStorageService.discoverInstalledApps().values().stream()
-//        .forEach(app -> discoveredApps.putIfAbsent(app.getKey(), app));
+    //    // Only add bundled apps if an override with the same key hasn't already been installed
+    //    bundledAppStorageService.discoverInstalledApps().values().stream()
+    //        .forEach(app -> discoveredApps.putIfAbsent(app.getKey(), app));
 
     log.info("Loaded {} apps from all sources", discoveredApps.size());
 
