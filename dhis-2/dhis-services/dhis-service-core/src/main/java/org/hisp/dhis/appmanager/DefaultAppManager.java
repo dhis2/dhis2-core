@@ -44,6 +44,9 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -105,7 +108,7 @@ public class DefaultAppManager implements AppManager {
   private final AppStorageService jCloudsAppStorageService;
   private final AppStorageService bundledAppStorageService;
   private final DatastoreService datastoreService;
-
+  private final BundledAppInstaller bundledAppInstaller;
   private final I18nManager i18nManager;
 
   @Autowired private UserService userService;
@@ -116,6 +119,8 @@ public class DefaultAppManager implements AppManager {
    * runtime.
    */
   private final Cache<App> appCache;
+
+  private File c;
 
   public DefaultAppManager(
       DhisConfigurationProvider dhisConfigurationProvider,
@@ -128,7 +133,9 @@ public class DefaultAppManager implements AppManager {
           AppStorageService bundledAppStorageService,
       DatastoreService datastoreService,
       CacheBuilderProvider cacheBuilderProvider,
-      I18nManager i18nManager) {
+      I18nManager i18nManager,
+      BundledAppInstaller bundledAppInstaller) {
+
     checkNotNull(dhisConfigurationProvider);
     checkNotNull(localAppStorageService);
     checkNotNull(jCloudsAppStorageService);
@@ -136,6 +143,7 @@ public class DefaultAppManager implements AppManager {
     checkNotNull(datastoreService);
     checkNotNull(cacheBuilderProvider);
     checkNotNull(i18nManager);
+    checkNotNull(bundledAppInstaller);
 
     this.dhisConfigurationProvider = dhisConfigurationProvider;
     this.appHubService = appHubService;
@@ -145,6 +153,7 @@ public class DefaultAppManager implements AppManager {
     this.datastoreService = datastoreService;
     this.appCache = cacheBuilderProvider.<App>newCacheBuilder().forRegion("appCache").build();
     this.i18nManager = i18nManager;
+    this.bundledAppInstaller = bundledAppInstaller;
   }
 
   // -------------------------------------------------------------------------
@@ -367,6 +376,21 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Override
+  public App installApp(Resource resource, String fileName) {
+    // Create a temporary file from the resource
+    Path tempFile = null;
+    try {
+      tempFile = Files.createTempFile("bundled-app-", fileName);
+      Files.copy(resource.getInputStream(), tempFile, StandardCopyOption.REPLACE_EXISTING);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
+    // Install the app using the AppManager
+    return installApp(tempFile.toFile(), fileName);
+  }
+
+  @Override
   public App installApp(UUID appHubId) {
 
     App installedApp = new App();
@@ -488,6 +512,8 @@ public class DefaultAppManager implements AppManager {
   public void reloadApps() {
     Map<String, App> discoveredApps = new HashMap<>();
 
+    bundledAppInstaller.installBundledApps(r -> installApp(r, r.getFilename()));
+
     /*
      * DEPRECATED - local app storage is no longer used, but some implementations upgrading from 2.28
      * or earlier might still have app files in the local system.  To be removed in 2.43.
@@ -519,9 +545,9 @@ public class DefaultAppManager implements AppManager {
   }
 
   private void installApp(App app) {
-    if (AppManager.BUNDLED_APPS.contains(app.getKey())) {
-      app.setBundled(true);
-    }
+    //    if (AppManager.BUNDLED_APPS.contains(app.getKey())) {
+    //      app.setBundled(true);
+    //    }
     appCache.put(app.getKey(), app);
     registerDatastoreProtection(app);
   }

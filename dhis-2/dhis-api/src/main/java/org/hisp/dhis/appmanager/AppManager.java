@@ -171,6 +171,8 @@ public interface AppManager {
    */
   App installApp(File file, String fileName);
 
+  App installApp(Resource resource, String fileName);
+
   /**
    * Installs an app from the AppHub with the given ID.
    *

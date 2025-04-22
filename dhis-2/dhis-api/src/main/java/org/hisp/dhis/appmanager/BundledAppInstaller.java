@@ -33,9 +33,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.io.Resource;
@@ -49,9 +49,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class BundledAppInstaller implements ApplicationListener<ContextRefreshedEvent> {
   private static final Logger logger = LoggerFactory.getLogger(BundledAppInstaller.class);
-  private static final String APPS_PATH = "classpath:static/*.zip";
+  private static final String APPS_PATH = "classpath:/static/dhis-web-apps/*.zip";
 
-  @Autowired private AppManager appManager;
+  //  private static final String APPS_PATH_LOCAL =
+  // "file:./dhis-web-server/target/classes/static/dhis-web-apps/*.zip";
+  //  "file:./dhis-web-apps/target/dhis-web-apps/"
 
   @Override
   public void onApplicationEvent(ContextRefreshedEvent event) {
@@ -68,15 +70,20 @@ public class BundledAppInstaller implements ApplicationListener<ContextRefreshed
    *
    * @throws IOException if there's an error accessing the bundled app files
    */
-  private void installBundledApps() throws IOException {
+  public void installBundledApps(Consumer<Resource> consumer) {
     PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-    Resource[] resources = resolver.getResources(APPS_PATH);
+    Resource[] resources = null;
+    try {
+      resources = resolver.getResources(APPS_PATH);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
 
     logger.info("Found {} bundled app ZIP files", resources.length);
 
     for (Resource resource : resources) {
       try {
-        installAppFromResource(resource);
+        consumer.accept(resource);
       } catch (Exception e) {
         logger.error("Error installing app from {}: {}", resource.getFilename(), e.getMessage(), e);
       }
@@ -103,7 +110,7 @@ public class BundledAppInstaller implements ApplicationListener<ContextRefreshed
     Files.copy(resource.getInputStream(), tempFile, StandardCopyOption.REPLACE_EXISTING);
 
     // Install the app using the AppManager
-    appManager.installApp(tempFile.toFile(), fileName);
+    //    appManager.installApp(tempFile.toFile(), fileName);
 
     // Clean up the temporary file
     try {
