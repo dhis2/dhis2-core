@@ -250,7 +250,7 @@ public class AuthenticationController {
     if (enforceVerifiedEmail) {
       UserDetails userDetails = (UserDetails) authentication.getPrincipal();
       if (!userDetails.isEmailVerified()) {
-        return request.getContextPath() + "/api/apps/profile/#/profile";
+        return request.getContextPath() + "/api/apps/user-profile/#/profile";
       }
     }
 
