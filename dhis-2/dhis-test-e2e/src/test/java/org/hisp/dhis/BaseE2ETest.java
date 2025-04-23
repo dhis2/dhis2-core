@@ -79,7 +79,7 @@ public class BaseE2ETest {
   public static String serverApiUrl = "http://localhost:8080/api";
   public static String serverHostUrl = "http://localhost:8080/";
 
-  public static final String DEFAULT_DASHBOARD_PATH = "/dhis-web-dashboard/";
+  public static final String DEFAULT_DASHBOARD_PATH = "/api/apps/dashboard/";
   public static final String LOGIN_API_PATH = "/auth/login";
   public static final String SUPER_USER_ROLE_UID = "yrB6vc5Ip3r";
 
