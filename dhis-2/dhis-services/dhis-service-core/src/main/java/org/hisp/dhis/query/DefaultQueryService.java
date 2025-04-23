@@ -37,8 +37,6 @@ import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.query.planner.QueryPlan;
 import org.hisp.dhis.query.planner.QueryPlanner;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -53,7 +51,6 @@ public class DefaultQueryService implements QueryService {
 
   private final QueryParser queryParser;
   private final QueryPlanner queryPlanner;
-  private final SchemaService schemaService;
 
   private final JpaCriteriaQueryEngine dbQueryEngine;
   private final InMemoryQueryEngine memoryQueryEngine;
@@ -81,8 +78,7 @@ public class DefaultQueryService implements QueryService {
     if (filters == null) filters = List.of();
     Query<T> query = queryParser.parse(type, filters, params.getRootJunction());
 
-    Schema schema = schemaService.getDynamicSchema(type);
-    query.addOrders(QueryUtils.convertOrderStrings(params.getOrders(), schema));
+    query.addOrders(Order.parse(params.getOrders()));
 
     Pagination pagination = params.getPagination();
     if (pagination.hasPagination()) {

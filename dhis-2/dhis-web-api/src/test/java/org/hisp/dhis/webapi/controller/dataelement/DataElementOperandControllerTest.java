@@ -127,7 +127,6 @@ class DataElementOperandControllerTest {
         new DefaultQueryService(
             new DefaultQueryParser(schemaService),
             new DefaultQueryPlanner(schemaService),
-            schemaService,
             mock(JpaCriteriaQueryEngine.class),
             new InMemoryQueryEngine(schemaService, mock(AclService.class)));
     // Use "spy" on queryService, because we want a partial mock: we only
