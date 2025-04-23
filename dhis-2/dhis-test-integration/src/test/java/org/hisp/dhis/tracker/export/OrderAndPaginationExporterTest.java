@@ -145,7 +145,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .organisationUnits(orgUnit)
             .orgUnitMode(DESCENDANTS)
             .trackedEntityType(trackedEntityType)
-            .orderBy(UID.of("numericAttr"), SortDirection.ASC)
+            .orderBy(UID.of("integerAttr"), SortDirection.ASC)
             .build();
 
     Page<String> firstPage =
@@ -187,7 +187,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .orgUnitMode(SELECTED)
             .program(UID.of("BFcipDERJnf"))
             .trackedEntities(UID.of("QS6w44flWAf", "dUE514NMOlo"))
-            .orderBy(UID.of("numericAttr"), SortDirection.ASC)
+            .orderBy(UID.of("integerAttr"), SortDirection.ASC)
             .build();
 
     Page<String> firstPage =
@@ -477,7 +477,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .orgUnitMode(SELECTED)
             .trackedEntityType(trackedEntityType)
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
-            .filterBy(UID.of("numericAttr"), List.of(new QueryFilter(QueryOperator.LT, "75")))
+            .filterBy(UID.of("integerAttr"), List.of(new QueryFilter(QueryOperator.LT, "75")))
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -493,8 +493,8 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .organisationUnits(orgUnit)
             .orgUnitMode(SELECTED)
             .trackedEntityType(trackedEntityType)
-            .filterBy(UID.of("numericAttr"), List.of(new QueryFilter(QueryOperator.LT, "75")))
-            .orderBy(UID.of("numericAttr"), SortDirection.DESC)
+            .filterBy(UID.of("integerAttr"), List.of(new QueryFilter(QueryOperator.LT, "75")))
+            .orderBy(UID.of("integerAttr"), SortDirection.DESC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -534,7 +534,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .trackedEntities(UID.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityType(trackedEntityType)
             .orderBy(UID.of("toDelete000"), SortDirection.DESC)
-            .orderBy(UID.of("numericAttr"), SortDirection.ASC)
+            .orderBy(UID.of("integerAttr"), SortDirection.ASC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -552,7 +552,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .trackedEntities(UID.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityType(trackedEntityType)
             .orderBy(UID.of("toDelete000"), SortDirection.DESC)
-            .orderBy(UID.of("numericAttr"), SortDirection.DESC)
+            .orderBy(UID.of("integerAttr"), SortDirection.DESC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);

@@ -256,10 +256,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
     List<TrackedEntity> trackedEntities =
         this.trackedEntityAggregate.find(
-            ids,
-            operationParams.getTrackedEntityParams(),
-            queryParams,
-            queryParams.getOrgUnitMode());
+            ids, operationParams.getTrackedEntityParams(), queryParams);
     for (TrackedEntity trackedEntity : trackedEntities) {
       if (operationParams.getTrackedEntityParams().isIncludeRelationships()) {
         trackedEntity.setRelationshipItems(

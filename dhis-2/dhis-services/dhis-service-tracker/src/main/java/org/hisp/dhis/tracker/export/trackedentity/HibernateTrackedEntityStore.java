@@ -34,8 +34,8 @@ import static java.util.Map.entry;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.system.util.SqlUtils.escape;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.tracker.export.JdbcPredicate.mapPredicatesToSql;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.util.DateUtils.toLongDateWithMillis;
 import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
@@ -53,7 +53,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -72,6 +71,8 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
@@ -128,9 +129,12 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   private final SystemSettingsProvider settingsProvider;
 
+  private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
   public HibernateTrackedEntityStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
+      NamedParameterJdbcTemplate namedParameterJdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService,
       OrganisationUnitStore organisationUnitStore,
@@ -142,6 +146,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
     this.organisationUnitStore = organisationUnitStore;
     this.settingsProvider = settingsProvider;
+    this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
   }
 
   public List<TrackedEntityIdentifiers> getTrackedEntityIds(TrackedEntityQueryParams params) {
@@ -154,8 +159,9 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
     validateMaxTeLimit(params);
 
-    String sql = getQuery(params, null);
-    SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
+    final MapSqlParameterSource sqlParameters = new MapSqlParameterSource();
+    String sql = getQuery(params, null, sqlParameters);
+    SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet(sql, sqlParameters);
 
     List<TrackedEntityIdentifiers> ids = new ArrayList<>();
     while (rowSet.next()) {
@@ -176,8 +182,9 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
     validateMaxTeLimit(params);
 
-    String sql = getQuery(params, pageParams);
-    SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
+    MapSqlParameterSource sqlParameters = new MapSqlParameterSource();
+    String sql = getQuery(params, pageParams, sqlParameters);
+    SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet(sql, sqlParameters);
 
     List<TrackedEntityIdentifiers> ids = new ArrayList<>();
     while (rowSet.next()) {
@@ -215,8 +222,9 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       return 0L;
     }
 
-    String sql = getCountQuery(params);
-    return jdbcTemplate.queryForObject(sql, Long.class);
+    final MapSqlParameterSource sqlParameters = new MapSqlParameterSource();
+    String sql = getCountQuery(params, sqlParameters);
+    return namedParameterJdbcTemplate.queryForObject(sql, sqlParameters, Long.class);
   }
 
   private int getTrackedEntityCountWithMaxLimit(TrackedEntityQueryParams params) {
@@ -227,8 +235,10 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       return 0;
     }
 
-    String sql = getCountQueryWithMaxTrackedEntityLimit(params);
-    return jdbcTemplate.queryForObject(sql, Integer.class);
+    MapSqlParameterSource sqlParameters = new MapSqlParameterSource();
+    String sql = getCountQueryWithMaxTrackedEntityLimit(params, sqlParameters);
+    Integer count = namedParameterJdbcTemplate.queryForObject(sql, sqlParameters, Integer.class);
+    return count != null ? count : 0;
   }
 
   /**
@@ -281,15 +291,13 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    * to project, etc. We left join, since we don't want to reduce the results, just add information.
    * main_groupby: The purpose of this group by, is to aggregate any attributes added in
    * additional_information
-   *
-   * @param params params defining the query
-   * @return SQL string
    */
-  private String getQuery(TrackedEntityQueryParams params, PageParams pageParams) {
+  private String getQuery(
+      TrackedEntityQueryParams params, PageParams pageParams, MapSqlParameterSource sqlParameters) {
     StringBuilder stringBuilder = new StringBuilder(getQuerySelect(params));
     return stringBuilder
         .append("FROM ")
-        .append(getFromSubQuery(params, false, pageParams))
+        .append(getFromSubQuery(params, sqlParameters, false, pageParams))
         .append(getQueryOrderBy(params, false))
         .toString();
   }
@@ -297,30 +305,26 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   /**
    * Uses the same basis as the getQuery method, but replaces the projection with a count and
    * ignores order and limit
-   *
-   * @param params params defining the query
-   * @return a count SQL query
    */
-  private String getCountQuery(TrackedEntityQueryParams params) {
+  private String getCountQuery(
+      TrackedEntityQueryParams params, MapSqlParameterSource sqlParameters) {
     return SELECT_COUNT_INSTANCE_FROM
         + getQuerySelect(params)
         + "FROM "
-        + getFromSubQuery(params, true, null)
+        + getFromSubQuery(params, sqlParameters, true, null)
         + " ) tecount";
   }
 
   /**
    * Uses the same basis as the getQuery method, but replaces the projection with a count, ignores
    * order but uses the TE limit set on the program if higher than 0
-   *
-   * @param params params defining the query
-   * @return a count SQL query
    */
-  private String getCountQueryWithMaxTrackedEntityLimit(TrackedEntityQueryParams params) {
+  private String getCountQueryWithMaxTrackedEntityLimit(
+      TrackedEntityQueryParams params, MapSqlParameterSource sqlParameters) {
     return SELECT_COUNT_INSTANCE_FROM
         + getQuerySelect(params)
         + "FROM "
-        + getFromSubQuery(params, true, null)
+        + getFromSubQuery(params, sqlParameters, true, null)
         + getLimitClause(getMaxTeLimit(params) + 1)
         + " ) tecount";
   }
@@ -365,7 +369,10 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    * @return an SQL sub-query
    */
   private String getFromSubQuery(
-      TrackedEntityQueryParams params, boolean isCountQuery, PageParams pageParams) {
+      TrackedEntityQueryParams params,
+      MapSqlParameterSource sqlParameters,
+      boolean isCountQuery,
+      PageParams pageParams) {
     SqlHelper whereAnd = new SqlHelper(true);
     StringBuilder fromSubQuery =
         new StringBuilder()
@@ -383,7 +390,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .append(getLeftJoinFromAttributes(params))
 
             // WHERE
-            .append(getWhereClauseFromFilterConditions(whereAnd, params))
+            .append(getWhereClauseFromFilterConditions(params, sqlParameters, whereAnd))
             .append(getFromSubQueryTrackedEntityConditions(whereAnd, params))
             .append(getFromSubQueryEnrollmentConditions(whereAnd, params));
 
@@ -534,8 +541,9 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    * this LEFT JOIN is used in the subquery projection and for ordering in both the subquery and the
    * main query.
    *
-   * <p>Attribute filtering is handled in {@link #getWhereClauseFromFilterConditions(SqlHelper,
-   * TrackedEntityQueryParams)}.
+   * <p>Attribute filtering is handled in {@link
+   * #getWhereClauseFromFilterConditions(TrackedEntityQueryParams, MapSqlParameterSource,
+   * SqlHelper)}.
    *
    * @return a SQL LEFT JOIN for the relevant attributes, or an empty string if none are provided.
    */
@@ -800,31 +808,19 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    * filter is specified.
    */
   private String getWhereClauseFromFilterConditions(
-      SqlHelper whereAnd, TrackedEntityQueryParams params) {
-    StringBuilder filterClause = new StringBuilder();
-
-    for (Map.Entry<TrackedEntityAttribute, List<QueryFilter>> filters :
-        params.getFilters().entrySet()) {
-      String col = quote(filters.getKey().getUid());
-      String teav = "lower(" + col + ".value)";
-
-      for (QueryFilter filter : filters.getValue()) {
-        filterClause.append(whereAnd.whereAnd()).append(teav).append(SPACE);
-
-        filterClause.append(
-            switch (filter.getOperator()) {
-              case NULL, NNULL -> filter.getSqlOperator() + SPACE;
-              default ->
-                  new StringBuilder()
-                      .append(filter.getSqlOperator())
-                      .append(SPACE)
-                      .append(
-                          StringUtils.lowerCase(filter.getSqlFilter(escape(filter.getFilter()))));
-            });
-      }
+      TrackedEntityQueryParams params, MapSqlParameterSource sqlParameters, SqlHelper hlp) {
+    if (params.getFilters().isEmpty()) {
+      return "";
     }
 
-    return filterClause.toString();
+    StringBuilder sql = new StringBuilder();
+    String predicates = mapPredicatesToSql(params.getFilters(), sqlParameters);
+    if (!predicates.isEmpty()) {
+      sql.append(hlp.whereAnd());
+      sql.append(predicates);
+      sql.append(SPACE);
+    }
+    return sql.toString();
   }
 
   /**
