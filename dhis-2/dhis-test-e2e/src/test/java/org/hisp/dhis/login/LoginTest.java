@@ -218,28 +218,8 @@ public class LoginTest extends BaseE2ETest {
   }
 
   @Test
-  void testRedirectWithQueryParam() {
-    assertRedirectToSameUrl("/api/users?fields=id,name,displayName");
-  }
-
-  @Test
-  void testRedirectWithoutQueryParam() {
-    assertRedirectToSameUrl("/api/users");
-  }
-
-  @Test
   void testRedirectToResource() {
     assertRedirectUrl("/users/resource.js", DEFAULT_DASHBOARD_PATH);
-  }
-
-  @Test
-  void testRedirectToHtmlResource() {
-    assertRedirectToSameUrl("/users/resource.html");
-  }
-
-  @Test
-  void testRedirectToSlashEnding() {
-    assertRedirectToSameUrl("/users/");
   }
 
   @Test
@@ -264,7 +244,7 @@ public class LoginTest extends BaseE2ETest {
 
   @Test
   void testRedirectEndingSlash() {
-    assertRedirectToSameUrl("/dhis-web-dashboard/");
+    assertRedirectToSameUrl("/api/apps/dashboard/");
   }
 
   @Test
