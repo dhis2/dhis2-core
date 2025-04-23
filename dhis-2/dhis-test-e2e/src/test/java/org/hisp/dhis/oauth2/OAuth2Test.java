@@ -48,7 +48,6 @@ import org.hisp.dhis.uitest.ConsentPage;
 import org.hisp.dhis.uitest.LoginPage;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Tag;
 import org.openqa.selenium.By;
@@ -63,7 +62,6 @@ import org.springframework.http.ResponseEntity;
 
 @Tag("oauth2tests")
 @Slf4j
-@Disabled
 class OAuth2Test extends BaseE2ETest {
 
   private static WebDriver driver;
