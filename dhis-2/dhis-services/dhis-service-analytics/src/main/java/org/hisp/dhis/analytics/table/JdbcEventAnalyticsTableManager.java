@@ -631,9 +631,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       return List.of();
     }
 
-    String columnExpression =
-        sqlBuilder.cast(
-            "av.value", NUMERIC); // getColumnExpression(attribute.getValueType(), "value");
+    String columnExpression = sqlBuilder.cast("av.value", NUMERIC);
     String numericClause = getNumericClause("value");
 
     String query =
