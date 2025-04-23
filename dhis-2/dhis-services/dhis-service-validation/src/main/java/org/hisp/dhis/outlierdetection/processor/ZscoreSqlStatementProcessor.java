@@ -150,9 +150,10 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
         + "and "
         + ouPathClause
         + " and dv.deleted is false"
-        + " and trim(dv.value) ~ '"
+        + " and (trim(dv.value) ~ '"
         + OutlierDetectionUtils.PG_DOUBLE_REGEX
         + "'"
+        + " and length(split_part(trim(dv.value), '.', 1)) <= 307) "
         + ") as dvs "
         +
         // Mean or Median and std dev mapping query
@@ -174,9 +175,10 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
         + ouPathClause
         + " "
         + "and dv.deleted is false "
-        + "and trim(dv.value) ~ '"
+        + "and (trim(dv.value) ~ '"
         + OutlierDetectionUtils.PG_DOUBLE_REGEX
         + "' "
+        + "and length(split_part(trim(dv.value), '.', 1)) <= 307) "
         + "group by dv.dataelementid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid"
         + ") as stats "
         +
@@ -235,9 +237,10 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
         + " and "
         + ouPathClause
         + " and dv.deleted is false"
-        + " and trim(dv.value) ~ '"
+        + " and (trim(dv.value) ~ '"
         + OutlierDetectionUtils.PG_DOUBLE_REGEX
         + "'"
+        + " and length(split_part(trim(dv.value), '.', 1)) <= 307)"
         + ")"
         + " select dvs.de_uid,"
         + " dvs.ou_uid,"
