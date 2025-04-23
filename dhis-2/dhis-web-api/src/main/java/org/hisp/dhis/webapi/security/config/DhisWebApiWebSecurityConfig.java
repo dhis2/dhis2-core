@@ -159,7 +159,7 @@ public class DhisWebApiWebSecurityConfig {
     public boolean matches(HttpServletRequest request) {
       String requestURI = request.getRequestURI();
       // This is needed for the OAuth2 authorization code flow login
-      if(requestURI.contains("/oauth2/authorize")){
+      if (requestURI.contains("/oauth2/authorize")) {
         return true;
       }
       includePatterns.add(Pattern.compile("^" + request.getContextPath() + "/api/apps/.*"));
