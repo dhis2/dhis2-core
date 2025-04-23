@@ -32,7 +32,6 @@ package org.hisp.dhis.sharing;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
@@ -76,16 +75,13 @@ public class DefaultSharingService implements SharingService {
       @Nonnull Class<T> entityClass, @Nonnull T entity, @Nonnull Sharing sharing) {
     ObjectReport objectReport = new ObjectReport(Sharing.class, 0);
 
-    BaseIdentifiableObject object = (BaseIdentifiableObject) entity;
-
-    if ((object instanceof SystemDefaultMetadataObject)
-        && ((SystemDefaultMetadataObject) object).isDefault()) {
+    if (entity instanceof SystemDefaultMetadataObject sdmo && sdmo.isDefault()) {
       objectReport.addErrorReport(
           new ErrorReport(Sharing.class, ErrorCode.E3013, entityClass.getSimpleName())
               .setErrorKlass(entityClass));
     }
 
-    if (!aclService.canManage(CurrentUserUtil.getCurrentUserDetails(), object)) {
+    if (!aclService.canManage(CurrentUserUtil.getCurrentUserDetails(), entity)) {
       objectReport.addErrorReport(
           new ErrorReport(Sharing.class, ErrorCode.E3014).setErrorKlass(entityClass));
     }
@@ -101,7 +97,7 @@ public class DefaultSharingService implements SharingService {
     // ---------------------------------------------------------------------
 
     if (aclService.canMakeClassExternal(CurrentUserUtil.getCurrentUserDetails(), entityClass)) {
-      object.getSharing().setExternal(sharing.isExternal());
+      entity.getSharing().setExternal(sharing.isExternal());
     }
 
     // ---------------------------------------------------------------------
@@ -110,24 +106,24 @@ public class DefaultSharingService implements SharingService {
 
     Schema schema = schemaService.getDynamicSchema(entityClass);
 
-    if (aclService.canMakePublic(CurrentUserUtil.getCurrentUserDetails(), object)) {
-      object.getSharing().setPublicAccess(sharing.getPublicAccess());
+    if (aclService.canMakePublic(CurrentUserUtil.getCurrentUserDetails(), entity)) {
+      entity.getSharing().setPublicAccess(sharing.getPublicAccess());
     }
 
     if (!schema.isDataShareable()) {
-      if (AccessStringHelper.hasDataSharing(object.getSharing().getPublicAccess())) {
+      if (AccessStringHelper.hasDataSharing(entity.getSharing().getPublicAccess())) {
         objectReport.addErrorReport(
             new ErrorReport(Sharing.class, ErrorCode.E3016).setErrorKlass(entityClass));
       }
     }
 
-    object.getSharing().setOwner(sharing.getOwner());
+    entity.getSharing().setOwner(sharing.getOwner());
 
     // --------------------------------------
     // Handle UserGroupAccesses
     // --------------------------------------
 
-    object.getSharing().getUserGroups().clear();
+    entity.getSharing().getUserGroups().clear();
 
     if (sharing.hasUserGroupAccesses()) {
       for (UserGroupAccess sharingUserGroupAccess : sharing.getUserGroups().values()) {
@@ -147,7 +143,7 @@ public class DefaultSharingService implements SharingService {
         UserGroup userGroup = userGroupService.getUserGroup(sharingUserGroupAccess.getId());
 
         if (userGroup != null) {
-          object.getSharing().addUserGroupAccess(sharingUserGroupAccess);
+          entity.getSharing().addUserGroupAccess(sharingUserGroupAccess);
         }
       }
     }
@@ -156,7 +152,7 @@ public class DefaultSharingService implements SharingService {
     // Handle UserAccesses
     // --------------------------------------
 
-    object.getSharing().getUsers().clear();
+    entity.getSharing().getUsers().clear();
 
     if (sharing.hasUserAccesses()) {
       for (UserAccess sharingUserAccess : sharing.getUsers().values()) {
@@ -176,18 +172,18 @@ public class DefaultSharingService implements SharingService {
         User sharingUser = userService.getUser(sharingUserAccess.getId());
 
         if (sharingUser != null) {
-          object.getSharing().addUserAccess(sharingUserAccess);
+          entity.getSharing().addUserAccess(sharingUserAccess);
         }
       }
     }
 
-    manager.updateNoAcl(object);
+    manager.updateNoAcl(entity);
 
-    if (Program.class.isInstance(object)) {
-      syncSharingForEventProgram((Program) object);
+    if (entity instanceof Program program) {
+      syncSharingForEventProgram(program);
     }
 
-    log.info(SharingUtils.sharingToString(object, CurrentUserUtil.getCurrentUsername()));
+    log.info(SharingUtils.sharingToString(entity, CurrentUserUtil.getCurrentUsername()));
 
     return objectReport;
   }

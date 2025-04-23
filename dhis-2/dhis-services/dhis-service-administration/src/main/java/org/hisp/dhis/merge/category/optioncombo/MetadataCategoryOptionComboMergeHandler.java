@@ -38,7 +38,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboDeletionHandler;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.datadimensionitem.DataDimensionItemStore;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -103,7 +103,7 @@ public class MetadataCategoryOptionComboMergeHandler {
     log.info("Merging source data element operands");
     List<DataElementOperand> dataElementOperands =
         dataElementOperandStore.getByCategoryOptionCombo(
-            UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
+            UID.of(sources.stream().map(IdentifiableObject::getUid).toList()));
 
     dataElementOperands.forEach(deo -> deo.setCategoryOptionCombo(target));
 
@@ -112,7 +112,7 @@ public class MetadataCategoryOptionComboMergeHandler {
     // The Data dimension item table also needs updating
     int dataDimensionItemsUpdated =
         dataDimensionItemStore.updateDeoCategoryOptionCombo(
-            sources.stream().map(BaseIdentifiableObject::getId).collect(Collectors.toSet()),
+            sources.stream().map(IdentifiableObject::getId).collect(Collectors.toSet()),
             target.getId());
     log.info(
         "{} data dimension items updated as part of category option combo merge",
@@ -130,7 +130,7 @@ public class MetadataCategoryOptionComboMergeHandler {
     log.info("Merging source min max data elements");
     List<MinMaxDataElement> minMaxDataElements =
         minMaxDataElementStore.getByCategoryOptionCombo(
-            UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
+            UID.of(sources.stream().map(IdentifiableObject::getUid).toList()));
 
     minMaxDataElements.forEach(mmde -> mmde.setOptionCombo(target));
   }
@@ -145,7 +145,7 @@ public class MetadataCategoryOptionComboMergeHandler {
     log.info("Merging source predictors");
     List<Predictor> predictors =
         predictorStore.getByCategoryOptionCombo(
-            UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
+            UID.of(sources.stream().map(IdentifiableObject::getUid).toList()));
 
     predictors.forEach(p -> p.setOutputCombo(target));
   }
@@ -160,7 +160,7 @@ public class MetadataCategoryOptionComboMergeHandler {
     log.info("Merging source SMS codes");
     List<SMSCode> smsCodes =
         smsCommandStore.getCodesByCategoryOptionCombo(
-            UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
+            UID.of(sources.stream().map(IdentifiableObject::getUid).toList()));
 
     smsCodes.forEach(smsCode -> smsCode.setOptionId(target));
   }

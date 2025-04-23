@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.render.DeviceRenderTypeMap;
@@ -70,11 +70,11 @@ class ProgramStageSectionTest {
     assertNotEquals(original.getUid(), copy.getUid());
     Set<String> originalIndicators =
         original.getProgramIndicators().stream()
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet());
     Set<String> copyIndicators =
         copy.getProgramIndicators().stream()
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet());
     assertEquals(1, originalIndicators.size());
     assertEquals(0, copyIndicators.size());

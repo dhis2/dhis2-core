@@ -125,6 +125,7 @@ class DeduplicationServiceMergeIntegrationTest extends PostgresIntegrationTestBa
     program = createProgram('A');
     program.setTrackedEntityType(trackedEntityType);
     program1 = createProgram('B');
+    program1.setTrackedEntityType(trackedEntityType);
     programService.addProgram(program);
     programService.addProgram(program1);
     Enrollment enrollment1 = createEnrollment(program, original, orgUnit);

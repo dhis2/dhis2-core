@@ -34,6 +34,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -56,7 +57,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.FileResourceStream;
@@ -76,8 +76,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private final HibernateTrackedEntityStore trackedEntityStore;
 
   private final TrackedEntityAuditService trackedEntityAuditService;
-
-  private final TrackerAccessManager trackerAccessManager;
 
   private final TrackerOwnershipManager ownershipAccessManager;
 
@@ -256,10 +254,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
 
     List<TrackedEntity> trackedEntities =
         this.trackedEntityAggregate.find(
-            ids,
-            operationParams.getTrackedEntityParams(),
-            queryParams,
-            queryParams.getOrgUnitMode());
+            ids, operationParams.getTrackedEntityParams(), queryParams);
     for (TrackedEntity trackedEntity : trackedEntities) {
       if (operationParams.getTrackedEntityParams().isIncludeRelationships()) {
         trackedEntity.setRelationshipItems(
@@ -292,12 +287,18 @@ class DefaultTrackedEntityService implements TrackedEntityService {
     boolean skipOwnershipCheck = queryParams.getOrgUnitMode() == ALL;
 
     if (queryParams.hasEnrolledInTrackerProgram()) {
-      return skipOwnershipCheck
-          ? te -> true
-          : te ->
-              ownershipAccessManager.hasAccess(user, te, queryParams.getEnrolledInTrackerProgram());
+      return te ->
+          skipOwnershipCheck
+              || ownershipAccessManager.hasAccess(
+                  user, te, queryParams.getEnrolledInTrackerProgram());
     }
 
-    return te -> trackerAccessManager.canRead(user, te, skipOwnershipCheck).isEmpty();
+    return te ->
+        queryParams.getAccessibleTrackerPrograms().stream()
+            .filter(
+                p ->
+                    Objects.equals(
+                        p.getTrackedEntityType().getUid(), te.getTrackedEntityType().getUid()))
+            .anyMatch(p -> skipOwnershipCheck || ownershipAccessManager.hasAccess(user, te, p));
   }
 }

@@ -41,7 +41,7 @@ import java.util.Map;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.user.User;
 
 /** Utilities for organisation unit criteria of analytics response. */
@@ -93,18 +93,18 @@ public final class AnalyticsOrganisationUnitUtils {
     switch (analyticsMetaDataKey) {
       case USER_ORGUNIT ->
           userOrgUnitList =
-              user.getOrganisationUnits().stream().map(BaseIdentifiableObject::getUid).toList();
+              user.getOrganisationUnits().stream().map(IdentifiableObject::getUid).toList();
       case USER_ORGUNIT_CHILDREN ->
           userOrgUnitList =
               user.getOrganisationUnits().stream()
                   .flatMap(ou -> ou.getChildren().stream())
-                  .map(BaseIdentifiableObject::getUid)
+                  .map(IdentifiableObject::getUid)
                   .toList();
       case USER_ORGUNIT_GRANDCHILDREN ->
           userOrgUnitList =
               user.getOrganisationUnits().stream()
                   .flatMap(ou -> ou.getGrandChildren().stream())
-                  .map(BaseIdentifiableObject::getUid)
+                  .map(IdentifiableObject::getUid)
                   .toList();
       default -> userOrgUnitList = List.of();
     }

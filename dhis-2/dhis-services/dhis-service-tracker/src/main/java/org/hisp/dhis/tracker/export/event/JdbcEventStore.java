@@ -30,16 +30,15 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static java.util.Map.entry;
-import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.tracker.export.JdbcPredicate.mapPredicatesToSql;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.base.Strings;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -48,7 +47,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -61,8 +59,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -83,6 +79,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.Page;
@@ -135,8 +132,6 @@ class JdbcEventStore {
   private static final String EVENT_LASTUPDATED_GT = " ev.lastupdated >= ";
 
   private static final String SPACE = " ";
-
-  private static final String EQUALS = " = ";
 
   private static final String AND = " AND ";
 
@@ -257,15 +252,15 @@ class JdbcEventStore {
     }
     List<Event> events = new ArrayList<>();
 
-    final MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
+    final MapSqlParameterSource sqlParameters = new MapSqlParameterSource();
+    String sql = buildSql(queryParams, pageParams, sqlParameters, currentUser);
 
-    String sql = buildSql(queryParams, pageParams, mapSqlParameterSource, currentUser);
     TrackerIdSchemeParam dataElementIdScheme =
         queryParams.getIdSchemeParams().getDataElementIdScheme();
 
     return jdbcTemplate.query(
         sql,
-        mapSqlParameterSource,
+        sqlParameters,
         resultSet -> {
           Set<String> notes = new HashSet<>();
           // data elements per event
@@ -515,9 +510,9 @@ class JdbcEventStore {
 
     String sql;
 
-    MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
+    MapSqlParameterSource sqlParameters = new MapSqlParameterSource();
 
-    sql = getEventSelectQuery(params, mapSqlParameterSource, currentUser);
+    sql = getEventSelectQuery(params, sqlParameters, currentUser);
 
     sql = sql.replaceFirst("select .*? from", "select count(*) as ev_count from");
 
@@ -526,7 +521,7 @@ class JdbcEventStore {
     sql = sql.replaceFirst("limit \\d+ offset \\d+", "");
 
     RowCountHandler rowCountHandler = new RowCountHandler();
-    jdbcTemplate.query(sql, mapSqlParameterSource, rowCountHandler);
+    jdbcTemplate.query(sql, sqlParameters, rowCountHandler);
     return rowCountHandler.getCount();
   }
 
@@ -607,75 +602,25 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    * applies when an attribute filter is specified.
    */
   private String getWhereClauseFromAttributeFilterConditions(
-      EventQueryParams params, MapSqlParameterSource mapSqlParameterSource, SqlHelper hlp) {
-    StringBuilder fromBuilder = new StringBuilder();
-    for (Entry<TrackedEntityAttribute, List<QueryFilter>> queryItem :
-        params.getAttributes().entrySet()) {
-      TrackedEntityAttribute tea = queryItem.getKey();
-      String teaUid = tea.getUid();
-
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" TE.trackedentityid is not null ") // filters out results from event programs
-          .append(AND)
-          .append(SPACE)
-          .append(
-              getAttributeFilterQuery(
-                  mapSqlParameterSource,
-                  queryItem.getValue(),
-                  teaUid,
-                  tea.getValueType().isNumeric()));
-    }
-    return fromBuilder.toString();
-  }
-
-  private String getAttributeFilterQuery(
-      MapSqlParameterSource mapSqlParameterSource,
-      List<QueryFilter> filters,
-      String teaUid,
-      boolean isNumericTea) {
-    String teaValueCol = quote(teaUid);
-    if (filters.isEmpty()) {
+      EventQueryParams params, MapSqlParameterSource sqlParameters, SqlHelper hlp) {
+    if (params.getAttributes().isEmpty()) {
       return "";
     }
 
-    StringBuilder query = new StringBuilder();
-    List<String> filterStrings = new ArrayList<>();
+    StringBuilder sql = new StringBuilder();
+    sql.append(hlp.whereAnd())
+        .append(
+            " TE.trackedentityid is not null "); // filtering by attribute means we need to look for
+    // a TE in a tracker program, so we can filter out
+    // event programs
 
-    for (int i = 0; i < filters.size(); i++) {
-      QueryFilter filter = filters.get(i);
-      final String queryCol =
-          isNumericTea ? castToNumber(teaValueCol + ".value") : lower(teaValueCol + ".value");
-      int itemType = isNumericTea ? Types.NUMERIC : Types.VARCHAR;
-      String parameterKey = "attributeFilter_%s_%d".formatted(teaUid, i);
-
-      StringBuilder filterString = new StringBuilder();
-      filterString.append(queryCol).append(SPACE);
-
-      filterString.append(
-          switch (filter.getOperator()) {
-            case NULL, NNULL -> filter.getSqlOperator() + SPACE;
-            default -> {
-              mapSqlParameterSource.addValue(
-                  parameterKey,
-                  isNumericTea
-                      ? new BigDecimal(filter.getSqlBindFilter())
-                      : StringUtils.lowerCase(filter.getSqlBindFilter()),
-                  itemType);
-              yield new StringBuilder()
-                  .append(filter.getSqlOperator())
-                  .append(SPACE)
-                  .append(":")
-                  .append(parameterKey)
-                  .append(SPACE);
-            }
-          });
-
-      filterStrings.add(filterString.toString());
+    String predicates = mapPredicatesToSql(params.getAttributes(), sqlParameters);
+    if (!predicates.isEmpty()) {
+      sql.append(AND);
+      sql.append(predicates);
+      sql.append(SPACE);
     }
-    query.append(String.join(AND, filterStrings));
-
-    return query.toString();
+    return sql.toString();
   }
 
   /**
@@ -805,13 +750,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         .append("p.type as p_type, ")
         .append("te.trackedentityid as te_id, te.uid as ")
         .append(COLUMN_TRACKEDENTITY_UID)
-        .append(
-            getFromWhereClause(
-                params,
-                mapSqlParameterSource,
-                user,
-                hlp,
-                dataElementFiltersSql(params, mapSqlParameterSource, hlp, selectBuilder)))
+        .append(getFromWhereClause(params, mapSqlParameterSource, user, hlp))
         .toString();
   }
 
@@ -830,7 +769,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         selectBuilder
             .append(
                 de.getValueType().isNumeric()
-                    ? castToNumber(dataValueValueSql)
+                    ? SqlUtils.castToNumeric(dataValueValueSql)
                     : lower(dataValueValueSql))
             .append(" as ")
             .append(de.getUid())
@@ -851,11 +790,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private StringBuilder getFromWhereClause(
-      EventQueryParams params,
-      MapSqlParameterSource mapSqlParameterSource,
-      User user,
-      SqlHelper hlp,
-      StringBuilder dataElementFiltersSql) {
+      EventQueryParams params, MapSqlParameterSource sqlParameters, User user, SqlHelper hlp) {
     StringBuilder fromBuilder =
         new StringBuilder(" from event ev ")
             .append("inner join enrollment en on en.enrollmentid=ev.enrollmentid ")
@@ -885,13 +820,17 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
     fromBuilder.append(getCategoryOptionComboQuery(user));
 
-    fromBuilder.append(dataElementFiltersSql);
+    String predicates = mapPredicatesToSql(params.getDataElements(), sqlParameters);
+    if (!predicates.isEmpty()) {
+      fromBuilder.append(AND);
+      fromBuilder.append(predicates);
+    }
+    fromBuilder.append(SPACE);
 
-    fromBuilder.append(
-        getWhereClauseFromAttributeFilterConditions(params, mapSqlParameterSource, hlp));
+    fromBuilder.append(getWhereClauseFromAttributeFilterConditions(params, sqlParameters, hlp));
 
     if (params.getTrackedEntity() != null) {
-      mapSqlParameterSource.addValue("trackedentityid", params.getTrackedEntity().getId());
+      sqlParameters.addValue("trackedentityid", params.getTrackedEntity().getId());
 
       fromBuilder
           .append(hlp.whereAnd())
@@ -901,13 +840,13 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     if (params.getProgram() != null) {
-      mapSqlParameterSource.addValue("programid", params.getProgram().getId());
+      sqlParameters.addValue("programid", params.getProgram().getId());
 
       fromBuilder.append(hlp.whereAnd()).append(" p.programid = ").append(":programid").append(" ");
     }
 
     if (params.getProgramStage() != null) {
-      mapSqlParameterSource.addValue("programstageid", params.getProgramStage().getId());
+      sqlParameters.addValue("programstageid", params.getProgramStage().getId());
 
       fromBuilder
           .append(hlp.whereAnd())
@@ -917,13 +856,13 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     if (params.getEnrollmentStatus() != null) {
-      mapSqlParameterSource.addValue("program_status", params.getEnrollmentStatus().name());
+      sqlParameters.addValue("program_status", params.getEnrollmentStatus().name());
 
       fromBuilder.append(hlp.whereAnd()).append(" en.status = ").append(":program_status ");
     }
 
     if (params.getEnrollmentEnrolledBefore() != null) {
-      mapSqlParameterSource.addValue(
+      sqlParameters.addValue(
           "enrollmentEnrolledBefore", params.getEnrollmentEnrolledBefore(), Types.TIMESTAMP);
       fromBuilder
           .append(hlp.whereAnd())
@@ -931,7 +870,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     if (params.getEnrollmentEnrolledAfter() != null) {
-      mapSqlParameterSource.addValue(
+      sqlParameters.addValue(
           "enrollmentEnrolledAfter", params.getEnrollmentEnrolledAfter(), Types.TIMESTAMP);
       fromBuilder
           .append(hlp.whereAnd())
@@ -939,7 +878,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     if (params.getEnrollmentOccurredBefore() != null) {
-      mapSqlParameterSource.addValue(
+      sqlParameters.addValue(
           "enrollmentOccurredBefore", params.getEnrollmentOccurredBefore(), Types.TIMESTAMP);
       fromBuilder
           .append(hlp.whereAnd())
@@ -947,13 +886,13 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     if (params.getEnrollmentOccurredAfter() != null) {
-      mapSqlParameterSource.addValue(
+      sqlParameters.addValue(
           "enrollmentOccurredAfter", params.getEnrollmentOccurredAfter(), Types.TIMESTAMP);
       fromBuilder.append(hlp.whereAnd()).append(" (en.occurreddate >= :enrollmentOccurredAfter ) ");
     }
 
     if (params.getScheduleAtStartDate() != null) {
-      mapSqlParameterSource.addValue(
+      sqlParameters.addValue(
           "startScheduledDate", params.getScheduleAtStartDate(), Types.TIMESTAMP);
 
       fromBuilder
@@ -962,8 +901,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     if (params.getScheduleAtEndDate() != null) {
-      mapSqlParameterSource.addValue(
-          "endScheduledDate", params.getScheduleAtEndDate(), Types.TIMESTAMP);
+      sqlParameters.addValue("endScheduledDate", params.getScheduleAtEndDate(), Types.TIMESTAMP);
 
       fromBuilder
           .append(hlp.whereAnd())
@@ -978,12 +916,11 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           .append(" ");
     }
 
-    fromBuilder.append(addLastUpdatedFilters(params, mapSqlParameterSource, hlp));
+    fromBuilder.append(addLastUpdatedFilters(params, sqlParameters, hlp));
 
     // Comparing milliseconds instead of always creating new Date(0)
     if (params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0) {
-      mapSqlParameterSource.addValue(
-          "skipChangedBefore", params.getSkipChangedBefore(), Types.TIMESTAMP);
+      sqlParameters.addValue("skipChangedBefore", params.getSkipChangedBefore(), Types.TIMESTAMP);
 
       fromBuilder
           .append(hlp.whereAnd())
@@ -993,8 +930,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     if (params.getCategoryOptionCombo() != null) {
-      mapSqlParameterSource.addValue(
-          "attributeoptioncomboid", params.getCategoryOptionCombo().getId());
+      sqlParameters.addValue("attributeoptioncomboid", params.getCategoryOptionCombo().getId());
 
       fromBuilder
           .append(hlp.whereAnd())
@@ -1003,43 +939,41 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           .append(" ");
     }
 
-    String orgUnitSql = getOrgUnitSql(params, user, mapSqlParameterSource);
+    String orgUnitSql = getOrgUnitSql(params, user, sqlParameters);
 
     if (!Strings.isNullOrEmpty(orgUnitSql)) {
       fromBuilder.append(hlp.whereAnd()).append(orgUnitSql);
     }
 
     if (params.getOccurredStartDate() != null) {
-      mapSqlParameterSource.addValue(
-          "startOccurredDate", params.getOccurredStartDate(), Types.TIMESTAMP);
+      sqlParameters.addValue("startOccurredDate", params.getOccurredStartDate(), Types.TIMESTAMP);
 
       fromBuilder.append(hlp.whereAnd()).append(" ev.occurreddate >= :startOccurredDate ");
     }
 
     if (params.getOccurredEndDate() != null) {
-      mapSqlParameterSource.addValue(
-          "endOccurredDate", params.getOccurredEndDate(), Types.TIMESTAMP);
+      sqlParameters.addValue("endOccurredDate", params.getOccurredEndDate(), Types.TIMESTAMP);
 
       fromBuilder.append(hlp.whereAnd()).append(" ev.occurreddate <= :endOccurredDate ");
     }
 
     if (params.getProgramType() != null) {
-      mapSqlParameterSource.addValue("programType", params.getProgramType().name());
+      sqlParameters.addValue("programType", params.getProgramType().name());
 
       fromBuilder.append(hlp.whereAnd()).append(" p.type = ").append(":programType").append(" ");
     }
 
-    fromBuilder.append(eventStatusSql(params, mapSqlParameterSource, hlp));
+    fromBuilder.append(eventStatusSql(params, sqlParameters, hlp));
 
     if (params.getEvents() != null
         && !params.getEvents().isEmpty()
         && !params.hasDataElementFilter()) {
-      mapSqlParameterSource.addValue(COLUMN_EVENT_UID, UID.toValueSet(params.getEvents()));
+      sqlParameters.addValue(COLUMN_EVENT_UID, UID.toValueSet(params.getEvents()));
       fromBuilder.append(hlp.whereAnd()).append(" (ev.uid in (").append(":ev_uid").append(")) ");
     }
 
     if (params.getAssignedUserQueryParam().hasAssignedUsers()) {
-      mapSqlParameterSource.addValue(
+      sqlParameters.addValue(
           "au_uid", UID.toValueSet(params.getAssignedUserQueryParam().getAssignedUsers()));
 
       fromBuilder.append(hlp.whereAnd()).append(" (au.uid in (").append(":au_uid").append(")) ");
@@ -1058,7 +992,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     if (params.hasSecurityFilter()) {
-      mapSqlParameterSource.addValue(
+      sqlParameters.addValue(
           "program_uid",
           params.getAccessiblePrograms().isEmpty()
               ? null
@@ -1070,7 +1004,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           .append(":program_uid")
           .append(")) ");
 
-      mapSqlParameterSource.addValue(
+      sqlParameters.addValue(
           "programstage_uid",
           params.getAccessibleProgramStages().isEmpty()
               ? null
@@ -1088,7 +1022,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     if (!CollectionUtils.isEmpty(params.getEnrollments())) {
-      mapSqlParameterSource.addValue("enrollment_uid", UID.toValueSet(params.getEnrollments()));
+      sqlParameters.addValue("enrollment_uid", UID.toValueSet(params.getEnrollments()));
 
       fromBuilder.append(hlp.whereAnd()).append(" (en.uid in (:enrollment_uid)) ");
     }
@@ -1180,10 +1114,10 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   /**
-   * Generates a sql to match the org unit event to the org unit(s) in the user's capture scope
+   * Generates a getSql to match the org unit event to the org unit(s) in the user's capture scope
    *
    * @param orgUnitMatcher specific condition to add depending on the ou mode
-   * @return a sql clause to add to the main query
+   * @return a getSql clause to add to the main query
    */
   private String createCaptureScopeQuery(
       User user, MapSqlParameterSource mapSqlParameterSource, String orgUnitMatcher) {
@@ -1201,11 +1135,11 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   /**
-   * Generates a sql to match the org unit event to the org unit(s) in the user's search and capture
-   * scope
+   * Generates a getSql to match the org unit event to the org unit(s) in the user's search and
+   * capture scope
    *
    * @param orgUnitMatcher specific condition to add depending on the ou mode
-   * @return a sql clause to add to the main query
+   * @return a getSql clause to add to the main query
    */
   private static String getSearchAndCaptureScopeOrgUnitPathMatchQuery(String orgUnitMatcher) {
     return " (exists(select ss.organisationunitid "
@@ -1234,99 +1168,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
   private boolean isUserSearchScopeNotSet(User user) {
     return user.getTeiSearchOrganisationUnits().isEmpty();
-  }
-
-  /**
-   * For dataElement params, restriction is set in inner join. For query params, restriction is set
-   * in where clause.
-   */
-  private StringBuilder dataElementFiltersSql(
-      EventQueryParams params,
-      MapSqlParameterSource mapSqlParameterSource,
-      SqlHelper hlp,
-      StringBuilder selectBuilder) {
-    int filterCount = 0;
-
-    StringBuilder eventDataValuesWhereSql = new StringBuilder();
-
-    for (Entry<DataElement, List<QueryFilter>> item : params.getDataElements().entrySet()) {
-      ++filterCount;
-
-      DataElement de = item.getKey();
-      List<QueryFilter> filters = item.getValue();
-      final String deUid = de.getUid();
-      final int itemValueType = de.getValueType().isNumeric() ? Types.NUMERIC : Types.VARCHAR;
-
-      final String dataValueValueSql = "ev.eventdatavalues #>> '{" + deUid + ", value}'";
-
-      String queryCol =
-          de.getValueType().isNumeric()
-              ? castToNumber(dataValueValueSql)
-              : lower(dataValueValueSql);
-      selectBuilder.append(", ").append(queryCol).append(" as ").append(deUid);
-
-      for (QueryFilter filter : filters) {
-        ++filterCount;
-        String bindParameter = "parameter_" + filterCount;
-
-        eventDataValuesWhereSql.append(hlp.whereAnd());
-
-        if (filter.getOperator().isUnary()) {
-          eventDataValuesWhereSql.append(unaryOperatorCondition(filter.getOperator(), deUid));
-        } else if (QueryOperator.IN.getValue().equalsIgnoreCase(filter.getSqlOperator())) {
-          mapSqlParameterSource.addValue(
-              bindParameter,
-              QueryFilter.getFilterItems(StringUtils.lowerCase(filter.getFilter())),
-              itemValueType);
-
-          eventDataValuesWhereSql.append(inCondition(filter, bindParameter, queryCol));
-        } else {
-          mapSqlParameterSource.addValue(
-              bindParameter,
-              de.getValueType().isNumeric()
-                  ? new BigDecimal(filter.getSqlBindFilter())
-                  : StringUtils.lowerCase(filter.getSqlBindFilter()),
-              itemValueType);
-
-          eventDataValuesWhereSql
-              .append(" ")
-              .append(queryCol)
-              .append(" ")
-              .append(filter.getSqlOperator())
-              .append(" ")
-              .append(":")
-              .append(bindParameter)
-              .append(" ");
-        }
-      }
-    }
-
-    return eventDataValuesWhereSql.append(" ");
-  }
-
-  private String unaryOperatorCondition(QueryOperator queryOperator, String deUid) {
-    return new StringBuilder()
-        .append(" ev.eventdatavalues->")
-        .append("'")
-        .append(deUid)
-        .append("' ")
-        .append(queryOperator.getValue())
-        .append(" ")
-        .toString();
-  }
-
-  private String inCondition(QueryFilter filter, String boundParameter, String queryCol) {
-    return new StringBuilder()
-        .append(" ")
-        .append(queryCol)
-        .append(" ")
-        .append(filter.getSqlOperator())
-        .append(" ")
-        .append("(")
-        .append(":")
-        .append(boundParameter)
-        .append(") ")
-        .toString();
   }
 
   private String eventStatusSql(

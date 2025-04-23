@@ -30,8 +30,8 @@
 package org.hisp.dhis.tracker.deduplication;
 
 import static org.hisp.dhis.security.Authorities.ALL;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -138,9 +138,8 @@ class PotentialDuplicateRemoveTrackedEntityTest extends PostgresIntegrationTestB
     assertTrue(trackedEntityService.findTrackedEntity(UID.of(trackedEntity)).isPresent());
     removeTrackedEntity(trackedEntity);
     assertFalse(trackedEntityService.findTrackedEntity(UID.of(trackedEntity)).isPresent());
-    assertNull(
-        trackedEntityAttributeValueService.getTrackedEntityAttributeValue(
-            trackedEntity, trackedEntityAttribute));
+    assertIsEmpty(
+        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity));
   }
 
   @Test

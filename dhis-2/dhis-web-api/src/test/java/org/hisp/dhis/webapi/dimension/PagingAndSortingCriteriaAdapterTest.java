@@ -27,25 +27,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest;
+package org.hisp.dhis.webapi.dimension;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-import lombok.SneakyThrows;
-import org.hisp.dhis.common.SortDirection;
 import org.junit.jupiter.api.Test;
 
 class PagingAndSortingCriteriaAdapterTest {
-  /** Should not fail when paging=true and pageSize is null */
   @Test
   void shouldNotThrowExceptionWhenPagingTrueAndPageSizeIsNull() {
     PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter =
@@ -57,7 +47,7 @@ class PagingAndSortingCriteriaAdapterTest {
           }
         };
     try {
-      pagingAndSortingCriteriaAdapter.isPagingRequest();
+      pagingAndSortingCriteriaAdapter.getSkipPaging();
     } catch (Exception e) {
       fail("Test was not meant to throw exception. Thrown exception is: " + e.getMessage());
     }
@@ -67,29 +57,6 @@ class PagingAndSortingCriteriaAdapterTest {
   void pagingIsEnabledByDefault() {
     PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter =
         new PagingAndSortingCriteriaAdapter() {};
-    assertFalse(toBooleanDefaultIfNull(pagingAndSortingCriteriaAdapter.isSkipPaging(), false));
-    assertTrue(pagingAndSortingCriteriaAdapter.isPagingRequest());
-  }
-
-  @Test
-  @SneakyThrows
-  void verifyGetOrder() {
-    PagingAndSortingCriteriaAdapter tested =
-        new PagingAndSortingCriteriaAdapter() {
-
-          @Override
-          public List<String> getAllowedOrderingFields() {
-            return List.of("field1", "field2");
-          }
-        };
-    tested.setOrder(
-        List.of(
-            OrderCriteria.of("field1", SortDirection.ASC),
-            OrderCriteria.of("field2", SortDirection.ASC),
-            OrderCriteria.of("field3", SortDirection.ASC)));
-    Collection<String> orderField =
-        tested.getOrder().stream().map(OrderCriteria::getField).collect(Collectors.toList());
-    assertThat(orderField, hasSize(2));
-    assertThat(orderField, containsInAnyOrder("field1", "field2"));
+    assertFalse(toBooleanDefaultIfNull(pagingAndSortingCriteriaAdapter.getSkipPaging(), false));
   }
 }

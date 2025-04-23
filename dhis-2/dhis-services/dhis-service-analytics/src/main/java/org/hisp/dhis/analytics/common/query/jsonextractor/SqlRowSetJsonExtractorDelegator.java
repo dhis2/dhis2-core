@@ -57,8 +57,8 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType;
 import org.hisp.dhis.analytics.common.query.jsonextractor.JsonEnrollment.JsonEvent;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.ValueType;
@@ -235,7 +235,7 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
     return legendSet.getLegends().stream()
         .filter(legend -> value >= legend.getStartValue() && value < legend.getEndValue())
         .findFirst()
-        .map(BaseIdentifiableObject::getDisplayName)
+        .map(IdentifiableObject::getDisplayName)
         .orElse(null);
   }
 

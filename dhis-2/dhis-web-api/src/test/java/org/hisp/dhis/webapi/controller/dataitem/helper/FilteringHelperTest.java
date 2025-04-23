@@ -45,7 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.Arrays;
 import java.util.Set;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataitem.query.QueryableDataItem;
 import org.hisp.dhis.dataset.DataSet;
@@ -67,7 +67,7 @@ class FilteringHelperTest {
     final Class<? extends BaseDimensionalItemObject>[] expectedClasses =
         new Class[] {Indicator.class, DataSet.class};
     // When
-    final Set<Class<? extends BaseIdentifiableObject>> actualClasses =
+    final Set<Class<? extends IdentifiableObject>> actualClasses =
         extractEntitiesFromInFilter(anyFilters);
     // Then
     assertThat(actualClasses, hasSize(2));
@@ -103,9 +103,9 @@ class FilteringHelperTest {
   void testExtractEntitiesFromInFilterWhenFilterIsNotFullyDefined() {
     // Given
     final String filtersNotFullyDefined = "dimensionItemType:in:[,DATA_SET]";
-    final Class<? extends BaseIdentifiableObject>[] expectedClasses = new Class[] {DataSet.class};
+    final Class<? extends IdentifiableObject>[] expectedClasses = new Class[] {DataSet.class};
     // When
-    final Set<Class<? extends BaseIdentifiableObject>> actualClasses =
+    final Set<Class<? extends IdentifiableObject>> actualClasses =
         extractEntitiesFromInFilter(filtersNotFullyDefined);
     // Then
     assertThat(actualClasses, hasSize(1));
@@ -118,8 +118,7 @@ class FilteringHelperTest {
     final String anyFilter = "dimensionItemType:eq:DATA_SET";
     final Class<? extends BaseDimensionalItemObject> expectedClass = DataSet.class;
     // When
-    final Class<? extends BaseIdentifiableObject> actualClass =
-        extractEntityFromEqualFilter(anyFilter);
+    final Class<? extends IdentifiableObject> actualClass = extractEntityFromEqualFilter(anyFilter);
     // Then
     assertThat(actualClass, is(notNullValue()));
     assertThat(actualClass, is(equalTo(expectedClass)));

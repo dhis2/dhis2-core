@@ -78,7 +78,6 @@ import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DataDimensionItemType;
 import org.hisp.dhis.common.DataDimensionalItemObject;
@@ -90,6 +89,7 @@ import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MetadataItem;
@@ -959,7 +959,7 @@ public final class AnalyticsUtils {
 
     optionSetMap.forEach(
         (key, options) -> {
-          BaseIdentifiableObject prg = key.bio();
+          IdentifiableObject prg = key.bio();
           OptionSet optionSet = key.optionSet();
 
           String metadataKey = prg.getUid() + DIMENSION_IDENTIFIER_SEP + optionSet.getUid();
@@ -1288,7 +1288,7 @@ public final class AnalyticsUtils {
     return matcher.replaceAll(startToken + replacement + endToken);
   }
 
-  private record ElementWithOptionSet(BaseIdentifiableObject bio, OptionSet optionSet) {
+  private record ElementWithOptionSet(IdentifiableObject bio, OptionSet optionSet) {
     @Override
     public boolean equals(Object o) {
       if (this == o) return true;

@@ -52,6 +52,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import java.sql.Types;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,6 +81,8 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.tracker.export.JdbcPredicate;
+import org.hisp.dhis.tracker.export.JdbcPredicate.Parameter;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.User;
@@ -97,6 +100,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.jdbc.core.SqlParameterValue;
 
 @ExtendWith(MockitoExtension.class)
 class EventOperationParamsMapperTest {
@@ -122,7 +126,7 @@ class EventOperationParamsMapperTest {
 
   @Mock private DataElementService dataElementService;
 
-  @Mock private OperationsParamsValidator operationsParamsValidator;
+  @Mock private OperationsParamsValidator paramsValidator;
 
   @InjectMocks private EventOperationParamsMapper mapper;
 
@@ -254,21 +258,26 @@ class EventOperationParamsMapperTest {
     EventOperationParams operationParams =
         eventBuilder
             .filterByAttribute(UID.of(TEA_1_UID), List.of(new QueryFilter(QueryOperator.EQ, "2")))
-            .filterByAttribute(
-                UID.of(TEA_2_UID), List.of(new QueryFilter(QueryOperator.LIKE, "foo")))
+            .filterByAttribute(UID.of(TEA_2_UID), List.of(new QueryFilter(QueryOperator.EQ, "foo")))
             .build();
 
     EventQueryParams queryParams = mapper.map(operationParams, user);
 
-    Map<TrackedEntityAttribute, List<QueryFilter>> attributes = queryParams.getAttributes();
+    Map<TrackedEntityAttribute, List<JdbcPredicate>> attributes = queryParams.getAttributes();
     assertNotNull(attributes);
-    Map<TrackedEntityAttribute, List<QueryFilter>> expected =
-        Map.of(
-            tea1,
-            List.of(new QueryFilter(QueryOperator.EQ, "2")),
-            tea2,
-            List.of(new QueryFilter(QueryOperator.LIKE, "foo")));
-    assertEquals(expected, attributes);
+    assertEquals(2, attributes.size());
+
+    assertContainsOnly(List.of(tea1, tea2), attributes.keySet());
+
+    List<JdbcPredicate> tea1Filters = attributes.get(tea1);
+    assertEquals(1, tea1Filters.size());
+    assertQueryFilterValue(
+        tea1Filters.get(0), "=", new SqlParameterValue(Types.INTEGER, List.of(2)));
+
+    List<JdbcPredicate> tea2Filters = attributes.get(tea2);
+    assertEquals(1, tea2Filters.size());
+    assertQueryFilterValue(
+        tea2Filters.get(0), "=", new SqlParameterValue(Types.VARCHAR, List.of("foo")));
   }
 
   @Test
@@ -369,20 +378,28 @@ class EventOperationParamsMapperTest {
                 List.of(
                     new QueryFilter(QueryOperator.EQ, "2"), new QueryFilter(QueryOperator.NNULL)))
             .filterByDataElement(
-                UID.of(DE_2_UID), List.of(new QueryFilter(QueryOperator.LIKE, "foo")))
+                UID.of(DE_2_UID), List.of(new QueryFilter(QueryOperator.EQ, "foo")))
             .build();
 
     EventQueryParams queryParams = mapper.map(operationParams, user);
 
-    Map<DataElement, List<QueryFilter>> dataElements = queryParams.getDataElements();
+    Map<DataElement, List<JdbcPredicate>> dataElements = queryParams.getDataElements();
     assertNotNull(dataElements);
-    Map<DataElement, List<QueryFilter>> expected =
-        Map.of(
-            de1,
-            List.of(new QueryFilter(QueryOperator.EQ, "2"), new QueryFilter(QueryOperator.NNULL)),
-            de2,
-            List.of(new QueryFilter(QueryOperator.LIKE, "foo")));
-    assertEquals(expected, dataElements);
+
+    assertEquals(2, dataElements.size());
+
+    assertContainsOnly(List.of(de1, de2), dataElements.keySet());
+
+    List<JdbcPredicate> de1Filters = dataElements.get(de1);
+    assertEquals(2, de1Filters.size());
+    assertQueryFilterValue(
+        de1Filters.get(0), "=", new SqlParameterValue(Types.INTEGER, List.of(2)));
+    assertQueryFilterValue(de1Filters.get(1), "is not null", null);
+
+    List<JdbcPredicate> de2Filters = dataElements.get(de2);
+    assertEquals(1, de2Filters.size());
+    assertQueryFilterValue(
+        de2Filters.get(0), "=", new SqlParameterValue(Types.VARCHAR, List.of("foo")));
   }
 
   @Test
@@ -540,5 +557,21 @@ class EventOperationParamsMapperTest {
     user.setUserRoles(Set.of(userRole));
 
     return user;
+  }
+
+  private static void assertQueryFilterValue(
+      JdbcPredicate actual, String sqlOperator, SqlParameterValue value) {
+    assertContains(sqlOperator, actual.getSql());
+
+    if (value != null) {
+      assertTrue(actual.getParameter().isPresent(), "expected a getParameter but got none");
+      Parameter parameter = actual.getParameter().get();
+      assertEquals(value.getSqlType(), parameter.value().getSqlType());
+      assertEquals(value.getValue(), parameter.value().getValue());
+    } else {
+      assertTrue(
+          actual.getParameter().isEmpty(),
+          () -> "getParameter should be empty but got " + actual.getParameter().get());
+    }
   }
 }
