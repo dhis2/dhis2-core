@@ -39,6 +39,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import javax.sql.DataSource;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -151,15 +152,15 @@ public class DhisWebApiWebSecurityConfig {
 
   private static class CustomRequestMatcher implements RequestMatcher {
 
-    private final List<String> excludePatterns =
-        new ArrayList<>(List.of("", "/", "/dhis-web-login", "/dhis-web-login/"));
+    private final List<Pattern> includePatterns =
+        new ArrayList<>(List.of(Pattern.compile("^/api/apps/.*"), Pattern.compile("^/apps/.*")));
 
     @Override
     public boolean matches(HttpServletRequest request) {
       String requestURI = request.getRequestURI();
-      excludePatterns.add(request.getContextPath());
-      excludePatterns.add(request.getContextPath() + "/");
-      return excludePatterns.stream().noneMatch(pattern -> pattern.equals(requestURI));
+      includePatterns.add(Pattern.compile("^" + request.getContextPath() + "/api/apps/.*"));
+      includePatterns.add(Pattern.compile("^" + request.getContextPath() + "/apps/.*"));
+      return includePatterns.stream().anyMatch(pattern -> pattern.matcher(requestURI).matches());
     }
   }
 
