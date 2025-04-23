@@ -238,14 +238,12 @@ public class AuthenticationController {
       Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
     // Default redirect URL
     String redirectUrl =
-        request.getContextPath() + "/" + settingsProvider.getCurrentSettings().getStartModule();
-    // Let the GlobalShellFilter redirect to apps
-    redirectUrl = redirectUrl.replaceFirst("/apps", "");
-
+        request.getContextPath()
+            + "/api/apps/"
+            + settingsProvider.getCurrentSettings().getStartModule();
     // GlobalShellFilter prefer ending slash when we are using old style app name like:
-    // dhis-web-dashboard
     if (!redirectUrl.endsWith("/")) {
-      redirectUrl = redirectUrl + "/";
+      redirectUrl += "/";
     }
 
     // Check enforce verified email, redirect to the profile page if email is not verified
@@ -253,7 +251,7 @@ public class AuthenticationController {
     if (enforceVerifiedEmail) {
       UserDetails userDetails = (UserDetails) authentication.getPrincipal();
       if (!userDetails.isEmailVerified()) {
-        return request.getContextPath() + "/dhis-web-user-profile/#/profile";
+        return request.getContextPath() + "/api/apps/user-profile/#/profile";
       }
     }
 
@@ -269,18 +267,11 @@ public class AuthenticationController {
           redirectUrl =
               defaultSavedRequest.getRequestURI() + "?" + defaultSavedRequest.getQueryString();
         } else {
-          String requestURI = defaultSavedRequest.getRequestURI();
-          // Ignore saved requests that is just / or /CONTEXT_PATH(/)
-          if (!requestURI.equalsIgnoreCase("/")
-              && !requestURI.equalsIgnoreCase(request.getContextPath())
-              && !requestURI.equalsIgnoreCase(request.getContextPath() + "/")) {
-            redirectUrl = requestURI;
-          }
+          redirectUrl = defaultSavedRequest.getRequestURI();
         }
       }
       this.requestCache.removeRequest(request, response);
     }
-
     return redirectUrl;
   }
 
