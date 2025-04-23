@@ -44,13 +44,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Filters calls matching <code>/api/{version}/{endpoint}</code>, where version is a number between
+ * Filters calls matching <code>/api/{version}/{resource}</code>, where version is a number between
  * 28-43 inclusive.<br>
  * When there is no match, the request gets processed as normal.<br>
  * When there is a match, the original request gets wrapped in a new request, which includes the
  * target endpoint with the version stripped out.<br>
  * e.g. <code>
- * /api/42/icons</code> gets dispatched to <code>/api/icons</code><br>
+ * /api/42/icons</code> gets re-routed to <code>/api/icons</code><br>
  * Regex match examples: <br>
  * <code>/api/42/icons</code> -> match <br>
  * <code>/api/33/icons</code> -> match <br>
@@ -61,9 +61,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * <code>/api/333/icons</code> -> no match <br>
  * <code>/api/test/icons</code> -> no match <br>
  * <code>/api/1/icons</code> -> no match <br>
+ * <code>/dashboard</code> -> no match <br>
  * <br>
- * This allows us to keep current behaviour of allowing clients to call any endpoint with a version
- * number without the need for any explicit mappings, as was the previous behaviour. This is
+ * This allows us to keep current behaviour of allowing clients to call any API endpoint with a
+ * version number without the need for any explicit mappings, as was the previous behaviour. This is
  * intended as a temporary measure, as we intend on removing support for calling endpoints with
  * version numbers in the future.
  *
@@ -93,22 +94,27 @@ public class ApiVersionFilter extends OncePerRequestFilter {
       String endpoint = matcher.group("endpoint");
 
       if (api != null && apiVersion != null && endpoint != null) {
-        String versionlessEndpoint = api + endpoint;
-
-        // this will keep all properties of the original request, except for the overridden method
-        HttpServletRequest wrappedRequest =
-            new HttpServletRequestWrapper(req) {
-              @Override
-              public String getRequestURI() {
-                // req.getContextPath() is needed for deployments in Tomcat with a custom context
-                // e.g. /dhis
-                return req.getContextPath() + versionlessEndpoint;
-              }
-            };
-        chain.doFilter(wrappedRequest, res);
+        HttpServletRequest reroutedRequest = getReroutedWrappedRequest(req, api, endpoint);
+        chain.doFilter(reroutedRequest, res);
         return;
       }
     }
     chain.doFilter(req, res);
+  }
+
+  @Nonnull
+  private static HttpServletRequest getReroutedWrappedRequest(
+      @Nonnull HttpServletRequest req, String api, String endpoint) {
+    String versionlessEndpoint = api + endpoint;
+
+    // this will keep all properties of the original request, except for the overridden method
+    return new HttpServletRequestWrapper(req) {
+      @Override
+      public String getRequestURI() {
+        // req.getContextPath() is needed for deployments in Tomcat with a custom context
+        // e.g. /dhis
+        return req.getContextPath() + versionlessEndpoint;
+      }
+    };
   }
 }
