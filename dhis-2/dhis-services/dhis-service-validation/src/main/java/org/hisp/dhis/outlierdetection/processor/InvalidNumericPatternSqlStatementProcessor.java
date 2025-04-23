@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,16 +41,11 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Component;
 
+/**
+ * @author Jason P. Pickering
+ */
 @Component
-public class MinMaxSqlStatementProcessor implements OutlierSqlStatementProcessor {
-
-  /**
-   * The function retries the sql statement for inspection of outliers. Min and max values are
-   * inspected.
-   *
-   * @param request the instance of {@link OutlierDetectionRequest}.
-   * @return sql statement for the outlier detection and related data
-   */
+public class InvalidNumericPatternSqlStatementProcessor implements OutlierSqlStatementProcessor {
   @Override
   public String getSqlStatement(OutlierDetectionRequest request) {
     if (request == null) {
@@ -58,15 +53,14 @@ public class MinMaxSqlStatementProcessor implements OutlierSqlStatementProcessor
     }
 
     String ouPathClause = OutlierDetectionUtils.getOrgUnitPathClause(request.getOrgUnits(), "ou");
-
     return "select de.uid as de_uid, ou.uid as ou_uid, coc.uid as coc_uid, aoc.uid as aoc_uid, "
         + "de.name as de_name, ou.name as ou_name, coc.name as coc_name, aoc.name as aoc_name, "
         + "pe.startdate as pe_start_date, pt.name as pt_name, "
-        + "dv.value::double precision as value, dv.followup as follow_up, "
-        + "least(abs(dv.value::double precision - mm.minimumvalue), "
-        + "abs(dv.value::double precision - mm.maximumvalue)) as bound_abs_dev, "
-        + "mm.minimumvalue as lower_bound, "
-        + "mm.maximumvalue as upper_bound "
+        + "dv.value as raw_value, dv.followup as follow_up, "
+        + "NULL, "
+        + "NULL as bound_abs_dev, "
+        + "NULL as lower_bound, "
+        + "NULL as upper_bound "
         + "from datavalue dv "
         + "inner join dataelement de on dv.dataelementid = de.dataelementid "
         + "inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid "
@@ -74,36 +68,27 @@ public class MinMaxSqlStatementProcessor implements OutlierSqlStatementProcessor
         + "inner join period pe on dv.periodid = pe.periodid "
         + "inner join periodtype pt on pe.periodtypeid = pt.periodtypeid "
         + "inner join organisationunit ou on dv.sourceid = ou.organisationunitid "
-        +
-        // Min-max value join
-        "inner join minmaxdataelement mm on (dv.dataelementid = mm.dataelementid "
-        + "and dv.sourceid = mm.sourceid and dv.categoryoptioncomboid = mm.categoryoptioncomboid) "
-        + "where dv.dataelementid in (:data_element_ids) "
-        + "and pe.startdate >= :start_date "
-        + "and pe.enddate <= :end_date "
+        + "where dv.dataelementid in (:"
+        + DATA_ELEMENT_IDS.getKey()
+        + ") "
+        + "and pe.startdate >= :"
+        + START_DATE.getKey()
+        + " "
+        + "and pe.enddate <= :"
+        + END_DATE.getKey()
+        + " "
         + "and "
         + ouPathClause
-        + " "
-        + "and dv.deleted is false "
-        + "and (trim(dv.value) ~ '"
+        + " and dv.deleted is false"
+        + " and (trim(dv.value) !~ '"
         + OutlierDetectionUtils.PG_DOUBLE_REGEX
-        + "' "
-        + "and length(split_part(trim(dv.value), '.', 1)) <= 307) "
-        // Filter for values outside the min-max range
-        + "and (dv.value::double precision < mm.minimumvalue or dv.value::double precision > mm.maximumvalue) "
-        +
-        // Order and limit
-        "order by bound_abs_dev desc "
-        + "limit :max_results;";
+        + "'"
+        + " or length(split_part(trim(dv.value), '.', 1)) > 307)"
+        + " limit :"
+        + MAX_RESULTS.getKey()
+        + ";";
   }
 
-  /**
-   * To avoid the sql injection and decrease the load of the database engine (query plan caching)
-   * the named params are in use.
-   *
-   * @param request the instance of {@link OutlierDetectionRequest}.
-   * @return named params for parametrized sql query
-   */
   @Override
   public SqlParameterSource getSqlParameterSource(OutlierDetectionRequest request) {
     return new MapSqlParameterSource()
