@@ -604,7 +604,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    * <ul>
    *   <li>{@code DESCENDANTS} – matches organisation units using the org unit's PATH
    *   <li>{@code CHILDREN} – matches the org unit's PATH or any of its immediate children
-   *   <li>{@code SELECTED} – matches the specified org unit ID directly
+   *   <li>{@code SELECTED} – matches the specified org unit UID directly
    *   <li>{@code ALL} – no org unit constraints are applied
    * </ul>
    *
