@@ -46,6 +46,19 @@ import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
  * @author Jim Grace
  */
 public abstract class ProgramCountFunction extends ProgramExpressionItem {
+
+  private static final String SQL_TEMPLATE =
+      """
+            (select count(%1$s)
+            from %2$s
+            where %2$s.enrollment = %3$s.enrollment
+            and %1$s is not null
+            and %4$s
+            %5$s
+            %6$s
+            and ps = '%7$s')
+            """;
+
   @Override
   public final Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
     validateCountFunctionArgs(ctx);
@@ -63,37 +76,28 @@ public abstract class ProgramCountFunction extends ProgramExpressionItem {
     String dataElement = ctx.uid1.getText();
 
     String eventTableName = "analytics_event_" + pi.getProgram().getUid();
-    String columnName = "\"" + dataElement + "\"";
+    String baseColumnName = visitor.getSqlBuilder().quote(dataElement);
+    String conditionSql = getConditionSql(ctx, visitor, baseColumnName);
 
-    String conditionSql = getConditionSql(ctx, visitor);
+    String endBoundarySql =
+        (pi.getEndEventBoundary() != null)
+            ? "and " + sb.getBoundaryCondition(pi.getEndEventBoundary(), pi, startDate, endDate)
+            : ""; // Empty if no end boundary
+    String startBoundarySql =
+        (pi.getStartEventBoundary() != null)
+            ? "and " + sb.getBoundaryCondition(pi.getStartEventBoundary(), pi, startDate, endDate)
+            : ""; // Empty if no start boundary
 
-    return "(select count("
-        + columnName
-        + ") from "
-        + eventTableName
-        + " where "
-        + eventTableName
-        + ".enrollment = "
-        + AnalyticsConstants.ANALYTICS_TBL_ALIAS
-        + ".enrollment and "
-        + columnName
-        + " is not null and "
-        + columnName
-        + conditionSql
-        + " "
-        + (pi.getEndEventBoundary() != null
-            ? ("and "
-                + sb.getBoundaryCondition(pi.getEndEventBoundary(), pi, startDate, endDate)
-                + " ")
-            : "")
-        + (pi.getStartEventBoundary() != null
-            ? ("and "
-                + sb.getBoundaryCondition(pi.getStartEventBoundary(), pi, startDate, endDate)
-                + " ")
-            : "")
-        + "and ps = '"
-        + programStage
-        + "')";
+    return String.format(
+        SQL_TEMPLATE,
+        baseColumnName, // %1$s: Quoted column name
+        eventTableName, // %2$s: Event table name
+        AnalyticsConstants.ANALYTICS_TBL_ALIAS, // %3$s: Outer table alias
+        conditionSql, // %4$s: Full condition predicate from subclass
+        endBoundarySql, // %5$s: End boundary condition (or empty)
+        startBoundarySql, // %6$s: Start boundary condition (or empty)
+        programStage // %7$s: Program stage UID
+        );
   }
 
   /**
@@ -118,7 +122,8 @@ public abstract class ProgramCountFunction extends ProgramExpressionItem {
    * @param visitor the program indicator expression tree visitor
    * @return the conditional part of the SQL
    */
-  public abstract String getConditionSql(ExprContext ctx, CommonExpressionVisitor visitor);
+  public abstract String getConditionSql(
+      ExprContext ctx, CommonExpressionVisitor visitor, String baseColumnName);
 
   // -------------------------------------------------------------------------
   // Supportive methods
