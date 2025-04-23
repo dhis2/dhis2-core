@@ -34,6 +34,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -151,11 +152,13 @@ public class DhisWebApiWebSecurityConfig {
   private static class CustomRequestMatcher implements RequestMatcher {
 
     private final List<String> excludePatterns =
-        List.of("", "/", "/dhis-web-login", "/dhis-web-login/");
+        new ArrayList<>(List.of("", "/", "/dhis-web-login", "/dhis-web-login/"));
 
     @Override
     public boolean matches(HttpServletRequest request) {
       String requestURI = request.getRequestURI();
+      excludePatterns.add(request.getContextPath());
+      excludePatterns.add(request.getContextPath() + "/");
       return excludePatterns.stream().noneMatch(pattern -> pattern.equals(requestURI));
     }
   }
