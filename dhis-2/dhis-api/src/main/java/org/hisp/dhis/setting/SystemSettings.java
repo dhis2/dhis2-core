@@ -242,10 +242,6 @@ public non-sealed interface SystemSettings extends Settings {
     return asString("phoneNumberAreaCode", "");
   }
 
-  default boolean getMultiOrganisationUnitForms() {
-    return asBoolean("multiOrganisationUnitForms", false);
-  }
-
   default boolean getAccountRecoveryEnabled() {
     return asBoolean("keyAccountRecovery", false);
   }

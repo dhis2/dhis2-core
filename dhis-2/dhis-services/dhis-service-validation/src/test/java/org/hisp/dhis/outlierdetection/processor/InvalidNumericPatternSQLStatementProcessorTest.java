@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,26 +44,19 @@ import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class MinMaxSqlStatementProcessorTest {
+class NumericPatternSqlStatementProcessorTest {
+
   private OutlierSqlStatementProcessor subject;
 
-  // -------------------------------------------------------------------------
-  // Fixture
-  // -------------------------------------------------------------------------
-
   private DataElement deA;
-
   private DataElement deB;
-
   private DataElement deC;
-
   private OrganisationUnit ouA;
-
   private OrganisationUnit ouB;
 
   @BeforeEach
-  public void setUp() {
-    subject = new MinMaxSqlStatementProcessor();
+  void setUp() {
+    subject = new InvalidNumericPatternSqlStatementProcessor();
 
     deA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
     deB = createDataElement('B', ValueType.INTEGER, AggregationType.SUM);
@@ -81,14 +74,44 @@ class MinMaxSqlStatementProcessorTest {
             .withStartEndDate(getDate(2020, 1, 1), getDate(2020, 3, 1))
             .withOrgUnits(Lists.newArrayList(ouA, ouB))
             .build();
+
     String sql = subject.getSqlStatement(request);
+
     String expected =
-        "select de.uid as de_uid, ou.uid as ou_uid, coc.uid as coc_uid, aoc.uid as aoc_uid, de.name as de_name, ou.name as ou_name, coc.name as coc_name, aoc.name as aoc_name, pe.startdate as pe_start_date, pt.name as pt_name, dv.value::double precision as value, dv.followup as follow_up, least(abs(dv.value::double precision - mm.minimumvalue), abs(dv.value::double precision - mm.maximumvalue)) as bound_abs_dev, mm.minimumvalue as lower_bound, mm.maximumvalue as upper_bound from datavalue dv inner join dataelement de on dv.dataelementid = de.dataelementid inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid inner join categoryoptioncombo aoc on dv.attributeoptioncomboid = aoc.categoryoptioncomboid inner join period pe on dv.periodid = pe.periodid inner join periodtype pt on pe.periodtypeid = pt.periodtypeid inner join organisationunit ou on dv.sourceid = ou.organisationunitid inner join minmaxdataelement mm on (dv.dataelementid = mm.dataelementid and dv.sourceid = mm.sourceid and dv.categoryoptioncomboid = mm.categoryoptioncomboid) where dv.dataelementid in (:data_element_ids) and pe.startdate >= :start_date and pe.enddate <= :end_date and (ou.\"path\" like '/ouabcdefghA%' or ou.\"path\" like '/ouabcdefghB%') and dv.deleted is false and (trim(dv.value) ~ '^[+-]?(\\d+(\\.\\d*)?|\\.\\d+)$' and length(split_part(trim(dv.value), '.', 1)) <= 307) and (dv.value::double precision < mm.minimumvalue or dv.value::double precision > mm.maximumvalue) order by bound_abs_dev desc limit :max_results;";
-    assertEquals(expected, sql);
+        """
+      select de.uid as de_uid, ou.uid as ou_uid, coc.uid as coc_uid, aoc.uid as aoc_uid,
+      de.name as de_name, ou.name as ou_name, coc.name as coc_name, aoc.name as aoc_name,
+      pe.startdate as pe_start_date, pt.name as pt_name,
+      dv.value as raw_value, dv.followup as follow_up,
+      NULL,
+      NULL as bound_abs_dev,
+      NULL as lower_bound,
+      NULL as upper_bound
+      from datavalue dv
+      inner join dataelement de on dv.dataelementid = de.dataelementid
+      inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid
+      inner join categoryoptioncombo aoc on dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+      inner join period pe on dv.periodid = pe.periodid
+      inner join periodtype pt on pe.periodtypeid = pt.periodtypeid
+      inner join organisationunit ou on dv.sourceid = ou.organisationunitid
+      where dv.dataelementid in (:data_element_ids)
+      and pe.startdate >= :start_date
+      and pe.enddate <= :end_date
+      and (ou."path" like '/ouabcdefghA%' or ou."path" like '/ouabcdefghB%')
+      and dv.deleted is false
+      and (trim(dv.value) !~ '^-?[0-9]+(\\.[0-9]+)?$' or length(split_part(trim(dv.value), '.', 1)) > 307)
+      limit :max_results;
+      """;
+
+    assertEquals(normalizeSql(expected), normalizeSql(sql));
   }
 
   @Test
   void testGetSqlStatementWithNullRequest() {
     assertEquals(StringUtils.EMPTY, subject.getSqlStatement(null));
+  }
+
+  private static String normalizeSql(String sql) {
+    return sql.trim().replaceAll("\\s+", " ");
   }
 }
