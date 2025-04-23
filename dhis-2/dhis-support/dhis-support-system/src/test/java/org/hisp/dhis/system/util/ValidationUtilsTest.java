@@ -509,7 +509,7 @@ class ValidationUtilsTest {
     assertNotNull(valueIsValid("12345", de));
 
     de.setValueType(EMAIL);
-    assertNull(valueIsValid("enrico@dhis2.org", de));
+    assertNull(valueIsValid("validemail@dhis2.org", de));
     assertNotNull(valueIsValid("notValidEmail", de));
 
     de.setValueType(USERNAME);
