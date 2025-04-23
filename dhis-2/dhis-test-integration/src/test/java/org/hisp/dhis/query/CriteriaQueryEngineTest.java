@@ -43,8 +43,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.query.operators.MatchMode;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.user.User;
@@ -61,8 +59,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
-
-  @Autowired private SchemaService schemaService;
 
   @Autowired private QueryService queryService;
 
@@ -287,9 +283,8 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void sortNameDesc() {
-    Schema schema = schemaService.getDynamicSchema(DataElement.class);
     Query<?> query = Query.of(DataElement.class);
-    query.addOrder(new Order(schema.getProperty("name"), Direction.DESCENDING));
+    query.addOrder(new Order("name", Direction.DESCENDING));
     List<? extends IdentifiableObject> objects = runQuery(query);
     assertEquals(6, objects.size());
     assertEquals("deabcdefghF", objects.get(0).getUid());
@@ -302,9 +297,8 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void sortNameAsc() {
-    Schema schema = schemaService.getDynamicSchema(DataElement.class);
     Query<?> query = Query.of(DataElement.class);
-    query.addOrder(new Order(schema.getProperty("name"), Direction.ASCENDING));
+    query.addOrder(new Order("name", Direction.ASCENDING));
     List<? extends IdentifiableObject> objects = runQuery(query);
     assertEquals(6, objects.size());
     assertEquals("deabcdefghA", objects.get(0).getUid());
@@ -317,9 +311,8 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void sortCreatedDesc() {
-    Schema schema = schemaService.getDynamicSchema(DataElement.class);
     Query<?> query = Query.of(DataElement.class);
-    query.addOrder(new Order(schema.getProperty("created"), Direction.DESCENDING));
+    query.addOrder(new Order("created", Direction.DESCENDING));
     List<? extends IdentifiableObject> objects = runQuery(query);
     assertEquals(6, objects.size());
     assertEquals("deabcdefghF", objects.get(0).getUid());
@@ -332,9 +325,8 @@ class CriteriaQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void sortCreatedAsc() {
-    Schema schema = schemaService.getDynamicSchema(DataElement.class);
     Query<?> query = Query.of(DataElement.class);
-    query.addOrder(new Order(schema.getProperty("created"), Direction.ASCENDING));
+    query.addOrder(new Order("created", Direction.ASCENDING));
     List<? extends IdentifiableObject> objects = runQuery(query);
     assertEquals(6, objects.size());
     assertEquals("deabcdefghA", objects.get(0).getUid());
