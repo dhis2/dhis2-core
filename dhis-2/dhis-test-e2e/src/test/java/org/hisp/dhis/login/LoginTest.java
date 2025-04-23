@@ -236,7 +236,7 @@ public class LoginTest extends BaseE2ETest {
   void testRedirectAccountWhenVerifiedEmailEnforced() {
     changeSystemSetting("enforceVerifiedEmail", "true");
     try {
-      assertRedirectUrl("/dhis-web-dashboard/", "/dhis-web-user-profile/#/profile");
+      assertRedirectUrl("/dhis-web-dashboard/", "/api/apps/user-profile/#/profile");
     } finally {
       changeSystemSetting("enforceVerifiedEmail", "false");
     }
