@@ -30,6 +30,8 @@ package org.hisp.dhis.tracker.imports.validation.validator.event;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertNoErrors;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -43,6 +45,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStage;
@@ -76,6 +79,7 @@ class DataValuesValidatorTest {
 
   private DataValuesValidator validator;
 
+  @Mock OptionService optionService;
   @Mock TrackerPreheat preheat;
 
   private static final String programStageUid = "programStageUid";
@@ -118,7 +122,7 @@ class DataValuesValidatorTest {
 
   @BeforeEach
   public void setUp() {
-    validator = new DataValuesValidator();
+    validator = new DataValuesValidator(optionService);
 
     when(bundle.getPreheat()).thenReturn(preheat);
 
@@ -899,6 +903,8 @@ class DataValuesValidatorTest {
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
         .thenReturn(programStage);
 
+    when(optionService.existsAllOptions(any(), anyList())).thenReturn(true);
+
     Event event =
         Event.builder()
             .programStage(idSchemes.toMetadataIdentifier(programStage))
@@ -963,6 +969,8 @@ class DataValuesValidatorTest {
     ProgramStage programStage = programStage(dataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
         .thenReturn(programStage);
+
+    when(optionService.existsAllOptions(any(), anyList())).thenReturn(true);
 
     Event event =
         Event.builder()

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,18 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.config;
+package org.hisp.dhis.hibernate.jsonb.type;
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.introspect.Annotated;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 
-@Configuration
-@Profile({"!impersonate-user-test"})
-public class ConfigProviderConfiguration {
-  @Bean(name = "dhisConfigurationProvider")
-  public DhisConfigurationProvider dhisConfigurationProvider() {
-    return new H2DhisConfigurationProvider();
+/**
+ * Serialise write only properties since they may need to be read internally. IMPORTANT: do not
+ * attempt to use an object mapper that has this introspector set to serialise the API response.
+ */
+class IgnoreJsonPropertyWriteOnlyAccessJacksonAnnotationIntrospector
+    extends JacksonAnnotationIntrospector {
+
+  @Override
+  public JsonProperty.Access findPropertyAccess(Annotated m) {
+    JsonProperty.Access propertyAccess = super.findPropertyAccess(m);
+    if (propertyAccess != null && propertyAccess.equals(JsonProperty.Access.WRITE_ONLY)) {
+      return null;
+    } else {
+      return propertyAccess;
+    }
   }
 }

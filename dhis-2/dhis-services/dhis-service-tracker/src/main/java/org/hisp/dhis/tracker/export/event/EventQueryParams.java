@@ -422,7 +422,6 @@ class EventQueryParams {
   /** Order by the given data element {@code de} in given sort {@code direction}. */
   public EventQueryParams orderBy(DataElement de, SortDirection direction) {
     this.order.add(new Order(de, direction));
-    this.dataElements.putIfAbsent(de, new ArrayList<>());
     return this;
   }
 
@@ -471,6 +470,11 @@ class EventQueryParams {
 
   public EventQueryParams filterBy(TrackedEntityAttribute tea) {
     this.attributes.putIfAbsent(tea, new ArrayList<>());
+    return this;
+  }
+
+  public EventQueryParams filterBy(DataElement de) {
+    this.dataElements.putIfAbsent(de, new ArrayList<>());
     return this;
   }
 

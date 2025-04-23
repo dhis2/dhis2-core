@@ -34,6 +34,8 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
@@ -54,14 +56,14 @@ import org.hisp.dhis.user.UserDetails;
 @Getter
 @EqualsAndHashCode
 public final class UID implements Serializable {
-  private static final String VALID_UID_FORMAT =
-      "UID must be an alphanumeric string of 11 characters starting with a letter.";
 
   private final String value;
 
   private UID(String value) {
     if (!CodeGenerator.isValidUid(value)) {
-      throw new IllegalArgumentException(VALID_UID_FORMAT);
+      throw new IllegalArgumentException(
+          "UID must be an alphanumeric string of 11 characters starting with a letter, but was: "
+              + value);
     }
     this.value = value;
   }
@@ -82,6 +84,10 @@ public final class UID implements Serializable {
 
   public static UID of(@CheckForNull UidObject object) {
     return object == null ? null : new UID(object.getUid());
+  }
+
+  public static Set<UID> of(@Nonnull Stream<? extends UidObject> s) {
+    return s.map(el -> UID.of(el.getUid())).collect(Collectors.toSet());
   }
 
   public static Set<String> toValueSet(Collection<UID> uids) {

@@ -67,7 +67,8 @@ public class EventOperationParams {
 
   private String orgUnitUid;
 
-  private OrganisationUnitSelectionMode orgUnitMode;
+  @Builder.Default
+  private OrganisationUnitSelectionMode orgUnitMode = OrganisationUnitSelectionMode.ACCESSIBLE;
 
   private AssignedUserSelectionMode assignedUserMode;
 
@@ -147,7 +148,7 @@ public class EventOperationParams {
 
   private Set<String> enrollments;
 
-  private EventParams eventParams;
+  @Builder.Default private EventParams eventParams = EventParams.FALSE;
 
   public static class EventOperationParamsBuilder {
 

@@ -53,6 +53,7 @@ import org.hisp.dhis.dxf2.datavalueset.ImportContext.DataSetContext;
 import org.hisp.dhis.dxf2.datavalueset.ImportContext.DataValueContext;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -70,13 +71,12 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class DataValueSetImportValidator {
+
   private final AclService aclService;
-
   private final LockExceptionStore lockExceptionStore;
-
   private final DataApprovalService approvalService;
-
   private final DataValueService dataValueService;
+  private final OptionService optionService;
 
   /** Validation on the {@link DataSet} level */
   interface DataSetValidation {
@@ -128,7 +128,7 @@ public class DataValueSetImportValidator {
     register(DataValueSetImportValidator::validateDataValueIsDefined);
     register(DataValueSetImportValidator::validateDataValueIsValid);
     register(DataValueSetImportValidator::validateDataValueCommentIsValid);
-    register(DataValueSetImportValidator::validateDataValueOptionsExist);
+    register(this::validateDataValueOptionsExist);
 
     // DataValue Constraints
     register(DataValueSetImportValidator::checkDataValueCategoryOptionCombo);
@@ -384,7 +384,7 @@ public class DataValueSetImportValidator {
         ValidationUtils.normalizeBoolean(
             dataValue.getValue(), valueContext.getDataElement().getValueType());
 
-    String errorKey = ValidationUtils.valueIsValid(value, valueContext.getDataElement(), false);
+    String errorKey = ValidationUtils.valueIsValid(value, valueContext.getDataElement());
 
     if (errorKey != null) {
       context.addConflict(
@@ -408,7 +408,7 @@ public class DataValueSetImportValidator {
     }
   }
 
-  private static void validateDataValueOptionsExist(
+  private void validateDataValueOptionsExist(
       DataValueEntry dataValue,
       ImportContext context,
       DataSetContext dataSetContext,
@@ -417,17 +417,14 @@ public class DataValueSetImportValidator {
     if (!de.hasOptionSet()) {
       return;
     }
-    Set<String> optionCodes =
-        context
-            .getDataElementOptionsMap()
-            .get(de.getUid(), () -> de.getOptionSet().getOptionCodesAsSet());
-    ValueType valueType = de.getValueType();
     String value = dataValue.getValue();
-    boolean invalid =
-        valueType != ValueType.MULTI_TEXT
-            ? !optionCodes.contains(value)
-            : !optionCodes.containsAll(ValueType.splitMultiText(value));
-    if (invalid) {
+    boolean valid =
+        optionService.existsAllOptions(
+            de.getOptionSet().getUid(),
+            de.getValueType() != ValueType.MULTI_TEXT
+                ? List.of(value)
+                : ValueType.splitMultiText(value));
+    if (!valid) {
       context.addConflict(
           valueContext.getIndex(),
           DataValueImportConflict.DATA_ELEMENT_INVALID_OPTION,

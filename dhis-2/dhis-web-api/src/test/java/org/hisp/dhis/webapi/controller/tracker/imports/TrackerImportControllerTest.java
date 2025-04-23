@@ -50,6 +50,7 @@ import java.util.LinkedList;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfigurationService;
@@ -323,9 +324,8 @@ class TrackerImportControllerTest {
             new HashMap<>());
 
     // When
-    when(notifier.getJobSummaryByJobId(TRACKER_IMPORT_JOB, uid)).thenReturn(importReport);
-
-    when(trackerImportService.buildImportReport(any(), any())).thenReturn(importReport);
+    JsonValue report = JsonValue.of(new ObjectMapper().writeValueAsString(importReport));
+    when(notifier.getJobSummaryByJobId(TRACKER_IMPORT_JOB, uid)).thenReturn(report);
 
     // Then
     String contentAsString =
@@ -336,14 +336,12 @@ class TrackerImportControllerTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message").doesNotExist())
             .andExpect(content().contentType("application/json"))
             .andReturn()
             .getResponse()
             .getContentAsString();
 
     verify(notifier).getJobSummaryByJobId(TRACKER_IMPORT_JOB, uid);
-    verify(trackerImportService).buildImportReport(any(), any());
 
     try {
       renderService.fromJson(contentAsString, ImportReport.class);

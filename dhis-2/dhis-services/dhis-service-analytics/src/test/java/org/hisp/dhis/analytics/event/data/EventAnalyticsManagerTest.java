@@ -110,6 +110,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
+  @Mock private OrganisationUnitResolver organisationUnitResolver;
+
   private JdbcEventAnalyticsManager subject;
 
   @Captor private ArgumentCaptor<String> sql;
@@ -138,7 +140,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             programIndicatorSubqueryBuilder,
             timeCoordinateSelector,
             executionPlanStore,
-            sqlBuilder);
+            sqlBuilder,
+            organisationUnitResolver);
 
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
   }
@@ -662,6 +665,34 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + "\" is not null)";
 
     assertThat(sql.getValue(), containsString(expectedFirstOrLastSubquery));
+  }
+
+  @Test
+  void verifyGetAggregatedEventQueryWithMeasureCriteria() {
+
+    when(rowSet.getString("fWIAEtYVEGk")).thenReturn("2000");
+
+    mockRowSet();
+
+    Grid resultGrid =
+        subject.getAggregatedEventData(
+            createRequestParamsMeasureCriteria(programStage, ValueType.TEXT), createGrid(), 200000);
+
+    assertThat(resultGrid.getRows(), hasSize(1));
+    assertThat(resultGrid.getRow(0), hasSize(4));
+    assertThat(resultGrid.getRow(0).get(0), is("2000"));
+    assertThat(resultGrid.getRow(0).get(1), is("2017Q1"));
+    assertThat(resultGrid.getRow(0).get(2), is("Sierra Leone"));
+    assertThat(resultGrid.getRow(0).get(3), is(100));
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    // Verify that the Measure criteria is applied to the query
+    assertThat(sql.getValue().trim(), containsString("having"));
+    assertThat(
+        sql.getValue().trim(), containsString("round(count(ax.\"psi\")::numeric, 10) > 10.0"));
+    assertThat(
+        sql.getValue().trim(), containsString("round(count(ax.\"psi\")::numeric, 10) < 20.0"));
   }
 
   private EventQueryParams createRequestParamsWithFilter(ValueType queryItemValueType) {

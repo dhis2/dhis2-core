@@ -33,7 +33,7 @@ import javax.persistence.EntityManager;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.config.ConfigProviderConfiguration;
+import org.hisp.dhis.config.H2TestConfig;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
@@ -65,7 +65,7 @@ import org.springframework.web.context.WebApplicationContext;
  */
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
-@ContextConfiguration(classes = {ConfigProviderConfiguration.class, WebMvcConfig.class})
+@ContextConfiguration(classes = {H2TestConfig.class, WebMvcConfig.class})
 @ActiveProfiles("test-h2")
 @IntegrationH2Test
 @Transactional

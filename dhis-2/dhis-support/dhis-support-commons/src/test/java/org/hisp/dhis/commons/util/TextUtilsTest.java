@@ -38,7 +38,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Lars Helge Overland
@@ -266,5 +271,27 @@ class TextUtilsTest {
   void testEmptyIfTrue() {
     assertEquals("", TextUtils.emptyIfTrue("foo", true));
     assertEquals("foo", TextUtils.emptyIfTrue("foo", false));
+  }
+
+  @ParameterizedTest
+  @MethodSource("urlFormatParams")
+  @DisplayName("URL formats are valid and cleaned")
+  void urlFormatsTest(String baseUrl, String path, String expected) {
+    String cleanValidUrl = TextUtils.getCleanValidUrl(baseUrl, path);
+    assertEquals(expected, cleanValidUrl);
+  }
+
+  private static Stream<Arguments> urlFormatParams() {
+    return Stream.of(
+        Arguments.of(
+            "http://dhis2.org/", "//path//to/resource/", "http://dhis2.org/path/to/resource/"),
+        Arguments.of(
+            "https://dhis2.org", "path//to///resource", "https://dhis2.org/path/to/resource"),
+        Arguments.of(
+            "https://dhis2.org/", "path/to/resource", "https://dhis2.org/path/to/resource"),
+        Arguments.of(
+            "https://dhis2.org",
+            "////path//to///resource//",
+            "https://dhis2.org/path/to/resource/"));
   }
 }

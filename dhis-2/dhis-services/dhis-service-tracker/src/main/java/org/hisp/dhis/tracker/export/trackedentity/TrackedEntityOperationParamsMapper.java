@@ -42,6 +42,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -115,8 +116,8 @@ class TrackedEntityOperationParamsMapper {
         program, requestedTrackedEntityType, operationParams, orgUnits, params);
 
     params
-        .setProgram(program)
-        .setPrograms(programs)
+        .setEnrolledInTrackerProgram(program)
+        .setAccessibleTrackerPrograms(programs)
         .setProgramStage(programStage)
         .setProgramStatus(operationParams.getProgramStatus())
         .setFollowUp(operationParams.getFollowUp())
@@ -140,7 +141,7 @@ class TrackedEntityOperationParamsMapper {
         .setIncludeDeleted(operationParams.isIncludeDeleted())
         .setPotentialDuplicate(operationParams.getPotentialDuplicate());
 
-    validateGlobalSearchParameters(params);
+    validateSearchOutsideCaptureScopeParameters(params);
 
     return params;
   }
@@ -281,33 +282,35 @@ class TrackedEntityOperationParamsMapper {
     }
   }
 
-  private void validateGlobalSearchParameters(TrackedEntityQueryParams params)
+  private void validateSearchOutsideCaptureScopeParameters(TrackedEntityQueryParams params)
       throws IllegalQueryException {
-    if (!isLocalSearch(params, params.getUser())) {
-
-      if (params.hasFilters()) {
-        List<String> searchableAttributeIds = getSearchableAttributeIds(params);
-        validateSearchableAttributes(params, searchableAttributeIds);
-      }
-
-      int maxTeiLimit = getMaxTeiLimit(params);
-      checkIfMaxTeiLimitIsReached(params, maxTeiLimit);
-      params.setMaxTeLimit(maxTeiLimit);
+    if (isSearchInCaptureScope(params, params.getUser())) {
+      return;
     }
+
+    if (params.hasFilters()) {
+      List<String> searchableAttributeIds = getSearchableAttributeIds(params);
+      validateSearchableAttributes(params, searchableAttributeIds);
+    }
+
+    int maxTeiLimit = getMaxTeiLimit(params);
+    params.setMaxTeLimit(maxTeiLimit);
+    checkIfMaxTeiLimitIsReached(params, maxTeiLimit);
   }
 
   private List<String> getSearchableAttributeIds(TrackedEntityQueryParams params) {
     List<String> searchableAttributeIds = new ArrayList<>();
 
-    if (params.hasProgram()) {
-      searchableAttributeIds.addAll(params.getProgram().getSearchableAttributeIds());
+    if (params.hasEnrolledInTrackerProgram()) {
+      searchableAttributeIds.addAll(
+          params.getEnrolledInTrackerProgram().getSearchableAttributeIds());
     }
 
     if (params.hasTrackedEntityType()) {
       searchableAttributeIds.addAll(params.getTrackedEntityType().getSearchableAttributeIds());
     }
 
-    if (!params.hasProgram() && !params.hasTrackedEntityType()) {
+    if (!params.hasEnrolledInTrackerProgram() && !params.hasTrackedEntityType()) {
       searchableAttributeIds.addAll(
           trackedEntityAttributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream()
               .map(TrackedEntityAttribute::getUid)
@@ -347,13 +350,13 @@ class TrackedEntityOperationParamsMapper {
       }
     }
 
-    if (params.hasProgram()) {
-      maxTeiLimit = params.getProgram().getMaxTeiCountToReturn();
+    if (params.hasEnrolledInTrackerProgram()) {
+      maxTeiLimit = params.getEnrolledInTrackerProgram().getMaxTeiCountToReturn();
 
       if (!params.hasTrackedEntities() && isProgramMinAttributesViolated(params)) {
         throw new IllegalQueryException(
             "At least "
-                + params.getProgram().getMinAttributesRequiredToSearch()
+                + params.getEnrolledInTrackerProgram().getMinAttributesRequiredToSearch()
                 + " attributes should be mentioned in the search criteria.");
       }
     }
@@ -361,7 +364,11 @@ class TrackedEntityOperationParamsMapper {
     return maxTeiLimit;
   }
 
-  private boolean isLocalSearch(TrackedEntityQueryParams params, User user) {
+  private boolean isSearchInCaptureScope(TrackedEntityQueryParams params, User user) {
+    if (OrganisationUnitSelectionMode.CAPTURE == params.getOrgUnitMode()) {
+      return true;
+    }
+
     Set<OrganisationUnit> localOrgUnits = user.getOrganisationUnits();
 
     Set<OrganisationUnit> searchOrgUnits = new HashSet<>();
@@ -405,9 +412,11 @@ class TrackedEntityOperationParamsMapper {
       return false;
     }
 
-    return (!params.hasFilters() && params.getProgram().getMinAttributesRequiredToSearch() > 0)
+    return (!params.hasFilters()
+            && params.getEnrolledInTrackerProgram().getMinAttributesRequiredToSearch() > 0)
         || (params.hasFilters()
-            && params.getFilters().size() < params.getProgram().getMinAttributesRequiredToSearch());
+            && params.getFilters().size()
+                < params.getEnrolledInTrackerProgram().getMinAttributesRequiredToSearch());
   }
 
   private void checkIfMaxTeiLimitIsReached(TrackedEntityQueryParams params, int maxTeiLimit) {

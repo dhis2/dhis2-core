@@ -79,13 +79,6 @@ public class AssignDataValueExecutor implements RuleActionExecutor<Event> {
             .findAny()
             .orElse(null);
 
-    // Hopefully we will be able to remove this special case once rule engine will support
-    // optionSets
-    if (dataElement.isOptionSetValue()
-        && !dataElement.getOptionSet().getOptionCodes().contains(value)) {
-      return assignInvalidOptionDataElement(payloadDataValue, canOverwrite, event);
-    }
-
     if (payloadDataValue == null
         || Boolean.TRUE.equals(canOverwrite)
         || isEqual(value, payloadDataValue.getValue(), dataElement.getValueType())) {
@@ -93,20 +86,6 @@ public class AssignDataValueExecutor implements RuleActionExecutor<Event> {
       return Optional.of(warning(ruleUid, ValidationCode.E1308, dataElementUid, event.getEvent()));
     }
     return Optional.of(error(ruleUid, ValidationCode.E1307, dataElementUid, value));
-  }
-
-  private Optional<ProgramRuleIssue> assignInvalidOptionDataElement(
-      DataValue payloadDataValue, Boolean canOverwrite, Event event) {
-    if (payloadDataValue == null || payloadDataValue.getValue() == null) {
-      return Optional.of(warning(ruleUid, ValidationCode.E1308, dataElementUid, event.getEvent()));
-    }
-
-    if (Boolean.TRUE.equals(canOverwrite)) {
-      payloadDataValue.setValue(null);
-      return Optional.of(warning(ruleUid, ValidationCode.E1308, dataElementUid, event.getEvent()));
-    }
-
-    return Optional.of(error(ruleUid, ValidationCode.E1307, dataElementUid, ""));
   }
 
   private void addOrOverwriteDataValue(

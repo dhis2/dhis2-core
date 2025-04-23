@@ -42,6 +42,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
@@ -64,6 +65,7 @@ class LastUpdateImportTest extends TrackerTest {
   @Autowired private IdentifiableObjectManager manager;
 
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity;
+  private org.hisp.dhis.tracker.imports.domain.TrackedEntity anotherTrackedEntity;
   private org.hisp.dhis.tracker.imports.domain.Enrollment enrollment;
   private org.hisp.dhis.tracker.imports.domain.Event event;
 
@@ -83,6 +85,11 @@ class LastUpdateImportTest extends TrackerTest {
     assertNoErrors(trackerImportService.importTracker(new TrackerImportParams(), trackerObjects));
 
     trackedEntity = trackerObjects.getTrackedEntities().get(0);
+
+    trackerObjects = fromJson("tracker/another_single_te.json");
+    assertNoErrors(trackerImportService.importTracker(new TrackerImportParams(), trackerObjects));
+
+    anotherTrackedEntity = trackerObjects.getTrackedEntities().get(0);
 
     trackerObjects = fromJson("tracker/single_enrollment.json");
     assertNoErrors(trackerImportService.importTracker(new TrackerImportParams(), trackerObjects));
@@ -118,6 +125,101 @@ class LastUpdateImportTest extends TrackerTest {
         String.format(
             "Data integrity error for tracked entity %s. The lastUpdated date has not been updated after the import",
             trackedEntity.getUid()));
+  }
+
+  @Test
+  void shouldUpdateOnlyFromTrackedEntityWhenUnidirectionalRelationshipIsCreated()
+      throws IOException {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "m1575931405");
+    relationshipType.setBidirectional(false);
+    manager.update(relationshipType);
+    TrackedEntity fromEntityBeforeUpdate = getTrackedEntity();
+    TrackedEntity toEntityBeforeUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
+
+    TrackerObjects trackerObjects = fromJson("tracker/relationshipTEtoTE.json");
+    assertNoErrors(trackerImportService.importTracker(new TrackerImportParams(), trackerObjects));
+    clearSession();
+
+    TrackedEntity fromEntityAfterUpdate = getTrackedEntity();
+    TrackedEntity toEntityAfterUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
+
+    assertTrackedEntityUpdated(fromEntityBeforeUpdate, fromEntityAfterUpdate, getCurrentUser());
+    assertTrackedEntityNotUpdated(toEntityBeforeUpdate, toEntityAfterUpdate);
+  }
+
+  @Test
+  void shouldUpdateFromAndToTrackedEntitiesWhenBidirectionalRelationshipIsCreated()
+      throws IOException {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "m1575931405");
+    relationshipType.setBidirectional(true);
+    manager.update(relationshipType);
+
+    TrackedEntity fromEntityBeforeUpdate = getTrackedEntity();
+    TrackedEntity toEntityBeforeUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
+
+    TrackerObjects trackerObjects = fromJson("tracker/relationshipTEtoTE.json");
+    assertNoErrors(trackerImportService.importTracker(new TrackerImportParams(), trackerObjects));
+    clearSession();
+
+    TrackedEntity fromEntityAfterUpdate = getTrackedEntity();
+    TrackedEntity toEntityAfterUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
+
+    assertTrackedEntityUpdated(fromEntityBeforeUpdate, fromEntityAfterUpdate, getCurrentUser());
+    assertTrackedEntityUpdated(toEntityBeforeUpdate, toEntityAfterUpdate, getCurrentUser());
+  }
+
+  @Test
+  void shouldUpdateOnlyFromTrackedEntityWhenUnidirectionalRelationshipIsDeleted()
+      throws IOException {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "m1575931405");
+    relationshipType.setBidirectional(false);
+    manager.update(relationshipType);
+
+    TrackerObjects trackerObjects = fromJson("tracker/relationshipTEtoTE.json");
+    assertNoErrors(trackerImportService.importTracker(new TrackerImportParams(), trackerObjects));
+    clearSession();
+
+    TrackedEntity fromEntityBeforeUpdate = getTrackedEntity();
+    TrackedEntity toEntityBeforeUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
+    clearSession();
+
+    assertNoErrors(
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build(),
+            trackerObjects));
+
+    TrackedEntity fromEntityAfterUpdate = getTrackedEntity();
+    TrackedEntity toEntityAfterUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
+
+    assertTrackedEntityUpdated(fromEntityBeforeUpdate, fromEntityAfterUpdate, getCurrentUser());
+    assertTrackedEntityNotUpdated(toEntityBeforeUpdate, toEntityAfterUpdate);
+  }
+
+  @Test
+  void shouldUpdateFromAndToTrackedEntitiesWhenBidirectionalRelationshipIsDeleted()
+      throws IOException {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "m1575931405");
+    relationshipType.setBidirectional(true);
+    manager.update(relationshipType);
+
+    TrackerObjects trackerObjects = fromJson("tracker/relationshipTEtoTE.json");
+    assertNoErrors(trackerImportService.importTracker(new TrackerImportParams(), trackerObjects));
+    clearSession();
+
+    TrackedEntity fromEntityBeforeUpdate = getTrackedEntity();
+    TrackedEntity toEntityBeforeUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
+    clearSession();
+
+    assertNoErrors(
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build(),
+            trackerObjects));
+
+    TrackedEntity fromEntityAfterUpdate = getTrackedEntity();
+    TrackedEntity toEntityAfterUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
+
+    assertTrackedEntityUpdated(fromEntityBeforeUpdate, fromEntityAfterUpdate, getCurrentUser());
+    assertTrackedEntityUpdated(toEntityBeforeUpdate, toEntityAfterUpdate, getCurrentUser());
   }
 
   @Test
@@ -457,6 +559,40 @@ class LastUpdateImportTest extends TrackerTest {
                     event.getUid())));
   }
 
+  private void assertTrackedEntityUpdated(
+      TrackedEntity entityBeforeUpdate, TrackedEntity entityAfterUpdate, User user) {
+    assertTrue(
+        entityAfterUpdate.getLastUpdated().getTime()
+            > entityBeforeUpdate.getLastUpdated().getTime(),
+        String.format(
+            "Data integrity error for tracked entity %s. The lastUpdated date has not been updated"
+                + " after the import",
+            entityAfterUpdate.getUid()));
+    assertEquals(
+        user.getUid(),
+        entityAfterUpdate.getLastUpdatedByUserInfo().getUid(),
+        String.format(
+            "Data integrity error for tracked entity %s. The lastUpdatedByUserinfo has not been"
+                + " updated during the import",
+            entityAfterUpdate.getUid()));
+  }
+
+  private void assertTrackedEntityNotUpdated(
+      TrackedEntity entityBeforeUpdate, TrackedEntity entityAfterUpdate) {
+    assertEquals(
+        entityBeforeUpdate.getLastUpdated().getTime(),
+        entityAfterUpdate.getLastUpdated().getTime(),
+        String.format(
+            "Data integrity error for tracked entity %s. The lastUpdated date has been updated after the import",
+            entityAfterUpdate.getUid()));
+    assertEquals(
+        entityBeforeUpdate.getLastUpdatedByUserInfo().getUid(),
+        entityAfterUpdate.getLastUpdatedByUserInfo().getUid(),
+        String.format(
+            "Data integrity error for tracked entity %s. The lastUpdatedByUserinfo has been updated during the import",
+            entityAfterUpdate.getUid()));
+  }
+
   private User user() {
     return createAndAddUser(CodeGenerator.generateUid(), organisationUnit);
   }
@@ -508,6 +644,10 @@ class LastUpdateImportTest extends TrackerTest {
 
   TrackedEntity getTrackedEntity() {
     return getEntityJpql(TrackedEntity.class.getSimpleName(), trackedEntity.getUid());
+  }
+
+  TrackedEntity getTrackedEntity(String uid) {
+    return getEntityJpql(TrackedEntity.class.getSimpleName(), uid);
   }
 
   /**

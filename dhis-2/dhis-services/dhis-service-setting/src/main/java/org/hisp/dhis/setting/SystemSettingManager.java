@@ -40,7 +40,7 @@ import org.hisp.dhis.system.util.ValidationUtils;
  * @author Stian Strandli
  * @author Lars Helge Overland
  */
-public interface SystemSettingManager {
+public interface SystemSettingManager extends SystemSettingsProvider {
   /**
    * Saves the given system setting key and value.
    *
@@ -74,6 +74,7 @@ public interface SystemSettingManager {
    * @param key the system setting key.
    * @return the setting value.
    */
+  @Override
   default <T extends Serializable> T getSystemSetting(SettingKey key, Class<T> type) {
     if (type != key.getClazz()) {
       throw new IllegalArgumentException(
@@ -83,15 +84,6 @@ public interface SystemSettingManager {
     }
     return type.cast(getSystemSetting(key, key.getDefaultValue()));
   }
-
-  /**
-   * Returns the system setting value for the given key. If no value exists, returns the default
-   * value as defined by the given default value.
-   *
-   * @param key the system setting key.
-   * @return the setting value.
-   */
-  <T extends Serializable> T getSystemSetting(SettingKey key, T defaultValue);
 
   /**
    * Returns the translation for given setting key and locale or empty Optional if no translation is
@@ -138,22 +130,27 @@ public interface SystemSettingManager {
   // Typed methods
   // -------------------------------------------------------------------------
 
+  @Override
   default String getStringSetting(SettingKey key) {
     return getSystemSetting(key, String.class);
   }
 
+  @Override
   default Integer getIntegerSetting(SettingKey key) {
     return getSystemSetting(key, Integer.class);
   }
 
+  @Override
   default int getIntSetting(SettingKey key) {
     return getSystemSetting(key, Integer.class);
   }
 
+  @Override
   default Boolean getBooleanSetting(SettingKey key) {
     return getSystemSetting(key, Boolean.class);
   }
 
+  @Override
   default boolean getBoolSetting(SettingKey key) {
     return Boolean.TRUE.equals(getSystemSetting(key, Boolean.class));
   }

@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.Access;
@@ -99,6 +100,8 @@ public class MeDto {
     this.programs = programs;
     this.dataSets = dataSets;
     this.patTokens = patTokens;
+
+    this.attributeValues = user.getAttributeValues();
   }
 
   @JsonProperty() private String id;
@@ -189,7 +192,5 @@ public class MeDto {
 
   @JsonProperty() private List<ApiToken> patTokens;
 
-  protected void setUserCredentials(UserCredentialsDto userCredentialsDto) {
-    this.userCredentials = userCredentialsDto;
-  }
+  @JsonProperty() private Set<AttributeValue> attributeValues;
 }

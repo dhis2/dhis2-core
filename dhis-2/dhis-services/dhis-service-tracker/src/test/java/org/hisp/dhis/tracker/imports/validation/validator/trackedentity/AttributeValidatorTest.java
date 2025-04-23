@@ -45,6 +45,7 @@ import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -87,6 +88,8 @@ class AttributeValidatorTest {
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
 
   @Mock private TrackedAttributeValidationService teAttrService;
+
+  @Mock private OptionService optionService;
 
   private TrackerBundle bundle;
 
@@ -442,6 +445,7 @@ class AttributeValidatorTest {
         .thenReturn(trackedEntityAttribute);
     when(preheat.getTrackedEntityType((MetadataIdentifier) any()))
         .thenReturn(new TrackedEntityType());
+    when(optionService.existsAllOptions(any(), any())).thenReturn(true);
 
     TrackedEntity trackedEntity =
         TrackedEntity.builder()
@@ -493,6 +497,7 @@ class AttributeValidatorTest {
         .thenReturn(trackedEntityAttribute);
     when(preheat.getTrackedEntityType((MetadataIdentifier) any()))
         .thenReturn(new TrackedEntityType());
+    when(optionService.existsAllOptions(any(), any())).thenReturn(true);
 
     TrackedEntity trackedEntity =
         TrackedEntity.builder()

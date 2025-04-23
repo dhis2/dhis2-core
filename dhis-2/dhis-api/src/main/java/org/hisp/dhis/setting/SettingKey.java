@@ -53,6 +53,7 @@ import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.LoginPageLayout;
 import org.hisp.dhis.sms.config.SmsConfiguration;
+import org.hisp.dhis.system.notification.NotificationLevel;
 
 /**
  * @author Lars Helge Overland
@@ -116,6 +117,7 @@ public enum SettingKey {
    * unlimited records.
    */
   ANALYTICS_MAX_LIMIT("keyAnalyticsMaxLimit", 100000, Integer.class),
+  MAX_DATA_QUALITY_LIMIT("keyMaxDataQualityLimit", 500, Integer.class),
   INCLUDE_ZERO_VALUES_IN_ANALYTICS("keyIncludeZeroValuesInAnalytics", Boolean.FALSE, Boolean.class),
   SQL_VIEW_MAX_LIMIT("keySqlViewMaxLimit", -1, Integer.class),
   RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT(
@@ -295,7 +297,13 @@ public enum SettingKey {
    * the app does not exist *
    */
   GLOBAL_SHELL_APP_NAME("globalShellAppName", "global-app-shell", String.class, false, false),
-  ;
+
+  NOTIFIER_LOG_LEVEL("notifierLogLevel", NotificationLevel.DEBUG, NotificationLevel.class),
+  NOTIFIER_MAX_MESSAGES_PER_JOB("notifierMaxMessagesPerJob", 500, Integer.class),
+  NOTIFIER_MAX_AGE_DAYS("notifierMaxAgeDays", 7, Integer.class),
+  NOTIFIER_MAX_JOBS_PER_TYPE("notifierMaxJobsPerType", 500, Integer.class),
+  NOTIFIER_GIST_OVERVIEW("notifierGistOverview", true, Boolean.class),
+  NOTIFIER_CLEAN_AFTER_IDLE_TIME("notifierCleanAfterIdleTime", 60_000L, Long.class);
 
   private final String name;
 
@@ -363,6 +371,8 @@ public enum SettingKey {
         return Double.valueOf(value);
       } else if (Integer.class.isAssignableFrom(settingClazz)) {
         return Integer.valueOf(value);
+      } else if (Long.class.isAssignableFrom(settingClazz)) {
+        return Long.valueOf(value);
       } else if (Boolean.class.isAssignableFrom(settingClazz)) {
         return Boolean.valueOf(value);
       } else if (Locale.class.isAssignableFrom(settingClazz)) {

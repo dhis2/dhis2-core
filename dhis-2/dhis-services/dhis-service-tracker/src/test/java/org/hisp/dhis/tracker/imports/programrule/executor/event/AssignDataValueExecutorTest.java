@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.imports.programrule.executor.event;
 
 import static org.hisp.dhis.tracker.imports.programrule.IssueType.ERROR;
 import static org.hisp.dhis.tracker.imports.programrule.IssueType.WARNING;
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -171,6 +170,7 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
   @Test
   void shouldAssignDataValueWhenAssignedValueIsValidOptionAndDataValueIsEmpty() {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+
     Event eventWithOptionDataValue = getEventWithOptionSetDataValueWithValidValue();
     List<Event> events = List.of(eventWithOptionDataValue);
     bundle.setEvents(events);
@@ -193,59 +193,6 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest {
     assertEquals(VALID_OPTION_VALUE, dataValue.get().getValue());
     assertTrue(warning.isPresent());
     assertEquals(WARNING, warning.get().getIssueType());
-  }
-
-  @Test
-  void shouldAssignDataValueWhenAssignedValueIsInvalidOptionAndDataValueIsEmpty() {
-    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
-    Event eventWithOptionDataValue = getEventWithDataValueNOTSet();
-    List<Event> events = List.of(eventWithOptionDataValue);
-    bundle.setEvents(events);
-
-    AssignDataValueExecutor executor =
-        new AssignDataValueExecutor(
-            systemSettingManager,
-            "",
-            INVALID_OPTION_VALUE,
-            OPTION_SET_DATA_ELEMENT_ID,
-            eventWithOptionDataValue.getDataValues());
-
-    Optional<ProgramRuleIssue> warning =
-        executor.executeRuleAction(bundle, eventWithOptionDataValue);
-
-    Optional<DataValue> dataValue =
-        findDataValueByUid(bundle, SECOND_EVENT_ID, OPTION_SET_DATA_ELEMENT_ID);
-
-    assertAll(
-        () -> assertTrue(dataValue.isEmpty()),
-        () -> assertTrue(warning.isPresent()),
-        () -> assertEquals(WARNING, warning.get().getIssueType()));
-  }
-
-  @Test
-  void shouldAssignNullDataValueWhenAssignedValueIsInvalidOptionAndOverwriteIsTrue() {
-    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
-    when(systemSettingManager.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE))
-        .thenReturn(Boolean.TRUE);
-    Event eventWithOptionDataValue = getEventWithOptionSetDataValueWithValidValue();
-    List<Event> events = List.of(eventWithOptionDataValue);
-    bundle.setEvents(events);
-
-    AssignDataValueExecutor executor =
-        new AssignDataValueExecutor(
-            systemSettingManager,
-            "",
-            INVALID_OPTION_VALUE,
-            OPTION_SET_DATA_ELEMENT_ID,
-            eventWithOptionDataValue.getDataValues());
-
-    Optional<ProgramRuleIssue> warning =
-        executor.executeRuleAction(bundle, eventWithOptionDataValue);
-
-    Optional<DataValue> dataValue =
-        findDataValueByUid(bundle, EVENT_ID, OPTION_SET_DATA_ELEMENT_ID);
-
-    assertDataValueWasAssignedAndWarningIsPresent(null, dataValue, warning);
   }
 
   @Test

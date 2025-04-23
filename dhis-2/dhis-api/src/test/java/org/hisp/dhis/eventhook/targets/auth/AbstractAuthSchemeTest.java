@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,27 +28,33 @@
 package org.hisp.dhis.eventhook.targets.auth;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.common.auth.HttpBasicAuth;
-import org.junit.jupiter.api.Test;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+import java.util.function.Function;
+import org.hisp.dhis.common.auth.AuthScheme;
 
-/**
- * @author Morten Olav Hansen
- */
-class HttpBasicAuthTest {
-  @Test
-  void testAuthorizationHeaderSet() {
-    HttpBasicAuth auth = new HttpBasicAuth().setUsername("admin").setPassword("district");
+public abstract class AbstractAuthSchemeTest {
 
-    MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-    auth.apply(headers);
+  protected <T extends AuthScheme> void assertEncrypt(
+      T authScheme, Function<T, String> secretProvider) {
+    T encryptedAuthScheme =
+        (T)
+            authScheme.encrypt(
+                value -> {
+                  assertEquals(secretProvider.apply(authScheme), value);
+                  return "bar";
+                });
+    assertEquals("bar", secretProvider.apply(encryptedAuthScheme));
+  }
 
-    assertTrue(headers.containsKey("Authorization"));
-    assertFalse(headers.get("Authorization").isEmpty());
-    assertEquals("Basic YWRtaW46ZGlzdHJpY3Q=", headers.get("Authorization").get(0));
+  protected <T extends AuthScheme> void assertDecrypt(
+      T authScheme, Function<T, String> secretProvider) {
+    T decryptedAuthScheme =
+        (T)
+            authScheme.decrypt(
+                value -> {
+                  assertEquals(secretProvider.apply(authScheme), value);
+                  return "foo";
+                });
+    assertEquals("foo", secretProvider.apply(decryptedAuthScheme));
   }
 }

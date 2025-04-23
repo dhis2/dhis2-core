@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.program;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
+import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -37,12 +37,10 @@ import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -65,8 +63,6 @@ public class DefaultEventService implements EventService {
   private final TrackedEntityDataValueChangeLogService dataValueAuditService;
 
   private final FileResourceService fileResourceService;
-
-  private final DhisConfigurationProvider config;
 
   // -------------------------------------------------------------------------
   // Implementation methods
@@ -190,7 +186,7 @@ public class DefaultEventService implements EventService {
 
     for (Map.Entry<DataElement, EventDataValue> entry : dataElementEventDataValueMap.entrySet()) {
       entry.getValue().setAutoFields();
-      createAndAddAudit(entry.getValue(), entry.getKey(), event, ChangeLogType.CREATE);
+      createAndAddDataValueChangeLog(entry.getValue(), entry.getKey(), event);
       handleFileDataValueSave(entry.getValue(), entry.getKey());
     }
   }
@@ -242,9 +238,9 @@ public class DefaultEventService implements EventService {
   // Audit
   // -------------------------------------------------------------------------
 
-  private void createAndAddAudit(
-      EventDataValue dataValue, DataElement dataElement, Event event, ChangeLogType changeLogType) {
-    if (!config.isEnabled(CHANGELOG_TRACKER) || dataElement == null) {
+  private void createAndAddDataValueChangeLog(
+      EventDataValue dataValue, DataElement dataElement, Event event) {
+    if (dataElement == null) {
       return;
     }
 
@@ -255,7 +251,7 @@ public class DefaultEventService implements EventService {
             dataValue.getValue(),
             dataValue.getStoredBy(),
             dataValue.getProvidedElsewhere(),
-            changeLogType);
+            CREATE);
 
     dataValueAuditService.addTrackedEntityDataValueChangeLog(dataValueAudit);
   }

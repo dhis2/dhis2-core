@@ -159,8 +159,8 @@ public class EventTrackerConverterService
   public Event fromForRuleEngine(
       TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event event) {
     Event result = from(preheat, event, null);
-    // merge data values from DB
-    result.getEventDataValues().addAll(getDataValues(preheat, event));
+    result.getEventDataValues().addAll(getPayloadDataValues(preheat, event));
+    result.getEventDataValues().addAll(getDatabaseDataValues(preheat, event));
     Event preheatEvent = preheat.getEvent(event.getUid());
     if (preheatEvent != null) {
       result.setCreated(preheatEvent.getCreated());
@@ -168,7 +168,29 @@ public class EventTrackerConverterService
     return result;
   }
 
-  private List<EventDataValue> getDataValues(
+  private List<EventDataValue> getPayloadDataValues(
+      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event event) {
+    List<EventDataValue> eventDataValues = new ArrayList<>();
+
+    for (DataValue dataValue : event.getDataValues()) {
+      EventDataValue eventDataValue = new EventDataValue();
+      eventDataValue.setValue(dataValue.getValue());
+      eventDataValue.setLastUpdated(new Date());
+      eventDataValue.setProvidedElsewhere(dataValue.isProvidedElsewhere());
+      // ensure dataElement is referred to by UID as multiple
+      // dataElementIdSchemes are supported
+      DataElement dataElement = preheat.getDataElement(dataValue.getDataElement());
+      eventDataValue.setDataElement(dataElement.getUid());
+      eventDataValue.setLastUpdatedByUserInfo(preheat.getUserInfo());
+      eventDataValue.setCreatedByUserInfo(preheat.getUserInfo());
+
+      eventDataValues.add(eventDataValue);
+    }
+
+    return eventDataValues;
+  }
+
+  private List<EventDataValue> getDatabaseDataValues(
       TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event event) {
     List<EventDataValue> eventDataValues = new ArrayList<>();
     if (preheat.getEvent(event.getEvent()) == null) {
@@ -248,21 +270,6 @@ public class EventTrackerConverterService
       Optional<org.hisp.dhis.user.User> assignedUser =
           preheat.getUserByUsername(event.getAssignedUser().getUsername());
       assignedUser.ifPresent(result::setAssignedUser);
-    }
-
-    for (DataValue dataValue : event.getDataValues()) {
-      EventDataValue eventDataValue = new EventDataValue();
-      eventDataValue.setValue(dataValue.getValue());
-      eventDataValue.setLastUpdated(now);
-      eventDataValue.setProvidedElsewhere(dataValue.isProvidedElsewhere());
-      // ensure dataElement is referred to by UID as multiple
-      // dataElementIdSchemes are supported
-      DataElement dataElement = preheat.getDataElement(dataValue.getDataElement());
-      eventDataValue.setDataElement(dataElement.getUid());
-      eventDataValue.setLastUpdatedByUserInfo(preheat.getUserInfo());
-      eventDataValue.setCreatedByUserInfo(preheat.getUserInfo());
-
-      result.getEventDataValues().add(eventDataValue);
     }
 
     if (isNotEmpty(event.getNotes())) {

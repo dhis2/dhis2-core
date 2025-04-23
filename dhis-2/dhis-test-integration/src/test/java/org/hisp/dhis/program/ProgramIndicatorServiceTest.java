@@ -477,7 +477,7 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
   void testGetAnalyticsSQl() {
     String expected =
         format(
-            "coalesce(case when ax.\"ps\" = '%s' then \"%s\" else null end::numeric,0) + coalesce(\"%s\"::numeric,0) > 10",
+            "coalesce(case when ax.\"ps\" = '%s' then \"%s\" else null end::numeric,0) + coalesce(\"%s\"::numeric,0) > 10::numeric",
             psA.getUid(), deAInteger.getUid(), atA.getUid());
     assertEquals(
         expected,
@@ -563,14 +563,14 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest {
   @Test
   void testBooleanAsBooleanWithinIf() {
     assertEquals(
-        " case when coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentG\" else null end::numeric!=0,false) then 4 else 5 end",
+        " case when coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentG\" else null end::numeric!=0,false) then 4::numeric else 5::numeric end",
         sql("if(#{ProgrmStagA.DataElmentG},4,5)"));
   }
 
   @Test
   void testBooleanAsNumericWithinIf() {
     assertEquals(
-        " case when coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentG\" else null end::numeric,0) > 1 then 4 else 5 end",
+        " case when coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentG\" else null end::numeric,0) > 1::numeric then 4::numeric else 5::numeric end",
         sql("if(#{ProgrmStagA.DataElmentG} > 1,4,5)"));
   }
 

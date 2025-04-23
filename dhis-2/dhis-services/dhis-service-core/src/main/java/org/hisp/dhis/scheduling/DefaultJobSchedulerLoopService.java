@@ -52,6 +52,7 @@ import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.AuthenticationService;
 import org.hisp.dhis.user.UserDetails;
@@ -258,19 +259,24 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
   }
 
   private JobProgress startRecording(@Nonnull JobConfiguration job, @Nonnull Runnable observer) {
-    JobProgress tracker =
-        job.getJobType().isUsingNotifications()
-            ? new NotifierJobProgress(notifier, job)
-            : NoopJobProgress.INSTANCE;
-    boolean logInfoOnDebug =
-        job.getSchedulingType() != SchedulingType.ONCE_ASAP
-            && job.getLastExecuted() != null
-            && Duration.between(job.getLastExecuted().toInstant(), Instant.now()).getSeconds()
-                < systemSettings.getIntSetting(SettingKey.JOBS_LOG_DEBUG_BELOW_SECONDS);
+    boolean nonVerboseLogging = isNonVerboseLogging(job);
+    NotificationLevel level =
+        job.getJobType().isUsingNotifications() && !nonVerboseLogging
+            ? systemSettings.getSystemSetting(
+                SettingKey.NOTIFIER_LOG_LEVEL, NotificationLevel.DEBUG)
+            : NotificationLevel.ERROR;
+    JobProgress tracker = new NotifierJobProgress(notifier, job, level);
     RecordingJobProgress progress =
-        new RecordingJobProgress(messages, job, tracker, true, observer, logInfoOnDebug);
+        new RecordingJobProgress(messages, job, tracker, true, observer, nonVerboseLogging);
     recordingsById.put(job.getUid(), progress);
     return progress;
+  }
+
+  private boolean isNonVerboseLogging(@Nonnull JobConfiguration job) {
+    return job.getSchedulingType() != SchedulingType.ONCE_ASAP
+        && job.getLastExecuted() != null
+        && Duration.between(job.getLastExecuted().toInstant(), Instant.now()).getSeconds()
+            < systemSettings.getIntSetting(SettingKey.JOBS_LOG_DEBUG_BELOW_SECONDS);
   }
 
   private void stopRecording(@Nonnull String jobId) {

@@ -35,11 +35,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableSet;
 import java.sql.SQLException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.ValueType;
@@ -54,6 +56,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStage;
@@ -68,9 +71,12 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
+@RequiredArgsConstructor
 public class DataValueCheck implements Checker {
   private static final Set<String> VALID_IMAGE_FORMATS =
       ImmutableSet.<String>builder().add(ImageIO.getReaderFormatNames()).build();
+
+  private final OptionService optionService;
 
   @Override
   public ImportSummary check(ImmutableEvent event, WorkContext ctx) {
@@ -210,13 +216,12 @@ public class DataValueCheck implements Checker {
       return null;
     }
 
-    boolean isValid = true;
-
-    if (dataElement.getValueType().isMultiText()) {
-      isValid = dataElement.getOptionSet().hasAllOptions(ValueType.splitMultiText(value));
-    } else {
-      isValid = dataElement.getOptionSet().getOptionByCode(value) != null;
-    }
+    boolean isValid =
+        optionService.existsAllOptions(
+            optionSet.getUid(),
+            dataElement.getValueType().isMultiText()
+                ? ValueType.splitMultiText(value)
+                : List.of(value));
 
     return !isValid
         ? "Value '" + value + "' is not a valid option code of option set: " + optionSet.getUid()

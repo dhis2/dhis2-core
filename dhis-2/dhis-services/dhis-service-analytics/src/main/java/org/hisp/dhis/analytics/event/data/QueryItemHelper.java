@@ -56,6 +56,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 
 /**
  * @author Dusan Bernat
@@ -138,13 +139,22 @@ public class QueryItemHelper {
     if (item.hasLegendSet() && (legend = item.getLegendSet().getLegendByUid(itemValue)) != null) {
       return value + legend.getDisplayName();
     } else if (item.hasOptionSet()
-        && (option = item.getOptionSet().getOptionByCode(itemValue)) != null) {
+        && (option = getOptionByCode(item.getOptionSet(), itemValue)) != null) {
       return value + option.getDisplayName();
     } else {
       itemValue = Objects.toString(itemValue, NA);
 
       return value + itemValue;
     }
+  }
+
+  private static Option getOptionByCode(OptionSet set, String code) {
+    for (Option option : set.getOptions()) {
+      if (option != null && option.getCode().equals(code)) {
+        return option;
+      }
+    }
+    return null;
   }
 
   /**

@@ -64,7 +64,7 @@ public class HibernateTrackedEntityDataValueChangeLogStore
   // Dependencies
   // -------------------------------------------------------------------------
 
-  private EntityManager entityManager;
+  private final EntityManager entityManager;
 
   public HibernateTrackedEntityDataValueChangeLogStore(EntityManager entityManager) {
     this.entityManager = entityManager;
@@ -158,7 +158,7 @@ public class HibernateTrackedEntityDataValueChangeLogStore
         List<Predicate> orgUnitPredicates = new ArrayList<>();
 
         for (OrganisationUnit orgUnit : params.getOrgUnits()) {
-          orgUnitPredicates.add(builder.like(ou.get("path"), (orgUnit.getPath() + "%")));
+          orgUnitPredicates.add(builder.like(ou.get("path"), (orgUnit.getStoredPath() + "%")));
         }
 
         predicates.add(builder.or(orgUnitPredicates.toArray(Predicate[]::new)));

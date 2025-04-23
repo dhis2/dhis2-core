@@ -93,11 +93,17 @@ class AbstractAnalyticsServiceTest {
 
   @Mock private UserService userService;
 
+  @Mock private OrganisationUnitResolver organisationUnitResolver;
+
   @BeforeEach
   public void setUp() {
     dummyAnalyticsService =
         new DummyAnalyticsService(
-            securityManager, eventQueryValidator, schemeIdResponseMapper, userService);
+            securityManager,
+            eventQueryValidator,
+            schemeIdResponseMapper,
+            userService,
+            organisationUnitResolver);
 
     peA = MonthlyPeriodType.getPeriodFromIsoString("201701");
     ouA = createOrganisationUnit('A');
@@ -254,8 +260,14 @@ class DummyAnalyticsService extends AbstractAnalyticsService {
       AnalyticsSecurityManager securityManager,
       EventQueryValidator queryValidator,
       SchemeIdResponseMapper schemeIdResponseMapper,
-      UserService userService) {
-    super(securityManager, queryValidator, schemeIdResponseMapper, userService);
+      UserService userService,
+      OrganisationUnitResolver organisationUnitResolver) {
+    super(
+        securityManager,
+        queryValidator,
+        schemeIdResponseMapper,
+        userService,
+        organisationUnitResolver);
   }
 
   @Override

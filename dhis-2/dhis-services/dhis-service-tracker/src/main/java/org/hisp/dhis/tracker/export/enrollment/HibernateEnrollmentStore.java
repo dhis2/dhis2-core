@@ -231,7 +231,7 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
       ouClause
           .append(orHlp.or())
           .append("en.organisationUnit.path LIKE '")
-          .append(organisationUnit.getPath())
+          .append(organisationUnit.getStoredPath())
           .append("%'");
     }
 
@@ -246,7 +246,7 @@ class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enrollment
       orgUnits
           .append(hlp.or())
           .append("en.organisationUnit.path LIKE '")
-          .append(organisationUnit.getPath())
+          .append(organisationUnit.getStoredPath())
           .append("%'")
           .append(" AND (en.organisationUnit.hierarchyLevel = ")
           .append(organisationUnit.getHierarchyLevel())

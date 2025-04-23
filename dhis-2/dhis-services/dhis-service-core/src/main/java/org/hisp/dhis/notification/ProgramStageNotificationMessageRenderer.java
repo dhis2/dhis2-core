@@ -37,22 +37,26 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.notification.ProgramStageTemplateVariable;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Halvdan Hoem Grelland
  */
 @Component
+@RequiredArgsConstructor
 public class ProgramStageNotificationMessageRenderer
     extends BaseNotificationMessageRenderer<Event> {
+
+  private final OptionService optionService;
+
   public static final ImmutableMap<TemplateVariable, Function<Event, String>> VARIABLE_RESOLVERS =
       new ImmutableMap.Builder<TemplateVariable, Function<Event, String>>()
           .put(
@@ -109,15 +113,6 @@ public class ProgramStageNotificationMessageRenderer
           ExpressionType.TRACKED_ENTITY_ATTRIBUTE,
           ExpressionType.VARIABLE,
           ExpressionType.DATA_ELEMENT);
-
-  @Autowired private OptionService optionService;
-
-  // -------------------------------------------------------------------------
-  // Singleton instance
-  // -------------------------------------------------------------------------
-
-  public static final ProgramStageNotificationMessageRenderer INSTANCE =
-      new ProgramStageNotificationMessageRenderer();
 
   // -------------------------------------------------------------------------
   // Overrides
@@ -181,10 +176,9 @@ public class ProgramStageNotificationMessageRenderer
     // If the AV has an OptionSet -> substitute value with the name of the
     // Option
     if (av.getAttribute().hasOptionSet()) {
-      value =
-          Optional.ofNullable(optionService.getOptionByCode(value))
-              .map(BaseIdentifiableObject::getName)
-              .orElse(MISSING_VALUE_REPLACEMENT);
+      Optional<Option> option =
+          optionService.findOptionByCode(av.getAttribute().getOptionSet().getUid(), value);
+      if (option.isPresent()) value = option.get().getName();
     }
 
     return value;
@@ -200,10 +194,9 @@ public class ProgramStageNotificationMessageRenderer
     // If the DV has an OptionSet -> substitute value with the name of the
     // Option
     if (dataElement != null && dataElement.hasOptionSet()) {
-      value =
-          Optional.ofNullable(optionService.getOptionByCode(value))
-              .map(BaseIdentifiableObject::getName)
-              .orElse(MISSING_VALUE_REPLACEMENT);
+      Optional<Option> option =
+          optionService.findOptionByCode(dataElement.getOptionSet().getUid(), value);
+      if (option.isPresent()) value = option.get().getName();
     }
 
     return value;

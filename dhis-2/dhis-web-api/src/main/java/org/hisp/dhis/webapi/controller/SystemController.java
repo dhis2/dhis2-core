@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static java.util.Collections.emptyMap;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.CacheControl.noStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -47,13 +46,16 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import lombok.Data;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobStatus;
@@ -79,6 +81,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -167,40 +170,71 @@ public class SystemController {
   // Tasks
   // -------------------------------------------------------------------------
 
+  @Data
+  public static class DeleteTasksParams {
+    private Integer maxCount;
+
+    private Integer maxAge;
+  }
+
+  @DeleteMapping("/tasks")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteNotifications(DeleteTasksParams params) {
+    Integer maxCount = params.getMaxCount();
+    Integer maxAge = params.getMaxAge();
+    if (maxAge != null) notifier.capMaxAge(maxAge);
+    if (maxCount != null) notifier.capMaxCount(maxCount);
+    if (maxCount == null && maxAge == null) notifier.clear();
+  }
+
+  @DeleteMapping("/tasks/{jobType}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteNotificationsByJobType(
+      @PathVariable("jobType") JobType jobType, DeleteTasksParams params) {
+    Integer maxAge = params.getMaxAge();
+    Integer maxCount = params.getMaxCount();
+    if (maxAge != null) notifier.capMaxAge(maxAge, jobType);
+    if (maxCount != null) notifier.capMaxCount(maxCount, jobType);
+    if (maxCount == null && maxAge == null) notifier.clear(jobType);
+  }
+
+  @DeleteMapping("/tasks/{jobType}/{jobId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteNotificationsByJobId(
+      @PathVariable("jobType") JobType jobType,
+      @PathVariable("jobId") @OpenApi.Param(value = {UID.class, JobConfiguration.class})
+          UID jobId) {
+    notifier.clear(jobType, jobId);
+  }
+
   @GetMapping(value = "/tasks", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Map<JobType, Map<String, Deque<Notification>>>> getTasksJson() {
-    return ResponseEntity.ok().cacheControl(noStore()).body(notifier.getNotifications());
+  public ResponseEntity<Map<JobType, Map<String, Deque<Notification>>>> getTasksAllJobTypes(
+      @RequestParam(required = false) Boolean gist) {
+    return ResponseEntity.ok().cacheControl(noStore()).body(notifier.getNotifications(gist));
   }
 
   @GetMapping(value = "/tasks/{jobType}", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Map<String, Deque<Notification>>> getTasksExtendedJson(
-      @PathVariable("jobType") String jobType) {
+  public ResponseEntity<Map<String, Deque<Notification>>> getTasksByJobType(
+      @PathVariable("jobType") JobType jobType, @RequestParam(required = false) Boolean gist) {
     Map<String, Deque<Notification>> notifications =
-        jobType == null
-            ? emptyMap()
-            : notifier.getNotificationsByJobType(JobType.valueOf(jobType.toUpperCase()));
+        jobType == null ? Map.of() : notifier.getNotificationsByJobType(jobType, gist);
 
     return ResponseEntity.ok().cacheControl(noStore()).body(notifications);
   }
 
   @GetMapping(value = "/tasks/{jobType}/{jobId}", produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Collection<Notification>> getTaskJsonByUid(
-      @PathVariable("jobType") String jobType, @PathVariable("jobId") String jobId) {
-    if (jobType == null) {
-      return ResponseEntity.ok().cacheControl(noStore()).body(List.of());
-    }
+      @PathVariable("jobType") JobType jobType,
+      @PathVariable("jobId") @OpenApi.Param(value = {UID.class, JobConfiguration.class})
+          UID jobId) {
+    Deque<Notification> notifications = notifier.getNotificationsByJobId(jobType, jobId.getValue());
 
-    Deque<Notification> notifications =
-        notifier.getNotificationsByJobId(JobType.valueOf(jobType.toUpperCase()), jobId);
-
-    if (notifications.isEmpty()) {
-      return ResponseEntity.ok().cacheControl(noStore()).body(List.of());
-    }
+    if (notifications.isEmpty()) return ResponseEntity.ok().cacheControl(noStore()).body(List.of());
 
     if (!notifications.getFirst().isCompleted()) {
-      JobConfiguration job = jobConfigurationService.getJobConfigurationByUid(jobId);
+      JobConfiguration job = jobConfigurationService.getJobConfigurationByUid(jobId.getValue());
       if (job == null || job.getJobStatus() != JobStatus.RUNNING) {
-        notifier.clear(getJobSafe(job, JobType.valueOf(jobType.toUpperCase()), jobId));
+        notifier.clear(getJobSafe(job, jobType, jobId.getValue()));
         Notification notification = notifications.getFirst();
         notification.setCompleted(true);
         return ResponseEntity.ok().cacheControl(noStore()).body(List.of(notification));
@@ -214,30 +248,20 @@ public class SystemController {
   // -------------------------------------------------------------------------
 
   @GetMapping(value = "/taskSummaries/{jobType}", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Map<String, Object>> getTaskSummaryExtendedJson(
-      @PathVariable("jobType") String jobType) {
-    if (jobType != null) {
-      Map<String, Object> summary =
-          notifier.getJobSummariesForJobType(JobType.valueOf(jobType.toUpperCase()));
-      if (summary != null) {
-        return ResponseEntity.ok().cacheControl(noStore()).body(summary);
-      }
-    }
+  public ResponseEntity<Map<String, JsonValue>> getTaskSummaryExtendedJson(
+      @PathVariable("jobType") JobType jobType) {
+    Map<String, JsonValue> summary = notifier.getJobSummariesForJobType(jobType);
+    if (summary != null) return ResponseEntity.ok().cacheControl(noStore()).body(summary);
     return ResponseEntity.ok().cacheControl(noStore()).build();
   }
 
-  @OpenApi.Response(ObjectNode.class)
   @GetMapping(value = "/taskSummaries/{jobType}/{jobId}", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<Object> getTaskSummaryJson(
-      @PathVariable("jobType") String jobType, @PathVariable("jobId") String jobId) {
-    if (jobType != null) {
-      Object summary = notifier.getJobSummaryByJobId(JobType.valueOf(jobType.toUpperCase()), jobId);
-
-      if (summary != null) {
-        return ResponseEntity.ok().cacheControl(noStore()).body(summary);
-      }
-    }
-
+  public ResponseEntity<JsonValue> getTaskSummaryJson(
+      @PathVariable("jobType") JobType jobType,
+      @PathVariable("jobId") @OpenApi.Param(value = {UID.class, JobConfiguration.class})
+          UID jobId) {
+    JsonValue summary = notifier.getJobSummaryByJobId(jobType, jobId.getValue());
+    if (summary != null) return ResponseEntity.ok().cacheControl(noStore()).body(summary);
     return ResponseEntity.ok().cacheControl(noStore()).build();
   }
 

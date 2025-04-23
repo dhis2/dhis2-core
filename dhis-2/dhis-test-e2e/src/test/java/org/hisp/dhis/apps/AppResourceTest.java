@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,45 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common.auth;
+package org.hisp.dhis.apps;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Base64;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
 
-/**
- * @author Morten Olav Hansen
- */
-@Getter
-@Setter
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-public class HttpBasicAuth extends Auth {
-  public static final String TYPE = "http-basic";
+import java.io.File;
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
-  @JsonProperty(required = true)
-  private String username;
+class AppResourceTest extends ApiTest {
 
-  @JsonProperty(required = true)
-  private String password;
+  private final RestApiActions appActions = new RestApiActions("/apps");
 
-  public HttpBasicAuth() {
-    super(TYPE);
-  }
+  @Test
+  @DisplayName("Redirect location should have correct format")
+  void redirectLocationCorrectFormatTest() {
+    // given an app is installed
+    File file = new File("src/test/resources/apps/test-app-v1.zip");
+    appActions.postMultiPartFile(file).validateStatus(204);
 
-  @Override
-  public void apply(MultiValueMap<String, String> headers) {
-    if (!(StringUtils.hasText(username) && StringUtils.hasText(password))) {
-      return;
-    }
+    // when
+    // called with missing trailing slash
+    ApiResponse response =
+        new ApiResponse(given().redirects().follow(false).get("/apps/test-minio"));
 
-    headers.add(
-        "Authorization",
-        "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes()));
+    // then redirect should be returned with trailing slash
+    response.validate().header("location", equalTo("http://web:8080/api/apps/test-minio/"));
+    response.validate().statusCode(302);
   }
 }

@@ -63,7 +63,10 @@ public class OutlierDetectionUtils {
     StringBuilder sql = new StringBuilder("(");
     orgUnits.forEach(
         ou ->
-            sql.append(pathAlias).append(".\"path\" like '").append(ou.getPath()).append("%' or "));
+            sql.append(pathAlias)
+                .append(".\"path\" like '")
+                .append(ou.getStoredPath())
+                .append("%' or "));
 
     return StringUtils.trim(TextUtils.removeLastOr(sql.toString())) + ")";
   }

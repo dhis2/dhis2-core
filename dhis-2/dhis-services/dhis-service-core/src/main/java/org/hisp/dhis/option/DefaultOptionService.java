@@ -27,10 +27,14 @@
  */
 package org.hisp.dhis.option;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -155,22 +159,21 @@ public class DefaultOptionService implements OptionService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<Option> getOptions(long optionSetId, String key, Integer max) {
-    List<Option> options;
+  public List<Option> findOptionsByNamePattern(
+      @Nonnull String optionSet, @CheckForNull String infix, @CheckForNull Integer maxResults) {
+    return optionStore.findOptionsByNamePattern(UID.of(optionSet), infix, maxResults);
+  }
 
-    if (key != null || max != null) {
-      // Use query as option set size might be very high
+  @Override
+  @Transactional(readOnly = true)
+  public boolean existsAllOptions(@Nonnull String optionSet, @Nonnull Collection<String> codes) {
+    return optionStore.existsAllOptions(UID.of(optionSet), codes);
+  }
 
-      options = optionStore.getOptions(optionSetId, key, max);
-    } else {
-      // Return all from object association to preserve custom order
-
-      OptionSet optionSet = getOptionSet(optionSetId);
-
-      options = new ArrayList<>(optionSet.getOptions());
-    }
-
-    return options;
+  @Override
+  @Transactional(readOnly = true)
+  public Optional<Option> findOptionByCode(@Nonnull String optionSet, @Nonnull String code) {
+    return optionStore.findOptionByCode(UID.of(optionSet), code);
   }
 
   @Override

@@ -44,6 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -345,7 +346,7 @@ class EventExporterTest extends TrackerTest {
             .enrollments(Set.of("nxP7UnKhomJ"))
             .programStageUid(programStage.getUid())
             .dataElementFilters(
-                Map.of("DATAEL00001", List.of(new QueryFilter(QueryOperator.LIKE, "%val%"))))
+                Map.of("DATAEL00001", List.of(new QueryFilter(QueryOperator.LIKE, "val"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -366,7 +367,7 @@ class EventExporterTest extends TrackerTest {
             .programStageUid(programStage.getUid())
             .programStatus(ProgramStatus.ACTIVE)
             .dataElementFilters(
-                Map.of(dataElement.getUid(), List.of(new QueryFilter(QueryOperator.LIKE, "%val%"))))
+                Map.of(dataElement.getUid(), List.of(new QueryFilter(QueryOperator.LIKE, "val"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -385,7 +386,7 @@ class EventExporterTest extends TrackerTest {
             .programStageUid(programStage.getUid())
             .programType(ProgramType.WITH_REGISTRATION)
             .dataElementFilters(
-                Map.of(dataElement.getUid(), List.of(new QueryFilter(QueryOperator.LIKE, "%val%"))))
+                Map.of(dataElement.getUid(), List.of(new QueryFilter(QueryOperator.LIKE, "val"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -405,7 +406,7 @@ class EventExporterTest extends TrackerTest {
             .dataElementFilters(
                 Map.of(
                     dataElement.getUid(),
-                    List.of(new QueryFilter(QueryOperator.LIKE, "%value00001%"))))
+                    List.of(new QueryFilter(QueryOperator.LIKE, "value00001"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -684,7 +685,7 @@ class EventExporterTest extends TrackerTest {
             .enrollments(Set.of("nxP7UnKhomJ"))
             .programStageUid(programStage.getUid())
             .dataElementFilters(
-                Map.of(dataElement.getUid(), List.of(new QueryFilter(QueryOperator.LIKE, "%opt%"))))
+                Map.of(dataElement.getUid(), List.of(new QueryFilter(QueryOperator.LIKE, "opt"))))
             .build();
 
     List<String> events = getEvents(params);
@@ -711,6 +712,20 @@ class EventExporterTest extends TrackerTest {
     List<String> events = getEvents(params);
 
     assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldFilterByEventsWithGivenDataValuesWhenFilterContainsDataElementUIDsOnly()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        EventOperationParams.builder()
+            .dataElementFilters(
+                Map.of("DATAEL00001", new ArrayList<>(), "DATAEL00005", new ArrayList<>()))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
   }
 
   @Test
@@ -929,6 +944,43 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
+  void testEnrollmentFilterTextAttributesUsingIn() throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnitUid(orgUnit.getUid())
+            .attributeFilters(
+                Map.of(
+                    "toUpdate000",
+                    List.of(new QueryFilter(QueryOperator.IN, "Rainy day;summer Day"))))
+            .build();
+
+    Set<String> trackedEntities =
+        eventService.getEvents(params).stream()
+            .map(event -> event.getEnrollment().getTrackedEntity().getUid())
+            .collect(Collectors.toSet());
+
+    assertContainsOnly(Set.of("dUE514NMOlo", "QS6w44flWAf"), trackedEntities);
+  }
+
+  @Test
+  void testEnrollmentFilterNumericAttributesUsingIn()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnitUid(orgUnit.getUid())
+            .attributeFilters(
+                Map.of("numericAttr", List.of(new QueryFilter(QueryOperator.IN, "70;88"))))
+            .build();
+
+    Set<String> trackedEntities =
+        eventService.getEvents(params).stream()
+            .map(event -> event.getEnrollment().getTrackedEntity().getUid())
+            .collect(Collectors.toSet());
+
+    assertContainsOnly(Set.of("dUE514NMOlo", "QS6w44flWAf"), trackedEntities);
+  }
+
+  @Test
   void testEnrollmentFilterAttributes() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         operationParamsBuilder
@@ -946,6 +998,53 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldExportEventsWhenFilteringByTextAttributesUsingSW()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnitMode(ACCESSIBLE)
+            .attributeFilters(
+                Map.of("notUpdated0", List.of(new QueryFilter(QueryOperator.SW, "20% \\Winter'"))))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldExportEventsWhenFilteringByTextAttributesUsingEW()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnitMode(ACCESSIBLE)
+            .attributeFilters(
+                Map.of(
+                    "notUpdated0", List.of(new QueryFilter(QueryOperator.EW, "% \\Winter's day"))))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
+  void shouldExportEventsWhenFilteringByTextAttributesUsingLike()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnitMode(ACCESSIBLE)
+            .attributeFilters(
+                Map.of(
+                    "notUpdated0", List.of(new QueryFilter(QueryOperator.LIKE, "0% \\Winter's"))))
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
+  }
+
+  @Test
   void testEnrollmentFilterAttributesWithMultipleFiltersOnDifferentAttributes()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
@@ -956,7 +1055,7 @@ class EventExporterTest extends TrackerTest {
                     "toUpdate000",
                     List.of(new QueryFilter(QueryOperator.EQ, "rainy day")),
                     "notUpdated0",
-                    List.of(new QueryFilter(QueryOperator.EQ, "winter day"))))
+                    List.of(new QueryFilter(QueryOperator.EQ, "20% \\winter's day"))))
             .build();
 
     List<String> trackedEntities =

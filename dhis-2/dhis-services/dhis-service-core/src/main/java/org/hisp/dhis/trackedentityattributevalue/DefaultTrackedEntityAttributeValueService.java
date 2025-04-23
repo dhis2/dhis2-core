@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.trackedentityattributevalue;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 import static org.hisp.dhis.system.util.ValidationUtils.valueIsValid;
 
 import java.util.List;
@@ -83,10 +82,8 @@ public class DefaultTrackedEntityAttributeValueService
             CurrentUserUtil.getCurrentUsername(),
             ChangeLogType.DELETE);
 
-    if (config.isEnabled(CHANGELOG_TRACKER)) {
-      trackedEntityAttributeValueChangeLogService.addTrackedEntityAttributeValueChangLog(
-          trackedEntityAttributeValueChangeLog);
-    }
+    trackedEntityAttributeValueChangeLogService.addTrackedEntityAttributeValueChangLog(
+        trackedEntityAttributeValueChangeLog);
 
     deleteFileValue(attributeValue);
     attributeValueStore.delete(attributeValue);
@@ -198,10 +195,8 @@ public class DefaultTrackedEntityAttributeValueService
               User.username(user),
               ChangeLogType.UPDATE);
 
-      if (config.isEnabled(CHANGELOG_TRACKER)) {
-        trackedEntityAttributeValueChangeLogService.addTrackedEntityAttributeValueChangLog(
-            trackedEntityAttributeValueChangeLog);
-      }
+      trackedEntityAttributeValueChangeLogService.addTrackedEntityAttributeValueChangLog(
+          trackedEntityAttributeValueChangeLog);
 
       attributeValueStore.update(attributeValue);
 
