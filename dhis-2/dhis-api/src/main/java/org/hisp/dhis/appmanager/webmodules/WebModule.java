@@ -74,15 +74,13 @@ public class WebModule {
 
   public static WebModule getModule(App app) {
     String basePath = app.getBasePath();
-    String launchUrl = app.getLaunchUrl();
     if (app.isBundled()) {
       basePath = "/api/apps/" + app.getKey();
-      launchUrl = launchUrl.replace("dhis-web-", "api/apps/");
     }
 
     boolean hasIcon = app.getIcons() != null && app.getIcons().getIcon48() != null;
 
-    String defaultAction = launchUrl;
+    String defaultAction = app.getLaunchUrl();
 
     String icon =
         hasIcon ? basePath.replace("/api/", "/") + "/" + app.getIcons().getIcon48() : null;
