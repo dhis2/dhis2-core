@@ -29,7 +29,9 @@
  */
 package org.hisp.dhis.tracker.acl;
 
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -87,14 +89,17 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
   @Override
   @Transactional
   public void updateTrackedEntityProgramOwner(
-      TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit) {
-    if (trackedEntity == null || program == null || orgUnit == null) {
-      return;
-    }
+      @Nonnull TrackedEntity trackedEntity,
+      @Nonnull Program program,
+      @Nonnull OrganisationUnit orgUnit)
+      throws BadRequestException {
     TrackedEntityProgramOwner teProgramOwner =
         trackedEntityProgramOwnerStore.getTrackedEntityProgramOwner(trackedEntity, program);
     if (teProgramOwner == null) {
-      return;
+      throw new BadRequestException(
+          String.format(
+              "Tracked entity not transferred. No owner found for the tracked entity %s and program %s combination",
+              trackedEntity.getUid(), program.getUid()));
     }
     updateTrackedEntityProgramOwner(teProgramOwner, orgUnit);
     trackedEntityProgramOwnerStore.update(teProgramOwner);
