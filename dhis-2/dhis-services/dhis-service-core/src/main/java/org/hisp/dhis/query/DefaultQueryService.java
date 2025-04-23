@@ -82,7 +82,7 @@ public class DefaultQueryService implements QueryService {
     Query<T> query = queryParser.parse(type, filters, params.getRootJunction());
 
     Schema schema = schemaService.getDynamicSchema(type);
-    query.addOrders(QueryUtils.convertOrderStrings(params.getOrders(), schema));
+    query.addOrders(Order.parse(params.getOrders()));
 
     Pagination pagination = params.getPagination();
     if (pagination.hasPagination()) {

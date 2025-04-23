@@ -36,7 +36,6 @@ import java.util.Objects;
 import java.util.Set;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.query.Order;
-import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.schema.Schema;
 
 /**
@@ -57,7 +56,7 @@ public class OrderParams {
   }
 
   public List<Order> getOrders(Schema schema) {
-    return QueryUtils.convertOrderStrings(order, schema);
+    return Order.parse(order);
   }
 
   public Set<String> getOrders() {
