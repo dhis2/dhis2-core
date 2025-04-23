@@ -43,7 +43,6 @@ import jakarta.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
-import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
@@ -207,86 +206,6 @@ public class JpaQueryUtils {
   }
 
   /**
-   * Creates the query language order expression without the leading <code>ORDER BY</code>.
-   *
-   * @param orders the orders that should be created to a string.
-   * @param alias the entity alias that will be used for prefixing.
-   * @return the string order expression or <code>null</code> if none should be used.
-   */
-  @Nullable
-  public static String createOrderExpression(
-      @Nullable List<org.hisp.dhis.query.Order> orders, @Nullable String alias) {
-    if (orders == null) {
-      return null;
-    }
-
-    return StringUtils.defaultIfEmpty(
-        orders.stream()
-            .filter(org.hisp.dhis.query.Order::isPersisted)
-            .map(
-                o -> {
-                  final StringBuilder sb = new StringBuilder();
-                  final boolean ignoreCase = isIgnoreCase(o);
-
-                  if (ignoreCase) {
-                    sb.append("lower(");
-                  }
-
-                  if (alias != null) {
-                    sb.append(alias).append('.');
-                  }
-
-                  sb.append(o.getProperty().getName());
-
-                  if (ignoreCase) {
-                    sb.append(")");
-                  }
-
-                  sb.append(' ');
-                  sb.append(o.isAscending() ? "asc" : "desc");
-
-                  return sb.toString();
-                })
-            .collect(joining(",")),
-        null);
-  }
-
-  /**
-   * Creates the query language order expression for selects that must be selected in order to be
-   * able to order by these expressions. This is required for ordering on case insensitive
-   * expressions since
-   *
-   * @param orders the orders that should be created to a string.
-   * @param alias the entity alias that will be used for prefixing.
-   * @return the string order expression selects or <code>null</code> if none should be used.
-   */
-  @Nullable
-  public static String createSelectOrderExpression(
-      @Nullable List<org.hisp.dhis.query.Order> orders, @Nullable String alias) {
-    if (orders == null) {
-      return null;
-    }
-
-    return StringUtils.defaultIfEmpty(
-        orders.stream()
-            .filter(o -> o.isPersisted() && isIgnoreCase(o))
-            .map(
-                o -> {
-                  final StringBuilder sb = new StringBuilder("lower(");
-
-                  if (alias != null) {
-                    sb.append(alias).append('.');
-                  }
-
-                  sb.append(o.getProperty().getName()).append(')');
-
-                  return sb.toString();
-                })
-            .collect(joining(",")),
-        null);
-  }
-
-  /**
    * Generate JPA Predicate for checking User Access for given User Uid and access string
    *
    * @param builder
@@ -441,9 +360,5 @@ public class JpaQueryUtils {
     return sql.replaceAll(
         tableName + "\\.sharing->>'([^']+)'",
         JsonbFunctions.EXTRACT_PATH_TEXT + "(" + tableName + ".sharing, '$1')");
-  }
-
-  private static boolean isIgnoreCase(org.hisp.dhis.query.Order o) {
-    return o.isIgnoreCase() && String.class == o.getProperty().getKlass();
   }
 }
