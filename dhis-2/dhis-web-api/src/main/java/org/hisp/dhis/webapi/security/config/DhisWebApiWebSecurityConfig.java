@@ -151,9 +151,9 @@ public class DhisWebApiWebSecurityConfig {
   @Autowired private RequestCache requestCache;
 
   private static class CustomRequestMatcher implements RequestMatcher {
-
-    private final List<Pattern> includePatterns =
-        new ArrayList<>(List.of(Pattern.compile("^/api/apps/.*"), Pattern.compile("^/apps/.*")));
+    private static final Pattern p1 = Pattern.compile("^/api/apps/.*");
+    private static final Pattern p2 = Pattern.compile("^/apps/.*");
+    private final List<Pattern> includePatterns = new ArrayList<>(List.of(p1, p2));
 
     @Override
     public boolean matches(HttpServletRequest request) {
