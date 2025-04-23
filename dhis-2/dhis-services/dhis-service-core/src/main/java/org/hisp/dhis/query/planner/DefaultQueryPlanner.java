@@ -108,7 +108,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
         query.getOrders().stream()
             .map(Order::getProperty)
             .map(schema::getProperty)
-            .allMatch(p -> p.isPersisted() && p.isSimple());
+            .allMatch(p -> p != null && p.isPersisted() && p.isSimple());
     if (dbOrdering) {
       dbQuery.addOrders(query.getOrders());
       memoryQuery.clearOrders();
