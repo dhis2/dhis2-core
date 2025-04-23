@@ -38,9 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -82,9 +80,6 @@ class TrackedEntityAttributeStoreTest extends PostgresIntegrationTestBase {
     attributeW = createTrackedEntityAttribute('W');
     attributeY = createTrackedEntityAttribute('Y');
     attributeZ = createTrackedEntityAttribute('Z', ValueType.NUMBER);
-    List<TrackedEntityAttribute> attributesA = new ArrayList<>();
-    attributesA.add(attributeW);
-    attributesA.add(attributeY);
     Program program = createProgram('A');
     programService.addProgram(program);
     TrackedEntityType trackedEntityTypeA = createTrackedEntityType('A');
@@ -119,17 +114,10 @@ class TrackedEntityAttributeStoreTest extends PostgresIntegrationTestBase {
     trackedEntityTypeService.addTrackedEntityType(trackedEntityTypeB);
     programB = createProgram('B');
     programService.addProgram(programB);
-    List<ProgramTrackedEntityAttribute> pteaList =
-        IntStream.range(A, T)
-            .mapToObj(i -> Character.toString((char) i))
-            .map(
-                s ->
-                    new ProgramTrackedEntityAttribute(
-                        programB,
-                        attributeService.getTrackedEntityAttributeByName("Attribute" + s)))
-            .collect(Collectors.toList());
-    programB.getProgramAttributes().addAll(pteaList);
+    programB.getProgramAttributes().addAll(createProgramAttributes(programB));
     programService.updateProgram(programB);
+    program.getProgramAttributes().addAll(createProgramAttributes(program));
+    programService.updateProgram(program);
   }
 
   @Test
@@ -222,10 +210,19 @@ class TrackedEntityAttributeStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void verifyGetTrackedEntityAttributesByProgram() {
-    Map<Program, Set<TrackedEntityAttribute>> trackedEntityAttributes =
-        attributeService.getTrackedEntityAttributesByProgram();
-    assertThat(trackedEntityAttributes.size(), is(1));
-    assertThat(trackedEntityAttributes.get(programB), hasSize(20));
+  void verifyGetTrackedEntityAttributesInProgram() {
+    Set<String> trackedEntityAttributes =
+        attributeService.getTrackedEntityAttributesInProgram(programB);
+    assertThat(trackedEntityAttributes.size(), is(20));
+  }
+
+  private List<ProgramTrackedEntityAttribute> createProgramAttributes(Program program) {
+    return IntStream.range(A, T)
+        .mapToObj(i -> Character.toString((char) i))
+        .map(
+            s ->
+                new ProgramTrackedEntityAttribute(
+                    program, attributeService.getTrackedEntityAttributeByName("Attribute" + s)))
+        .toList();
   }
 }

@@ -99,5 +99,5 @@ public interface GistAccessControl {
    */
   Access asAccess(Class<? extends IdentifiableObject> type, Sharing value);
 
-  String createAccessFilterHQL(String tableName);
+  String createAccessFilterHQL(String alias);
 }

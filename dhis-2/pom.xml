@@ -104,7 +104,7 @@
 
     <!-- Spring -->
     <spring.version>6.2.3</spring.version>
-    <spring-session-core.version>3.4.2</spring-session-core.version>
+    <spring-session-core.version>3.4.3</spring-session-core.version>
     <spring-data-redis.version>2.7.18</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.4</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
@@ -115,7 +115,7 @@
     <lettuce.version>6.5.5.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>11.7.1</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>11.7.2</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <ehcache3.version>3.10.8</ehcache3.version>
     <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
@@ -127,7 +127,7 @@
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.10.1</datasource-proxy.version>
     <mysql-connector-j.version>9.2.0</mysql-connector-j.version>
-    <clickhouse-jdbc.version>0.8.3</clickhouse-jdbc.version>
+    <clickhouse-jdbc.version>0.8.4</clickhouse-jdbc.version>
 
     <!-- Servlet -->
     <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
@@ -189,7 +189,7 @@
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <joda-time.version>2.14.0</joda-time.version>
     <cron-utils.version>9.2.1</cron-utils.version>
-    <commons-collections4.version>4.4</commons-collections4.version>
+    <commons-collections4.version>4.5.0</commons-collections4.version>
     <commons-beanutils.version>1.10.1</commons-beanutils.version>
     <commons-lang3.version>3.17.0</commons-lang3.version>
     <commons-text.version>1.13.1</commons-text.version>
@@ -602,7 +602,7 @@
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-oauth2-authorization-server</artifactId>
-        <version>1.4.2</version>
+        <version>1.4.3</version>
       </dependency>
 
       <!-- OAuth 2.0 -->
