@@ -2366,9 +2366,11 @@ jasperreports.version=${jasperreports.version}
         <artifactId>jacoco-maven-plugin</artifactId>
       </plugin>
     </plugins>
-    <!-- <build><sourceDirectory> cannot be set in a profile, so it needs
+    <!--
+      <build><sourceDirectory> cannot be set in a profile, so it needs
       a custom property for overwriting it, see
-      https://github.com/awhitford/lombok.maven/issues/17#issuecomment-136606104 -->
+      https://github.com/awhitford/lombok.maven/issues/17#issuecomment-136606104 
+    -->
     <sourceDirectory>${sourceDir}</sourceDirectory>
   </build>
 
