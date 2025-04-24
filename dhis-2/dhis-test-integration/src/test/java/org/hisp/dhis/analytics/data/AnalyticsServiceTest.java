@@ -47,6 +47,7 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
@@ -98,6 +99,7 @@ import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -108,6 +110,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * @author Henning Haakonsen (original)
  * @author Jim Grace (break cases into individual tests)
  */
+@Timeout(value = 2, unit = TimeUnit.MINUTES)
 class AnalyticsServiceTest extends SingleSetupIntegrationTestBase {
   private CategoryOptionCombo ocDef;
 

@@ -69,6 +69,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
@@ -130,6 +131,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -139,6 +141,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Henning Haakonsen
  * @author Jim Grace (nearly complete rewrite)
  */
+@Timeout(value = 2, unit = TimeUnit.MINUTES)
 class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
   @Autowired private EventAnalyticsService eventTarget;
 
