@@ -33,7 +33,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams.FALSE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -44,8 +43,6 @@ import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
