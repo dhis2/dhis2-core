@@ -33,7 +33,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.auth.OAuth2ClientCredentialsAuthScheme;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -48,7 +47,6 @@ import org.hisp.dhis.route.RouteService;
 import org.hisp.dhis.schema.descriptors.RouteSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
@@ -66,7 +64,6 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/routes")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @OpenApi.Document(classifiers = {"team:extensibility", "purpose:metadata"})
 public class RouteController extends AbstractCrudController<Route, GetObjectListParams> {
   private final RouteService routeService;

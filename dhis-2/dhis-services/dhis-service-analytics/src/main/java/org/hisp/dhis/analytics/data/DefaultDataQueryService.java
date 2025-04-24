@@ -168,7 +168,6 @@ public class DefaultDataQueryService implements DataQueryService {
         .withApprovalLevel(request.getApprovalLevel())
         .withUserOrgUnitType(request.getUserOrgUnitType())
         .withUserOrganisationUnitsCriteria(request.getUserOrganisationUnitCriteria())
-        .withApiVersion(request.getApiVersion())
         .withLocale(locale)
         .withOutputFormat(ANALYTICS)
         .build();

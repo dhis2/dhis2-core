@@ -50,7 +50,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import lombok.Data;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
@@ -72,7 +71,6 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.hisp.dhis.webapi.webdomain.CodeList;
@@ -98,7 +96,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
     classifiers = {"team:platform", "purpose:support"})
 @Controller
 @RequestMapping("/api/system")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class SystemController {
 
   @Autowired private SystemService systemService;

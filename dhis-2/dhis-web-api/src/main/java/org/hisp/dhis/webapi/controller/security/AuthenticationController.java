@@ -35,7 +35,6 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpSessionEvent;
 import java.util.List;
 import javax.annotation.PostConstruct;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -49,7 +48,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.security.LoginResponse.STATUS;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.annotation.Order;
@@ -100,7 +98,6 @@ import org.springframework.web.bind.annotation.RestController;
     classifiers = {"team:platform", "purpose:support"})
 @RestController
 @RequestMapping("/api/auth")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @Order(2103)
 public class AuthenticationController {
 
@@ -238,14 +235,12 @@ public class AuthenticationController {
       Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
     // Default redirect URL
     String redirectUrl =
-        request.getContextPath() + "/" + settingsProvider.getCurrentSettings().getStartModule();
-    // Let the GlobalShellFilter redirect to apps
-    redirectUrl = redirectUrl.replaceFirst("/apps", "");
-
+        request.getContextPath()
+            + "/api/apps/"
+            + settingsProvider.getCurrentSettings().getStartModule();
     // GlobalShellFilter prefer ending slash when we are using old style app name like:
-    // dhis-web-dashboard
     if (!redirectUrl.endsWith("/")) {
-      redirectUrl = redirectUrl + "/";
+      redirectUrl += "/";
     }
 
     // Check enforce verified email, redirect to the profile page if email is not verified
@@ -253,7 +248,7 @@ public class AuthenticationController {
     if (enforceVerifiedEmail) {
       UserDetails userDetails = (UserDetails) authentication.getPrincipal();
       if (!userDetails.isEmailVerified()) {
-        return request.getContextPath() + "/dhis-web-user-profile/#/profile";
+        return request.getContextPath() + "/api/apps/user-profile/#/profile";
       }
     }
 
@@ -269,18 +264,11 @@ public class AuthenticationController {
           redirectUrl =
               defaultSavedRequest.getRequestURI() + "?" + defaultSavedRequest.getQueryString();
         } else {
-          String requestURI = defaultSavedRequest.getRequestURI();
-          // Ignore saved requests that is just / or /CONTEXT_PATH(/)
-          if (!requestURI.equalsIgnoreCase("/")
-              && !requestURI.equalsIgnoreCase(request.getContextPath())
-              && !requestURI.equalsIgnoreCase(request.getContextPath() + "/")) {
-            redirectUrl = requestURI;
-          }
+          redirectUrl = defaultSavedRequest.getRequestURI();
         }
       }
       this.requestCache.removeRequest(request, response);
     }
-
     return redirectUrl;
   }
 

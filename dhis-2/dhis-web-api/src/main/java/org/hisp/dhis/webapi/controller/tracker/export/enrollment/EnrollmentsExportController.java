@@ -37,7 +37,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Response.Status;
 import org.hisp.dhis.common.UID;
@@ -52,7 +51,6 @@ import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.webapi.controller.tracker.RequestHandler;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -67,7 +65,6 @@ import org.springframework.web.bind.annotation.RestController;
     classifiers = {"team:tracker", "purpose:data"})
 @RestController
 @RequestMapping("/api/tracker/enrollments")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 class EnrollmentsExportController {
   protected static final String ENROLLMENTS = "enrollments";
 
