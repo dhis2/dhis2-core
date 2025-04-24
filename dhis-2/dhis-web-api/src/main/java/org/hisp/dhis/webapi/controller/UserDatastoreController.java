@@ -40,7 +40,6 @@ import java.io.IOException;
 import java.util.List;
 import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Response.Status;
@@ -56,7 +55,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.userdatastore.UserDatastoreEntry;
 import org.hisp.dhis.userdatastore.UserDatastoreService;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -76,7 +74,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
     classifiers = {"team:platform", "purpose:data"})
 @Controller
 @RequestMapping("/api/userDataStore")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class UserDatastoreController extends AbstractDatastoreController {
 

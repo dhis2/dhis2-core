@@ -73,7 +73,6 @@ import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.common.AnalyticsDateFilter;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DateRange;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -273,7 +272,6 @@ public class EventQueryParams extends DataQueryParams {
     params.endDate = this.endDate;
     params.timeField = this.timeField;
     params.orgUnitField = this.orgUnitField;
-    params.apiVersion = this.apiVersion;
     params.skipData = this.skipData;
     params.skipMeta = this.skipMeta;
     params.partitions = new Partitions(this.partitions);
@@ -1508,11 +1506,6 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withStartEndDatesForPeriods() {
       this.params.replacePeriodsWithDates();
-      return this;
-    }
-
-    public Builder withApiVersion(DhisApiVersion apiVersion) {
-      this.params.apiVersion = apiVersion;
       return this;
     }
 
