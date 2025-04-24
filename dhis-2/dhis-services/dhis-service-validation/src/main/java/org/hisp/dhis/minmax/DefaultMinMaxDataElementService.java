@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -145,54 +144,48 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
   @Transactional
   public void importFromJson(List<MinMaxValueDto> dtos) {
 
-    BatchHandler<MinMaxDataElement> batchHandler = batchHandlerFactory
-        .createBatchHandler( MinMaxDataElementBatchHandler.class)
-        .init();
+    BatchHandler<MinMaxDataElement> batchHandler =
+        batchHandlerFactory.createBatchHandler(MinMaxDataElementBatchHandler.class).init();
 
-    List<String> dataElementUids = dtos.stream()
-        .map(MinMaxValueDto::getDataElement)
-        .filter(Objects::nonNull)
-        .distinct()
-        .toList();
+    List<String> dataElementUids =
+        dtos.stream()
+            .map(MinMaxValueDto::getDataElement)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
 
-    List<String> orgUnitUids = dtos.stream()
-        .map(MinMaxValueDto::getOrgUnit)
-        .filter( Objects::nonNull)
-        .distinct()
-        .toList();
+    List<String> orgUnitUids =
+        dtos.stream().map(MinMaxValueDto::getOrgUnit).filter(Objects::nonNull).distinct().toList();
 
-    List<UID> cocUids = dtos.stream()
-        .map(MinMaxValueDto::getCategoryOptionCombo)
-        .distinct()
-        .map(UID::of)
-        .toList();
+    List<UID> cocUids =
+        dtos.stream().map(MinMaxValueDto::getCategoryOptionCombo).distinct().map(UID::of).toList();
 
-    Map<String, DataElement> dataElementMap = dataElementService
-        .getDataElementsByUid(dataElementUids).stream()
-        .collect(Collectors.toMap(DataElement::getUid, Function.identity()));
+    Map<String, DataElement> dataElementMap =
+        dataElementService.getDataElementsByUid(dataElementUids).stream()
+            .collect(Collectors.toMap(DataElement::getUid, Function.identity()));
 
-    Map<String, OrganisationUnit> orgUnitMap = organisationUnitService
-        .getOrganisationUnitsByUid(orgUnitUids).stream()
-        .collect(Collectors.toMap(OrganisationUnit::getUid, Function.identity()));
+    Map<String, OrganisationUnit> orgUnitMap =
+        organisationUnitService.getOrganisationUnitsByUid(orgUnitUids).stream()
+            .collect(Collectors.toMap(OrganisationUnit::getUid, Function.identity()));
 
-    Map<String, CategoryOptionCombo> cocMap = categoryService
-        .getCategoryOptionCombosByUid(cocUids).stream()
-        .collect(Collectors.toMap(CategoryOptionCombo::getUid, Function.identity()));
+    Map<String, CategoryOptionCombo> cocMap =
+        categoryService.getCategoryOptionCombosByUid(cocUids).stream()
+            .collect(Collectors.toMap(CategoryOptionCombo::getUid, Function.identity()));
 
     for (MinMaxValueDto dto : dtos) {
-      DataElement de = dataElementMap.get( dto.getDataElement() );
-      OrganisationUnit ou = orgUnitMap.get( dto.getOrgUnit() );
-      CategoryOptionCombo coc = cocMap.get( dto.getCategoryOptionCombo() );
+      DataElement de = dataElementMap.get(dto.getDataElement());
+      OrganisationUnit ou = orgUnitMap.get(dto.getOrgUnit());
+      CategoryOptionCombo coc = cocMap.get(dto.getCategoryOptionCombo());
 
       MinMaxDataElement mm =
           new MinMaxDataElement(de, ou, coc, dto.getMinValue(), dto.getMaxValue());
-      mm.setGenerated( Boolean.TRUE );
-        MinMaxDataElement existing = minMaxDataElementStore.get(ou, de, coc);
-        if (existing != null) {
-          batchHandler.updateObject( mm );
-        } else {
-          batchHandler.addObject( mm );
-        }
+      mm.setGenerated(Boolean.TRUE);
+      MinMaxDataElement existing = minMaxDataElementStore.get(ou, de, coc);
+      if (existing != null) {
+        batchHandler.updateObject(mm);
+      } else {
+        batchHandler.addObject(mm);
+      }
     }
     batchHandler.flush();
   }
