@@ -108,6 +108,7 @@ import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentFields;
+import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams.TrackedEntityOperationParamsBuilder;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
@@ -1337,7 +1338,10 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     TrackedEntityFields fields =
         TrackedEntityFields.builder()
             .includeEnrollments(
-                EnrollmentFields.builder().includeAttributes().includeRelationships().build())
+                EnrollmentFields.builder()
+                    .includeAttributes()
+                    .includeRelationships(RelationshipFields.all())
+                    .build())
             .build();
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -1519,7 +1523,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnTrackedEntityWithRelationshipsTe2Te()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    TrackedEntityFields fields = TrackedEntityFields.builder().includeRelationships().build();
+    TrackedEntityFields fields =
+        TrackedEntityFields.builder().includeRelationships(RelationshipFields.all()).build();
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(orgUnitA)
@@ -1671,7 +1676,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   @Test
   void returnTrackedEntityRelationshipsWithTe2Enrollment()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    TrackedEntityFields fields = TrackedEntityFields.builder().includeRelationships().build();
+    TrackedEntityFields fields =
+        TrackedEntityFields.builder().includeRelationships(RelationshipFields.all()).build();
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(orgUnitA)
@@ -1699,7 +1705,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityFields fields =
         TrackedEntityFields.builder()
-            .includeRelationships()
+            .includeRelationships(RelationshipFields.all())
             .includeEnrollments(EnrollmentFields.all())
             .build();
     TrackedEntityOperationParams operationParams =
@@ -2391,7 +2397,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         .trackedEntities(trackedEntity)
         .fields(
             TrackedEntityFields.builder()
-                .includeRelationships()
+                .includeRelationships(RelationshipFields.all())
                 .includeEnrollments(EnrollmentFields.all())
                 .build())
         .build();

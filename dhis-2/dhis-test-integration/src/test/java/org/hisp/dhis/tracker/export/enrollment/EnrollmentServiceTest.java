@@ -77,6 +77,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.event.EventFields;
+import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -328,7 +329,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldGetEnrollmentWithRelationshipsWhenUserHasAccessToThem() throws NotFoundException {
-    EnrollmentFields fields = EnrollmentFields.builder().includeRelationships().build();
+    EnrollmentFields fields =
+        EnrollmentFields.builder().includeRelationships(RelationshipFields.all()).build();
 
     Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), fields);
 
@@ -341,7 +343,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     relationshipTypeA.getSharing().setOwner(admin);
     relationshipTypeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
 
-    EnrollmentFields fields = EnrollmentFields.builder().includeRelationships().build();
+    EnrollmentFields fields =
+        EnrollmentFields.builder().includeRelationships(RelationshipFields.all()).build();
 
     Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), fields);
 
