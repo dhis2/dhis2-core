@@ -37,8 +37,14 @@ import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletRequest;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -60,14 +66,21 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.util.ObjectUtils;
+import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.webapi.webdomain.datavalue.MinMaxValueDto;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -83,6 +96,8 @@ public class MinMaxDataElementController {
   private final ContextService contextService;
 
   private final MinMaxDataElementService minMaxService;
+
+  private final DataValidator dataValidator;
 
   private final FieldFilterService fieldFilterService;
 
@@ -200,5 +215,78 @@ public class MinMaxDataElementController {
       throw new WebMessageException(
           notFound("Invalid required parameters: source, dataElement, optionCombo"));
     }
+  }
+
+  // Bulk import
+  @PostMapping(value = "/values", consumes = "application/json")
+  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
+  @ResponseStatus(HttpStatus.OK)
+  public void bulkPostJson(@RequestBody List<MinMaxValueDto> valueDtos) {
+    for (MinMaxValueDto dto : valueDtos) {
+      saveOrUpdate(dto, true);
+    }
+  }
+
+  @PostMapping(value = "/values", consumes = "multipart/form-data")
+  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
+  @ResponseStatus(HttpStatus.OK)
+  public void bulkPostCsv(@RequestParam("file") MultipartFile file) throws IOException {
+    List<MinMaxValueDto> dtos = parseCsvToDtos(file.getInputStream());
+    for (MinMaxValueDto dto : dtos) {
+      saveOrUpdate(dto, true);
+    }
+  }
+
+  private void saveOrUpdate(MinMaxValueDto dto, boolean isBulk) {
+    DataElement de = dataValidator.getAndValidateDataElement(dto.getDataElement());
+    OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit(dto.getOrgUnit());
+    CategoryOptionCombo coc =
+        dataValidator.getAndValidateCategoryOptionCombo(dto.getCategoryOptionCombo());
+
+    dataValidator.validateMinMaxValues(dto.getMinValue(), dto.getMaxValue());
+
+    boolean generated = dto.getGenerated() != null ? dto.getGenerated() : isBulk;
+
+    MinMaxDataElement existing = minMaxService.getMinMaxDataElement(ou, de, coc);
+    if (existing != null) {
+      existing.setMin(dto.getMinValue());
+      existing.setMax(dto.getMaxValue());
+      existing.setGenerated(generated);
+      minMaxService.updateMinMaxDataElement(existing);
+    } else {
+      MinMaxDataElement newValue =
+          new MinMaxDataElement(de, ou, coc, dto.getMinValue(), dto.getMaxValue());
+      newValue.setGenerated(generated);
+      minMaxService.addMinMaxDataElement(newValue);
+    }
+  }
+
+  private List<MinMaxValueDto> parseCsvToDtos(InputStream inputStream) throws IOException {
+    List<MinMaxValueDto> dtos = new ArrayList<>();
+    try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+      String header = reader.readLine(); // skip header
+      String line;
+      while ((line = reader.readLine()) != null) {
+        String[] fields = line.split(",", -1);
+        if (fields.length < 5) continue; // skip malformed lines
+
+        MinMaxValueDto dto = getMinMaxValueDto(fields);
+        dtos.add(dto);
+      }
+    }
+    return dtos;
+  }
+
+  private static @Nonnull MinMaxValueDto getMinMaxValueDto(String[] fields) {
+    MinMaxValueDto dto = new MinMaxValueDto();
+    dto.setDataElement(fields[0].trim());
+    dto.setOrgUnit(fields[1].trim());
+    dto.setCategoryOptionCombo(fields[2].trim());
+    dto.setMinValue(Integer.parseInt(fields[3].trim()));
+    dto.setMaxValue(Integer.parseInt(fields[4].trim()));
+    if (fields.length > 5 && !fields[5].trim().isEmpty()) {
+      dto.setGenerated(Boolean.parseBoolean(fields[5].trim()));
+    }
+    return dto;
   }
 }

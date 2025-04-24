@@ -129,4 +129,53 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
                     + "}")
             .content(HttpStatus.NOT_FOUND));
   }
+
+  @Test
+  void testBulkPostJson_DefaultGeneratedTrue() {
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/minMaxDataElements/values",
+            "["
+                + "{"
+                + "\"dataElement\":\""
+                + dataElementId
+                + "\","
+                + "\"orgUnit\":\""
+                + orgUnitId
+                + "\","
+                + "\"categoryOptionCombo\":\""
+                + categoryOptionComboId
+                + "\","
+                + "\"minValue\":10,"
+                + "\"maxValue\":200"
+                + "}"
+                + "]"));
+  }
+
+  @Test
+  void testBulkPostJson_InvalidPayload() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Max value must be specified",
+        POST(
+                "/minMaxDataElements/values",
+                "["
+                    + "{"
+                    + "\"dataElement\":\""
+                    + dataElementId
+                    + "\","
+                    + "\"orgUnit\":\""
+                    + orgUnitId
+                    + "\","
+                    + "\"categoryOptionCombo\":\""
+                    + categoryOptionComboId
+                    + "\","
+                    + "\"minValue\":10"
+                    + "}"
+                    + "]")
+            .content(HttpStatus.CONFLICT));
+  }
 }

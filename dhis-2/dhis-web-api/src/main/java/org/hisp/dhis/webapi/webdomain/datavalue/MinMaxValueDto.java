@@ -65,4 +65,6 @@ public class MinMaxValueDto {
   @JsonProperty private Integer minValue;
 
   @JsonProperty private Integer maxValue;
+
+  @JsonProperty private Boolean generated;
 }
