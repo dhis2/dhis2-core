@@ -29,15 +29,12 @@
  */
 package org.hisp.dhis.query;
 
-import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.query.operators.InOperator;
 import org.hisp.dhis.query.operators.Operator;
-import org.hisp.dhis.query.planner.PropertyPath;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -59,9 +56,6 @@ public final class Filter {
    * in-memory filter.
    */
   private final boolean attribute;
-
-  /** Query Path used in persistent part of a query. */
-  @Setter private PropertyPath propertyPath;
 
   public Filter(String path, Operator<?> operator) {
     this(path, operator, false);
@@ -110,9 +104,5 @@ public final class Filter {
 
   public boolean isMentions() {
     return "mentions".equals(path) && operator instanceof InOperator;
-  }
-
-  public Stream<String> aliases() {
-    return propertyPath == null ? Stream.empty() : Stream.of(propertyPath.getAlias());
   }
 }

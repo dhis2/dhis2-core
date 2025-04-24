@@ -84,11 +84,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
     Query<T> dbQuery = Query.emptyOf(query);
 
     for (Filter filter : query.getFilters()) {
-      if (!filter.isVirtual())
-        filter.setPropertyPath(
-            schemaService.getPropertyPath(query.getObjectType(), filter.getPath()));
-
-      if (isDbFilter(filter)) {
+      if (isDbFilter(query, filter)) {
         dbQuery.add(filter);
       } else {
         memoryQuery.add(filter);
@@ -117,9 +113,9 @@ public class DefaultQueryPlanner implements QueryPlanner {
     return new QueryPlan<>(dbQuery, memoryQuery);
   }
 
-  private static boolean isDbFilter(Filter filter) {
+  private boolean isDbFilter(Query query, Filter filter) {
     if (filter.isVirtual()) return filter.isIdentifiable() || filter.isQuery();
-    PropertyPath path = filter.getPropertyPath();
+    PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
     return path != null
         && path.isPersisted()
         && !path.haveAlias()
