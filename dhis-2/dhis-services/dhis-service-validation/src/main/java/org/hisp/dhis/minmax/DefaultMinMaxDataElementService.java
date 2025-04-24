@@ -31,13 +31,22 @@ package org.hisp.dhis.minmax;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.jdbc.batchhandler.MinMaxDataElementBatchHandler;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.quick.BatchHandler;
+import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,6 +63,8 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
   private final OrganisationUnitService organisationUnitService;
 
   private final CategoryService categoryService;
+
+  private final BatchHandlerFactory batchHandlerFactory;
 
   // -------------------------------------------------------------------------
   // MinMaxDataElementService implementation
@@ -133,25 +144,56 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
 
   @Transactional
   public void importFromJson(List<MinMaxValueDto> dtos) {
+
+    BatchHandler<MinMaxDataElement> batchHandler = batchHandlerFactory
+        .createBatchHandler( MinMaxDataElementBatchHandler.class)
+        .init();
+
+    List<String> dataElementUids = dtos.stream()
+        .map(MinMaxValueDto::getDataElement)
+        .filter(Objects::nonNull)
+        .distinct()
+        .toList();
+
+    List<String> orgUnitUids = dtos.stream()
+        .map(MinMaxValueDto::getOrgUnit)
+        .filter( Objects::nonNull)
+        .distinct()
+        .toList();
+
+    List<UID> cocUids = dtos.stream()
+        .map(MinMaxValueDto::getCategoryOptionCombo)
+        .distinct()
+        .map(UID::of)
+        .toList();
+
+    Map<String, DataElement> dataElementMap = dataElementService
+        .getDataElementsByUid(dataElementUids).stream()
+        .collect(Collectors.toMap(DataElement::getUid, Function.identity()));
+
+    Map<String, OrganisationUnit> orgUnitMap = organisationUnitService
+        .getOrganisationUnitsByUid(orgUnitUids).stream()
+        .collect(Collectors.toMap(OrganisationUnit::getUid, Function.identity()));
+
+    Map<String, CategoryOptionCombo> cocMap = categoryService
+        .getCategoryOptionCombosByUid(cocUids).stream()
+        .collect(Collectors.toMap(CategoryOptionCombo::getUid, Function.identity()));
+
     for (MinMaxValueDto dto : dtos) {
-      DataElement de = dataElementService.getDataElement(dto.getDataElement());
-      OrganisationUnit ou = organisationUnitService.getOrganisationUnit(dto.getOrgUnit());
-      CategoryOptionCombo coc =
-          categoryService.getCategoryOptionCombo(dto.getCategoryOptionCombo());
+      DataElement de = dataElementMap.get( dto.getDataElement() );
+      OrganisationUnit ou = orgUnitMap.get( dto.getOrgUnit() );
+      CategoryOptionCombo coc = cocMap.get( dto.getCategoryOptionCombo() );
 
-      MinMaxDataElement existing = minMaxDataElementStore.get(ou, de, coc);
-
-      if (existing != null) {
-        existing.setMin(dto.getMinValue());
-        existing.setMax(dto.getMaxValue());
-        existing.setGenerated(dto.getGenerated() != null ? dto.getGenerated() : true);
-        minMaxDataElementStore.update(existing);
-      } else {
-        MinMaxDataElement newValue =
-            new MinMaxDataElement(de, ou, coc, dto.getMinValue(), dto.getMaxValue());
-        newValue.setGenerated(dto.getGenerated() != null ? dto.getGenerated() : true);
-        minMaxDataElementStore.save(newValue);
-      }
+      MinMaxDataElement mm =
+          new MinMaxDataElement(de, ou, coc, dto.getMinValue(), dto.getMaxValue());
+      mm.setGenerated( Boolean.TRUE );
+        MinMaxDataElement existing = minMaxDataElementStore.get(ou, de, coc);
+        if (existing != null) {
+          batchHandler.updateObject( mm );
+        } else {
+          batchHandler.addObject( mm );
+        }
     }
+    batchHandler.flush();
   }
 }
