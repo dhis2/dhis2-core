@@ -276,8 +276,8 @@ public class MinMaxDataElementController {
 
       String line;
       while ((line = reader.readLine()) != null) {
-        String[] fields = line.split(",", -1);
-        if (fields.length < 5) continue; // skip malformed lines
+        String[] fields = line.split(",", 6);
+        if (fields.length < 5) continue;
         MinMaxValueDto dto = getMinMaxValueDto(fields);
         dtos.add(dto);
       }
