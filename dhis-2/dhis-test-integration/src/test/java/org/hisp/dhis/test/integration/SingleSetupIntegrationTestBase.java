@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.test.integration;
 
+import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.BaseSpringTest;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.IntegrationTest;
@@ -37,6 +38,7 @@ import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.Timeout;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,6 +60,7 @@ public abstract class SingleSetupIntegrationTestBase extends BaseSpringTest {
   private UserDetails adminUserDetails;
   private User adminUser;
 
+  @Timeout(value = 2, unit = TimeUnit.MINUTES)
   @BeforeAll
   public final void before() throws Exception {
     bindSession();
