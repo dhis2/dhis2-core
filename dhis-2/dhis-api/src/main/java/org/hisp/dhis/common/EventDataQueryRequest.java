@@ -119,8 +119,6 @@ public class EventDataQueryRequest {
 
   protected List<AnalyticsMetaDataKey> userOrganisationUnitsCriteria;
 
-  private DhisApiVersion apiVersion;
-
   private OrganisationUnitSelectionMode ouMode;
 
   private Set<String> asc;
@@ -192,7 +190,6 @@ public class EventDataQueryRequest {
     queryRequest.displayProperty = this.displayProperty;
     queryRequest.relativePeriodDate = this.relativePeriodDate;
     queryRequest.userOrgUnit = this.userOrgUnit;
-    queryRequest.apiVersion = this.apiVersion;
     queryRequest.ouMode = this.ouMode;
     queryRequest.asc = new HashSet<>(this.asc);
     queryRequest.desc = new HashSet<>(this.desc);

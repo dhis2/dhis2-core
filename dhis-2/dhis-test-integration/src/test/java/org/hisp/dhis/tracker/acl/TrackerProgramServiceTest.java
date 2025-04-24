@@ -32,12 +32,17 @@ package org.hisp.dhis.tracker.acl;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -101,6 +106,48 @@ class TrackerProgramServiceTest extends PostgresIntegrationTestBase {
     makeProgramInaccessible("TsngICFQjvP");
 
     assertIsEmpty(trackerProgramService.getAccessibleTrackerPrograms(trackedEntityType));
+  }
+
+  @Test
+  void shouldReturnSingleProgramWhenTrackerProgramAccessible()
+      throws ForbiddenException, BadRequestException {
+    assertEquals(
+        "TsngICFQjvP", trackerProgramService.getTrackerProgram(UID.of("TsngICFQjvP")).getUid());
+  }
+
+  @Test
+  void shouldFailWhenRequestingSingleProgramThatDoesNotExist() {
+    UID madeUpUid = UID.generate();
+
+    Exception exception =
+        assertThrows(
+            BadRequestException.class, () -> trackerProgramService.getTrackerProgram(madeUpUid));
+    assertEquals("Provided program, " + madeUpUid + ", does not exist.", exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenRequestingSingleProgramThatIsNotATrackerProgram() {
+    UID eventProgramUid = UID.of("BFcipDERJne");
+
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> trackerProgramService.getTrackerProgram(eventProgramUid));
+    assertEquals(
+        "Provided program, " + eventProgramUid.getValue() + ", is not a tracker program.",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldFailWhenRequestingSingleProgramThatIsNotAccessible() {
+    makeProgramInaccessible("TsngICFQjvP");
+
+    Exception exception =
+        assertThrows(
+            ForbiddenException.class,
+            () -> trackerProgramService.getTrackerProgram(UID.of("TsngICFQjvP")));
+    assertStartsWith(
+        "Current user doesn't have access to the provided program", exception.getMessage());
   }
 
   private void makeProgramInaccessible(String uid) {

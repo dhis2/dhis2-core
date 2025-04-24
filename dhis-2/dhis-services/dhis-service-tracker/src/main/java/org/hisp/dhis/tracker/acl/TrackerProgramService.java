@@ -29,17 +29,22 @@
  */
 package org.hisp.dhis.tracker.acl;
 
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+
 import java.util.List;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service for fetching tracker programs (i.e., programs that require registration). ACL validations
@@ -52,9 +57,35 @@ public class TrackerProgramService {
   @Nonnull private final ProgramService programService;
   @Nonnull private final AclService aclService;
 
+  /**
+   * Returns the tracker program associated with the provided UID if it exists and is accessible to
+   * the current user.
+   */
+  @Transactional(readOnly = true)
+  public @Nonnull Program getTrackerProgram(@Nonnull UID programUid)
+      throws BadRequestException, ForbiddenException {
+    Program program = programService.getProgram(programUid.getValue());
+    if (program == null) {
+      throw new BadRequestException(
+          String.format("Provided program, %s, does not exist.", programUid));
+    }
+    if (program.isWithoutRegistration()) {
+      throw new BadRequestException(
+          String.format("Provided program, %s, is not a tracker program.", programUid));
+    }
+    if (!aclService.canDataRead(getCurrentUserDetails(), program)) {
+      throw new ForbiddenException(
+          String.format(
+              "Current user doesn't have access to the provided program %s.", programUid));
+    }
+
+    return program;
+  }
+
   /** Retrieves the list of tracker programs accessible to the current user. */
+  @Transactional(readOnly = true)
   public @Nonnull List<Program> getAccessibleTrackerPrograms() {
-    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails user = getCurrentUserDetails();
 
     return programService.getAllPrograms().stream()
         .filter(p -> p.isRegistration() && aclService.canDataRead(user, p))
@@ -65,9 +96,10 @@ public class TrackerProgramService {
    * Retrieves the list of tracker programs accessible to the current user that match the given
    * tracked entity type. It is assumed that the user has access to the supplied trackedEntityType.
    */
+  @Transactional(readOnly = true)
   public @Nonnull List<Program> getAccessibleTrackerPrograms(
       @Nonnull TrackedEntityType trackedEntityType) {
-    UserDetails user = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails user = getCurrentUserDetails();
 
     return programService.getAllPrograms().stream()
         .filter(
