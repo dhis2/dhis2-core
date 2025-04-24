@@ -177,12 +177,48 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
         DataElement de = dataElementMap.get(dto.getDataElement());
         OrganisationUnit ou = orgUnitMap.get(dto.getOrgUnit());
         CategoryOptionCombo coc = cocMap.get(dto.getCategoryOptionCombo());
+        // Validate
+        if (de == null) {
+          throw new IllegalArgumentException("Data element not found: " + dto.getDataElement());
+        }
+        if (ou == null) {
+          throw new IllegalArgumentException("Organisation unit not found: " + dto.getOrgUnit());
+        }
+        if (coc == null) {
+          throw new IllegalArgumentException(
+              "Category option combo not found: " + dto.getCategoryOptionCombo());
+        }
+        if (dto.getMinValue() == null) {
+          throw new IllegalArgumentException("Min value is required");
+        }
+        if (dto.getMaxValue() == null) {
+          throw new IllegalArgumentException("Max value is required");
+        }
+        if (dto.getMinValue() > dto.getMaxValue()) {
+          throw new IllegalArgumentException(
+              "Min value cannot be greater than max value: "
+                  + dto.getMinValue()
+                  + " > "
+                  + dto.getMaxValue());
+        }
+        if (dto.getMinValue() == dto.getMaxValue()) {
+          throw new IllegalArgumentException(
+              "Min value cannot be equal to max value: "
+                  + dto.getMinValue()
+                  + " = "
+                  + dto.getMaxValue());
+        }
 
         MinMaxDataElement mm =
             new MinMaxDataElement(de, ou, coc, dto.getMinValue(), dto.getMaxValue());
+
         mm.setGenerated(Boolean.TRUE);
         MinMaxDataElement existing = minMaxDataElementStore.get(ou, de, coc);
+
         if (existing != null) {
+          if (existing.getMin() == mm.getMin() && existing.getMax() == mm.getMax()) {
+            continue;
+          }
           batchHandler.updateObject(mm);
         } else {
           batchHandler.addObject(mm);
