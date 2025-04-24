@@ -113,7 +113,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
     return new QueryPlan<>(dbQuery, memoryQuery);
   }
 
-  private boolean isDbFilter(Query query, Filter filter) {
+  private boolean isDbFilter(Query<?> query, Filter filter) {
     if (filter.isVirtual()) return filter.isIdentifiable() || filter.isQuery();
     PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
     return path != null
