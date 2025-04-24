@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,41 +29,42 @@
  */
 package org.hisp.dhis.minmax;
 
-import java.util.Collection;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
+ * DTO which represents a min-max value.
+ *
  * @author Lars Helge Overland
  */
-public interface MinMaxDataElementService {
-  long addMinMaxDataElement(MinMaxDataElement minMaxDataElement);
+@Getter
+@Setter
+@Accessors(chain = true)
+@NoArgsConstructor
+public class MinMaxValueDto {
+  @JsonProperty
+  @OpenApi.Property({UID.class, DataElement.class})
+  private String dataElement;
 
-  void deleteMinMaxDataElement(MinMaxDataElement minMaxDataElement);
+  @JsonProperty
+  @OpenApi.Property({UID.class, OrganisationUnit.class})
+  private String orgUnit;
 
-  void updateMinMaxDataElement(MinMaxDataElement minMaxDataElement);
+  @JsonProperty
+  @OpenApi.Property({UID.class, CategoryOptionCombo.class})
+  private String categoryOptionCombo;
 
-  MinMaxDataElement getMinMaxDataElement(long id);
+  @JsonProperty private Integer minValue;
 
-  MinMaxDataElement getMinMaxDataElement(
-      OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo);
+  @JsonProperty private Integer maxValue;
 
-  List<MinMaxDataElement> getMinMaxDataElements(
-      OrganisationUnit source, Collection<DataElement> dataElements);
-
-  List<MinMaxDataElement> getMinMaxDataElements(MinMaxDataElementQueryParams query);
-
-  int countMinMaxDataElements(MinMaxDataElementQueryParams query);
-
-  void removeMinMaxDataElements(OrganisationUnit organisationUnit);
-
-  void removeMinMaxDataElements(DataElement dataElement);
-
-  void removeMinMaxDataElements(CategoryOptionCombo optionCombo);
-
-  void removeMinMaxDataElements(Collection<DataElement> dataElements, OrganisationUnit parent);
-
-  void importFromJson(List<MinMaxValueDto> minMaxDataElements);
+  @JsonProperty private Boolean generated;
 }

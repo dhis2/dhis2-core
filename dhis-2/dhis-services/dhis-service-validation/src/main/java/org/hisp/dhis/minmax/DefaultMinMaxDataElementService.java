@@ -33,8 +33,11 @@ import java.util.Collection;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +48,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.minmax.MinMaxDataElementService")
 public class DefaultMinMaxDataElementService implements MinMaxDataElementService {
   private final MinMaxDataElementStore minMaxDataElementStore;
+
+  private final DataElementService dataElementService;
+
+  private final OrganisationUnitService organisationUnitService;
+
+  private final CategoryService categoryService;
 
   // -------------------------------------------------------------------------
   // MinMaxDataElementService implementation
@@ -120,5 +129,29 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
   public void removeMinMaxDataElements(
       Collection<DataElement> dataElements, OrganisationUnit parent) {
     minMaxDataElementStore.delete(dataElements, parent);
+  }
+
+  @Transactional
+  public void importFromJson(List<MinMaxValueDto> dtos) {
+    for (MinMaxValueDto dto : dtos) {
+      DataElement de = dataElementService.getDataElement(dto.getDataElement());
+      OrganisationUnit ou = organisationUnitService.getOrganisationUnit(dto.getOrgUnit());
+      CategoryOptionCombo coc =
+          categoryService.getCategoryOptionCombo(dto.getCategoryOptionCombo());
+
+      MinMaxDataElement existing = minMaxDataElementStore.get(ou, de, coc);
+
+      if (existing != null) {
+        existing.setMin(dto.getMinValue());
+        existing.setMax(dto.getMaxValue());
+        existing.setGenerated(dto.getGenerated() != null ? dto.getGenerated() : true);
+        minMaxDataElementStore.update(existing);
+      } else {
+        MinMaxDataElement newValue =
+            new MinMaxDataElement(de, ou, coc, dto.getMinValue(), dto.getMaxValue());
+        newValue.setGenerated(dto.getGenerated() != null ? dto.getGenerated() : true);
+        minMaxDataElementStore.save(newValue);
+      }
+    }
   }
 }
