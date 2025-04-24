@@ -32,9 +32,7 @@ package org.hisp.dhis.tracker.export.trackedentity;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Map.entry;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
@@ -608,9 +606,10 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    *   <li>{@code ALL} – no org unit constraints are applied
    * </ul>
    *
-   * <p>If the org unit mode is not {@code ALL} and the user has no superuser privileges, the method
-   * also ensures that the tracked entity owner falls within the appropriate access scope (either
-   * search or capture).
+   * <p>If the org unit mode is not {@code ALL} the method also ensures that the tracked entity
+   * owner falls within the appropriate access scope (either search or capture). This validation,
+   * besides making sure the user has ownership access to the TE, also covers the case where the org
+   * unit is {@code ACCESSIBLE} or {@code CAPTURE}.
    *
    * @return a SQL INNER JOIN clause for organisation units
    */
@@ -623,14 +622,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         getOrgUnitsFromUids(userDetails.getUserEffectiveSearchOrgUnitIds());
     Set<OrganisationUnit> captureScopeOrgUnits =
         getOrgUnitsFromUids(userDetails.getUserOrgUnitIds());
-
-    if (params.isOrganisationUnitMode(ACCESSIBLE)) {
-      params.setOrgUnits(effectiveSearchOrgUnits);
-      params.setOrgUnitMode(DESCENDANTS);
-    } else if (params.isOrganisationUnitMode(CAPTURE)) {
-      params.setOrgUnits(captureScopeOrgUnits);
-      params.setOrgUnitMode(DESCENDANTS);
-    }
 
     orgUnits
         .append(" INNER JOIN organisationunit OU ")
