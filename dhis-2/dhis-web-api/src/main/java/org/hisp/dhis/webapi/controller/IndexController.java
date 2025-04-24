@@ -64,9 +64,7 @@ public class IndexController {
   public void getIndexWithSlash(
       HttpServletRequest request, HttpServletResponse response, SystemSettings settings)
       throws IOException {
-    String redirectUrl = request.getContextPath() + "/" + settings.getStartModule();
-    // Let the GlobalShellFilter redirect to apps
-    redirectUrl = redirectUrl.replaceFirst("/apps", "");
+    String redirectUrl = request.getContextPath() + "/api/apps/" + settings.getStartModule();
 
     if (!redirectUrl.endsWith("/")) {
       redirectUrl += "/";
