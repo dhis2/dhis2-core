@@ -264,12 +264,11 @@ public class MinMaxDataElementController {
   private List<MinMaxValueDto> parseCsvToDtos(InputStream inputStream) throws IOException {
     List<MinMaxValueDto> dtos = new ArrayList<>();
     try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-      String header = reader.readLine(); // skip header
+      reader.readLine(); // skip header
       String line;
       while ((line = reader.readLine()) != null) {
         String[] fields = line.split(",", -1);
         if (fields.length < 5) continue; // skip malformed lines
-
         MinMaxValueDto dto = getMinMaxValueDto(fields);
         dtos.add(dto);
       }
