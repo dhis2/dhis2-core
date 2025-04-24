@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -208,6 +208,7 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
         Arguments.of("subDir", "subDir/"),
         Arguments.of("emptyDir", "emptyDir/"),
         Arguments.of("subDir/subSubDir", "subDir/subSubDir/"));
+    // test GH build
   }
 
   private static Stream<Arguments> notFoundPathParams() {
