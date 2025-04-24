@@ -35,10 +35,9 @@ import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
-import static org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams.FALSE;
-import static org.hisp.dhis.webapi.controller.tracker.export.FieldsParamMapper.FIELD_RELATIONSHIPS;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -61,6 +60,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -76,11 +76,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
-import org.hisp.dhis.tracker.export.event.EventParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -124,7 +125,7 @@ class EventRequestParamsMapperTest {
 
   @Mock private DataElementService dataElementService;
 
-  @Mock EventFieldsParamMapper eventFieldsParamMapper;
+  @Mock private FieldFilterService fieldFilterService;
 
   @InjectMocks private EventRequestParamsMapper mapper;
 
@@ -155,7 +156,8 @@ class EventRequestParamsMapperTest {
     when(organisationUnitService.isInUserHierarchy(user, orgUnit)).thenReturn(true);
 
     TrackedEntity trackedEntity = new TrackedEntity();
-    when(trackedEntityService.getTrackedEntity(UID.of("qnR1RK4cTIZ"), null, FALSE))
+    when(trackedEntityService.getTrackedEntity(
+            UID.of("qnR1RK4cTIZ"), null, TrackedEntityFields.none()))
         .thenReturn(trackedEntity);
     TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
     tea1.setUid(TEA_1_UID.getValue());
@@ -617,24 +619,26 @@ class EventRequestParamsMapperTest {
   @Test
   void shouldMapEventParamsTrueWhenFieldPathIncludeRelationships() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
-    List<FieldPath> fieldPaths = FieldFilterParser.parse(FIELD_RELATIONSHIPS);
-
+    List<FieldPath> fieldPaths = FieldFilterParser.parse("relationships");
     eventRequestParams.setFields(fieldPaths);
-    when(eventFieldsParamMapper.map(fieldPaths)).thenReturn(EventParams.TRUE);
+    when(fieldFilterService.filterIncludes(Event.class, fieldPaths, "relationships"))
+        .thenReturn(true);
 
     EventOperationParams eventOperationParams = mapper.map(eventRequestParams, idSchemeParams);
-    assertEquals(EventParams.TRUE, eventOperationParams.getEventParams());
+
+    assertTrue(eventOperationParams.getFields().isIncludesRelationships());
   }
 
   @Test
   void shouldMapEventParamsFalseWhenFieldPathIncludeRelationships() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
-    List<FieldPath> fieldPaths = FieldFilterParser.parse(FIELD_RELATIONSHIPS);
-
+    List<FieldPath> fieldPaths = FieldFilterParser.parse("relationships");
     eventRequestParams.setFields(fieldPaths);
-    when(eventFieldsParamMapper.map(fieldPaths)).thenReturn(EventParams.FALSE);
+    when(fieldFilterService.filterIncludes(Event.class, fieldPaths, "relationships"))
+        .thenReturn(false);
 
     EventOperationParams eventOperationParams = mapper.map(eventRequestParams, idSchemeParams);
-    assertEquals(EventParams.FALSE, eventOperationParams.getEventParams());
+
+    assertFalse(eventOperationParams.getFields().isIncludesRelationships());
   }
 }

@@ -59,7 +59,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
-import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
@@ -117,8 +116,7 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
     // expect to be run by the importUser
     injectSecurityContextUser(importUser);
 
-    operationParamsBuilder = EventOperationParams.builder().eventParams(EventParams.FALSE);
-    operationParamsBuilder.orgUnit(orgUnit).orgUnitMode(SELECTED);
+    operationParamsBuilder = EventOperationParams.builder().orgUnit(orgUnit).orgUnitMode(SELECTED);
   }
 
   @Test
@@ -728,7 +726,6 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
         EventOperationParams.builder()
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStage(programStage)
-            .eventParams(EventParams.FALSE)
             .filterByAttribute(
                 UID.of("dIVt4l5vIOa"),
                 List.of(new QueryFilter(QueryOperator.NNULL), new QueryFilter(QueryOperator.NNULL)))
@@ -746,7 +743,6 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
         EventOperationParams.builder()
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStage(programStage)
-            .eventParams(EventParams.FALSE)
             .filterByAttribute(
                 UID.of("toUpdate000"),
                 List.of(
@@ -764,7 +760,6 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         EventOperationParams.builder()
-            .eventParams(EventParams.FALSE)
             .filterByAttribute(UID.of("toDelete000"), List.of(new QueryFilter(QueryOperator.NULL)))
             .build();
 
@@ -779,7 +774,6 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
     EventOperationParams params =
         EventOperationParams.builder()
             .programStage(programStage)
-            .eventParams(EventParams.FALSE)
             .filterByAttribute(UID.of("dIVt4l5vIOa"), List.of(new QueryFilter(QueryOperator.NNULL)))
             .build();
 
@@ -1016,7 +1010,6 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
     // value type number as text "15.0" != "15"
     EventOperationParams params =
         EventOperationParams.builder()
-            .eventParams(EventParams.FALSE)
             .filterByDataElement(
                 UID.of("GieVkTxp4HH"), List.of(new QueryFilter(QueryOperator.EQ, "15.0")))
             .build();
@@ -1031,7 +1024,6 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         EventOperationParams.builder()
-            .eventParams(EventParams.FALSE)
             .filterByDataElement(
                 UID.of("GieVkTxp4HH"), List.of(new QueryFilter(QueryOperator.NNULL)))
             .filterByDataElement(
@@ -1050,7 +1042,6 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
         EventOperationParams.builder()
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStage(programStage)
-            .eventParams(EventParams.FALSE)
             .filterByDataElement(
                 UID.of("DATAEL00002"), List.of(new QueryFilter(QueryOperator.NULL)))
             .build();
@@ -1087,7 +1078,6 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
         EventOperationParams.builder()
             .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
             .programStage(programStage)
-            .eventParams(EventParams.FALSE)
             .filterByDataElement(
                 UID.of("DATAEL00002"),
                 List.of(new QueryFilter(QueryOperator.NNULL), new QueryFilter(QueryOperator.NNULL)))

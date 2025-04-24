@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,35 +27,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.tracker.export.trackedentity;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
-import org.hisp.dhis.fieldfiltering.FieldPath;
+import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Provides basic methods to transform input fields into {@link FieldPath } based on {@link
- * FieldFilterParser }. It follows the principles of {@link
- * org.hisp.dhis.fieldfiltering.FieldFilterService}
- */
-public class FieldsParamMapper {
-  private FieldsParamMapper() {}
+import org.junit.jupiter.api.Test;
 
-  public static final String FIELD_RELATIONSHIPS = "relationships";
+class TrackedEntityFieldsTest {
+  @Test
+  void shouldIncludeAllFields() {
+    TrackedEntityFields fields = TrackedEntityFields.all();
 
-  public static final String FIELD_EVENTS = "events";
+    assertTrue(fields.isIncludesAttributes());
+    assertTrue(fields.isIncludesRelationships());
+    assertTrue(fields.isIncludesProgramOwners());
+    assertTrue(fields.isIncludesEnrollments());
+    assertTrue(fields.getEnrollmentFields().isIncludesAttributes());
+    assertTrue(fields.getEnrollmentFields().isIncludesRelationships());
+    assertTrue(fields.getEnrollmentFields().isIncludesEvents());
+    assertTrue(fields.getEnrollmentFields().getEventFields().isIncludesRelationships());
+  }
 
-  public static final String FIELD_ATTRIBUTES = "attributes";
+  @Test
+  void shouldIncludeNoFields() {
+    TrackedEntityFields fields = TrackedEntityFields.none();
 
-  public static Map<String, FieldPath> rootFields(List<FieldPath> fieldPaths) {
-    Map<String, FieldPath> roots = new HashMap<>();
-    for (FieldPath p : fieldPaths) {
-      if (p.isRoot() && (!roots.containsKey(p.getName()) || p.isExclude())) {
-        roots.put(p.getName(), p);
-      }
-    }
-    return roots;
+    assertFalse(fields.isIncludesAttributes());
+    assertFalse(fields.isIncludesRelationships());
+    assertFalse(fields.isIncludesProgramOwners());
+    assertFalse(fields.isIncludesEnrollments());
+    assertFalse(fields.getEnrollmentFields().isIncludesAttributes());
+    assertFalse(fields.getEnrollmentFields().isIncludesRelationships());
+    assertFalse(fields.getEnrollmentFields().isIncludesEvents());
+    assertFalse(fields.getEnrollmentFields().getEventFields().isIncludesRelationships());
   }
 }
