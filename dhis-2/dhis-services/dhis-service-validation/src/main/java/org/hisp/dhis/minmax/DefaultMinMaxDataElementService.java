@@ -145,7 +145,6 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
   @Override
   public void importFromJson(List<MinMaxValueDto> dtos) {
 
-
     List<String> dataElementUids =
         dtos.stream()
             .map(MinMaxValueDto::getDataElement)
@@ -171,7 +170,7 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
         categoryService.getCategoryOptionCombosByUid(cocUids).stream()
             .collect(Collectors.toMap(CategoryOptionCombo::getUid, Function.identity()));
 
-    try{
+    try {
       BatchHandler<MinMaxDataElement> batchHandler =
           batchHandlerFactory.createBatchHandler(MinMaxDataElementBatchHandler.class).init();
       for (MinMaxValueDto dto : dtos) {
@@ -190,7 +189,7 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
         }
       }
       batchHandler.flush();
-    } catch ( Exception e ) {
+    } catch (Exception e) {
       throw new RuntimeException("Error importing min max data elements", e);
     }
   }
