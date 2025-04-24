@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
@@ -53,6 +54,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
@@ -230,7 +232,8 @@ public class MinMaxDataElementController {
   @PostMapping(value = "/values", consumes = "multipart/form-data")
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @ResponseStatus(HttpStatus.OK)
-  public void bulkPostCsv(@RequestParam("file") MultipartFile file) throws IOException {
+  public void bulkPostCsv(@RequestParam("file") MultipartFile file)
+      throws IOException, WebMessageException {
     List<MinMaxValueDto> dtos = parseCsvToDtos(file.getInputStream());
     for (MinMaxValueDto dto : dtos) {
       saveOrUpdate(dto, true);
@@ -261,7 +264,8 @@ public class MinMaxDataElementController {
     }
   }
 
-  private List<MinMaxValueDto> parseCsvToDtos(InputStream inputStream) throws IOException {
+  private List<MinMaxValueDto> parseCsvToDtos(InputStream inputStream)
+      throws IOException, WebMessageException {
     List<MinMaxValueDto> dtos = new ArrayList<>();
     try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
       reader.readLine(); // skip header
@@ -276,16 +280,28 @@ public class MinMaxDataElementController {
     return dtos;
   }
 
-  private static @Nonnull MinMaxValueDto getMinMaxValueDto(String[] fields) {
+  private static @Nonnull MinMaxValueDto getMinMaxValueDto(String[] fields)
+      throws WebMessageException {
     MinMaxValueDto dto = new MinMaxValueDto();
-    dto.setDataElement(fields[0].trim());
-    dto.setOrgUnit(fields[1].trim());
-    dto.setCategoryOptionCombo(fields[2].trim());
-    dto.setMinValue(Integer.parseInt(fields[3].trim()));
-    dto.setMaxValue(Integer.parseInt(fields[4].trim()));
+    dto.setDataElement(trimToEmpty(fields[0]));
+    dto.setOrgUnit(trimToEmpty(fields[1]));
+    dto.setCategoryOptionCombo(trimToEmpty(fields[2]));
+    dto.setMinValue(parseIntSafe(fields[3]));
+    dto.setMaxValue(parseIntSafe(fields[4]));
     if (fields.length > 5 && !fields[5].trim().isEmpty()) {
-      dto.setGenerated(Boolean.parseBoolean(fields[5].trim()));
+      dto.setGenerated(Boolean.parseBoolean(trimToEmpty(fields[5])));
     }
     return dto;
+  }
+
+  private static Integer parseIntSafe(String value) throws WebMessageException {
+    try {
+      return Integer.parseInt(value.trim());
+    } catch (NumberFormatException e) {
+      throw new WebMessageException(
+          new WebMessage(Status.ERROR, HttpStatus.CONFLICT)
+              .setMessage("The value " + value + " is not a valid integer")
+              .setDevMessage("Parsing error: " + e.getMessage()));
+    }
   }
 }
