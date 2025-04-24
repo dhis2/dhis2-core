@@ -268,7 +268,10 @@ public class MinMaxDataElementController {
       throws IOException, WebMessageException {
     List<MinMaxValueDto> dtos = new ArrayList<>();
     try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-      reader.readLine(); // skip header
+      // Skip header line
+      if (reader.readLine() == null) {
+        return dtos;
+      }
       String line;
       while ((line = reader.readLine()) != null) {
         String[] fields = line.split(",", -1);
