@@ -142,6 +142,7 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
   }
 
   @Transactional
+  @Override
   public void importFromJson(List<MinMaxValueDto> dtos) {
 
     BatchHandler<MinMaxDataElement> batchHandler =
