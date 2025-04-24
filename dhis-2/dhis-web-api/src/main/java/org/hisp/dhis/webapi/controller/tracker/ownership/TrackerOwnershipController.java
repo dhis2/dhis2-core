@@ -30,7 +30,6 @@
 package org.hisp.dhis.webapi.controller.tracker.ownership;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
-import static org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams.FALSE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import org.hisp.dhis.common.OpenApi;
@@ -42,6 +41,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,7 +81,9 @@ public class TrackerOwnershipController {
       @RequestParam UID trackedEntity, @RequestParam UID program, @RequestParam UID orgUnit)
       throws ForbiddenException, NotFoundException, BadRequestException {
     trackerOwnershipManager.transferOwnership(
-        trackedEntityService.getTrackedEntity(trackedEntity, program, FALSE), program, orgUnit);
+        trackedEntityService.getTrackedEntity(trackedEntity, program, TrackedEntityFields.none()),
+        program,
+        orgUnit);
 
     return ok("Ownership transferred");
   }
