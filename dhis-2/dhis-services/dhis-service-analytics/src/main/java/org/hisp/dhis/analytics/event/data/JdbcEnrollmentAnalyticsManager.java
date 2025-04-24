@@ -647,7 +647,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   private Condition buildInFilterCondition(
       QueryFilter filter, QueryItem item, CteDefinition cteDef) {
     InQueryCteFilter inQueryCteFilter =
-        new InQueryCteFilter("value", filter.getFilter(), item.isText(), cteDef);
+        new InQueryCteFilter("value", filter.getFilter(), !item.isNumeric(), cteDef);
 
     return Condition.raw(
         inQueryCteFilter.getSqlFilter(computeRowNumberOffset(item.getProgramStageOffset())));
