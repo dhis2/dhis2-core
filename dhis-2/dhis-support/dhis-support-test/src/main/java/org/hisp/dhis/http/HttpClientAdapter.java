@@ -152,7 +152,6 @@ public interface HttpClientAdapter {
     return exceptionAsFail(() -> POST(url, Body(fileContent(body.toString())), ContentType(body)));
   }
 
-
   @Nonnull
   default HttpResponse PATCH(String url, Object... args) {
     // Default mime-type is added as first element so that content type in
