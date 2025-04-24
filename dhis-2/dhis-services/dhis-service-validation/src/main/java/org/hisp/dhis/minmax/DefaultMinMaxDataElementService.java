@@ -145,8 +145,6 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
   @Override
   public void importFromJson(List<MinMaxValueDto> dtos) {
 
-    BatchHandler<MinMaxDataElement> batchHandler =
-        batchHandlerFactory.createBatchHandler(MinMaxDataElementBatchHandler.class).init();
 
     List<String> dataElementUids =
         dtos.stream()
@@ -173,21 +171,27 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
         categoryService.getCategoryOptionCombosByUid(cocUids).stream()
             .collect(Collectors.toMap(CategoryOptionCombo::getUid, Function.identity()));
 
-    for (MinMaxValueDto dto : dtos) {
-      DataElement de = dataElementMap.get(dto.getDataElement());
-      OrganisationUnit ou = orgUnitMap.get(dto.getOrgUnit());
-      CategoryOptionCombo coc = cocMap.get(dto.getCategoryOptionCombo());
+    try{
+      BatchHandler<MinMaxDataElement> batchHandler =
+          batchHandlerFactory.createBatchHandler(MinMaxDataElementBatchHandler.class).init();
+      for (MinMaxValueDto dto : dtos) {
+        DataElement de = dataElementMap.get(dto.getDataElement());
+        OrganisationUnit ou = orgUnitMap.get(dto.getOrgUnit());
+        CategoryOptionCombo coc = cocMap.get(dto.getCategoryOptionCombo());
 
-      MinMaxDataElement mm =
-          new MinMaxDataElement(de, ou, coc, dto.getMinValue(), dto.getMaxValue());
-      mm.setGenerated(Boolean.TRUE);
-      MinMaxDataElement existing = minMaxDataElementStore.get(ou, de, coc);
-      if (existing != null) {
-        batchHandler.updateObject(mm);
-      } else {
-        batchHandler.addObject(mm);
+        MinMaxDataElement mm =
+            new MinMaxDataElement(de, ou, coc, dto.getMinValue(), dto.getMaxValue());
+        mm.setGenerated(Boolean.TRUE);
+        MinMaxDataElement existing = minMaxDataElementStore.get(ou, de, coc);
+        if (existing != null) {
+          batchHandler.updateObject(mm);
+        } else {
+          batchHandler.addObject(mm);
+        }
       }
+      batchHandler.flush();
+    } catch ( Exception e ) {
+      throw new RuntimeException("Error importing min max data elements", e);
     }
-    batchHandler.flush();
   }
 }
