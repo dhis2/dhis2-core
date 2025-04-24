@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElement;
@@ -62,7 +61,6 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -82,7 +80,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
     classifiers = {"team:platform", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/minMaxDataElements")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class MinMaxDataElementController {
   private final ContextService contextService;

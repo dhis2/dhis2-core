@@ -58,8 +58,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityIdentifiers;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -94,14 +94,10 @@ public class TrackedEntityAggregate {
 
   /**
    * Fetches a List of {@see TrackedEntity} based on the list of primary keys and search parameters
-   *
-   * @param identifiers a List of {@see TrackedEntity} primary key and uid tuples
-   * @param params an instance of {@see TrackedEntityParams}
-   * @return a List of {@see TrackedEntity} objects
    */
   public List<TrackedEntity> find(
       List<TrackedEntityIdentifiers> identifiers,
-      TrackedEntityParams params,
+      TrackedEntityFields fields,
       TrackedEntityQueryParams queryParams) {
     if (identifiers.isEmpty()) {
       return Collections.emptyList();
@@ -123,7 +119,7 @@ public class TrackedEntityAggregate {
                         .userUid(u.getUid())
                         .superUser(u.isSuper()))
             .orElse(Context.builder().superUser(true))
-            .params(params)
+            .fields(fields)
             .queryParams(queryParams)
             .build();
 
@@ -133,7 +129,7 @@ public class TrackedEntityAggregate {
      */
     final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync =
         conditionalAsyncFetch(
-            ctx.getParams().isIncludeEnrollments(),
+            ctx.getFields().isIncludesEnrollments(),
             () -> enrollmentAggregate.findByTrackedEntityIds(identifiers, ctx),
             getPool());
 
@@ -142,7 +138,7 @@ public class TrackedEntityAggregate {
      */
     final CompletableFuture<Multimap<String, TrackedEntityProgramOwner>> programOwnersAsync =
         conditionalAsyncFetch(
-            ctx.getParams().isIncludeProgramOwners(),
+            ctx.getFields().isIncludesProgramOwners(),
             () -> trackedEntityStore.getProgramOwners(ids),
             getPool());
 

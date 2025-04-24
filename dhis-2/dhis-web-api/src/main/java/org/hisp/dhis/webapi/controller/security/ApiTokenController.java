@@ -41,7 +41,6 @@ import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.commons.validator.routines.UrlValidator;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
@@ -60,7 +59,6 @@ import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -73,7 +71,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping({"/api/apiToken", "/api/apiTokens"})
 @RequiredArgsConstructor
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @OpenApi.Document(
     entity = Icon.class,
     classifiers = {"team:platform", "purpose:support"})

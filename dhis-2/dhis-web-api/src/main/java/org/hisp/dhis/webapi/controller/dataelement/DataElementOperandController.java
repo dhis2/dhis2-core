@@ -38,7 +38,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
@@ -56,7 +55,6 @@ import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -72,7 +70,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
     classifiers = {"team:platform", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/dataElementOperands")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
 public class DataElementOperandController {
   private final IdentifiableObjectManager manager;

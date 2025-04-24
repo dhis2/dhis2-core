@@ -113,7 +113,9 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
       throws NotFoundException, ForbiddenException {
     TrackedEntity trackedEntity =
         trackedEntityService.getTrackedEntity(
-            trackedEntityUid, programUid, TrackedEntityParams.FALSE.withIncludeAttributes(true));
+            trackedEntityUid,
+            programUid,
+            TrackedEntityFields.builder().includeAttributes().build());
     Program program =
         (programUid != null) ? programService.getProgram(programUid.getValue()) : null;
 

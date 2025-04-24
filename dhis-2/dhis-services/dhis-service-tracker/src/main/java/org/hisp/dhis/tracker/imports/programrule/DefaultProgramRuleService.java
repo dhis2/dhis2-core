@@ -50,8 +50,8 @@ import org.hisp.dhis.rules.models.RuleAttributeValue;
 import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.export.event.EventFields;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
-import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
@@ -219,7 +219,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
           eventService
               .findEvents(
                   EventOperationParams.builder()
-                      .eventParams(EventParams.TRUE)
+                      .fields(EventFields.all())
                       .orgUnitMode(ACCESSIBLE)
                       .enrollments(Set.of(enrollmentUid))
                       .build())

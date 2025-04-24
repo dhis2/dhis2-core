@@ -46,8 +46,6 @@ import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourBefore;
 import static org.hisp.dhis.tracker.TrackerTestUtils.twoHoursAfter;
 import static org.hisp.dhis.tracker.TrackerTestUtils.twoHoursBefore;
-import static org.hisp.dhis.tracker.export.trackedentity.TrackedEntityEnrollmentParams.FALSE;
-import static org.hisp.dhis.tracker.export.trackedentity.TrackedEntityEnrollmentParams.TRUE;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -109,6 +107,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams.TrackedEntityOperationParamsBuilder;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
@@ -683,12 +682,12 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .organisationUnits(orgUnitA)
             .orgUnitMode(SELECTED)
             .trackedEntityType(trackedEntityTypeA)
-            .trackedEntityParams(TrackedEntityParams.TRUE)
+            .fields(TrackedEntityFields.all())
             .build();
 
     TrackedEntity te =
         trackedEntityService.getTrackedEntity(
-            UID.of(trackedEntityA), UID.of(programA), TrackedEntityParams.TRUE);
+            UID.of(trackedEntityA), UID.of(programA), TrackedEntityFields.all());
     assertEquals(1, te.getEnrollments().size());
     assertEquals(enrollmentA.getUid(), te.getEnrollments().stream().findFirst().get().getUid());
 
@@ -728,7 +727,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .organisationUnits(orgUnitA)
             .orgUnitMode(SELECTED)
             .trackedEntityType(trackedEntityTypeA)
-            .trackedEntityParams(TrackedEntityParams.TRUE)
+            .fields(TrackedEntityFields.all())
             .build();
 
     final List<TrackedEntity> trackedEntities =
@@ -803,7 +802,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
     TrackedEntity trackedEntity =
         trackedEntityService.getTrackedEntity(
-            UID.of(trackedEntityA), UID.of(programA), TrackedEntityParams.TRUE);
+            UID.of(trackedEntityA), UID.of(programA), TrackedEntityFields.all());
 
     assertContainsOnly(Set.of(enrollmentA), trackedEntity.getEnrollments(), Enrollment::getUid);
   }
@@ -818,7 +817,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
     TrackedEntity trackedEntity =
         trackedEntityService.getTrackedEntity(
-            UID.of(trackedEntityA), null, TrackedEntityParams.TRUE);
+            UID.of(trackedEntityA), null, TrackedEntityFields.all());
 
     assertContainsOnly(
         Set.of(enrollmentA, enrollmentB, enrollmentProgramB),
@@ -1183,7 +1182,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .orgUnitMode(SELECTED)
             .trackedEntityType(trackedEntityTypeA)
             .includeDeleted(true)
-            .trackedEntityParams(TrackedEntityParams.TRUE)
+            .fields(TrackedEntityFields.all())
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
@@ -1238,7 +1237,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .organisationUnits(orgUnitA)
             .trackedEntityType(trackedEntityTypeA)
             .includeDeleted(false)
-            .trackedEntityParams(TrackedEntityParams.TRUE)
+            .fields(TrackedEntityFields.all())
             .build();
     trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
 
@@ -1255,14 +1254,15 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnTrackedEntityAndEnrollmentsGivenTheyShouldBeIncluded()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    TrackedEntityParams params = new TrackedEntityParams(false, TRUE, false, false);
+    TrackedEntityFields fields =
+        TrackedEntityFields.builder().includeEnrollments(EnrollmentFields.all()).build();
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(orgUnitA)
             .orgUnitMode(SELECTED)
             .trackedEntityType(trackedEntityTypeA)
             .trackedEntities(trackedEntityA)
-            .trackedEntityParams(params)
+            .fields(fields)
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
@@ -1303,14 +1303,15 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnTrackedEntityWithEventsAndNotesGivenTheyShouldBeIncluded()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    TrackedEntityParams params = new TrackedEntityParams(false, TRUE, true, false);
+    TrackedEntityFields fields =
+        TrackedEntityFields.builder().includeEnrollments(EnrollmentFields.all()).build();
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(orgUnitA)
             .orgUnitMode(SELECTED)
             .trackedEntityType(trackedEntityTypeA)
             .trackedEntities(trackedEntityA)
-            .trackedEntityParams(params)
+            .fields(fields)
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
@@ -1333,14 +1334,17 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnTrackedEntityWithoutEventsGivenTheyShouldNotBeIncluded()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    TrackedEntityParams params =
-        new TrackedEntityParams(false, TRUE.withIncludeEvents(false), false, false);
+    TrackedEntityFields fields =
+        TrackedEntityFields.builder()
+            .includeEnrollments(
+                EnrollmentFields.builder().includeAttributes().includeRelationships().build())
+            .build();
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(orgUnitA)
             .orgUnitMode(SELECTED)
             .trackedEntityType(trackedEntityTypeA)
-            .trackedEntityParams(params)
+            .fields(fields)
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
@@ -1364,14 +1368,15 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     programStageA1.setSharing(Sharing.builder().publicAccess("--------").build());
     manager.update(programStageA1);
     injectSecurityContextUser(user);
-    TrackedEntityParams params = new TrackedEntityParams(false, TRUE, true, false);
+    TrackedEntityFields fields =
+        TrackedEntityFields.builder().includeEnrollments(EnrollmentFields.all()).build();
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(orgUnitA)
             .orgUnitMode(SELECTED)
             .trackedEntityType(trackedEntityTypeA)
             .trackedEntities(trackedEntityA)
-            .trackedEntityParams(params)
+            .fields(fields)
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
@@ -1422,13 +1427,14 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   void shouldReturnEnrollmentMappedCorrectly()
       throws ForbiddenException, NotFoundException, BadRequestException {
     final Date currentTime = new Date();
-    TrackedEntityParams params = new TrackedEntityParams(false, TRUE, false, false);
+    TrackedEntityFields fields =
+        TrackedEntityFields.builder().includeEnrollments(EnrollmentFields.all()).build();
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(orgUnitA)
             .orgUnitMode(SELECTED)
             .trackedEntityType(trackedEntityTypeA)
-            .trackedEntityParams(params)
+            .fields(fields)
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
@@ -1461,13 +1467,14 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   void shouldReturnEventMappedCorrectly()
       throws ForbiddenException, NotFoundException, BadRequestException {
     final Date currentTime = new Date();
-    TrackedEntityParams params = new TrackedEntityParams(false, TRUE, false, false);
+    TrackedEntityFields fields =
+        TrackedEntityFields.builder().includeEnrollments(EnrollmentFields.all()).build();
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(orgUnitA)
             .orgUnitMode(SELECTED)
             .trackedEntityType(trackedEntityTypeA)
-            .trackedEntityParams(params)
+            .fields(fields)
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
@@ -1512,13 +1519,13 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnTrackedEntityWithRelationshipsTe2Te()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    TrackedEntityParams params = new TrackedEntityParams(true, FALSE, false, false);
+    TrackedEntityFields fields = TrackedEntityFields.builder().includeRelationships().build();
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(orgUnitA)
             .orgUnitMode(SELECTED)
             .trackedEntities(trackedEntityA)
-            .trackedEntityParams(params)
+            .fields(fields)
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
@@ -1664,13 +1671,13 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   @Test
   void returnTrackedEntityRelationshipsWithTe2Enrollment()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    TrackedEntityParams params = new TrackedEntityParams(true, FALSE, false, false);
+    TrackedEntityFields fields = TrackedEntityFields.builder().includeRelationships().build();
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(orgUnitA)
             .orgUnitMode(SELECTED)
             .trackedEntities(trackedEntityA)
-            .trackedEntityParams(params)
+            .fields(fields)
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
@@ -1690,13 +1697,17 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnTrackedEntityRelationshipsWithTe2Event()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    TrackedEntityParams params = new TrackedEntityParams(true, TRUE, false, false);
+    TrackedEntityFields fields =
+        TrackedEntityFields.builder()
+            .includeRelationships()
+            .includeEnrollments(EnrollmentFields.all())
+            .build();
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(orgUnitA)
             .orgUnitMode(SELECTED)
             .trackedEntities(trackedEntityA)
-            .trackedEntityParams(params)
+            .fields(fields)
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
@@ -1872,7 +1883,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             NotFoundException.class,
             () ->
                 trackedEntityService.getTrackedEntity(
-                    UID.of(trackedEntityA), UID.of(programUid), TrackedEntityParams.TRUE));
+                    UID.of(trackedEntityA), UID.of(programUid), TrackedEntityFields.all()));
     assertEquals(
         String.format("Program with id %s could not be found.", programUid),
         exception.getMessage());
@@ -1886,7 +1897,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             NotFoundException.class,
             () ->
                 trackedEntityService.getTrackedEntity(
-                    UID.of(notExistentTE), UID.of(programA), TrackedEntityParams.TRUE));
+                    UID.of(notExistentTE), UID.of(programA), TrackedEntityFields.all()));
     assertEquals(
         String.format("TrackedEntity with id %s could not be found.", notExistentTE),
         exception.getMessage());
@@ -1906,7 +1917,9 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             ForbiddenException.class,
             () ->
                 trackedEntityService.getTrackedEntity(
-                    UID.of(trackedEntityA), UID.of(inaccessibleProgram), TrackedEntityParams.TRUE));
+                    UID.of(trackedEntityA),
+                    UID.of(inaccessibleProgram),
+                    TrackedEntityFields.all()));
     assertContains(
         String.format("User has no access to program: %s", inaccessibleProgram.getUid()),
         exception.getMessage());
@@ -1925,7 +1938,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             NotFoundException.class,
             () ->
                 trackedEntityService.getTrackedEntity(
-                    UID.of(trackedEntity), UID.of(programA), TrackedEntityParams.TRUE));
+                    UID.of(trackedEntity), UID.of(programA), TrackedEntityFields.all()));
     assertContains(
         String.format("TrackedEntity with id %s could not be found.", trackedEntity.getUid()),
         exception.getMessage());
@@ -1977,7 +1990,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             NotFoundException.class,
             () ->
                 trackedEntityService.getTrackedEntity(
-                    UID.of(trackedEntityA), null, TrackedEntityParams.TRUE));
+                    UID.of(trackedEntityA), null, TrackedEntityFields.all()));
     assertContains(
         String.format("TrackedEntity with id %s could not be found.", trackedEntityA.getUid()),
         exception.getMessage());
@@ -1998,7 +2011,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             NotFoundException.class,
             () ->
                 trackedEntityService.getTrackedEntity(
-                    UID.of(trackedEntityA), null, TrackedEntityParams.TRUE));
+                    UID.of(trackedEntityA), null, TrackedEntityFields.all()));
 
     assertContains(
         String.format("TrackedEntity with id %s could not be found.", trackedEntityA.getUid()),
@@ -2023,7 +2036,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             NotFoundException.class,
             () ->
                 trackedEntityService.getTrackedEntity(
-                    UID.of(trackedEntityA), null, TrackedEntityParams.TRUE));
+                    UID.of(trackedEntityA), null, TrackedEntityFields.all()));
 
     assertContains(
         String.format("TrackedEntity with id %s could not be found.", trackedEntityA.getUid()),
@@ -2043,7 +2056,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             NotFoundException.class,
             () ->
                 trackedEntityService.getTrackedEntity(
-                    UID.of(trackedEntityA), null, TrackedEntityParams.TRUE));
+                    UID.of(trackedEntityA), null, TrackedEntityFields.all()));
 
     assertContains(
         String.format("TrackedEntity with id %s could not be found.", trackedEntityA.getUid()),
@@ -2062,7 +2075,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             ForbiddenException.class,
             () ->
                 trackedEntityService.getTrackedEntity(
-                    UID.of(trackedEntityA), null, TrackedEntityParams.TRUE));
+                    UID.of(trackedEntityA), null, TrackedEntityFields.all()));
 
     assertEquals("User has no access to any Tracked Entity Type", exception.getMessage());
   }
@@ -2072,7 +2085,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, NotFoundException {
     TrackedEntity trackedEntity =
         trackedEntityService.getTrackedEntity(
-            UID.of(trackedEntityA), UID.of(programA), TrackedEntityParams.TRUE);
+            UID.of(trackedEntityA), UID.of(programA), TrackedEntityFields.all());
 
     assertContainsOnly(
         Set.of(tetavA, tetavB, pteavC),
@@ -2085,7 +2098,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, NotFoundException {
     TrackedEntity trackedEntity =
         trackedEntityService.getTrackedEntity(
-            UID.of(trackedEntityA), null, TrackedEntityParams.TRUE);
+            UID.of(trackedEntityA), null, TrackedEntityFields.all());
 
     assertContainsOnly(
         Set.of(tetavA, tetavB),
@@ -2110,7 +2123,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     assertEquals(
         trackedEntityA,
         trackedEntityService.getTrackedEntity(
-            UID.of(trackedEntityA), UID.of(programA), TrackedEntityParams.TRUE));
+            UID.of(trackedEntityA), UID.of(programA), TrackedEntityFields.all()));
   }
 
   @Test
@@ -2124,7 +2137,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
     TrackedEntity trackedEntity =
         trackedEntityService.getTrackedEntity(
-            UID.of(trackedEntityA), UID.of(programA), TrackedEntityParams.TRUE);
+            UID.of(trackedEntityA), UID.of(programA), TrackedEntityFields.all());
 
     assertEquals(trackedEntityA.getUid(), trackedEntity.getUid());
     assertContainsOnly(Set.of(enrollmentA.getUid()), uids(trackedEntity.getEnrollments()));
@@ -2150,7 +2163,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
     TrackedEntity trackedEntity =
         trackedEntityService.getTrackedEntity(
-            UID.of(trackedEntityA), UID.of(programA), TrackedEntityParams.TRUE);
+            UID.of(trackedEntityA), UID.of(programA), TrackedEntityFields.all());
 
     assertEquals(trackedEntityA.getUid(), trackedEntity.getUid());
     assertContainsOnly(Set.of(enrollmentA.getUid()), uids(trackedEntity.getEnrollments()));
@@ -2174,7 +2187,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             trackedEntityService.getTrackedEntity(
                 UID.of(trackedEntityA.getUid()),
                 UID.of(programA.getUid()),
-                TrackedEntityParams.FALSE));
+                TrackedEntityFields.none()));
   }
 
   @Test
@@ -2188,7 +2201,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
     TrackedEntity trackedEntity =
         trackedEntityService.getTrackedEntity(
-            UID.of(trackedEntityB.getUid()), UID.of(programB.getUid()), TrackedEntityParams.FALSE);
+            UID.of(trackedEntityB.getUid()), UID.of(programB.getUid()), TrackedEntityFields.none());
 
     assertEquals(trackedEntityB.getUid(), trackedEntity.getUid());
   }
@@ -2205,7 +2218,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             trackedEntityService.getTrackedEntity(
                 UID.of(trackedEntityB.getUid()),
                 UID.of(programB.getUid()),
-                TrackedEntityParams.FALSE));
+                TrackedEntityFields.none()));
   }
 
   @Test
@@ -2223,7 +2236,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
     TrackedEntity trackedEntity =
         trackedEntityService.getTrackedEntity(
-            UID.of(trackedEntityB.getUid()), UID.of(programC.getUid()), TrackedEntityParams.FALSE);
+            UID.of(trackedEntityB.getUid()), UID.of(programC.getUid()), TrackedEntityFields.none());
 
     assertEquals(trackedEntityB.getUid(), trackedEntity.getUid());
   }
@@ -2245,7 +2258,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             trackedEntityService.getTrackedEntity(
                 UID.of(trackedEntityB.getUid()),
                 UID.of(programC.getUid()),
-                TrackedEntityParams.FALSE));
+                TrackedEntityFields.none()));
   }
 
   @Test
@@ -2376,7 +2389,11 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         .organisationUnits(orgUnit)
         .orgUnitMode(SELECTED)
         .trackedEntities(trackedEntity)
-        .trackedEntityParams(new TrackedEntityParams(true, TRUE, false, false))
+        .fields(
+            TrackedEntityFields.builder()
+                .includeRelationships()
+                .includeEnrollments(EnrollmentFields.all())
+                .build())
         .build();
   }
 }

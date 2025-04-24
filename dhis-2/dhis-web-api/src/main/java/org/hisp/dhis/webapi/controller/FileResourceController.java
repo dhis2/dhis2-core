@@ -41,7 +41,6 @@ import java.io.IOException;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -62,7 +61,6 @@ import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.http.HttpHeaders;
@@ -82,7 +80,6 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/fileResources")
 @Slf4j
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 @OpenApi.Document(classifiers = {"team:platform", "purpose:metadata"})
 public class FileResourceController

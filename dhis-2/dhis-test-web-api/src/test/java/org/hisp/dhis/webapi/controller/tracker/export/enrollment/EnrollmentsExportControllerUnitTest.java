@@ -53,8 +53,6 @@ class EnrollmentsExportControllerUnitTest {
 
   @Mock private EnrollmentRequestParamsMapper paramsMapper;
 
-  @Mock private EnrollmentFieldsParamMapper fieldsMapper;
-
   @Test
   void shouldFailInstantiatingControllerIfAnyOrderableFieldIsUnsupported() {
     // pretend the service does not support 2 of the orderable fields the web advocates
@@ -71,9 +69,7 @@ class EnrollmentsExportControllerUnitTest {
     Exception exception =
         assertThrows(
             IllegalStateException.class,
-            () ->
-                new EnrollmentsExportController(
-                    enrollmentService, paramsMapper, null, fieldsMapper));
+            () -> new EnrollmentsExportController(enrollmentService, paramsMapper, null, null));
 
     assertAll(
         () ->
