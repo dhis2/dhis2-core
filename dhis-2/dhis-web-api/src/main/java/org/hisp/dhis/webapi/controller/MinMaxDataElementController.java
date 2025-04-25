@@ -37,6 +37,7 @@ import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletRequest;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
@@ -49,6 +50,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
+import org.hisp.dhis.minmax.MinMaxCsvParser;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementQueryParams;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
@@ -69,8 +71,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -212,5 +216,18 @@ public class MinMaxDataElementController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void bulkPostJson(@RequestBody List<MinMaxValueDto> valueDtos) {
     minMaxService.importFromJson(valueDtos);
+  }
+
+  @PostMapping(value = "/values", consumes = "multipart/form-data")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
+  public void importCsv(@RequestParam("file") MultipartFile file) throws WebMessageException {
+    try (InputStream is = file.getInputStream()) {
+      List<MinMaxValueDto> dtos = MinMaxCsvParser.parse(is);
+      minMaxService.importFromJson(dtos);
+    } catch (Exception e) {
+      throw new WebMessageException(
+          notFound("Invalid CSV file. Please check the format and try again."));
+    }
   }
 }

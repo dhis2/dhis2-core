@@ -36,6 +36,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.UID;
@@ -52,6 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.minmax.MinMaxDataElementService")
 public class DefaultMinMaxDataElementService implements MinMaxDataElementService {
@@ -143,7 +145,7 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
 
   @Transactional
   @Override
-  public void importFromJson(List<MinMaxValueDto> dtos) {
+  public void importFromJson(List<MinMaxValueDto> dtos) throws MinMaxImportException {
 
     List<String> dataElementUids =
         dtos.stream()
@@ -170,53 +172,31 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
         categoryService.getCategoryOptionCombosByUid(cocUids).stream()
             .collect(Collectors.toMap(CategoryOptionCombo::getUid, Function.identity()));
 
-    try {
-      BatchHandler<MinMaxDataElement> batchHandler =
-          batchHandlerFactory.createBatchHandler(MinMaxDataElementBatchHandler.class).init();
+    try (BatchHandler<MinMaxDataElement> batchHandler =
+        batchHandlerFactory.createBatchHandler(MinMaxDataElementBatchHandler.class).init()) {
+
       for (MinMaxValueDto dto : dtos) {
         DataElement de = dataElementMap.get(dto.getDataElement());
         OrganisationUnit ou = orgUnitMap.get(dto.getOrgUnit());
         CategoryOptionCombo coc = cocMap.get(dto.getCategoryOptionCombo());
-        // Validate
-        if (de == null) {
-          throw new IllegalArgumentException("Data element not found: " + dto.getDataElement());
-        }
-        if (ou == null) {
-          throw new IllegalArgumentException("Organisation unit not found: " + dto.getOrgUnit());
-        }
-        if (coc == null) {
-          throw new IllegalArgumentException(
-              "Category option combo not found: " + dto.getCategoryOptionCombo());
-        }
-        if (dto.getMinValue() == null) {
-          throw new IllegalArgumentException("Min value is required");
-        }
-        if (dto.getMaxValue() == null) {
-          throw new IllegalArgumentException("Max value is required");
-        }
-        if (dto.getMinValue() > dto.getMaxValue()) {
-          throw new IllegalArgumentException(
-              "Min value cannot be greater than max value: "
-                  + dto.getMinValue()
-                  + " > "
-                  + dto.getMaxValue());
-        }
-        if (dto.getMinValue() == dto.getMaxValue()) {
-          throw new IllegalArgumentException(
-              "Min value cannot be equal to max value: "
-                  + dto.getMinValue()
-                  + " = "
-                  + dto.getMaxValue());
+
+        if (!isValid(dto)) {
+          throw new MinMaxImportException(
+              "Invalid min max value for data element: "
+                  + dto.getDataElement()
+                  + ", org unit: "
+                  + dto.getOrgUnit()
+                  + ", category option combo: "
+                  + dto.getCategoryOptionCombo());
         }
 
         MinMaxDataElement mm =
             new MinMaxDataElement(de, ou, coc, dto.getMinValue(), dto.getMaxValue());
-
-        mm.setGenerated(Boolean.TRUE);
+        mm.setGenerated(Boolean.TRUE.equals(dto.getGenerated()));
+        // This check is expensive, so we really should use upsert here
         MinMaxDataElement existing = minMaxDataElementStore.get(ou, de, coc);
-
         if (existing != null) {
-          if (existing.getMin() == mm.getMin() && existing.getMax() == mm.getMax()) {
+          if (mm.equals(existing)) {
             continue;
           }
           batchHandler.updateObject(mm);
@@ -225,8 +205,17 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
         }
       }
       batchHandler.flush();
+
     } catch (Exception e) {
-      throw new RuntimeException("Error importing min max data elements", e);
+      log.error("Error importing min max values", e);
+      throw new MinMaxImportException("Error importing min max values", e);
     }
+  }
+
+  private boolean isValid(MinMaxValueDto dto) {
+    return dto.getMinValue() != null
+        && dto.getMaxValue() != null
+        && dto.getMinValue() <= dto.getMaxValue()
+        && !dto.getMinValue().equals(dto.getMaxValue());
   }
 }
