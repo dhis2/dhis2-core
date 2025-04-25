@@ -267,7 +267,6 @@ public class AuthenticationController {
                 defaultSavedRequest.getRequestURI() + "?" + defaultSavedRequest.getQueryString();
           } else {
             redirectUrl = defaultSavedRequest.getRequestURI();
-
           }
         }
         this.requestCache.removeRequest(request, response);
