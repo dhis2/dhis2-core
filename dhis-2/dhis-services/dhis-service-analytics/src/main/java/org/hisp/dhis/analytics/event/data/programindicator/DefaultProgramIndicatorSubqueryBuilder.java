@@ -29,7 +29,16 @@
  */
 package org.hisp.dhis.analytics.event.data.programindicator;
 
+import static org.hisp.dhis.analytics.DataType.BOOLEAN;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
+
 import com.google.common.base.Strings;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AggregationType;
@@ -49,16 +58,6 @@ import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.analytics.DataType.BOOLEAN;
-import static org.hisp.dhis.analytics.DataType.NUMERIC;
 
 @Slf4j
 @Component
@@ -137,8 +136,14 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
 
     // Analyze Filter & Generate Filter CTEs
     String complexFilterString =
-        new ProgramIndicatorPlaceholderUtils(dataElementService).analyzeFilterAndGenerateFilterCtes(
-            programIndicator, cteContext, filterAliases, sqlBuilder, earliestStartDate, latestDate);
+        new ProgramIndicatorPlaceholderUtils(dataElementService)
+            .analyzeFilterAndGenerateFilterCtes(
+                programIndicator,
+                cteContext,
+                filterAliases,
+                sqlBuilder,
+                earliestStartDate,
+                latestDate);
 
     //  Get raw SQL (with potential placeholders from expression items)
     String rawExpressionSql =
@@ -157,7 +162,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
 
     // Process V{...} placeholders
     String processedSql1 =
-            placeholderUtils.processPlaceholdersAndGenerateVariableCtes(
+        placeholderUtils.processPlaceholdersAndGenerateVariableCtes(
             rawExpressionSql,
             programIndicator,
             earliestStartDate,
@@ -166,7 +171,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
             variableAliasMap,
             sqlBuilder);
     String processedFilterSql1 =
-            placeholderUtils.processPlaceholdersAndGenerateVariableCtes(
+        placeholderUtils.processPlaceholdersAndGenerateVariableCtes(
             rawComplexFilterSql,
             programIndicator,
             earliestStartDate,
@@ -177,7 +182,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
 
     // Process #{...} placeholders
     String processedSql2 =
-            placeholderUtils.processPsDePlaceholdersAndGenerateCtes(
+        placeholderUtils.processPsDePlaceholdersAndGenerateCtes(
             processedSql1,
             programIndicator,
             earliestStartDate,
@@ -186,7 +191,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
             psdeAliasMap,
             sqlBuilder);
     String processedFilterSql2 =
-            placeholderUtils.processPsDePlaceholdersAndGenerateCtes(
+        placeholderUtils.processPsDePlaceholdersAndGenerateCtes(
             processedFilterSql1,
             programIndicator,
             earliestStartDate,
@@ -197,7 +202,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
 
     // Process D2 Function placeholders
     String finalProcessedExpressionSql =
-            placeholderUtils.processD2FunctionPlaceholdersAndGenerateCtes(
+        placeholderUtils.processD2FunctionPlaceholdersAndGenerateCtes(
             processedSql2,
             programIndicator,
             earliestStartDate,
@@ -206,7 +211,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
             d2FunctionAliasMap,
             sqlBuilder);
     String finalProcessedFilterSql =
-            placeholderUtils.processD2FunctionPlaceholdersAndGenerateCtes(
+        placeholderUtils.processD2FunctionPlaceholdersAndGenerateCtes(
             processedFilterSql2,
             programIndicator,
             earliestStartDate,

@@ -29,6 +29,31 @@
  */
 package org.hisp.dhis.analytics.event.data.programindicator;
 
+import static org.hisp.dhis.analytics.DataType.BOOLEAN;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
+import static org.hisp.dhis.program.AnalyticsPeriodBoundary.EVENT_DATE;
+import static org.hisp.dhis.program.AnalyticsPeriodBoundary.SCHEDULED_DATE;
+import static org.hisp.dhis.program.AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD;
+import static org.hisp.dhis.program.AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.when;
+
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
+import java.util.Base64;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
@@ -52,32 +77,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.text.SimpleDateFormat;
-import java.util.Base64;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-
-import static org.hisp.dhis.analytics.DataType.BOOLEAN;
-import static org.hisp.dhis.analytics.DataType.NUMERIC;
-import static org.hisp.dhis.program.AnalyticsPeriodBoundary.EVENT_DATE;
-import static org.hisp.dhis.program.AnalyticsPeriodBoundary.SCHEDULED_DATE;
-import static org.hisp.dhis.program.AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD;
-import static org.hisp.dhis.program.AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultProgramIndicatorSubqueryBuilderTest {
@@ -642,8 +641,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     startBoundary.setBoundaryTarget(
         EVENT_DATE); // Target column is occurreddate (from V{event_date})
     // Use a valid boundary type that works with offsets
-    startBoundary.setAnalyticsPeriodBoundaryType(
-        AFTER_START_OF_REPORTING_PERIOD); // Use valid type
+    startBoundary.setAnalyticsPeriodBoundaryType(AFTER_START_OF_REPORTING_PERIOD); // Use valid type
     startBoundary.setOffsetPeriodType(new DailyPeriodType());
     startBoundary.setOffsetPeriods(5); // 5 days AFTER start date
 
@@ -765,8 +763,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     AnalyticsPeriodBoundary startBoundary = new AnalyticsPeriodBoundary();
     startBoundary.setBoundaryTarget("#{someStageUid.someDeUid}");
     // Assign a type that exists but isn't handled by getBoundarySqlCondition's specific checks
-    startBoundary.setAnalyticsPeriodBoundaryType(
-        AFTER_START_OF_REPORTING_PERIOD);
+    startBoundary.setAnalyticsPeriodBoundaryType(AFTER_START_OF_REPORTING_PERIOD);
 
     // Configure PI
     programIndicator.setExpression("V{event_date}");

@@ -29,6 +29,11 @@
  */
 package org.hisp.dhis.analytics.event.data.programindicator;
 
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.CteContext;
@@ -37,19 +42,13 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.program.ProgramIndicator;
 
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
-
 @Slf4j
 public class ProgramIndicatorPlaceholderUtils {
 
   private final CteSqlFactoryRegistry cteSqlFactoryRegistry;
+
   public ProgramIndicatorPlaceholderUtils(DataElementService dataElementService) {
-      this.cteSqlFactoryRegistry = new CteSqlFactoryRegistry(dataElementService);
+    this.cteSqlFactoryRegistry = new CteSqlFactoryRegistry(dataElementService);
   }
 
   /**
@@ -108,8 +107,16 @@ public class ProgramIndicatorPlaceholderUtils {
       Map<String, String> variableAliasMap,
       SqlBuilder sqlBuilder) {
 
-    return cteSqlFactoryRegistry.factoryFor(rawSql)
-            .process(rawSql, programIndicator, earliestStartDate, latestDate, cteContext, variableAliasMap, sqlBuilder);
+    return cteSqlFactoryRegistry
+        .factoryFor(rawSql)
+        .process(
+            rawSql,
+            programIndicator,
+            earliestStartDate,
+            latestDate,
+            cteContext,
+            variableAliasMap,
+            sqlBuilder);
   }
 
   /**
@@ -125,12 +132,12 @@ public class ProgramIndicatorPlaceholderUtils {
    *     processed into Filter CTEs.
    */
   public String analyzeFilterAndGenerateFilterCtes(
-          ProgramIndicator programIndicator,
-          CteContext cteContext,
-          List<String> filterAliases,
-          SqlBuilder sqlBuilder,
-          Date earliestStartDate,
-          Date latestDate) {
+      ProgramIndicator programIndicator,
+      CteContext cteContext,
+      List<String> filterAliases,
+      SqlBuilder sqlBuilder,
+      Date earliestStartDate,
+      Date latestDate) {
     if (!programIndicator.hasFilter() || StringUtils.isBlank(programIndicator.getFilter())) {
       return "";
     }
@@ -139,17 +146,21 @@ public class ProgramIndicatorPlaceholderUtils {
 
     Map<String, String> aliasMap = new LinkedHashMap<>();
 
-    String remaining = cteSqlFactoryRegistry.factoryFor(filter)
-            .process(filter,
-                    programIndicator,
-                    earliestStartDate,
-                    latestDate,
-                    cteContext,
-                    aliasMap,
-                    sqlBuilder);
+    String remaining =
+        cteSqlFactoryRegistry
+            .factoryFor(filter)
+            .process(
+                filter,
+                programIndicator,
+                earliestStartDate,
+                latestDate,
+                cteContext,
+                aliasMap,
+                sqlBuilder);
     aliasMap.values().stream()
-            .filter(Objects::nonNull)
-            .forEach(a -> {
+        .filter(Objects::nonNull)
+        .forEach(
+            a -> {
               if (!filterAliases.contains(a)) filterAliases.add(a);
             });
 
@@ -178,8 +189,16 @@ public class ProgramIndicatorPlaceholderUtils {
       Map<String, String> psdeAliasMap,
       SqlBuilder sqlBuilder) {
 
-    return cteSqlFactoryRegistry.factoryFor(rawSql)
-            .process(rawSql, programIndicator, earliestStartDate, latestDate, cteContext, psdeAliasMap, sqlBuilder);
+    return cteSqlFactoryRegistry
+        .factoryFor(rawSql)
+        .process(
+            rawSql,
+            programIndicator,
+            earliestStartDate,
+            latestDate,
+            cteContext,
+            psdeAliasMap,
+            sqlBuilder);
   }
 
   /**
@@ -204,7 +223,15 @@ public class ProgramIndicatorPlaceholderUtils {
       Map<String, String> d2FunctionAliasMap, // Output map
       SqlBuilder sqlBuilder) {
 
-    return cteSqlFactoryRegistry.factoryFor(rawSql)
-            .process(rawSql, programIndicator, earliestStartDate, latestDate, cteContext, d2FunctionAliasMap, sqlBuilder);
+    return cteSqlFactoryRegistry
+        .factoryFor(rawSql)
+        .process(
+            rawSql,
+            programIndicator,
+            earliestStartDate,
+            latestDate,
+            cteContext,
+            d2FunctionAliasMap,
+            sqlBuilder);
   }
 }

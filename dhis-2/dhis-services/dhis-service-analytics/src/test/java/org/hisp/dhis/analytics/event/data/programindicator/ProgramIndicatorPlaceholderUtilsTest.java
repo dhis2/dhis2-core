@@ -29,6 +29,27 @@
  */
 package org.hisp.dhis.analytics.event.data.programindicator;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
 import org.hisp.dhis.dataelement.DataElement;
@@ -43,28 +64,6 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
 
@@ -102,7 +101,7 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
     psdeAliasMap = new HashMap<>();
     d2FunctionAliasMap = new HashMap<>();
     dataElementService = mock(DataElementService.class);
-    DataElement dataElement  = createDataElement('A');
+    DataElement dataElement = createDataElement('A');
     when(dataElementService.getDataElement(deUid)).thenReturn(dataElement);
   }
 
@@ -354,8 +353,6 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
     assertTrue(cteContext.getCteKeys().isEmpty());
     assertTrue(psdeAliasMap.isEmpty());
   }
-
-
 
   @Test
   void testProcessPsDePlaceholders_withNoPlaceholders() {
@@ -1177,8 +1174,6 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
         expectedResultSql, resultSql, "Result SQL should have placeholder replaced correctly");
   }
 
-
-
   @Test
   void testProcessD2FunctionPlaceholders_MultipleDistinctAndIdenticalRichPlaceholders() {
     ProgramIndicator programIndicator = mock(ProgramIndicator.class);
@@ -1404,22 +1399,39 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
     // Placeholder processing logic here
     // This is a placeholder for the actual implementation
     return new ProgramIndicatorPlaceholderUtils(dataElementService)
-            .processPlaceholdersAndGenerateVariableCtes(rawSql, programIndicator, startDate, endDate, cteContext, variableAliasMap, sqlBuilder);
+        .processPlaceholdersAndGenerateVariableCtes(
+            rawSql, programIndicator, startDate, endDate, cteContext, variableAliasMap, sqlBuilder);
   }
 
-  private String processPsDePlaceholdersAndGenerateCtes(String rawSql,
-                                                        ProgramIndicator programIndicator,
-                                                        Date startDate,
-                                                        Date endDate,
-                                                        CteContext cteContext,
-                                                        Map<String, String> aliasMap,
-                                                        SqlBuilder sqlBuilder) {
+  private String processPsDePlaceholdersAndGenerateCtes(
+      String rawSql,
+      ProgramIndicator programIndicator,
+      Date startDate,
+      Date endDate,
+      CteContext cteContext,
+      Map<String, String> aliasMap,
+      SqlBuilder sqlBuilder) {
     return new ProgramIndicatorPlaceholderUtils(dataElementService)
-            .processPsDePlaceholdersAndGenerateCtes(rawSql, programIndicator, startDate, endDate, cteContext, aliasMap, sqlBuilder);
+        .processPsDePlaceholdersAndGenerateCtes(
+            rawSql, programIndicator, startDate, endDate, cteContext, aliasMap, sqlBuilder);
   }
 
-  private String processD2FunctionPlaceholdersAndGenerateCtes(String rawSql, ProgramIndicator programIndicator, Date startDate, Date endDate, CteContext cteContext, Map<String, String> d2FunctionAliasMap, SqlBuilder sqlBuilder) {
+  private String processD2FunctionPlaceholdersAndGenerateCtes(
+      String rawSql,
+      ProgramIndicator programIndicator,
+      Date startDate,
+      Date endDate,
+      CteContext cteContext,
+      Map<String, String> d2FunctionAliasMap,
+      SqlBuilder sqlBuilder) {
     return new ProgramIndicatorPlaceholderUtils(dataElementService)
-            .processD2FunctionPlaceholdersAndGenerateCtes(rawSql, programIndicator, startDate, endDate, cteContext, d2FunctionAliasMap, sqlBuilder);
+        .processD2FunctionPlaceholdersAndGenerateCtes(
+            rawSql,
+            programIndicator,
+            startDate,
+            endDate,
+            cteContext,
+            d2FunctionAliasMap,
+            sqlBuilder);
   }
 }
