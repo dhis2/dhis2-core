@@ -73,7 +73,7 @@ public class LoginTest extends BaseE2ETest {
   }
 
   @Test
-  void testPreLoginCreatesNoCookie() throws JsonProcessingException {
+  void testPreLoginCreatesNoCookie() {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.TEXT_HTML);
     ResponseEntity<String> response =
