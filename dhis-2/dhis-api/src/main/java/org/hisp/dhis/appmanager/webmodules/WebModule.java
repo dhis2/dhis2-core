@@ -33,6 +33,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import lombok.Data;
 import org.hisp.dhis.appmanager.App;
+import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppShortcut;
 
 /**
@@ -73,23 +74,17 @@ public class WebModule {
   }
 
   public static WebModule getModule(App app) {
-    String basePath = app.getBasePath();
-    if (app.isBundled()) {
-      basePath = "/api/apps/" + app.getKey();
-    }
-
     boolean hasIcon = app.getIcons() != null && app.getIcons().getIcon48() != null;
 
     String defaultAction = app.getLaunchUrl();
 
-    String icon =
-        hasIcon ? basePath.replace("/api/", "/") + "/" + app.getIcons().getIcon48() : null;
+    String icon = hasIcon ? app.getBaseUrl() + "/" + app.getIcons().getIcon48() : null;
 
     String description = subString(app.getDescription(), 0, 80);
 
-    String key = app.getKey();
+    String key = app.isBundled() ? AppManager.BUNDLED_APP_PREFIX + app.getKey() : app.getKey();
 
-    WebModule module = new WebModule(key, basePath, defaultAction);
+    WebModule module = new WebModule(key, app.getBasePath(), defaultAction);
     module.setIcon(icon);
     module.setDescription(description);
     module.setDisplayName(app.getName());
