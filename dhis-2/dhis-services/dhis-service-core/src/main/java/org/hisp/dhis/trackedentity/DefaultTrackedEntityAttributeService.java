@@ -217,7 +217,7 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
 
   @Override
   @Transactional(readOnly = true)
-  public Set<String> getTrackedEntityAttributesInProgram(Program program) {
+  public Set<String> getTrackedEntityAttributesInProgram(@Nonnull Program program) {
     return this.trackedEntityAttributeStore.getTrackedEntityAttributesInProgram(program);
   }
 }

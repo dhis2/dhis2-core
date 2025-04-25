@@ -490,7 +490,7 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldFindTrackedEntityWhenTransferredToInaccessibleOrgUnitIfSuperUser()
+  void shouldFindTrackedEntitiesWhenTransferredIfUserIsSuper()
       throws ForbiddenException, BadRequestException, NotFoundException {
     transferOwnership(trackedEntityA1, programA, organisationUnitB);
     injectSecurityContextUser(superUser);
@@ -498,7 +498,8 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
     TrackedEntityOperationParams operationParams = createOperationParams();
     List<String> trackedEntities = getTrackedEntities(operationParams);
 
-    assertContainsOnly(List.of(trackedEntityA1.getUid()), trackedEntities);
+    assertContainsOnly(
+        List.of(trackedEntityA1.getUid(), trackedEntityB1.getUid()), trackedEntities);
   }
 
   @Test

@@ -32,6 +32,10 @@ package org.hisp.dhis.tracker.export.trackedentity;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Map.entry;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
@@ -52,7 +56,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -383,7 +386,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             // INNER JOIN on constraints
             .append(joinPrograms(params))
             .append(getFromSubQueryJoinProgramOwnerConditions(params))
-            .append(getFromSubQueryJoinOrgUnitConditions(params))
+            .append(getFromSubQueryJoinOrgUnitConditions(params, sqlParameters))
             .append(getFromSubQueryJoinEnrollmentConditions(params))
 
             // LEFT JOIN attributes we need to sort on and/or filter by.
@@ -588,57 +591,74 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   /**
-   * Generates an INNER JOIN for organisation units. If a program is specified, we join on program
-   * ownership (PO), if not we check whether the user has access to the TE/program pair owner. Based
-   * on the ouMode, they will boil down to either DESCENDANTS (requiring matching on the org unit's
-   * PATH), CHILDREN (matching on the org unit's PATH or any of its immediate children), SELECTED
-   * (matching the specified org unit id) or ALL (no constraints).
+   * Generates an INNER JOIN for organisation units in a SQL query.
    *
-   * @return a SQL INNER JOIN for organisation units
+   * <p>If a program is specified, the join is based on program ownership (PO). If no program is
+   * specified, the join is based either on program ownership or the tracked entity's registering
+   * unit.
+   *
+   * <p>The specific JOIN conditions depend on the {@code ouMode}:
+   *
+   * <ul>
+   *   <li>{@code DESCENDANTS} – matches organisation units using the org unit's PATH
+   *   <li>{@code CHILDREN} – matches the org unit's PATH or any of its immediate children
+   *   <li>{@code SELECTED} – matches the specified org unit UID directly
+   *   <li>{@code ALL} – no org unit constraints are applied
+   * </ul>
+   *
+   * <p>If the org unit mode is not {@code ALL} the method also ensures that the tracked entity
+   * owner falls within the appropriate access scope (either search or capture). This validation,
+   * besides making sure the user has ownership access to the TE, also covers the case where the org
+   * unit is {@code ACCESSIBLE} or {@code CAPTURE}.
+   *
+   * @return a SQL INNER JOIN clause for organisation units
    */
-  private String getFromSubQueryJoinOrgUnitConditions(TrackedEntityQueryParams params) {
+  private String getFromSubQueryJoinOrgUnitConditions(
+      TrackedEntityQueryParams params, MapSqlParameterSource sqlParams) {
     StringBuilder orgUnits = new StringBuilder();
 
-    handleOrganisationUnits(params);
+    UserDetails userDetails = getCurrentUserDetails();
+    Set<OrganisationUnit> effectiveSearchOrgUnits =
+        getOrgUnitsFromUids(userDetails.getUserEffectiveSearchOrgUnitIds());
+    Set<OrganisationUnit> captureScopeOrgUnits =
+        getOrgUnitsFromUids(userDetails.getUserOrgUnitIds());
 
     orgUnits
         .append(" INNER JOIN organisationunit OU ")
         .append("ON OU.organisationunitid = ")
         .append(getOwnerOrgUnit(params));
 
-    if (!params.hasOrganisationUnits()) {
+    if (params.hasOrganisationUnits()) {
+      if (params.isOrganisationUnitMode(DESCENDANTS)) {
+        orgUnits.append(getDescendantsQuery(params));
+      } else if (params.isOrganisationUnitMode(CHILDREN)) {
+        orgUnits.append(getChildrenQuery(params));
+      } else if (params.isOrganisationUnitMode(SELECTED)) {
+        orgUnits.append(getSelectedQuery(params));
+      }
+    }
+
+    if (params.isOrganisationUnitMode(ALL) || getCurrentUserDetails().isSuper()) {
       return orgUnits.toString();
     }
 
-    if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)) {
-      orgUnits.append(getDescendantsQuery(params));
-    } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
-      orgUnits.append(getChildrenQuery(params));
-    } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED)) {
-      orgUnits.append(getSelectedQuery(params));
-    }
+    sqlParams.addValue("effectiveSearchScopePaths", getOrgUnitsPathArray(effectiveSearchOrgUnits));
+    sqlParams.addValue("captureScopePaths", getOrgUnitsPathArray(captureScopeOrgUnits));
+
+    orgUnits.append(
+        "and ((P.accesslevel in ('OPEN', 'AUDITED') and (OU.path like any (:effectiveSearchScopePaths))) ");
+    orgUnits.append(
+        "or (P.accesslevel in ('PROTECTED', 'CLOSED') and (OU.path like any (:captureScopePaths)))) ");
 
     return orgUnits.toString();
   }
 
-  /**
-   * Prepares the organisation units of the given parameters to simplify querying. Mode ACCESSIBLE
-   * is converted to DESCENDANTS for organisation units linked to the search scope of the given
-   * user. Mode CAPTURE is converted to DESCENDANTS too, but using organisation units linked to the
-   * user's capture scope, and mode CHILDREN is converted to SELECTED for organisation units
-   * including all their children. Mode can be DESCENDANTS, SELECTED, ALL only after invoking this
-   * method.
-   */
-  private void handleOrganisationUnits(TrackedEntityQueryParams params) {
-    UserDetails user = getCurrentUserDetails();
-    if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
-      params.setOrgUnits(
-          new HashSet<>(organisationUnitStore.getByUid(user.getUserEffectiveSearchOrgUnitIds())));
-      params.setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
-    } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CAPTURE)) {
-      params.setOrgUnits(new HashSet<>(organisationUnitStore.getByUid(user.getUserOrgUnitIds())));
-      params.setOrgUnitMode(OrganisationUnitSelectionMode.DESCENDANTS);
-    }
+  private Set<OrganisationUnit> getOrgUnitsFromUids(Set<String> uids) {
+    return new HashSet<>(organisationUnitStore.getByUid(uids));
+  }
+
+  private String[] getOrgUnitsPathArray(Set<OrganisationUnit> orgUnits) {
+    return orgUnits.stream().map(ou -> ou.getStoredPath() + "%").toArray(String[]::new);
   }
 
   private String getOwnerOrgUnit(TrackedEntityQueryParams params) {
