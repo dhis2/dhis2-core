@@ -197,7 +197,6 @@ public class TrackedEntityAggregate {
         .join();
   }
 
-  /** Filter attributes based on queryParams, ownership and superuser status */
   private Set<TrackedEntityAttributeValue> filterAttributes(
       Collection<TrackedEntityAttributeValue> attributes,
       Set<TrackedEntityAttribute> trackedEntityTypeAttributes,
