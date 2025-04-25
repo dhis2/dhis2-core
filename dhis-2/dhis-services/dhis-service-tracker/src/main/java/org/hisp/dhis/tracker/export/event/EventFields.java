@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,15 +29,60 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import lombok.Value;
-import lombok.With;
+import java.util.function.Predicate;
+import javax.annotation.Nonnull;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
-@With
-@Value
-public class EventParams {
-  public static final EventParams TRUE = new EventParams(true);
+/**
+ * EventFields indicates which of the tracked entity fields should be exported. This is used to save
+ * retrieval of data that is not needed. Be specific in what you need to save resources!
+ */
+@Getter
+@ToString
+@EqualsAndHashCode
+public class EventFields {
+  private final boolean includesRelationships;
 
-  public static final EventParams FALSE = new EventParams(false);
+  private EventFields(Builder builder) {
+    this.includesRelationships = builder.includesRelationships;
+  }
 
-  boolean includeRelationships;
+  private EventFields(Predicate<String> includesFields) {
+    this.includesRelationships = includesFields.test("relationships");
+  }
+
+  public static EventFields of(@Nonnull Predicate<String> includesFields) {
+    return new EventFields(includesFields);
+  }
+
+  /** Use this if you do not want fields to be exported. */
+  public static EventFields none() {
+    return new EventFields(f -> false);
+  }
+
+  /** Use this if you do want fields to be exported. This is potentially expensive! */
+  public static EventFields all() {
+    return new EventFields(f -> true);
+  }
+
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  public static class Builder {
+    private boolean includesRelationships;
+
+    private Builder() {}
+
+    public Builder includeRelationships() {
+      this.includesRelationships = true;
+      return this;
+    }
+
+    public EventFields build() {
+      return new EventFields(this);
+    }
+  }
 }

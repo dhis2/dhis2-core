@@ -32,7 +32,7 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 import java.util.List;
 import lombok.Builder;
 import lombok.Value;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityQueryParams;
 
 /**
@@ -53,8 +53,8 @@ class Context {
   /** A list of group ID to which the user belongs */
   List<String> userGroups;
 
-  /** The te params to specify depth of te graph */
-  TrackedEntityParams params;
+  /** Specifies the fields that the user wants to be returned. */
+  TrackedEntityFields fields;
 
   /** The query parameters to filter tracked entities */
   TrackedEntityQueryParams queryParams;
