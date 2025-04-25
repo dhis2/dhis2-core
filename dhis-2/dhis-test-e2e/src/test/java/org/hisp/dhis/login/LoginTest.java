@@ -229,24 +229,25 @@ public class LoginTest extends BaseE2ETest {
 
   @Test
   void testRedirectToResource() {
-    assertRedirectUrl("/users/resource.js", DEFAULT_DASHBOARD_PATH);
+    assertRedirectUrl("/users/resource.js", DEFAULT_DASHBOARD_PATH, false);
   }
 
   @Test
   void testRedirectToResourceWorker() {
-    assertRedirectUrl("/dhis-web-dashboard/service-worker.js", DEFAULT_DASHBOARD_PATH);
+    assertRedirectUrl("/dhis-web-dashboard/service-worker.js", DEFAULT_DASHBOARD_PATH, false);
   }
 
   @Test
   void testRedirectToCssResourceWorker() {
-    assertRedirectUrl("/dhis-web-dashboard/static/css/main.4536e618.css", DEFAULT_DASHBOARD_PATH);
+    assertRedirectUrl(
+        "/dhis-web-dashboard/static/css/main.4536e618.css", DEFAULT_DASHBOARD_PATH, false);
   }
 
   @Test
   void testRedirectAccountWhenVerifiedEmailEnforced() {
     changeSystemSetting("enforceVerifiedEmail", "true");
     try {
-      assertRedirectUrl("/dhis-web-dashboard/", "/api/apps/user-profile/#/profile");
+      assertRedirectUrl("/dhis-web-dashboard/", "/api/apps/user-profile/#/profile", false);
     } finally {
       changeSystemSetting("enforceVerifiedEmail", "false");
     }
@@ -447,7 +448,7 @@ public class LoginTest extends BaseE2ETest {
     // Disable auto-redirects
     RestTemplate restTemplateNoRedirects = getRestTemplateNoRedirects();
 
-    // Do an invalid login to capture URL request
+    // Do an invalid login to capture URL request, if valid for save request
     ResponseEntity<LoginResponse> firstResponse =
         restTemplateNoRedirects.postForEntity(
             serverHostUrl + url,
@@ -455,11 +456,15 @@ public class LoginTest extends BaseE2ETest {
                 LoginRequest.builder().username("username").password("password").build(),
                 new HttpHeaders()),
             LoginResponse.class);
-    String cookie = firstResponse.getHeaders().get(HttpHeaders.SET_COOKIE).get(0);
+
+    HttpHeaders cookieHeaders = jsonHeaders();
+    List<String> cookies = firstResponse.getHeaders().get(HttpHeaders.SET_COOKIE);
+    if (cookies != null) {
+      String cookie = cookies.get(0);
+      cookieHeaders.set("Cookie", cookie);
+    }
 
     // Do a valid login
-    HttpHeaders cookieHeaders = jsonHeaders();
-    cookieHeaders.set("Cookie", cookie);
     ResponseEntity<LoginResponse> secondResponse =
         restTemplateNoRedirects.postForEntity(
             serverApiUrl + LOGIN_API_PATH,
@@ -467,7 +472,8 @@ public class LoginTest extends BaseE2ETest {
                 LoginRequest.builder().username("admin").password("district").build(),
                 cookieHeaders),
             LoginResponse.class);
-    cookie = extractSessionCookie(secondResponse);
+
+    String cookie = extractSessionCookie(secondResponse);
 
     // Test the redirect
     HttpHeaders headers = jsonHeaders();
