@@ -72,6 +72,7 @@ public class WebModule {
     this.namespace = namespace;
     this.defaultAction = defaultAction;
   }
+
   public static WebModule getModule(App app) {
     boolean hasIcon = app.getIcons() != null && app.getIcons().getIcon48() != null;
 
