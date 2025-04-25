@@ -64,6 +64,7 @@ import org.springframework.test.context.ContextConfiguration;
  * Test class configured for use cases when DHIS2 is configured to use MinIO storage. The default
  * storage is the local filesystem.
  */
+@Disabled("Started failing in some PRs, not clear why.")
 @ExtendWith(MinIOTestExtension.class)
 @ContextConfiguration(classes = {DhisConfig.class})
 class AppManagerMinIOTest extends PostgresIntegrationTestBase {
@@ -72,7 +73,6 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
 
   @Autowired AppManager appManager;
 
-  @Disabled("Started failing in some PRs, not clear why.")
   @Test
   @DisplayName("Can install and then update an App using MinIO storage")
   void canUpdateAppUsingMinIOStorageTest() throws IOException {
@@ -106,7 +106,6 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
     assertEquals(64, appManager.getUriContentLength(resource.resource()));
   }
 
-  @Disabled("Started failing in some PRs, not clear why.")
   @Test
   @DisplayName("File resource content size is 38")
   void fileResourceContentLengthTest() {
@@ -121,7 +120,6 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
     assertEquals(38, uriContentLength);
   }
 
-  @Disabled("Started failing in some PRs, not clear why.")
   @ParameterizedTest
   @MethodSource("validPathParams")
   @DisplayName("Calls with valid app resource paths should resolve correctly")
@@ -148,7 +146,6 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
         "resource path should match expected format");
   }
 
-  @Disabled("Started failing in some PRs, not clear why.")
   @ParameterizedTest
   @MethodSource("redirectPathParams")
   @DisplayName(
@@ -172,7 +169,6 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
     assertEquals(expectedPath, resource.path(), "redirect path should have trailing slash");
   }
 
-  @Disabled("Started failing in some PRs, not clear why.")
   @ParameterizedTest
   @MethodSource("notFoundPathParams")
   @DisplayName("When resources are not found, return null")
@@ -225,7 +221,6 @@ class AppManagerMinIOTest extends PostgresIntegrationTestBase {
         Arguments.of("subDir/invalidDir"));
   }
 
-  @Disabled("Started failing in some PRs, not clear why.")
   @Test
   @DisplayName("File resource content size is -1 when exception thrown")
   void fileResourceContentLengthUnknownTest() throws IOException {
