@@ -117,8 +117,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
     // expect to be run by the importUser
     injectSecurityContextUser(importUser);
 
-    operationParamsBuilder = EventOperationParams.builder().eventParams(EventParams.FALSE);
-    operationParamsBuilder.orgUnit(orgUnit).orgUnitMode(SELECTED);
+    operationParamsBuilder = EventOperationParams.builder().orgUnit(orgUnit).orgUnitMode(SELECTED);
   }
 
   @Test
@@ -141,7 +140,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
     EventOperationParams params =
         operationParamsBuilder
             .events(Set.of(UID.of("pTzf9KYMk72")))
-            .eventParams(EventParams.TRUE)
+            .fields(EventFields.all())
             .build();
 
     List<Event> events = eventService.findEvents(params);

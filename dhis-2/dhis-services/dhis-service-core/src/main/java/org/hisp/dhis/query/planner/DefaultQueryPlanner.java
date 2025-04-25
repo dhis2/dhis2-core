@@ -72,10 +72,8 @@ public class DefaultQueryPlanner implements QueryPlanner {
   private void autoFill(Query<?> query) {
     Schema schema = schemaService.getDynamicSchema(query.getObjectType());
     if (query.isDefaultOrders()) {
-      if (schema.hasPersistedProperty("name"))
-        query.addOrder(Order.iasc(schema.getPersistedProperty("name")));
-      if (schema.hasPersistedProperty("id"))
-        query.addOrder(Order.asc(schema.getPersistedProperty("id")));
+      if (schema.hasPersistedProperty("name")) query.addOrder(Order.iasc("name"));
+      if (schema.hasPersistedProperty("id")) query.addOrder(Order.asc("id"));
     }
     query.setShortNamePersisted(schema.hasPersistedProperty("shortName"));
   }
@@ -105,7 +103,13 @@ public class DefaultQueryPlanner implements QueryPlanner {
       memoryQuery.getFilters().addAll(query.getFilters());
     }
 
-    if (query.ordersPersisted()) {
+    Schema schema = schemaService.getDynamicSchema(query.getObjectType());
+    boolean dbOrdering =
+        query.getOrders().stream()
+            .map(Order::getProperty)
+            .map(schema::getProperty)
+            .allMatch(p -> p != null && p.isPersisted() && p.isSimple());
+    if (dbOrdering) {
       dbQuery.addOrders(query.getOrders());
       memoryQuery.clearOrders();
     }

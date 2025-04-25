@@ -36,57 +36,16 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.user.User;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 class QueryUtilsTest {
-
-  private Schema schema;
-
-  @BeforeEach
-  void setUp() {
-    schema = new Schema(Attribute.class, "attribute", "attributes");
-    Property property = new Property(String.class);
-    property.setName("value1");
-    property.setSimple(true);
-    schema.addProperty(property);
-    property = new Property(String.class);
-    property.setName("value2");
-    property.setSimple(false);
-    schema.addProperty(property);
-    property = new Property(String.class);
-    property.setName("value3");
-    property.setSimple(true);
-    schema.addProperty(property);
-    property = new Property(Integer.class);
-    property.setName("value4");
-    property.setSimple(true);
-    schema.addProperty(property);
-    property = new Property(String.class);
-    property.setName("value5");
-    property.setSimple(true);
-    schema.addProperty(property);
-    property = new Property(String.class);
-    property.setName("value6");
-    property.setSimple(true);
-    schema.addProperty(property);
-    property = new Property(String.class);
-    property.setName("value7");
-    property.setSimple(true);
-    schema.addProperty(property);
-  }
 
   @Test
   void testParseValidEnum() {
@@ -187,27 +146,28 @@ class QueryUtilsTest {
 
   @Test
   void testConvertOrderStringsNull() {
-    assertEquals(Collections.emptyList(), QueryUtils.convertOrderStrings(null, schema));
+    assertEquals(List.of(), Order.parse(null));
   }
 
   @Test
   void testConvertOrderStrings() {
     List<Order> orders =
-        QueryUtils.convertOrderStrings(
-            Arrays.asList(
+        Order.parse(
+            List.of(
                 "value1:asc",
                 "value2:asc",
                 "value3:iasc",
                 "value4:desc",
                 "value5:idesc",
                 "value6:xdesc",
-                "value7"),
-            schema);
-    assertEquals(5, orders.size());
-    assertEquals(orders.get(0), Order.from("asc", schema.getProperty("value1")));
-    assertEquals(orders.get(1), Order.from("iasc", schema.getProperty("value3")));
-    assertEquals(orders.get(2), Order.from("desc", schema.getProperty("value4")));
-    assertEquals(orders.get(3), Order.from("idesc", schema.getProperty("value5")));
-    assertEquals(orders.get(4), Order.from("asc", schema.getProperty("value7")));
+                "value7"));
+    assertEquals(7, orders.size());
+    assertEquals(orders.get(0), Order.asc("value1"));
+    assertEquals(orders.get(1), Order.asc("value2"));
+    assertEquals(orders.get(2), Order.iasc("value3"));
+    assertEquals(orders.get(3), Order.desc("value4"));
+    assertEquals(orders.get(4), Order.idesc("value5"));
+    assertEquals(orders.get(5), Order.asc("value6"));
+    assertEquals(orders.get(6), Order.asc("value7"));
   }
 }

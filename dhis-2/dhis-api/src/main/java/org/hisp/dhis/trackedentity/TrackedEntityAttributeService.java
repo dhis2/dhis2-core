@@ -176,5 +176,5 @@ public interface TrackedEntityAttributeService {
    *
    * @return a Set of {@link TrackedEntityAttribute} UIDs
    */
-  Set<String> getTrackedEntityAttributesInProgram(Program program);
+  Set<String> getTrackedEntityAttributesInProgram(@Nonnull Program program);
 }

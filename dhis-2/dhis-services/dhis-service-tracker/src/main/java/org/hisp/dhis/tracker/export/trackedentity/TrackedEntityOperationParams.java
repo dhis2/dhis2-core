@@ -64,7 +64,7 @@ public class TrackedEntityOperationParams {
 
   public static final int DEFAULT_PAGE_SIZE = 50;
 
-  @Builder.Default private TrackedEntityParams trackedEntityParams = TrackedEntityParams.FALSE;
+  @Builder.Default private TrackedEntityFields fields = TrackedEntityFields.none();
 
   /**
    * Organisation units for which instances in the response were registered at. Is related to the
