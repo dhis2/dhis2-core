@@ -73,6 +73,16 @@ public class LoginTest extends BaseE2ETest {
   }
 
   @Test
+  void testPreLoginCreatesNoCookie() throws JsonProcessingException {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.TEXT_HTML);
+    ResponseEntity<String> response =
+        exchangeWithHeaders(restTemplate, "/", HttpMethod.GET, null, headers);
+    List<String> cookies = response.getHeaders().get(HttpHeaders.SET_COOKIE);
+    assertNull(cookies, "Cookies should be null, we don't want session creation on the login page");
+  }
+
+  @Test
   void testDefaultLogin() throws JsonProcessingException {
     String username = CodeGenerator.generateCode(8);
     String password = "Test123###...";
