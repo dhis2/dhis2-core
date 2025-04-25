@@ -30,6 +30,7 @@
 package org.hisp.dhis.test.junit;
 
 import java.util.Properties;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.test.config.PostgresDhisConfigurationProvider;
 import org.junit.jupiter.api.extension.AfterAllCallback;
@@ -51,6 +52,7 @@ import org.testcontainers.containers.MinIOContainer;
  *
  * @author david mackessy
  */
+@Slf4j
 public class MinIOTestExtension implements AfterAllCallback {
 
   private static final String S3_URL;
@@ -59,12 +61,14 @@ public class MinIOTestExtension implements AfterAllCallback {
   private static final MinIOContainer MIN_IO_CONTAINER;
 
   static {
+    log.info("Setting up MinIO container");
     MIN_IO_CONTAINER =
         new MinIOContainer("minio/minio:RELEASE.2025-04-22T22-12-26Z")
             .withUserName(MINIO_USER)
             .withPassword(MINIO_PASSWORD);
     MIN_IO_CONTAINER.start();
     S3_URL = MIN_IO_CONTAINER.getS3URL();
+    log.info("Started MinIO container");
   }
 
   public static class DhisConfig {
@@ -87,5 +91,6 @@ public class MinIOTestExtension implements AfterAllCallback {
   @Override
   public void afterAll(ExtensionContext context) {
     MIN_IO_CONTAINER.stop();
+    log.info("Stopped MinIO container");
   }
 }
