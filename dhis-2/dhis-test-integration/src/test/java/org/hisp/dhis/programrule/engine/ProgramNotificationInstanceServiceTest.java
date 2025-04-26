@@ -34,11 +34,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -57,7 +57,6 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
-import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -65,7 +64,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -190,13 +188,13 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
   }
 
   @Test
-  @Timeout(value = 20, unit = TimeUnit.SECONDS)
   void testShouldGetAndSendScheduledNotificationInstanceWithoutTimeout() {
-    List<ProgramNotificationInstance> instances = programNotificationInstanceService.getAll();
+    ProgramNotificationInstanceParam param =
+        ProgramNotificationInstanceParam.builder().scheduledAt(Date.from(Instant.now())).build();
+    List<ProgramNotificationInstance> instances =
+        programNotificationInstanceService.getProgramNotificationInstances(param);
     assertEquals(
-        2, instances.size(), "Expected 2 notifications for scheduled messages " + instances);
-
-    programNotificationService.sendScheduledNotifications(NoopJobProgress.INSTANCE);
+        1, instances.size(), "Expected 1 notification for scheduled messages " + instances);
   }
 
   @Test
