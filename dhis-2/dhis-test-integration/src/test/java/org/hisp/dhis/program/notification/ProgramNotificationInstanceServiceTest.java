@@ -36,7 +36,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
@@ -63,7 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class ProgramNotificationInstanceServiceTest extends PostgresIntegrationTestBase {
   private static final int TEST_USER_COUNT = 60;
-  private static final Supplier<Date> NOW = () -> Date.from(Instant.now());
+  private static final Date NOW = Date.from(Instant.now());
   private static final int EXPECTED_NOTIFICATIONS = 20;
 
   @Autowired private ProgramNotificationInstanceService programNotificationInstanceService;
@@ -97,7 +96,7 @@ class ProgramNotificationInstanceServiceTest extends PostgresIntegrationTestBase
   @DisplayName("Should fetch scheduled notifications within timeout")
   void testScheduledNotificationShouldBeTriggeredBeforeTimeout() {
     ProgramNotificationInstanceParam param =
-        ProgramNotificationInstanceParam.builder().scheduledAt(NOW.get()).build();
+        ProgramNotificationInstanceParam.builder().scheduledAt(NOW).build();
     List<ProgramNotificationInstance> instances =
         programNotificationInstanceService.getProgramNotificationInstances(param);
     assertEquals(
@@ -135,7 +134,7 @@ class ProgramNotificationInstanceServiceTest extends PostgresIntegrationTestBase
   }
 
   List<Notification> getNotifications() {
-    return Stream.generate(() -> new Notification(UID.of(createNotification()), NOW.get()))
+    return Stream.generate(() -> new Notification(UID.of(createNotification()), NOW))
         .limit(EXPECTED_NOTIFICATIONS)
         .toList();
   }
