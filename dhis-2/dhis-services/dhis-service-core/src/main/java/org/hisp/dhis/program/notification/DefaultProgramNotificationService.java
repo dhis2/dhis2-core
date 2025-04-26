@@ -80,7 +80,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -96,9 +95,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
   private static final Predicate<NotificationInstanceWithTemplate> IS_SCHEDULED_BY_PROGRAM_RULE =
       (iwt) ->
           Objects.nonNull(iwt.getProgramNotificationInstance())
-              && PROGRAM_RULE.equals(iwt.getProgramNotificationTemplate().getNotificationTrigger())
-              && iwt.getProgramNotificationInstance().getScheduledAt() != null
-              && DateUtils.isToday(iwt.getProgramNotificationInstance().getScheduledAt());
+              && PROGRAM_RULE.equals(iwt.getProgramNotificationTemplate().getNotificationTrigger());
 
   private static final Set<NotificationTrigger> SCHEDULED_EVENT_TRIGGERS =
       Sets.intersection(
@@ -124,6 +121,8 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
 
   private final NotificationTemplateMapper notificationTemplateMapper;
 
+  private final ProgramNotificationInstanceService notificationInstanceService;
+
   public DefaultProgramNotificationService(
       ProgramMessageService programMessageService,
       MessageService messageService,
@@ -134,7 +133,8 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
       NotificationTemplateMapper notificationTemplateMapper,
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher) {
+      ApplicationEventPublisher publisher,
+      ProgramNotificationInstanceService notificationInstanceService) {
     super(entityManager, jdbcTemplate, publisher, Event.class, false);
     this.programMessageService = programMessageService;
     this.messageService = messageService;
@@ -143,6 +143,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
     this.programStageNotificationRenderer = programStageNotificationRenderer;
     this.notificationTemplateService = notificationTemplateService;
     this.notificationTemplateMapper = notificationTemplateMapper;
+    this.notificationInstanceService = notificationInstanceService;
   }
 
   @Override
@@ -173,11 +174,15 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
   public void sendScheduledNotifications(JobProgress progress) {
     progress.startingStage(
         "Fetching and filtering ProgramStageNotification messages scheduled by program rules");
+
+    ProgramNotificationInstanceParam param =
+        ProgramNotificationInstanceParam.builder().scheduledAt(new Date()).build();
+
     List<NotificationInstanceWithTemplate> instancesWithTemplates =
         progress.runStage(
             List.of(),
             () ->
-                manager.getAll(ProgramNotificationInstance.class).stream()
+                notificationInstanceService.getProgramNotificationInstances(param).stream()
                     .map(this::withTemplate)
                     .filter(this::hasTemplate)
                     .filter(IS_SCHEDULED_BY_PROGRAM_RULE)

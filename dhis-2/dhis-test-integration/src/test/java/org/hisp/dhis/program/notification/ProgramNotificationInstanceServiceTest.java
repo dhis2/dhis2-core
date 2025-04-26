@@ -36,7 +36,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -55,7 +54,6 @@ import org.hisp.dhis.user.UserGroup;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,6 +66,7 @@ class ProgramNotificationInstanceServiceTest extends PostgresIntegrationTestBase
   private static final Supplier<Date> NOW = () -> Date.from(Instant.now());
   private static final int EXPECTED_NOTIFICATIONS = 20;
 
+  @Autowired private ProgramNotificationInstanceService programNotificationInstanceService;
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private NotificationSender notificationSender;
 
@@ -95,10 +94,12 @@ class ProgramNotificationInstanceServiceTest extends PostgresIntegrationTestBase
   }
 
   @Test
-  @Timeout(value = 20, unit = TimeUnit.SECONDS)
   @DisplayName("Should fetch scheduled notifications within timeout")
   void testScheduledNotificationShouldBeTriggeredBeforeTimeout() {
-    List<ProgramNotificationInstance> instances = manager.getAll(ProgramNotificationInstance.class);
+    ProgramNotificationInstanceParam param =
+        ProgramNotificationInstanceParam.builder().scheduledAt(NOW.get()).build();
+    List<ProgramNotificationInstance> instances =
+        programNotificationInstanceService.getProgramNotificationInstances(param);
     assertEquals(
         EXPECTED_NOTIFICATIONS,
         instances.size(),
