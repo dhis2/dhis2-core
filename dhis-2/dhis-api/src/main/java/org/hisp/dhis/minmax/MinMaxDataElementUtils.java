@@ -34,13 +34,12 @@ import static org.apache.commons.lang3.StringUtils.trimToNull;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * @author Lars Helge Overland
+ * @author Jason P. Pickering
  */
 @Slf4j
 public class MinMaxDataElementUtils {
 
   private MinMaxDataElementUtils() {}
-  ;
 
   public static void validateDto(MinMaxValueDto dto) {
 
