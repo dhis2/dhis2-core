@@ -37,6 +37,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.UID;
@@ -180,29 +181,12 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
         OrganisationUnit ou = orgUnitMap.get(dto.getOrgUnit());
         CategoryOptionCombo coc = cocMap.get(dto.getCategoryOptionCombo());
 
-        if (!isValid(dto)) {
-          throw new MinMaxImportException(
-              "Invalid min max value for data element: "
-                  + dto.getDataElement()
-                  + ", org unit: "
-                  + dto.getOrgUnit()
-                  + ", category option combo: "
-                  + dto.getCategoryOptionCombo());
-        }
+        MinMaxDataElementUtils.validateDto(dto);
 
         MinMaxDataElement mm =
             new MinMaxDataElement(de, ou, coc, dto.getMinValue(), dto.getMaxValue());
-        mm.setGenerated(Boolean.TRUE.equals(dto.getGenerated()));
-        // This check is expensive, so we really should use upsert here
-        MinMaxDataElement existing = minMaxDataElementStore.get(ou, de, coc);
-        if (existing != null) {
-          if (mm.equals(existing)) {
-            continue;
-          }
-          batchHandler.updateObject(mm);
-        } else {
-          batchHandler.addObject(mm);
-        }
+        mm.setGenerated(ObjectUtils.defaultIfNull(dto.getGenerated(), Boolean.TRUE));
+        batchHandler.upsertObject(mm);
       }
       batchHandler.flush();
 
@@ -210,12 +194,5 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
       log.error("Error importing min max values", e);
       throw new MinMaxImportException("Error importing min max values", e);
     }
-  }
-
-  private boolean isValid(MinMaxValueDto dto) {
-    return dto.getMinValue() != null
-        && dto.getMaxValue() != null
-        && dto.getMinValue() <= dto.getMaxValue()
-        && !dto.getMinValue().equals(dto.getMaxValue());
   }
 }

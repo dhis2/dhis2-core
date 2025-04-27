@@ -37,7 +37,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nonnull;
 
 public class MinMaxCsvParser {
   private MinMaxCsvParser() {}
@@ -55,48 +54,42 @@ public class MinMaxCsvParser {
     try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
       String header = reader.readLine();
       if (header == null || header.isEmpty()) {
-        // Empty file, so return empty list
         return result;
       }
+
       String line;
       int rowNum = 1;
-
       while ((line = reader.readLine()) != null) {
         rowNum++;
-        String[] fields = line.split(",", 6); // up to 6 fields
+        String[] fields = line.split(",", 6);
         if (fields.length < 5) {
-          // Optional: log or track skipped lines
           continue;
         }
 
+        MinMaxValueDto dto = new MinMaxValueDto();
         try {
-          MinMaxValueDto dto = getMinMaxValueDto(fields);
+          dto.setDataElement(trimToEmpty(fields[0]));
+          dto.setOrgUnit(trimToEmpty(fields[1]));
+          dto.setCategoryOptionCombo(trimToEmpty(fields[2]));
+          dto.setMinValue(Integer.parseInt(trimToEmpty(fields[3])));
+          dto.setMaxValue(Integer.parseInt(trimToEmpty(fields[4])));
+          if (fields.length > 5 && !trimToEmpty(fields[5]).isEmpty()) {
+            dto.setGenerated(Boolean.parseBoolean(trimToEmpty(fields[5])));
+          }
+
           result.add(dto);
         } catch (NumberFormatException e) {
-          throw new IOException("Invalid integer at row " + rowNum, e);
+          throw new MinMaxImportException(
+              String.format(
+                  "Error parsing number at row %d for %s: %s",
+                  rowNum, MinMaxDataElementUtils.formatDtoInfo(dto), e.getMessage()),
+              e);
+        } catch (MinMaxImportException e) {
+          throw new MinMaxImportException(
+              String.format("Validation failed at row %d: %s", rowNum, e.getMessage()), e);
         }
       }
     }
-
     return result;
-  }
-
-  /**
-   * Converts a CSV line into a MinMaxValueDto object.
-   *
-   * @param fields the fields from the CSV line
-   * @return a MinMaxValueDto object
-   */
-  private static @Nonnull MinMaxValueDto getMinMaxValueDto(String[] fields) {
-    MinMaxValueDto dto = new MinMaxValueDto();
-    dto.setDataElement(trimToEmpty(fields[0]));
-    dto.setOrgUnit(trimToEmpty(fields[1]));
-    dto.setCategoryOptionCombo(trimToEmpty(fields[2]));
-    dto.setMinValue(Integer.parseInt(trimToEmpty(fields[3])));
-    dto.setMaxValue(Integer.parseInt(trimToEmpty(fields[4])));
-    if (fields.length > 5 && !trimToEmpty(fields[5]).isEmpty()) {
-      dto.setGenerated(Boolean.parseBoolean(trimToEmpty(fields[5])));
-    }
-    return dto;
   }
 }
