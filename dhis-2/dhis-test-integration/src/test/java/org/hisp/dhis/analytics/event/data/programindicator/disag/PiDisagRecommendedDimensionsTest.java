@@ -46,7 +46,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Transactional
-class PIDisagRecommendedDimensionsTest extends AbstractPIDisagTest {
+class PiDisagRecommendedDimensionsTest extends AbstractPiDisagTest {
 
   @Override
   @BeforeAll
@@ -58,11 +58,11 @@ class PIDisagRecommendedDimensionsTest extends AbstractPIDisagTest {
   void testGetRecommendedDimensions() {
 
     // Given
-    Set<Category> expectedCategories = Set.of(category1, category2, category3);
+    Set<Category> expectedCategories = Set.of(category1, category2, category3, category4);
 
     // When
     List<? extends DimensionalObject> recommendations =
-        PiDisagRecommendedDimensions.getRecommendations(eventQueryParams, manager);
+        PiDisagRecommendedDimensions.getRecommendations(dataValueSetEventQueryParams, manager);
 
     // Then (in any order)
     assertEquals(expectedCategories, new HashSet<>(recommendations));
