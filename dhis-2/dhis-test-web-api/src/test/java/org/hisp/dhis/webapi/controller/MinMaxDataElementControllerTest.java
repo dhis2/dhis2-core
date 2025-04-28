@@ -161,27 +161,23 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
             .formatted(dataElementId, orgUnitId, categoryOptionComboId)
             .trim();
 
+    String payload =
+        """
+            [
+              {
+                "dataElement": "%s",
+                "orgUnit": "%s",
+                "categoryOptionCombo": "%s",
+                "minValue": 10
+              }
+            ]
+            """
+            .formatted(dataElementId, orgUnitId, categoryOptionComboId);
     assertWebMessage(
         "Bad Request",
         400,
         "ERROR",
         message,
-        POST(
-                "/minMaxDataElements/values",
-                "["
-                    + "{"
-                    + "\"dataElement\":\""
-                    + dataElementId
-                    + "\","
-                    + "\"orgUnit\":\""
-                    + orgUnitId
-                    + "\","
-                    + "\"categoryOptionCombo\":\""
-                    + categoryOptionComboId
-                    + "\","
-                    + "\"minValue\":10"
-                    + "}"
-                    + "]")
-            .content(HttpStatus.BAD_REQUEST));
+        POST("/minMaxDataElements/values", payload).content(HttpStatus.BAD_REQUEST));
   }
 }
