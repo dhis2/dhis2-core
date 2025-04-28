@@ -126,7 +126,6 @@ public abstract class BaseResourceService implements ResourceService {
 
   @Override
   public void delete(String uid) throws DependencySetupException {
-
     log.debug("Deleting {} uid={}", label, uid);
     ApiResponse rsp = client.delete("/" + uid);
     int status = rsp.statusCode();
