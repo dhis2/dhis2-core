@@ -110,7 +110,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
 
   @Test
   void testDeleteObject_NoSuchObject() {
-    String dataelementid = GET("/dataElements/" + dataElementId).content().toString();
+
     assertWebMessage(
         "Not Found",
         404,
@@ -132,7 +132,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
             .content(HttpStatus.NOT_FOUND));
   }
 
-  @Disabled("Transctionl isloation is an issue")
+  @Disabled("Transaction isolation is an issue")
   void testBulkPostJson_DefaultGeneratedTrue() {
 
     String payload =
