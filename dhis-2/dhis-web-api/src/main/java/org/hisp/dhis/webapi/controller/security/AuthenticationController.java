@@ -238,7 +238,9 @@ public class AuthenticationController {
       Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
     // Default redirect URL
     String redirectUrl =
-        request.getContextPath() + "/" + settingsProvider.getCurrentSettings().getStartModule();
+        request.getContextPath()
+            + "/api/apps/"
+            + settingsProvider.getCurrentSettings().getStartModule();
     if (!redirectUrl.endsWith("/")) {
       redirectUrl += "/";
     }
@@ -248,7 +250,7 @@ public class AuthenticationController {
     if (enforceVerifiedEmail) {
       UserDetails userDetails = (UserDetails) authentication.getPrincipal();
       if (!userDetails.isEmailVerified()) {
-        return request.getContextPath() + "/dhis-web-user-profile/#/profile";
+        return request.getContextPath() + "/api/apps/user-profile/#/profile";
       }
     }
 
