@@ -31,15 +31,16 @@ package org.hisp.dhis.analytics.event.data.programindicator.disag;
 
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
+import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -63,7 +64,7 @@ import org.springframework.transaction.annotation.Transactional;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Transactional
 @ExtendWith(MockitoExtension.class)
-class PiDisagDataHandlerTest extends AbstractPiDisagTest {
+class PIDisagDataHandlerTest extends AbstractPIDisagTest {
 
   @Autowired private ProgramCategoryMappingValidator mappingValidator;
 
@@ -95,8 +96,20 @@ class PiDisagDataHandlerTest extends AbstractPiDisagTest {
   void testAddCocAndAoc_ForDataValueSet() {
 
     // Given
-    EventQueryParams params =
-        infoInitializer.getParamsWithDisaggregationInfo(dataValueSetEventQueryParams);
+    DataQueryParams dataQueryParams =
+        DataQueryParams.newBuilder().withOutputFormat(DATA_VALUE_SET).build();
+    EventQueryParams paramsFromDataQueryParams =
+        EventQueryParams.fromDataQueryParams(dataQueryParams);
+
+    EventQueryParams testParams =
+        new EventQueryParams.Builder(paramsFromDataQueryParams)
+            .withProgramIndicator(programIndicator)
+            .addDimension(category2)
+            .withStartDate(new Date())
+            .withEndDate(new Date())
+            .build();
+
+    EventQueryParams params = infoInitializer.getParamsWithDisaggregationInfo(testParams);
 
     List<Object> row = new ArrayList<>();
     row.add("TshaiD9eise");
@@ -109,12 +122,11 @@ class PiDisagDataHandlerTest extends AbstractPiDisagTest {
             + COMPOSITE_DIM_OBJECT_PLAIN_SEP
             + cocAC.getUid()
             + COMPOSITE_DIM_OBJECT_PLAIN_SEP
-            + cocEG.getUid();
+            + cocE.getUid();
 
     when(sqlRowSet.getString(category1.getUid())).thenReturn(optionA.getUid());
     when(sqlRowSet.getString(category2.getUid())).thenReturn(optionC.getUid());
     when(sqlRowSet.getString(category3.getUid())).thenReturn(optionE.getUid());
-    when(sqlRowSet.getString(category4.getUid())).thenReturn(optionG.getUid());
 
     // When
     boolean result = PiDisagDataHandler.addCocAndAoc(params, grid, row, sqlRowSet);
@@ -125,56 +137,5 @@ class PiDisagDataHandlerTest extends AbstractPiDisagTest {
     assertEquals("IIpo1jem6na", row.get(1));
     assertEquals("hOaxuch8Eg3", row.get(2));
     assertEquals(42, row.get(3));
-    assertEquals(4, row.size());
-  }
-
-  @Test
-  void testAddCocAndAoc_WithoutDataValueSet() {
-
-    // Given
-    EventQueryParams params =
-        infoInitializer.getParamsWithDisaggregationInfo(nonDataValueSetEventQueryParams);
-
-    List<Object> row = new ArrayList<>();
-    row.add("TshaiD9eise");
-    row.add("IIpo1jem6na");
-    row.add("hOaxuch8Eg3");
-
-    String expectedDx = "TshaiD9eise";
-
-    // When
-    boolean result = PiDisagDataHandler.addCocAndAoc(params, grid, row, sqlRowSet);
-
-    // Then
-    assertTrue(result);
-    assertEquals(expectedDx, row.get(0));
-    assertEquals("IIpo1jem6na", row.get(1));
-    assertEquals("hOaxuch8Eg3", row.get(2));
-    assertEquals(3, row.size());
-  }
-
-  @Test
-  void testAddCocAndAoc_WithMissingData() {
-
-    // Given
-    EventQueryParams params =
-        infoInitializer.getParamsWithDisaggregationInfo(dataValueSetEventQueryParams);
-
-    List<Object> row = new ArrayList<>();
-    row.add("TshaiD9eise");
-    row.add(null);
-    row.add("hOaxuch8Eg3");
-
-    String expectedDx = "TshaiD9eise";
-
-    // When
-    boolean result = PiDisagDataHandler.addCocAndAoc(params, grid, row, sqlRowSet);
-
-    // Then
-    assertFalse(result);
-    assertEquals(expectedDx, row.get(0));
-    assertNull(row.get(1));
-    assertEquals("hOaxuch8Eg3", row.get(2));
-    assertEquals(3, row.size());
   }
 }
