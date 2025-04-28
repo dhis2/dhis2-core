@@ -44,6 +44,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
@@ -300,7 +301,13 @@ public class ValidationUtils {
     FileResource fileResource = bundle.getPreheat().get(FileResource.class, value);
 
     return Constant.VALID_IMAGE_FORMATS.contains(fileResource.getFormat())
-        ? "File resource with uid '" + value + "' is not a valid image"
+        ? "File resource with uid '"
+            + value
+            + "' is using invalid image format "
+            + fileResource.getFormat()
+            + ". Valid formats are: ("
+            + StringUtils.join(Constant.VALID_IMAGE_FORMATS)
+            + ")."
         : null;
   }
 
@@ -315,9 +322,7 @@ public class ValidationUtils {
     if (bundle.getStrategy(trackerDto).isCreate()) {
       reporter.addErrorIf(
           () -> fileResource != null && fileResource.isAssigned(), trackerDto, E1009, value);
-    }
-
-    if (bundle.getStrategy(trackerDto).isUpdate()) {
+    } else if (bundle.getStrategy(trackerDto).isUpdate()) {
       reporter.addErrorIf(
           () ->
               fileResource != null
