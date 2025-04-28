@@ -305,9 +305,9 @@ public class ValidationUtils {
             + value
             + "' is using invalid image format "
             + fileResource.getFormat()
-            + ". Valid formats are: ("
-            + StringUtils.join(Constant.VALID_IMAGE_FORMATS)
-            + ")."
+            + ". Valid formats are: "
+            + StringUtils.join(Constant.VALID_IMAGE_FORMATS, ", ")
+            + "."
         : null;
   }
 
