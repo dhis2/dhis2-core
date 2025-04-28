@@ -84,6 +84,7 @@ import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryParams.Builder;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
@@ -141,6 +142,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Mock private SystemSettingsService systemSettingsService;
 
   @Mock private OrganisationUnitResolver organisationUnitResolver;
+
+  @Mock private PiDisagQueryGenerator piDisagQueryGenerator;
 
   @Spy
   private ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
