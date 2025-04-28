@@ -46,7 +46,7 @@ class ReportTest {
     List<String> rawRelativePeriods =
         List.of(BIMONTHS_THIS_YEAR.name(), THIS_BIWEEK.name(), LAST_7_DAYS.name());
     Report report = new Report();
-    report.setRawRelativePeriods(rawRelativePeriods);
+    report.setRawPeriods(rawRelativePeriods);
     // When
     RelativePeriods relativePeriods = report.getRelatives();
     // Then
@@ -56,10 +56,10 @@ class ReportTest {
   }
 
   @Test
-  void testGetRelativesWhenRawRelativePeriodsIsNull() {
+  void testGetRelativesWhenRawPeriodsIsNull() {
     // Given
     Report report = new Report();
-    report.setRawRelativePeriods(null);
+    report.setRawPeriods(null);
     // When
     RelativePeriods relativePeriods = report.getRelatives();
     // Then
@@ -67,10 +67,10 @@ class ReportTest {
   }
 
   @Test
-  void testGetRelativesWhenRawRelativePeriodsIsEmpty() {
+  void testGetRelativesWhenRawPeriodsIsEmpty() {
     // Given
     Report report = new Report();
-    report.setRawRelativePeriods(List.of());
+    report.setRawPeriods(List.of());
     // When
     RelativePeriods relativePeriods = report.getRelatives();
     // Then
@@ -88,8 +88,8 @@ class ReportTest {
     // When
     report.setRelatives(relativePeriods);
     // Then
-    assertTrue(report.getRawRelativePeriods().contains(BIMONTHS_THIS_YEAR.name()));
-    assertTrue(report.getRawRelativePeriods().contains(LAST_14_DAYS.name()));
-    assertTrue(report.getRawRelativePeriods().contains(LAST_3_MONTHS.name()));
+    assertTrue(report.getRawPeriods().contains(BIMONTHS_THIS_YEAR.name()));
+    assertTrue(report.getRawPeriods().contains(LAST_14_DAYS.name()));
+    assertTrue(report.getRawPeriods().contains(LAST_3_MONTHS.name()));
   }
 }

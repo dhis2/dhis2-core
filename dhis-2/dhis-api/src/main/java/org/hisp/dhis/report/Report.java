@@ -59,7 +59,7 @@ public class Report extends BaseIdentifiableObject implements Cacheable, Metadat
 
   private RelativePeriods relatives;
 
-  private List<String> rawRelativePeriods = new ArrayList<>();
+  private List<String> rawPeriods = new ArrayList<>();
 
   private ReportingParams reportingParams;
 
@@ -163,8 +163,8 @@ public class Report extends BaseIdentifiableObject implements Cacheable, Metadat
     if (relatives == null) {
       List<RelativePeriodEnum> enums = new ArrayList<>();
 
-      if (rawRelativePeriods != null) {
-        for (String relativePeriod : rawRelativePeriods) {
+      if (rawPeriods != null) {
+        for (String relativePeriod : rawPeriods) {
           if (RelativePeriodEnum.contains(relativePeriod)) {
             enums.add(RelativePeriodEnum.valueOf(relativePeriod));
           }
@@ -178,8 +178,8 @@ public class Report extends BaseIdentifiableObject implements Cacheable, Metadat
   }
 
   /**
-   * It overrides the rawRelativePeriods with the relative periods provided. This is done for
-   * backward compatibility reasons.
+   * It overrides the rawPeriods with the relative periods provided. This is done for backward
+   * compatibility reasons.
    *
    * @param relatives the {@link RelativePeriods}.
    */
@@ -190,7 +190,7 @@ public class Report extends BaseIdentifiableObject implements Cacheable, Metadat
       for (RelativePeriodEnum periodEnum : enums) {
         String relativePeriod = periodEnum.name();
         if (RelativePeriodEnum.contains(relativePeriod)) {
-          this.rawRelativePeriods.add(relativePeriod);
+          this.rawPeriods.add(relativePeriod);
         }
       }
 
@@ -198,12 +198,12 @@ public class Report extends BaseIdentifiableObject implements Cacheable, Metadat
     }
   }
 
-  public List<String> getRawRelativePeriods() {
-    return rawRelativePeriods;
+  public List<String> getRawPeriods() {
+    return rawPeriods;
   }
 
-  public void setRawRelativePeriods(List<String> rawRelativePeriods) {
-    this.rawRelativePeriods = rawRelativePeriods;
+  public void setRawPeriods(List<String> rawPeriods) {
+    this.rawPeriods = rawPeriods;
   }
 
   @JsonProperty
