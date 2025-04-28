@@ -241,6 +241,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
   }
 
   private Stream<String> aliases(Filter filter, Query<?> query) {
+    if (filter.isVirtual()) return Stream.empty();
     PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
     return path == null ? Stream.empty() : Stream.of(path.getAlias());
   }
