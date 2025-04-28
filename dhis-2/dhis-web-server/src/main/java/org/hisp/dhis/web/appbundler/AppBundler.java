@@ -69,7 +69,7 @@ public class AppBundler {
   private static final Logger logger = LoggerFactory.getLogger(AppBundler.class);
   private static final Pattern REPO_PATTERN =
       Pattern.compile("https://codeload.github.com/([^/]+)/([^/]+)/zip/refs/heads/([^/]+)");
-  private static final int DOWNLOAD_POOL_SIZE = 10; // Number of concurrent downloads
+  private static final int DOWNLOAD_POOL_SIZE = 25; // Number of concurrent downloads
 
   private static final String DEFAULT_BRANCH = "master";
   private static final String CHECKSUM_DIR = "checksums";
