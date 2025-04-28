@@ -32,6 +32,7 @@ package org.hisp.dhis;
 import static org.hisp.dhis.login.PortUtil.findAvailablePort;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -97,6 +98,16 @@ public class BaseE2ETest {
     wiser.start();
   }
 
+  public static void configureEmail2FASettings(String cookie) {
+    setSystemPropertyWithCookie("keyEmailHostName", SMTP_HOSTNAME, cookie);
+    setSystemPropertyWithCookie("keyEmailPort", String.valueOf(smtpPort), cookie);
+    setSystemPropertyWithCookie("keyEmailUsername", "nils", cookie);
+    setSystemPropertyWithCookie("keyEmailPassword", "nils", cookie);
+    setSystemPropertyWithCookie("keyEmailSender", "system@nils.no", cookie);
+    setSystemPropertyWithCookie("keyEmailTls", "false", cookie);
+    setSystemPropertyWithCookie("keySelfRegistrationNoRecaptcha", "true", cookie);
+  }
+
   public static void invalidateAllSession() {
     ResponseEntity<String> response = deleteWithAdminBasicAuth("/sessions", null);
     assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -150,18 +161,25 @@ public class BaseE2ETest {
   // --------------------------------------------------------------------------------------------
 
   public static void assertRedirectToSameUrl(String url) {
-    assertRedirectUrl(url, url);
+    assertRedirectUrl(url, url, true);
   }
 
-  public static void assertRedirectUrl(String url, String redirectUrl) {
+  public static void assertRedirectUrl(String url, String redirectUrl, boolean shouldSaveRequest) {
     // Do an invalid login to store original URL request
     ResponseEntity<LoginResponse> firstResponse =
         restTemplate.postForEntity(serverHostUrl + url, null, LoginResponse.class);
-    String cookie = firstResponse.getHeaders().get(HttpHeaders.SET_COOKIE).get(0);
+
+    HttpHeaders getHeaders = jsonHeaders();
+    List<String> cookies = firstResponse.getHeaders().get(HttpHeaders.SET_COOKIE);
+
+    if (shouldSaveRequest) {
+      String cookie = cookies.get(0);
+      getHeaders.set("Cookie", cookie);
+    } else {
+      assertNull(cookies);
+    }
 
     // Do a valid login with the captured cookie
-    HttpHeaders getHeaders = jsonHeaders();
-    getHeaders.set("Cookie", cookie);
     LoginRequest loginRequest =
         LoginRequest.builder().username("admin").password("district").build();
     HttpEntity<LoginRequest> requestEntity = new HttpEntity<>(loginRequest, getHeaders);
