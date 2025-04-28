@@ -94,7 +94,6 @@ public abstract class BaseResourceService implements ResourceService {
 
   @Override
   public String create(JsonNode payload) throws DependencySetupException {
-
     JsonNode clean = payload.deepCopy();
     if (clean.isObject()) {
       ((com.fasterxml.jackson.databind.node.ObjectNode) clean).remove("type");
