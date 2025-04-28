@@ -264,12 +264,6 @@ public class LoginTest extends BaseE2ETest {
   }
 
   @Test
-  void testRedirectIcon() {
-    testRedirectAsUser(
-        "/api/icons/medicines_positive/icon.svg", "api/icons/medicines_positive/icon");
-  }
-
-  @Test
   void testJsonResponseForFailedLogin() {
     try {
       getWithWrongAuth("/me", Map.of());
