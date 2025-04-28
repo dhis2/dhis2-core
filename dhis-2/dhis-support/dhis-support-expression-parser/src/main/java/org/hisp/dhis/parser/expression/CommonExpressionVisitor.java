@@ -29,12 +29,6 @@
  */
 package org.hisp.dhis.parser.expression;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Supplier;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -58,6 +52,13 @@ import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Supplier;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Common traversal of the ANTLR4 expression parse tree using the visitor pattern.
  *
@@ -80,6 +81,8 @@ public class CommonExpressionVisitor extends AntlrExpressionVisitor {
   private TrackedEntityAttributeService attributeService;
 
   private SqlBuilder sqlBuilder;
+
+      private boolean useExperimentalSqlEngine;
 
   /**
    * A {@link Supplier} object that can return a {@link I18n} instance when needed. This is done
@@ -130,6 +133,7 @@ public class CommonExpressionVisitor extends AntlrExpressionVisitor {
       ProgramStageService programStageService,
       TrackedEntityAttributeService attributeService,
       SqlBuilder sqlBuilder,
+      boolean useExperimentalSqlEngine,
       Supplier<I18n> i18nSupplier,
       Map<String, Constant> constantMap,
       Map<Integer, ExpressionItem> itemMap,
@@ -149,6 +153,7 @@ public class CommonExpressionVisitor extends AntlrExpressionVisitor {
     this.programStageService = programStageService;
     this.attributeService = attributeService;
     this.sqlBuilder = sqlBuilder;
+    this.useExperimentalSqlEngine = useExperimentalSqlEngine;
     this.i18nSupplier = i18nSupplier;
     this.constantMap = constantMap != null ? constantMap : new HashMap<>();
     this.itemMap = itemMap;

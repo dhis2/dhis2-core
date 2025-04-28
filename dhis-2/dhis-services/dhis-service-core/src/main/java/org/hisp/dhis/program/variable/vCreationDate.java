@@ -44,6 +44,9 @@ public class vCreationDate extends ProgramDateVariable {
 
   @Override
   public Object getSql(CommonExpressionVisitor visitor) {
+    if (!visitor.isUseExperimentalSqlEngine()) {
+      return getSqlLegacy(visitor);
+    }
     ProgramExpressionParams params = visitor.getProgParams();
 
     if (params != null
@@ -57,8 +60,7 @@ public class vCreationDate extends ProgramDateVariable {
     }
   }
 
-  // TODO remove
-  public Object getSql2(CommonExpressionVisitor visitor) {
+  public Object getSqlLegacy(CommonExpressionVisitor visitor) {
     ProgramExpressionParams params = visitor.getProgParams();
 
     if (AnalyticsType.ENROLLMENT == params.getProgramIndicator().getAnalyticsType()) {

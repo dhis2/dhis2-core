@@ -29,19 +29,6 @@
  */
 package org.hisp.dhis.program.dataitem;
 
-import static org.hisp.dhis.parser.expression.ParserUtils.assumeStageElementSyntax;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
@@ -57,6 +44,20 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.system.util.SqlUtils;
+
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
+import static org.hisp.dhis.parser.expression.ParserUtils.assumeStageElementSyntax;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Program indicator expression data item ProgramItemStageElement
@@ -102,6 +103,9 @@ public class ProgramItemStageElement extends ProgramExpressionItem {
 
   @Override
   public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    if (!visitor.isUseExperimentalSqlEngine()) {
+      return getSqlLegacy(ctx, visitor);
+    }
     assumeStageElementSyntax(ctx);
 
     // Extract parameters
@@ -185,7 +189,7 @@ public class ProgramItemStageElement extends ProgramExpressionItem {
     }
   }
 
-  public Object getSql2(ExprContext ctx, CommonExpressionVisitor visitor) {
+  public Object getSqlLegacy(ExprContext ctx, CommonExpressionVisitor visitor) {
     assumeStageElementSyntax(ctx);
 
     String programStageId = ctx.uid0.getText();

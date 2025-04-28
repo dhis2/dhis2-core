@@ -29,7 +29,20 @@
  */
 package org.hisp.dhis.program.function;
 
-import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.analytics.AnalyticsConstants;
+import org.hisp.dhis.analytics.DataType;
+import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ProgramExpressionParams;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+import org.hisp.dhis.parser.expression.statement.StatementBuilder;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.AnalyticsPeriodBoundary;
+import org.hisp.dhis.program.ProgramExpressionItem;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -42,19 +55,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.analytics.AnalyticsConstants;
-import org.hisp.dhis.analytics.DataType;
-import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ProgramExpressionParams;
-import org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-import org.hisp.dhis.parser.expression.statement.StatementBuilder;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.program.AnalyticsPeriodBoundary;
-import org.hisp.dhis.program.ProgramExpressionItem;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
+
+import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 
 /**
  * Program indicator count functions
@@ -78,6 +80,106 @@ public abstract class ProgramCountFunction extends ProgramExpressionItem {
 
   @Override
   public final Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    if (!visitor.isUseExperimentalSqlEngine()) {
+      return getSqlLegacy(ctx, visitor);
+    }
+    validateCountFunctionArgs(ctx);
+    // 1. Extract Common Parameters
+    String programStageId = ctx.uid0.getText();
+    String dataElementId = ctx.uid1.getText();
+    ProgramExpressionParams progParams = visitor.getProgParams();
+    ProgramIndicator programIndicator = progParams.getProgramIndicator();
+    Date startDate = progParams.getReportingStartDate();
+    Date endDate = progParams.getReportingEndDate();
+    String piUid = programIndicator.getUid();
+
+    // 2. Generate Boundary Hash
+    String boundaryHash = generateBoundaryHash(programIndicator, startDate, endDate);
+
+    // 3. Get Function Name from subclass
+    String functionName = getFunctionName();
+
+    // 4. Determine Argument Type and Encode Argument SQL/Literal
+    String argType = "none"; // Default for d2:count
+    String encodedArgSql = ""; // Default for d2:count
+
+    if ("countIfValue".equals(functionName)) {
+      // --- Handle d2:countIfValue ---
+      // Find the CORRECT accessor for the value expression context
+      ExprContext valueExprCtx = ctx.expr(0); // Assuming expr(0) is correct, VERIFY this!
+
+      if (valueExprCtx == null) {
+        log.error(
+                "Value expression (second argument) is missing for d2:countIfValue in: {}",
+                ctx.getText());
+        return "__INVALID_D2FUNC_ARGS__"; // Return error placeholder
+      }
+
+      // Get valueSql using temporary visitor
+      CommonExpressionVisitor sqlVisitor =
+              visitor.toBuilder()
+                      .itemMethod(ITEM_GET_SQL)
+                      .params(visitor.getParams().toBuilder().dataType(DataType.NUMERIC).build())
+                      .itemMap(visitor.getItemMap())
+                      .constantMap(visitor.getConstantMap())
+                      .build();
+      String valueSql = castString(sqlVisitor.visit(valueExprCtx));
+
+      if (valueSql == null) {
+        log.error(
+                "Visiting the value expression resulted in null SQL for d2:countIfValue in: {}. Value text: {}",
+                ctx.getText(),
+                valueExprCtx.getText());
+        return "__INVALID_D2FUNC_VALUE_SQL__"; // Return error placeholder
+      }
+
+      encodedArgSql = Base64.getEncoder().encodeToString(valueSql.getBytes(StandardCharsets.UTF_8));
+      argType = "val64"; // Indicate value SQL is encoded
+
+    } else if ("countIfCondition".equals(functionName)) {
+      // --- Handle d2:countIfCondition ---
+      // Find the CORRECT accessor for the string literal
+      ExpressionParser.StringLiteralContext conditionNode = ctx.stringLiteral(); // Assuming stringLiteral(0) is correct, VERIFY this!
+
+      if (conditionNode == null) {
+        log.error(
+                "Condition string literal (second argument) is missing for d2:countIfCondition in: {}",
+                ctx.getText());
+        return "__INVALID_D2FUNC_ARGS__"; // Return error placeholder
+      }
+
+      String rawConditionLiteral = conditionNode.getText(); // Get the literal including quotes
+      encodedArgSql =
+              Base64.getEncoder().encodeToString(rawConditionLiteral.getBytes(StandardCharsets.UTF_8));
+      argType = "condLit64"; // Indicate condition literal is encoded
+
+    } else if (!"count".equals(functionName)) {
+      // Handle unknown function derived from this base class
+      log.error("Unknown ProgramCountFunction type '{}' encountered.", functionName);
+      return "__UNKNOWN_D2FUNC__";
+    }
+    // For "count", argType remains "none" and encodedArgSql remains ""
+
+    // 5. Format Rich Placeholder
+    String richPlaceholder =
+            String.format(
+                    "__D2FUNC__(func='%s', ps='%s', de='%s', argType='%s', arg64='%s', hash='%s', pi='%s')__",
+                    functionName,
+                    programStageId,
+                    dataElementId,
+                    argType, // Embed the argument type indicator
+                    encodedArgSql, // Embed encoded arg (valueSql or conditionLiteral) or empty string
+                    boundaryHash,
+                    piUid);
+
+    // 6. Return Rich Placeholder
+    return richPlaceholder;
+  }
+
+  public final Object getSql2(ExprContext ctx, CommonExpressionVisitor visitor) {
+    if (!visitor.isUseExperimentalSqlEngine()) {
+      return getSqlLegacy(ctx, visitor);
+    }
     validateCountFunctionArgs(ctx);
 
     ProgramContext context = new ProgramContext(ctx, visitor);
@@ -109,8 +211,7 @@ public abstract class ProgramCountFunction extends ProgramExpressionItem {
         context.piUid);
   }
 
-  // TODO remove
-  public final Object getSql2(ExprContext ctx, CommonExpressionVisitor visitor) {
+  public final Object getSqlLegacy(ExprContext ctx, CommonExpressionVisitor visitor) {
     validateCountFunctionArgs(ctx);
 
     StatementBuilder sb = visitor.getStatementBuilder();
