@@ -29,9 +29,10 @@
  */
 package org.hisp.dhis.analytics.event.data.programindicator.disag;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -50,7 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Transactional
-class PIDisagQueryGeneratorTest extends AbstractPIDisagTest {
+class PiDisagQueryGeneratorTest extends AbstractPiDisagTest {
 
   @Autowired private ProgramIndicatorService programIndicatorService;
 
@@ -72,20 +73,15 @@ class PIDisagQueryGeneratorTest extends AbstractPIDisagTest {
   void testGetCocSelectColumns_WithoutDimension() {
 
     // Given
-    EventQueryParams testParams =
-        new EventQueryParams.Builder()
-            .withProgramIndicator(programIndicator)
-            .withStartDate(new Date())
-            .withEndDate(new Date())
-            .build();
-
-    EventQueryParams params = infoInitializer.getParamsWithDisaggregationInfo(testParams);
+    EventQueryParams params =
+        infoInitializer.getParamsWithDisaggregationInfo(nonDimensionEventQueryParams);
 
     Set<String> expectedColumns =
         Set.of(
             "concat(case when 'filterA' = '' then 'catOption0A' else '' end, case when 'filterB' = '' then 'catOption0B' else '' end) as \"CategoryId1\"",
             "concat(case when 'filterC' = '' then 'catOption0C' else '' end, case when 'filterD' = '' then 'catOption0D' else '' end) as \"CategoryId2\"",
-            "concat(case when 'filterE' = '' then 'catOption0E' else '' end, case when 'filterF' = '' then 'catOption0F' else '' end) as \"CategoryId3\"");
+            "concat(case when 'filterE' = '' then 'catOption0E' else '' end, case when 'filterF' = '' then 'catOption0F' else '' end) as \"CategoryId3\"",
+            "concat(case when 'filterG' = '' then 'catOption0G' else '' end, case when 'filterH' = '' then 'catOption0H' else '' end) as \"CategoryId4\"");
 
     // When
     List<String> columns = target.getCocSelectColumns(params);
@@ -95,26 +91,36 @@ class PIDisagQueryGeneratorTest extends AbstractPIDisagTest {
   }
 
   @Test
-  void testGetDisaggregationColumns_WithDimension() {
+  void testGetCocSelectColumns_WithDimension() {
 
     // Given
-    EventQueryParams testParams =
-        new EventQueryParams.Builder()
-            .withProgramIndicator(programIndicator)
-            .addDimension(category2)
-            .withStartDate(new Date())
-            .withEndDate(new Date())
-            .build();
-
-    EventQueryParams params = infoInitializer.getParamsWithDisaggregationInfo(testParams);
+    EventQueryParams params =
+        infoInitializer.getParamsWithDisaggregationInfo(dataValueSetEventQueryParams);
 
     Set<String> expectedColumns =
         Set.of(
             "concat(case when 'filterA' = '' then 'catOption0A' else '' end, case when 'filterB' = '' then 'catOption0B' else '' end) as \"CategoryId1\"",
-            "concat(case when 'filterE' = '' then 'catOption0E' else '' end, case when 'filterF' = '' then 'catOption0F' else '' end) as \"CategoryId3\"");
+            "concat(case when 'filterE' = '' then 'catOption0E' else '' end, case when 'filterF' = '' then 'catOption0F' else '' end) as \"CategoryId3\"",
+            "concat(case when 'filterG' = '' then 'catOption0G' else '' end, case when 'filterH' = '' then 'catOption0H' else '' end) as \"CategoryId4\"");
 
     // When
     List<String> columns = target.getCocSelectColumns(params);
+
+    // Then (in any order)
+    assertEquals(expectedColumns, new HashSet<>(columns));
+  }
+
+  @Test
+  void testGetCocSelectColumns_WithoutDataValueSet() {
+
+    // Given
+    EventQueryParams params =
+        infoInitializer.getParamsWithDisaggregationInfo(nonDataValueSetEventQueryParams);
+
+    Set<String> expectedColumns = emptySet();
+
+    // When
+    List<String> columns = target.getCocColumnsForGroupBy(params);
 
     // Then (in any order)
     assertEquals(expectedColumns, new HashSet<>(columns));
@@ -124,16 +130,15 @@ class PIDisagQueryGeneratorTest extends AbstractPIDisagTest {
   void testGetDisaggregationGroupByColumns_WithoutDimension() {
 
     // Given
-    EventQueryParams testParams =
-        new EventQueryParams.Builder()
-            .withProgramIndicator(programIndicator)
-            .withStartDate(new Date())
-            .withEndDate(new Date())
-            .build();
+    EventQueryParams params =
+        infoInitializer.getParamsWithDisaggregationInfo(nonDimensionEventQueryParams);
 
-    EventQueryParams params = infoInitializer.getParamsWithDisaggregationInfo(testParams);
-
-    Set<String> expectedColumns = Set.of("\"CategoryId1\"", "\"CategoryId2\"", "\"CategoryId3\"");
+    Set<String> expectedColumns =
+        Set.of(
+            "concat(case when 'filterA' = '' then 'catOption0A' else '' end, case when 'filterB' = '' then 'catOption0B' else '' end)",
+            "concat(case when 'filterC' = '' then 'catOption0C' else '' end, case when 'filterD' = '' then 'catOption0D' else '' end)",
+            "concat(case when 'filterE' = '' then 'catOption0E' else '' end, case when 'filterF' = '' then 'catOption0F' else '' end)",
+            "concat(case when 'filterG' = '' then 'catOption0G' else '' end, case when 'filterH' = '' then 'catOption0H' else '' end)");
 
     // When
     List<String> columns = target.getCocColumnsForGroupBy(params);
@@ -146,17 +151,30 @@ class PIDisagQueryGeneratorTest extends AbstractPIDisagTest {
   void testGetDisaggregationGroupByColumns_WithDimension() {
 
     // Given
-    EventQueryParams testParams =
-        new EventQueryParams.Builder()
-            .withProgramIndicator(programIndicator)
-            .addDimension(category2)
-            .withStartDate(new Date())
-            .withEndDate(new Date())
-            .build();
+    EventQueryParams params =
+        infoInitializer.getParamsWithDisaggregationInfo(dataValueSetEventQueryParams);
 
-    EventQueryParams params = infoInitializer.getParamsWithDisaggregationInfo(testParams);
+    Set<String> expectedColumns =
+        Set.of(
+            "concat(case when 'filterA' = '' then 'catOption0A' else '' end, case when 'filterB' = '' then 'catOption0B' else '' end)",
+            "concat(case when 'filterE' = '' then 'catOption0E' else '' end, case when 'filterF' = '' then 'catOption0F' else '' end)",
+            "concat(case when 'filterG' = '' then 'catOption0G' else '' end, case when 'filterH' = '' then 'catOption0H' else '' end)");
 
-    Set<String> expectedColumns = Set.of("\"CategoryId1\"", "\"CategoryId3\"");
+    // When
+    List<String> columns = target.getCocColumnsForGroupBy(params);
+
+    // Then (in any order)
+    assertEquals(expectedColumns, new HashSet<>(columns));
+  }
+
+  @Test
+  void testGetDisaggregationGroupByColumns_WithoutDataValueSet() {
+
+    // Given
+    EventQueryParams params =
+        infoInitializer.getParamsWithDisaggregationInfo(nonDataValueSetEventQueryParams);
+
+    Set<String> expectedColumns = emptySet();
 
     // When
     List<String> columns = target.getCocColumnsForGroupBy(params);
@@ -169,7 +187,9 @@ class PIDisagQueryGeneratorTest extends AbstractPIDisagTest {
   void testGetColumnForSelectOrGroupBy_Select() {
 
     // Given
-    EventQueryParams params = infoInitializer.getParamsWithDisaggregationInfo(eventQueryParams);
+    EventQueryParams params =
+        infoInitializer.getParamsWithDisaggregationInfo(dataValueSetEventQueryParams);
+
     String expectedColumn =
         "concat(case when 'filterA' = '' then 'catOption0A' else '' end, case when 'filterB' = '' then 'catOption0B' else '' end) as \"CategoryId1\"";
 
@@ -184,7 +204,9 @@ class PIDisagQueryGeneratorTest extends AbstractPIDisagTest {
   void testGetColumnForSelectOrGroupBy_GroupBy() {
 
     // Given
-    EventQueryParams params = infoInitializer.getParamsWithDisaggregationInfo(eventQueryParams);
+    EventQueryParams params =
+        infoInitializer.getParamsWithDisaggregationInfo(dataValueSetEventQueryParams);
+
     String expectedColumn =
         "concat(case when 'filterA' = '' then 'catOption0A' else '' end, case when 'filterB' = '' then 'catOption0B' else '' end)";
 
@@ -196,10 +218,47 @@ class PIDisagQueryGeneratorTest extends AbstractPIDisagTest {
   }
 
   @Test
+  void testGetCocWhereConditions_withDataValueSet() {
+
+    // Given
+    EventQueryParams params =
+        infoInitializer.getParamsWithDisaggregationInfo(dataValueSetEventQueryParams);
+
+    List<String> expectedConditions = emptyList();
+
+    // When
+    List<String> conditions = target.getCocWhereConditions(params);
+
+    // Then
+    assertEquals(expectedConditions, conditions);
+  }
+
+  @Test
+  void testGetCocWhereConditions_withoutDataValueSet() {
+
+    // Given
+    EventQueryParams params =
+        infoInitializer.getParamsWithDisaggregationInfo(nonDataValueSetEventQueryParams);
+
+    Set<String> expectedConditions =
+        Set.of(
+            "length(concat(case when 'filterA' = '' then 'catOption0A' else '' end, case when 'filterB' = '' then 'catOption0B' else '' end)) = 11",
+            "length(concat(case when 'filterE' = '' then 'catOption0E' else '' end, case when 'filterF' = '' then 'catOption0F' else '' end)) = 11");
+
+    // When
+    List<String> conditions = target.getCocWhereConditions(params);
+
+    // Then (in any order)
+    assertEquals(expectedConditions, new HashSet<>(conditions));
+  }
+
+  @Test
   void testGetColumnForWhereClause() {
 
     // Given
-    EventQueryParams params = infoInitializer.getParamsWithDisaggregationInfo(eventQueryParams);
+    EventQueryParams params =
+        infoInitializer.getParamsWithDisaggregationInfo(dataValueSetEventQueryParams);
+
     String expectedColumn =
         "concat(case when 'filterA' = '' then 'catOption0A' else '' end, case when 'filterB' = '' then 'catOption0B' else '' end)";
 
