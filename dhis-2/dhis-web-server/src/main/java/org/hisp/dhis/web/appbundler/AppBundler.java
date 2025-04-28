@@ -44,8 +44,14 @@ import java.nio.file.Paths;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.net.ssl.HttpsURLConnection;
@@ -63,6 +69,7 @@ public class AppBundler {
   private static final Logger logger = LoggerFactory.getLogger(AppBundler.class);
   private static final Pattern REPO_PATTERN =
       Pattern.compile("https://codeload.github.com/([^/]+)/([^/]+)/zip/refs/heads/([^/]+)");
+  private static final int DOWNLOAD_POOL_SIZE = 10; // Number of concurrent downloads
 
   private static final String DEFAULT_BRANCH = "master";
   private static final String CHECKSUM_DIR = "checksums";
@@ -127,14 +134,53 @@ public class AppBundler {
     List<String> appUrls = readAppList();
     logger.error("Found {} apps to bundle", appUrls.size());
 
-    // Download each app
+    // Download each app in parallel
+    ExecutorService executor = Executors.newFixedThreadPool(DOWNLOAD_POOL_SIZE);
+    List<Future<AppBundleInfo.AppInfo>> futures = new ArrayList<>();
+
+    logger.error("Submitting download tasks for {} apps...", appUrls.size());
     for (String appUrl : appUrls) {
+      Callable<AppBundleInfo.AppInfo> task = () -> downloadApp(appUrl, artifactDir, checksumDir);
+      Future<AppBundleInfo.AppInfo> future = executor.submit(task);
+      futures.add(future);
+    }
+
+    logger.error("Collecting download results...");
+    for (Future<AppBundleInfo.AppInfo> future : futures) {
       try {
-        downloadApp(appUrl, artifactDir, checksumDir);
-      } catch (Exception e) {
-        logger.error("Error downloading app {}: {}", appUrl, e.getMessage(), e);
+        AppBundleInfo.AppInfo appInfo = future.get(); // Blocks until completion
+        if (appInfo != null) {
+          bundleInfo.addApp(appInfo);
+          logger.error("Successfully processed app: {}", appInfo.getName());
+        }
+      } catch (InterruptedException | ExecutionException e) {
+        // Log the error and continue with other apps
+        // The specific failing app URL isn't directly available here without more complex tracking
+        logger.error(
+            "Error retrieving result for an app download task: {} - {}",
+            e.getClass().getSimpleName(),
+            e.getMessage(),
+            e.getCause());
       }
     }
+
+    logger.error("Shutting down download executor...");
+    executor.shutdown();
+    try {
+      // Wait a reasonable time for existing tasks to terminate
+      if (!executor.awaitTermination(5, TimeUnit.MINUTES)) {
+        logger.warn("Download executor did not terminate gracefully after 5 minutes, forcing shutdown.");
+        executor.shutdownNow();
+        // Wait again for tasks to respond to being cancelled
+        if (!executor.awaitTermination(60, TimeUnit.SECONDS))
+          logger.error("Download executor did not terminate even after forced shutdown.");
+      }
+    } catch (InterruptedException ie) {
+      logger.error("Interrupted while waiting for executor termination, forcing shutdown.", ie);
+      executor.shutdownNow();
+      Thread.currentThread().interrupt(); // Preserve interrupt status
+    }
+    logger.error("Download executor shut down.");
 
     // --- Start Copying downloaded apps to build directory ---
     Path targetArtifactDir = Paths.get(buildDir).resolve(artifactId);
@@ -190,11 +236,15 @@ public class AppBundler {
    * @param appUrl the GitHub URL of the app
    * @param targetDir the directory where the app ZIP file will be stored
    * @param checksumDir the directory where the checksum files will be stored
+   * @return the downloaded AppBundleInfo.AppInfo object
    * @throws IOException if there's an error downloading the app
    */
-  private void downloadApp(String appUrl, Path targetDir, Path checksumDir) throws IOException {
+  private AppBundleInfo.AppInfo downloadApp(String appUrl, Path targetDir, Path checksumDir)
+      throws IOException {
     Matcher matcher = REPO_PATTERN.matcher(appUrl);
     if (!matcher.matches()) {
+      // Log and return null or throw a specific exception if preferred
+      logger.error("Invalid GitHub URL format, skipping: {}", appUrl);
       throw new IllegalArgumentException("Invalid GitHub URL: " + appUrl);
     }
 
@@ -215,20 +265,31 @@ public class AppBundler {
     appInfo.setBranch(branch);
 
     // Check if we already have the latest version
-    String etag = downloadIfChanged(appUrl, zipPath, checksumDir.resolve(repo + ".checksum"));
-    if (etag == null) {
-      appInfo.setEtag(Files.readString(checksumDir.resolve(repo + ".checksum")));
-    } else {
-      appInfo.setEtag(etag);
-    }
-    // Add app info to bundle info
-    bundleInfo.addApp(appInfo);
+    String etag = null;
+    Path checksumFile = checksumDir.resolve(repo + ".checksum");
+    try {
+      etag = downloadIfChanged(appUrl, zipPath, checksumFile);
 
-    if (etag != null) {
-      logger.error("Downloaded app: {} (ETag: {})", zipName, etag);
-    } else {
-      logger.error("App {} is already up to date", zipName);
+      if (etag == null) { // Not modified or first time download failed ETag retrieval
+        if (Files.exists(checksumFile)) {
+          appInfo.setEtag(Files.readString(checksumFile, StandardCharsets.UTF_8));
+          logger.error("App {} is already up to date (ETag: {})", zipName, appInfo.getEtag());
+        } else {
+          // This case might happen if download failed before ETag was written,
+          // or if ETag header was missing. Log a warning.
+          logger.warn("Could not determine ETag for app {}, checksum file missing.", zipName);
+        }
+      } else {
+        appInfo.setEtag(etag);
+        logger.error("Downloaded app: {} (ETag: {})", zipName, etag);
+      }
+    } catch (IOException e) {
+      logger.error("Failed to download or process app {}: {}", appUrl, e.getMessage(), e);
+      // Propagate the exception so the Future captures it
+      throw e;
     }
+
+    return appInfo; // Return the info instead of adding to shared list
   }
 
   /**
@@ -246,15 +307,15 @@ public class AppBundler {
     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
     TrustManager[] trustAllCerts =
         new TrustManager[] {
-          new X509TrustManager() {
-            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-              return null;
+            new X509TrustManager() {
+              public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                return null;
+              }
+
+              public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+
+              public void checkServerTrusted(X509Certificate[] certs, String authType) {}
             }
-
-            public void checkClientTrusted(X509Certificate[] certs, String authType) {}
-
-            public void checkServerTrusted(X509Certificate[] certs, String authType) {}
-          }
         };
     SSLContext sc;
     try {
@@ -269,29 +330,25 @@ public class AppBundler {
 
     connection.setRequestMethod("GET");
 
-    logger.error("Downloading {} to {}", fileUrl, outputPath);
-    logger.error("Checksum file: {}", checksumPath);
+    logger.debug("Checking/Downloading {} to {}", fileUrl, outputPath);
+    logger.debug("Checksum file: {}", checksumPath);
 
     // Check if we have a previous ETag
     if (Files.exists(checksumPath)) {
       String previousEtag = new String(Files.readAllBytes(checksumPath), StandardCharsets.UTF_8);
-      logger.error("Previous ETag: {}", previousEtag);
+      logger.debug("Previous ETag: {}", previousEtag);
       connection.setRequestProperty("If-None-Match", "\"" + previousEtag + "\"");
     }
 
     connection.connect();
-    Map<String, List<String>> headers = connection.getHeaderFields();
-    for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
-      logger.error("Response header: {} = {}", entry.getKey(), String.join(", ", entry.getValue()));
-    }
     int responseCode = connection.getResponseCode();
 
-    logger.error("Response code: {}", responseCode);
+    logger.debug("Response code for {}: {}", fileUrl, responseCode);
 
     if (responseCode == HttpURLConnection.HTTP_NOT_MODIFIED) {
       // File hasn't changed
-      logger.error("File not modified: {}", fileUrl);
-      return null;
+      logger.debug("File not modified (HTTP 304): {}", fileUrl);
+      return null; // Indicate no download occurred, use existing checksum
     }
 
     if (responseCode != HttpURLConnection.HTTP_OK) {
