@@ -96,15 +96,10 @@ import org.springframework.web.multipart.MultipartFile;
 @ApiVersion({DEFAULT, ALL})
 @RequiredArgsConstructor
 public class StaticContentController {
-  protected static final String RESOURCE_PATH = "";
-
   private final StyleManager styleManager;
   private final FileResourceContentStore contentStore;
-
   static final String LOGO_BANNER = "logo_banner";
-
   static final String LOGO_FRONT = "logo_front";
-
   private static final FileResourceDomain DEFAULT_RESOURCE_DOMAIN = DOCUMENT;
 
   /**
@@ -131,7 +126,7 @@ public class StaticContentController {
       final boolean customFileExists = contentStore.fileResourceContentExists(storageKey);
 
       if (customFileExists) {
-        final String blobEndpoint = getContextPath(request) + "/api" + RESOURCE_PATH + "/" + key;
+        final String blobEndpoint = getContextPath(request) + "/api/staticContent/" + key;
 
         final SimpleImageResource imageResource = new SimpleImageResource();
         imageResource.addImage(IMAGE_PNG.getSubtype(), blobEndpoint);
