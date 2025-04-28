@@ -1,5 +1,5 @@
 {
-  "type": "pi",
+  "type": "program_indicator",
   "code": "PI_TEST_001",
   "name": "Test PI",
   "shortName": "Test PI",

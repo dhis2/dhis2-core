@@ -1,5 +1,5 @@
 {
-  "type": "ind",
+  "type": "indicator",
   "code": "EXP_PREG1",
   "denominatorDescription":"Denominator",
   "numeratorDescription":"Expected Pregnancies with offset",

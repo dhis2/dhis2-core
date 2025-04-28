@@ -40,7 +40,7 @@ public class JsonDependencyLoaderTest {
 
   @Test
   @DisplayName("Valid PI file loads successfully")
-  void loadValidPi() throws Exception {
+  void loadValidPi() {
     DependencyFile df = JsonDependencyLoader.load("dependencies/pi-valid.json");
 
     assertEquals(DependencyType.PROGRAM_INDICATOR, df.type(), "Type should be PI");
