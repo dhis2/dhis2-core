@@ -190,9 +190,11 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
       }
       batchHandler.flush();
 
+    } catch (MinMaxImportException ex) {
+      throw (ex);
     } catch (Exception e) {
-      log.error("Error importing min max values", e);
-      throw new MinMaxImportException("Error importing min max values", e);
+      log.error("Unexpected server error importing min max values", e);
+      throw new MinMaxImportException("Internal server error importing min max values", e); // 500
     }
   }
 }

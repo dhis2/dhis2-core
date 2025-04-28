@@ -84,6 +84,7 @@ abstract class AbstractDataValueControllerTest extends H2ControllerIntegrationTe
     User user = userService.getUser(getAdminUser().getUid());
     user.addOrganisationUnit(unit);
     userService.updateUser(user);
+    dbmsManager.flushSession();
 
     switchToAdminUser();
   }

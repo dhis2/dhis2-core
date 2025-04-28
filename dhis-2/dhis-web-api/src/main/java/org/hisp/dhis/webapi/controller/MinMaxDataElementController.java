@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
@@ -47,6 +48,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
@@ -54,6 +56,7 @@ import org.hisp.dhis.minmax.MinMaxCsvParser;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementQueryParams;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
+import org.hisp.dhis.minmax.MinMaxImportException;
 import org.hisp.dhis.minmax.MinMaxValueDto;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
@@ -214,8 +217,13 @@ public class MinMaxDataElementController {
   @PostMapping(value = "/values", consumes = "application/json")
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void bulkPostJson(@RequestBody List<MinMaxValueDto> valueDtos) {
-    minMaxService.importFromJson(valueDtos);
+  public void bulkPostJson(@RequestBody List<MinMaxValueDto> valueDtos) throws WebMessageException {
+
+    try {
+      minMaxService.importFromJson(valueDtos);
+    } catch (MinMaxImportException e) {
+      throw new WebMessageException(WebMessageUtils.badRequest(e.getMessage()));
+    }
   }
 
   @PostMapping(value = "/values", consumes = "multipart/form-data")
@@ -227,7 +235,7 @@ public class MinMaxDataElementController {
       minMaxService.importFromJson(dtos);
     } catch (Exception e) {
       throw new WebMessageException(
-          notFound("Invalid CSV file. Please check the format and try again."));
+          badRequest("Invalid CSV file. Please check the format and try again."));
     }
   }
 }
