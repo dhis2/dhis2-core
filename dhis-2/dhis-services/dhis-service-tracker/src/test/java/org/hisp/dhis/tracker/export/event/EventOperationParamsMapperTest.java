@@ -134,8 +134,7 @@ class EventOperationParamsMapperTest {
 
   private final Map<String, User> userMap = new HashMap<>();
 
-  private EventOperationParams.EventOperationParamsBuilder eventBuilder =
-      EventOperationParams.builder();
+  private EventOperationParams.EventOperationParamsBuilder eventBuilder;
 
   @BeforeEach
   void setUp() {
@@ -148,9 +147,7 @@ class EventOperationParamsMapperTest {
     testUser.setOrganisationUnits(Set.of(orgUnit));
     user = UserDetails.fromUser(testUser);
 
-    // By default, set to ACCESSIBLE for tests that don't set an orgUnit. The orgUnitMode needs to
-    // be set because its validation is in the EventRequestParamsMapper.
-    eventBuilder = eventBuilder.orgUnitMode(ACCESSIBLE).eventParams(EventParams.FALSE);
+    eventBuilder = EventOperationParams.builder();
 
     userMap.put("admin", createUserWithAuthority(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS));
     userMap.put("superuser", createUserWithAuthority(Authorities.ALL));
@@ -532,7 +529,7 @@ class EventOperationParamsMapperTest {
     mappedUser.setUsername("admin");
 
     EventOperationParams operationParams =
-        eventBuilder.orgUnitMode(ALL).eventParams(EventParams.TRUE).build();
+        eventBuilder.orgUnitMode(ALL).fields(EventFields.all()).build();
     EventQueryParams params = mapper.map(operationParams, UserDetails.fromUser(mappedUser));
     assertTrue(params.isIncludeRelationships());
   }
@@ -545,8 +542,10 @@ class EventOperationParamsMapperTest {
     mappedUser.setUsername("admin");
 
     EventOperationParams operationParams =
-        eventBuilder.orgUnitMode(ALL).eventParams(EventParams.FALSE).build();
+        eventBuilder.orgUnitMode(ALL).fields(EventFields.none()).build();
+
     EventQueryParams params = mapper.map(operationParams, UserDetails.fromUser(mappedUser));
+
     assertFalse(params.isIncludeRelationships());
   }
 

@@ -68,7 +68,7 @@ class TrackedEntitiesExportControllerUnitTest {
             IllegalStateException.class,
             () ->
                 new TrackedEntitiesExportController(
-                    trackedEntityService, null, null, null, null, null, null));
+                    trackedEntityService, null, null, null, null, null));
 
     assertAll(
         () ->
