@@ -40,13 +40,13 @@ import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
-abstract class AbstractDataValueControllerTest extends H2ControllerIntegrationTestBase {
+abstract class AbstractDataValueControllerTest extends PostgresControllerIntegrationTestBase {
   protected String dataElementId;
 
   protected String orgUnitId;
@@ -84,7 +84,6 @@ abstract class AbstractDataValueControllerTest extends H2ControllerIntegrationTe
     User user = userService.getUser(getAdminUser().getUid());
     user.addOrganisationUnit(unit);
     userService.updateUser(user);
-    dbmsManager.flushSession();
 
     switchToAdminUser();
   }

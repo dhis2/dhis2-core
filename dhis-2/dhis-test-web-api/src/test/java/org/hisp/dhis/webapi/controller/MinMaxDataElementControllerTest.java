@@ -29,12 +29,28 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.Collections.singleton;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementDomain;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Tests the {@link MinMaxDataElementController} using (mocked) REST requests.
@@ -42,6 +58,21 @@ import org.junit.jupiter.api.Test;
  * @author Jan Bernitt
  */
 class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
+
+  @Autowired private TransactionTemplate transactionTemplate;
+  @Autowired private OrganisationUnitService organisationUnitService;
+  @Autowired private DataSetService dataSetService;
+  @Autowired private DataElementService dataElementService;
+
+  @Autowired private PeriodService periodService;
+
+  private final String fakeDataSetID = "xcTWJYxFyE2";
+  private final String fakeOrgUnitID = "CAdEJWs42WP";
+
+  private OrganisationUnit organisationUnitA;
+  private DataSet dataSetA;
+  private DataElement dataElementA;
+  private CategoryOptionCombo defaultOptionCombo;
 
   @Test
   void testPostJsonObject() {
@@ -132,13 +163,56 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
             .content(HttpStatus.NOT_FOUND));
   }
 
-  @Disabled("Transaction isolation is an issue")
-  void testBulkPostJson_DefaultGeneratedTrue() {
+  private void setupBulkTest() {
 
+    CategoryCombo defCatCombo = categoryService.getDefaultCategoryCombo();
+    defaultOptionCombo = categoryService.getDefaultCategoryOptionCombo();
+    PeriodType periodType =
+        periodService.reloadPeriodType(PeriodType.getPeriodTypeByName("Monthly"));
+
+    transactionTemplate.execute(
+        status -> {
+          organisationUnitA = createOrganisationUnit('A');
+          organisationUnitService.addOrganisationUnit(organisationUnitA);
+          createUserAndInjectSecurityContext(singleton(organisationUnitA), true);
+          dataSetA = createDataSet('A', periodType, defCatCombo);
+          dataSetService.addDataSet(dataSetA);
+          dataElementA =
+              createDataElement(
+                  'A', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.AGGREGATE);
+          dataElementService.addDataElement(dataElementA);
+          dbmsManager.flushSession();
+          dbmsManager.clearSession();
+          return null;
+        });
+  }
+
+  private void tearDownBulkTest() {
+    transactionTemplate.execute(
+        status -> {
+          if (organisationUnitA != null) {
+            organisationUnitService.deleteOrganisationUnit(organisationUnitA);
+          }
+          if (dataSetA != null) {
+            dataSetService.deleteDataSet(dataSetA);
+          }
+          if (dataElementA != null) {
+            dataElementService.deleteDataElement(dataElementA);
+          }
+          dbmsManager.flushSession();
+          dbmsManager.clearSession();
+          return null;
+        });
+  }
+
+  @Disabled("Issues with transaction isolation here...")
+  void testBulkPostJson_DefaultGeneratedTrue() {
+    setupBulkTest();
     String payload =
 """
-[
-  {
+{ "dataset": "%s",
+    "orgunit": "%s",
+ "values" : [{
     "dataElement": "%s",
     "orgUnit": "%s",
     "categoryOptionCombo": "%s",
@@ -146,13 +220,20 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
     "maxValue": 100
   }
 ]
+}
 """
-            .formatted(dataElementId, orgUnitId, categoryOptionComboId);
+            .formatted(
+                dataSetA.getUid(),
+                organisationUnitA.getUid(),
+                dataElementA.getUid(),
+                organisationUnitA.getUid(),
+                defaultOptionCombo.getUid());
     assertStatus(HttpStatus.OK, POST("/minMaxDataElements/values", payload));
+    tearDownBulkTest();
   }
 
   @Test
-  void testBulkPostJson_InvalidPayload() {
+  void testBulkPostJson_MaxIsMissing() {
 
     String message =
         """
@@ -163,16 +244,86 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
 
     String payload =
         """
-            [
-              {
+            {
+            "dataset": "%s",
+            "orgunit": "%s",
+            "values":  [{
                 "dataElement": "%s",
                 "orgUnit": "%s",
                 "categoryOptionCombo": "%s",
                 "minValue": 10
-              }
-            ]
+              }]
+            }
             """
-            .formatted(dataElementId, orgUnitId, categoryOptionComboId);
+            .formatted(
+                fakeDataSetID, fakeOrgUnitID, dataElementId, orgUnitId, categoryOptionComboId);
+    assertWebMessage(
+        "Bad Request",
+        400,
+        "ERROR",
+        message,
+        POST("/minMaxDataElements/values", payload).content(HttpStatus.BAD_REQUEST));
+  }
+
+  @Test
+  void testBulkPostJson_MinIsMissing() {
+
+    String message =
+        """
+        Missing required field(s) in: dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=null, max=10
+        """
+            .formatted(dataElementId, orgUnitId, categoryOptionComboId)
+            .trim();
+
+    String payload =
+        """
+            {
+            "dataset": "%s",
+            "orgunit": "%s",
+            "values":  [{
+                "dataElement": "%s",
+                "orgUnit": "%s",
+                "categoryOptionCombo": "%s",
+                "maxValue": 10
+              }]
+            }
+            """
+            .formatted(
+                fakeDataSetID, fakeOrgUnitID, dataElementId, orgUnitId, categoryOptionComboId);
+    assertWebMessage(
+        "Bad Request",
+        400,
+        "ERROR",
+        message,
+        POST("/minMaxDataElements/values", payload).content(HttpStatus.BAD_REQUEST));
+  }
+
+  @Test
+  void testBulkPostJson_MinEqualsMax() {
+
+    String message =
+        """
+        Min value is greater than or equal to Max value for: dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=10, max=10
+        """
+            .formatted(dataElementId, orgUnitId, categoryOptionComboId)
+            .trim();
+
+    String payload =
+        """
+            {
+            "dataset": "%s",
+            "orgunit": "%s",
+            "values":  [{
+                "dataElement": "%s",
+                "orgUnit": "%s",
+                "categoryOptionCombo": "%s",
+                "minValue": 10,
+                "maxValue": 10
+              }]
+            }
+            """
+            .formatted(
+                fakeDataSetID, fakeOrgUnitID, dataElementId, orgUnitId, categoryOptionComboId);
     assertWebMessage(
         "Bad Request",
         400,
