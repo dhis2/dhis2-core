@@ -25,11 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dependsOn.services;
+package org.hisp.dhis.dependsOn;
 
-public final class ProgramIndicatorService extends BaseResourceService {
-
-  public ProgramIndicatorService() {
-    super("/programIndicators", "programIndicators", "ProgramIndicator");
-  }
+public enum DependencyOpType {
+  CREATE,
+  DELETE;
 }

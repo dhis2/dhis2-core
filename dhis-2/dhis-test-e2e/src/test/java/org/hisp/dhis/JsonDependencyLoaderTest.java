@@ -43,7 +43,7 @@ public class JsonDependencyLoaderTest {
   void loadValidPi() throws Exception {
     DependencyFile df = JsonDependencyLoader.load("dependencies/pi-valid.json");
 
-    assertEquals(DependencyType.PI, df.type(), "Type should be PI");
+    assertEquals(DependencyType.PROGRAM_INDICATOR, df.type(), "Type should be PI");
     assertEquals("PI_TEST_001", df.payload().get("code").asText(), "Code should match JSON");
   }
 

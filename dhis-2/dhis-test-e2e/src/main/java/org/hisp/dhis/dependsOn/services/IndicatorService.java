@@ -31,6 +31,6 @@ package org.hisp.dhis.dependsOn.services;
 public final class IndicatorService extends BaseResourceService {
 
   public IndicatorService() {
-    super("/29/indicators", "indicators", "Indicator");
+    super("/indicators", "indicators", "Indicator");
   }
 }

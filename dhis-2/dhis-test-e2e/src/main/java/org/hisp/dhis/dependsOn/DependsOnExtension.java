@@ -50,8 +50,8 @@ public class DependsOnExtension
       ExtensionContext.Namespace.create(DependsOnExtension.class.getName());
   private final Map<DependencyType, ResourceService> services =
       Map.of(
-          DependencyType.PI, new ProgramIndicatorService(),
-          DependencyType.IND, new IndicatorService());
+          DependencyType.PROGRAM_INDICATOR, new ProgramIndicatorService(),
+          DependencyType.INDICATOR, new IndicatorService());
 
   @Override
   public void beforeEach(ExtensionContext ctx) {
@@ -83,14 +83,14 @@ public class DependsOnExtension
       created.add(new CreatedResource(df.type(), uid));
     }
     // Store created UIDs so afterEach can delete them if requested
-    ctx.getStore(NS).put("CREATED", created);
-    ctx.getStore(NS).put("DELETE_FLAG", depends.delete());
+    ctx.getStore(NS).put(DependencyOpType.CREATE, created);
+    ctx.getStore(NS).put(DependencyOpType.DELETE, depends.delete());
   }
 
   @Override
   @SuppressWarnings("unchecked")
   public void afterEach(ExtensionContext ctx) {
-    Boolean delete = ctx.getStore(NS).remove("DELETE_FLAG", Boolean.class);
+    Boolean delete = ctx.getStore(NS).remove(DependencyOpType.DELETE, Boolean.class);
     if (delete == null || !delete) return;
 
     List<CreatedResource> created = ctx.getStore(NS).remove("CREATED", List.class);
@@ -115,6 +115,6 @@ public class DependsOnExtension
   @SuppressWarnings("unchecked")
   public Object resolveParameter(ParameterContext pc, ExtensionContext ec)
       throws ParameterResolutionException {
-    return ec.getStore(NS).getOrDefault("CREATED", List.class, List.of());
+    return ec.getStore(NS).getOrDefault(DependencyOpType.CREATE, List.class, List.of());
   }
 }

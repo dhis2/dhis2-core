@@ -62,12 +62,11 @@ public final class JsonDependencyLoader {
    *     rules
    */
   public static DependencyFile load(String resourcePath) throws DependencySetupException {
-
     JsonNode rootNode = readJson(resourcePath);
     String typeRaw = extractType(rootNode, resourcePath);
     DependencyType type = DependencyType.from(typeRaw);
 
-    if (type == DependencyType.PI || type == DependencyType.IND) {
+    if (type == DependencyType.PROGRAM_INDICATOR || type == DependencyType.INDICATOR) {
       validate(rootNode, resourcePath);
     }
 

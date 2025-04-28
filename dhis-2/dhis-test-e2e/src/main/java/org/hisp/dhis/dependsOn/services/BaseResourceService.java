@@ -61,7 +61,6 @@ public abstract class BaseResourceService implements ResourceService {
 
   @Override
   public Optional<String> lookup(String code) throws DependencySetupException {
-
     LoginActions.addAuthenticationHeader(
         TestConfiguration.get().adminUserUsername(), TestConfiguration.get().adminUserPassword());
     log.debug("Looking up {} by code='{}'", label, code);

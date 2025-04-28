@@ -30,8 +30,8 @@ package org.hisp.dhis.dependsOn;
 import java.util.Locale;
 
 public enum DependencyType {
-  PI, // Program Indicator
-  IND; // Indicator
+  PROGRAM_INDICATOR,
+  INDICATOR;
 
   public static DependencyType from(String s) {
     return valueOf(s.toUpperCase(Locale.ROOT));
