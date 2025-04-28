@@ -512,7 +512,6 @@ public class DefaultDimensionService implements DimensionService {
             }
           }
         } else if (PERIOD.equals(type)) {
-          List<RelativePeriodEnum> enums = new ArrayList<>();
           List<Period> periods = new UniqueArrayList<>();
           Set<String> allPeriods = new LinkedHashSet<>();
 
