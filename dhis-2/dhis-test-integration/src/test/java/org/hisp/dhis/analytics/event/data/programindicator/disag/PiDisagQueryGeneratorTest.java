@@ -120,7 +120,7 @@ class PiDisagQueryGeneratorTest extends AbstractPiDisagTest {
     Set<String> expectedColumns = emptySet();
 
     // When
-    List<String> columns = target.getCocColumnsForGroupBy(params);
+    List<String> columns = target.getCocSelectColumns(params);
 
     // Then (in any order)
     assertEquals(expectedColumns, new HashSet<>(columns));
