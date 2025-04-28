@@ -1,7 +1,15 @@
+-- Migration script to change the primary key of the minmaxdataelement table
+-- Make the surrogate key (minmaxdataelementid) a sequence
 ALTER TABLE minmaxdataelement
     ALTER COLUMN minmaxdataelementid SET DEFAULT nextval('hibernate_sequence');
 
--- Step 2: Make key columns NOT NULL
+-- Drop any rows where source, dataelement, or categoryoptioncombo is null
+DELETE FROM minmaxdataelement
+WHERE sourceid IS NULL
+   OR dataelementid IS NULL
+   OR categoryoptioncomboid IS NULL;
+
+--  Make key columns NOT NULL
 ALTER TABLE minmaxdataelement
     ALTER COLUMN sourceid SET NOT NULL,
     ALTER COLUMN dataelementid SET NOT NULL,
