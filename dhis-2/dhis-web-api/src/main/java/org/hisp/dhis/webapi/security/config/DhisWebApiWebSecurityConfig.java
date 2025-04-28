@@ -251,7 +251,12 @@ public class DhisWebApiWebSecurityConfig {
     }
 
     http.cors(Customizer.withDefaults());
-    http.requestCache().requestCache(requestCache);
+
+    if (dhisConfig.isEnabled(ConfigurationKey.LOGIN_SAVED_REQUESTS_ENABLE)) {
+      http.requestCache().requestCache(requestCache);
+    } else {
+      http.requestCache().disable();
+    }
 
     configureMatchers(http);
     configureCspFilter(http, dhisConfig, configurationService);
@@ -443,7 +448,7 @@ public class DhisWebApiWebSecurityConfig {
         .sessionManagement()
         .sessionFixation()
         .migrateSession()
-        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
+        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
         .enableSessionUrlRewriting(false)
         .maximumSessions(
             Integer.parseInt(dhisConfig.getProperty(ConfigurationKey.MAX_SESSIONS_PER_USER)))
