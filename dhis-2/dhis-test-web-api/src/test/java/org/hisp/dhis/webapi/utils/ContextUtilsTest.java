@@ -67,6 +67,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 
 /**
  * @author Stian Sandvold
+ * TEST
  */
 class ContextUtilsTest extends WebSpringTestBase {
   @Autowired private ContextUtils contextUtils;
