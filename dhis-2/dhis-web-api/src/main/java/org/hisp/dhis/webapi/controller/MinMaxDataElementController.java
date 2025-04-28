@@ -44,7 +44,9 @@ import java.util.Objects;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -57,6 +59,7 @@ import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementQueryParams;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.minmax.MinMaxImportException;
+import org.hisp.dhis.minmax.MinMaxValueBatchRequest;
 import org.hisp.dhis.minmax.MinMaxValueDto;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
@@ -217,10 +220,11 @@ public class MinMaxDataElementController {
   @PostMapping(value = "/values", consumes = "application/json")
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void bulkPostJson(@RequestBody List<MinMaxValueDto> valueDtos) throws WebMessageException {
+  public void bulkPostJson(@RequestBody MinMaxValueBatchRequest request)
+      throws WebMessageException {
 
     try {
-      minMaxService.importFromJson(valueDtos);
+      minMaxService.importFromJson(request);
     } catch (MinMaxImportException e) {
       throw new WebMessageException(WebMessageUtils.badRequest(e.getMessage()));
     }
@@ -229,10 +233,15 @@ public class MinMaxDataElementController {
   @PostMapping(value = "/values", consumes = "multipart/form-data")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
-  public void importCsv(@RequestParam("file") MultipartFile file) throws WebMessageException {
+  @Maturity.Alpha
+  public void importCsv(
+      @RequestParam("file") MultipartFile file,
+      @RequestParam UID dataset,
+      @RequestParam UID orgunit)
+      throws WebMessageException {
     try (InputStream is = file.getInputStream()) {
       List<MinMaxValueDto> dtos = MinMaxCsvParser.parse(is);
-      minMaxService.importFromJson(dtos);
+      minMaxService.importFromJson(new MinMaxValueBatchRequest(dataset, orgunit, dtos));
     } catch (Exception e) {
       throw new WebMessageException(
           badRequest("Invalid CSV file. Please check the format and try again."));

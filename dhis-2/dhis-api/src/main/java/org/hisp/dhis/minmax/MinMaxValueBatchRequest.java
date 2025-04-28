@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,41 +29,8 @@
  */
 package org.hisp.dhis.minmax;
 
-import java.util.Collection;
 import java.util.List;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.common.UID;
 
-/**
- * @author Lars Helge Overland
- */
-public interface MinMaxDataElementService {
-  long addMinMaxDataElement(MinMaxDataElement minMaxDataElement);
-
-  void deleteMinMaxDataElement(MinMaxDataElement minMaxDataElement);
-
-  void updateMinMaxDataElement(MinMaxDataElement minMaxDataElement);
-
-  MinMaxDataElement getMinMaxDataElement(long id);
-
-  MinMaxDataElement getMinMaxDataElement(
-      OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo);
-
-  List<MinMaxDataElement> getMinMaxDataElements(
-      OrganisationUnit source, Collection<DataElement> dataElements);
-
-  List<MinMaxDataElement> getMinMaxDataElements(MinMaxDataElementQueryParams query);
-
-  int countMinMaxDataElements(MinMaxDataElementQueryParams query);
-
-  void removeMinMaxDataElements(OrganisationUnit organisationUnit);
-
-  void removeMinMaxDataElements(DataElement dataElement);
-
-  void removeMinMaxDataElements(CategoryOptionCombo optionCombo);
-
-  void removeMinMaxDataElements(Collection<DataElement> dataElements, OrganisationUnit parent);
-
-  void importFromJson(MinMaxValueBatchRequest request);
-}
+public record MinMaxValueBatchRequest(
+    UID datasetId, UID organisationUnitId, List<MinMaxValueDto> values) {}

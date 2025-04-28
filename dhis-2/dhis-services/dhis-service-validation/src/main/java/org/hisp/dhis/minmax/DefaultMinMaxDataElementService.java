@@ -146,7 +146,9 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
 
   @Transactional
   @Override
-  public void importFromJson(List<MinMaxValueDto> dtos) throws MinMaxImportException {
+  public void importFromJson(MinMaxValueBatchRequest request) throws MinMaxImportException {
+
+    List<MinMaxValueDto> dtos = request.values();
 
     List<String> dataElementUids =
         dtos.stream()
