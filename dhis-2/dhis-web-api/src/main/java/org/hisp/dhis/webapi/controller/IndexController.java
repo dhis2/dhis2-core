@@ -64,7 +64,7 @@ public class IndexController {
   public void getIndexWithSlash(
       HttpServletRequest request, HttpServletResponse response, SystemSettings settings)
       throws IOException {
-    String redirectUrl = request.getContextPath() + "/" + settings.getStartModule();
+    String redirectUrl = request.getContextPath() + "/api/apps/" + settings.getStartModule();
 
     if (!redirectUrl.endsWith("/")) {
       redirectUrl += "/";
