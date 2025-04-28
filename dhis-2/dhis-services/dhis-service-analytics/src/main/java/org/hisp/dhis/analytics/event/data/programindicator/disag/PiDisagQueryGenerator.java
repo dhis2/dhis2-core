@@ -31,6 +31,8 @@ package org.hisp.dhis.analytics.event.data.programindicator.disag;
 
 import static java.util.Collections.emptyList;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
+import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
+import static org.hisp.dhis.common.CodeGenerator.UID_CODE_SIZE;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +48,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 /**
- * Methods for adding SQL query components to disaggregate prgoram indicators
+ * Methods for adding SQL query components to disaggregate program indicators
  *
  * @author Jim Grace
  */
@@ -60,9 +62,9 @@ public class PiDisagQueryGenerator {
 
   /**
    * Returns a list of additional SQL columns for the SELECT clause if needed for a disaggregated
-   * {@link ProgramIndicator} to form the categoryOptionCombo and/or attributeOptionCombo. If
-   * disaggregated categories are already included as query dimensions, they are excluded from this
-   * list.
+   * {@link ProgramIndicator} to form the categoryOptionCombo and/or attributeOptionCombo if output
+   * is to a data value set. If disaggregated categories are already included as query dimensions,
+   * they are excluded from this list.
    *
    * <p>If no additional columns are needed, returns an empty list.
    *
@@ -70,20 +72,14 @@ public class PiDisagQueryGenerator {
    * @return additional SQL query SELECT columns if needed for PI disaggregation
    */
   public List<String> getCocSelectColumns(EventQueryParams params) {
-    if (!params.hasPiDisagInfo()) {
-      return emptyList();
-    }
-
-    return params.getPiDisagInfo().getCocCategories().stream()
-        .map(id -> getColumnSqlWithAlias(params, id))
-        .toList();
+    return getCocSelectOrGroupByColumns(params, false);
   }
 
   /**
    * Returns a list of additional SQL columns for the GROUP BY clause if needed for a disaggregated
-   * {@link ProgramIndicator} to form the categoryOptionCombo and/or attributeOptionCombo. If
-   * disaggregated categories are already included as query dimensions, they are excluded from this
-   * list.
+   * {@link ProgramIndicator} to form the categoryOptionCombo and/or attributeOptionCombo if output
+   * is to a data value set. If disaggregated categories are already included as query dimensions,
+   * they are excluded from this list.
    *
    * <p>If no additional columns are needed, returns an empty list.
    *
@@ -91,11 +87,47 @@ public class PiDisagQueryGenerator {
    * @return additional SQL query GROUP BY columns if needed for PI disaggregation
    */
   public List<String> getCocColumnsForGroupBy(EventQueryParams params) {
-    if (!params.hasPiDisagInfo()) {
+    return getCocSelectOrGroupByColumns(params, true);
+  }
+
+  /** Returns additional SQL columns for either the SELECT or GROUP BY clause */
+  private List<String> getCocSelectOrGroupByColumns(
+      EventQueryParams params, boolean isGroupByClause) {
+    if (!params.hasPiDisagInfo() || !params.isOutputFormat(DATA_VALUE_SET)) {
       return emptyList();
     }
 
-    return params.getPiDisagInfo().getCocCategories().stream().map(sqlBuilder::quote).toList();
+    return params.getPiDisagInfo().getCocCategories().stream()
+        .map(id -> getColumnForSelectOrGroupBy(params, id, isGroupByClause))
+        .toList();
+  }
+
+  /**
+   * Returns a list of additional SQL WHERE conditions if needed for a disaggregated {@link
+   * ProgramIndicator}. This is needed only when not constructing a data value set. (When
+   * constructing a data value set, checks on the disaggregated categories are done at the time of
+   * computing the category option combo and/or attribute option combo.)
+   *
+   * <p>If disaggregated categories are already included as query dimensions or filters, they are
+   * excluded from this list.
+   *
+   * <p>Each condition is of the form "where length([categoryOption]) = 11" to ensure that the
+   * category has exactly one option.
+   *
+   * <p>If no additional columns are needed, returns an empty list.
+   *
+   * @param params the {@link EventQueryParams}
+   * @return additional SQL query SELECT columns if needed for PI disaggregation
+   */
+  public List<String> getCocWhereConditions(EventQueryParams params) {
+    if (!params.hasPiDisagInfo() || params.isOutputFormat(DATA_VALUE_SET)) {
+      return emptyList();
+    }
+
+    return params.getPiDisagInfo().getCocCategories().stream()
+        .filter(id -> !params.hasFilter(id))
+        .map(id -> "length(" + getColumnSql(params, id) + ") = " + UID_CODE_SIZE)
+        .toList();
   }
 
   /**
