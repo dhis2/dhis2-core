@@ -543,9 +543,11 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
               + ") ";
     }
 
+    StringBuilder sb = new StringBuilder();
     for (String condition : piDisagQueryGenerator.getCocWhereConditions(params)) {
-      sql += hlp.whereAnd() + " " + condition + " ";
+      sb.append(hlp.whereAnd()).append(condition);
     }
+    sql += sb.toString();
 
     List<DimensionalObject> orgUnitGroupSetDimension =
         params.getDimensionsAndFilters(Set.of(DimensionType.ORGANISATION_UNIT_GROUP_SET));

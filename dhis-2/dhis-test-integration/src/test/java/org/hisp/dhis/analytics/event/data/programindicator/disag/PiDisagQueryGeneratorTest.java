@@ -242,8 +242,8 @@ class PiDisagQueryGeneratorTest extends AbstractPiDisagTest {
 
     Set<String> expectedConditions =
         Set.of(
-            "length(concat(case when 'filterA' = '' then 'catOption0A' else '' end, case when 'filterB' = '' then 'catOption0B' else '' end)) = 11",
-            "length(concat(case when 'filterE' = '' then 'catOption0E' else '' end, case when 'filterF' = '' then 'catOption0F' else '' end)) = 11");
+            " length(concat(case when 'filterA' = '' then 'catOption0A' else '' end, case when 'filterB' = '' then 'catOption0B' else '' end)) = 11 ",
+            " length(concat(case when 'filterE' = '' then 'catOption0E' else '' end, case when 'filterF' = '' then 'catOption0F' else '' end)) = 11 ");
 
     // When
     List<String> conditions = target.getCocWhereConditions(params);

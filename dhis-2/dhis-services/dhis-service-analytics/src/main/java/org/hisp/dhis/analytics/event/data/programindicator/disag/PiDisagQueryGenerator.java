@@ -126,7 +126,7 @@ public class PiDisagQueryGenerator {
 
     return params.getPiDisagInfo().getCocCategories().stream()
         .filter(id -> !params.hasFilter(id))
-        .map(id -> "length(" + getColumnSql(params, id) + ") = " + UID_CODE_SIZE)
+        .map(id -> " length(" + getColumnSql(params, id) + ") = " + UID_CODE_SIZE + " ")
         .toList();
   }
 
