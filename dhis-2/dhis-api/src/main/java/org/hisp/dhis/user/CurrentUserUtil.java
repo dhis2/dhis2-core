@@ -65,8 +65,9 @@ public class CurrentUserUtil {
       return userDetails.getUsername();
 
     } else {
-      throw new IllegalStateException(
-          "Authentication principal is not supported; principal:" + principal);
+      return null;
+//      throw new IllegalStateException(
+//          "Authentication principal is not supported; principal:" + principal);
     }
   }
 
