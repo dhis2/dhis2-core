@@ -187,31 +187,9 @@ public class DefaultRelationshipService implements RelationshipService {
     RelationshipType type = new RelationshipType();
     type.setUid(relationship.getRelationshipType().getUid());
     result.setRelationshipType(relationship.getRelationshipType());
-    result.setFrom(withNestedEntity(relationship.getFrom()));
-    result.setTo(withNestedEntity(relationship.getTo()));
+    result.setFrom(RELATIONSHIP_ITEM_MAPPER.map(relationship.getFrom()));
+    result.setTo(RELATIONSHIP_ITEM_MAPPER.map(relationship.getTo()));
     result.setCreatedAtClient(relationship.getCreatedAtClient());
-    return result;
-  }
-
-  private RelationshipItem withNestedEntity(RelationshipItem item) {
-    // relationships of relationship items are not mapped to JSON so there is no need to fetch them
-    RelationshipItem result = new RelationshipItem();
-
-    // the call to the individual services is to detach and apply some logic like filtering out
-    // attribute values
-    // for tracked entity type attributes from enrollment.trackedEntity. Enrollment attributes are
-    // actually
-    // owned by the TE and cannot be set on the Enrollment. When returning enrollments in our API
-    // an enrollment
-    // should only have the program tracked entity attributes.
-    if (item.getTrackedEntity() != null) {
-      result.setTrackedEntity(item.getTrackedEntity());
-    } else if (item.getEnrollment() != null) {
-      result.setEnrollment(item.getEnrollment());
-    } else if (item.getEvent() != null) {
-      result.setEvent(item.getEvent());
-    }
-
     return result;
   }
 
