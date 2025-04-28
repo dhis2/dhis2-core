@@ -636,7 +636,7 @@ public class NepaliCalendar extends AbstractCalendar {
     CONVERSION_MAP.put(2079, new int[] {0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30});
 
     CONVERSION_MAP.put(2080, new int[] {0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30});
-    CONVERSION_MAP.put(2081, new int[] {0, 31, 31, 32, 32, 31, 30, 30, 30, 29, 30, 30, 30});
+    CONVERSION_MAP.put(2081, new int[] {0, 31, 31, 32, 32, 31, 30, 30, 30, 29, 30, 29, 31});
     CONVERSION_MAP.put(2082, new int[] {0, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30});
     CONVERSION_MAP.put(2083, new int[] {0, 31, 31, 32, 31, 31, 30, 30, 30, 29, 30, 30, 30});
     CONVERSION_MAP.put(2084, new int[] {0, 31, 31, 32, 31, 31, 30, 30, 30, 29, 30, 30, 30});
