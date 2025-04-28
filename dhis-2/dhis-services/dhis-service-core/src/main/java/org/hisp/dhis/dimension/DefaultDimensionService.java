@@ -523,6 +523,8 @@ public class DefaultDimensionService implements DimensionService {
                 periods.add(isoPeriod);
               }
             }
+
+            allPeriods.add(period);
           }
 
           object.setRawPeriods(new ArrayList<>(allPeriods));
