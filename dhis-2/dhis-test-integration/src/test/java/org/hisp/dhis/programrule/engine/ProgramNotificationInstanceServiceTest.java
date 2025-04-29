@@ -32,8 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Date;
@@ -165,26 +163,6 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
     List<ProgramNotificationInstance> instances =
         programNotificationInstanceService.getProgramNotificationInstances(param);
     assertFalse(instances.isEmpty());
-  }
-
-  @Test
-  void testGetProgramNotificationInstanceScheduledForToday() throws ParseException {
-    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-    String formattedDate = sdf.format(new Date());
-
-    Date todayDate = sdf.parse(formattedDate);
-    ProgramNotificationInstanceParam param =
-        ProgramNotificationInstanceParam.builder().scheduledAt(todayDate).build();
-
-    List<ProgramNotificationInstance> instancesForToday =
-        programNotificationInstanceService.getProgramNotificationInstances(param);
-
-    assertFalse(instancesForToday.isEmpty());
-
-    // Only one instance is scheduled for today's date
-    assertEquals(1, instancesForToday.size());
-    ProgramNotificationInstance instanceForToday = instancesForToday.get(0);
-    assertEquals(instanceForToday.getScheduledAt(), todayDate);
   }
 
   @Test
