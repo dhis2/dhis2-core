@@ -32,9 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.time.Instant;
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -49,7 +47,6 @@ import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
-import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.programrule.ProgramRule;
@@ -61,6 +58,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -71,7 +69,6 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
   private static final int TEST_USER_COUNT = 30;
 
   @Autowired private EnrollmentService programInstanceService;
-  @Autowired private ProgramNotificationService programNotificationService;
   @Autowired private ProgramService programService;
   @Autowired private TrackedEntityService trackedEntityInstanceService;
   @Autowired private ProgramNotificationTemplateService programNotificationTemplateService;
@@ -93,8 +90,8 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
   private Enrollment programInstanceB;
   private UserGroup userGroup;
 
-  private String today = "'" + LocalDate.now() + "'";
-  private String tomorrow = "'" + LocalDate.now().plusDays(1) + "'";
+  private String today = LocalDate.now().toString();
+  private String tomorrow = LocalDate.now().plusDays(1).toString();
 
   @Override
   protected void setUpTest() throws Exception {
@@ -131,14 +128,14 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
     programRuleAction1 = createProgramRuleAction('A');
     programRuleAction1.setProgramRuleActionType(ProgramRuleActionType.SCHEDULEMESSAGE);
     programRuleAction1.setTemplateUid(programNotificationTemplateScheduledForToday.getUid());
-    programRuleAction1.setData(today);
+    programRuleAction1.setData("'" + today + "'");
     manager.save(programRuleAction1);
     programRule.getProgramRuleActions().add(programRuleAction1);
 
     programRuleAction2 = createProgramRuleAction('B');
     programRuleAction2.setProgramRuleActionType(ProgramRuleActionType.SCHEDULEMESSAGE);
     programRuleAction2.setTemplateUid(programNotificationTemplateScheduledForTomorrow.getUid());
-    programRuleAction2.setData(tomorrow);
+    programRuleAction2.setData("'" + tomorrow + "'");
     manager.save(programRuleAction2);
     programRule.getProgramRuleActions().add(programRuleAction2);
 
@@ -168,7 +165,7 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
   @Test
   void testShouldGetAndSendScheduledNotificationInstanceWithoutTimeout() {
     ProgramNotificationInstanceParam param =
-        ProgramNotificationInstanceParam.builder().scheduledAt(Date.from(Instant.now())).build();
+        ProgramNotificationInstanceParam.builder().scheduledAt(DateUtils.parseDate(today)).build();
     List<ProgramNotificationInstance> instances =
         programNotificationInstanceService.getProgramNotificationInstances(param);
     assertEquals(
