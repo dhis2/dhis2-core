@@ -28,15 +28,29 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
+package org.hisp.dhis.minmax;
+
+import java.io.File;
+import java.io.IOException;
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.test.e2e.actions.LoginActions;
+import org.hisp.dhis.test.e2e.actions.aggregate.MinMaxValuesActions;
+import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 class MinMaxImportTest extends ApiTest {
   private MinMaxValuesActions minMaxValuesActions;
 
+  private LoginActions loginActions;
+
   @BeforeAll
   public void before() {
-    dataValueSetActions = new DataValueSetActions();
+
     MetadataActions metadataActions = new MetadataActions();
-    dataValueActions = new DataValueActions();
-    systemActions = new SystemActions();
 
     new LoginActions().loginAsSuperUser();
     metadataActions
@@ -48,13 +62,11 @@ class MinMaxImportTest extends ApiTest {
   @BeforeEach
   public void setup() {
     loginActions.loginAsSuperUser();
-    setupMetadata();
   }
 
   @Test
   void minMaxValuesCanBeImportedInBulk_JSON() throws IOException {
     String orgUnit = "O6uvpzGd5pu";
-    String period = "201911";
     String dataSet = "VEM58nY22sO";
 
     String payload =
