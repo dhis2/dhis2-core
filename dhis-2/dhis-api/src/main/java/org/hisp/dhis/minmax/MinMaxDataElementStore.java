@@ -61,6 +61,8 @@ public interface MinMaxDataElementStore extends GenericStore<MinMaxDataElement> 
 
   void delete(Collection<DataElement> dataElements, OrganisationUnit parent);
 
+  void delete(UID dataElementUID, UID organisationUnitUID, UID optionComboUID);
+
   List<MinMaxDataElement> getByDataElement(Collection<DataElement> dataElements);
 
   /**

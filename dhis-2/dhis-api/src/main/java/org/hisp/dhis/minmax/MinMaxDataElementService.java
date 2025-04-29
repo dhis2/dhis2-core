@@ -66,4 +66,6 @@ public interface MinMaxDataElementService {
   void removeMinMaxDataElements(Collection<DataElement> dataElements, OrganisationUnit parent);
 
   void importFromJson(MinMaxValueBatchRequest request);
+
+  void deleteFromJson(MinMaxValueBatchRequest request);
 }

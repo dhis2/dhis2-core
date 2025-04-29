@@ -50,7 +50,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
@@ -221,12 +221,27 @@ public class MinMaxDataElementController {
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void bulkPostJson(@RequestBody MinMaxValueBatchRequest request)
-      throws WebMessageException {
+      throws BadRequestException {
 
     try {
+
       minMaxService.importFromJson(request);
     } catch (MinMaxImportException e) {
-      throw new WebMessageException(WebMessageUtils.badRequest(e.getMessage()));
+      throw new BadRequestException(e.getMessage());
+    }
+  }
+
+  @DeleteMapping(value = "/values", consumes = "application/json")
+  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void bulkDeleteJson(@RequestBody MinMaxValueBatchRequest request)
+      throws BadRequestException {
+
+    try {
+
+      minMaxService.deleteFromJson(request);
+    } catch (MinMaxImportException e) {
+      throw new BadRequestException(e.getMessage());
     }
   }
 
@@ -234,7 +249,7 @@ public class MinMaxDataElementController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @Maturity.Alpha
-  public void importCsv(
+  public void importMinMaxCsv(
       @RequestParam("file") MultipartFile file,
       @RequestParam UID dataset,
       @RequestParam UID orgunit)
@@ -242,6 +257,24 @@ public class MinMaxDataElementController {
     try (InputStream is = file.getInputStream()) {
       List<MinMaxValueDto> dtos = MinMaxCsvParser.parse(is);
       minMaxService.importFromJson(new MinMaxValueBatchRequest(dataset, orgunit, dtos));
+    } catch (Exception e) {
+      throw new WebMessageException(
+          badRequest("Invalid CSV file. Please check the format and try again."));
+    }
+  }
+
+  @PostMapping(value = "/values", consumes = "multipart/form-data")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
+  @Maturity.Alpha
+  public void deleteMinMaxCsv(
+      @RequestParam("file") MultipartFile file,
+      @RequestParam UID dataset,
+      @RequestParam UID orgunit)
+      throws WebMessageException {
+    try (InputStream is = file.getInputStream()) {
+      List<MinMaxValueDto> dtos = MinMaxCsvParser.parse(is);
+      minMaxService.deleteFromJson(new MinMaxValueBatchRequest(dataset, orgunit, dtos));
     } catch (Exception e) {
       throw new WebMessageException(
           badRequest("Invalid CSV file. Please check the format and try again."));

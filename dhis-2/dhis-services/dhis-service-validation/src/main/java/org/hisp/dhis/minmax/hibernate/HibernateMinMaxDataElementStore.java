@@ -180,6 +180,19 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
   }
 
   @Override
+  public void delete(UID dataElement, UID organisationUnit, UID optionCombo) {
+    String hql =
+        "delete from MinMaxDataElement m where m.dataElement.uid = :dataElement "
+            + "and m.optionCombo.uid = :optionCombo and m.source.uid = :source";
+
+    getQuery(hql)
+        .setParameter("dataElement", dataElement.getValue())
+        .setParameter("source", organisationUnit.getValue())
+        .setParameter("optionCombo", optionCombo.getValue())
+        .executeUpdate();
+  }
+
+  @Override
   public List<MinMaxDataElement> getByDataElement(Collection<DataElement> dataElements) {
     return getQuery(
             """

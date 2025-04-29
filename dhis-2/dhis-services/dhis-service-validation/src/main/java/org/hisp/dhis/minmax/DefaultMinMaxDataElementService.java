@@ -184,7 +184,6 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
         CategoryOptionCombo coc = cocMap.get(dto.getCategoryOptionCombo());
 
         MinMaxDataElementUtils.validateDto(dto);
-
         MinMaxDataElement mm =
             new MinMaxDataElement(de, ou, coc, dto.getMinValue(), dto.getMaxValue());
         mm.setGenerated(ObjectUtils.defaultIfNull(dto.getGenerated(), Boolean.TRUE));
@@ -196,7 +195,24 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
       throw (ex);
     } catch (Exception e) {
       log.error("Unexpected server error importing min max values", e);
-      throw new MinMaxImportException("Internal server error importing min max values", e); // 500
+      throw new MinMaxImportException("Internal server error importing min max values", e);
+    }
+  }
+
+  @Transactional
+  @Override
+  public void deleteFromJson(MinMaxValueBatchRequest request) {
+    List<MinMaxValueDto> dtos = request.values();
+
+    for (MinMaxValueDto dto : dtos) {
+      UID de = UID.of(dto.getDataElement());
+      UID ou = UID.of(dto.getOrgUnit());
+      UID coc = UID.of(dto.getCategoryOptionCombo());
+      if (de == null || ou == null || coc == null) {
+        throw new MinMaxImportException(
+            "DataElement, OrganisationUnit and CategoryOptionCombo must be provided.");
+      }
+      minMaxDataElementStore.delete(de, ou, coc);
     }
   }
 }
