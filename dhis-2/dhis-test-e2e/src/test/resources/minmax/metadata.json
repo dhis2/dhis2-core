@@ -1,0 +1,42 @@
+{
+  "dataElements": [
+{
+  "code": "MINMAX_DE",
+  "id": "elD9B1HiTJO",
+  "name": "MinMax DE",
+  "shortName": "MinMax DE",
+  "aggregationType": "SUM",
+  "domainType": "AGGREGATE",
+  "valueType": "INTEGER_ZERO_OR_POSITIVE"
+}
+  ],
+  "organisationUnits": [
+    {
+        "name": "MinMaxland",
+        "id": "fKiYlhodhB1",
+        "shortName": "MinMaxland",
+        "openingDate": "2018-10-31T00:00:00.000"
+        }
+  ],
+  "dataSets": [
+    {
+      "id": "nr5MC9XoK2n",
+      "name": "MinMax DataSet",
+      "shortName": "MinMax DataSet",
+      "periodType": "Monthly",
+      "aggregationType": "SUM",
+      "dataSetElements": [
+        {
+          "dataElement": {
+            "id": "elD9B1HiTJO"
+          }
+        }
+      ],
+      "organisationUnits": [
+        {
+          "id": "fKiYlhodhB1"
+        }
+      ]
+    }
+  ]
+}

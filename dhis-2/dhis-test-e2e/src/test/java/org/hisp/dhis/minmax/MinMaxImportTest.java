@@ -39,6 +39,8 @@ import org.hisp.dhis.test.e2e.actions.LoginActions;
 import org.hisp.dhis.test.e2e.actions.aggregate.MinMaxValuesActions;
 import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,22 +48,23 @@ import org.junit.jupiter.api.Test;
 class MinMaxImportTest extends ApiTest {
   private MinMaxValuesActions minMaxValuesActions;
 
+  private MetadataActions metadataActions;
   private LoginActions loginActions;
 
-  private final String dataSet = "qNtxTrp56wV"; // TA Malaria annual data
-  private final String dataElement = "BuZ5LGNfGEU"; // TA funding need (USD)
-  private final String orgUnit = "ImspTQPwCqd"; // Sierra Leone
-  private final String defaultCOC = "HllvX50cXC0"; // default category option combo
+  private final String dataSet = "nr5MC9XoK2n";
+  private final String dataElement = "elD9B1HiTJO";
+  private final String orgUnit = "fKiYlhodhB1";
+  private final String defaultCOC = "HllvX50cXC0";
 
   @BeforeAll
   public void before() {
     loginActions = new LoginActions();
-    MetadataActions metadataActions = new MetadataActions();
+    metadataActions = new MetadataActions();
     minMaxValuesActions = new MinMaxValuesActions();
 
     loginActions.loginAsSuperUser();
     metadataActions
-        .importMetadata(new File("src/test/resources/aggregate/metadata.json"), "async=false")
+        .importMetadata(new File("src/test/resources/minmax/metadata.json"), "async=false")
         .validate()
         .statusCode(200);
   }
@@ -88,7 +91,6 @@ class MinMaxImportTest extends ApiTest {
                 ]
                 }"""
             .formatted(dataSet, orgUnit, dataElement, orgUnit, defaultCOC);
-    loginActions.loginAsSuperUser();
     ApiResponse response = minMaxValuesActions.post(payload);
     response.validate().statusCode(204);
   }
@@ -108,7 +110,6 @@ class MinMaxImportTest extends ApiTest {
                 ]
                 }"""
             .formatted(dataSet, orgUnit, dataElement, orgUnit, defaultCOC);
-    loginActions.loginAsSuperUser();
     ApiResponse response = minMaxValuesActions.post(payload);
     response
         .validate()
