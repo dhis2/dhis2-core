@@ -32,7 +32,9 @@ package org.hisp.dhis.webapi.controller;
 import static java.util.Collections.singleton;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import java.util.stream.Stream;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -49,6 +51,9 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -66,8 +71,10 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
 
   @Autowired private PeriodService periodService;
 
-  private final String fakeDataSetID = "xcTWJYxFyE2";
-  private final String fakeOrgUnitID = "CAdEJWs42WP";
+  private static String fakeDataSetID = "xcTWJYxFyE2";
+  private static String fakeOrgUnitID = "CAdEJWs42WP";
+  private static String fakeDataElementID = "vZjiu94f5f5";
+  private static String fakeCategoryOptionComboID = "XxiuH64Tyl6";
 
   private OrganisationUnit organisationUnitA;
   private DataSet dataSetA;
@@ -105,19 +112,13 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
         HttpStatus.CREATED,
         POST(
             "/minMaxDataElements/",
-            "{"
-                + "'source':{'id':'"
-                + orgUnitId
-                + "'},"
-                + "'dataElement':{'id':'"
-                + dataElementId
-                + "'},"
-                + "'optionCombo':{'id':'"
-                + categoryOptionComboId
-                + "'},"
-                + "'min':1,"
-                + "'max':42"
-                + "}"));
+            """
+                {
+                    'source':{'id':'%s'},'dataElement':{'id':'%s'},
+                    'optionCombo':{'id':'%s'},'min':1,'max':42
+                }"""
+                .formatted(orgUnitId, dataElementId, categoryOptionComboId)));
+
     assertWebMessage(
         "OK",
         200,
@@ -125,17 +126,12 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
         "MinMaxDataElement deleted.",
         DELETE(
                 "/minMaxDataElements/",
-                "{"
-                    + "'source':{'id':'"
-                    + orgUnitId
-                    + "'},"
-                    + "'dataElement':{'id':'"
-                    + dataElementId
-                    + "'},"
-                    + "'optionCombo':{'id':'"
-                    + categoryOptionComboId
-                    + "'}"
-                    + "}")
+                """
+                {
+                    'source':{'id':'%s'},'dataElement':{'id':'%s'},
+                    'optionCombo':{'id':'%s'}
+                }"""
+                    .formatted(orgUnitId, dataElementId, categoryOptionComboId))
             .content(HttpStatus.OK));
   }
 
@@ -149,17 +145,12 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
         "Can not find MinMaxDataElement.",
         DELETE(
                 "/minMaxDataElements/",
-                "{"
-                    + "'source':{'id':'"
-                    + orgUnitId
-                    + "'},"
-                    + "'dataElement':{'id':'"
-                    + dataElementId
-                    + "'},"
-                    + "'optionCombo':{'id':'"
-                    + categoryOptionComboId
-                    + "'}"
-                    + "}")
+                """
+                {
+                    'source':{'id':'%s'},'dataElement':{'id':'%s'},
+                    'optionCombo':{'id':'%s'}
+                }"""
+                    .formatted(orgUnitId, dataElementId, categoryOptionComboId))
             .content(HttpStatus.NOT_FOUND));
   }
 
@@ -232,103 +223,88 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
     tearDownBulkTest();
   }
 
-  @Test
-  void testBulkPostJson_MaxIsMissing() {
-
-    String message =
-        """
-        Missing required field(s) in: dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=10, max=null
-        """
-            .formatted(dataElementId, orgUnitId, categoryOptionComboId)
-            .trim();
-
-    String payload =
-        """
-            {
-            "dataset": "%s",
-            "orgunit": "%s",
-            "values":  [{
-                "dataElement": "%s",
-                "orgUnit": "%s",
-                "categoryOptionCombo": "%s",
-                "minValue": 10
-              }]
-            }
+  private static Stream<Arguments> provideTestCases() {
+    return Stream.of(
+        arguments(
+            "Missing required field(s) in: dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=10, max=null"
+                .formatted(fakeDataElementID, fakeOrgUnitID, fakeCategoryOptionComboID)
+                .trim(),
             """
-            .formatted(
-                fakeDataSetID, fakeOrgUnitID, dataElementId, orgUnitId, categoryOptionComboId);
-    assertWebMessage(
-        "Bad Request",
-        400,
-        "ERROR",
-        message,
-        POST("/minMaxDataElements/values", payload).content(HttpStatus.BAD_REQUEST));
+                {
+                  "dataset": "%s",
+                  "orgunit": "%s",
+                  "values": [{
+                    "dataElement": "%s",
+                    "orgUnit": "%s",
+                    "categoryOptionCombo": "%s",
+                    "minValue": 10
+                  }]
+                }
+                """
+                .formatted(
+                    fakeDataSetID,
+                    fakeOrgUnitID,
+                    fakeDataElementID,
+                    fakeOrgUnitID,
+                    fakeCategoryOptionComboID),
+            HttpStatus.BAD_REQUEST),
+        arguments(
+            "Missing required field(s) in: dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=null, max=10"
+                .formatted(fakeDataElementID, fakeOrgUnitID, fakeCategoryOptionComboID)
+                .trim(),
+            """
+                {
+                  "dataset": "%s",
+                  "orgunit": "%s",
+                  "values": [{
+                    "dataElement": "%s",
+                    "orgUnit": "%s",
+                    "categoryOptionCombo": "%s",
+                    "maxValue": 10
+                  }]
+                }
+                """
+                .formatted(
+                    fakeDataSetID,
+                    fakeOrgUnitID,
+                    fakeDataElementID,
+                    fakeOrgUnitID,
+                    fakeCategoryOptionComboID),
+            HttpStatus.BAD_REQUEST),
+        arguments(
+            "Min value is greater than or equal to Max value for: dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=10, max=10"
+                .formatted(fakeDataElementID, fakeOrgUnitID, fakeCategoryOptionComboID)
+                .trim(),
+            """
+                {
+                  "dataset": "%s",
+                  "orgunit": "%s",
+                  "values": [{
+                    "dataElement": "%s",
+                    "orgUnit": "%s",
+                    "categoryOptionCombo": "%s",
+                    "minValue": 10,
+                    "maxValue": 10
+                  }]
+                }
+                """
+                .formatted(
+                    fakeDataSetID,
+                    fakeOrgUnitID,
+                    fakeDataElementID,
+                    fakeOrgUnitID,
+                    fakeCategoryOptionComboID),
+            HttpStatus.BAD_REQUEST));
   }
 
-  @Test
-  void testBulkPostJson_MinIsMissing() {
-
-    String message =
-        """
-        Missing required field(s) in: dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=null, max=10
-        """
-            .formatted(dataElementId, orgUnitId, categoryOptionComboId)
-            .trim();
-
-    String payload =
-        """
-            {
-            "dataset": "%s",
-            "orgunit": "%s",
-            "values":  [{
-                "dataElement": "%s",
-                "orgUnit": "%s",
-                "categoryOptionCombo": "%s",
-                "maxValue": 10
-              }]
-            }
-            """
-            .formatted(
-                fakeDataSetID, fakeOrgUnitID, dataElementId, orgUnitId, categoryOptionComboId);
+  @ParameterizedTest
+  @MethodSource("provideTestCases")
+  void testBulkPostJson(String expectedMessage, String payload, HttpStatus expectedStatus) {
     assertWebMessage(
         "Bad Request",
         400,
         "ERROR",
-        message,
-        POST("/minMaxDataElements/values", payload).content(HttpStatus.BAD_REQUEST));
-  }
-
-  @Test
-  void testBulkPostJson_MinEqualsMax() {
-
-    String message =
-        """
-        Min value is greater than or equal to Max value for: dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=10, max=10
-        """
-            .formatted(dataElementId, orgUnitId, categoryOptionComboId)
-            .trim();
-
-    String payload =
-        """
-            {
-            "dataset": "%s",
-            "orgunit": "%s",
-            "values":  [{
-                "dataElement": "%s",
-                "orgUnit": "%s",
-                "categoryOptionCombo": "%s",
-                "minValue": 10,
-                "maxValue": 10
-              }]
-            }
-            """
-            .formatted(
-                fakeDataSetID, fakeOrgUnitID, dataElementId, orgUnitId, categoryOptionComboId);
-    assertWebMessage(
-        "Bad Request",
-        400,
-        "ERROR",
-        message,
-        POST("/minMaxDataElements/values", payload).content(HttpStatus.BAD_REQUEST));
+        expectedMessage,
+        POST("/minMaxDataElements/values", payload).content(expectedStatus));
   }
 }
