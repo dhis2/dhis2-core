@@ -36,6 +36,7 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Collectors.toUnmodifiableSet;
+import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
 import static org.hisp.dhis.commons.collection.ListUtils.union;
 
 import java.util.List;
@@ -130,11 +131,8 @@ public class PiDisagInfoInitializer {
                         || cocCategories.contains(m.getCategoryId()))
             .collect(toMap(ProgramCategoryMapping::getCategoryId, identity()));
 
-    CategoryCombo cc = pi.getCategoryCombo();
-    CategoryCombo ac = pi.getAttributeCombo();
-
-    Map<String, String> cocResolver = cc.isDefault() ? emptyMap() : getResolver(cc);
-    Map<String, String> aocResolver = ac.isDefault() ? emptyMap() : getResolver(ac);
+    Map<String, String> cocResolver = getResolver(params, pi.getCategoryCombo());
+    Map<String, String> aocResolver = getResolver(params, pi.getAttributeCombo());
 
     return PiDisagInfo.builder()
         .dimensionCategories(dimensionCategories)
@@ -200,7 +198,11 @@ public class PiDisagInfoInitializer {
    *
    * }</pre>
    */
-  public Map<String, String> getResolver(CategoryCombo cc) {
+  public Map<String, String> getResolver(EventQueryParams params, CategoryCombo cc) {
+    if (!params.isOutputFormat(DATA_VALUE_SET) || cc.isDefault()) {
+      return emptyMap();
+    }
+
     return cc.getOptionCombos().stream()
         .collect(
             toMap(

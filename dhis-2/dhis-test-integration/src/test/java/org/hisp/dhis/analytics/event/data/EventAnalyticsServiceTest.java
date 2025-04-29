@@ -46,6 +46,7 @@ import static org.hisp.dhis.analytics.AggregationType.LAST;
 import static org.hisp.dhis.analytics.AggregationType.LAST_AVERAGE_ORG_UNIT;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AggregationType.SUM;
+import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
@@ -75,6 +76,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -338,10 +340,10 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     manager.save(ccA);
 
     // Category Option Combos
-    cocAC = createCategoryOptionCombo("COCac", "catOptComAB", ccA, coA, coC);
+    cocAC = createCategoryOptionCombo("COCac", "catOptComAC", ccA, coA, coC);
     cocAD = createCategoryOptionCombo("COCad", "catOptComAD", ccA, coA, coD);
-    cocBC = createCategoryOptionCombo("COCbc", "catOptComCB", ccA, coB, coC);
-    cocBD = createCategoryOptionCombo("COCbd", "catOptComCD", ccA, coB, coD);
+    cocBC = createCategoryOptionCombo("COCbc", "catOptComBC", ccA, coB, coC);
+    cocBD = createCategoryOptionCombo("COCbd", "catOptComBD", ccA, coB, coD);
     categoryService.addCategoryOptionCombo(cocAC);
     categoryService.addCategoryOptionCombo(cocAD);
     categoryService.addCategoryOptionCombo(cocBC);
@@ -1455,10 +1457,62 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   // -------------------------------------------------------------------------
 
   @Test
-  void testEventProgramIndicatorCategoryMappings() {
-    ProgramIndicator pi = createProgramIndicatorB(EVENT, "V{event_count}", null, SUM);
-    pi.setCategoryMappingIds(Set.of(cmA.getId(), cmB.getId()));
-    pi.setAttributeCombo(ccA);
+  void testEventProgramIndicatorCategoryMappingsWithNoExtraDimension() {
+    ProgramIndicator pi = createProgramIndicatorBWithCategoryMappings();
+
+    EventQueryParams params =
+        getBaseEventQueryParamsBuilder()
+            .withAggregateData(true)
+            .addItemProgramIndicator(pi)
+            .withPeriods(List.of(peJan, peFeb, peMar), "Monthly")
+            .withOrganisationUnits(level3Ous)
+            .build();
+
+    Grid grid = eventAggregateService.getAggregatedData(params);
+
+    assertGridContains(
+        // Headers
+        List.of("dy", "pe", "ou", "value"),
+        // Grid
+        List.of(
+            List.of("programIndB", "201701", "ouabcdefghI", "2.0"),
+            List.of("programIndB", "201701", "ouabcdefghJ", "2.0"),
+            List.of("programIndB", "201702", "ouabcdefghI", "2.0"),
+            List.of("programIndB", "201702", "ouabcdefghJ", "2.0")),
+        grid);
+  }
+
+  @Test
+  void testEventProgramIndicatorCategoryMappingsWithOneExtraDimension() {
+    ProgramIndicator pi = createProgramIndicatorBWithCategoryMappings();
+
+    EventQueryParams params =
+        getBaseEventQueryParamsBuilder()
+            .withAggregateData(true)
+            .addItemProgramIndicator(pi)
+            .addDimension(caA)
+            .withPeriods(List.of(peJan, peFeb, peMar), "Monthly")
+            .withOrganisationUnits(level3Ous)
+            .build();
+
+    Grid grid = eventAggregateService.getAggregatedData(params);
+
+    assertGridContains(
+        // Headers
+        List.of("dy", "categoryIdA", "pe", "ou", "value"),
+        // Grid
+        List.of(
+            List.of("programIndB", "cataOptionA", "201701", "ouabcdefghI", "1.0"),
+            List.of("programIndB", "cataOptionB", "201701", "ouabcdefghI", "1.0"),
+            List.of("programIndB", "cataOptionB", "201701", "ouabcdefghJ", "2.0"),
+            List.of("programIndB", "cataOptionB", "201702", "ouabcdefghI", "2.0"),
+            List.of("programIndB", "cataOptionB", "201702", "ouabcdefghJ", "2.0")),
+        grid);
+  }
+
+  @Test
+  void testEventProgramIndicatorCategoryMappingsWithTwoExtraDimensions() {
+    ProgramIndicator pi = createProgramIndicatorBWithCategoryMappings();
 
     EventQueryParams params =
         getBaseEventQueryParamsBuilder()
@@ -1486,12 +1540,54 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
         grid);
   }
 
+  @Test
+  void testEventProgramIndicatorCategoryMappingsAsDataValueSet() {
+    ProgramIndicator pi = createProgramIndicatorBWithCategoryMappings();
+
+    DataQueryParams dataQueryParams =
+        DataQueryParams.newBuilder().withOutputFormat(DATA_VALUE_SET).build();
+
+    EventQueryParams params =
+        getBaseEventQueryParamsBuilder(dataQueryParams)
+            .withAggregateData(true)
+            .addItemProgramIndicator(pi)
+            .withPeriods(List.of(peJan, peFeb, peMar), "Monthly")
+            .withOrganisationUnits(level3Ous)
+            .build();
+
+    Grid grid = eventAggregateService.getAggregatedData(params);
+
+    assertGridContains(
+        // Headers
+        List.of("dy", "pe", "ou", "value"),
+        // Grid
+        List.of(
+            List.of("programIndB.*.catOptComAC", "201701", "ouabcdefghI", "1.0"),
+            List.of("programIndB.*.catOptComBC", "201701", "ouabcdefghI", "1.0"),
+            List.of("programIndB.*.catOptComBC", "201701", "ouabcdefghJ", "1.0"),
+            List.of("programIndB.*.catOptComBD", "201701", "ouabcdefghJ", "1.0"),
+            List.of("programIndB.*.catOptComBD", "201702", "ouabcdefghI", "2.0"),
+            List.of("programIndB.*.catOptComBD", "201702", "ouabcdefghJ", "2.0")),
+        grid);
+  }
+
   // -------------------------------------------------------------------------
   // Supportive test methods
   // -------------------------------------------------------------------------
 
+  /** EventQueryParams.Builder with frequently-used fields */
   private EventQueryParams.Builder getBaseEventQueryParamsBuilder() {
-    return new EventQueryParams.Builder()
+    return addToBuilder(new EventQueryParams.Builder());
+  }
+
+  /** EventQueryParams.Builder with frequently-used fields, based on DataQueryParams */
+  private EventQueryParams.Builder getBaseEventQueryParamsBuilder(DataQueryParams dataQueryParams) {
+    return addToBuilder(new EventQueryParams.Builder(dataQueryParams));
+  }
+
+  /** Adds the frequently-used fields to an EventQueryParams.Builder */
+  private EventQueryParams.Builder addToBuilder(EventQueryParams.Builder builder) {
+    return builder
         .withOutputType(EventOutputType.EVENT)
         .withDisplayProperty(DisplayProperty.SHORTNAME)
         .withEndpointItem(RequestTypeAware.EndpointItem.EVENT)
@@ -1585,6 +1681,14 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     ProgramIndicator pi = createProgramIndicator('B', analyticsType, programB, expression, filter);
     pi.setUid("programIndB");
     pi.setAggregationType(aggregationType);
+    return pi;
+  }
+
+  /** Creates program indicator for program B with category mappings. */
+  private ProgramIndicator createProgramIndicatorBWithCategoryMappings() {
+    ProgramIndicator pi = createProgramIndicatorB(EVENT, "V{event_count}", null, SUM);
+    pi.setCategoryMappingIds(Set.of(cmA.getId(), cmB.getId()));
+    pi.setAttributeCombo(ccA);
     return pi;
   }
 
