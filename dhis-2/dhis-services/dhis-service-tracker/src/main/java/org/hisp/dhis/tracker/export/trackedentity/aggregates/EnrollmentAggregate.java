@@ -63,14 +63,13 @@ class EnrollmentAggregate {
   Multimap<String, Enrollment> findByTrackedEntityIds(
       List<TrackedEntityIdentifiers> ids, Context ctx) {
     Multimap<String, Enrollment> result = ArrayListMultimap.create();
-
     try {
       authenticationService.obtainAuthentication(ctx.getUserUid());
       ids.forEach(
           id -> {
             EnrollmentOperationParams params =
                 EnrollmentOperationParams.builder()
-                    .enrollmentParams(ctx.getParams().getEnrollmentParams())
+                    .fields(ctx.getFields().getEnrollmentFields())
                     .trackedEntity(UID.of(id.uid()))
                     .includeDeleted(ctx.getQueryParams().isIncludeDeleted())
                     .program(ctx.getQueryParams().getEnrolledInTrackerProgram())

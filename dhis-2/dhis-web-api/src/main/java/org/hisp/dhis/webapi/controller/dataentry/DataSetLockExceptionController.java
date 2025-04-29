@@ -33,11 +33,9 @@ import static org.hisp.dhis.common.collection.CollectionUtils.mapToList;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.LockException;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.dataentry.DataEntryDtoMapper;
 import org.hisp.dhis.webapi.webdomain.dataentry.LockExceptionsDto;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,7 +51,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/dataEntry")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class DataSetLockExceptionController {
   private final DataSetService dataSetService;
 

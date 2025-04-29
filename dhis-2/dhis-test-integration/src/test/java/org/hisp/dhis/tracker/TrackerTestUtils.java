@@ -34,13 +34,13 @@ import java.util.Date;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class TrackerTestUtils {
 
-  public static List<String> uids(List<? extends BaseIdentifiableObject> identifiableObject) {
-    return identifiableObject.stream().map(BaseIdentifiableObject::getUid).toList();
+  public static List<String> uids(List<? extends IdentifiableObject> identifiableObject) {
+    return identifiableObject.stream().map(IdentifiableObject::getUid).toList();
   }
 
   public static Date oneHourAfter(Date date) {

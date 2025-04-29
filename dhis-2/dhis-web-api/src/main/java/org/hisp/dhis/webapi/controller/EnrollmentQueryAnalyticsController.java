@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.common.DhisApiVersion.ALL;
-import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
@@ -65,8 +63,6 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.EnrollmentQueryService;
 import org.hisp.dhis.analytics.table.setting.AnalyticsTableSettings;
 import org.hisp.dhis.analytics.util.AnalyticsPeriodCriteriaUtils;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.Grid;
@@ -77,7 +73,7 @@ import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.webapi.dimension.DimensionMapperService;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.dimension.DimensionsCriteria;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -90,7 +86,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
     entity = Enrollment.class,
     classifiers = {"team:analytics", "purpose:analytics"})
 @Controller
-@ApiVersion({DEFAULT, ALL})
 @RequestMapping("/api/analytics/enrollments/query")
 @AllArgsConstructor
 public class EnrollmentQueryAnalyticsController {
@@ -121,9 +116,8 @@ public class EnrollmentQueryAnalyticsController {
   public @ResponseBody Grid getExplainQueryJson( // JSON, JSONP
       @PathVariable String program,
       EnrollmentAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, true);
+    EventQueryParams params = getEventQueryParams(program, criteria, true);
 
     Grid grid = enrollmentQueryService.getEnrollments(params);
     contextUtils.configureResponse(response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING);
@@ -142,9 +136,8 @@ public class EnrollmentQueryAnalyticsController {
   public @ResponseBody Grid getQueryJson( // JSON, JSONP
       @PathVariable String program,
       EnrollmentAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false);
+    EventQueryParams params = getEventQueryParams(program, criteria, false);
 
     contextUtils.configureResponse(response, CONTENT_TYPE_JSON, RESPECT_SYSTEM_SETTING);
 
@@ -156,9 +149,8 @@ public class EnrollmentQueryAnalyticsController {
   public void getQueryXml(
       @PathVariable String program,
       EnrollmentAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false);
+    EventQueryParams params = getEventQueryParams(program, criteria, false);
 
     contextUtils.configureResponse(
         response, CONTENT_TYPE_XML, RESPECT_SYSTEM_SETTING, "enrollments.xml", false);
@@ -171,9 +163,8 @@ public class EnrollmentQueryAnalyticsController {
   public void getQueryXls(
       @PathVariable String program,
       EnrollmentAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false);
+    EventQueryParams params = getEventQueryParams(program, criteria, false);
 
     contextUtils.configureResponse(
         response, CONTENT_TYPE_EXCEL, RESPECT_SYSTEM_SETTING, "enrollments.xls", true);
@@ -186,9 +177,8 @@ public class EnrollmentQueryAnalyticsController {
   public void getQueryXlsx(
       @PathVariable String program,
       EnrollmentAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false);
+    EventQueryParams params = getEventQueryParams(program, criteria, false);
 
     contextUtils.configureResponse(
         response, CONTENT_TYPE_EXCEL, RESPECT_SYSTEM_SETTING, "enrollments.xlsx", true);
@@ -201,9 +191,8 @@ public class EnrollmentQueryAnalyticsController {
   public void getQueryCsv(
       @PathVariable String program,
       EnrollmentAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false);
+    EventQueryParams params = getEventQueryParams(program, criteria, false);
 
     contextUtils.configureResponse(
         response, CONTENT_TYPE_CSV, RESPECT_SYSTEM_SETTING, "enrollments.csv", true);
@@ -216,9 +205,8 @@ public class EnrollmentQueryAnalyticsController {
   public void getQueryHtml(
       @PathVariable String program,
       EnrollmentAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false);
+    EventQueryParams params = getEventQueryParams(program, criteria, false);
 
     contextUtils.configureResponse(
         response, CONTENT_TYPE_HTML, RESPECT_SYSTEM_SETTING, "enrollments.html", false);
@@ -231,9 +219,8 @@ public class EnrollmentQueryAnalyticsController {
   public void getQueryHtmlCss(
       @PathVariable String program,
       EnrollmentAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false);
+    EventQueryParams params = getEventQueryParams(program, criteria, false);
 
     contextUtils.configureResponse(
         response, CONTENT_TYPE_HTML, RESPECT_SYSTEM_SETTING, "enrollments.html", false);
@@ -260,7 +247,6 @@ public class EnrollmentQueryAnalyticsController {
   private EventQueryParams getEventQueryParams(
       @PathVariable String program,
       EnrollmentAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       boolean analyzeOnly) {
     criteria.definePageSize(settingsProvider.getCurrentSettings().getAnalyticsMaxLimit());
 
@@ -275,7 +261,6 @@ public class EnrollmentQueryAnalyticsController {
                 (EnrollmentAnalyticsQueryCriteria)
                     criteria.withEndpointAction(QUERY).withEndpointItem(ENROLLMENT))
             .program(program)
-            .apiVersion(apiVersion)
             .build();
 
     return eventDataQueryService.getFromRequest(request, analyzeOnly);

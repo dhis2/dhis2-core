@@ -32,7 +32,6 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -41,7 +40,6 @@ import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -58,7 +56,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
     classifiers = {"team:platform", "purpose:support"})
 @Controller
 @RequestMapping("/api/expressions")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class ExpressionController {
   @Autowired private ExpressionService expressionService;
 

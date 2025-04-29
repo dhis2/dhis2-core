@@ -35,7 +35,6 @@ import static org.hisp.dhis.fileresource.FileResourceDomain.DOCUMENT;
 import static org.hisp.dhis.fileresource.FileResourceKeyUtil.makeKey;
 import static org.hisp.dhis.test.webapi.TestUtils.APPLICATION_JSON_UTF8;
 import static org.hisp.dhis.webapi.controller.StaticContentController.LOGO_BANNER;
-import static org.hisp.dhis.webapi.controller.StaticContentController.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.utils.FileResourceUtils.build;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
@@ -115,7 +114,7 @@ class StaticContentControllerTest extends WebSpringTestBase {
   void testGetStaticImagesCustomKey() throws Exception {
     // Given
     final String theExpectedType = "png";
-    final String theExpectedApiUrl = "/api" + RESOURCE_PATH;
+    final String theExpectedApiUrl = "/api/staticContent";
     // a mock file in the content store used during the fetch
     fileResourceContentStore.saveFileResourceContent(
         build(LOGO_BANNER, mockMultipartFile, DOCUMENT), "image".getBytes());

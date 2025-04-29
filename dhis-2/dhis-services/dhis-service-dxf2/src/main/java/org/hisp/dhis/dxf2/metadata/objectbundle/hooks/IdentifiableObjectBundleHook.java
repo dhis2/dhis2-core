@@ -34,7 +34,6 @@ import lombok.AllArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.SortableObject;
@@ -60,14 +59,13 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
 
   @Override
   public void preCreate(IdentifiableObject identifiableObject, ObjectBundle bundle) {
-    BaseIdentifiableObject baseIdentifiableObject = (BaseIdentifiableObject) identifiableObject;
 
-    baseIdentifiableObject.setAutoFields();
-    baseIdentifiableObject.setLastUpdatedBy(bundle.getUser());
-    baseIdentifiableObject.setCreatedBy(bundle.getUser());
+    identifiableObject.setAutoFields();
+    identifiableObject.setLastUpdatedBy(bundle.getUser());
+    identifiableObject.setCreatedBy(bundle.getUser());
 
-    if (baseIdentifiableObject.getSharing().getOwner() == null) {
-      baseIdentifiableObject.getSharing().setOwner(baseIdentifiableObject.getCreatedBy());
+    if (identifiableObject.getSharing().getOwner() == null) {
+      identifiableObject.getSharing().setOwner(identifiableObject.getCreatedBy());
     }
 
     Schema schema =
@@ -132,9 +130,8 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
   @Override
   public void preUpdate(
       IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle) {
-    BaseIdentifiableObject baseIdentifiableObject = (BaseIdentifiableObject) object;
-    baseIdentifiableObject.setAutoFields();
-    baseIdentifiableObject.setLastUpdatedBy(bundle.getUser());
+    object.setAutoFields();
+    object.setLastUpdatedBy(bundle.getUser());
 
     handleCreatedByProperty(object, persistedObject, bundle);
 

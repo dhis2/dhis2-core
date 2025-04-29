@@ -49,7 +49,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
@@ -110,7 +109,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
     // needed as some tests are run using another user (injectSecurityContext) while most tests
     // expect to be run by admin
     injectAdminIntoSecurityContext();
-    operationParamsBuilder = EventOperationParams.builder().eventParams(EventParams.FALSE);
+    operationParamsBuilder = EventOperationParams.builder();
   }
 
   @Test
@@ -160,7 +159,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
             "JaRDIvcEcEx",
             "SbUJzkxKYAG",
             "gvULMgNiAfM"),
-        events.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet()));
+        events.stream().map(IdentifiableObject::getUid).collect(Collectors.toSet()));
   }
 
   @Test
@@ -203,7 +202,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
         "Expected to find events when no program specified, ou mode children and org units in search scope");
     assertContainsOnly(
         List.of("YKmfzHdjUDL", "jxgFyJEMUPf", "JaRDIvcEcEx", "D9PbzJY8bJM", "pTzf9KYMk72"),
-        events.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet()));
+        events.stream().map(IdentifiableObject::getUid).collect(Collectors.toSet()));
   }
 
   @Test
@@ -279,7 +278,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
 
     assertContainsOnly(
         List.of("ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp", "H0PbzJY8bJG"),
-        events.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet()));
+        events.stream().map(IdentifiableObject::getUid).collect(Collectors.toSet()));
   }
 
   @Test
@@ -297,7 +296,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
 
     assertContainsOnly(
         List.of("SbUJzkxKYAG"),
-        events.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet()));
+        events.stream().map(IdentifiableObject::getUid).collect(Collectors.toSet()));
   }
 
   @Test
@@ -526,7 +525,7 @@ class AclEventExporterTest extends PostgresIntegrationTestBase {
             "SbUJzkxKYAG",
             "gvULMgNiAfM",
             "H0PbzJY8bJG"),
-        events.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet()));
+        events.stream().map(IdentifiableObject::getUid).collect(Collectors.toSet()));
   }
 
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {

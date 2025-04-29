@@ -35,7 +35,6 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpSessionEvent;
 import java.util.List;
 import javax.annotation.PostConstruct;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -49,7 +48,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.security.LoginResponse.STATUS;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.annotation.Order;
@@ -100,7 +98,6 @@ import org.springframework.web.bind.annotation.RestController;
     classifiers = {"team:platform", "purpose:support"})
 @RestController
 @RequestMapping("/api/auth")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @Order(2103)
 public class AuthenticationController {
 
@@ -238,7 +235,10 @@ public class AuthenticationController {
       Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
     // Default redirect URL
     String redirectUrl =
-        request.getContextPath() + "/" + settingsProvider.getCurrentSettings().getStartModule();
+        request.getContextPath()
+            + "/api/apps/"
+            + settingsProvider.getCurrentSettings().getStartModule();
+    // GlobalShellFilter prefer ending slash when we are using old style app name like:
     if (!redirectUrl.endsWith("/")) {
       redirectUrl += "/";
     }
@@ -248,27 +248,31 @@ public class AuthenticationController {
     if (enforceVerifiedEmail) {
       UserDetails userDetails = (UserDetails) authentication.getPrincipal();
       if (!userDetails.isEmailVerified()) {
-        return request.getContextPath() + "/dhis-web-user-profile/#/profile";
+        return request.getContextPath() + "/api/apps/user-profile/#/profile";
       }
     }
 
-    // Check for saved request, i.e. the user has tried to access a page directly before logging in.
-    SavedRequest savedRequest = requestCache.getRequest(request, null);
-    if (savedRequest != null) {
-      DefaultSavedRequest defaultSavedRequest = (DefaultSavedRequest) savedRequest;
-      // Check saved request to avoid redirecting to non-html pages, e.g. images.
-      // If the saved request is not filtered, the user will be redirected to the saved request,
-      // otherwise the default redirect URL is used.
-      if (!filterSavedRequest(defaultSavedRequest)) {
-        if (defaultSavedRequest.getQueryString() != null) {
-          redirectUrl =
-              defaultSavedRequest.getRequestURI() + "?" + defaultSavedRequest.getQueryString();
-        } else {
-          redirectUrl = defaultSavedRequest.getRequestURI();
+    if (dhisConfig.isEnabled(ConfigurationKey.LOGIN_SAVED_REQUESTS_ENABLE)) {
+      // Check for saved request, i.e. the user has tried to access a page directly before logging
+      // in.
+      SavedRequest savedRequest = requestCache.getRequest(request, null);
+      if (savedRequest != null) {
+        DefaultSavedRequest defaultSavedRequest = (DefaultSavedRequest) savedRequest;
+        // Check saved request to avoid redirecting to non-html pages, e.g. images.
+        // If the saved request is not filtered, the user will be redirected to the saved request,
+        // otherwise the default redirect URL is used.
+        if (!filterSavedRequest(defaultSavedRequest)) {
+          if (defaultSavedRequest.getQueryString() != null) {
+            redirectUrl =
+                defaultSavedRequest.getRequestURI() + "?" + defaultSavedRequest.getQueryString();
+          } else {
+            redirectUrl = defaultSavedRequest.getRequestURI();
+          }
         }
+        this.requestCache.removeRequest(request, response);
       }
-      this.requestCache.removeRequest(request, response);
     }
+
     return redirectUrl;
   }
 

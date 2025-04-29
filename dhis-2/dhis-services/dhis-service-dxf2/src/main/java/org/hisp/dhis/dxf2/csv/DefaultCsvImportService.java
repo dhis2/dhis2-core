@@ -52,9 +52,9 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.ValueType;
@@ -855,7 +855,7 @@ public class DefaultCsvImportService implements CsvImportService {
    * @param object the object to set identifiable properties.
    * @param values the array of property values.
    */
-  private static void setIdentifiableObject(BaseIdentifiableObject object, String[] values) {
+  private static void setIdentifiableObject(IdentifiableObject object, String[] values) {
     object.setName(getSafe(values, 0, 230));
     object.setUid(getSafe(values, 1, CodeGenerator::generateUid, 11));
     object.setCode(getSafe(values, 2, 50));

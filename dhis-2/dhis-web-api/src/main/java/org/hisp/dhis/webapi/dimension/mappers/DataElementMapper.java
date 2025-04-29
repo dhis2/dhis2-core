@@ -32,7 +32,6 @@ package org.hisp.dhis.webapi.dimension.mappers;
 import java.util.Optional;
 import java.util.Set;
 import lombok.Getter;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.dataelement.DataElement;
@@ -42,7 +41,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class DataElementMapper extends BaseDimensionalItemObjectMapper {
   @Getter
-  private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses =
+  private final Set<Class<? extends IdentifiableObject>> supportedClasses =
       Set.of(DataElement.class);
 
   /** maps data elements to DimensionResponse */

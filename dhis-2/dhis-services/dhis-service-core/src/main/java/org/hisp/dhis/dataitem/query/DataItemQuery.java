@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.dataitem.query;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
@@ -62,5 +62,5 @@ public interface DataItemQuery {
    *
    * @return the entity associated to the interface implementation
    */
-  Class<? extends BaseIdentifiableObject> getRootEntity();
+  Class<? extends IdentifiableObject> getRootEntity();
 }

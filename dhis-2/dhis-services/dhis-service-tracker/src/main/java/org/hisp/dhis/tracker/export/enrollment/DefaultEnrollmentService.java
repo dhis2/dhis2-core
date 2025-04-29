@@ -56,8 +56,8 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.export.event.EventFields;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
-import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.user.UserDetails;
@@ -74,7 +74,7 @@ class DefaultEnrollmentService implements EnrollmentService {
 
   private final RelationshipService relationshipService;
 
-  private final TrackerOwnershipManager trackerOwnershipAccessManager;
+  private final TrackerOwnershipManager trackerOwnershipManager;
 
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
@@ -95,20 +95,17 @@ class DefaultEnrollmentService implements EnrollmentService {
   @Nonnull
   @Override
   public Enrollment getEnrollment(@Nonnull UID uid) throws NotFoundException {
-    return getEnrollment(uid, EnrollmentParams.FALSE);
+    return getEnrollment(uid, EnrollmentFields.none());
   }
 
   @Nonnull
   @Override
-  public Enrollment getEnrollment(@Nonnull UID uid, @Nonnull EnrollmentParams params)
+  public Enrollment getEnrollment(@Nonnull UID uid, @Nonnull EnrollmentFields fields)
       throws NotFoundException {
     Page<Enrollment> enrollments;
     try {
       EnrollmentOperationParams operationParams =
-          EnrollmentOperationParams.builder()
-              .enrollments(Set.of(uid))
-              .enrollmentParams(params)
-              .build();
+          EnrollmentOperationParams.builder().enrollments(Set.of(uid)).fields(fields).build();
       enrollments = findEnrollments(operationParams, PageParams.single());
     } catch (BadRequestException | ForbiddenException e) {
       throw new IllegalArgumentException(
@@ -145,7 +142,7 @@ class DefaultEnrollmentService implements EnrollmentService {
 
     return findEnrollments(
         new ArrayList<>(enrollmentStore.getEnrollments(queryParams)),
-        params.getEnrollmentParams(),
+        params.getFields(),
         params.isIncludeDeleted(),
         queryParams.getOrganisationUnitMode());
   }
@@ -161,18 +158,17 @@ class DefaultEnrollmentService implements EnrollmentService {
     List<Enrollment> enrollments =
         findEnrollments(
             enrollmentsPage.getItems(),
-            params.getEnrollmentParams(),
+            params.getFields(),
             params.isIncludeDeleted(),
             queryParams.getOrganisationUnitMode());
     return enrollmentsPage.withFilteredItems(enrollments);
   }
 
-  private Set<Event> getEvents(
-      Enrollment enrollment, EventParams eventParams, boolean includeDeleted) {
+  private Set<Event> getEvents(Enrollment enrollment, EventFields fields, boolean includeDeleted) {
     EventOperationParams eventOperationParams =
         EventOperationParams.builder()
             .enrollments(Set.of(UID.of(enrollment)))
-            .eventParams(eventParams)
+            .fields(fields)
             .includeDeleted(includeDeleted)
             .build();
     try {
@@ -190,7 +186,7 @@ class DefaultEnrollmentService implements EnrollmentService {
   }
 
   private Enrollment getEnrollment(
-      @Nonnull Enrollment enrollment, @Nonnull EnrollmentParams params, boolean includeDeleted) {
+      @Nonnull Enrollment enrollment, @Nonnull EnrollmentFields fields, boolean includeDeleted) {
     Enrollment result = new Enrollment();
     result.setUid(enrollment.getUid());
 
@@ -219,17 +215,15 @@ class DefaultEnrollmentService implements EnrollmentService {
     result.setLastUpdatedByUserInfo(enrollment.getLastUpdatedByUserInfo());
     result.setDeleted(enrollment.isDeleted());
     result.setNotes(enrollment.getNotes());
-    if (params.isIncludeEvents()) {
-      result.setEvents(
-          getEvents(
-              enrollment, params.getEnrollmentEventsParams().getEventParams(), includeDeleted));
+    if (fields.isIncludesEvents()) {
+      result.setEvents(getEvents(enrollment, fields.getEventFields(), includeDeleted));
     }
-    if (params.isIncludeRelationships()) {
+    if (fields.isIncludesRelationships()) {
       result.setRelationshipItems(
           relationshipService.findRelationshipItems(
               TrackerType.ENROLLMENT, UID.of(result), includeDeleted));
     }
-    if (params.isIncludeAttributes()) {
+    if (fields.isIncludesAttributes()) {
       result
           .getTrackedEntity()
           .setTrackedEntityAttributeValues(getTrackedEntityAttributeValues(enrollment));
@@ -256,7 +250,7 @@ class DefaultEnrollmentService implements EnrollmentService {
 
   private List<Enrollment> findEnrollments(
       Iterable<Enrollment> enrollments,
-      EnrollmentParams params,
+      EnrollmentFields fields,
       boolean includeDeleted,
       OrganisationUnitSelectionMode orgUnitMode) {
     List<Enrollment> enrollmentList = new ArrayList<>();
@@ -265,10 +259,10 @@ class DefaultEnrollmentService implements EnrollmentService {
     for (Enrollment enrollment : enrollments) {
       if (enrollment != null
           && (orgUnitMode == ALL
-              || trackerOwnershipAccessManager.hasAccess(
+              || trackerOwnershipManager.hasAccess(
                   currentUser, enrollment.getTrackedEntity(), enrollment.getProgram()))
           && trackerAccessManager.canRead(currentUser, enrollment, orgUnitMode == ALL).isEmpty()) {
-        enrollmentList.add(getEnrollment(enrollment, params, includeDeleted));
+        enrollmentList.add(getEnrollment(enrollment, fields, includeDeleted));
       }
     }
 

@@ -39,7 +39,6 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.timer.SystemTimer;
@@ -266,14 +265,11 @@ public class DefaultMetadataImportService implements MetadataImportService {
     }
 
     for (Class<? extends IdentifiableObject> klass : params.getObjects().keySet()) {
-      params
-          .getObjects()
-          .get(klass)
-          .forEach(o -> preCreateBundleObject((BaseIdentifiableObject) o, params));
+      params.getObjects().get(klass).forEach(o -> preCreateBundleObject(o, params));
     }
   }
 
-  private void preCreateBundleObject(BaseIdentifiableObject object, ObjectBundleParams params) {
+  private void preCreateBundleObject(IdentifiableObject object, ObjectBundleParams params) {
     if (StringUtils.isEmpty(object.getSharing().getPublicAccess())) {
       aclService.resetSharing(object, params.getUser());
     }

@@ -44,31 +44,42 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum QueryOperator {
-  EQ("=", true),
-  GT(">"),
-  GE(">="),
-  LT("<"),
-  LE("<="),
-  LIKE("like"),
-  IN("in", true),
-  SW("sw"),
-  EW("ew"),
-  NULL("is null"),
-  NNULL("is not null"),
+  EQ("=", true, true),
+  GT(">", false, true),
+  GE(">=", false, true),
+  LT("<", false, true),
+  LE("<=", false, true),
+  LIKE("like", false, false),
+  IN("in", true, true),
+  SW("sw", false, false),
+  EW("ew", false, false),
+  // casting the is (not) null operand to a different data type adds no benefit so we won't do it
+  // even though PostgreSQL does have implementations for different data types
+  NULL("is null", false, false),
+  NNULL("is not null", false, false),
   // Analytics specifics
-  IEQ("==", true),
-  NE("!=", true),
-  NEQ("!=", true),
-  NIEQ("!==", true),
-  NLIKE("not like"),
-  ILIKE("ilike"),
-  NILIKE("not ilike");
+  IEQ("==", true, false),
+  NE("!=", true, true),
+  NEQ("!=", true, true),
+  NIEQ("!==", true, false),
+  NLIKE("not like", false, false),
+  ILIKE("ilike", false, false),
+  NILIKE("not ilike", false, false);
 
   private static final Set<QueryOperator> EQ_OPERATORS = EnumSet.of(EQ, NE, NEQ, IEQ, NIEQ);
 
   private static final Set<QueryOperator> NE_OPERATORS = EnumSet.of(NE, NEQ, NIEQ);
 
   private static final Set<QueryOperator> LIKE_OPERATORS = EnumSet.of(LIKE, NLIKE, ILIKE, NILIKE);
+
+  /**
+   * All query operators that are implemented using the SQL {@code like} operator (see {@link
+   * #value}).
+   *
+   * <p>This is a union of {@link #LIKE_OPERATORS} and SW, EW. So keep it in sync!
+   */
+  private static final Set<QueryOperator> LIKE_BASED_OPERATORS =
+      EnumSet.of(LIKE, NLIKE, ILIKE, NILIKE, SW, EW);
 
   private static final Set<QueryOperator> COMPARISON_OPERATORS = EnumSet.of(GT, GE, LT, LE);
 
@@ -78,10 +89,15 @@ public enum QueryOperator {
 
   private final boolean nullAllowed;
 
-  QueryOperator(String value) {
-    this.value = value;
-    this.nullAllowed = false;
-  }
+  /**
+   * Indicates if operands should be cast to a different PostgreSQL data type other than the one
+   * used for storage (string/text so far). This allows users to filter/compare using the semantic
+   * of a value type like numeric instead of only text.
+   *
+   * <p>This information might also fit with the {@link ValueType#JAVA_TO_SQL_TYPES} to show what
+   * data type has an implementation for each operator.
+   */
+  private final boolean castOperand;
 
   public static QueryOperator fromString(String string) {
     if (isBlank(string)) {
@@ -110,6 +126,11 @@ public enum QueryOperator {
 
   public boolean isLike() {
     return LIKE_OPERATORS.contains(this);
+  }
+
+  /** Returns true if this query operator is implemented using the SQL {@code like} operator. */
+  public boolean isLikeBased() {
+    return LIKE_BASED_OPERATORS.contains(this);
   }
 
   public boolean isIn() {

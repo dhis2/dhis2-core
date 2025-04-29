@@ -177,7 +177,7 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   default String getStartModule() {
-    return asString("startModule", "dhis-web-dashboard");
+    return asString("startModule", "dashboard");
   }
 
   default boolean getStartModuleEnableLightweight() {
@@ -242,10 +242,6 @@ public non-sealed interface SystemSettings extends Settings {
     return asString("phoneNumberAreaCode", "");
   }
 
-  default boolean getMultiOrganisationUnitForms() {
-    return asBoolean("multiOrganisationUnitForms", false);
-  }
-
   default boolean getAccountRecoveryEnabled() {
     return asBoolean("keyAccountRecovery", false);
   }
@@ -302,6 +298,10 @@ public non-sealed interface SystemSettings extends Settings {
 
   default int getAnalyticsMaxLimit() {
     return asInt("keyAnalyticsMaxLimit", 100000);
+  }
+
+  default int getDataQualityMaxLimit() {
+    return asInt("keyDataQualityMaxLimit", 500);
   }
 
   default boolean getIncludeZeroValuesInAnalytics() {

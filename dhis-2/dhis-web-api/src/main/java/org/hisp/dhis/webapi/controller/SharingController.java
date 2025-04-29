@@ -45,9 +45,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DataDimensionItem;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
@@ -75,7 +73,6 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.sharing.Sharing;
 import org.hisp.dhis.webapi.webdomain.sharing.SharingUserAccess;
 import org.hisp.dhis.webapi.webdomain.sharing.SharingUserGroupAccess;
@@ -100,7 +97,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping("/api/sharing")
 @Slf4j
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class SharingController {
 
   @Autowired private IdentifiableObjectManager manager;
@@ -232,7 +228,7 @@ public class SharingController {
       return conflict("Type " + type + " is not supported.");
     }
 
-    BaseIdentifiableObject object = (BaseIdentifiableObject) manager.getNoAcl(sharingClass, id);
+    IdentifiableObject object = manager.getNoAcl(sharingClass, id);
 
     if (object == null) {
       return notFound("Object of type " + type + " with ID " + id + " was not found.");
