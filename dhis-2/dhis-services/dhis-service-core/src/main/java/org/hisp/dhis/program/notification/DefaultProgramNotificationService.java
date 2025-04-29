@@ -48,7 +48,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
@@ -113,7 +112,7 @@ public class DefaultProgramNotificationService implements ProgramNotificationSer
 
   @Nonnull private final NotificationTemplateMapper notificationTemplateMapper;
 
-  @NonNull private final ProgramNotificationInstanceService notificationInstanceService;
+  @Nonnull private final ProgramNotificationInstanceService notificationInstanceService;
 
   // -------------------------------------------------------------------------
   // ProgramStageNotificationService implementation
