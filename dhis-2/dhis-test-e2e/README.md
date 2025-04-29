@@ -212,3 +212,70 @@ that is up and running. The tests are based on the request/response of each URL.
 **Important**: This generator only supports "happy" paths at the moment. In order to test validation
 errors or invalid requests, one should implement them programmatically. Remember that the implementation of the generator
 must match the URL(s)/queries format expected, and we can pick only one generator at time.
+
+### Automated Test-Data Provisioning (`@DependsOn`)
+
+The end-to-end test suite now offers a built-in mechanism for provisioning and cleaning up DHIS 2 metadata required by individual test cases.
+
+#### Overview
+`@DependsOn` is a JUnit 5 **method-level** annotation.  
+A global extension processes it as follows:
+
+1. **Create** each referenced resource if it is not already present.
+2. **Execute** the test method.
+3. **Delete** the resources it created when `delete = true`.
+
+Any failure during those phases (missing file, malformed JSON, HTTP error, duplicate UID) aborts the test immediately.
+
+#### Usage
+```java
+@DependsOn(files = { "pi-birth.json", "ind-valid.json" }, delete = true)
+void analyticsProducesExpectedResult(List<CreatedResource> deps) {
+
+    String indicatorUid =
+        deps.stream()
+            .filter(cr -> cr.type() == DependencyType.IND)
+            .findFirst()
+            .orElseThrow()
+            .uid();
+
+    // perform test logic that relies on the created Indicator UID …
+}
+```
+
+#### Resource Files
+* **Location**: `src/test/resources/dependencies/`
+* **Format**: Regular DHIS 2 import JSON—**identical** to what you would POST to
+    * `/api/29/programIndicators` (for `type = "program_indicator"`) or
+    * `/api/29/indicators`      (for `type = "indicator"`).  
+      In other words, you can copy/paste the payload you already use in Postman or Swagger.
+* **Additional attribute**: `"type"` (values: `"program_indicator"` or `"indicator"`).  
+  The extension removes this field before forwarding the payload to DHIS 2.
+
+Example (`ind-expected-pregnancies.json`):
+```json
+{
+  "type": "indicator",
+  "code": "EXP_PREG1",
+  "denominatorDescription":"Denominator",
+  "numeratorDescription":"Expected Pregnancies with offset",
+  "numerator":"subExpression(if(#{h0xKKjijTdI} - #{h0xKKjijTdI}.periodOffset(-1) > 0, 1, 0))",
+  "denominator":"1",
+  "name":"Expected Pregnancies",
+  "shortName":"Expected Pregnancies",
+  "indicatorType":{
+    "id":"JkWynlWMjJR"
+  },
+  "legendSets":[]
+}
+```
+
+#### Supported Types
+| `type` | DHIS 2 endpoint              |
+|--------|------------------------------|
+| `pi`   | `/api/programIndicators`     |
+| `ind`  | `/api/indicators`            |
+
+#### Accessing Created UIDs
+Add a `List<CreatedResource>` (or a single `CreatedResource`) parameter to your test method; the extension injects the objects it created, each exposing `type`, `code`, and `uid`.
+
