@@ -76,8 +76,11 @@ public class PlaceholderParser {
               // Optional whitespace, capture 'de' value
               "\\s*de='([^']*)',"
               +
+              // argType (e.g., val64, condLit64, none)
+              "\\s*argType='([^']*)',"
+              +
               // Optional whitespace, capture 'val64' value (Base64 chars: A-Z, a-z, 0-9, +, /, =)
-              "\\s*val64='([A-Za-z0-9+/=]*)',"
+              "\\s*arg64='([A-Za-z0-9+/=]*)',"
               + // More specific capture for Base64
               // Optional whitespace, capture 'hash' value (Alphanumeric for SHA1/MD5 or includes
               // '_')
@@ -105,6 +108,7 @@ public class PlaceholderParser {
       String func,
       String psUid,
       String deUid,
+      String argType,
       String valueSql, // decoded from Base-64
       String boundaryHash,
       String piUid) {}
@@ -157,20 +161,16 @@ public class PlaceholderParser {
       return Optional.empty();
     }
     try {
-      String decoded =
-          new String(
-              java.util.Base64.getDecoder().decode(m.group(4)),
-              java.nio.charset.StandardCharsets.UTF_8);
-
       return Optional.of(
           new D2FuncFields(
               m.group(0), // raw
               m.group(1), // func
               m.group(2), // psUid
               m.group(3), // deUid
-              decoded, // valueSql
-              m.group(5), // boundaryHash
-              m.group(6))); // piUid
+              m.group(4), // argType
+              m.group(5), // valueSql (encoded)
+              m.group(6), // boundaryHash
+              m.group(7))); // piUid
     } catch (IllegalArgumentException ex) {
       // Malformed Base-64 → treat as non-match
       return Optional.empty();

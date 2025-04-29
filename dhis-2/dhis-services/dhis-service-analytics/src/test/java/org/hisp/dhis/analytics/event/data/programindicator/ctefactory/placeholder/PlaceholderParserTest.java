@@ -122,8 +122,8 @@ class PlaceholderParserTest {
       String value = "42";
       String encoded = Base64.getEncoder().encodeToString(value.getBytes(StandardCharsets.UTF_8));
       String placeholder =
-          "__D2FUNC__(func='countIfValue', ps='PS', de='DE', "
-              + "val64='"
+          "__D2FUNC__(func='countIfValue', ps='PS', de='DE', argType='val64', "
+              + "arg64='"
               + encoded
               + "', hash='h1', pi='PI')__";
 
@@ -135,7 +135,7 @@ class PlaceholderParserTest {
       assertEquals("countIfValue", f.func());
       assertEquals("PS", f.psUid());
       assertEquals("DE", f.deUid());
-      assertEquals(value, f.valueSql());
+      assertEquals(encoded, f.valueSql());
       assertEquals("h1", f.boundaryHash());
       assertEquals("PI", f.piUid());
     }

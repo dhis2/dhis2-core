@@ -57,7 +57,6 @@ import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
-import org.hisp.dhis.analytics.common.CteDefinition.CteType;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
@@ -102,14 +101,8 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
   private final String programUid = "TestProgUid1";
   private final String eventTable = "analytics_event_" + progUid;
   private final String enrollmentTable = "analytics_enrollment_" + progUid.toLowerCase();
-  private final String subax = "subax"; // Default alias used inside PI CTE
-  private final String varKey = "varKey1";
-  private final String psdeKey1 = "psdeKey1";
-  private final String psdeKey2 = "psdeKey2";
-  private final String d2FuncKey = "d2FuncKey1";
-  private final String filterKey = "filterKey1";
+  private final String subax = "subax";
   private ProgramIndicator testPI;
-  private Program program;
 
   @BeforeEach
   void setUp() {
@@ -124,56 +117,12 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
 
     cteContext = new CteContext();
 
-    CteDefinition variableDef = CteDefinition.forVariable(varKey, "SELECT ...", "enrollment");
-    CteDefinition psdeDef1 =
-        CteDefinition.forProgramStageDataElement(psdeKey1, "SELECT ...", "enrollment", 1);
-    CteDefinition psdeDef2 =
-        CteDefinition.forProgramStageDataElement(psdeKey2, "SELECT ...", "enrollment", 3);
-    CteDefinition d2FuncDef = CteDefinition.forVariable(d2FuncKey, "SELECT COUNT...", "enrollment");
-    // Filter definition - *don't* create via factory if using the simpler add method
-    String filterSql = "SELECT enrollment FROM some_filter_logic";
-
-    // Add Variable CTE (assuming addVariableCte takes key, sql, joinCol)
-    cteContext.addVariableCte(varKey, variableDef.getCteDefinition(), "enrollment");
-
-    // Add PSDE CTEs (assuming addProgramStageDataElementCte takes key, definition)
-    cteContext.addProgramStageDataElementCte(psdeKey1, psdeDef1);
-    cteContext.addProgramStageDataElementCte(psdeKey2, psdeDef2);
-
-    // Add D2 Function CTE (reusing addVariableCte for now)
-    cteContext.addVariableCte(d2FuncKey, d2FuncDef.getCteDefinition(), "enrollment");
-
-    // Add Filter CTE using the simpler addFilterCte method
-    cteContext.addFilterCte(filterKey, filterSql);
-
-    // Retrieve actual aliases generated (since they are random)
-    variableDef = cteContext.getDefinitionByKey(varKey);
-    psdeDef1 = cteContext.getDefinitionByKey(psdeKey1);
-    psdeDef2 = cteContext.getDefinitionByKey(psdeKey2);
-    d2FuncDef = cteContext.getDefinitionByKey(d2FuncKey);
-    CteDefinition filterDef =
-        cteContext.getDefinitionByKey(filterKey); // Retrieve the filter def created by addFilterCte
-
-    // Ensure definitions were actually added before getting aliases
-    assertNotNull(variableDef, "Variable Def should be in context");
-    assertNotNull(psdeDef1, "PSDE Def 1 should be in context");
-    assertNotNull(psdeDef2, "PSDE Def 2 should be in context");
-    assertNotNull(d2FuncDef, "D2 Func Def should be in context");
-    assertNotNull(filterDef, "Filter Def should be in context");
-
     program = new Program();
     program.setUid(programUid);
     testPI = new ProgramIndicator();
     testPI.setUid(piUid);
     testPI.setProgram(program);
     testPI.setAnalyticsPeriodBoundaries(Collections.emptySet());
-    // Verify the filter CTE has the correct type (set internally by addFilterCte/forFilter)
-    assertEquals(CteType.FILTER, filterDef.getCteType());
-  }
-
-  // Helper to normalize SQL for comparison (removes extra whitespace)
-  private String normalizeSql(String sql) {
-    return sql.replaceAll("\\s+", " ").trim();
   }
 
   @Test
@@ -252,7 +201,6 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
 
   @Test
   void testAddCteWithSimpleFilterOnly() {
-    CteContext cteContext = new CteContext();
     programIndicator.setExpression("1"); // Simple expression
     programIndicator.setFilter("V{event_status} == 'ACTIVE'");
     String expectedFilterCteKey = "filtercte_eventstatus_eqeq_active_" + piUid;
@@ -331,7 +279,6 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
 
   @Test
   void testAddCteWithComplexFilterOnly() {
-    CteContext cteContext = new CteContext();
     String complexFilter = "d2:daysBetween(V{creation_date}, V{scheduled_date}) > 10";
     programIndicator.setExpression("1");
     programIndicator.setFilter(complexFilter);
@@ -460,7 +407,6 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
 
   @Test
   void testAddCteWithMultipleIdenticalValuePlaceholders() {
-    CteContext cteContext = new CteContext();
     programIndicator.setExpression("V{creation_date} + V{creation_date}");
     programIndicator.setFilter(null);
     String expectedValueCteKey = "varcte_created_" + piUid + "_0";
@@ -527,8 +473,6 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
 
   @Test
   void testAddCteWithMultipleIdenticalSimpleFilters() {
-    CteContext cteContext = new CteContext();
-
     programIndicator.setExpression("1");
     programIndicator.setFilter("V{event_status} == 'ACTIVE' AND V{event_status} == 'ACTIVE'");
     String expectedFilterCteKey = "filtercte_eventstatus_eqeq_active_" + piUid;
@@ -581,7 +525,6 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
 
   @Test
   void testAddCteWithNoRelevantVariables() {
-    CteContext cteContext = new CteContext();
     programIndicator.setExpression("100");
     // Uses attribute, not V{...}
     programIndicator.setFilter("\"some_attribute\" == 'ABC'");
@@ -801,8 +744,6 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
 
   @Test
   void testBuildLeftJoins_HandlesDifferentCteTypes() {
-    // ... (Test implementation from Prompt 13 output) ...
-    // Arrange
     CteContext localCteContext = new CteContext();
     String varKey = "varKey1";
     String psdeKey1 = "psdeKey1";
@@ -873,7 +814,6 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
 
   @Test
   void addCte_shouldProcessPlaceholdersAndGenerateCorrectSqlWithJoins() {
-    // Arrange
     String expression =
         "100 + V{event_date} + #{PgmStgUid1.DataElmUid1} + d2:countIfValue(#{PgmStgUid1.DataElmUid2}, 5)";
     String filter = "V{creation_date} > '2024-01-01'";
@@ -894,14 +834,17 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
         "cast(5 as double precision)"; // Expected SQL for '5' with postgres builder
     String d2FuncValueSqlEncoded =
         Base64.getEncoder().encodeToString(d2FuncValueSql.getBytes(StandardCharsets.UTF_8));
+    String expectedArgType = "val64";
     String richD2FuncPlaceholder1 =
         String.format(
-            "__D2FUNC__(func='%s', ps='%s', de='%s', val64='%s', hash='%s', pi='%s')__",
-            "countIfValue", psUid1, deUid2, d2FuncValueSqlEncoded, "noboundaries", piUid);
-    String filterVarPlaceholder1 =
-        "FUNC_CTE_VAR( type='vCreationDate', column='created', piUid='"
-            + piUid
-            + "', psUid='null', offset='0')";
+            "__D2FUNC__(func='%s', ps='%s', de='%s', argType='%s', arg64='%s', hash='%s', pi='%s')__",
+            "countIfValue",
+            psUid1,
+            deUid2,
+            expectedArgType,
+            d2FuncValueSqlEncoded,
+            "noboundaries",
+            piUid);
 
     // Define expected RAW SQL returned by the service
     String rawExpressionSql =
@@ -1041,5 +984,9 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     } catch (NoSuchAlgorithmException e) {
       return "hash_error_" + input.hashCode();
     }
+  }
+
+  private String normalizeSql(String sql) {
+    return sql.replaceAll("\\s+", " ").trim();
   }
 }

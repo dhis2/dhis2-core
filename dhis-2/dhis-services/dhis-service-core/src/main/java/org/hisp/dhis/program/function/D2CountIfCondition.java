@@ -50,6 +50,8 @@ import org.hisp.dhis.program.ProgramIndicatorService;
  * @author Jim Grace
  */
 public class D2CountIfCondition extends ProgramCountFunction {
+  static final String FUNCTION_NAME = "countIfCondition";
+
   @Override
   public Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
     castDouble(getProgramStageElementDescription(ctx, visitor));
@@ -163,7 +165,7 @@ public class D2CountIfCondition extends ProgramCountFunction {
 
   @Override
   protected String getFunctionName() {
-    return "countIfCondition";
+    return FUNCTION_NAME;
   }
 
   // -------------------------------------------------------------------------

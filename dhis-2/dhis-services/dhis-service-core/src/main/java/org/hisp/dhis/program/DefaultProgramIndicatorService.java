@@ -29,8 +29,24 @@
  */
 package org.hisp.dhis.program;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
+import static org.hisp.dhis.expression.ExpressionParams.DEFAULT_EXPRESSION_PARAMS;
+import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_DESCRIPTIONS;
+import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
+import static org.hisp.dhis.parser.expression.ProgramExpressionParams.DEFAULT_PROGRAM_EXPRESSION_PARAMS;
+
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.DataType;
@@ -57,23 +73,6 @@ import org.hisp.dhis.system.util.SqlUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
-import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
-import static org.hisp.dhis.expression.ExpressionParams.DEFAULT_EXPRESSION_PARAMS;
-import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_DESCRIPTIONS;
-import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_SQL;
-import static org.hisp.dhis.parser.expression.ProgramExpressionParams.DEFAULT_PROGRAM_EXPRESSION_PARAMS;
 
 /**
  * @author Chau Thu Tran
@@ -463,7 +462,8 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
         .params(params)
         .progParams(progParams)
         .sqlBuilder(sqlBuilder)
-        .useExperimentalSqlEngine(this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine())
+        .useExperimentalSqlEngine(
+            this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine())
         .state(ExpressionState.builder().replaceNulls(replaceNulls).build())
         .build();
   }

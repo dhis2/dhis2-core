@@ -1087,13 +1087,20 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
     String valueSql = "cast(123 as numeric)";
     String boundaryHash = "boundaryHash123";
     String testPiUid = "TestPi1";
+    String expectedArgType = "val64";
 
     String encodedValueSql =
         Base64.getEncoder().encodeToString(valueSql.getBytes(StandardCharsets.UTF_8));
     String richPlaceholderString =
         String.format(
-            "__D2FUNC__(func='%s', ps='%s', de='%s', val64='%s', hash='%s', pi='%s')__",
-            funcName, testPsUid, testDeUid, encodedValueSql, boundaryHash, testPiUid);
+            "__D2FUNC__(func='%s', ps='%s', de='%s', argType='%s', arg64='%s', hash='%s', pi='%s')__",
+            funcName,
+            testPsUid,
+            testDeUid,
+            expectedArgType,
+            encodedValueSql,
+            boundaryHash,
+            testPiUid);
     String rawSql = "IF(" + richPlaceholderString + " > 0, 1, 0)"; // Embed in SQL
 
     String expectedValueHash = generateTestSqlHash(valueSql);
@@ -1133,7 +1140,7 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
     when(programIndicator.getProgram())
         .thenReturn(testProgram); // Ensure PI returns correct program
 
-    // Act
+    // method under test
     String resultSql =
         processD2FunctionPlaceholdersAndGenerateCtes(
             rawSql,
@@ -1186,32 +1193,56 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
     String boundaryHash1 = "hash1";
     String boundaryHash2 = "hash2"; // Different boundaries
     String testPiUid = "PiMulti";
+    String expectedArgType = "val64";
 
     String encodedValueSql1 =
         Base64.getEncoder().encodeToString(valueSql1.getBytes(StandardCharsets.UTF_8));
     String encodedValueSql2 =
         Base64.getEncoder().encodeToString(valueSql2.getBytes(StandardCharsets.UTF_8));
 
-    // Placeholder 1: value1, hash1
     String placeholder1 =
         String.format(
-            "__D2FUNC__(func='%s', ps='%s', de='%s', val64='%s', hash='%s', pi='%s')__",
-            funcName, testPsUid, testDeUid, encodedValueSql1, boundaryHash1, testPiUid);
+            "__D2FUNC__(func='%s', ps='%s', de='%s', argType='%s', arg64='%s', hash='%s', pi='%s')__",
+            funcName,
+            testPsUid,
+            testDeUid,
+            expectedArgType,
+            encodedValueSql1,
+            boundaryHash1,
+            testPiUid);
     // Placeholder 2: value2, hash1 (different value)
     String placeholder2 =
         String.format(
-            "__D2FUNC__(func='%s', ps='%s', de='%s', val64='%s', hash='%s', pi='%s')__",
-            funcName, testPsUid, testDeUid, encodedValueSql2, boundaryHash1, testPiUid);
+            "__D2FUNC__(func='%s', ps='%s', de='%s', argType='%s', arg64='%s', hash='%s', pi='%s')__",
+            funcName,
+            testPsUid,
+            testDeUid,
+            expectedArgType,
+            encodedValueSql2,
+            boundaryHash1,
+            testPiUid);
     // Placeholder 3: value1, hash2 (different hash)
     String placeholder3 =
         String.format(
-            "__D2FUNC__(func='%s', ps='%s', de='%s', val64='%s', hash='%s', pi='%s')__",
-            funcName, testPsUid, testDeUid, encodedValueSql1, boundaryHash2, testPiUid);
-    // Placeholder 4: value1, hash1 (identical to placeholder 1)
+            "__D2FUNC__(func='%s', ps='%s', de='%s', argType='%s', arg64='%s', hash='%s', pi='%s')__",
+            funcName,
+            testPsUid,
+            testDeUid,
+            expectedArgType,
+            encodedValueSql1,
+            boundaryHash2,
+            testPiUid);
+    // Placeholder 4: value1, hash1 (identical config to placeholder 1)
     String placeholder4 =
         String.format(
-            "__D2FUNC__(func='%s', ps='%s', de='%s', val64='%s', hash='%s', pi='%s')__",
-            funcName, testPsUid, testDeUid, encodedValueSql1, boundaryHash1, testPiUid);
+            "__D2FUNC__(func='%s', ps='%s', de='%s', argType='%s', arg64='%s', hash='%s', pi='%s')__",
+            funcName,
+            testPsUid,
+            testDeUid,
+            expectedArgType,
+            encodedValueSql1,
+            boundaryHash1,
+            testPiUid);
 
     String rawSql = placeholder1 + "/" + placeholder2 + "-" + placeholder3 + "+" + placeholder4;
 
@@ -1315,6 +1346,7 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
     String valueSql = "cast(123 as numeric)";
     String boundaryHash = "boundaryHash123";
     String testPiUid = "TestPi1";
+    String expectedArgType = "val64";
 
     // Encode the value SQL
     String encodedValueSql =
@@ -1323,8 +1355,14 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
     // Construct the rich placeholder string
     String richPlaceholderString =
         String.format(
-            "__D2FUNC__(func='%s', ps='%s', de='%s', val64='%s', hash='%s', pi='%s')__",
-            funcName, testPsUid, testDeUid, encodedValueSql, boundaryHash, testPiUid);
+            "__D2FUNC__(func='%s', ps='%s', de='%s', argType='%s', arg64='%s', hash='%s', pi='%s')__",
+            funcName,
+            testPsUid,
+            testDeUid,
+            expectedArgType,
+            encodedValueSql,
+            boundaryHash,
+            testPiUid);
 
     String rawSql = "IF(" + richPlaceholderString + " > 0, 1, 0)"; // Embed in SQL
 

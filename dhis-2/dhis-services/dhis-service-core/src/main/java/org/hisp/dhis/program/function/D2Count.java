@@ -40,6 +40,8 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
  * @author Jim Grace
  */
 public class D2Count extends ProgramCountFunction {
+  static final String FUNCTION_NAME = "count";
+
   @Override
   public final Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
     getProgramStageElementDescription(ctx, visitor);
@@ -55,6 +57,6 @@ public class D2Count extends ProgramCountFunction {
 
   @Override
   protected String getFunctionName() {
-    return "count";
+    return FUNCTION_NAME;
   }
 }

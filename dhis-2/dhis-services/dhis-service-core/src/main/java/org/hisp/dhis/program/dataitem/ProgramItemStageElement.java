@@ -29,6 +29,19 @@
  */
 package org.hisp.dhis.program.dataitem;
 
+import static org.hisp.dhis.parser.expression.ParserUtils.assumeStageElementSyntax;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
@@ -44,20 +57,6 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.system.util.SqlUtils;
-
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
-import static org.hisp.dhis.parser.expression.ParserUtils.assumeStageElementSyntax;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Program indicator expression data item ProgramItemStageElement

@@ -39,10 +39,8 @@ import org.hisp.dhis.program.ProgramIndicator;
 
 public class CteSqlFactoryRegistry {
   private final List<CteSqlFactory> factories;
-  private final DataElementService dataElementService;
 
   public CteSqlFactoryRegistry(DataElementService dataElementService) {
-    this.dataElementService = dataElementService;
     factories =
         List.of(
             new VariableCteFactory(),

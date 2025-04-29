@@ -29,6 +29,19 @@
  */
 package org.hisp.dhis.program.function;
 
+import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
+
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AnalyticsConstants;
 import org.hisp.dhis.analytics.DataType;
@@ -43,20 +56,6 @@ import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
-
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
-import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 
 /**
  * Program indicator count functions
@@ -78,13 +77,36 @@ public abstract class ProgramCountFunction extends ProgramExpressionItem {
             and ps = '%7$s')
             """;
 
+  /**
+   * Argument type for d2:countIfCondition Used for: d2:countIfCondition(#{ps.de}, '< 10') Indicates
+   * that the arg64 field in the placeholder contains the Base64 encoded string representation of
+   * the raw string literal provided as the condition argument (including the quotes, e.g., "< 10").
+   * Example condition literal:
+   *
+   * <p>'< 10', '>= 5', '!= "Completed"'
+   */
+  private static final String ARGTYPE_COND_LIT_64 = "condLit64";
+
+  /**
+   * Argument type for d2:countIfValue Used for: d2:countIfValue(#{ps.de}, valueExpr) Indicates that
+   * the arg64 field in the placeholder contains the Base64 encoded string representation of the SQL
+   * generated for the valueExpr. Example:
+   *
+   * <p>valueExpr: 5, 'ABC', V{some_variable} valueSql (before encoding): cast(5 as numeric), 'ABC',
+   * coalesce(alias.value, 0)
+   */
+  private static final String ARGTYPE_VAL_64 = "val64";
+
+  /** Argument type for d2:count */
+  private static final String ARGTYPE_NONE = "none";
+
   @Override
   public final Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
     if (!visitor.isUseExperimentalSqlEngine()) {
       return getSqlLegacy(ctx, visitor);
     }
     validateCountFunctionArgs(ctx);
-    // 1. Extract Common Parameters
+    // Extract Common Parameters
     String programStageId = ctx.uid0.getText();
     String dataElementId = ctx.uid1.getText();
     ProgramExpressionParams progParams = visitor.getProgParams();
@@ -93,122 +115,82 @@ public abstract class ProgramCountFunction extends ProgramExpressionItem {
     Date endDate = progParams.getReportingEndDate();
     String piUid = programIndicator.getUid();
 
-    // 2. Generate Boundary Hash
+    // Generate Boundary Hash
     String boundaryHash = generateBoundaryHash(programIndicator, startDate, endDate);
 
-    // 3. Get Function Name from subclass
+    // Get Function Name from subclass
     String functionName = getFunctionName();
 
-    // 4. Determine Argument Type and Encode Argument SQL/Literal
-    String argType = "none"; // Default for d2:count
+    // Determine Argument Type and Encode Argument SQL/Literal
+    String argType = ARGTYPE_NONE;
     String encodedArgSql = ""; // Default for d2:count
 
-    if ("countIfValue".equals(functionName)) {
+    if (D2CountIfValue.FUNCTION_NAME.equals(functionName)) {
       // --- Handle d2:countIfValue ---
       // Find the CORRECT accessor for the value expression context
       ExprContext valueExprCtx = ctx.expr(0); // Assuming expr(0) is correct, VERIFY this!
 
       if (valueExprCtx == null) {
         log.error(
-                "Value expression (second argument) is missing for d2:countIfValue in: {}",
-                ctx.getText());
+            "Value expression (second argument) is missing for d2:countIfValue in: {}",
+            ctx.getText());
         return "__INVALID_D2FUNC_ARGS__"; // Return error placeholder
       }
 
       // Get valueSql using temporary visitor
       CommonExpressionVisitor sqlVisitor =
-              visitor.toBuilder()
-                      .itemMethod(ITEM_GET_SQL)
-                      .params(visitor.getParams().toBuilder().dataType(DataType.NUMERIC).build())
-                      .itemMap(visitor.getItemMap())
-                      .constantMap(visitor.getConstantMap())
-                      .build();
+          visitor.toBuilder()
+              .itemMethod(ITEM_GET_SQL)
+              .params(visitor.getParams().toBuilder().dataType(DataType.NUMERIC).build())
+              .itemMap(visitor.getItemMap())
+              .constantMap(visitor.getConstantMap())
+              .build();
       String valueSql = castString(sqlVisitor.visit(valueExprCtx));
 
       if (valueSql == null) {
         log.error(
-                "Visiting the value expression resulted in null SQL for d2:countIfValue in: {}. Value text: {}",
-                ctx.getText(),
-                valueExprCtx.getText());
+            "Visiting the value expression resulted in null SQL for d2:countIfValue in: {}. Value text: {}",
+            ctx.getText(),
+            valueExprCtx.getText());
         return "__INVALID_D2FUNC_VALUE_SQL__"; // Return error placeholder
       }
 
       encodedArgSql = Base64.getEncoder().encodeToString(valueSql.getBytes(StandardCharsets.UTF_8));
-      argType = "val64"; // Indicate value SQL is encoded
+      argType = ARGTYPE_VAL_64;
 
-    } else if ("countIfCondition".equals(functionName)) {
-      // --- Handle d2:countIfCondition ---
-      // Find the CORRECT accessor for the string literal
-      ExpressionParser.StringLiteralContext conditionNode = ctx.stringLiteral(); // Assuming stringLiteral(0) is correct, VERIFY this!
+    } else if (D2CountIfCondition.FUNCTION_NAME.equals(functionName)) {
+
+      ExpressionParser.StringLiteralContext conditionNode = ctx.stringLiteral();
 
       if (conditionNode == null) {
         log.error(
-                "Condition string literal (second argument) is missing for d2:countIfCondition in: {}",
-                ctx.getText());
+            "Condition string literal (second argument) is missing for d2:countIfCondition in: {}",
+            ctx.getText());
         return "__INVALID_D2FUNC_ARGS__"; // Return error placeholder
       }
 
       String rawConditionLiteral = conditionNode.getText(); // Get the literal including quotes
       encodedArgSql =
-              Base64.getEncoder().encodeToString(rawConditionLiteral.getBytes(StandardCharsets.UTF_8));
-      argType = "condLit64"; // Indicate condition literal is encoded
+          Base64.getEncoder().encodeToString(rawConditionLiteral.getBytes(StandardCharsets.UTF_8));
+      argType = ARGTYPE_COND_LIT_64;
 
-    } else if (!"count".equals(functionName)) {
+    } else if (!D2Count.FUNCTION_NAME.equals(functionName)) {
       // Handle unknown function derived from this base class
       log.error("Unknown ProgramCountFunction type '{}' encountered.", functionName);
       return "__UNKNOWN_D2FUNC__";
     }
     // For "count", argType remains "none" and encodedArgSql remains ""
 
-    // 5. Format Rich Placeholder
-    String richPlaceholder =
-            String.format(
-                    "__D2FUNC__(func='%s', ps='%s', de='%s', argType='%s', arg64='%s', hash='%s', pi='%s')__",
-                    functionName,
-                    programStageId,
-                    dataElementId,
-                    argType, // Embed the argument type indicator
-                    encodedArgSql, // Embed encoded arg (valueSql or conditionLiteral) or empty string
-                    boundaryHash,
-                    piUid);
-
-    // 6. Return Rich Placeholder
-    return richPlaceholder;
-  }
-
-  public final Object getSql2(ExprContext ctx, CommonExpressionVisitor visitor) {
-    if (!visitor.isUseExperimentalSqlEngine()) {
-      return getSqlLegacy(ctx, visitor);
-    }
-    validateCountFunctionArgs(ctx);
-
-    ProgramContext context = new ProgramContext(ctx, visitor);
-    CommonExpressionVisitor sqlVisitor =
-        CommonExpressionVisitor.builder()
-            .sqlBuilder(visitor.getSqlBuilder())
-            .constantMap(visitor.getConstantMap())
-            .itemMap(visitor.getItemMap())
-            .itemMethod(ITEM_GET_SQL)
-            .params(visitor.getParams().toBuilder().dataType(DataType.NUMERIC).build())
-            .build();
-    String valueSql = castString(sqlVisitor.visit(ctx.expr(0)));
-
-    String boundaryHash =
-        generateBoundaryHash(context.programIndicator, context.startDate, context.endDate);
-
-    String functionName = getFunctionName();
-
-    String encodedValueSql =
-        Base64.getEncoder().encodeToString(valueSql.getBytes(StandardCharsets.UTF_8));
-
+    // Return Rich Placeholder
     return String.format(
-        "__D2FUNC__(func='%s', ps='%s', de='%s', val64='%s', hash='%s', pi='%s')__",
+        "__D2FUNC__(func='%s', ps='%s', de='%s', argType='%s', arg64='%s', hash='%s', pi='%s')__",
         functionName,
-        context.programStageId,
-        context.dataElementId,
-        encodedValueSql,
+        programStageId,
+        dataElementId,
+        argType, // Embed the argument type indicator
+        encodedArgSql, // Embed encoded arg (valueSql or conditionLiteral) or empty string
         boundaryHash,
-        context.piUid);
+        piUid);
   }
 
   public final Object getSqlLegacy(ExprContext ctx, CommonExpressionVisitor visitor) {
@@ -294,7 +276,14 @@ public abstract class ProgramCountFunction extends ProgramExpressionItem {
     }
   }
 
-  // TODO move to common package?
+  /**
+   * Generate a hash from the program indicator boundaries and the reporting period. This hash acts
+   * as a fingerprint for the specific boundary setup within the context of the current reporting
+   * period. It allows the placeholder processing logic to correctly distinguish and potentially
+   * reuse CTEs based not only on the data item/function but also on the applicable date boundaries
+   *
+   * @return The generated hash string.
+   */
   private static String generateBoundaryHash(
       ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate) {
     Set<AnalyticsPeriodBoundary> boundaries = programIndicator.getAnalyticsPeriodBoundaries();
@@ -320,27 +309,6 @@ public abstract class ProgramCountFunction extends ProgramExpressionItem {
     } catch (NoSuchAlgorithmException e) {
       log.error("SHA-1 Algorithm not found for boundary hashing. Falling back.", e);
       return "hash_error_" + boundaryConfigString.hashCode();
-    }
-  }
-
-  public record ProgramContext(
-      String programStageId,
-      String dataElementId,
-      ProgramExpressionParams progParams,
-      ProgramIndicator programIndicator,
-      Date startDate,
-      Date endDate,
-      String piUid) {
-    public ProgramContext(ExprContext ctx, CommonExpressionVisitor visitor) {
-      this(
-          ctx.uid0.getText(), // programStageId
-          ctx.uid1.getText(), // dataElementId
-          visitor.getProgParams(), // progParams
-          visitor.getProgParams().getProgramIndicator(), // programIndicator
-          visitor.getProgParams().getReportingStartDate(), // startDate
-          visitor.getProgParams().getReportingEndDate(), // endDate
-          visitor.getProgParams().getProgramIndicator().getUid() // piUid
-          );
     }
   }
 }
