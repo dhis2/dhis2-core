@@ -42,14 +42,13 @@ pipeline {
 
             post {
                 always {
-                    // TODO might need to be more specific with the include pattern
-                    teamscale includePattern: 'dhis-2/dhis-test-coverage/target/site/jacoco-aggregate/**',
-                        credentialsId: 'teamscale_id',
-                        partition: 'yourPartition',
+                    teamscale includePattern: '**/target/site/jacoco/**.xml',
+                        credentialsId: 'teamscale-credentials',
+                        partition: "jenkins-dev-${env.GIT_BRANCH}",
                         reportFormatId: 'JACOCO',
-                        teamscaleProject: 'simpleProject',
+                        teamscaleProject: 'dhis-2-core',
                         uploadMessage: "JaCoCo reports from ${GIT_COMMIT}",
-                        url: 'http://localhost:8100',
+                        url: 'https://dhis2.teamscale.io',
                         revision: "${GIT_COMMIT}"
                 }
             }
