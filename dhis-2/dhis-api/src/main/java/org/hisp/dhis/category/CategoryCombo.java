@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.category;
 
+import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -62,6 +64,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -200,6 +203,40 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
+
+  @Override
+  public int hashCode() {
+    int result = getUid() != null ? getUid().hashCode() : 0;
+    result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
+    result = 31 * result + (getName() != null ? getName().hashCode() : 0);
+
+    return result;
+  }
+
+  /** Class check uses isAssignableFrom and get-methods to handle proxied objects. */
+  @Override
+  public boolean equals(Object obj) {
+    return this == obj
+        || obj instanceof IdentifiableObject
+            && getRealClass(this) == getRealClass(obj)
+            && typedEquals((IdentifiableObject) obj);
+  }
+
+  /**
+   * Equality check against typed identifiable object. This method is not vulnerable to proxy
+   * issues, where an uninitialized object class type fails comparison to a real class.
+   *
+   * @param other the identifiable object to compare this object against.
+   * @return true if equal.
+   */
+  public final boolean typedEquals(IdentifiableObject other) {
+    if (other == null) {
+      return false;
+    }
+    return Objects.equals(getUid(), other.getUid())
+        && Objects.equals(getCode(), other.getCode())
+        && Objects.equals(getName(), other.getName());
+  }
 
   @JsonProperty("isDefault")
   @Override
