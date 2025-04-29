@@ -31,6 +31,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dependsOn.services.IndicatorService;
 import org.hisp.dhis.dependsOn.services.ProgramIndicatorService;
@@ -73,10 +75,12 @@ public class DependsOnExtension
       if (svc == null) {
         throw new DependencySetupException("No service for " + df.type());
       }
-
+      // Get the code from the json payload
       String code = df.payload().path("code").asText();
-      if (svc.lookup(code).isPresent()) {
+      Optional<String> foundUid = svc.lookup(code);
+      if (foundUid.isPresent()) {
         log.info("{} with code='{}' exists – skipping", df.type(), code);
+        created.add(new CreatedResource(df.type(), foundUid.get()));
         continue;
       }
       String uid = svc.create(df.payload());
@@ -93,7 +97,7 @@ public class DependsOnExtension
     Boolean delete = ctx.getStore(NS).remove(DependencyOpType.DELETE, Boolean.class);
     if (delete == null || !delete) return;
 
-    List<CreatedResource> created = ctx.getStore(NS).remove("CREATED", List.class);
+    List<CreatedResource> created = ctx.getStore(NS).remove(DependencyOpType.CREATE, List.class);
     if (created == null) return;
 
     for (CreatedResource cr : created) {
