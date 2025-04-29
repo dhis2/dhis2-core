@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.common;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -46,5 +47,15 @@ class QueryOperatorTest {
     assertFalse(QueryOperator.GT.isEqualTo());
     assertFalse(QueryOperator.LT.isLike());
     assertFalse(QueryOperator.EQ.isLike());
+  }
+
+  @Test
+  void testNotNull() {
+    assertEquals(QueryOperator.NNULL, QueryOperator.fromString("!null"));
+  }
+
+  @Test
+  void testNull() {
+    assertEquals(QueryOperator.NULL, QueryOperator.fromString("null"));
   }
 }
