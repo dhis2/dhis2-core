@@ -96,7 +96,6 @@ import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Abyot Aselefew
@@ -530,7 +529,7 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
   public void setOwner(String owner) {}
 
   @Override
-  public int compareTo(@NotNull IdentifiableObject o) {
+  public int compareTo(@Nonnull IdentifiableObject o) {
     return 0;
   }
 
