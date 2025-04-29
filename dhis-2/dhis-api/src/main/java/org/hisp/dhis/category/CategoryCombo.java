@@ -48,6 +48,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderColumn;
@@ -67,11 +68,10 @@ import javax.annotation.Nonnull;
 import lombok.Setter;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.ListIndexBase;
 import org.hibernate.annotations.Parameter;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
-import org.hisp.dhis.attribute.AttributeValuesDeserializer;
-import org.hisp.dhis.attribute.AttributeValuesSerializer;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DataDimensionType;
@@ -109,7 +109,7 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
   public static final String DEFAULT_CATEGORY_COMBO_NAME = "default";
 
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
   @Column(name = "categorycomboid")
   private long id;
 
@@ -140,7 +140,7 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
       parameters = {@Parameter(name = "clazz", value = "org.hisp.dhis.translation.Translation")})
   private Set<Translation> translations;
 
-  @OneToMany
+  @ManyToMany(fetch = FetchType.LAZY)
   @JoinTable(
       name = "categorycombos_categories",
       joinColumns =
@@ -152,20 +152,11 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
               name = "categoryid",
               foreignKey = @ForeignKey(name = "fk_categorycombo_categoryid")))
   @OrderColumn(name = "sort_order")
+  @ListIndexBase(1)
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private List<Category> categories;
 
-  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-  @JoinTable(
-      name = "categorycombos_optioncombos",
-      joinColumns =
-          @JoinColumn(
-              name = "categorycomboid",
-              foreignKey = @ForeignKey(name = "fk_categorycombos_optioncombos_categorycomboid")),
-      inverseJoinColumns =
-          @JoinColumn(
-              name = "categoryoptioncomboid",
-              foreignKey = @ForeignKey(name = "fk_categorycombo_categoryoptioncomboid")))
+  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "categoryCombo")
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private Set<CategoryOptionCombo> optionCombos;
 
@@ -182,15 +173,13 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
 
   @Column(name = "sharing")
   @Type(type = "jsbObjectSharing")
-  private Sharing sharing;
+  private Sharing sharing = new Sharing();
 
   // -------------------------------------------------------------------------
   // Transient fields
   // -------------------------------------------------------------------------
   /** Access information for this object. Applies to current user. */
   @Transient private Access access;
-
-  @Transient private AttributeValues attributeValues = AttributeValues.empty();
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -354,7 +343,7 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
   // -------------------------------------------------------------------------
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "categories", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "category", namespace = DxfNamespaces.DXF_2_0)
   public List<Category> getCategories() {
@@ -464,12 +453,8 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
   }
 
   @Override
-  @OpenApi.Property(BaseIdentifiableObject.AttributeValue[].class)
-  @JsonProperty("attributeValues")
-  @JsonDeserialize(using = AttributeValuesDeserializer.class)
-  @JsonSerialize(using = AttributeValuesSerializer.class)
   public AttributeValues getAttributeValues() {
-    return attributeValues;
+    return AttributeValues.empty();
   }
 
   @Override
