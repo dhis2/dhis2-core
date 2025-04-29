@@ -78,7 +78,7 @@ public class PsDeCteFactory implements CteSqlFactory {
 
     while (m.find()) {
       Optional<PlaceholderParser.PsDeFields> opt = parse(m);
-      if (opt.isEmpty()) { // malformed → leave untouched
+      if (opt.isEmpty()) {
         m.appendReplacement(out, Matcher.quoteReplacement(m.group(0)));
         continue;
       }
@@ -89,7 +89,7 @@ public class PsDeCteFactory implements CteSqlFactory {
       ensureCte(key, p, offset, programIndicator, start, end, cteContext, sqlBuilder);
 
       CteDefinition def = cteContext.getDefinitionByKey(key);
-      if (def == null) { // create failed → keep raw
+      if (def == null) {
         m.appendReplacement(out, Matcher.quoteReplacement(m.group(0)));
         continue;
       }

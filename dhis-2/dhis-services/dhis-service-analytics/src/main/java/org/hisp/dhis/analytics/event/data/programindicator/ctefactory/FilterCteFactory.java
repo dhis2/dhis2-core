@@ -77,7 +77,7 @@ public class FilterCteFactory implements CteSqlFactory {
     while (m.find()) {
       simpleFound = true;
       Optional<FilterFields> opt = parse(m);
-      if (opt.isEmpty()) { // malformed → leave untouched
+      if (opt.isEmpty()) {
         m.appendReplacement(out, Matcher.quoteReplacement(m.group(0)));
         continue;
       }
@@ -89,7 +89,6 @@ public class FilterCteFactory implements CteSqlFactory {
       String sqlOp = mapOperator(p.operator());
 
       if (column == null || sqlOp == null) {
-        // unsupported -> leave untouched
         m.appendReplacement(out, Matcher.quoteReplacement(m.group(0)));
         continue;
       }
@@ -116,7 +115,6 @@ public class FilterCteFactory implements CteSqlFactory {
     String cleaned = clean(out.toString());
 
     if (!simpleFound) {
-      // nothing recognised – return intact
       return rawSql;
     }
     return cleaned;

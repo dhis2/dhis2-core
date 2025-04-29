@@ -103,8 +103,6 @@ public class D2FunctionCteFactory implements CteSqlFactory {
               "Placeholder specified argType '{}' but arg64 was empty: {}",
               argType,
               matcher.group(0));
-          // Treat as if no argument provided for key generation? Or use empty string hash?
-          // Let's proceed assuming empty string is the intended value for hashing.
           decodedArgSql = "";
         }
       }
@@ -125,7 +123,7 @@ public class D2FunctionCteFactory implements CteSqlFactory {
       // Check if CTE already exists
       if (!cteContext.containsCte(cteKey)) {
 
-        // 6. Get Program UID and Event Table Name
+        // Get Program UID and Event Table Name
         if (programIndicator.getProgram() == null) {
           log.error(
               "ProgramIndicator {} (from context) has no associated Program. Cannot determine event table name for key {}.",

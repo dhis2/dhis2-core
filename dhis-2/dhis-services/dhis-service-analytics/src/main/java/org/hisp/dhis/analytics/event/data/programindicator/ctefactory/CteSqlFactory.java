@@ -36,10 +36,7 @@ import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.program.ProgramIndicator;
 
 /**
- * Strategy for recognising a placeholder family and producing the substituted SQL *plus* the
- * necessary CTE side-effects.
- *
- * <p>Implementations must be stateless and thread-safe.
+ * Strategy for finding a placeholder family and producing the substituted SQL
  */
 public interface CteSqlFactory {
 
