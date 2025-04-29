@@ -90,7 +90,7 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
   private OrganisationUnit organisationUnit;
   private TrackedEntity trackedEntityInstance;
   private Enrollment programInstance;
-  private Enrollment sprogramInstanceB;
+  private Enrollment programInstanceB;
   private UserGroup userGroup;
 
   private String today = "'" + LocalDate.now() + "'";
