@@ -44,7 +44,6 @@ import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
 
 class MinMaxImportTest extends ApiTest {
   private MinMaxValuesActions minMaxValuesActions;
