@@ -263,7 +263,7 @@ public class MinMaxDataElementController {
     }
   }
 
-  @PostMapping(value = "/values", consumes = "multipart/form-data")
+  @DeleteMapping(value = "/values", consumes = "multipart/form-data")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @Maturity.Alpha
