@@ -35,9 +35,7 @@ import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.program.ProgramIndicator;
 
-/**
- * Strategy for finding a placeholder family and producing the substituted SQL
- */
+/** Strategy for finding a placeholder family and producing the substituted SQL */
 public interface CteSqlFactory {
 
   /** Returns {@code true} when {@code rawSql} contains this factory’s placeholder grammar. */
