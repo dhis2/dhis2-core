@@ -59,16 +59,30 @@ public class IndexController {
 
   private final SchemaService schemaService;
   private final ContextService contextService;
+  private final AppManager appManager;
 
   @GetMapping("/")
   public void getIndexWithSlash(
       HttpServletRequest request, HttpServletResponse response, SystemSettings settings)
       throws IOException {
-    String redirectUrl = request.getContextPath() + "/api/apps/" + settings.getStartModule();
+    
+    String redirectUrl = "/apps"; // By default, redirect to the global shell root
+    String sanitizedStartModule = settings.getStartModule();
+    if (sanitizedStartModule != null) {
+     if ( sanitizedStartModule.startsWith("dhis-web-") ) {
+      sanitizedStartModule = sanitizedStartModule.substring(9);
+     } else if ( sanitizedStartModule.startsWith("app:") ) {
+      sanitizedStartModule = sanitizedStartModule.substring(4);
+     }
 
-    if (!redirectUrl.endsWith("/")) {
-      redirectUrl += "/";
+      App app = appManager.getApp(sanitizedStartModule);
+
+      if (app != null) {
+        redirectUrl = app.getLaunchUrl();
+      }
     }
+
+
     String location = response.encodeRedirectURL(redirectUrl);
     response.sendRedirect(location);
   }
