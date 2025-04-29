@@ -29,33 +29,16 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static java.util.Collections.singleton;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.stream.Stream;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementDomain;
-import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.http.HttpStatus;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodType;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Tests the {@link MinMaxDataElementController} using (mocked) REST requests.
@@ -64,22 +47,10 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
 
-  @Autowired private TransactionTemplate transactionTemplate;
-  @Autowired private OrganisationUnitService organisationUnitService;
-  @Autowired private DataSetService dataSetService;
-  @Autowired private DataElementService dataElementService;
-
-  @Autowired private PeriodService periodService;
-
   private static String fakeDataSetID = "xcTWJYxFyE2";
   private static String fakeOrgUnitID = "CAdEJWs42WP";
   private static String fakeDataElementID = "vZjiu94f5f5";
   private static String fakeCategoryOptionComboID = "XxiuH64Tyl6";
-
-  private OrganisationUnit organisationUnitA;
-  private DataSet dataSetA;
-  private DataElement dataElementA;
-  private CategoryOptionCombo defaultOptionCombo;
 
   @Test
   void testPostJsonObject() {
@@ -152,75 +123,6 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
                 }"""
                     .formatted(orgUnitId, dataElementId, categoryOptionComboId))
             .content(HttpStatus.NOT_FOUND));
-  }
-
-  private void setupBulkTest() {
-
-    CategoryCombo defCatCombo = categoryService.getDefaultCategoryCombo();
-    defaultOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-    PeriodType periodType =
-        periodService.reloadPeriodType(PeriodType.getPeriodTypeByName("Monthly"));
-
-    transactionTemplate.execute(
-        status -> {
-          organisationUnitA = createOrganisationUnit('A');
-          organisationUnitService.addOrganisationUnit(organisationUnitA);
-          createUserAndInjectSecurityContext(singleton(organisationUnitA), true);
-          dataSetA = createDataSet('A', periodType, defCatCombo);
-          dataSetService.addDataSet(dataSetA);
-          dataElementA =
-              createDataElement(
-                  'A', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.AGGREGATE);
-          dataElementService.addDataElement(dataElementA);
-          dbmsManager.flushSession();
-          dbmsManager.clearSession();
-          return null;
-        });
-  }
-
-  private void tearDownBulkTest() {
-    transactionTemplate.execute(
-        status -> {
-          if (organisationUnitA != null) {
-            organisationUnitService.deleteOrganisationUnit(organisationUnitA);
-          }
-          if (dataSetA != null) {
-            dataSetService.deleteDataSet(dataSetA);
-          }
-          if (dataElementA != null) {
-            dataElementService.deleteDataElement(dataElementA);
-          }
-          dbmsManager.flushSession();
-          dbmsManager.clearSession();
-          return null;
-        });
-  }
-
-  @Disabled("Issues with transaction isolation here...")
-  void testBulkPostJson_DefaultGeneratedTrue() {
-    setupBulkTest();
-    String payload =
-"""
-{ "dataset": "%s",
-    "orgunit": "%s",
- "values" : [{
-    "dataElement": "%s",
-    "orgUnit": "%s",
-    "categoryOptionCombo": "%s",
-    "minValue": 10,
-    "maxValue": 100
-  }
-]
-}
-"""
-            .formatted(
-                dataSetA.getUid(),
-                organisationUnitA.getUid(),
-                dataElementA.getUid(),
-                organisationUnitA.getUid(),
-                defaultOptionCombo.getUid());
-    assertStatus(HttpStatus.OK, POST("/minMaxDataElements/values", payload));
-    tearDownBulkTest();
   }
 
   private static Stream<Arguments> provideTestCases() {
