@@ -58,7 +58,7 @@ public interface EventDataQueryService {
   /**
    * Creates an {@link EventQueryParams} based on the given event analytical object.
    *
-   * @param request the {@link EventAnalyticalObject}.
+   * @param object the {@link EventAnalyticalObject}.
    * @return an {@link EventQueryParams}.
    */
   EventQueryParams getFromAnalyticalObject(EventAnalyticalObject object);

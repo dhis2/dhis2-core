@@ -512,24 +512,22 @@ public class DefaultDimensionService implements DimensionService {
             }
           }
         } else if (PERIOD.equals(type)) {
-          List<RelativePeriodEnum> enums = new ArrayList<>();
           List<Period> periods = new UniqueArrayList<>();
-          Set<String> relativePeriods = new LinkedHashSet<>();
+          Set<String> allPeriods = new LinkedHashSet<>();
 
           for (String period : uids) {
-            if (RelativePeriodEnum.contains(period)) {
-              enums.add(RelativePeriodEnum.valueOf(period));
-              relativePeriods.add(period);
-            } else {
+            if (!RelativePeriodEnum.contains(period)) {
               Period isoPeriod = PeriodType.getPeriodFromIsoString(period);
 
-              if (period != null) {
+              if (isoPeriod != null) {
                 periods.add(isoPeriod);
               }
             }
+
+            allPeriods.add(period);
           }
 
-          object.setRawRelativePeriods(new ArrayList<>(relativePeriods));
+          object.setRawPeriods(new ArrayList<>(allPeriods));
           object.setPeriods(periodService.reloadPeriods(new ArrayList<>(periods)));
         } else if (ORGANISATION_UNIT.equals(type)) {
           for (String ou : uids) {
