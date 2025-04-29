@@ -27,9 +27,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-
 package org.hisp.dhis.minmax;
+
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,18 +43,15 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-
 class MinMaxImportTest extends ApiTest {
   private MinMaxValuesActions minMaxValuesActions;
 
   private LoginActions loginActions;
 
-  private final String dataSet = "qNtxTrp56wV"; //TA Malaria annual data
-  private final String dataElement = "BuZ5LGNfGEU"; //TA funding need (USD)
-  private final String orgUnit = "ImspTQPwCqd"; //Sierra Leone
-  private final String defaultCOC = "HllvX50cXC0"; //default category option combo
+  private final String dataSet = "qNtxTrp56wV"; // TA Malaria annual data
+  private final String dataElement = "BuZ5LGNfGEU"; // TA funding need (USD)
+  private final String orgUnit = "ImspTQPwCqd"; // Sierra Leone
+  private final String defaultCOC = "HllvX50cXC0"; // default category option combo
 
   @BeforeAll
   public void before() {
@@ -112,7 +110,10 @@ class MinMaxImportTest extends ApiTest {
             .formatted(dataSet, orgUnit, dataElement, orgUnit, defaultCOC);
     loginActions.loginAsSuperUser();
     ApiResponse response = minMaxValuesActions.post(payload);
-    response.validate().statusCode(400).body("status", equalTo("ERROR"))
+    response
+        .validate()
+        .statusCode(400)
+        .body("status", equalTo("ERROR"))
         .body("message", containsString("Missing required field"));
   }
 }
