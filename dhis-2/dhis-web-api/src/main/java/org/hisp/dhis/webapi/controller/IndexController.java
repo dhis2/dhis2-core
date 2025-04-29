@@ -34,6 +34,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.appmanager.App;
+import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
