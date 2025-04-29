@@ -203,6 +203,8 @@ public interface RelationshipItemMapper {
   Set<EventDataValue> mapEventDataValues(Set<EventDataValue> eventDataValues);
 
   @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "dataElement")
+  @Mapping(target = "value")
   @Mapping(target = "created")
   @Mapping(target = "lastUpdated")
   @Mapping(target = "createdByUserInfo")
