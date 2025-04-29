@@ -34,6 +34,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1076;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1090;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.getTrackedEntityAttributes;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateOptionSet;
+import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateValueType;
 
 import java.util.Optional;
 import java.util.Set;
@@ -50,7 +51,6 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
-import org.hisp.dhis.tracker.imports.validation.service.attribute.TrackedAttributeValidationService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -61,10 +61,8 @@ class AttributeValidator
     extends org.hisp.dhis.tracker.imports.validation.validator.AttributeValidator
     implements Validator<org.hisp.dhis.tracker.imports.domain.TrackedEntity> {
 
-  public AttributeValidator(
-      TrackedAttributeValidationService teAttrService,
-      DhisConfigurationProvider dhisConfigurationProvider) {
-    super(teAttrService, dhisConfigurationProvider);
+  public AttributeValidator(DhisConfigurationProvider dhisConfigurationProvider) {
+    super(dhisConfigurationProvider);
   }
 
   @Override
@@ -154,7 +152,7 @@ class AttributeValidator
       }
 
       validateAttributeValue(reporter, trackedEntity, tea, attribute.getValue());
-      validateAttrValueType(reporter, bundle, trackedEntity, attribute, tea);
+      validateValueType(reporter, bundle, trackedEntity, attribute.getValue(), tea);
       validateOptionSet(reporter, trackedEntity, tea, attribute.getValue());
 
       validateAttributeUniqueness(
