@@ -36,8 +36,10 @@ import com.google.common.base.Strings;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +48,6 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
-import org.hisp.dhis.analytics.common.CteDefinition.CteType;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -270,81 +271,92 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
 
   /**
    * Builds the LEFT JOIN clause string for all relevant value-providing CTEs based on their type.
+   * Reads definitions directly from the populated CteContext. Refactored for improved readability
+   * and reduced cognitive complexity.
    *
    * @param cteContext The CTE context containing definitions.
    * @return The combined LEFT JOIN SQL string.
    */
   String buildLeftJoinsForAllValueCtes(CteContext cteContext) {
     List<String> joinClauses = new ArrayList<>();
+    Set<String> joinedAliases = new HashSet<>(); // Track aliases to avoid duplicate joins
 
     for (String key : cteContext.getCteKeys()) {
       CteDefinition definition = cteContext.getDefinitionByKey(key);
 
-      if (definition == null) {
-        log.warn("Skipping join generation for null definition with key: {}", key);
+      // Skip invalid definitions or those already handled
+      if (definition == null || joinedAliases.contains(definition.getAlias())) {
+        if (definition != null)
+          log.trace("Skipping duplicate/invalid join for alias: {}", definition.getAlias());
         continue;
       }
 
-      // Skip types that shouldn't be joined here
-      if (definition.getCteType() == CteType.FILTER
-          || definition.getCteType() == CteType.PROGRAM_INDICATOR
-          || definition.getCteType() == CteType.BASE_AGGREGATION
-          || definition.getCteType()
-              == CteType.PROGRAM_STAGE) { // Assuming PROGRAM_STAGE CTEs are handled differently
-        continue;
-      }
-
-      String alias = definition.getAlias();
-      if (alias == null) {
-        log.warn("Skipping join generation for definition with null alias, key: {}", key);
-        continue;
-      }
-
-      String joinSql = null;
-      switch (definition.getCteType()) {
-        case VARIABLE:
-          // Variable CTEs (V{...}) always join on rn = 1
-          joinSql =
-              String.format(
-                  "left join %s %s on %s.enrollment = %s.enrollment and %s.rn = 1",
-                  key, alias, alias, SUBQUERY_TABLE_ALIAS, alias);
-          break;
-        case PSDE:
-          // PSDE CTEs (#{...}) join on rn = targetRank
-          Integer targetRank = definition.getTargetRank();
-          if (targetRank != null) {
-            joinSql =
-                String.format(
-                    "left join %s %s on %s.enrollment = %s.enrollment and %s.rn = %d",
-                    key, alias, alias, SUBQUERY_TABLE_ALIAS, alias, targetRank);
-          } else {
-            log.error(
-                "PSDE CTE definition for key '{}' is missing targetRank. Cannot generate join.",
-                key);
-          }
-          break;
-
-        case D2_FUNCTION:
-          // D2 Function CTEs (count(*)... group by enrollment) join only on enrollment
-          joinSql =
-              String.format(
-                  "left join %s %s on %s.enrollment = %s.enrollment",
-                  key, alias, alias, SUBQUERY_TABLE_ALIAS);
-          break;
-        default:
-          log.debug(
-              "Skipping join generation for unhandled or non-joinable CTE type: {} with key: {}",
-              definition.getCteType(),
-              key);
-          break;
-      }
+      // Generate join based on type, skip if not a value CTE type
+      String joinSql = generateJoinForCteDefinition(key, definition);
 
       if (joinSql != null) {
         joinClauses.add(joinSql);
+        joinedAliases.add(definition.getAlias()); // Mark alias as joined
       }
     }
 
     return String.join(" ", joinClauses);
+  }
+
+  /**
+   * Generates the specific LEFT JOIN SQL fragment for a given CTE definition, based on its type.
+   * Returns null if the CTE type should not be joined here.
+   *
+   * @param key The CTE key.
+   * @param definition The CTE definition.
+   * @return The LEFT JOIN SQL string or null.
+   */
+  private String generateJoinForCteDefinition(String key, CteDefinition definition) {
+    String alias = definition.getAlias();
+    if (alias == null) {
+      log.warn("Skipping join generation for definition with null alias, key: {}", key);
+      return null;
+    }
+
+    return switch (definition.getCteType()) {
+      case VARIABLE -> formatVariableJoin(key, alias);
+      case PSDE -> formatPsdeJoin(key, alias, definition.getTargetRank());
+      case D2_FUNCTION -> formatD2FunctionJoin(key, alias);
+      default -> {
+        log.trace(
+            "Skipping join generation for non-value CTE type: {} with key: {}",
+            definition.getCteType(),
+            key);
+        yield null;
+      }
+    };
+  }
+
+  /** Formats the LEFT JOIN for Variable CTEs (rn=1). */
+  private String formatVariableJoin(String key, String alias) {
+    return String.format(
+        "left join %s %s on %s.enrollment = %s.enrollment and %s.rn = 1",
+        key, alias, alias, SUBQUERY_TABLE_ALIAS, alias);
+  }
+
+  /** Formats the LEFT JOIN for PSDE CTEs (rn=targetRank). */
+  private String formatPsdeJoin(String key, String alias, Integer targetRank) {
+    if (targetRank != null) {
+      return String.format(
+          "left join %s %s on %s.enrollment = %s.enrollment and %s.rn = %d",
+          key, alias, alias, SUBQUERY_TABLE_ALIAS, alias, targetRank);
+    } else {
+      log.error(
+          "PSDE CTE definition for key '{}' is missing targetRank. Cannot generate join.", key);
+      return null; // Return null if rank is missing
+    }
+  }
+
+  /** Formats the LEFT JOIN for D2 Function CTEs (no rn). */
+  private String formatD2FunctionJoin(String key, String alias) {
+    return String.format(
+        "left join %s %s on %s.enrollment = %s.enrollment",
+        key, alias, alias, SUBQUERY_TABLE_ALIAS);
   }
 
   private boolean requireCoalesce(String function) {
