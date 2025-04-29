@@ -68,19 +68,32 @@ public class IndexController {
       HttpServletRequest request, HttpServletResponse response, SystemSettings settings)
       throws IOException {
 
-    String redirectUrl = "/apps/"; // By default, redirect to the global shell root
+    String redirectUrl =
+        request.getContextPath() + "/apps/"; // By default, redirect to the global shell root
+
     String sanitizedStartModule = settings.getStartModule();
     if (sanitizedStartModule != null) {
-      if (sanitizedStartModule.startsWith("dhis-web-")) {
-        sanitizedStartModule = sanitizedStartModule.substring(9);
-      } else if (sanitizedStartModule.startsWith("app:")) {
+      if (sanitizedStartModule.startsWith("app:")) {
         sanitizedStartModule = sanitizedStartModule.substring(4);
       }
+      if (sanitizedStartModule.startsWith("dhis-web-")) {
+        sanitizedStartModule = sanitizedStartModule.substring(9);
+      }
 
+      // Lookup app by key
       App app = appManager.getApp(sanitizedStartModule);
-
       if (app != null) {
-        redirectUrl = app.getLaunchUrl();
+        if (app.isBundled()) {
+          redirectUrl = request.getContextPath() + "/dhis-web-" + app.getKey();
+        } else {
+          if (app.getLaunchUrl() != null) {
+            redirectUrl = app.getLaunchUrl();
+          } else {
+            // TODO: Seems to be a bug, that after app installation and server is restarted, the
+            // app.getLaunchUrl() is null, falling back to app key for now
+            redirectUrl = request.getContextPath() + "/api/apps/" + app.getKey();
+          }
+        }
       }
     }
 
