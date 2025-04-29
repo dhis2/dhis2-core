@@ -156,11 +156,11 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
   @OrderColumn(name = "sort_order")
   @ListIndexBase(1)
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-  private List<Category> categories;
+  private List<Category> categories = new ArrayList<>();
 
   @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "categoryCombo")
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-  private Set<CategoryOptionCombo> optionCombos;
+  private Set<CategoryOptionCombo> optionCombos = new HashSet<>();
 
   @Column(name = "datadimensiontype", nullable = false)
   @Enumerated(EnumType.STRING)
