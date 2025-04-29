@@ -52,6 +52,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -106,6 +107,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.test.random.BeanRandomizer;
@@ -136,6 +138,8 @@ class ExpressionServiceTest extends TestBase {
   @Spy private PostgreSqlBuilder sqlBuilder;
 
   @Mock private SystemSettingsService settingsService;
+
+  @Mock private SystemSettings settings;
 
   private DefaultExpressionService target;
 
@@ -435,6 +439,8 @@ class ExpressionServiceTest extends TestBase {
             + " + R{"
             + reportingRate.getUid()
             + ".REPORTING_RATE}";
+
+    lenient().when(settingsService.getCurrentSettings()).thenReturn(settings);
   }
 
   private DimensionalItemId getId(DimensionalItemObject o) {
