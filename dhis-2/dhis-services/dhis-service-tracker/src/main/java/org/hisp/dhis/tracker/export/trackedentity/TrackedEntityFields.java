@@ -35,6 +35,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentFields;
+import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
 
 /**
  * TrackedEntityFields indicates which of the tracked entity fields should be exported. This is used
@@ -49,16 +50,22 @@ import org.hisp.dhis.tracker.export.enrollment.EnrollmentFields;
 @EqualsAndHashCode
 public class TrackedEntityFields {
   private final boolean includesAttributes;
-  private final boolean includesRelationships;
   private final boolean includesProgramOwners;
+
+  private final boolean includesRelationships;
+  private final RelationshipFields relationshipFields;
 
   private final boolean includesEnrollments;
   private final EnrollmentFields enrollmentFields;
 
   private TrackedEntityFields(Builder builder) {
     this.includesAttributes = builder.includesAttributes;
-    this.includesRelationships = builder.includesRelationships;
     this.includesProgramOwners = builder.includesProgramOwners;
+
+    this.includesRelationships = builder.includesRelationships;
+    this.relationshipFields =
+        builder.includesRelationships ? builder.relationshipFields : RelationshipFields.none();
+
     this.includesEnrollments = builder.includesEnrollments;
     this.enrollmentFields =
         builder.includesEnrollments ? builder.enrollmentFields : EnrollmentFields.none();
@@ -66,8 +73,17 @@ public class TrackedEntityFields {
 
   private TrackedEntityFields(Predicate<String> includesFields, String pathSeparator) {
     this.includesAttributes = includesFields.test("attributes");
-    this.includesRelationships = includesFields.test("relationships");
     this.includesProgramOwners = includesFields.test("programOwners");
+
+    if (includesFields.test("relationships")) {
+      this.includesRelationships = true;
+      this.relationshipFields =
+          RelationshipFields.of(
+              f -> includesFields.test("relationships" + pathSeparator + f), pathSeparator);
+    } else {
+      this.includesRelationships = false;
+      this.relationshipFields = RelationshipFields.none();
+    }
 
     if (includesFields.test("enrollments")) {
       this.enrollmentFields =
@@ -80,6 +96,14 @@ public class TrackedEntityFields {
     }
   }
 
+  /**
+   * Create fields class using the predicate to test if a given field should be exported. {@code
+   * pathSeparator} is used to concatenate paths for nested fields. The field filtering service
+   * which can be used as the predicate for example supports dot notation. That means you can use it
+   * to test if a nested path like {@code "enrollments.events"} is included in the users {@code
+   * fields}. This allows us to compose fields classes in the same way as the structure the fields
+   * class is supposed to represent.
+   */
   public static TrackedEntityFields of(
       @Nonnull Predicate<String> includesFields, @Nonnull String pathSeparator) {
     return new TrackedEntityFields(includesFields, pathSeparator);
@@ -91,7 +115,7 @@ public class TrackedEntityFields {
     return new TrackedEntityFields(f -> false, "x");
   }
 
-  /** Use this if you do want fields to be exported. This is potentially expensive! */
+  /** Use this if you do want all fields to be exported. This is potentially expensive! */
   public static TrackedEntityFields all() {
     // the path separator does not matter as the predicate returns true regardless of the path
     return new TrackedEntityFields(f -> true, "x");
@@ -102,18 +126,16 @@ public class TrackedEntityFields {
   }
 
   public static class Builder {
-    private boolean includesRelationships;
     private boolean includesAttributes;
     private boolean includesProgramOwners;
+
+    private boolean includesRelationships;
+    private RelationshipFields relationshipFields;
+
     private boolean includesEnrollments;
     private EnrollmentFields enrollmentFields;
 
     private Builder() {}
-
-    public Builder includeRelationships() {
-      this.includesRelationships = true;
-      return this;
-    }
 
     public Builder includeAttributes() {
       this.includesAttributes = true;
@@ -122,6 +144,13 @@ public class TrackedEntityFields {
 
     public Builder includeProgramOwners() {
       this.includesProgramOwners = true;
+      return this;
+    }
+
+    /** Indicates that relationships should be exported with the given {@code fields}. */
+    public Builder includeRelationships(@Nonnull RelationshipFields fields) {
+      this.includesRelationships = true;
+      this.relationshipFields = fields;
       return this;
     }
 

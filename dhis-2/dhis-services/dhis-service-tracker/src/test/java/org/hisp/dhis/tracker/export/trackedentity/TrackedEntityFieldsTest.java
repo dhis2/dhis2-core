@@ -31,6 +31,8 @@ package org.hisp.dhis.tracker.export.trackedentity;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class TrackedEntityFieldsTest {
@@ -39,13 +41,22 @@ class TrackedEntityFieldsTest {
     TrackedEntityFields fields = TrackedEntityFields.all();
 
     assertTrue(fields.isIncludesAttributes());
-    assertTrue(fields.isIncludesRelationships());
     assertTrue(fields.isIncludesProgramOwners());
+
+    assertTrue(fields.isIncludesRelationships());
+    assertRelationshipFields(fields.getRelationshipFields(), Assertions::assertTrue);
+
     assertTrue(fields.isIncludesEnrollments());
     assertTrue(fields.getEnrollmentFields().isIncludesAttributes());
     assertTrue(fields.getEnrollmentFields().isIncludesRelationships());
+    assertRelationshipFields(
+        fields.getEnrollmentFields().getRelationshipFields(), Assertions::assertTrue);
+
     assertTrue(fields.getEnrollmentFields().isIncludesEvents());
     assertTrue(fields.getEnrollmentFields().getEventFields().isIncludesRelationships());
+    assertRelationshipFields(
+        fields.getEnrollmentFields().getEventFields().getRelationshipFields(),
+        Assertions::assertTrue);
   }
 
   @Test
@@ -53,12 +64,71 @@ class TrackedEntityFieldsTest {
     TrackedEntityFields fields = TrackedEntityFields.none();
 
     assertFalse(fields.isIncludesAttributes());
-    assertFalse(fields.isIncludesRelationships());
     assertFalse(fields.isIncludesProgramOwners());
+
+    assertFalse(fields.isIncludesRelationships());
+    assertRelationshipFields(fields.getRelationshipFields(), Assertions::assertFalse);
+
     assertFalse(fields.isIncludesEnrollments());
     assertFalse(fields.getEnrollmentFields().isIncludesAttributes());
     assertFalse(fields.getEnrollmentFields().isIncludesRelationships());
+    assertRelationshipFields(
+        fields.getEnrollmentFields().getRelationshipFields(), Assertions::assertFalse);
+
     assertFalse(fields.getEnrollmentFields().isIncludesEvents());
     assertFalse(fields.getEnrollmentFields().getEventFields().isIncludesRelationships());
+    assertRelationshipFields(
+        fields.getEnrollmentFields().getEventFields().getRelationshipFields(),
+        Assertions::assertFalse);
+  }
+
+  private static void assertRelationshipFields(
+      RelationshipFields relationshipFields, java.util.function.Consumer<Boolean> assertionMethod) {
+    assertionMethod.accept(relationshipFields.isIncludesFrom());
+    assertionMethod.accept(relationshipFields.getFromFields().isIncludesTrackedEntity());
+    assertionMethod.accept(
+        relationshipFields.getFromFields().getTrackedEntityFields().isIncludesAttributes());
+    assertionMethod.accept(
+        relationshipFields.getFromFields().getTrackedEntityFields().isIncludesProgramOwners());
+    assertionMethod.accept(
+        relationshipFields.getFromFields().getTrackedEntityFields().isIncludesEnrollments());
+    assertionMethod.accept(
+        relationshipFields
+            .getFromFields()
+            .getTrackedEntityFields()
+            .getEnrollmentFields()
+            .isIncludesAttributes());
+    assertionMethod.accept(
+        relationshipFields
+            .getFromFields()
+            .getTrackedEntityFields()
+            .getEnrollmentFields()
+            .isIncludesEvents());
+    assertionMethod.accept(relationshipFields.getFromFields().isIncludesEnrollment());
+    assertionMethod.accept(
+        relationshipFields.getFromFields().getEnrollmentFields().isIncludesAttributes());
+    assertionMethod.accept(
+        relationshipFields.getFromFields().getEnrollmentFields().isIncludesEvents());
+    assertionMethod.accept(relationshipFields.getFromFields().isIncludesEvent());
+    assertionMethod.accept(relationshipFields.isIncludesTo());
+    assertionMethod.accept(relationshipFields.getToFields().isIncludesTrackedEntity());
+    assertionMethod.accept(
+        relationshipFields
+            .getToFields()
+            .getTrackedEntityFields()
+            .getEnrollmentFields()
+            .isIncludesAttributes());
+    assertionMethod.accept(
+        relationshipFields
+            .getToFields()
+            .getTrackedEntityFields()
+            .getEnrollmentFields()
+            .isIncludesEvents());
+    assertionMethod.accept(relationshipFields.getToFields().isIncludesEnrollment());
+    assertionMethod.accept(
+        relationshipFields.getToFields().getEnrollmentFields().isIncludesAttributes());
+    assertionMethod.accept(
+        relationshipFields.getToFields().getEnrollmentFields().isIncludesEvents());
+    assertionMethod.accept(relationshipFields.getToFields().isIncludesEvent());
   }
 }
