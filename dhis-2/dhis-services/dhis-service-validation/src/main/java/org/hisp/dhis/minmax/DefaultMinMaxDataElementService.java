@@ -37,6 +37,7 @@ import static org.hisp.dhis.minmax.MinMaxDataElementUtils.validateDto;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -169,28 +170,27 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
       List<MinMaxValueDto> dtos, MinMaxDataElementStore minMaxDataElementStore)
       throws BadRequestException {
 
-    // Parse UIDs only once per DTO
     record Uids(UID de, UID ou, UID coc) {}
+
     Map<MinMaxValueDto, Uids> uidMap = new HashMap<>();
+    Set<UID> dataElementUids = new HashSet<>();
+    Set<UID> orgUnitUids = new HashSet<>();
+    Set<UID> cocUids = new HashSet<>();
+
     for (MinMaxValueDto dto : dtos) {
       try {
-        uidMap.put(
-            dto,
-            new Uids(
-                UID.of(dto.getDataElement()),
-                UID.of(dto.getOrgUnit()),
-                UID.of(dto.getCategoryOptionCombo())));
+        UID de = UID.of(dto.getDataElement());
+        UID ou = UID.of(dto.getOrgUnit());
+        UID coc = UID.of(dto.getCategoryOptionCombo());
+
+        uidMap.put(dto, new Uids(de, ou, coc));
+        dataElementUids.add(de);
+        orgUnitUids.add(ou);
+        cocUids.add(coc);
       } catch (IllegalArgumentException e) {
         throw new BadRequestException(ErrorCode.E7805, formatDtoInfo(dto));
       }
     }
-
-    Set<UID> dataElementUids =
-        uidMap.values().stream().map(Uids::de).collect(Collectors.toUnmodifiableSet());
-    Set<UID> orgUnitUids =
-        uidMap.values().stream().map(Uids::ou).collect(Collectors.toUnmodifiableSet());
-    Set<UID> cocUids =
-        uidMap.values().stream().map(Uids::coc).collect(Collectors.toUnmodifiableSet());
 
     Map<UID, Long> dataElementMap = minMaxDataElementStore.getDataElementMap(dataElementUids);
     Map<UID, Long> orgUnitMap = minMaxDataElementStore.getOrgUnitMap(orgUnitUids);
@@ -206,7 +206,6 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
       Long ouId = orgUnitMap.get(uids.ou());
       Long cocId = cocMap.get(uids.coc());
 
-      // Check if any of the IDs are null
       if (deId == null || ouId == null || cocId == null) {
         throw new BadRequestException(ErrorCode.E7803, formatDtoInfo(dto));
       }
