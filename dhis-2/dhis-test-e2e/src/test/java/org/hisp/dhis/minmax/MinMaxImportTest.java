@@ -106,15 +106,12 @@ class MinMaxImportTest extends ApiTest {
               "categoryOptionCombo": "%s"
             }]
         }
-        """.formatted(dataSet, orgUnit, dataElement, orgUnit, defaultCOC);
+        """
+            .formatted(dataSet, orgUnit, dataElement, orgUnit, defaultCOC);
 
     QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
     queryParamsBuilder.add("importStrategy", "DELETE");
-    ApiResponse response = minMaxValuesActions.post(
-        "",
-        payload,
-        queryParamsBuilder
-    );
+    ApiResponse response = minMaxValuesActions.post("", payload, queryParamsBuilder);
 
     response.validate().statusCode(204);
   }
@@ -123,15 +120,13 @@ class MinMaxImportTest extends ApiTest {
   void minMaxValueCanBeImportedInBulk_CSV() throws IOException {
 
     QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-    queryParamsBuilder.add( "dataset", dataSet)
-        .add( "orgunit", orgUnit);
-    ApiResponse response = minMaxValuesActions.postMultiPartFile(
-        new File("src/test/resources/minmax/minmax.csv"),
-        "application/csv",
-        queryParamsBuilder
-    );
+    queryParamsBuilder.add("dataset", dataSet).add("orgunit", orgUnit);
+    ApiResponse response =
+        minMaxValuesActions.postMultiPartFile(
+            new File("src/test/resources/minmax/minmax.csv"),
+            "application/csv",
+            queryParamsBuilder);
     response.validate().statusCode(204);
-
   }
 
   @Test
