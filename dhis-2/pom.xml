@@ -173,7 +173,7 @@
     <jts.version>1.20.0</jts.version>
 
     <!-- Apache Artemis -->
-    <artemis-jakarta.version>2.40.0</artemis-jakarta.version>
+    <artemis-jakarta.version>2.41.0</artemis-jakarta.version>
     <netty-all.version>4.2.0.Final</netty-all.version>
     <classgraph.version>4.8.179</classgraph.version>
 
