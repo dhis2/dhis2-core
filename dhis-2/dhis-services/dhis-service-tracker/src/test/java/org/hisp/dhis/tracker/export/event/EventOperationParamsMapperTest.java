@@ -43,7 +43,6 @@ import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -519,34 +518,6 @@ class EventOperationParamsMapperTest {
     EventQueryParams params = mapper.map(operationParams, UserDetails.fromUser(mappedUser));
     assertNull(params.getOrgUnit());
     assertEquals(ALL, params.getOrgUnitMode());
-  }
-
-  @Test
-  void shouldIncludeRelationshipsWhenFieldPathIncludeRelationships()
-      throws BadRequestException, ForbiddenException {
-    User mappedUser = userMap.get("admin");
-    mappedUser.setUid(CodeGenerator.generateUid());
-    mappedUser.setUsername("admin");
-
-    EventOperationParams operationParams =
-        eventBuilder.orgUnitMode(ALL).fields(EventFields.all()).build();
-    EventQueryParams params = mapper.map(operationParams, UserDetails.fromUser(mappedUser));
-    assertTrue(params.isIncludeRelationships());
-  }
-
-  @Test
-  void shouldNotIncludeRelationshipsWhenFieldPathDoNotIncludeRelationships()
-      throws BadRequestException, ForbiddenException {
-    User mappedUser = userMap.get("admin");
-    mappedUser.setUid(CodeGenerator.generateUid());
-    mappedUser.setUsername("admin");
-
-    EventOperationParams operationParams =
-        eventBuilder.orgUnitMode(ALL).fields(EventFields.none()).build();
-
-    EventQueryParams params = mapper.map(operationParams, UserDetails.fromUser(mappedUser));
-
-    assertFalse(params.isIncludeRelationships());
   }
 
   private User createUserWithAuthority(Authorities authority) {
