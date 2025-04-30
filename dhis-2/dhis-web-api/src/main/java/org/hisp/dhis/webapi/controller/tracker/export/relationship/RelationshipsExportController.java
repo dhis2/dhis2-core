@@ -44,8 +44,10 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.webapi.controller.tracker.RequestHandler;
@@ -80,13 +82,17 @@ class RelationshipsExportController {
 
   private final RequestHandler requestHandler;
 
+  private final FieldFilterService fieldFilterService;
+
   public RelationshipsExportController(
       RelationshipService relationshipService,
       RelationshipRequestParamsMapper mapper,
-      RequestHandler requestHandler) {
+      RequestHandler requestHandler,
+      FieldFilterService fieldFilterService) {
     this.relationshipService = relationshipService;
     this.requestHandler = requestHandler;
     this.mapper = mapper;
+    this.fieldFilterService = fieldFilterService;
 
     assertUserOrderableFieldsAreSupported(
         "relationship",
@@ -136,7 +142,13 @@ class RelationshipsExportController {
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
           List<FieldPath> fields)
       throws NotFoundException, ForbiddenException {
-    Relationship relationship = RELATIONSHIP_MAPPER.map(relationshipService.getRelationship(uid));
+    RelationshipFields relationshipFields =
+        RelationshipFields.of(
+            f -> fieldFilterService.filterIncludes(Relationship.class, fields, f),
+            FieldPath.FIELD_PATH_SEPARATOR);
+
+    Relationship relationship =
+        RELATIONSHIP_MAPPER.map(relationshipService.getRelationship(uid, relationshipFields));
 
     return requestHandler.serve(relationship, fields);
   }

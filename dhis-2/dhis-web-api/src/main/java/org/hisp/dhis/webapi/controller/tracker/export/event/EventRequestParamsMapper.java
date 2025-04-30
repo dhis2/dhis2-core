@@ -48,6 +48,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.event.EventFields;
@@ -144,7 +145,8 @@ class EventRequestParamsMapper {
                 EventFields.of(
                     f ->
                         fieldFilterService.filterIncludes(
-                            Event.class, eventRequestParams.getFields(), f)))
+                            Event.class, eventRequestParams.getFields(), f),
+                    FieldPath.FIELD_PATH_SEPARATOR))
             .idSchemeParams(idSchemeParams);
 
     mapOrderParam(builder, eventRequestParams.getOrder());

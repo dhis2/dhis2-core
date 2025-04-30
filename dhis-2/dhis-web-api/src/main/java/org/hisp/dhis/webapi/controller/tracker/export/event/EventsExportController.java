@@ -288,7 +288,8 @@ class EventsExportController {
         EventFields.of(
             f ->
                 fieldFilterService.filterIncludes(
-                    org.hisp.dhis.webapi.controller.tracker.view.Event.class, fields, f));
+                    org.hisp.dhis.webapi.controller.tracker.view.Event.class, fields, f),
+            FieldPath.FIELD_PATH_SEPARATOR);
     MappingErrors errors = new MappingErrors(idSchemeParams);
     org.hisp.dhis.webapi.controller.tracker.view.Event event =
         EVENTS_MAPPER.map(
