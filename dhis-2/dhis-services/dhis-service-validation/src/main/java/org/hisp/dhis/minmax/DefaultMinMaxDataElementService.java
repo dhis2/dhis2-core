@@ -227,17 +227,15 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
   @Transactional
   @Override
   public void deleteFromJson(MinMaxValueBatchRequest request) throws BadRequestException {
-    List<MinMaxValueDto> dtos = request.values();
+    List<MinMaxValueDto> dtos = Optional.ofNullable(request.values()).orElse(List.of());
+    if (dtos.isEmpty()) return;
 
-    for (MinMaxValueDto dto : dtos) {
-      try {
-        UID.of(dto.getDataElement());
-        UID.of(dto.getOrgUnit());
-        UID.of(dto.getCategoryOptionCombo());
-      } catch (IllegalArgumentException ex) {
-        throw new BadRequestException(ErrorCode.E7804, formatDtoInfo(dto));
-      }
+    List<ResolvedMinMaxDto> resolvedDtos = resolveAllValidDtos(dtos, minMaxDataElementStore);
+    final int CHUNK_SIZE = 500;
+    for (int i = 0; i < resolvedDtos.size(); i += CHUNK_SIZE) {
+      int end = Math.min(i + CHUNK_SIZE, resolvedDtos.size());
+      List<ResolvedMinMaxDto> chunk = resolvedDtos.subList(i, end);
+      minMaxDataElementStore.deleteBulkByDtos(chunk);
     }
-    minMaxDataElementStore.deleteBulkByDtos(dtos);
   }
 }

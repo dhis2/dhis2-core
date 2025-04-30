@@ -52,7 +52,6 @@ import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementQueryParams;
 import org.hisp.dhis.minmax.MinMaxDataElementStore;
-import org.hisp.dhis.minmax.MinMaxValueDto;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.QueryParser;
@@ -209,24 +208,23 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
    */
   @Override
   @Transactional
-  public void deleteBulkByDtos(List<MinMaxValueDto> dtos) {
+  public void deleteBulkByDtos(List<ResolvedMinMaxDto> dtos) {
     if (dtos == null || dtos.isEmpty()) return;
 
     final int CHUNK_SIZE = 1000;
 
     for (int i = 0; i < dtos.size(); i += CHUNK_SIZE) {
-      List<MinMaxValueDto> chunk = dtos.subList(i, Math.min(i + CHUNK_SIZE, dtos.size()));
+      List<ResolvedMinMaxDto> chunk = dtos.subList(i, Math.min(i + CHUNK_SIZE, dtos.size()));
       executeChunkedDelete(chunk);
     }
   }
 
   /**
-   * Deletes a chunk of MinMaxDataElement records based on the provided list of MinMaxValueDto
-   * objects.
+   * Deletes a chunk of MinMaxDataElement records based on resolved DTOs.
    *
-   * @param chunk List of MinMaxValueDto objects representing the records to be deleted.
+   * @param chunk List of resolved DTOs containing internal IDs.
    */
-  private void executeChunkedDelete(List<MinMaxValueDto> chunk) {
+  private void executeChunkedDelete(List<ResolvedMinMaxDto> chunk) {
     StringBuilder sql =
         new StringBuilder(
             """
@@ -234,28 +232,20 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
       WHERE (dataelementid, sourceid, categoryoptioncomboid) IN (
   """);
 
-    List<String> selects = new ArrayList<>();
+    List<String> placeholders = new ArrayList<>();
     for (int i = 0; i < chunk.size(); i++) {
-      selects.add(
-          String.format(
-              """
-        SELECT
-          (SELECT dataelementid FROM dataelement WHERE uid = :de%d),
-          (SELECT organisationunitid FROM organisationunit WHERE uid = :ou%d),
-          (SELECT categoryoptioncomboid FROM categoryoptioncombo WHERE uid = :coc%d)
-      """,
-              i, i, i));
+      placeholders.add(String.format("(:de%d, :ou%d, :coc%d)", i, i, i));
     }
 
-    sql.append(String.join(" UNION ALL ", selects)).append(")");
+    sql.append(String.join(", ", placeholders)).append(")");
 
     Query<?> query = getSession().createNativeQuery(sql.toString());
 
     for (int i = 0; i < chunk.size(); i++) {
-      MinMaxValueDto dto = chunk.get(i);
-      query.setParameter("de" + i, dto.getDataElement());
-      query.setParameter("ou" + i, dto.getOrgUnit());
-      query.setParameter("coc" + i, dto.getCategoryOptionCombo());
+      ResolvedMinMaxDto dto = chunk.get(i);
+      query.setParameter("de" + i, dto.dataElementId());
+      query.setParameter("ou" + i, dto.orgUnitId());
+      query.setParameter("coc" + i, dto.categoryOptionComboId());
     }
 
     query.executeUpdate();

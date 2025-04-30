@@ -64,7 +64,7 @@ public interface MinMaxDataElementStore extends GenericStore<MinMaxDataElement> 
 
   void delete(UID dataElementUID, UID organisationUnitUID, UID optionComboUID);
 
-  void deleteBulkByDtos(List<MinMaxValueDto> dtos);
+  void deleteBulkByDtos(List<ResolvedMinMaxDto> dtos);
 
   List<MinMaxDataElement> getByDataElement(Collection<DataElement> dataElements);
 
@@ -90,7 +90,7 @@ public interface MinMaxDataElementStore extends GenericStore<MinMaxDataElement> 
 
   Map<UID, Long> getCategoryOptionComboMap(@Nonnull Collection<UID> uids);
 
-  void upsertResolvedDtos(List<ResolvedMinMaxDto> chunk);
+  void upsertResolvedDtos(List<ResolvedMinMaxDto> dtos);
 
   public record ResolvedMinMaxDto(
       long dataElementId,
