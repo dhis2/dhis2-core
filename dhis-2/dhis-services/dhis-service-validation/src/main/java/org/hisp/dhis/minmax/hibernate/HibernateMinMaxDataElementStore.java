@@ -61,6 +61,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Kristian Nordal
@@ -199,9 +200,31 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
         .executeUpdate();
   }
 
+  /**
+   * Deletes a list of MinMaxDataElement records in bulk based on the provided list of
+   *
+   * @param dtos
+   */
+  @Override
+  @Transactional
   public void deleteBulkByDtos(List<MinMaxValueDto> dtos) {
-    if (dtos.isEmpty()) return;
+    if (dtos == null || dtos.isEmpty()) return;
 
+    final int CHUNK_SIZE = 1000;
+
+    for (int i = 0; i < dtos.size(); i += CHUNK_SIZE) {
+      List<MinMaxValueDto> chunk = dtos.subList(i, Math.min(i + CHUNK_SIZE, dtos.size()));
+      executeChunkedDelete(chunk);
+    }
+  }
+
+  /**
+   * Deletes a chunk of MinMaxDataElement records based on the provided list of MinMaxValueDto
+   * objects.
+   *
+   * @param chunk List of MinMaxValueDto objects representing the records to be deleted.
+   */
+  private void executeChunkedDelete(List<MinMaxValueDto> chunk) {
     StringBuilder sql =
         new StringBuilder(
             """
@@ -210,8 +233,7 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
   """);
 
     List<String> selects = new ArrayList<>();
-
-    for (int i = 0; i < dtos.size(); i++) {
+    for (int i = 0; i < chunk.size(); i++) {
       selects.add(
           String.format(
               """
@@ -227,8 +249,8 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
 
     Query<?> query = getSession().createNativeQuery(sql.toString());
 
-    for (int i = 0; i < dtos.size(); i++) {
-      MinMaxValueDto dto = dtos.get(i);
+    for (int i = 0; i < chunk.size(); i++) {
+      MinMaxValueDto dto = chunk.get(i);
       query.setParameter("de" + i, dto.getDataElement());
       query.setParameter("ou" + i, dto.getOrgUnit());
       query.setParameter("coc" + i, dto.getCategoryOptionCombo());
