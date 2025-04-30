@@ -370,10 +370,6 @@ public class I18nFormat {
     }
   }
 
-  private boolean isWeeklyPeriodType(PeriodType periodType) {
-    return WEEKLY_PERIOD_TYPES.stream().anyMatch(type -> type.isInstance(periodType));
-  }
-
   private static String getEndDateFormat(String typeName, PeriodType periodType) {
     if (periodType instanceof BiMonthlyPeriodType
         || periodType instanceof QuarterlyPeriodType
