@@ -144,7 +144,7 @@ public class D2FunctionCteFactory implements CteSqlFactory {
 
     String hash = SqlHashUtil.sha1(argDecoded == null ? "noarg" : argDecoded);
     return "d2%s_%s_%s_%s_%s_%s"
-        .formatted(kind.id, f.psUid(), f.deUid(), hash, f.boundaryHash(), f.piUid());
+        .formatted(kind.id.toLowerCase(), f.psUid(), f.deUid(), hash, f.boundaryHash(), f.piUid());
   }
 
   private void ensureCte(
