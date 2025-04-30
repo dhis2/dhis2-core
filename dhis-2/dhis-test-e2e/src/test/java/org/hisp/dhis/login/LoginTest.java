@@ -73,16 +73,6 @@ public class LoginTest extends BaseE2ETest {
   }
 
   @Test
-  void testPreLoginCreatesNoCookie() {
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.TEXT_HTML);
-    ResponseEntity<String> response =
-        exchangeWithHeaders(restTemplate, "/", HttpMethod.GET, null, headers);
-    List<String> cookies = response.getHeaders().get(HttpHeaders.SET_COOKIE);
-    assertNull(cookies, "Cookies should be null, we don't want session creation on the login page");
-  }
-
-  @Test
   void testDefaultLogin() throws JsonProcessingException {
     String username = CodeGenerator.generateCode(8);
     String password = "Test123###...";
@@ -90,7 +80,7 @@ public class LoginTest extends BaseE2ETest {
 
     ResponseEntity<LoginResponse> loginResponse =
         loginWithUsernameAndPassword(username, password, null);
-    assertLoginSuccess(loginResponse, DEFAULT_DASHBOARD_PATH);
+    assertLoginSuccess(loginResponse, DEFAULT_LOGIN_REDIRECT);
     String cookie = extractSessionCookie(loginResponse);
 
     // Verify session cookie works
@@ -152,7 +142,7 @@ public class LoginTest extends BaseE2ETest {
     // Test Login works without 2FA code
     ResponseEntity<LoginResponse> successfulLoginResp =
         loginWithUsernameAndPassword(username, password, null);
-    assertLoginSuccess(successfulLoginResp, DEFAULT_DASHBOARD_PATH);
+    assertLoginSuccess(successfulLoginResp, DEFAULT_LOGIN_REDIRECT);
   }
 
   @Test
@@ -172,7 +162,7 @@ public class LoginTest extends BaseE2ETest {
     // Test Login works without 2FA code
     ResponseEntity<LoginResponse> successfulLoginResp =
         loginWithUsernameAndPassword(username, password, null);
-    assertLoginSuccess(successfulLoginResp, DEFAULT_DASHBOARD_PATH);
+    assertLoginSuccess(successfulLoginResp, DEFAULT_LOGIN_REDIRECT);
   }
 
   @Test
@@ -228,26 +218,45 @@ public class LoginTest extends BaseE2ETest {
   }
 
   @Test
+  void testRedirectWithQueryParam() {
+    assertRedirectToSameUrl("/api/users?fields=id,name,displayName");
+  }
+
+  @Test
+  void testRedirectWithoutQueryParam() {
+    assertRedirectToSameUrl("/api/users");
+  }
+
+  @Test
   void testRedirectToResource() {
-    assertRedirectUrl("/users/resource.js", DEFAULT_DASHBOARD_PATH, false);
+    assertRedirectUrl("/users/resource.js", DEFAULT_LOGIN_REDIRECT);
+  }
+
+  @Test
+  void testRedirectToHtmlResource() {
+    assertRedirectToSameUrl("/users/resource.html");
+  }
+
+  @Test
+  void testRedirectToSlashEnding() {
+    assertRedirectToSameUrl("/users/");
   }
 
   @Test
   void testRedirectToResourceWorker() {
-    assertRedirectUrl("/dhis-web-dashboard/service-worker.js", DEFAULT_DASHBOARD_PATH, false);
+    assertRedirectUrl("/dhis-web-dashboard/service-worker.js", DEFAULT_LOGIN_REDIRECT);
   }
 
   @Test
   void testRedirectToCssResourceWorker() {
-    assertRedirectUrl(
-        "/dhis-web-dashboard/static/css/main.4536e618.css", DEFAULT_DASHBOARD_PATH, false);
+    assertRedirectUrl("/dhis-web-dashboard/static/css/main.4536e618.css", DEFAULT_LOGIN_REDIRECT);
   }
 
   @Test
   void testRedirectAccountWhenVerifiedEmailEnforced() {
     changeSystemSetting("enforceVerifiedEmail", "true");
     try {
-      assertRedirectUrl("/dhis-web-dashboard/", "/dhis-web-user-profile/#/profile", false);
+      assertRedirectUrl("/dhis-web-dashboard/", "/dhis-web-user-profile/#/profile");
     } finally {
       changeSystemSetting("enforceVerifiedEmail", "false");
     }
@@ -261,6 +270,12 @@ public class LoginTest extends BaseE2ETest {
   @Test
   void testRedirectMissingEndingSlash() {
     testRedirectWhenLoggedIn("dhis-web-dashboard", "dhis-web-dashboard/");
+  }
+
+  @Test
+  void testRedirectIcon() {
+    testRedirectAsUser(
+        "/api/icons/medicines_positive/icon.svg", "api/icons/medicines_positive/icon");
   }
 
   @Test
@@ -423,6 +438,14 @@ public class LoginTest extends BaseE2ETest {
   // public helper methods for email verification steps
   // --------------------------------------------------------------------------------------------
 
+  public static void configureEmail2FASettings(String cookie) {
+    setSystemPropertyWithCookie("keyEmailHostName", SMTP_HOSTNAME, cookie);
+    setSystemPropertyWithCookie("keyEmailPort", String.valueOf(smtpPort), cookie);
+    setSystemPropertyWithCookie("keyEmailUsername", "nils", cookie);
+    setSystemPropertyWithCookie("keyEmailSender", "system@nils.no", cookie);
+    setSystemPropertyWithCookie("keyEmailTls", "false", cookie);
+  }
+
   public static void sendVerificationEmail(String cookie) {
     ResponseEntity<String> sendVerificationEmailResp =
         postWithCookie("/account/sendEmailVerification", null, cookie);
@@ -442,7 +465,7 @@ public class LoginTest extends BaseE2ETest {
     // Disable auto-redirects
     RestTemplate restTemplateNoRedirects = getRestTemplateNoRedirects();
 
-    // Do an invalid login to capture URL request, if valid for save request
+    // Do an invalid login to capture URL request
     ResponseEntity<LoginResponse> firstResponse =
         restTemplateNoRedirects.postForEntity(
             serverHostUrl + url,
@@ -450,15 +473,11 @@ public class LoginTest extends BaseE2ETest {
                 LoginRequest.builder().username("username").password("password").build(),
                 new HttpHeaders()),
             LoginResponse.class);
-
-    HttpHeaders cookieHeaders = jsonHeaders();
-    List<String> cookies = firstResponse.getHeaders().get(HttpHeaders.SET_COOKIE);
-    if (cookies != null) {
-      String cookie = cookies.get(0);
-      cookieHeaders.set("Cookie", cookie);
-    }
+    String cookie = firstResponse.getHeaders().get(HttpHeaders.SET_COOKIE).get(0);
 
     // Do a valid login
+    HttpHeaders cookieHeaders = jsonHeaders();
+    cookieHeaders.set("Cookie", cookie);
     ResponseEntity<LoginResponse> secondResponse =
         restTemplateNoRedirects.postForEntity(
             serverApiUrl + LOGIN_API_PATH,
@@ -466,8 +485,7 @@ public class LoginTest extends BaseE2ETest {
                 LoginRequest.builder().username("admin").password("district").build(),
                 cookieHeaders),
             LoginResponse.class);
-
-    String cookie = extractSessionCookie(secondResponse);
+    cookie = extractSessionCookie(secondResponse);
 
     // Test the redirect
     HttpHeaders headers = jsonHeaders();
