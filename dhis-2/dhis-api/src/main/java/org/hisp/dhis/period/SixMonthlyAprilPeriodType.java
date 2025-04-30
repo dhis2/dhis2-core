@@ -82,7 +82,7 @@ public class SixMonthlyAprilPeriodType extends SixMonthlyAbstractPeriodType {
       case 10:
         return dateTimeUnit.getYear() + "AprilS2";
       default:
-        throw new IllegalArgumentException("Month not valid [4,10]");
+        throw new IllegalArgumentException("Month not valid [4,10], was given " + month);
     }
   }
 
