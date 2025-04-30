@@ -769,7 +769,6 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     psdeDef1 = localCteContext.getDefinitionByKey(psdeKey1);
     psdeDef2 = localCteContext.getDefinitionByKey(psdeKey2);
     d2FuncDef = localCteContext.getDefinitionByKey(d2FuncKey);
-    filterDef = localCteContext.getDefinitionByKey(filterKey);
 
     String varAlias = variableDef.getAlias();
     String psdeAlias1 = psdeDef1.getAlias();
