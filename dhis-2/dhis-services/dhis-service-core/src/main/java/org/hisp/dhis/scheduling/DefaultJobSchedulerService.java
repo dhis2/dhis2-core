@@ -87,8 +87,8 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
   @Override
   @NonTransactional
   public void executeNow(@Nonnull String jobId) throws NotFoundException, ConflictException {
+    JobConfiguration job = jobConfigurationStore.getByUidNoAcl(jobId);
     if (!jobConfigurationStore.tryExecuteNow(jobId)) {
-      JobConfiguration job = jobConfigurationStore.getByUidNoAcl(jobId);
       if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
       if (job.getJobStatus() == JobStatus.RUNNING)
         throw new ConflictException("Job is already running.");
@@ -97,12 +97,10 @@ public class DefaultJobSchedulerService implements JobSchedulerService {
       throw new ConflictException("Failed to transition job into ONCE_ASAP state.");
     }
     if (!jobRunner.isScheduling()) {
-      JobConfiguration job = jobConfigurationStore.getByUidNoAcl(jobId);
       if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
       // run "execute now" request directly when scheduling is not active (tests)
       jobRunner.runDueJob(job);
     } else {
-      JobConfiguration job = jobConfigurationStore.getByUidNoAcl(jobId);
       if (job == null) throw new NotFoundException(JobConfiguration.class, jobId);
       if (job.getJobType().isUsingContinuousExecution()) {
         jobRunner.runIfDue(job);
