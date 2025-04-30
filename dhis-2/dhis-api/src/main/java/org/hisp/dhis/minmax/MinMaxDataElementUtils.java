@@ -45,15 +45,8 @@ public class MinMaxDataElementUtils {
 
   public static void validateDto(MinMaxValueDto dto) throws BadRequestException {
 
-    String dataElement = trimToNull(dto.getDataElement());
-    String orgUnit = trimToNull(dto.getOrgUnit());
-    String coc = trimToNull(dto.getCategoryOptionCombo());
     Integer min = dto.getMinValue();
     Integer max = dto.getMaxValue();
-
-    if (dataElement == null || orgUnit == null || coc == null || min == null || max == null) {
-      throw new BadRequestException(ErrorCode.E7801, formatDtoInfo(dto));
-    }
 
     if (min >= max) {
       throw new BadRequestException(ErrorCode.E7802, formatDtoInfo(dto));

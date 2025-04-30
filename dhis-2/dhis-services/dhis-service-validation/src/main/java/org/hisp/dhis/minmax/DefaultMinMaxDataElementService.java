@@ -29,11 +29,13 @@
  */
 package org.hisp.dhis.minmax;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.hisp.dhis.minmax.MinMaxDataElementStore.ResolvedMinMaxDto;
 import static org.hisp.dhis.minmax.MinMaxDataElementUtils.formatDtoInfo;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -166,46 +168,70 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
       List<MinMaxValueDto> dtos, MinMaxDataElementStore minMaxDataElementStore)
       throws BadRequestException {
 
-    Set<UID> dataElementUids =
-        dtos.stream().map(dto -> UID.of(dto.getDataElement())).collect(Collectors.toSet());
+    // Parse UIDs only once per DTO
+    record Uids(UID de, UID ou, UID coc) {}
+    Map<MinMaxValueDto, Uids> uidMap = new HashMap<>();
+    for (MinMaxValueDto dto : dtos) {
+      try {
+        uidMap.put(
+            dto,
+            new Uids(
+                UID.of(dto.getDataElement()),
+                UID.of(dto.getOrgUnit()),
+                UID.of(dto.getCategoryOptionCombo())));
+      } catch (IllegalArgumentException e) {
+        throw new BadRequestException(ErrorCode.E7805, formatDtoInfo(dto));
+      }
+    }
 
-    Set<UID> orgUnitUids =
-        dtos.stream().map(dto -> UID.of(dto.getOrgUnit())).collect(Collectors.toSet());
 
-    Set<UID> cocUids =
-        dtos.stream().map(dto -> UID.of(dto.getCategoryOptionCombo())).collect(Collectors.toSet());
+    Set<UID> dataElementUids = uidMap.values().stream().map(Uids::de).collect(Collectors.toUnmodifiableSet());
+    Set<UID> orgUnitUids = uidMap.values().stream().map(Uids::ou).collect(Collectors.toUnmodifiableSet());
+    Set<UID> cocUids = uidMap.values().stream().map(Uids::coc).collect(Collectors.toUnmodifiableSet());
+
 
     Map<UID, Long> dataElementMap = minMaxDataElementStore.getDataElementMap(dataElementUids);
     Map<UID, Long> orgUnitMap = minMaxDataElementStore.getOrgUnitMap(orgUnitUids);
     Map<UID, Long> cocMap = minMaxDataElementStore.getCategoryOptionComboMap(cocUids);
 
-    List<ResolvedMinMaxDto> resolved = new ArrayList<>();
+
+    List<ResolvedMinMaxDto> resolvedDtos = new ArrayList<>();
 
     for (MinMaxValueDto dto : dtos) {
       MinMaxDataElementUtils.validateDto(dto);
-      UID deUid = UID.of(dto.getDataElement());
-      UID ouUid = UID.of(dto.getOrgUnit());
-      UID cocUid = UID.of(dto.getCategoryOptionCombo());
+      Uids uids = uidMap.get(dto);
 
-      Long deId = dataElementMap.get(deUid);
-      Long ouId = orgUnitMap.get(ouUid);
-      Long cocId = cocMap.get(cocUid);
+      Long deId = dataElementMap.get(uids.de());
+      Long ouId = orgUnitMap.get(uids.ou());
+      Long cocId = cocMap.get(uids.coc());
 
       if (deId == null || ouId == null || cocId == null) {
         throw new BadRequestException(ErrorCode.E7803, formatDtoInfo(dto));
       }
 
-      resolved.add(
-          new ResolvedMinMaxDto(
-              deId,
-              ouId,
-              cocId,
-              dto.getMinValue(),
-              dto.getMaxValue(),
-              Boolean.TRUE.equals(dto.getGenerated())));
+      resolvedDtos.add(new ResolvedMinMaxDto(
+          deId,
+          ouId,
+          cocId,
+          dto.getMinValue(),
+          dto.getMaxValue(),
+          defaultIfNull(dto.getGenerated(), true)));
     }
 
-    return resolved;
+    return resolvedDtos;
+  }
+
+  private void validateDtoUids(MinMaxValueDto dto)
+      throws
+      BadRequestException
+  {
+    try {
+      UID.of(dto.getDataElement());
+      UID.of(dto.getOrgUnit());
+      UID.of(dto.getCategoryOptionCombo());
+    } catch (IllegalArgumentException ex) {
+      throw new BadRequestException(ErrorCode.E7804, formatDtoInfo(dto));
+    }
   }
 
   @Transactional
