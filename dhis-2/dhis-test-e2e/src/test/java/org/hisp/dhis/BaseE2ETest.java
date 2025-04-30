@@ -97,6 +97,16 @@ public class BaseE2ETest {
     wiser.start();
   }
 
+  public static void configureEmail2FASettings(String cookie) {
+    setSystemPropertyWithCookie("keyEmailHostName", SMTP_HOSTNAME, cookie);
+    setSystemPropertyWithCookie("keyEmailPort", String.valueOf(smtpPort), cookie);
+    setSystemPropertyWithCookie("keyEmailUsername", "nils", cookie);
+    setSystemPropertyWithCookie("keyEmailPassword", "nils", cookie);
+    setSystemPropertyWithCookie("keyEmailSender", "system@nils.no", cookie);
+    setSystemPropertyWithCookie("keyEmailTls", "false", cookie);
+    setSystemPropertyWithCookie("keySelfRegistrationNoRecaptcha", "true", cookie);
+  }
+
   public static void invalidateAllSession() {
     ResponseEntity<String> response = deleteWithAdminBasicAuth("/sessions", null);
     assertEquals(HttpStatus.OK, response.getStatusCode());

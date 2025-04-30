@@ -438,14 +438,6 @@ public class LoginTest extends BaseE2ETest {
   // public helper methods for email verification steps
   // --------------------------------------------------------------------------------------------
 
-  public static void configureEmail2FASettings(String cookie) {
-    setSystemPropertyWithCookie("keyEmailHostName", SMTP_HOSTNAME, cookie);
-    setSystemPropertyWithCookie("keyEmailPort", String.valueOf(smtpPort), cookie);
-    setSystemPropertyWithCookie("keyEmailUsername", "nils", cookie);
-    setSystemPropertyWithCookie("keyEmailSender", "system@nils.no", cookie);
-    setSystemPropertyWithCookie("keyEmailTls", "false", cookie);
-  }
-
   public static void sendVerificationEmail(String cookie) {
     ResponseEntity<String> sendVerificationEmailResp =
         postWithCookie("/account/sendEmailVerification", null, cookie);
