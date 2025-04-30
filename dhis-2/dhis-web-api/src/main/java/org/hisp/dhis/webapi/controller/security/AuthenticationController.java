@@ -237,11 +237,7 @@ public class AuthenticationController {
   private String getRedirectUrl(
       Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
     // Default redirect URL
-    String redirectUrl =
-        request.getContextPath() + "/" + settingsProvider.getCurrentSettings().getStartModule();
-    if (!redirectUrl.endsWith("/")) {
-      redirectUrl += "/";
-    }
+    String redirectUrl = request.getContextPath() + "/";
 
     // Check enforce verified email, redirect to the profile page if email is not verified
     boolean enforceVerifiedEmail = settingsProvider.getCurrentSettings().getEnforceVerifiedEmail();
