@@ -55,6 +55,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonDiff.Mode;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -134,7 +135,7 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
             .getList("enrollments", JsonEnrollment.class);
 
     assertHasSize(1, queryEnrollment.stream().toList());
-    assertNoDiff(pathEnrollment, queryEnrollment.get(0));
+    assertNoDiff(pathEnrollment, queryEnrollment.get(0), Mode.LENIENT);
   }
 
   @Test

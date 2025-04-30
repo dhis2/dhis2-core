@@ -131,7 +131,7 @@
     <postgresql-driver.version>42.7.5</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.10.1</datasource-proxy.version>
-    <mysql-connector-j.version>9.2.0</mysql-connector-j.version>
+    <mysql-connector-j.version>9.3.0</mysql-connector-j.version>
     <clickhouse-jdbc.version>0.8.5</clickhouse-jdbc.version>
 
     <!-- Servlet -->
@@ -173,7 +173,7 @@
     <jts.version>1.20.0</jts.version>
 
     <!-- Apache Artemis -->
-    <artemis-jakarta.version>2.40.0</artemis-jakarta.version>
+    <artemis-jakarta.version>2.41.0</artemis-jakarta.version>
     <netty-all.version>4.2.0.Final</netty-all.version>
     <classgraph.version>4.8.179</classgraph.version>
 
@@ -183,7 +183,7 @@
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
     <jsmpp.version>3.0.1</jsmpp.version>
     <json-path.version>2.9.0</json-path.version>
-    <jsoup.version>1.19.1</jsoup.version>
+    <jsoup.version>1.20.1</jsoup.version>
 
     <!-- Div. utils -->
     <guava.version>33.4.8-jre</guava.version>
