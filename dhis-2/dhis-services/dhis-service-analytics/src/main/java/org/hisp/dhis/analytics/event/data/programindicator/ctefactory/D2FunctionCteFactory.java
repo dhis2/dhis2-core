@@ -63,201 +63,211 @@ public class D2FunctionCteFactory implements CteSqlFactory {
 
   @Override
   public String process(
-      String rawSql,
-      ProgramIndicator programIndicator,
-      Date earliestStart,
-      Date latestEnd,
-      CteContext cteContext,
+      String sql,
+      ProgramIndicator pi,
+      Date start,
+      Date end,
+      CteContext ctx,
       Map<String, String> aliasMap,
-      SqlBuilder sqlBuilder) {
+      SqlBuilder qb) {
 
     StringBuilder out = new StringBuilder();
-    Matcher matcher = PATTERN.matcher(rawSql);
-    while (matcher.find()) {
-      String placeholderString = matcher.group(0);
-      Optional<PlaceholderParser.D2FuncFields> opt =
-          PlaceholderParser.parseD2Func(matcher.group(0));
-      // malformed or bad Base64
+    Matcher m = PATTERN.matcher(sql);
+
+    while (m.find()) {
+      String raw = m.group(0);
+
+      Optional<PlaceholderParser.D2FuncFields> opt = PlaceholderParser.parseD2Func(raw);
       if (opt.isEmpty()) {
-        matcher.appendReplacement(out, Matcher.quoteReplacement(matcher.group(0)));
+        copyRaw(m, out);
         continue;
       }
-      String argType = opt.get().argType();
-      String decodedArgSql = null;
-      if ("val64".equals(argType) || "condLit64".equals(argType)) {
-        if (!StringUtils.isEmpty(opt.get().valueSql())) {
-          try {
-            byte[] decodedBytes = Base64.getDecoder().decode(opt.get().valueSql());
-            decodedArgSql = new String(decodedBytes, StandardCharsets.UTF_8);
-          } catch (IllegalArgumentException e) {
-            log.error(
-                "Failed to decode Base64 argument for placeholder: {}. Skipping CTE generation.",
-                matcher.group(0),
-                e);
-            // Append the original placeholder and skip to next match
-            matcher.appendReplacement(out, Matcher.quoteReplacement(matcher.group(0)));
-            continue;
-          }
-        } else {
-          log.warn(
-              "Placeholder specified argType '{}' but arg64 was empty: {}",
-              argType,
-              matcher.group(0));
-          decodedArgSql = "";
-        }
+
+      PlaceholderParser.D2FuncFields f = opt.get();
+
+      D2FuncType kind = D2FuncType.from(f.func());
+      if (kind == null) {
+        copyRaw(m, out);
+        continue;
       }
 
-      String argumentHash = (decodedArgSql != null) ? generateSqlHash(decodedArgSql) : "noarg";
-
-      // Construct the deterministic CTE key
-      String cteKey =
-          String.format(
-              "d2%s_%s_%s_%s_%s_%s",
-              opt.get().func().toLowerCase(),
-              opt.get().psUid(),
-              opt.get().deUid(),
-              argumentHash,
-              opt.get().boundaryHash(),
-              opt.get().piUid());
-
-      // Check if CTE already exists
-      if (!cteContext.containsCte(cteKey)) {
-
-        // Get Program UID and Event Table Name
-        if (programIndicator.getProgram() == null) {
-          log.error(
-              "ProgramIndicator {} (from context) has no associated Program. Cannot determine event table name for key {}.",
-              programIndicator.getUid(),
-              cteKey);
-          matcher.appendReplacement(out, Matcher.quoteReplacement(matcher.group(0)));
-          continue;
-        }
-        String programUid = programIndicator.getProgram().getUid();
-        String eventTableName = "analytics_event_" + programUid;
-
-        // Get quoted DE UID and boundary conditions
-        String quotedDeUid = sqlBuilder.quote(opt.get().deUid());
-        String boundaryConditionsSql =
-            BoundarySqlBuilder.buildSql(
-                programIndicator.getAnalyticsPeriodBoundaries(),
-                AnalyticsPeriodBoundary.DB_EVENT_DATE,
-                programIndicator,
-                earliestStart,
-                latestEnd,
-                sqlBuilder);
-
-        // Generate CTE Body SQL based on function type and argument
-        String cteBodySql;
-        String conditionSql;
-        String isNotNullCondition = String.format("%s is not null", quotedDeUid);
-
-        if ("countIfValue".equals(opt.get().func())) {
-          if (decodedArgSql == null) { // Should have decoded valueSql
-            log.error("Missing decoded value SQL for countIfValue, key: {}", cteKey);
-            matcher.appendReplacement(out, Matcher.quoteReplacement(matcher.group(0)));
-            continue;
-          }
-          conditionSql = String.format("%s = %s", quotedDeUid, decodedArgSql); // Use DE = valueSql
-
-        } else if ("countIfCondition".equals(opt.get().func())) {
-          if (decodedArgSql == null) { // Should have decoded condition literal
-            log.error("Missing decoded condition literal for countIfCondition, key: {}", cteKey);
-            matcher.appendReplacement(out, Matcher.quoteReplacement(matcher.group(0)));
-            continue;
-          }
-          // Apply simple parsing strategy for condition literal
-          String rawConditionLiteral = decodedArgSql; // This includes quotes
-          String conditionLiteral =
-              AntlrParserUtils.trimQuotes(rawConditionLiteral); // Remove quotes
-          Matcher conditionMatcher = SIMPLE_CONDITION_PATTERN.matcher(conditionLiteral);
-          if (conditionMatcher.matches()) {
-            String operator = conditionMatcher.group(1);
-            String value = conditionMatcher.group(2).trim();
-            // Basic casting assumption (numeric) - enhance if needed
-            conditionSql =
-                String.format(
-                    "%s %s %s",
-                    sqlBuilder.cast(quotedDeUid, DataType.NUMERIC),
-                    operator,
-                    sqlBuilder.cast(value, DataType.NUMERIC));
-          } else {
-            log.error(
-                "Could not parse condition literal '{}' for countIfCondition, key: {}",
-                conditionLiteral,
-                cteKey);
-            matcher.appendReplacement(out, Matcher.quoteReplacement(matcher.group(0)));
-            continue;
-          }
-
-        } else if ("count".equals(opt.get().func())) {
-          // No specific value/condition argument, just count non-nulls
-          conditionSql = isNotNullCondition;
-          isNotNullCondition = "1=1";
-        } else {
-          log.warn(
-              "Unsupported d2 function '{}' encountered for CTE generation. Key: {}",
-              opt.get().func(),
-              cteKey);
-          matcher.appendReplacement(out, Matcher.quoteReplacement(matcher.group(0)));
-          continue;
-        }
-
-        // Combine base conditions (ps, is not null) with specific condition and boundaries
-        String whereClause =
-            String.format(
-                "where ps = %s and %s and %s %s",
-                sqlBuilder.singleQuote(opt.get().psUid()),
-                isNotNullCondition, // Always check base column is not null (unless it's d2:count)
-                conditionSql, // Specific condition from function type
-                boundaryConditionsSql // Boundary conditions (includes leading ' and ' if present)
-                );
-
-        // Construct the final CTE body using the generated condition
-        cteBodySql =
-            String.format(
-                "select enrollment, count(%1$s) as value " // Count the specific column
-                    + "from %2$s "
-                    + "%3$s " // Combined WHERE clause
-                    + "group by enrollment",
-                quotedDeUid, eventTableName, whereClause);
-
-        // Add CTE definition to context (using D2_FUNCTION type)
-        CteDefinition d2CteDef = CteDefinition.forD2Function(cteKey, cteBodySql, "enrollment");
-        cteContext.addD2FunctionCte(cteKey, d2CteDef);
-
-        log.debug("Generated D2 Function CTE '{}' for function '{}'", cteKey, opt.get().func());
+      String argDecoded = decodeArg(f);
+      if (kind.needsArg() && argDecoded == null) {
+        copyRaw(m, out);
+        continue;
       }
 
-      CteDefinition cteDef = cteContext.getDefinitionByKey(cteKey);
-      if (cteDef == null) {
-        log.error(
-            "CTE definition unexpectedly missing for key '{}' after generation attempt. Placeholder remains.",
-            cteKey);
-        matcher.appendReplacement(out, Matcher.quoteReplacement(placeholderString));
-        continue; // Skip replacement if definition is missing
+      String cteKey = buildKey(f, kind, argDecoded);
+
+      ensureCte(cteKey, kind, f, argDecoded, pi, start, end, ctx, qb);
+
+      CteDefinition def = ctx.getDefinitionByKey(cteKey);
+      if (def == null || def.getAlias() == null) {
+        copyRaw(m, out);
+        continue;
       }
 
-      String alias = cteDef.getAlias();
-      if (alias == null) {
-        log.error("CTE definition for key '{}' has null alias. Placeholder remains.", cteKey);
-        matcher.appendReplacement(out, Matcher.quoteReplacement(placeholderString));
-        continue; // Skip replacement if alias is missing
-      }
-      // Populate the output map
-      aliasMap.put(placeholderString, alias);
-
-      // Determine replacement value
-      String replacement = String.format("coalesce(%s.value, 0)", alias);
-
-      // Perform replacement
-      matcher.appendReplacement(out, Matcher.quoteReplacement(replacement));
+      aliasMap.put(raw, def.getAlias());
+      m.appendReplacement(
+          out, Matcher.quoteReplacement("coalesce(" + def.getAlias() + ".value, 0)"));
     }
-    matcher.appendTail(out);
+    m.appendTail(out);
     return out.toString();
   }
 
-  /** Generates a simple hash for SQL value strings to use in CTE keys. */
-  private static String generateSqlHash(String sql) {
-    return SqlHashUtil.sha1(sql);
+  private static void copyRaw(Matcher m, StringBuilder out) {
+    m.appendReplacement(out, Matcher.quoteReplacement(m.group(0)));
+  }
+
+  /**
+   * Decodes the Base64-encoded argument from the placeholder. If the placeholder has no argument,
+   * returns null.
+   *
+   * @param f The parsed fields from the placeholder.
+   * @return The decoded argument or null if not present.
+   */
+  private static String decodeArg(PlaceholderParser.D2FuncFields f) {
+    if ("none".equals(f.argType())) return null;
+
+    if (StringUtils.isEmpty(f.valueSql())) {
+      log.warn("Placeholder had argType '{}' but arg64 empty: {}", f.argType(), f.raw());
+      return "";
+    }
+    try {
+      byte[] bytes = Base64.getDecoder().decode(f.valueSql());
+      return new String(bytes, StandardCharsets.UTF_8);
+    } catch (IllegalArgumentException ex) {
+      log.error("Bad Base64 in placeholder: {}", f.raw(), ex);
+      return null;
+    }
+  }
+
+  private static String buildKey(
+      PlaceholderParser.D2FuncFields f, D2FuncType kind, String argDecoded) {
+
+    String hash = SqlHashUtil.sha1(argDecoded == null ? "noarg" : argDecoded);
+    return "d2%s_%s_%s_%s_%s_%s"
+        .formatted(kind.id, f.psUid(), f.deUid(), hash, f.boundaryHash(), f.piUid());
+  }
+
+  private void ensureCte(
+      String key,
+      D2FuncType kind,
+      PlaceholderParser.D2FuncFields f,
+      String argDecoded,
+      ProgramIndicator pi,
+      Date start,
+      Date end,
+      CteContext ctx,
+      SqlBuilder qb) {
+
+    if (ctx.containsCte(key)) return;
+
+    String eventTable = resolveEventTable(pi);
+    if (eventTable == null) return;
+
+    String quotedDe = qb.quote(f.deUid());
+
+    String conditionSql = kind.buildCondition(qb, quotedDe, argDecoded);
+    if (conditionSql == null) return; // logged inside
+
+    String where =
+        "where ps = %s and %s and %s%s"
+            .formatted(
+                qb.singleQuote(f.psUid()),
+                kind.baseNotNull(qb, quotedDe),
+                conditionSql,
+                BoundarySqlBuilder.buildSql(
+                    pi.getAnalyticsPeriodBoundaries(),
+                    AnalyticsPeriodBoundary.DB_EVENT_DATE,
+                    pi,
+                    start,
+                    end,
+                    qb));
+
+    String body =
+        "select enrollment, count(%s) as value from %s %s group by enrollment"
+            .formatted(quotedDe, eventTable, where);
+
+    ctx.addD2FunctionCte(key, CteDefinition.forD2Function(key, body, "enrollment"));
+
+    log.debug("Generated D2 Function CTE '{}' ({})", key, kind.id);
+  }
+
+  private static String resolveEventTable(ProgramIndicator pi) {
+    if (pi.getProgram() == null) {
+      log.error("ProgramIndicator {} lacks program – cannot build D2 CTE.", pi.getUid());
+      return null;
+    }
+    return "analytics_event_" + pi.getProgram().getUid();
+  }
+
+  private enum D2FuncType {
+    COUNT("count") {
+      @Override
+      boolean needsArg() {
+        return false;
+      }
+
+      @Override
+      String baseNotNull(SqlBuilder qb, String deQuoted) {
+        return "1=1";
+      }
+
+      @Override
+      String buildCondition(SqlBuilder qb, String deQuoted, String arg) {
+        return "1=1";
+      }
+    },
+
+    COUNT_IF_VALUE("countIfValue") {
+      @Override
+      String buildCondition(SqlBuilder qb, String deQuoted, String arg) {
+        return deQuoted + " = " + arg;
+      }
+    },
+
+    COUNT_IF_CONDITION("countIfCondition") {
+      private final Pattern SIMPLE = Pattern.compile("\\s*([<>!=]+)\\s*(.*)");
+
+      @Override
+      String buildCondition(SqlBuilder qb, String deQuoted, String arg) {
+        String trimmed = AntlrParserUtils.trimQuotes(arg);
+        Matcher m = SIMPLE.matcher(trimmed);
+        if (!m.matches()) {
+          log.error("Unparsable condition literal '{}'", trimmed);
+          return null;
+        }
+        String op = m.group(1);
+        String val = m.group(2).trim();
+        return qb.cast(deQuoted, DataType.NUMERIC)
+            + " "
+            + op
+            + " "
+            + qb.cast(val, DataType.NUMERIC);
+      }
+    };
+
+    final String id;
+
+    D2FuncType(String id) {
+      this.id = id;
+    }
+
+    boolean needsArg() {
+      return true;
+    }
+
+    String baseNotNull(SqlBuilder qb, String deQuoted) {
+      return deQuoted + " is not null";
+    }
+
+    abstract String buildCondition(SqlBuilder qb, String deQuoted, String arg);
+
+    /* map raw func string to enum */
+    static D2FuncType from(String func) {
+      for (D2FuncType k : values()) if (k.id.equals(func)) return k;
+      return null;
+    }
   }
 }
