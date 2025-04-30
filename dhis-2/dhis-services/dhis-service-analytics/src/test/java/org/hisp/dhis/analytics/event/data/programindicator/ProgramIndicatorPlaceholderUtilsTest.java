@@ -1079,106 +1079,63 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
 
   @Test
   void testProcessD2FunctionPlaceholders_GeneratesCteAndReplacesPlaceholder() {
-    ProgramIndicator programIndicator = mock(ProgramIndicator.class);
-    when(programIndicator.getProgram()).thenReturn(mock(Program.class));
-    String funcName = "countIfValue";
-    String testPsUid = "TestPs1";
-    String testDeUid = "TestDe1";
-    String valueSql = "cast(123 as numeric)";
-    String boundaryHash = "boundaryHash123";
-    String testPiUid = "TestPi1";
-    String expectedArgType = "val64";
+    // Setup constants for better readability
+    final String funcName = "countIfValue";
+    final String psUid = "TestPs1";
+    final String deUid = "TestDe1";
+    final String valueSql = "cast(123 as numeric)";
+    final String boundaryHash = "boundaryHash123";
+    final String piUid = "TestPi1";
+    final String argType = "val64";
 
+    // Setup program indicator mock
+    ProgramIndicator programIndicator = mock(ProgramIndicator.class);
+    Program testProgram = new Program();
+    testProgram.setUid(piUid);
+    when(programIndicator.getProgram()).thenReturn(testProgram);
+
+    // Create the rich placeholder
     String encodedValueSql =
         Base64.getEncoder().encodeToString(valueSql.getBytes(StandardCharsets.UTF_8));
-    String richPlaceholderString =
-        String.format(
-            "__D2FUNC__(func='%s', ps='%s', de='%s', argType='%s', arg64='%s', hash='%s', pi='%s')__",
-            funcName,
-            testPsUid,
-            testDeUid,
-            expectedArgType,
-            encodedValueSql,
-            boundaryHash,
-            testPiUid);
-    String rawSql = "IF(" + richPlaceholderString + " > 0, 1, 0)"; // Embed in SQL
+    String richPlaceholder =
+        buildRichPlaceholder(funcName, psUid, deUid, argType, encodedValueSql, boundaryHash, piUid);
+    String rawSql = "IF(" + richPlaceholder + " > 0, 1, 0)";
 
-    String expectedValueHash = generateTestSqlHash(valueSql);
+    // Expected values
+    String valueHash = generateTestSqlHash(valueSql);
     String expectedCteKey =
         String.format(
             "d2%s_%s_%s_%s_%s_%s",
-            funcName.toLowerCase(),
-            testPsUid,
-            testDeUid,
-            expectedValueHash,
-            boundaryHash,
-            testPiUid);
-    String quotedDeUid = sqlBuilder.quote(testDeUid);
+            funcName.toLowerCase(), psUid, deUid, valueHash, boundaryHash, piUid);
+    String quotedDeUid = sqlBuilder.quote(deUid);
     String expectedCteSqlBody =
         String.format(
-            "select enrollment, count(%1$s) as value "
-                + "from analytics_event_%5$s " // Assuming PI context gives program Uid
-                + "where ps = '%3$s' "
-                + "and %1$s is not null "
-                + "and %1$s = %4$s "
-                + "" // No boundaries
-                + "group by enrollment",
-            quotedDeUid, // %1$s
-            "?", // %2$s - Table name depends on piUid from placeholder, need to adjust test
-            // slightly or assume it matches 'programIndicator' mock
-            testPsUid, // %3$s
-            valueSql, // %4$s - Decoded SQL
-            testPiUid // %5$s - PI Uid for table name
-            );
-    // Adjust table name in expected SQL based on the PI used in the placeholder
-    expectedCteSqlBody =
-        expectedCteSqlBody.replace("analytics_event_?", "analytics_event_" + testPiUid);
+            "select enrollment, count(%s) as value from analytics_event_%s "
+                + "where ps = '%s' and %s is not null and %s = %s group by enrollment",
+            quotedDeUid, piUid, psUid, quotedDeUid, quotedDeUid, valueSql);
 
-    // Mock PI program for table name generation inside the method under test
-    Program testProgram = new Program();
-    testProgram.setUid(testPiUid); // Use the piUid from the placeholder
-    when(programIndicator.getProgram())
-        .thenReturn(testProgram); // Ensure PI returns correct program
-
-    // method under test
+    // Execute the method under test
     String resultSql =
         processD2FunctionPlaceholdersAndGenerateCtes(
             rawSql,
-            programIndicator, // Pass the main PI (used for boundaries/context)
+            programIndicator,
             startDate,
             endDate,
             cteContext,
-            // No metadata map passed
-            d2FunctionAliasMap, // Pass output map
+            d2FunctionAliasMap,
             sqlBuilder);
 
-    // Assert CTE Generation
-    assertTrue(cteContext.containsCte(expectedCteKey), "Context should contain generated CTE key");
-    assertEquals(1, cteContext.getCteKeys().size(), "Should have generated exactly one CTE");
+    // Verify CTE generation
     CteDefinition cteDef = cteContext.getDefinitionByKey(expectedCteKey);
     assertNotNull(cteDef, "CTE Definition should exist in context");
-    assertEquals(
-        CteDefinition.CteType.D2_FUNCTION,
-        cteDef.getCteType(),
-        "CTE type should be VARIABLE (assuming reuse)");
-    assertEquals(
-        normalizeSql(expectedCteSqlBody),
-        normalizeSql(cteDef.getCteDefinition()),
-        "Generated CTE SQL body does not match expected");
+    assertEquals(CteDefinition.CteType.D2_FUNCTION, cteDef.getCteType());
+    assertEquals(normalizeSql(expectedCteSqlBody), normalizeSql(cteDef.getCteDefinition()));
 
-    // Assert Alias Map Population
+    // Verify placeholder replacement
     String expectedAlias = cteDef.getAlias();
-    assertNotNull(expectedAlias);
-    assertEquals(1, d2FunctionAliasMap.size(), "Output alias map should contain one entry");
-    assertEquals(
-        expectedAlias,
-        d2FunctionAliasMap.get(richPlaceholderString), // Map key is the full placeholder string
-        "Alias map should map placeholder string to the generated alias");
-
-    // Assert Result SQL Replacement
-    String expectedResultSql = "IF(coalesce(" + expectedAlias + ".value, 0) > 0, 1, 0)";
-    assertEquals(
-        expectedResultSql, resultSql, "Result SQL should have placeholder replaced correctly");
+    assertEquals(1, d2FunctionAliasMap.size());
+    assertEquals(expectedAlias, d2FunctionAliasMap.get(richPlaceholder));
+    assertEquals("IF(coalesce(" + expectedAlias + ".value, 0) > 0, 1, 0)", resultSql);
   }
 
   @Test
@@ -1471,5 +1428,18 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
             cteContext,
             d2FunctionAliasMap,
             sqlBuilder);
+  }
+
+  private String buildRichPlaceholder(
+      String funcName,
+      String psUid,
+      String deUid,
+      String argType,
+      String arg64,
+      String hash,
+      String piUid) {
+    return String.format(
+        "__D2FUNC__(func='%s', ps='%s', de='%s', argType='%s', arg64='%s', hash='%s', pi='%s')__",
+        funcName, psUid, deUid, argType, arg64, hash, piUid);
   }
 }

@@ -46,7 +46,7 @@ public class vEventStatus implements ProgramVariable {
   @Override
   public Object getSql(CommonExpressionVisitor visitor) {
     if (!visitor.isUseExperimentalSqlEngine()) {
-        return getSql2(visitor);
+      return getSql2(visitor);
     }
     ProgramExpressionParams params = visitor.getProgParams();
 
