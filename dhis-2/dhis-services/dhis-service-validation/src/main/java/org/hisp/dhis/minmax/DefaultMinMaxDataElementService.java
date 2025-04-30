@@ -29,24 +29,22 @@
  */
 package org.hisp.dhis.minmax;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.jdbc.batchhandler.MinMaxDataElementBatchHandler;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -148,55 +146,64 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
   @Override
   public void importFromJson(MinMaxValueBatchRequest request) throws MinMaxImportException {
 
-    List<MinMaxValueDto> dtos = request.values();
+    List<MinMaxValueDto> dtos = Optional.ofNullable(request.values()).orElse(List.of());
+    if (dtos.isEmpty()) return;
 
-    List<String> dataElementUids =
-        dtos.stream()
-            .map(MinMaxValueDto::getDataElement)
-            .filter(Objects::nonNull)
-            .distinct()
-            .toList();
-
-    List<String> orgUnitUids =
-        dtos.stream().map(MinMaxValueDto::getOrgUnit).filter(Objects::nonNull).distinct().toList();
-
-    List<UID> cocUids =
-        dtos.stream().map(MinMaxValueDto::getCategoryOptionCombo).distinct().map(UID::of).toList();
-
-    Map<String, DataElement> dataElementMap =
-        dataElementService.getDataElementsByUid(dataElementUids).stream()
-            .collect(Collectors.toMap(DataElement::getUid, Function.identity()));
-
-    Map<String, OrganisationUnit> orgUnitMap =
-        organisationUnitService.getOrganisationUnitsByUid(orgUnitUids).stream()
-            .collect(Collectors.toMap(OrganisationUnit::getUid, Function.identity()));
-
-    Map<String, CategoryOptionCombo> cocMap =
-        categoryService.getCategoryOptionCombosByUid(cocUids).stream()
-            .collect(Collectors.toMap(CategoryOptionCombo::getUid, Function.identity()));
-
-    try (BatchHandler<MinMaxDataElement> batchHandler =
-        batchHandlerFactory.createBatchHandler(MinMaxDataElementBatchHandler.class).init()) {
-
-      for (MinMaxValueDto dto : dtos) {
-        DataElement de = dataElementMap.get(dto.getDataElement());
-        OrganisationUnit ou = orgUnitMap.get(dto.getOrgUnit());
-        CategoryOptionCombo coc = cocMap.get(dto.getCategoryOptionCombo());
-
-        MinMaxDataElementUtils.validateDto(dto);
-        MinMaxDataElement mm =
-            new MinMaxDataElement(de, ou, coc, dto.getMinValue(), dto.getMaxValue());
-        mm.setGenerated(ObjectUtils.defaultIfNull(dto.getGenerated(), Boolean.TRUE));
-        batchHandler.upsertObject(mm);
-      }
-      batchHandler.flush();
-
-    } catch (MinMaxImportException ex) {
-      throw (ex);
-    } catch (Exception e) {
-      log.error("Unexpected server error importing min max values", e);
-      throw new MinMaxImportException("Internal server error importing min max values", e);
+    List<ResolvedMinMaxDto> resolvedDtos = resolveAllValidDtos(dtos, minMaxDataElementStore);
+    final int CHUNK_SIZE = 500;
+    for (int i = 0; i < resolvedDtos.size(); i += CHUNK_SIZE) {
+      int end = Math.min(i + CHUNK_SIZE, resolvedDtos.size());
+      List<ResolvedMinMaxDto> chunk = resolvedDtos.subList(i, end);
+      minMaxDataElementStore.upsertResolvedDtos(chunk);
     }
+  }
+
+  private static List<ResolvedMinMaxDto> resolveAllValidDtos(
+      List<MinMaxValueDto> dtos, MinMaxDataElementStore minMaxDataElementStore) {
+
+    Set<UID> dataElementUids =
+        dtos.stream().map(dto -> UID.of(dto.getDataElement())).collect(Collectors.toSet());
+
+    Set<UID> orgUnitUids =
+        dtos.stream().map(dto -> UID.of(dto.getOrgUnit())).collect(Collectors.toSet());
+
+    Set<UID> cocUids =
+        dtos.stream().map(dto -> UID.of(dto.getCategoryOptionCombo())).collect(Collectors.toSet());
+
+    Map<UID, Long> dataElementMap = minMaxDataElementStore.getDataElementMap(dataElementUids);
+    Map<UID, Long> orgUnitMap = minMaxDataElementStore.getOrgUnitMap(orgUnitUids);
+    Map<UID, Long> cocMap = minMaxDataElementStore.getCategoryOptionComboMap(cocUids);
+
+    List<ResolvedMinMaxDto> resolved = new ArrayList<>();
+
+    for (MinMaxValueDto dto : dtos) {
+      MinMaxDataElementUtils.validateDto(dto);
+      UID deUid = UID.of(dto.getDataElement());
+      UID ouUid = UID.of(dto.getOrgUnit());
+      UID cocUid = UID.of(dto.getCategoryOptionCombo());
+
+      Long deId = dataElementMap.get(deUid);
+      Long ouId = orgUnitMap.get(ouUid);
+      Long cocId = cocMap.get(cocUid);
+
+      if (deId == null || ouId == null || cocId == null) {
+        throw new MinMaxImportException(
+            String.format(
+                "Unresolved UID(s) in DTO: dataElement=%s, orgUnit=%s, categoryOptionCombo=%s",
+                deUid, ouUid, cocUid));
+      }
+
+      resolved.add(
+          new ResolvedMinMaxDto(
+              deId,
+              ouId,
+              cocId,
+              dto.getMinValue(),
+              dto.getMaxValue(),
+              Boolean.TRUE.equals(dto.getGenerated())));
+    }
+
+    return resolved;
   }
 
   @Transactional

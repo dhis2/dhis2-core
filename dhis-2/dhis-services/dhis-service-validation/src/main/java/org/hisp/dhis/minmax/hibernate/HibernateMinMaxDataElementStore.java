@@ -39,6 +39,8 @@ import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.hibernate.query.Query;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -51,6 +53,7 @@ import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementQueryParams;
 import org.hisp.dhis.minmax.MinMaxDataElementStore;
 import org.hisp.dhis.minmax.MinMaxValueDto;
+import org.hisp.dhis.minmax.ResolvedMinMaxDto;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.QueryParser;
@@ -254,6 +257,111 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
       query.setParameter("de" + i, dto.getDataElement());
       query.setParameter("ou" + i, dto.getOrgUnit());
       query.setParameter("coc" + i, dto.getCategoryOptionCombo());
+    }
+
+    query.executeUpdate();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<UID, Long> getDataElementMap(@Nonnull Collection<UID> uids) {
+    if (uids.isEmpty()) return Map.of();
+
+    List<Object[]> results =
+        getSession()
+            .createNativeQuery("SELECT uid, dataelementid FROM dataelement WHERE uid IN :uids")
+            .setParameter("uids", uids.stream().map(UID::getValue).toList())
+            .getResultList();
+
+    return Map.copyOf(
+        results.stream()
+            .collect(
+                Collectors.toMap(
+                    row -> UID.of((String) row[0]), row -> ((Number) row[1]).longValue())));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<UID, Long> getOrgUnitMap(@Nonnull Collection<UID> uids) {
+    if (uids.isEmpty()) return Map.of();
+
+    List<Object[]> results =
+        getSession()
+            .createNativeQuery(
+                "SELECT uid, organisationunitid FROM organisationunit WHERE uid IN :uids")
+            .setParameter("uids", uids.stream().map(UID::getValue).toList())
+            .getResultList();
+
+    return Map.copyOf(
+        results.stream()
+            .collect(
+                Collectors.toMap(
+                    row -> UID.of((String) row[0]), row -> ((Number) row[1]).longValue())));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<UID, Long> getCategoryOptionComboMap(@Nonnull Collection<UID> uids) {
+    if (uids.isEmpty()) return Map.of();
+
+    List<Object[]> results =
+        getSession()
+            .createNativeQuery(
+                "SELECT uid, categoryoptioncomboid FROM categoryoptioncombo WHERE uid IN :uids")
+            .setParameter("uids", uids.stream().map(UID::getValue).toList())
+            .getResultList();
+
+    return Map.copyOf(
+        results.stream()
+            .collect(
+                Collectors.toMap(
+                    row -> UID.of((String) row[0]), row -> ((Number) row[1]).longValue())));
+  }
+
+  @Override
+  @Transactional
+  public void upsertResolvedDtos(List<ResolvedMinMaxDto> chunk) {
+    if (chunk == null || chunk.isEmpty()) {
+      return;
+    }
+
+    StringBuilder sql =
+        new StringBuilder(
+            """
+    INSERT INTO minmaxdataelement (
+      dataelementid, sourceid, categoryoptioncomboid,
+      minimumvalue, maximumvalue, generatedvalue
+    )
+    VALUES
+  """);
+
+    List<String> valuePlaceholders = new ArrayList<>();
+    for (int i = 0; i < chunk.size(); i++) {
+      valuePlaceholders.add(
+          String.format("(:de%d, :ou%d, :coc%d, :min%d, :max%d, :gen%d)", i, i, i, i, i, i));
+    }
+
+    sql.append(String.join(",\n", valuePlaceholders))
+        .append(
+            """
+
+    ON CONFLICT (sourceid, dataelementid, categoryoptioncomboid)
+    DO UPDATE SET
+      minimumvalue = EXCLUDED.minimumvalue,
+      maximumvalue = EXCLUDED.maximumvalue,
+      generatedvalue = EXCLUDED.generatedvalue
+  """);
+
+    Query<?> query = getSession().createNativeQuery(sql.toString());
+
+    for (int i = 0; i < chunk.size(); i++) {
+      ResolvedMinMaxDto dto = chunk.get(i);
+      query.setParameter("de" + i, dto.dataElementId());
+      query.setParameter("ou" + i, dto.orgUnitId());
+      query.setParameter("coc" + i, dto.categoryOptionComboId());
+      query.setParameter("min" + i, dto.minValue());
+      query.setParameter("max" + i, dto.maxValue());
+      query.setParameter("gen" + i, dto.generated());
     }
 
     query.executeUpdate();

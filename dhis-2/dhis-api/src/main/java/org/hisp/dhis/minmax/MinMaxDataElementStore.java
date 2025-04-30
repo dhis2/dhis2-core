@@ -31,6 +31,7 @@ package org.hisp.dhis.minmax;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.GenericStore;
@@ -76,4 +77,18 @@ public interface MinMaxDataElementStore extends GenericStore<MinMaxDataElement> 
    *     passed in
    */
   List<MinMaxDataElement> getByCategoryOptionCombo(@Nonnull Collection<UID> uids);
+
+  /**
+   * Retrieve all {@link MinMaxDataElement}s with references to {@link DataElement} {@link UID}s
+   *
+   * @param uids {@link DataElement} {@link UID}s
+   * @return {@link MinMaxDataElement}s with references to {@link DataElement} {@link UID} passed in
+   */
+  Map<UID, Long> getDataElementMap(@Nonnull Collection<UID> uids);
+
+  Map<UID, Long> getOrgUnitMap(@Nonnull Collection<UID> uids);
+
+  Map<UID, Long> getCategoryOptionComboMap(@Nonnull Collection<UID> uids);
+
+  void upsertResolvedDtos(List<ResolvedMinMaxDto> chunk);
 }
