@@ -113,5 +113,32 @@ class NepaliCalendarTest {
     assertEquals("2080W52", period.getIsoDate());
     assertEquals(startDate.toDate(), period.getStartDate());
     assertEquals(endDate.toDate(), period.getEndDate());
+
+    dateTimeUnit = new DateTimeUnit(2080, 1, 11, false);
+    period = periodType.createPeriod(dateTimeUnit, calendar);
+    startDate = new DateTime(2023, 4, 24, 0, 0);
+    endDate = new DateTime(2023, 4, 30, 0, 0);
+
+    assertEquals("2080W2", period.getIsoDate());
+    assertEquals(startDate.toDate(), period.getStartDate());
+    assertEquals(endDate.toDate(), period.getEndDate());
+
+    dateTimeUnit = new DateTimeUnit(2081, 1, 10, false);
+    period = periodType.createPeriod(dateTimeUnit, calendar);
+    startDate = new DateTime(2024, 4, 22, 0, 0);
+    endDate = new DateTime(2024, 4, 28, 0, 0);
+
+    assertEquals("2081W2", period.getIsoDate());
+    assertEquals(startDate.toDate(), period.getStartDate());
+    assertEquals(endDate.toDate(), period.getEndDate());
+
+    dateTimeUnit = new DateTimeUnit(2082, 1, 1, false);
+    period = periodType.createPeriod(dateTimeUnit, calendar);
+    startDate = new DateTime(2025, 4, 14, 0, 0);
+    endDate = new DateTime(2025, 4, 20, 0, 0);
+
+    assertEquals("2082W1", period.getIsoDate());
+    assertEquals(startDate.toDate(), period.getStartDate());
+    assertEquals(endDate.toDate(), period.getEndDate());
   }
 }
