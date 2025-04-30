@@ -58,7 +58,6 @@ import org.hisp.dhis.minmax.MinMaxCsvParser;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementQueryParams;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
-import org.hisp.dhis.minmax.MinMaxImportException;
 import org.hisp.dhis.minmax.MinMaxValueBatchRequest;
 import org.hisp.dhis.minmax.MinMaxValueDto;
 import org.hisp.dhis.node.NodeUtils;
@@ -225,14 +224,10 @@ public class MinMaxDataElementController {
       @RequestParam(value = "importStrategy", defaultValue = "UPDATE") String importStrategy)
       throws BadRequestException {
 
-    try {
-      if ("DELETE".equalsIgnoreCase(importStrategy)) {
-        minMaxService.deleteFromJson(request);
-      } else {
-        minMaxService.importFromJson(request);
-      }
-    } catch (MinMaxImportException e) {
-      throw new BadRequestException(e.getMessage());
+    if ("DELETE".equalsIgnoreCase(importStrategy)) {
+      minMaxService.deleteFromJson(request);
+    } else {
+      minMaxService.importFromJson(request);
     }
   }
 

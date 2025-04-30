@@ -91,4 +91,12 @@ public interface MinMaxDataElementStore extends GenericStore<MinMaxDataElement> 
   Map<UID, Long> getCategoryOptionComboMap(@Nonnull Collection<UID> uids);
 
   void upsertResolvedDtos(List<ResolvedMinMaxDto> chunk);
+
+  public record ResolvedMinMaxDto(
+      long dataElementId,
+      long orgUnitId,
+      long categoryOptionComboId,
+      int minValue,
+      int maxValue,
+      boolean generated) {}
 }

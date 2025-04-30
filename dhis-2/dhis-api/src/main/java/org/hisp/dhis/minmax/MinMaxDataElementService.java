@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
@@ -65,7 +66,7 @@ public interface MinMaxDataElementService {
 
   void removeMinMaxDataElements(Collection<DataElement> dataElements, OrganisationUnit parent);
 
-  void importFromJson(MinMaxValueBatchRequest request);
+  void importFromJson(MinMaxValueBatchRequest request) throws BadRequestException;
 
-  void deleteFromJson(MinMaxValueBatchRequest request);
+  void deleteFromJson(MinMaxValueBatchRequest request) throws BadRequestException;
 }

@@ -32,6 +32,8 @@ package org.hisp.dhis.minmax;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ErrorCode;
 
 /**
  * @author Jason P. Pickering
@@ -41,7 +43,7 @@ public class MinMaxDataElementUtils {
 
   private MinMaxDataElementUtils() {}
 
-  public static void validateDto(MinMaxValueDto dto) {
+  public static void validateDto(MinMaxValueDto dto) throws BadRequestException {
 
     String dataElement = trimToNull(dto.getDataElement());
     String orgUnit = trimToNull(dto.getOrgUnit());
@@ -50,12 +52,11 @@ public class MinMaxDataElementUtils {
     Integer max = dto.getMaxValue();
 
     if (dataElement == null || orgUnit == null || coc == null || min == null || max == null) {
-      throw new MinMaxImportException("Missing required field(s) in: " + formatDtoInfo(dto));
+      throw new BadRequestException(ErrorCode.E7801, formatDtoInfo(dto));
     }
 
     if (min >= max) {
-      throw new MinMaxImportException(
-          "Min value is greater than or equal to Max value for: " + formatDtoInfo(dto));
+      throw new BadRequestException(ErrorCode.E7802, formatDtoInfo(dto));
     }
   }
 

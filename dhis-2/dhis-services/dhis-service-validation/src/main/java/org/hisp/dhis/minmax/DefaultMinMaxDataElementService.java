@@ -29,6 +29,9 @@
  */
 package org.hisp.dhis.minmax;
 
+import static org.hisp.dhis.minmax.MinMaxDataElementStore.ResolvedMinMaxDto;
+import static org.hisp.dhis.minmax.MinMaxDataElementUtils.formatDtoInfo;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -43,6 +46,8 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.quick.BatchHandlerFactory;
@@ -144,8 +149,7 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
 
   @Transactional
   @Override
-  public void importFromJson(MinMaxValueBatchRequest request) throws MinMaxImportException {
-
+  public void importFromJson(MinMaxValueBatchRequest request) throws BadRequestException {
     List<MinMaxValueDto> dtos = Optional.ofNullable(request.values()).orElse(List.of());
     if (dtos.isEmpty()) return;
 
@@ -159,7 +163,8 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
   }
 
   private static List<ResolvedMinMaxDto> resolveAllValidDtos(
-      List<MinMaxValueDto> dtos, MinMaxDataElementStore minMaxDataElementStore) {
+      List<MinMaxValueDto> dtos, MinMaxDataElementStore minMaxDataElementStore)
+      throws BadRequestException {
 
     Set<UID> dataElementUids =
         dtos.stream().map(dto -> UID.of(dto.getDataElement())).collect(Collectors.toSet());
@@ -187,10 +192,7 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
       Long cocId = cocMap.get(cocUid);
 
       if (deId == null || ouId == null || cocId == null) {
-        throw new MinMaxImportException(
-            String.format(
-                "Unresolved UID(s) in DTO: dataElement=%s, orgUnit=%s, categoryOptionCombo=%s",
-                deUid, ouUid, cocUid));
+        throw new BadRequestException(ErrorCode.E7803, formatDtoInfo(dto));
       }
 
       resolved.add(
@@ -208,7 +210,7 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
 
   @Transactional
   @Override
-  public void deleteFromJson(MinMaxValueBatchRequest request) {
+  public void deleteFromJson(MinMaxValueBatchRequest request) throws BadRequestException {
     List<MinMaxValueDto> dtos = request.values();
 
     for (MinMaxValueDto dto : dtos) {
@@ -217,7 +219,7 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
         UID.of(dto.getOrgUnit());
         UID.of(dto.getCategoryOptionCombo());
       } catch (IllegalArgumentException ex) {
-        throw new MinMaxImportException("Invalid UID in DTO: " + ex.getMessage(), ex);
+        throw new BadRequestException(ErrorCode.E7804, formatDtoInfo(dto));
       }
     }
     minMaxDataElementStore.deleteBulkByDtos(dtos);

@@ -37,6 +37,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ErrorCode;
 
 public class MinMaxCsvParser {
   private MinMaxCsvParser() {}
@@ -48,7 +50,7 @@ public class MinMaxCsvParser {
    * @return a list of MinMaxValueDto objects
    * @throws IOException if an error occurs while reading the file
    */
-  public static List<MinMaxValueDto> parse(InputStream inputStream) throws IOException {
+  public static List<MinMaxValueDto> parse(InputStream inputStream) throws BadRequestException {
     List<MinMaxValueDto> result = new ArrayList<>();
 
     try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
@@ -68,28 +70,29 @@ public class MinMaxCsvParser {
 
         MinMaxValueDto dto = new MinMaxValueDto();
         try {
-          dto.setDataElement(trimToEmpty(fields[0]));
-          dto.setOrgUnit(trimToEmpty(fields[1]));
-          dto.setCategoryOptionCombo(trimToEmpty(fields[2]));
-          dto.setMinValue(Integer.parseInt(trimToEmpty(fields[3])));
-          dto.setMaxValue(Integer.parseInt(trimToEmpty(fields[4])));
-          if (fields.length > 5 && !trimToEmpty(fields[5]).isEmpty()) {
-            dto.setGenerated(Boolean.parseBoolean(trimToEmpty(fields[5])));
-          }
-
-          result.add(dto);
+          addMinMaxDTO( dto, fields, result );
         } catch (NumberFormatException e) {
-          throw new MinMaxImportException(
-              String.format(
-                  "Error parsing number at row %d for %s: %s",
-                  rowNum, MinMaxDataElementUtils.formatDtoInfo(dto), e.getMessage()),
-              e);
-        } catch (MinMaxImportException e) {
-          throw new MinMaxImportException(
-              String.format("Validation failed at row %d: %s", rowNum, e.getMessage()), e);
+          throw new IOException(
+              String.format("Invalid number format at row %d: %s", rowNum, e.getMessage()), e);
         }
       }
+    } catch (IOException e) {
+      throw new BadRequestException(ErrorCode.E7800, e);
     }
     return result;
+  }
+
+  private static void addMinMaxDTO( MinMaxValueDto dto, String[] fields, List<MinMaxValueDto> result )
+  {
+    dto.setDataElement(trimToEmpty( fields[0]));
+    dto.setOrgUnit(trimToEmpty( fields[1]));
+    dto.setCategoryOptionCombo(trimToEmpty( fields[2]));
+    dto.setMinValue(Integer.parseInt(trimToEmpty( fields[3])));
+    dto.setMaxValue(Integer.parseInt(trimToEmpty( fields[4])));
+    if ( fields.length > 5 && !trimToEmpty( fields[5]).isEmpty()) {
+      dto.setGenerated(Boolean.parseBoolean(trimToEmpty( fields[5])));
+    }
+
+    result.add( dto );
   }
 }

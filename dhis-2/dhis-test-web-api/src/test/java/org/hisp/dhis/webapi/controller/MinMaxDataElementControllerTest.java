@@ -128,7 +128,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
   private static Stream<Arguments> provideTestCases() {
     return Stream.of(
         arguments(
-            "Missing required field(s) in: dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=10, max=null"
+            "Missing required fields for min-max object: dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=10, max=null"
                 .formatted(fakeDataElementID, fakeOrgUnitID, fakeCategoryOptionComboID)
                 .trim(),
             """
@@ -151,7 +151,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
                     fakeCategoryOptionComboID),
             HttpStatus.BAD_REQUEST),
         arguments(
-            "Missing required field(s) in: dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=null, max=10"
+            "Missing required fields for min-max object: dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=null, max=10"
                 .formatted(fakeDataElementID, fakeOrgUnitID, fakeCategoryOptionComboID)
                 .trim(),
             """
