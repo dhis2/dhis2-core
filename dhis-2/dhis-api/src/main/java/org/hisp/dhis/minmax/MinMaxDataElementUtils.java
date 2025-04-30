@@ -56,7 +56,7 @@ public class MinMaxDataElementUtils {
     }
 
     if (dto.getMinValue() >= dto.getMaxValue()) {
-      throw new BadRequestException(ErrorCode.E7804, formatDtoInfo(dto));
+      throw new BadRequestException(ErrorCode.E7802, formatDtoInfo(dto));
     }
   }
 
