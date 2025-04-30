@@ -229,38 +229,38 @@ public class LoginTest extends BaseE2ETest {
 
   @Test
   void testRedirectWithQueryParam() {
-    assertRedirectToSameUrl("/api/users?fields=id,name,displayName");
+    assertRedirectUrl("/api/users?fields=id,name,displayName", DEFAULT_LOGIN_REDIRECT, false);
   }
 
   @Test
   void testRedirectWithoutQueryParam() {
-    assertRedirectToSameUrl("/api/users");
+    assertRedirectUrl("/api/users", DEFAULT_LOGIN_REDIRECT, false);
   }
 
   @Test
   void testRedirectToResource() {
-    assertRedirectUrl("/users/resource.js", DEFAULT_DASHBOARD_PATH, false);
+    assertRedirectUrl("/users/resource.js", DEFAULT_LOGIN_REDIRECT, false);
   }
 
   @Test
   void testRedirectToHtmlResource() {
-    assertRedirectToSameUrl("/users/resource.html");
+    assertRedirectUrl("/users/resource.html", DEFAULT_LOGIN_REDIRECT, false);
   }
 
   @Test
   void testRedirectToSlashEnding() {
-    assertRedirectToSameUrl("/users/");
+    assertRedirectUrl("/users/", DEFAULT_LOGIN_REDIRECT, false);
   }
 
   @Test
   void testRedirectToResourceWorker() {
-    assertRedirectUrl("/dhis-web-dashboard/service-worker.js", DEFAULT_DASHBOARD_PATH, true);
+    assertRedirectUrl("/dhis-web-dashboard/service-worker.js", DEFAULT_LOGIN_REDIRECT, true);
   }
 
   @Test
   void testRedirectToCssResourceWorker() {
     assertRedirectUrl(
-        "/dhis-web-dashboard/static/css/main.4536e618.css", DEFAULT_DASHBOARD_PATH, true);
+        "/dhis-web-dashboard/static/css/main.4536e618.css", DEFAULT_LOGIN_REDIRECT, true);
   }
 
   @Test
