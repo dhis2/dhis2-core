@@ -237,8 +237,7 @@ public class AuthenticationController {
   private String getRedirectUrl(
       Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
     // Default redirect URL
-    String redirectUrl =
-        request.getContextPath() + "/";
+    String redirectUrl = request.getContextPath() + "/";
     if (!redirectUrl.endsWith("/")) {
       redirectUrl += "/";
     }
