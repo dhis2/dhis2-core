@@ -35,7 +35,9 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.temporal.WeekFields;
 import java.util.Date;
 import java.util.ResourceBundle;
@@ -261,17 +263,24 @@ public class I18nFormat {
     if (periodType instanceof WeeklyAbstractPeriodType) {
       DateTimeUnit start;
       DateTimeUnit end;
+      String week = null;
 
       if (calendar.isIso8601()) {
         start = DateTimeUnit.fromJdkDate(period.getStartDate());
         end = DateTimeUnit.fromJdkDate(period.getEndDate());
+        LocalDate startDate =
+            Instant.ofEpochMilli(period.getStartDate().getTime())
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
+        WeekFields weekFields =
+            WeekFields.of(PeriodType.MAP_WEEK_TYPE.get(periodType.getName()), 4);
+        week = String.valueOf(startDate.get(weekFields.weekOfWeekBasedYear()));
 
       } else {
         start = calendar.fromIso(period.getStartDate());
         end = calendar.fromIso(period.getEndDate());
+        week = String.valueOf(calendar.week(start));
       }
-
-      String week = String.valueOf(calendar.week(start));
 
       return String.format(
           shortVersion ? "W%s %d-%02d-%02d - %d-%02d-%02d" : "Week %s %d-%02d-%02d - %d-%02d-%02d",
