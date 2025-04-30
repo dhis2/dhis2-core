@@ -45,23 +45,19 @@ public class vEventStatus implements ProgramVariable {
 
   @Override
   public Object getSql(CommonExpressionVisitor visitor) {
+    if (!visitor.isUseExperimentalSqlEngine()) {
+        return getSql2(visitor);
+    }
     ProgramExpressionParams params = visitor.getProgParams();
 
-    // Check if the context is Enrollment analytics
-    // Check for null params and programIndicator for safety
     if (params != null
         && params.getProgramIndicator() != null
         && AnalyticsType.ENROLLMENT == params.getProgramIndicator().getAnalyticsType()) {
-      // Generate placeholder instead of subquery
       String piUid = params.getProgramIndicator().getUid();
       return String.format(PLACEHOLDER_FORMAT, piUid);
     } else {
-      // For Event analytics or other contexts, return the direct column name
-      // This assumes event status is directly available in the event analytics table context
       return "eventstatus";
     }
-    // The original call to visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(...)
-    // is removed for the ENROLLMENT case as the placeholder replaces it.
   }
 
   @Override
@@ -69,7 +65,6 @@ public class vEventStatus implements ProgramVariable {
     return "COMPLETED";
   }
 
-  // TODO remove
   public Object getSql2(CommonExpressionVisitor visitor) {
     ProgramExpressionParams params = visitor.getProgParams();
 
