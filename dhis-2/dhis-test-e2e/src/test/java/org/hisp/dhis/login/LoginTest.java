@@ -90,7 +90,7 @@ public class LoginTest extends BaseE2ETest {
 
     ResponseEntity<LoginResponse> loginResponse =
         loginWithUsernameAndPassword(username, password, null);
-    assertLoginSuccess(loginResponse, DEFAULT_DASHBOARD_PATH);
+    assertLoginSuccess(loginResponse, DEFAULT_LOGIN_REDIRECT);
     String cookie = extractSessionCookie(loginResponse);
 
     // Verify session cookie works
@@ -152,7 +152,7 @@ public class LoginTest extends BaseE2ETest {
     // Test Login works without 2FA code
     ResponseEntity<LoginResponse> successfulLoginResp =
         loginWithUsernameAndPassword(username, password, null);
-    assertLoginSuccess(successfulLoginResp, DEFAULT_DASHBOARD_PATH);
+    assertLoginSuccess(successfulLoginResp, DEFAULT_LOGIN_REDIRECT);
   }
 
   @Test
@@ -172,7 +172,7 @@ public class LoginTest extends BaseE2ETest {
     // Test Login works without 2FA code
     ResponseEntity<LoginResponse> successfulLoginResp =
         loginWithUsernameAndPassword(username, password, null);
-    assertLoginSuccess(successfulLoginResp, DEFAULT_DASHBOARD_PATH);
+    assertLoginSuccess(successfulLoginResp, DEFAULT_LOGIN_REDIRECT);
   }
 
   @Test
@@ -228,8 +228,28 @@ public class LoginTest extends BaseE2ETest {
   }
 
   @Test
+  void testRedirectWithQueryParam() {
+    assertRedirectToSameUrl("/api/users?fields=id,name,displayName");
+  }
+
+  @Test
+  void testRedirectWithoutQueryParam() {
+    assertRedirectToSameUrl("/api/users");
+  }
+
+  @Test
   void testRedirectToResource() {
     assertRedirectUrl("/users/resource.js", DEFAULT_DASHBOARD_PATH, false);
+  }
+
+  @Test
+  void testRedirectToHtmlResource() {
+    assertRedirectToSameUrl("/users/resource.html");
+  }
+
+  @Test
+  void testRedirectToSlashEnding() {
+    assertRedirectToSameUrl("/users/");
   }
 
   @Test
