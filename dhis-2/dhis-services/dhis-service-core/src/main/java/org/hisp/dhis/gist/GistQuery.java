@@ -108,6 +108,7 @@ public final class GistQuery {
   @JsonProperty private final boolean total;
 
   private final String contextRoot;
+  private final String requestURL;
 
   private final Locale translationLocale;
 
@@ -167,7 +168,7 @@ public final class GistQuery {
   }
 
   public String getEndpointRoot() {
-    return isAbsoluteUrls() ? getContextRoot() : "";
+    return isAbsoluteUrls() ? getContextRoot() + "/api" : "/api";
   }
 
   public boolean hasFilterGroups() {
@@ -352,22 +353,16 @@ public final class GistQuery {
   @Builder(toBuilder = true)
   @AllArgsConstructor
   public static final class Field {
+
     public static final String REFS_PATH = "__refs__";
-
     public static final String ALL_PATH = "*";
-
     public static final Field ALL = new Field(ALL_PATH, Transform.NONE);
 
     @JsonProperty private final String propertyPath;
-
     @JsonProperty private final Transform transformation;
-
     @JsonProperty private final String alias;
-
     @JsonProperty private final String transformationArgument;
-
     @JsonProperty private final boolean translate;
-
     @JsonProperty private final boolean attribute;
 
     public Field(String propertyPath, Transform transformation) {
