@@ -206,7 +206,7 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
       Long ouId = orgUnitMap.get(uids.ou());
       Long cocId = cocMap.get(uids.coc());
 
-      //Check if any of the IDs are null
+      // Check if any of the IDs are null
       if (deId == null || ouId == null || cocId == null) {
         throw new BadRequestException(ErrorCode.E7803, formatDtoInfo(dto));
       }
@@ -223,7 +223,6 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
 
     return resolvedDtos;
   }
-
 
   @Transactional
   @Override
