@@ -41,18 +41,22 @@ public class MinMaxDataElementUtils {
 
   private MinMaxDataElementUtils() {}
 
-  public static void validateDto(MinMaxValueDto dto) throws BadRequestException {
+  public static void validateRequiredFields(MinMaxValueDto dto) throws BadRequestException {
 
     if (dto.getDataElement() == null
         || dto.getOrgUnit() == null
-        || dto.getCategoryOptionCombo() == null
-        || dto.getMinValue() == null
-        || dto.getMaxValue() == null) {
+        || dto.getCategoryOptionCombo() == null) {
+      throw new BadRequestException(ErrorCode.E7801, formatDtoInfo(dto));
+    }
+  }
+
+  public static void validateMinMaxValues(MinMaxValueDto dto) throws BadRequestException {
+    if (dto.getMinValue() == null || dto.getMaxValue() == null) {
       throw new BadRequestException(ErrorCode.E7801, formatDtoInfo(dto));
     }
 
     if (dto.getMinValue() >= dto.getMaxValue()) {
-      throw new BadRequestException(ErrorCode.E7802, formatDtoInfo(dto));
+      throw new BadRequestException(ErrorCode.E7804, formatDtoInfo(dto));
     }
   }
 

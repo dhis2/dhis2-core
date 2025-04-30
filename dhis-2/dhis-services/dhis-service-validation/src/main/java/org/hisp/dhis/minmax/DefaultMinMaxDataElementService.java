@@ -32,7 +32,8 @@ package org.hisp.dhis.minmax;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.hisp.dhis.minmax.MinMaxDataElementStore.ResolvedMinMaxDto;
 import static org.hisp.dhis.minmax.MinMaxDataElementUtils.formatDtoInfo;
-import static org.hisp.dhis.minmax.MinMaxDataElementUtils.validateDto;
+import static org.hisp.dhis.minmax.MinMaxDataElementUtils.validateMinMaxValues;
+import static org.hisp.dhis.minmax.MinMaxDataElementUtils.validateRequiredFields;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -154,9 +155,10 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
   @Override
   public void importFromJson(MinMaxValueBatchRequest request) throws BadRequestException {
     List<MinMaxValueDto> dtos = Optional.ofNullable(request.values()).orElse(List.of());
+
     if (dtos.isEmpty()) return;
 
-    List<ResolvedMinMaxDto> resolvedDtos = resolveAllValidDtos(dtos, minMaxDataElementStore);
+    List<ResolvedMinMaxDto> resolvedDtos = resolveAllValidDtos(dtos, true, minMaxDataElementStore);
     final int CHUNK_SIZE = 500;
     for (int i = 0; i < resolvedDtos.size(); i += CHUNK_SIZE) {
       int end = Math.min(i + CHUNK_SIZE, resolvedDtos.size());
@@ -166,7 +168,9 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
   }
 
   private static List<ResolvedMinMaxDto> resolveAllValidDtos(
-      List<MinMaxValueDto> dtos, MinMaxDataElementStore minMaxDataElementStore)
+      List<MinMaxValueDto> dtos,
+      boolean requireValues,
+      MinMaxDataElementStore minMaxDataElementStore)
       throws BadRequestException {
 
     record Uids(UID de, UID ou, UID coc) {}
@@ -198,7 +202,10 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
     List<ResolvedMinMaxDto> resolvedDtos = new ArrayList<>();
 
     for (MinMaxValueDto dto : dtos) {
-      validateDto(dto);
+      validateRequiredFields(dto);
+      if (requireValues) {
+        validateMinMaxValues(dto);
+      }
       Uids uids = uidMap.get(dto);
 
       Long deId = dataElementMap.get(uids.de());
@@ -228,7 +235,7 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
     List<MinMaxValueDto> dtos = Optional.ofNullable(request.values()).orElse(List.of());
     if (dtos.isEmpty()) return;
 
-    List<ResolvedMinMaxDto> resolvedDtos = resolveAllValidDtos(dtos, minMaxDataElementStore);
+    List<ResolvedMinMaxDto> resolvedDtos = resolveAllValidDtos(dtos, false, minMaxDataElementStore);
     final int CHUNK_SIZE = 500;
     for (int i = 0; i < resolvedDtos.size(); i += CHUNK_SIZE) {
       int end = Math.min(i + CHUNK_SIZE, resolvedDtos.size());

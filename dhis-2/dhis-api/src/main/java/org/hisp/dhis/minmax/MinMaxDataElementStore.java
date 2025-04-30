@@ -92,11 +92,11 @@ public interface MinMaxDataElementStore extends GenericStore<MinMaxDataElement> 
 
   void upsertResolvedDtos(List<ResolvedMinMaxDto> dtos);
 
-  public record ResolvedMinMaxDto(
+  record ResolvedMinMaxDto(
       long dataElementId,
       long orgUnitId,
       long categoryOptionComboId,
-      int minValue,
-      int maxValue,
-      boolean generated) {}
+      Integer minValue,
+      Integer maxValue,
+      Boolean generated) {}
 }
