@@ -205,14 +205,14 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
     List<MinMaxValueDto> dtos = request.values();
 
     for (MinMaxValueDto dto : dtos) {
-      UID de = UID.of(dto.getDataElement());
-      UID ou = UID.of(dto.getOrgUnit());
-      UID coc = UID.of(dto.getCategoryOptionCombo());
-      if (de == null || ou == null || coc == null) {
-        throw new MinMaxImportException(
-            "DataElement, OrganisationUnit and CategoryOptionCombo must be provided.");
+      try {
+        UID.of(dto.getDataElement());
+        UID.of(dto.getOrgUnit());
+        UID.of(dto.getCategoryOptionCombo());
+      } catch (IllegalArgumentException ex) {
+        throw new MinMaxImportException("Invalid UID in DTO: " + ex.getMessage(), ex);
       }
-      minMaxDataElementStore.delete(de, ou, coc);
     }
+    minMaxDataElementStore.deleteBulkByDtos(dtos);
   }
 }

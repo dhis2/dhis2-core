@@ -220,26 +220,17 @@ public class MinMaxDataElementController {
   @PostMapping(value = "/values", consumes = "application/json")
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void bulkPostJson(@RequestBody MinMaxValueBatchRequest request)
+  public void bulkPostJson(
+      @RequestBody MinMaxValueBatchRequest request,
+      @RequestParam(value = "importStrategy", defaultValue = "UPDATE") String importStrategy)
       throws BadRequestException {
 
     try {
-
-      minMaxService.importFromJson(request);
-    } catch (MinMaxImportException e) {
-      throw new BadRequestException(e.getMessage());
-    }
-  }
-
-  @DeleteMapping(value = "/values", consumes = "application/json")
-  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void bulkDeleteJson(@RequestBody MinMaxValueBatchRequest request)
-      throws BadRequestException {
-
-    try {
-
-      minMaxService.deleteFromJson(request);
+      if ("DELETE".equalsIgnoreCase(importStrategy)) {
+        minMaxService.deleteFromJson(request);
+      } else {
+        minMaxService.importFromJson(request);
+      }
     } catch (MinMaxImportException e) {
       throw new BadRequestException(e.getMessage());
     }
@@ -257,24 +248,6 @@ public class MinMaxDataElementController {
     try (InputStream is = file.getInputStream()) {
       List<MinMaxValueDto> dtos = MinMaxCsvParser.parse(is);
       minMaxService.importFromJson(new MinMaxValueBatchRequest(dataset, orgunit, dtos));
-    } catch (Exception e) {
-      throw new WebMessageException(
-          badRequest("Invalid CSV file. Please check the format and try again."));
-    }
-  }
-
-  @DeleteMapping(value = "/values", consumes = "multipart/form-data")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
-  @Maturity.Alpha
-  public void deleteMinMaxCsv(
-      @RequestParam("file") MultipartFile file,
-      @RequestParam UID dataset,
-      @RequestParam UID orgunit)
-      throws WebMessageException {
-    try (InputStream is = file.getInputStream()) {
-      List<MinMaxValueDto> dtos = MinMaxCsvParser.parse(is);
-      minMaxService.deleteFromJson(new MinMaxValueBatchRequest(dataset, orgunit, dtos));
     } catch (Exception e) {
       throw new WebMessageException(
           badRequest("Invalid CSV file. Please check the format and try again."));

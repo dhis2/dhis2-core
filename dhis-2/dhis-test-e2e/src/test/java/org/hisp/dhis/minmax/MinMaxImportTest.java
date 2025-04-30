@@ -39,6 +39,7 @@ import org.hisp.dhis.test.e2e.actions.LoginActions;
 import org.hisp.dhis.test.e2e.actions.aggregate.MinMaxValuesActions;
 import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -91,6 +92,46 @@ class MinMaxImportTest extends ApiTest {
             .formatted(dataSet, orgUnit, dataElement, orgUnit, defaultCOC);
     ApiResponse response = minMaxValuesActions.post(payload);
     response.validate().statusCode(204);
+  }
+
+  @Test
+  void minMaxValuesCanBeDeletedInBulk_JSON() throws IOException {
+    String payload =
+        """
+        { "dataset": "%s",
+          "orgunit": "%s",
+          "values" : [{
+              "dataElement": "%s",
+              "orgUnit": "%s",
+              "categoryOptionCombo": "%s"
+            }]
+        }
+        """.formatted(dataSet, orgUnit, dataElement, orgUnit, defaultCOC);
+
+    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+    queryParamsBuilder.add("importStrategy", "DELETE");
+    ApiResponse response = minMaxValuesActions.post(
+        "",
+        payload,
+        queryParamsBuilder
+    );
+
+    response.validate().statusCode(204);
+  }
+
+  @Test
+  void minMaxValueCanBeImportedInBulk_CSV() throws IOException {
+
+    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+    queryParamsBuilder.add( "dataset", dataSet)
+        .add( "orgunit", orgUnit);
+    ApiResponse response = minMaxValuesActions.postMultiPartFile(
+        new File("src/test/resources/minmax/minmax.csv"),
+        "application/csv",
+        queryParamsBuilder
+    );
+    response.validate().statusCode(204);
+
   }
 
   @Test

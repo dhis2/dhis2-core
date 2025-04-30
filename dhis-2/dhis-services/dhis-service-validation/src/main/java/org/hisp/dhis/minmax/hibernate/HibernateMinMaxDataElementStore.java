@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nonnull;
+import org.hibernate.query.Query;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.UID;
@@ -49,6 +50,7 @@ import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementQueryParams;
 import org.hisp.dhis.minmax.MinMaxDataElementStore;
+import org.hisp.dhis.minmax.MinMaxValueDto;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.QueryParser;
@@ -180,16 +182,59 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
   }
 
   @Override
-  public void delete(UID dataElement, UID organisationUnit, UID optionCombo) {
-    String hql =
-        "delete from MinMaxDataElement m where m.dataElement.uid = :dataElement "
-            + "and m.optionCombo.uid = :optionCombo and m.source.uid = :source";
+  public void delete(UID deUID, UID ouUID, UID cocUID) {
+    String sql =
+        """
+      DELETE FROM minmaxdataelement
+      WHERE dataelementid = (SELECT dataelementid FROM dataelement WHERE uid = :de)
+        AND sourceid = (SELECT organisationunitid FROM organisationunit WHERE uid = :ou)
+        AND categoryoptioncomboid = (SELECT categoryoptioncomboid FROM categoryoptioncombo WHERE uid = :coc)
+      """;
 
-    getQuery(hql)
-        .setParameter("dataElement", dataElement.getValue())
-        .setParameter("source", organisationUnit.getValue())
-        .setParameter("optionCombo", optionCombo.getValue())
+    getSession()
+        .createNativeQuery(sql)
+        .setParameter("de", deUID.getValue())
+        .setParameter("ou", ouUID.getValue())
+        .setParameter("coc", cocUID.getValue())
         .executeUpdate();
+  }
+
+  public void deleteBulkByDtos(List<MinMaxValueDto> dtos) {
+    if (dtos.isEmpty()) return;
+
+    StringBuilder sql =
+        new StringBuilder(
+            """
+      DELETE FROM minmaxdataelement
+      WHERE (dataelementid, sourceid, categoryoptioncomboid) IN (
+  """);
+
+    List<String> selects = new ArrayList<>();
+
+    for (int i = 0; i < dtos.size(); i++) {
+      selects.add(
+          String.format(
+              """
+        SELECT
+          (SELECT dataelementid FROM dataelement WHERE uid = :de%d),
+          (SELECT organisationunitid FROM organisationunit WHERE uid = :ou%d),
+          (SELECT categoryoptioncomboid FROM categoryoptioncombo WHERE uid = :coc%d)
+      """,
+              i, i, i));
+    }
+
+    sql.append(String.join(" UNION ALL ", selects)).append(")");
+
+    Query<?> query = getSession().createNativeQuery(sql.toString());
+
+    for (int i = 0; i < dtos.size(); i++) {
+      MinMaxValueDto dto = dtos.get(i);
+      query.setParameter("de" + i, dto.getDataElement());
+      query.setParameter("ou" + i, dto.getOrgUnit());
+      query.setParameter("coc" + i, dto.getCategoryOptionCombo());
+    }
+
+    query.executeUpdate();
   }
 
   @Override
