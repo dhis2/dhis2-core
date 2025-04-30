@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.utils;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.nullToEmpty;
 import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,6 +39,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.CheckForNull;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -206,6 +208,7 @@ public class ContextUtils {
     return response;
   }
 
+  @CheckForNull
   public static HttpServletRequest getRequest() {
     ServletRequestAttributes attributes =
         (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
@@ -215,6 +218,27 @@ public class ContextUtils {
 
   public static String getRootPath(HttpServletRequest request) {
     return HttpServletRequestPaths.getContextPath(request) + request.getServletPath();
+  }
+
+  /**
+   * Omits the default ports.
+   *
+   * @return The full URL as requested by the client or null of no request context is available
+   */
+  @CheckForNull
+  public static String getRequestURL() {
+    HttpServletRequest request = getRequest();
+    if (request == null) return null;
+    String scheme = request.getScheme();
+    String domain = request.getServerName();
+    String port = ":" + request.getServerPort();
+    if ((":80".equals(port) && "http".equals(scheme))
+        || (":443".equals(port) && "https".equals(scheme))) port = "";
+    String path = request.getRequestURI();
+    String query = "?" + nullToEmpty(request.getQueryString());
+    if ("?".equals(query)) query = "";
+    scheme += "://";
+    return scheme + domain + port + path + query;
   }
 
   /**
