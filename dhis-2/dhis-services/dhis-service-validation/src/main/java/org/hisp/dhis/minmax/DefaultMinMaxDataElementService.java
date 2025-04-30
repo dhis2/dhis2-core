@@ -184,16 +184,16 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
       }
     }
 
-
-    Set<UID> dataElementUids = uidMap.values().stream().map(Uids::de).collect(Collectors.toUnmodifiableSet());
-    Set<UID> orgUnitUids = uidMap.values().stream().map(Uids::ou).collect(Collectors.toUnmodifiableSet());
-    Set<UID> cocUids = uidMap.values().stream().map(Uids::coc).collect(Collectors.toUnmodifiableSet());
-
+    Set<UID> dataElementUids =
+        uidMap.values().stream().map(Uids::de).collect(Collectors.toUnmodifiableSet());
+    Set<UID> orgUnitUids =
+        uidMap.values().stream().map(Uids::ou).collect(Collectors.toUnmodifiableSet());
+    Set<UID> cocUids =
+        uidMap.values().stream().map(Uids::coc).collect(Collectors.toUnmodifiableSet());
 
     Map<UID, Long> dataElementMap = minMaxDataElementStore.getDataElementMap(dataElementUids);
     Map<UID, Long> orgUnitMap = minMaxDataElementStore.getOrgUnitMap(orgUnitUids);
     Map<UID, Long> cocMap = minMaxDataElementStore.getCategoryOptionComboMap(cocUids);
-
 
     List<ResolvedMinMaxDto> resolvedDtos = new ArrayList<>();
 
@@ -209,22 +209,20 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
         throw new BadRequestException(ErrorCode.E7803, formatDtoInfo(dto));
       }
 
-      resolvedDtos.add(new ResolvedMinMaxDto(
-          deId,
-          ouId,
-          cocId,
-          dto.getMinValue(),
-          dto.getMaxValue(),
-          defaultIfNull(dto.getGenerated(), true)));
+      resolvedDtos.add(
+          new ResolvedMinMaxDto(
+              deId,
+              ouId,
+              cocId,
+              dto.getMinValue(),
+              dto.getMaxValue(),
+              defaultIfNull(dto.getGenerated(), true)));
     }
 
     return resolvedDtos;
   }
 
-  private void validateDtoUids(MinMaxValueDto dto)
-      throws
-      BadRequestException
-  {
+  private void validateDtoUids(MinMaxValueDto dto) throws BadRequestException {
     try {
       UID.of(dto.getDataElement());
       UID.of(dto.getOrgUnit());

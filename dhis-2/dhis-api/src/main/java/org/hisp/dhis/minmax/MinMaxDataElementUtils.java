@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.minmax;
 
-import static org.apache.commons.lang3.StringUtils.trimToNull;
-
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ErrorCode;
