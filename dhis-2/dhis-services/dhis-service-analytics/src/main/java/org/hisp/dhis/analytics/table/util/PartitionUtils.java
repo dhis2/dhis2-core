@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -102,45 +104,6 @@ public class PartitionUtils {
   }
 
   /**
-   * Returns partitions for the given list of periods.
-   *
-   * @param periods the period.
-   * @return partitions for the given list of periods.
-   */
-  public static Partitions getPartitions(List<DimensionalItemObject> periods) {
-    Set<Integer> years = new HashSet<>();
-
-    periods.forEach(p -> years.addAll(getYears((Period) p)));
-
-    return new Partitions(years);
-  }
-
-  /**
-   * Returns partitions for the given period.
-   *
-   * @param period the period.
-   * @return partitions for the given period.
-   */
-  public static Partitions getPartitions(Period period) {
-    return new Partitions(getYears(period));
-  }
-
-  /**
-   * Returns partitions for the given start and end date.
-   *
-   * @param startDate the start date.
-   * @param endDate the end date.
-   * @return partitions for the given start and end date.
-   */
-  public static Partitions getPartitions(Date startDate, Date endDate) {
-    Period period = new Period();
-    period.setStartDate(startDate);
-    period.setEndDate(endDate);
-
-    return getPartitions(period);
-  }
-
-  /**
    * Returns partitions for the given {@link DataQueryParams} and {@link AnalyticsTableType}.
    * Includes a "latest" partition depending on the given table type.
    *
@@ -159,6 +122,45 @@ public class PartitionUtils {
     }
 
     return partitions;
+  }
+
+  /**
+   * Returns partitions for the given list of periods.
+   *
+   * @param periods the period.
+   * @return partitions for the given list of periods.
+   */
+  public static Partitions getPartitions(List<DimensionalItemObject> periods) {
+    Set<Integer> years = new HashSet<>();
+
+    periods.forEach(p -> years.addAll(getYears((Period) p)));
+
+    return new Partitions(years);
+  }
+
+  /**
+   * Returns partitions for the given start and end date.
+   *
+   * @param startDate the start date.
+   * @param endDate the end date.
+   * @return partitions for the given start and end date.
+   */
+  public static Partitions getPartitions(Date startDate, Date endDate) {
+    Period period = new Period();
+    period.setStartDate(startDate);
+    period.setEndDate(endDate);
+
+    return getPartitions(period);
+  }
+
+  /**
+   * Returns partitions for the given period.
+   *
+   * @param period the period.
+   * @return partitions for the given period.
+   */
+  public static Partitions getPartitions(Period period) {
+    return new Partitions(getYears(period));
   }
 
   /**
@@ -188,7 +190,6 @@ public class PartitionUtils {
 
     for (DimensionalItemObject period : periods) {
       String periodTypeName = ((Period) period).getPeriodType().getName();
-
       map.putValue(periodTypeName, period);
     }
 

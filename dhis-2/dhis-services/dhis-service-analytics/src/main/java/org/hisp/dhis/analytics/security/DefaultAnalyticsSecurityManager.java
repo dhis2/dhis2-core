@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -29,6 +31,7 @@ package org.hisp.dhis.analytics.security;
 
 import static org.hisp.dhis.analytics.security.CategorySecurityUtils.getConstrainedCategories;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
+import static org.hisp.dhis.security.Authorities.F_VIEW_EVENT_ANALYTICS;
 import static org.hisp.dhis.security.Authorities.F_VIEW_UNAPPROVED_DATA;
 
 import java.util.ArrayList;
@@ -71,7 +74,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.analytics.AnalyticsSecurityManager")
 @RequiredArgsConstructor
 public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager {
-  public static final String AUTH_VIEW_EVENT_ANALYTICS = "F_VIEW_EVENT_ANALYTICS";
 
   private final DataApprovalLevelService approvalLevelService;
 
@@ -214,7 +216,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
     boolean notAuthorized =
-        currentUser != null && !currentUser.isAuthorized(AUTH_VIEW_EVENT_ANALYTICS);
+        currentUser != null && !currentUser.isAuthorized(F_VIEW_EVENT_ANALYTICS);
 
     String username = currentUser != null ? currentUser.getUsername() : "[None]";
 

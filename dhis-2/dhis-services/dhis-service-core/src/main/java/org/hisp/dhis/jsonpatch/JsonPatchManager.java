@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -36,6 +38,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Collection;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
@@ -108,7 +111,7 @@ public class JsonPatchManager {
           continue;
         }
 
-        if (BaseIdentifiableObject.class.isAssignableFrom(property.getItemKlass())
+        if (IdentifiableObject.class.isAssignableFrom(property.getItemKlass())
             && !EmbeddedObject.class.isAssignableFrom(property.getItemKlass())) {
           ArrayNode arrayNode = jsonMapper.createArrayNode();
 
@@ -116,7 +119,7 @@ public class JsonPatchManager {
               item ->
                   arrayNode.add(
                       jsonMapper.valueToTree(
-                          shallowCopyIdentifiableObject((BaseIdentifiableObject) item))));
+                          shallowCopyIdentifiableObject((IdentifiableObject) item))));
 
           node.set(property.getCollectionName(), arrayNode);
         } else {
@@ -134,7 +137,7 @@ public class JsonPatchManager {
    * @param source the BaseIdentifiableObject to be cloned.
    * @return a new BaseIdentifiableObject with id and uid properties.
    */
-  private BaseIdentifiableObject shallowCopyIdentifiableObject(BaseIdentifiableObject source) {
+  private BaseIdentifiableObject shallowCopyIdentifiableObject(IdentifiableObject source) {
     BaseIdentifiableObject clone = new BaseIdentifiableObject();
     clone.setId(source.getId());
     clone.setUid(source.getUid());

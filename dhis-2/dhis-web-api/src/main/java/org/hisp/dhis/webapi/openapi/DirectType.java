@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -59,6 +61,7 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonBoolean;
 import org.hisp.dhis.jsontree.JsonDate;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNumber;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
@@ -76,6 +79,7 @@ import org.intellij.lang.annotations.Language;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 /**
  * A type mapping between a Java type and its OpenAPI form that is specified directly in terms of an
@@ -245,6 +249,7 @@ class DirectType {
     oneOf(JsonPointer.class, schema -> schema.type("string"));
 
     oneOf(JsonValue.class, schema -> schema.type("any"));
+    oneOf(JsonMixed.class, schema -> schema.type("any"));
     oneOf(JsonObject.class, schema -> schema.type("object"));
     oneOf(JsonArray.class, schema -> schema.type("array"));
     oneOf(JsonString.class, schema -> schema.type("string"));
@@ -254,6 +259,8 @@ class DirectType {
 
     oneOf(Geometry.class, schema -> schema.type("object"));
     oneOf(JobParameters.class, schema -> schema.type("object"));
+
+    oneOf(StreamingResponseBody.class, schema -> schema.type("any"));
   }
 
   private static <T extends Enum<T>> List<String> enums(Class<T> type, Function<T, String> name) {

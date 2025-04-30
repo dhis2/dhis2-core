@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,7 +29,6 @@
  */
 package org.hisp.dhis.db.sql;
 
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -37,11 +38,17 @@ import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Database;
+import org.hisp.dhis.db.model.DateUnit;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.TablePartition;
 import org.hisp.dhis.db.model.constraint.Nullable;
 
+/**
+ * Implementation of {@link SqlBuilder} for Apache Doris.
+ *
+ * @author Lars Helge Overland
+ */
 @RequiredArgsConstructor
 public class DorisSqlBuilder extends AbstractSqlBuilder {
 
@@ -119,12 +126,12 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String dataTypeTimestamp() {
-    return "datetime";
+    return "datetime(3)";
   }
 
   @Override
   public String dataTypeTimestampTz() {
-    return "datetime";
+    return "datetime(3)";
   }
 
   @Override
@@ -217,9 +224,9 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
-  public String concat(String... columns) {
+  public String concat(List<String> columns) {
     return "concat("
-        + Arrays.stream(columns)
+        + columns.stream()
             .map(this::wrapTrimNullIf) // Adjust wrapping logic
             .collect(Collectors.joining(", "))
         + ")";
@@ -272,6 +279,16 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
   }
 
   @Override
+  public String isTrue(String alias, String column) {
+    return String.format("%s.%s = true", alias, quote(column));
+  }
+
+  @Override
+  public String isFalse(String alias, String column) {
+    return String.format("%s.%s = false", alias, quote(column));
+  }
+
+  @Override
   public String ifThen(String condition, String result) {
     return String.format("case when %s then %s end", condition, result);
   }
@@ -298,7 +315,15 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return String.format("log(%s, 10)", expression);
   }
 
-  // Statements
+  @Override
+  public String stddev(String expression) {
+    return String.format("stddev(%s)", expression);
+  }
+
+  @Override
+  public String variance(String expression) {
+    return String.format("variance(%s)", expression);
+  }
 
   @Override
   public String createTable(Table table) {

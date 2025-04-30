@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -34,6 +36,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
@@ -41,6 +46,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.SoftDeletableObject;
+import org.hisp.dhis.common.UID;
 
 /**
  * @author Abyot Asalefew
@@ -87,6 +93,19 @@ public class Relationship extends SoftDeletableObject implements Serializable {
   // -------------------------------------------------------------------------
   // Getters and setters
   // -------------------------------------------------------------------------
+
+  @JsonIgnore
+  public Set<UID> getTrackedEntityOrigins() {
+    Set<UID> uids = new HashSet<>();
+
+    Optional.ofNullable(this.getFrom().getTrackedEntity()).map(UID::of).ifPresent(uids::add);
+
+    if (this.getRelationshipType().isBidirectional()) {
+      Optional.ofNullable(this.getTo().getTrackedEntity()).map(UID::of).ifPresent(uids::add);
+    }
+
+    return uids;
+  }
 
   @JsonProperty
   public Date getCreatedAtClient() {

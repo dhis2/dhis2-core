@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -37,7 +39,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -159,21 +163,27 @@ public class LocalAppStorageService implements AppStorageService {
   }
 
   @Override
-  public void deleteApp(App app) {
+  public Future<Boolean> deleteAppAsync(App app) {
     if (!apps.containsKey(app.getUrlFriendlyName())) {
       log.warn(String.format("Failed to delete app '%s': App not found", app.getName()));
+      return CompletableFuture.completedFuture(false);
     }
 
+    boolean success = true;
     try {
       String folderPath = getAppFolderPath() + File.separator + app.getFolderName();
       FileUtils.forceDelete(new File(folderPath));
     } catch (FileNotFoundException ex) {
       log.error(String.format("Failed to delete app '%s': Files not found", app.getName()), ex);
+      success = false;
     } catch (IOException ex) {
       log.error(String.format("Failed to delete app '%s'", app.getName()), ex);
+      success = false;
     } finally {
       discoverInstalledApps();
     }
+
+    return CompletableFuture.completedFuture(success);
   }
 
   private String getAppFolderPath() {

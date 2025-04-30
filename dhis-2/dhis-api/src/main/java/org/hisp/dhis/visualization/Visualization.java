@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -80,6 +82,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.dataelement.DataElement;
@@ -1157,12 +1160,12 @@ public class Visualization extends BaseAnalyticalObject implements MetadataObjec
    * @param grid the {@link Grid}.
    */
   private void addHeadersForRows(Grid grid) {
-    Map<String, String> metaData = getMetaData();
+    Map<String, MetadataItem> metaData = getMetaData();
     metaData.putAll(PRETTY_NAMES);
 
     for (String dimension : rowDimensions) {
       String dimensionId = getDimensionIdentifierFor(dimension, getDimensionDescriptors());
-      String name = defaultIfEmpty(metaData.get(dimensionId), dimensionId);
+      String name = defaultIfEmpty(metaData.get(dimensionId).getName(), dimensionId);
       String col = defaultIfEmpty(COLUMN_NAMES.get(dimensionId), dimensionId);
 
       grid.addHeader(new GridHeader(name + " ID", col + "id", TEXT, true, true));

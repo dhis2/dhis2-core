@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -41,11 +43,11 @@ import java.util.Collection;
 import java.util.function.Consumer;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
-import org.hisp.dhis.db.sql.PostgreSqlBuilder;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.setting.SystemSettings;
@@ -63,6 +65,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 
 /**
  * @author Luciano Fiandesio
@@ -78,16 +81,19 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
 
   @Mock private SqlRowSet rowSet;
 
+  @Mock private SqlRowSetMetaData rowSetMetaData;
+
   @Mock private ProgramIndicatorService programIndicatorService;
 
-  @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
-
-  @Spy
-  private PostgreSqlAnalyticsSqlBuilder analyticsSqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
+  @Spy private PostgreSqlAnalyticsSqlBuilder sqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
 
   @Mock private SystemSettingsService systemSettingsService;
 
   @Mock private OrganisationUnitResolver organisationUnitResolver;
+
+  @Mock private PiDisagInfoInitializer piDisagInfoInitializer;
+
+  @Mock private PiDisagQueryGenerator piDisagQueryGenerator;
 
   @Spy
   private EnrollmentTimeFieldSqlRenderer enrollmentTimeFieldSqlRenderer =
@@ -105,6 +111,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     when(systemSettingsService.getCurrentSettings()).thenReturn(systemSettings);
     when(systemSettings.getUseExperimentalAnalyticsQueryEngine()).thenReturn(true);
     when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
+    when(rowSet.getMetaData()).thenReturn(rowSetMetaData);
     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
         new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService, systemSettingsService);
 
@@ -113,12 +120,13 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
             jdbcTemplate,
             programIndicatorService,
             programIndicatorSubqueryBuilder,
+            piDisagInfoInitializer,
+            piDisagQueryGenerator,
             enrollmentTimeFieldSqlRenderer,
             executionPlanStore,
             systemSettingsService,
             config,
             sqlBuilder,
-            analyticsSqlBuilder,
             organisationUnitResolver);
   }
 

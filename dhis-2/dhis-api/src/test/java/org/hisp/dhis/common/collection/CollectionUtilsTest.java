@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -35,16 +37,20 @@ import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.common.collection.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.collection.CollectionUtils.mapToList;
 import static org.hisp.dhis.common.collection.CollectionUtils.mapToSet;
+import static org.hisp.dhis.common.collection.CollectionUtils.merge;
 import static org.hisp.dhis.common.collection.CollectionUtils.union;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
@@ -237,5 +243,27 @@ class CollectionUtilsTest {
     assertEquals(Set.of("a", "b", "c"), union(Set.of("b"), Set.of("c"), Set.of("a")));
     assertEquals(Set.of("a", "b", "c"), union(Set.of(), Set.of("c"), Set.of("b", "a")));
     assertEquals(Set.of("a", "b", "c"), union(Set.of("b", "a"), Set.of("c"), Set.of()));
+  }
+
+  @Test
+  void testMerge() {
+    assertEquals(Map.of(), merge(Map.of(), Map.of()));
+    assertEquals(Map.of("a", "b"), merge(Map.of("a", "b"), Map.of()));
+    assertEquals(Map.of("a", "b"), merge(Map.of(), Map.of("a", "b")));
+    assertEquals(Map.of("a", "b", "c", "d"), merge(Map.of("c", "d"), Map.of("a", "b")));
+    assertEquals(
+        Map.of("a", "b", "c", "d", "e", "f"), merge(Map.of("c", "d"), Map.of("a", "b", "e", "f")));
+  }
+
+  @Test
+  void testMerge_Override() {
+    assertEquals(Map.of("a", "b", "c", "d"), merge(Map.of("c", "d", "a", "x"), Map.of("a", "b")));
+  }
+
+  @Test
+  void testMerge_Null() {
+    HashMap<String, String> m1 = new HashMap<>();
+    m1.put("x", null);
+    assertThrowsExactly(NullPointerException.class, () -> merge(Map.of("a", "b"), m1));
   }
 }

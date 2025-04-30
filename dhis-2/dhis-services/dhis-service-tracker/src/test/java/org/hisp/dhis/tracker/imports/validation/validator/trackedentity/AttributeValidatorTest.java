@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -46,6 +48,7 @@ import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -61,7 +64,6 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.util.Constant;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
-import org.hisp.dhis.tracker.imports.validation.service.attribute.TrackedAttributeValidationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -87,7 +89,7 @@ class AttributeValidatorTest {
 
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
 
-  @Mock private TrackedAttributeValidationService teAttrService;
+  @Mock private OptionService optionService;
 
   private TrackerBundle bundle;
 
@@ -382,17 +384,6 @@ class AttributeValidatorTest {
   }
 
   @Test
-  void shouldFailDataValueIsValid() {
-    TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
-    trackedEntityAttribute.setValueType(ValueType.NUMBER);
-
-    TrackedEntity te = TrackedEntity.builder().trackedEntity(UID.generate()).build();
-    validator.validateAttributeValue(reporter, te, trackedEntityAttribute, "value");
-
-    assertHasError(reporter, te, ValidationCode.E1085);
-  }
-
-  @Test
   void shouldFailEncryptionStatus() {
     TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
     trackedEntityAttribute.setValueType(ValueType.AGE);
@@ -445,6 +436,7 @@ class AttributeValidatorTest {
         .thenReturn(trackedEntityAttribute);
     when(preheat.getTrackedEntityType((MetadataIdentifier) any()))
         .thenReturn(new TrackedEntityType());
+    when(optionService.existsAllOptions(any(), any())).thenReturn(true);
 
     TrackedEntity trackedEntity =
         TrackedEntity.builder()
@@ -497,6 +489,7 @@ class AttributeValidatorTest {
         .thenReturn(trackedEntityAttribute);
     when(preheat.getTrackedEntityType((MetadataIdentifier) any()))
         .thenReturn(new TrackedEntityType());
+    when(optionService.existsAllOptions(any(), any())).thenReturn(true);
 
     TrackedEntity trackedEntity =
         TrackedEntity.builder()

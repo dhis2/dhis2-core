@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -140,10 +142,12 @@ class ClickHouseSqlBuilderTest {
   @Test
   void testQuoteAlias() {
     assertEquals(
-        "ax.\"Treated \"\"malaria\"\" at facility\"",
+        """
+        ax."Treated ""malaria"" at facility\"""",
         sqlBuilder.quote("ax", "Treated \"malaria\" at facility"));
     assertEquals(
-        "analytics.\"Patients on \"\"treatment\"\" for TB\"",
+        """
+        analytics."Patients on ""treatment"" for TB\"""",
         sqlBuilder.quote("analytics", "Patients on \"treatment\" for TB"));
     assertEquals("analytics.\"quarterly\"", sqlBuilder.quote("analytics", "quarterly"));
     assertEquals("dv.\"Fully immunized\"", sqlBuilder.quote("dv", "Fully immunized"));
@@ -152,7 +156,8 @@ class ClickHouseSqlBuilderTest {
   @Test
   void testQuoteAx() {
     assertEquals(
-        "ax.\"Treated \"\"malaria\"\" at facility\"",
+        """
+        ax."Treated ""malaria"" at facility\"""",
         sqlBuilder.quoteAx("Treated \"malaria\" at facility"));
     assertEquals("ax.\"quarterly\"", sqlBuilder.quoteAx("quarterly"));
     assertEquals("ax.\"Fully immunized\"", sqlBuilder.quoteAx("Fully immunized"));
@@ -174,6 +179,12 @@ class ClickHouseSqlBuilderTest {
   @Test
   void testConcat() {
     assertEquals("concat(de.uid, pe.iso, ou.uid)", sqlBuilder.concat("de.uid", "pe.iso", "ou.uid"));
+  }
+
+  @Test
+  void testConcat_FromList() {
+    String result = sqlBuilder.concat(List.of("column1", "column2", "column3"));
+    assertEquals("concat(column1, column2, column3)", result);
   }
 
   @Test
@@ -218,6 +229,18 @@ class ClickHouseSqlBuilderTest {
   }
 
   @Test
+  void testIsTrue() {
+    assertEquals("dv.\"deleted\"", sqlBuilder.isTrue("dv", "deleted"));
+    assertEquals("tei.\"followup\"", sqlBuilder.isTrue("tei", "followup"));
+  }
+
+  @Test
+  void testIsFalse() {
+    assertEquals("not dv.\"deleted\"", sqlBuilder.isFalse("dv", "deleted"));
+    assertEquals("not tei.\"followup\"", sqlBuilder.isFalse("tei", "followup"));
+  }
+
+  @Test
   void testRegexpMatch() {
     assertEquals("match(value, 'test')", sqlBuilder.regexpMatch("value", "'test'"));
     assertEquals("match(number, '\\d')", sqlBuilder.regexpMatch("number", "'\\d'"));
@@ -234,10 +257,12 @@ class ClickHouseSqlBuilderTest {
   @Test
   void testJsonExtractObject() {
     assertEquals(
-        "JSONExtractString(JSONExtractRaw(ev.eventdatavalues, 'D7m8vpzxHDJ'), 'value')",
+        """
+        JSONExtractString(JSONExtractRaw(ev.eventdatavalues, 'D7m8vpzxHDJ'), 'value')""",
         sqlBuilder.jsonExtract("ev.eventdatavalues", "D7m8vpzxHDJ", "value"));
     assertEquals(
-        "JSONExtractString(JSONExtractRaw(ev.eventdatavalues, 'qrur9Dvnyt5'), 'value')",
+        """
+        JSONExtractString(JSONExtractRaw(ev.eventdatavalues, 'qrur9Dvnyt5'), 'value')""",
         sqlBuilder.jsonExtract("ev.eventdatavalues", "qrur9Dvnyt5", "value"));
   }
 
@@ -260,14 +285,16 @@ class ClickHouseSqlBuilderTest {
   @Test
   void testIfThen() {
     assertEquals(
-        "if(a.status = 'COMPLETE', a.eventdate, null)",
+        """
+        if(a.status = 'COMPLETE', a.eventdate, null)""",
         sqlBuilder.ifThen("a.status = 'COMPLETE'", "a.eventdate"));
   }
 
   @Test
   void testIfThenElse() {
     assertEquals(
-        "if(a.status = 'COMPLETE', a.eventdate, a.scheduleddate)",
+        """
+        if(a.status = 'COMPLETE', a.eventdate, a.scheduleddate)""",
         sqlBuilder.ifThenElse("a.status = 'COMPLETE'", "a.eventdate", "a.scheduleddate"));
   }
 
@@ -290,6 +317,16 @@ class ClickHouseSqlBuilderTest {
   @Test
   void testLog10() {
     assertEquals("log10(value)", sqlBuilder.log10("value"));
+  }
+
+  @Test
+  void testStandardDeviation() {
+    assertEquals("stddevSamp(value)", sqlBuilder.stddev("value"));
+  }
+
+  @Test
+  void testVariance() {
+    assertEquals("varSamp(value)", sqlBuilder.variance("value"));
   }
 
   // Statements

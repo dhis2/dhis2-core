@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -31,7 +33,7 @@ import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.of;
 
 import java.util.Set;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
@@ -58,17 +60,17 @@ public enum QueryableDataItem {
   PROGRAM_ATTRIBUTE_OPTION(ProgramTrackedEntityAttributeOptionDimensionItem.class, false),
   EXPRESSION_DIMENSION_ITEM(ExpressionDimensionItem.class, true);
 
-  private Class<? extends BaseIdentifiableObject> entity;
+  private Class<? extends IdentifiableObject> entity;
 
   /** Indicates if the entity is loaded by default or not. */
   private boolean isDefault;
 
-  QueryableDataItem(Class<? extends BaseIdentifiableObject> entity, boolean isDefault) {
+  QueryableDataItem(Class<? extends IdentifiableObject> entity, boolean isDefault) {
     this.entity = entity;
     this.isDefault = isDefault;
   }
 
-  public Class<? extends BaseIdentifiableObject> getEntity() {
+  public Class<? extends IdentifiableObject> getEntity() {
     return this.entity;
   }
 
@@ -76,11 +78,11 @@ public enum QueryableDataItem {
     return this.isDefault;
   }
 
-  public static Set<Class<? extends BaseIdentifiableObject>> getEntities() {
+  public static Set<Class<? extends IdentifiableObject>> getEntities() {
     return of(QueryableDataItem.values()).map(QueryableDataItem::getEntity).collect(toSet());
   }
 
-  public static Set<Class<? extends BaseIdentifiableObject>> getDefaultEntities() {
+  public static Set<Class<? extends IdentifiableObject>> getDefaultEntities() {
     return of(QueryableDataItem.values())
         .filter(QueryableDataItem::isDefault)
         .map(QueryableDataItem::getEntity)

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -28,12 +30,13 @@
 package org.hisp.dhis.query.operators;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.planner.PropertyPath;
 
 /**
@@ -46,26 +49,23 @@ public class EmptyOperator<T extends Comparable<T>> extends Operator<T> {
 
   @Override
   public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, PropertyPath path) {
-    return builder.equal(builder.size(root.get(path.getPath())), 0);
+    if (path.getProperty().isRelation()) return builder.isEmpty(root.get(path.getPath()));
+    // JSONB column backed collections
+    Path<Object> p = root.get(path.getPath());
+    Expression<String> pathAsText = p.as(String.class);
+    return builder.or(
+        builder.isNull(p),
+        builder.equal(pathAsText, builder.literal("null")),
+        builder.equal(pathAsText, builder.literal("[]")),
+        builder.equal(pathAsText, builder.literal("{}")));
   }
 
   @Override
   public boolean test(Object value) {
-    if (value == null) {
-      return false;
-    }
-
-    Type type = new Type(value);
-
-    if (type.isCollection()) {
-      Collection<?> collection = (Collection<?>) value;
-      return collection.isEmpty();
-    }
-    if (type.isMap()) {
-      Map<?, ?> map = (Map<?, ?>) value;
-      return map.isEmpty();
-    }
-
+    if (value == null) return false;
+    if (value instanceof Collection<?> c) return c.isEmpty();
+    if (value instanceof Map<?, ?> m) return m.isEmpty();
+    if (value instanceof String s) return s.isEmpty();
     return false;
   }
 }

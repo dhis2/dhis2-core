@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -29,6 +31,8 @@ package org.hisp.dhis.webapi.openapi;
 
 import static java.util.Arrays.copyOfRange;
 import static java.util.Arrays.stream;
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Collectors.toUnmodifiableSet;
@@ -62,7 +66,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
@@ -109,7 +114,7 @@ final class ApiExtractor {
 
   record Configuration(boolean ignoreTypeAs) {}
 
-  private static final Map<Class<?>, Api.SchemaGenerator> GENERATORS = new ConcurrentHashMap<>();
+  private static final Map<Class<?>, Api.SchemaGenerator> GENERATORS = newClassMap();
 
   public static void register(Class<?> type, Api.SchemaGenerator generator) {
     GENERATORS.put(type, generator);
@@ -198,7 +203,9 @@ final class ApiExtractor {
 
     // request media types
     Set<MediaType> consumes =
-        mapping.consumes().stream().map(MediaType::parseMediaType).collect(toSet());
+        mapping.consumes().stream()
+            .map(MediaType::parseMediaType)
+            .collect(toCollection(TreeSet::new));
     if (consumes.isEmpty()) {
       // assume JSON if nothing is set explicitly
       consumes.add(MediaType.APPLICATION_JSON);
@@ -284,7 +291,9 @@ final class ApiExtractor {
       Api.Endpoint endpoint, EndpointMapping mapping, Set<MediaType> consumes) {
     Method source = mapping.source();
     Set<MediaType> produces =
-        mapping.produces().stream().map(MediaType::parseMediaType).collect(toSet());
+        mapping.produces().stream()
+            .map(MediaType::parseMediaType)
+            .collect(toCollection(TreeSet::new));
     if (produces.isEmpty()) {
       // either make symmetric or assume JSON as standard
       if (consumes.contains(MediaType.APPLICATION_JSON)
@@ -410,7 +419,7 @@ final class ApiExtractor {
                         header.name(),
                         header.description(),
                         extractSchema(endpoint, null, header.type())))
-            .collect(toSet());
+            .collect(toCollection(TreeSet::new));
     Set<MediaType> produces =
         response.mediaTypes().length == 0
             ? defaultProduces
@@ -662,13 +671,18 @@ final class ApiExtractor {
             .getIn()
             .getIn()
             .getGeneratorSchemas()
-            .computeIfAbsent(genType, key -> new ConcurrentHashMap<>());
+            .computeIfAbsent(genType, key -> newClassMap());
     schema.getSharedName().setValue(getGeneratorTypeSharedName(genType, schema));
     if (schema.isShared()) {
       Api.Schema shared = genTypes.putIfAbsent(ofType, schema);
       if (shared != null) schema = shared; // this makes sure the same instance is reused
     }
     return type == genType ? schema : Api.Schema.ofArray(type, type).withElements(schema).sealed();
+  }
+
+  @Nonnull
+  private static <T> TreeMap<Class<?>, T> newClassMap() {
+    return new TreeMap<>(comparing(Class::getName));
   }
 
   private static String getGeneratorTypeSharedName(Class<?> genType, Api.Schema schema) {
@@ -708,6 +722,9 @@ final class ApiExtractor {
     Api.Schema s = api.getSchemas().get(type);
     if (s != null) {
       return s;
+    }
+    if (type.isAnnotation()) {
+      return Api.Schema.ofAny(type);
     }
     UnaryOperator<Api.Schema> addShared =
         schema -> {
@@ -813,8 +830,9 @@ final class ApiExtractor {
       if (rawType == Class.class) {
         return Api.Schema.ofSimple(rawType);
       }
-      Type typeArg0 = pt.getActualTypeArguments()[0];
-      if (Collection.class.isAssignableFrom(rawType) && rawType.isInterface()
+      Type[] actualTypes = pt.getActualTypeArguments();
+      Type typeArg0 = actualTypes[0];
+      if (Collection.class.isAssignableFrom(rawType) && actualTypes.length == 1
           || rawType == Iterable.class
           || rawType == Stream.class
           || rawType == JsonList.class) {
@@ -824,12 +842,21 @@ final class ApiExtractor {
             .withElements(extractTypeSchema(endpoint, typeArg0))
             .sealed();
       }
-      if (Map.class.isAssignableFrom(rawType) && rawType.isInterface()) {
+      if (Map.class.isAssignableFrom(rawType) && actualTypes.length == 2) {
         return Api.Schema.ofObject(source, rawType)
             .withEntries(
-                extractTypeSchema(endpoint, typeArg0),
-                extractTypeSchema(endpoint, pt.getActualTypeArguments()[1]))
+                extractTypeSchema(endpoint, typeArg0), extractTypeSchema(endpoint, actualTypes[1]))
             .sealed();
+      }
+      if (Map.class.isAssignableFrom(rawType) && actualTypes.length == 1) {
+        Type extended = rawType.getGenericSuperclass();
+        if (extended instanceof ParameterizedType pst) {
+          return Api.Schema.ofObject(source, rawType)
+              .withEntries(
+                  extractTypeSchema(endpoint, pst.getActualTypeArguments()[0]),
+                  extractTypeSchema(endpoint, typeArg0))
+              .sealed();
+        }
       }
       if (JsonMap.class.isAssignableFrom(rawType)) {
         return Api.Schema.ofObject(source, rawType)

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -62,7 +64,7 @@ public class TrackedEntityOperationParams {
 
   public static final int DEFAULT_PAGE_SIZE = 50;
 
-  @Builder.Default private TrackedEntityParams trackedEntityParams = TrackedEntityParams.FALSE;
+  @Builder.Default private TrackedEntityFields fields = TrackedEntityFields.none();
 
   /**
    * Organisation units for which instances in the response were registered at. Is related to the
@@ -123,15 +125,6 @@ public class TrackedEntityOperationParams {
 
   /** End date for event for the given program. */
   private Date eventEndDate;
-
-  /** Page number. */
-  private Integer page;
-
-  /** Page size. */
-  private Integer pageSize;
-
-  /** Indicates whether to include the total number of pages in the paging response. */
-  private boolean totalPages;
 
   /** Indicates whether paging should be skipped. */
   private boolean skipPaging;

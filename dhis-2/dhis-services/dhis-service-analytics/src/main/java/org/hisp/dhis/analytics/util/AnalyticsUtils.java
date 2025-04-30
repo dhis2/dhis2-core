@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -76,7 +78,6 @@ import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.DataDimensionItemType;
 import org.hisp.dhis.common.DataDimensionalItemObject;
@@ -88,6 +89,7 @@ import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MetadataItem;
@@ -636,7 +638,7 @@ public final class AnalyticsUtils {
 
       Assert.notNull(dx, "Data dimension item cannot be null");
 
-      DimensionalItemObject item = dimItemObjectMap.get(dx);
+      DimensionalItemObject item = getFromDimensionalItemObjectMap(dx, dimItemObjectMap);
 
       Assert.notNull(item, "Dimensional item cannot be null");
 
@@ -646,13 +648,28 @@ public final class AnalyticsUtils {
 
       String coc = null, aoc = null;
 
-      if (DataDimensionalItemObject.class.isAssignableFrom(item.getClass())) {
+      if (ProgramIndicator.class.isAssignableFrom(item.getClass())
+          && DimensionalObjectUtils.isCompositeDimensionalObject(dx)) {
+        row.set(dxInx, DimensionalObjectUtils.getFirstIdentifier(dx));
+        String id2 = DimensionalObjectUtils.getSecondIdentifier(dx);
+        String id3 = DimensionalObjectUtils.getThirdIdentifier(dx);
+        DataDimensionalItemObject dataItem = (DataDimensionalItemObject) item;
+        coc = getItemCoc(id2, dataItem.getAggregateExportCategoryOptionCombo());
+        aoc = getItemCoc(id3, dataItem.getAggregateExportAttributeOptionCombo());
+      } else if (DataDimensionalItemObject.class.isAssignableFrom(item.getClass())) {
         DataDimensionalItemObject dataItem = (DataDimensionalItemObject) item;
         coc = dataItem.getAggregateExportCategoryOptionCombo();
         aoc = dataItem.getAggregateExportAttributeOptionCombo();
       } else if (DataElementOperand.class.isAssignableFrom(item.getClass())) {
         row.set(dxInx, DimensionalObjectUtils.getFirstIdentifier(dx));
         coc = DimensionalObjectUtils.getSecondIdentifier(dx);
+      }
+
+      if (ProgramIndicator.class.isAssignableFrom(item.getClass())) {
+        ProgramIndicator pi = (ProgramIndicator) item;
+        if (pi.hasAggregateExportDataElement()) {
+          row.set(dxInx, pi.getAggregateExportDataElement());
+        }
       }
 
       cocCol.add(coc);
@@ -677,6 +694,11 @@ public final class AnalyticsUtils {
                 true))
         .addColumn(vlInx, aocCol)
         .addColumn(vlInx, cocCol);
+  }
+
+  /** Use dynamic COC or, if wild, the fixed COC */
+  private static String getItemCoc(String token, String fixed) {
+    return SYMBOL_WILDCARD.equals(token) ? fixed : token;
   }
 
   /**
@@ -728,6 +750,23 @@ public final class AnalyticsUtils {
     }
 
     return map;
+  }
+
+  public static DimensionalItemObject getFromDimensionalItemObjectMap(
+      String dx, Map<String, DimensionalItemObject> dimItemObjectMap) {
+    DimensionalItemObject item = dimItemObjectMap.get(dx);
+
+    if (item == null && DimensionalObjectUtils.isCompositeDimensionalObject(dx)) {
+      String id1 = DimensionalObjectUtils.getFirstIdentifier(dx);
+      item = dimItemObjectMap.get(id1);
+
+      if (item != null) {
+        Assert.isTrue(
+            ProgramIndicator.class.isAssignableFrom(item.getClass()),
+            "Compound dx not in itemObjectMap must be a PI");
+      }
+    }
+    return item;
   }
 
   /**
@@ -920,15 +959,15 @@ public final class AnalyticsUtils {
 
     optionSetMap.forEach(
         (key, options) -> {
-          BaseIdentifiableObject prg = key.bio();
+          IdentifiableObject prg = key.bio();
           OptionSet optionSet = key.optionSet();
 
           String metadataKey = prg.getUid() + DIMENSION_IDENTIFIER_SEP + optionSet.getUid();
           MetadataItem metadataItem =
               includeMetadataDetails
                   ? new MetadataItem(
-                      optionSet.getName(), optionSet.getUid(), new LinkedHashSet<>(options))
-                  : new MetadataItem(optionSet.getName());
+                      optionSet.getDisplayName(), optionSet.getUid(), new LinkedHashSet<>(options))
+                  : new MetadataItem(optionSet.getDisplayName());
 
           map.put(metadataKey, metadataItem);
         });
@@ -1249,7 +1288,7 @@ public final class AnalyticsUtils {
     return matcher.replaceAll(startToken + replacement + endToken);
   }
 
-  private record ElementWithOptionSet(BaseIdentifiableObject bio, OptionSet optionSet) {
+  private record ElementWithOptionSet(IdentifiableObject bio, OptionSet optionSet) {
     @Override
     public boolean equals(Object o) {
       if (this == o) return true;

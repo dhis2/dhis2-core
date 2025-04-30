@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -35,13 +37,17 @@ import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.val
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentFields;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.EnrollmentOperationParamsBuilder;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.springframework.stereotype.Component;
@@ -57,7 +63,7 @@ class EnrollmentRequestParamsMapper {
   private static final Set<String> ORDERABLE_FIELD_NAMES =
       EnrollmentMapper.ORDERABLE_FIELDS.keySet();
 
-  private final EnrollmentFieldsParamMapper fieldsParamMapper;
+  private final FieldFilterService fieldFilterService;
 
   public EnrollmentOperationParams map(EnrollmentRequestParams enrollmentRequestParams)
       throws BadRequestException {
@@ -93,7 +99,12 @@ class EnrollmentRequestParamsMapper {
             .orgUnitMode(orgUnitMode)
             .includeDeleted(enrollmentRequestParams.isIncludeDeleted())
             .enrollments(enrollmentRequestParams.getEnrollments())
-            .enrollmentParams(fieldsParamMapper.map(enrollmentRequestParams.getFields()));
+            .fields(
+                EnrollmentFields.of(
+                    f ->
+                        fieldFilterService.filterIncludes(
+                            Enrollment.class, enrollmentRequestParams.getFields(), f),
+                    FieldPath.FIELD_PATH_SEPARATOR));
 
     mapOrderParam(builder, enrollmentRequestParams.getOrder());
 

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -29,7 +31,6 @@ package org.hisp.dhis.tracker.imports.programrule.executor.event;
 
 import static org.hisp.dhis.tracker.imports.programrule.IssueType.ERROR;
 import static org.hisp.dhis.tracker.imports.programrule.IssueType.WARNING;
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -42,6 +43,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
@@ -107,6 +109,7 @@ class AssignDataValueExecutorTest extends TestBase {
 
   @Mock private SystemSettingsProvider settingsProvider;
   @Mock private SystemSettings settings;
+  @Mock private OptionService optionService;
 
   @BeforeEach
   void setUpTest() {
@@ -174,61 +177,7 @@ class AssignDataValueExecutorTest extends TestBase {
   }
 
   @Test
-  void shouldAssignDataValueWhenAssignedValueIsValidOptionAndDataValueIsEmpty() {
-    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
-    Event eventWithOptionDataValue = getEventWithOptionSetDataValueWithValidValue();
-    List<Event> events = List.of(eventWithOptionDataValue);
-    bundle.setEvents(events);
-
-    AssignDataValueExecutor executor =
-        new AssignDataValueExecutor(
-            settingsProvider,
-            RULE_UID,
-            VALID_OPTION_VALUE,
-            OPTION_SET_DATA_ELEMENT_UID,
-            eventWithOptionDataValue.getDataValues());
-
-    Optional<ProgramRuleIssue> warning =
-        executor.executeRuleAction(bundle, eventWithOptionDataValue);
-
-    Optional<DataValue> dataValue =
-        findDataValueByUid(bundle, EVENT_UID, OPTION_SET_DATA_ELEMENT_UID);
-
-    assertTrue(dataValue.isPresent());
-    assertEquals(VALID_OPTION_VALUE, dataValue.get().getValue());
-    assertTrue(warning.isPresent());
-    assertEquals(WARNING, warning.get().getIssueType());
-  }
-
-  @Test
-  void shouldAssignDataValueWhenAssignedValueIsInvalidOptionAndDataValueIsEmpty() {
-    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
-    Event eventWithOptionDataValue = getEventWithDataValueNOTSet();
-    List<Event> events = List.of(eventWithOptionDataValue);
-    bundle.setEvents(events);
-
-    AssignDataValueExecutor executor =
-        new AssignDataValueExecutor(
-            settingsProvider,
-            RULE_UID,
-            INVALID_OPTION_VALUE,
-            OPTION_SET_DATA_ELEMENT_UID,
-            eventWithOptionDataValue.getDataValues());
-
-    Optional<ProgramRuleIssue> warning =
-        executor.executeRuleAction(bundle, eventWithOptionDataValue);
-
-    Optional<DataValue> dataValue =
-        findDataValueByUid(bundle, SECOND_EVENT_UID, OPTION_SET_DATA_ELEMENT_UID);
-
-    assertAll(
-        () -> assertTrue(dataValue.isEmpty()),
-        () -> assertTrue(warning.isPresent()),
-        () -> assertEquals(WARNING, warning.get().getIssueType()));
-  }
-
-  @Test
-  void shouldAssignNullDataValueWhenAssignedValueIsInvalidOptionAndOverwriteIsTrue() {
+  void shouldAssignDataValueWhenAssignedValueIsInvalidOptionAndOverwriteIsTrue() {
     when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
     when(settings.getRuleEngineAssignOverwrite()).thenReturn(true);
     Event eventWithOptionDataValue = getEventWithOptionSetDataValueWithValidValue();
@@ -249,7 +198,7 @@ class AssignDataValueExecutorTest extends TestBase {
     Optional<DataValue> dataValue =
         findDataValueByUid(bundle, EVENT_UID, OPTION_SET_DATA_ELEMENT_UID);
 
-    assertDataValueWasAssignedAndWarningIsPresent(null, dataValue, warning);
+    assertDataValueWasAssignedAndWarningIsPresent(INVALID_OPTION_VALUE, dataValue, warning);
   }
 
   @Test

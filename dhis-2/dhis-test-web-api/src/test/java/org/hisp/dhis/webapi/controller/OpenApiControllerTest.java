@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -72,6 +74,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
+
   @Test
   void testGetOpenApiDocumentJson() {
     JsonObject doc =
@@ -83,7 +86,12 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
     assertGreaterOrEqual(1, doc.getObject("components.securitySchemes").size());
     assertGreaterOrEqual(200, doc.getObject("components.schemas").size());
     assertGreaterOrEqual(200, doc.getObject("components.schemas").size());
+  }
 
+  @Test
+  void testGetOpenApiDocumentJson_NoValidationErrors() {
+    JsonObject doc =
+        GET("/openapi/openapi.json?failOnNameClash=true&failOnInconsistency=true").content();
     SwaggerParseResult result =
         new OpenAPIParser().readContents(doc.node().getDeclaration(), null, null);
     assertEquals(List.of(), result.getMessages(), "There should not be any errors");
@@ -122,7 +130,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testGetOpenApiDocumentHtml_DomainFilter() {
     String html =
-        GET("/openapi/openapi.html?scope=entity.DataElement", Accept(TEXT_HTML_VALUE))
+        GET("/openapi/openapi.html?scope=entity:DataElement", Accept(TEXT_HTML_VALUE))
             .content(TEXT_HTML_VALUE);
     assertContains("#DataElement", html);
   }
@@ -130,7 +138,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testGetOpenApiDocument_DefaultValue() {
     // defaults in parameter objects (from Property analysis)
-    JsonObject users = GET("/openapi/openapi.json?scope=path./api/users").content();
+    JsonObject users = GET("/openapi/openapi.json?scope=path:/api/users").content();
     JsonObject sharedParams = users.getObject("components.parameters");
     assertEquals(50, sharedParams.getNumber("{GistParams.pageSize}.schema.default").integer());
     assertEquals(
@@ -138,7 +146,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
     assertTrue(sharedParams.getBoolean("{GistParams.translate}.schema.default").booleanValue());
 
     // defaults in individual parameters (from endpoint method parameter analysis)
-    JsonObject fileResources = GET("/openapi/openapi.json?scope=path./api/fileResources").content();
+    JsonObject fileResources = GET("/openapi/openapi.json?scope=path:/api/fileResources").content();
     JsonObject domain =
         fileResources
             .get("paths./api/fileResources/.post.parameters")
@@ -149,7 +157,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
             .orElse(JsonMixed.of("{}"));
     assertEquals("DATA_VALUE", domain.getString("schema.default").string());
 
-    JsonObject audits = GET("/openapi/openapi.json?scope=path./api/audits").content();
+    JsonObject audits = GET("/openapi/openapi.json?scope=path:/api/audits").content();
     JsonObject pageSize =
         audits
             .getArray("paths./api/audits/trackedEntity.get.parameters")
@@ -212,7 +220,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetOpenApiDocument_ReadOnly() {
-    JsonObject doc = GET("/openapi/openapi.json?scope=entity.JobConfiguration").content();
+    JsonObject doc = GET("/openapi/openapi.json?scope=entity:JobConfiguration").content();
     JsonObject jobConfiguration = doc.getObject("components.schemas.JobConfiguration");
     JsonObject jobConfigurationParams = doc.getObject("components.schemas.JobConfigurationParams");
     assertTrue(jobConfiguration.isObject());

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -89,7 +91,7 @@ class ProgramIndicatorServiceD2FunctionTest extends PostgresIntegrationTestBase 
 
   private RelationshipType relationshipTypeA;
 
-  private Date newDate = new GregorianCalendar(2020, Calendar.JANUARY, 9).getTime();
+  private final Date newDate = new GregorianCalendar(2020, Calendar.JANUARY, 9).getTime();
 
   @BeforeAll
   void setUp() {
@@ -187,10 +189,10 @@ class ProgramIndicatorServiceD2FunctionTest extends PostgresIntegrationTestBase 
   void testD2Count() {
     assertEquals(
         "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentA\" is not null and \"DataElmentA\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
-        getSql("d2:count(#{ProgrmStagA.DataElmentA})"));
+        normalizeSql(getSql("d2:count(#{ProgrmStagA.DataElmentA})")));
     assertEquals(
         "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentA\" is not null and \"DataElmentA\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
-        getSqlEnrollment("d2:count(#{ProgrmStagA.DataElmentA})"));
+        normalizeSql(getSqlEnrollment("d2:count(#{ProgrmStagA.DataElmentA})")));
   }
 
   @Test
@@ -199,24 +201,26 @@ class ProgramIndicatorServiceD2FunctionTest extends PostgresIntegrationTestBase 
         "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment "
             + "and \"DataElmentA\" is not null and \"DataElmentA\"::numeric >= coalesce(case when ax.\"ps\" = 'Program000B' then \"DataElmentB\" else null end::numeric,0) "
             + "and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
-        getSql(
-            "d2:countIfCondition( #{ProgrmStagA.DataElmentA}, ' >= #{Program000B.DataElmentB}')"));
+        normalizeSql(
+            getSql(
+                "d2:countIfCondition( #{ProgrmStagA.DataElmentA}, ' >= #{Program000B.DataElmentB}')")));
     assertEquals(
         "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentA\" is not null and \"DataElmentA\"::numeric >= coalesce("
             + "(select \"DataElmentB\" from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentB\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'Program000B' order by occurreddate desc limit 1 )::numeric,0) "
             + "and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
-        getSqlEnrollment(
-            "d2:countIfCondition( #{ProgrmStagA.DataElmentA}, \" >= #{Program000B.DataElmentB}\")"));
+        normalizeSql(
+            getSqlEnrollment(
+                "d2:countIfCondition( #{ProgrmStagA.DataElmentA}, \" >= #{Program000B.DataElmentB}\")")));
   }
 
   @Test
   void testD2CountIfValue() {
     assertEquals(
         "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentA\" is not null and \"DataElmentA\" = 10::numeric and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
-        getSql("d2:countIfValue(#{ProgrmStagA.DataElmentA}, 10)"));
+        normalizeSql(getSql("d2:countIfValue(#{ProgrmStagA.DataElmentA}, 10)")));
     assertEquals(
         "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentA\" is not null and \"DataElmentA\" = 10::numeric and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
-        getSqlEnrollment("d2:countIfValue(#{ProgrmStagA.DataElmentA}, 10)"));
+        normalizeSql(getSqlEnrollment("d2:countIfValue(#{ProgrmStagA.DataElmentA}, 10)")));
   }
 
   @Test

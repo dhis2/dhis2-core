@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -43,27 +45,15 @@ import org.hisp.dhis.user.UserDetails;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface TrackerAccessManager {
+  /**
+   * Check the data read permissions and ownership of a tracked entity given the programs for which
+   * the user has metadata access to.
+   *
+   * @return No errors if a user has access to at least one program
+   */
   List<String> canRead(UserDetails user, TrackedEntity trackedEntity);
 
   List<String> canWrite(UserDetails user, TrackedEntity trackedEntity);
-
-  /**
-   * Check if a user has data access to the supplied program and tracked entity type. It also
-   * validates user ownership to the TE/program pair.
-   *
-   * @return empty list if access is granted, list with errors otherwise
-   */
-  List<String> canRead(
-      UserDetails user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck);
-
-  /**
-   * Check if a user has data access to the supplied program and tracked entity type. Does not
-   * validate user ownership to the TE/program pair.
-   *
-   * @return empty list if access is granted, list with errors otherwise
-   */
-  List<String> canReadProgramAndTrackedEntityType(
-      UserDetails user, TrackedEntity trackedEntity, Program program);
 
   List<String> canRead(UserDetails user, Enrollment enrollment, boolean skipOwnershipCheck);
 
@@ -123,12 +113,4 @@ public interface TrackerAccessManager {
    *     return false
    */
   boolean canAccess(UserDetails user, Program program, OrganisationUnit orgUnit);
-
-  /**
-   * Checks if the user has access to the TE org unit owner in the specified program
-   *
-   * @return an error if the TE is not accessible, null otherwise
-   */
-  String canAccessProgramOwner(
-      UserDetails user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck);
 }

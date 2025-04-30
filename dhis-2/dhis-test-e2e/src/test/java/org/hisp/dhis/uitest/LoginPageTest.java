@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -48,23 +50,20 @@ class LoginPageTest {
 
   private LoginPage mainPage;
 
-  private static URL getUrl() {
-    URL remoteAddress = null;
+  private static URL getSeleniumUrl() {
     String seleniumUrl = TestConfiguration.get().seleniumUrl();
     try {
-      remoteAddress = new URL(seleniumUrl);
+      return new URL(seleniumUrl);
     } catch (MalformedURLException e) {
       throw new RuntimeException(e);
     }
-
-    return remoteAddress;
   }
 
   @BeforeEach
   public void setUp() {
     ChromeOptions chromeOptions = new ChromeOptions();
     chromeOptions.addArguments("--remote-allow-origins=*");
-    driver = new RemoteWebDriver(getUrl(), chromeOptions);
+    driver = new RemoteWebDriver(getSeleniumUrl(), chromeOptions);
     driver.get("http://web:8080/dhis-web-commons/security/login.action");
 
     mainPage = new LoginPage(driver);

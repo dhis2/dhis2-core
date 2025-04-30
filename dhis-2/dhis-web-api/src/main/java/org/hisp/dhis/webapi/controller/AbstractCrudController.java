@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -47,7 +49,6 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.Maturity.Beta;
@@ -96,7 +97,6 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -116,7 +116,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Stable
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
 public abstract class AbstractCrudController<
         T extends IdentifiableObject, P extends GetObjectListParams>
@@ -193,10 +192,10 @@ public abstract class AbstractCrudController<
     final T patchedObject = doPatch(patch, persistedObject);
 
     // Do not allow changing IDs
-    ((BaseIdentifiableObject) patchedObject).setId(persistedObject.getId());
+    patchedObject.setId(persistedObject.getId());
 
     // Do not allow changing UIDs
-    ((BaseIdentifiableObject) patchedObject).setUid(persistedObject.getUid());
+    patchedObject.setUid(persistedObject.getUid());
 
     prePatchEntity(persistedObject, patchedObject);
 
@@ -420,7 +419,7 @@ public abstract class AbstractCrudController<
     }
 
     T parsed = deserializeJsonEntity(request);
-    ((BaseIdentifiableObject) parsed).setUid(pvUid);
+    parsed.setUid(pvUid);
 
     preUpdateEntity(persisted, parsed);
 
@@ -457,7 +456,7 @@ public abstract class AbstractCrudController<
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
       throws NotFoundException, ForbiddenException, IOException {
-    BaseIdentifiableObject persistedObject = (BaseIdentifiableObject) getEntity(pvUid);
+    IdentifiableObject persistedObject = getEntity(pvUid);
 
     if (!aclService.canUpdate(currentUser, persistedObject)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
@@ -469,7 +468,8 @@ public abstract class AbstractCrudController<
 
     persistedObject.setTranslations(translations);
     List<ObjectReport> objectReports = new ArrayList<>();
-    translationsCheck.run(persistedObject, getEntityClass(), objectReports::add, getSchema(), 0);
+    translationsCheck.run(
+        persistedObject, getEntityClass(), objectReports::add, getSchema(), 0, null);
 
     if (objectReports.isEmpty()) {
       manager.update(persistedObject);

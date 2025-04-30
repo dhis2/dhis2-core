@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -33,6 +35,8 @@ import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
 import static org.hisp.dhis.scheduling.JobType.METADATA_IMPORT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.waitAtMost;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,6 +51,7 @@ import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -54,12 +59,7 @@ import org.junit.jupiter.api.Test;
  */
 class NotifierTest {
 
-  private final Notifier notifier =
-      new DefaultNotifier(
-          new InMemoryNotifierStore(),
-          new ObjectMapper(),
-          () -> SystemSettings.of(Map.of()),
-          System::currentTimeMillis);
+  private final Notifier notifier;
 
   private final JobConfiguration analyticsTable;
   private final JobConfiguration metadataImport;
@@ -76,6 +76,14 @@ class NotifierTest {
     dataImport2 = new JobConfiguration(null, DATAVALUE_IMPORT);
     dataImport3 = new JobConfiguration(null, DATAVALUE_IMPORT);
     dataImport4 = new JobConfiguration(null, DATAVALUE_IMPORT);
+    SystemSettingsService settingsService = mock(SystemSettingsService.class);
+    when(settingsService.getCurrentSettings()).thenReturn(SystemSettings.of(Map.of()));
+    this.notifier =
+        new DefaultNotifier(
+            new InMemoryNotifierStore(),
+            new ObjectMapper(),
+            settingsService,
+            System::currentTimeMillis);
   }
 
   @Test

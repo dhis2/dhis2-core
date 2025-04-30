@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,20 +29,16 @@
  */
 package org.hisp.dhis.trackedentity.hibernate;
 
-import com.google.common.collect.Sets;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
@@ -135,29 +133,13 @@ public class HibernateTrackedEntityAttributeStore
   }
 
   @Override
-  @SuppressWarnings({"unchecked", "rawtypes"})
-  public Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram() {
-    Map<Program, Set<TrackedEntityAttribute>> result = new HashMap<>();
-
-    TypedQuery<ProgramTrackedEntityAttribute> query =
+  public Set<String> getTrackedEntityAttributesInProgram(Program program) {
+    TypedQuery<String> query =
         entityManager.createQuery(
-            "select distinct pa from Program p inner join p.programAttributes pa",
-            ProgramTrackedEntityAttribute.class);
+            "select distinct pa.attribute.uid from Program p inner join p.programAttributes pa where p.uid = :program",
+            String.class);
+    query.setParameter("program", program.getUid());
 
-    List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = query.getResultList();
-
-    for (ProgramTrackedEntityAttribute programTrackedEntityAttribute :
-        programTrackedEntityAttributes) {
-      if (!result.containsKey(programTrackedEntityAttribute.getProgram())) {
-        result.put(
-            programTrackedEntityAttribute.getProgram(),
-            Sets.newHashSet(programTrackedEntityAttribute.getAttribute()));
-      } else {
-        result
-            .get(programTrackedEntityAttribute.getProgram())
-            .add(programTrackedEntityAttribute.getAttribute());
-      }
-    }
-    return result;
+    return new HashSet<>(query.getResultList());
   }
 }

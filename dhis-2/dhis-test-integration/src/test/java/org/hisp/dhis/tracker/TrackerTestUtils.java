@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -32,13 +34,13 @@ import java.util.Date;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class TrackerTestUtils {
 
-  public static List<String> uids(List<? extends BaseIdentifiableObject> identifiableObject) {
-    return identifiableObject.stream().map(BaseIdentifiableObject::getUid).toList();
+  public static List<String> uids(List<? extends IdentifiableObject> identifiableObject) {
+    return identifiableObject.stream().map(IdentifiableObject::getUid).toList();
   }
 
   public static Date oneHourAfter(Date date) {

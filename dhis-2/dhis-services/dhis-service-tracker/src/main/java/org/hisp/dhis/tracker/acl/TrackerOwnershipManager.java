@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,7 +29,11 @@
  */
 package org.hisp.dhis.tracker.acl;
 
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
@@ -39,18 +45,23 @@ import org.hisp.dhis.user.UserDetails;
  */
 public interface TrackerOwnershipManager {
   String OWNERSHIP_ACCESS_DENIED = "OWNERSHIP_ACCESS_DENIED";
-
-  String PROGRAM_ACCESS_CLOSED = "PROGRAM_ACCESS_CLOSED";
-
   String NO_READ_ACCESS_TO_ORG_UNIT = "User has no read access to organisation unit";
 
+  /** Transfers the ownership of the given TE - program pair, to the specified org unit. */
+  void transferOwnership(
+      @Nonnull TrackedEntity trackedEntity, @Nonnull UID programUid, @Nonnull UID orgUnitUid)
+      throws ForbiddenException, BadRequestException, NotFoundException;
+
   /**
-   * @param trackedEntity The tracked entity object
-   * @param program The program object
-   * @param orgUnit The org unit that has to become the owner
+   * Grant temporary ownership for a user for a specific tracked entity - program combination
+   *
+   * @param trackedEntityUid The UID of the tracked entity object
+   * @param programUid The UID of the program object
+   * @param reason The reason for requesting temporary ownership
    */
-  void transferOwnership(TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit)
-      throws ForbiddenException;
+  void grantTemporaryOwnership(
+      @Nonnull UID trackedEntityUid, @Nonnull UID programUid, String reason)
+      throws ForbiddenException, BadRequestException, NotFoundException;
 
   /**
    * Check whether the user has access (as owner or has temporarily broken the glass) to the tracked
@@ -65,18 +76,6 @@ public interface TrackerOwnershipManager {
 
   boolean hasAccess(
       UserDetails user, String trackedEntity, OrganisationUnit organisationUnit, Program program);
-
-  /**
-   * Grant temporary ownership for a user for a specific tracked entity - program combination
-   *
-   * @param trackedEntity The tracked entity object
-   * @param program The program object
-   * @param user The user for which temporary access is granted.
-   * @param reason The reason for requesting temporary ownership
-   */
-  void grantTemporaryOwnership(
-      TrackedEntity trackedEntity, Program program, UserDetails user, String reason)
-      throws ForbiddenException;
 
   /**
    * Ownership check can be skipped if the user is superuser or if the program type is without

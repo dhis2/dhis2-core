@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -59,7 +61,7 @@ public class Report extends BaseIdentifiableObject implements Cacheable, Metadat
 
   private RelativePeriods relatives;
 
-  private List<String> rawRelativePeriods = new ArrayList<>();
+  private List<String> rawPeriods = new ArrayList<>();
 
   private ReportingParams reportingParams;
 
@@ -163,8 +165,8 @@ public class Report extends BaseIdentifiableObject implements Cacheable, Metadat
     if (relatives == null) {
       List<RelativePeriodEnum> enums = new ArrayList<>();
 
-      if (rawRelativePeriods != null) {
-        for (String relativePeriod : rawRelativePeriods) {
+      if (rawPeriods != null) {
+        for (String relativePeriod : rawPeriods) {
           if (RelativePeriodEnum.contains(relativePeriod)) {
             enums.add(RelativePeriodEnum.valueOf(relativePeriod));
           }
@@ -178,8 +180,8 @@ public class Report extends BaseIdentifiableObject implements Cacheable, Metadat
   }
 
   /**
-   * It overrides the rawRelativePeriods with the relative periods provided. This is done for
-   * backward compatibility reasons.
+   * It overrides the rawPeriods with the relative periods provided. This is done for backward
+   * compatibility reasons.
    *
    * @param relatives the {@link RelativePeriods}.
    */
@@ -191,7 +193,7 @@ public class Report extends BaseIdentifiableObject implements Cacheable, Metadat
         String relativePeriod = periodEnum.name();
 
         if (RelativePeriodEnum.contains(relativePeriod)) {
-          this.rawRelativePeriods.add(relativePeriod);
+          this.rawPeriods.add(relativePeriod);
         }
       }
 
@@ -199,12 +201,12 @@ public class Report extends BaseIdentifiableObject implements Cacheable, Metadat
     }
   }
 
-  public List<String> getRawRelativePeriods() {
-    return rawRelativePeriods;
+  public List<String> getRawPeriods() {
+    return rawPeriods;
   }
 
-  public void setRawRelativePeriods(List<String> rawRelativePeriods) {
-    this.rawRelativePeriods = rawRelativePeriods;
+  public void setRawPeriods(List<String> rawPeriods) {
+    this.rawPeriods = rawPeriods;
   }
 
   @JsonProperty

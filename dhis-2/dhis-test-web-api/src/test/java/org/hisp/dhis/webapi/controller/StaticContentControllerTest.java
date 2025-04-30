@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -33,7 +35,6 @@ import static org.hisp.dhis.fileresource.FileResourceDomain.DOCUMENT;
 import static org.hisp.dhis.fileresource.FileResourceKeyUtil.makeKey;
 import static org.hisp.dhis.test.webapi.TestUtils.APPLICATION_JSON_UTF8;
 import static org.hisp.dhis.webapi.controller.StaticContentController.LOGO_BANNER;
-import static org.hisp.dhis.webapi.controller.StaticContentController.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.utils.FileResourceUtils.build;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
@@ -113,7 +114,7 @@ class StaticContentControllerTest extends WebSpringTestBase {
   void testGetStaticImagesCustomKey() throws Exception {
     // Given
     final String theExpectedType = "png";
-    final String theExpectedApiUrl = "/api" + RESOURCE_PATH;
+    final String theExpectedApiUrl = "/api/staticContent";
     // a mock file in the content store used during the fetch
     fileResourceContentStore.saveFileResourceContent(
         build(LOGO_BANNER, mockMultipartFile, DOCUMENT), "image".getBytes());

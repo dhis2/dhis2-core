@@ -204,7 +204,7 @@ pipeline {
                             sh 'git push https://$GITHUB_TOKEN@github.com/$DHIS2_RELEASES_REPO'
 
                             sh "gh pr create --head $releasesBranch --fill-first --reviewer Philip-Larsen-Donnelly,dhis2/devops"
-                            sh "gh pr merge $releasesBranch"
+                            sh "gh pr merge $releasesBranch --merge"
                         }
                     }
                 }

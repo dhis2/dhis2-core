@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -31,6 +33,7 @@ import static java.lang.String.join;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
@@ -115,7 +118,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder) {
+      SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -338,8 +341,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             \sfrom ${event} ev \
             inner join ${enrollment} en on ev.enrollmentid=en.enrollmentid \
             inner join ${programstage} ps on ev.programstageid=ps.programstageid \
-            inner join ${program} pr on en.programid=pr.programid and en.deleted = false \
-            left join ${trackedentity} te on en.trackedentityid=te.trackedentityid and te.deleted = false \
+            inner join ${program} pr on en.programid=pr.programid and ${enDeletedClause} \
+            left join ${trackedentity} te on en.trackedentityid=te.trackedentityid and ${teDeletedClause} \
             left join ${organisationunit} registrationou on te.organisationunitid=registrationou.organisationunitid \
             inner join ${organisationunit} ou on ev.organisationunitid=ou.organisationunitid \
             left join analytics_rs_dateperiodstructure dps on cast(${eventDateExpression} as date)=dps.dateperiod \
@@ -363,6 +366,8 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 "attributeJoinClause", attributeJoinClause,
                 "startTime", toLongDate(params.getStartTime()),
                 "programId", String.valueOf(program.getId()),
+                "enDeletedClause", sqlBuilder.isFalse("en", "deleted"),
+                "teDeletedClause", sqlBuilder.isFalse("te", "deleted"),
                 "firstDataYear", String.valueOf(firstDataYear),
                 "latestDataYear", String.valueOf(latestDataYear),
                 "exportableEventStatues", join(",", EXPORTABLE_EVENT_STATUSES)));
@@ -626,16 +631,21 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       return List.of();
     }
 
-    String columnExpression = getColumnExpression(attribute.getValueType(), "value");
+    String columnExpression = sqlBuilder.cast("av.value", NUMERIC);
     String numericClause = getNumericClause("value");
+
     String query =
         """
-        \s(select l.uid from ${maplegend} l \
-        inner join trackedentityattributevalue av on l.startvalue <= ${selectClause} \
-        and l.endvalue > ${selectClause} \
-        and l.maplegendsetid=${legendSetId} \
-        and av.trackedentityid=en.trackedentityid \
-        and av.trackedentityattributeid=${attributeId} ${numericClause}) as ${column}""";
+            \s(select l.uid \
+              from   ${maplegend} l \
+              join   trackedentityattributevalue av \
+                     on av.trackedentityattributeid=${attributeId} \
+                    ${numericClause} \
+                    and l.maplegendsetid=${legendSetId} \
+                    and l.startvalue <= ${castExpr} \
+                    and l.endvalue   > ${castExpr} \
+              where av.trackedentityid = en.trackedentityid \
+              limit  1) as ${column}""";
 
     return attribute.getLegendSets().stream()
         .map(
@@ -645,7 +655,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                   replaceQualify(
                       query,
                       Map.of(
-                          "selectClause", columnExpression,
+                          "castExpr", columnExpression,
                           "legendSetId", String.valueOf(ls.getId()),
                           "column", column,
                           "attributeId", String.valueOf(attribute.getId()),

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -30,6 +32,7 @@ package org.hisp.dhis.user.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 import static java.time.ZoneId.systemDefault;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 
 import jakarta.persistence.EntityManager;
@@ -66,9 +69,9 @@ import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.QueryUtils;
+import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
@@ -192,6 +195,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
     List<Order> convertedOrder = null;
     String hql;
+    Schema userSchema = schemaService.getSchema(User.class);
 
     boolean fetch = mode == QueryMode.OBJECTS;
     if (mode == QueryMode.COUNT) {
@@ -199,9 +203,8 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     } else if (mode == QueryMode.IDS) {
       hql = "select distinct u.uid ";
     } else {
-      Schema userSchema = schemaService.getSchema(User.class);
-      convertedOrder = QueryUtils.convertOrderStrings(orders, userSchema);
-      String order = JpaQueryUtils.createSelectOrderExpression(convertedOrder, "u");
+      convertedOrder = Order.parse(orders);
+      String order = createOrderHql(convertedOrder, false, userSchema);
       hql = "select distinct u";
       if (order != null) hql += "," + order;
       hql += " ";
@@ -321,7 +324,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     }
 
     if (fetch) {
-      String orderExpression = JpaQueryUtils.createOrderExpression(convertedOrder, "u");
+      String orderExpression = createOrderHql(convertedOrder, true, userSchema);
       hql += "order by " + StringUtils.defaultString(orderExpression, "u.surname, u.firstName");
     }
 
@@ -669,5 +672,30 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
                 .formatted(orgUnitProperty.getValue()))
         .setParameter("uids", UID.toValueList(uids))
         .getResultList();
+  }
+
+  /**
+   * Creates the HQL for {@code order by} clause. Since properties used in order by must also occur
+   * in the select list this is also used to create that list.
+   */
+  @CheckForNull
+  private static String createOrderHql(
+      @CheckForNull List<Order> orders, boolean direction, Schema userSchema) {
+    if (orders == null || orders.isEmpty()) return null;
+    List<Order> persistedOrders =
+        orders.stream().filter(o -> userSchema.getProperty(o.getProperty()).isPersisted()).toList();
+    if (persistedOrders.isEmpty()) return null;
+    return persistedOrders.stream()
+        .map(
+            o -> {
+              String property = o.getProperty();
+              Property p = userSchema.getProperty(property);
+              boolean ignoreCase = o.isIgnoreCase() && String.class == p.getKlass();
+              String order =
+                  ignoreCase ? "lower(u.%s)".formatted(property) : "u.%s".formatted(property);
+              if (!direction) return order;
+              return o.isAscending() ? order + " asc" : order + " desc";
+            })
+        .collect(joining(","));
   }
 }

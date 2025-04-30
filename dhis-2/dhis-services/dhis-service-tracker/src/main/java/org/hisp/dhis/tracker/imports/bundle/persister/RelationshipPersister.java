@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -28,9 +30,7 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import jakarta.persistence.EntityManager;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
@@ -121,15 +121,7 @@ public class RelationshipPersister
 
   @Override
   protected Set<UID> getUpdatedTrackedEntities(org.hisp.dhis.relationship.Relationship entity) {
-    Set<UID> uids = new HashSet<>();
-
-    Optional.ofNullable(entity.getFrom().getTrackedEntity()).map(UID::of).ifPresent(uids::add);
-
-    if (entity.getRelationshipType().isBidirectional()) {
-      Optional.ofNullable(entity.getTo().getTrackedEntity()).map(UID::of).ifPresent(uids::add);
-    }
-
-    return uids;
+    return entity.getTrackedEntityOrigins();
   }
 
   @Override

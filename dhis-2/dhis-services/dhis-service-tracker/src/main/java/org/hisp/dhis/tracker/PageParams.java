@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -33,6 +35,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import org.hisp.dhis.feedback.BadRequestException;
 
 /**
  * {@link PageParams} represent the parameters that configure the page of items to be returned by a
@@ -55,13 +58,22 @@ public class PageParams {
   /** Indicates whether to fetch the total number of items. */
   final boolean pageTotal;
 
-  public PageParams(Integer page, Integer pageSize, boolean pageTotal) {
+  private PageParams(Integer page, Integer pageSize, boolean pageTotal) throws BadRequestException {
+    if (page != null && page < 1) {
+      throw new BadRequestException("page must be greater than or equal to 1 if specified");
+    }
+
+    if (pageSize != null && pageSize < 1) {
+      throw new BadRequestException("pageSize must be greater than or equal to 1 if specified");
+    }
+
     this.page = Objects.requireNonNullElse(page, DEFAULT_PAGE);
     this.pageSize = Objects.requireNonNullElse(pageSize, DEFAULT_PAGE_SIZE);
     this.pageTotal = pageTotal;
   }
 
-  public static PageParams of(Integer page, Integer pageSize, boolean pageTotal) {
+  public static PageParams of(Integer page, Integer pageSize, boolean pageTotal)
+      throws BadRequestException {
     return new PageParams(page, pageSize, pageTotal);
   }
 

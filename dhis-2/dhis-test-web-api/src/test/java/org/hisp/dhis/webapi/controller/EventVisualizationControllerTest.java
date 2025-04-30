@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -46,14 +48,17 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
@@ -151,6 +156,78 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
     assertThat(response.get("columns").toString(), containsString(eventDateDimension));
     assertThat(response.get("rows").toString(), not(containsString(eventDateDimension)));
     assertThat(response.get("filters").toString(), not(containsString(eventDateDimension)));
+  }
+
+  @Test
+  void testPostForOuDimensionAsFilter() throws JsonProcessingException {
+    // Given
+    DataElement ouDe = createDataElement('D', ValueType.TEXT, AggregationType.SUM, TRACKER);
+    ouDe.setValueType(ValueType.ORGANISATION_UNIT);
+    POST("/dataElements", jsonMapper.writeValueAsString(ouDe)).content(CREATED);
+
+    String createPayload =
+        """
+            {
+              "type": "LINE_LIST",
+              "outputType": "EVENT",
+              "program": {
+            	"id": "%s"
+              },
+              "programStage": {
+            	"id": "%s"
+              },
+              "columns": [
+            	{
+            	  "dimension": "ou",
+            	  "items": [
+            		{
+            		  "id": "USER_ORGUNIT"
+            		}
+            	  ]
+            	},
+            	{
+            	  "dimension": "lastUpdated",
+            	  "items": [
+            		{
+            		  "id": "THIS_MONTH"
+            		}
+            	  ]
+            	},
+            	{
+            	  "dimension": "%s",
+            	  "filter": "EQ:%s",
+            	  "programStage": {
+            		"id": "%s"
+            	  }
+            	}
+              ],
+              "rows": [],
+              "filters": [],
+              "displayDensity": "NORMAL",
+              "fontSize": "NORMAL",
+              "digitGroupSeparator": "SPACE",
+              "showHierarchy": false,
+              "skipRounding": false,
+              "legend": {},
+              "name": "OU Filter"
+            }
+            """
+            .formatted(
+                mockProgram.getUid(),
+                mockProgramStage.getUid(),
+                ouDe.getUid(),
+                mockOrganisationUnit.getUid(),
+                mockProgramStage.getUid());
+
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", createPayload));
+
+    // Then
+    JsonObject response = GET("/eventVisualizations/" + uid).content();
+    System.out.println(response.toString());
+
+    assertThat(
+        response.get("parentGraphMap").toString(), containsString(mockOrganisationUnit.getUid()));
   }
 
   @Test
@@ -684,7 +761,7 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
         response.get("trackedEntityType").node().value().toString(),
         is(
             equalTo(
-                """
+"""
 {"id":"nEenWmSyUEp"}""")));
 
     JsonNode simpleDimensionNode0 = response.get("simpleDimensions").node().element(0);
@@ -695,7 +772,7 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
         simpleDimensionNode0.get("values").value().toString(),
         is(
             equalTo(
-                """
+"""
 ["2023-07-21_2023-08-01","2023-01-21_2023-02-01"]""")));
     assertThat(simpleDimensionNode0.get("parent").value().toString(), is(equalTo("COLUMN")));
 
@@ -717,14 +794,14 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
         response.get("columnDimensions").node().value().toString(),
         is(
             equalTo(
-                """
+"""
 ["deabcdefghP.deabcdefghB","deabcdefghC","deabcdefghP.eventDate","created"]""")));
 
     assertThat(
         response.get("filterDimensions").node().value().toString(),
         is(
             equalTo(
-                """
+"""
 ["deabcdefghP.deabcdefghS.ou","deabcdefghE"]""")));
 
     JsonNode dataElementDimensionsNode0 = response.get("dataElementDimensions").node().element(0);
@@ -732,7 +809,7 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
         dataElementDimensionsNode0.get("dataElement").value().toString(),
         is(
             equalTo(
-                """
+"""
 {"id":"deabcdefghC"}""")));
     assertThat(
         dataElementDimensionsNode0.get("filter").value().toString(), is(equalTo("IN:Female")));
@@ -742,7 +819,7 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
         dataElementDimensionsNode1.get("dataElement").value().toString(),
         is(
             equalTo(
-                """
+"""
 {"id":"deabcdefghE"}""")));
     assertFalse(dataElementDimensionsNode1.isMember("filter"));
 
@@ -750,14 +827,14 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
         response.get("programIndicatorDimensions").node().value().toString(),
         is(
             equalTo(
-                """
+"""
 [{"programIndicator":{"id":"deabcdefghB"}}]""")));
 
     assertThat(
         response.get("organisationUnits").node().value().toString(),
         is(
             equalTo(
-                """
+"""
 [{"id":"ImspTQPwCqd"}]""")));
 
     JsonNode repetitionsNode0 = response.get("repetitions").node().element(0);
@@ -780,7 +857,7 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
         columnsNode0.get("program").value().toString(),
         is(
             equalTo(
-                """
+"""
 {"id":"deabcdefghP"}""")));
     assertThat(columnsNode0.get("dimension").value().toString(), is(equalTo("deabcdefghB")));
 
@@ -794,13 +871,13 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
         columnsNode2.get("items").value().toString(),
         is(
             equalTo(
-                """
+"""
 [{"id":"2023-07-21_2023-08-01"},{"id":"2023-01-21_2023-02-01"}]""")));
     assertThat(
         columnsNode2.get("program").value().toString(),
         is(
             equalTo(
-                """
+"""
 {"id":"deabcdefghP"}""")));
     assertThat(columnsNode2.get("dimension").value().toString(), is(equalTo("eventDate")));
 
@@ -809,7 +886,7 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
         columnsNode3.get("items").value().toString(),
         is(
             equalTo(
-                """
+"""
 [{"id":"2021-01-21_2021-02-01"}]""")));
     assertThat(columnsNode3.get("dimension").value().toString(), is(equalTo("created")));
 
@@ -824,7 +901,7 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
         filtersNode0.get("programStage").value().toString(),
         is(
             equalTo(
-                """
+"""
 {"id":"deabcdefghS"}""")));
     assertThat(filtersNode0.get("dimension").value().toString(), is(equalTo("ou")));
     assertThat(
@@ -892,5 +969,91 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("ERROR", error.getStatus());
     assertEquals(
         "Cannot generate chart for multi-program visualization " + uid, error.getMessage());
+  }
+
+  @Test
+  void testGetMetaDataObject() {
+    // Given
+    OrganisationUnitGroup organisationUnitGroup = createOrganisationUnitGroup('A');
+    organisationUnitGroup.setUid("CXw2yu5fodb");
+    manager.save(organisationUnitGroup);
+
+    DataElement ouDe = createDataElement('D', ValueType.TEXT, AggregationType.SUM, TRACKER);
+    ouDe.setUid("Zj7UnCAulEk");
+    ouDe.setValueType(ValueType.ORGANISATION_UNIT);
+    manager.save(ouDe);
+
+    String body =
+        """
+              {"name": "Test metadata post", "type": "STACKED_COLUMN",
+              "program": {"id": "deabcdefghP"},
+              "trackedEntityType": {"id": "nEenWmSyUEp"},
+              "filters": [
+                  {
+                      "dimension": "ou",
+                      "programStage": {
+                          "id": "deabcdefghS"
+                      },
+                      "repetition": {
+                          "indexes": [
+                              1,
+                              2,
+                              3,
+                              -2,
+                              -1,
+                              0
+                          ]
+                      },
+                      "items": [
+                          {
+                              "id": "ImspTQPwCqd"
+                          }
+                      ]
+                  },
+                  {
+                      "dimension": "deabcdefghE",
+                      "repetition": {
+                          "indexes": [
+                              1,
+                              2,
+                              0
+                          ]
+                      },
+                      "items": []
+                  },
+                  {
+                      "dimension": "Zj7UnCAulEk",
+                      "filter": "IN:OU_GROUP-CXw2yu5fodb"
+                   }
+               ]
+              }
+              """;
+
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
+
+    // Then
+    JsonObject response = GET("/eventVisualizations/" + uid).content();
+    String metaData = response.get("metaData").node().value().toString();
+
+    assertThat(response.get("name").node().value(), is(equalTo("Test metadata post")));
+    assertThat(
+        metaData,
+        containsString(
+            "\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OrganisationUnitCodeA\",\"name\":\"OrganisationUnitA\"}"));
+    assertThat(
+        metaData,
+        containsString(
+            "{\"uid\":\"CXw2yu5fodb\",\"code\":\"OrganisationUnitGroupCodeA\",\"name\":\"OrganisationUnitGroupA\"}"));
+    assertThat(
+        metaData,
+        containsString(
+            "\"deabcdefghE\":{\"uid\":\"deabcdefghE\",\"code\":\"DataElementCodeB\",\"name\":\"DataElementB\"}"));
+    assertThat(
+        metaData,
+        containsString(
+            "{\"uid\":\"Zj7UnCAulEk\",\"code\":\"DataElementCodeD\",\"name\":\"DataElementD\"}"));
+    assertThat(response.get("type").node().value(), is(equalTo("STACKED_COLUMN")));
+    assertThat(response.get("program").node().get("id").value(), is(equalTo(mockProgram.getUid())));
   }
 }

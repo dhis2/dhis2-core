@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -112,9 +114,9 @@ public class DefaultCollectionService implements CollectionService {
         item -> {
           if (!collection.contains(item)) {
             collection.add(item);
-            report.getStats().incUpdated();
+            report.updatedInc(1);
           } else {
-            report.getStats().incIgnored();
+            report.ignoredInc(1);
           }
         });
     validateAndThrowErrors(() -> schemaValidator.validateProperty(property, object));
@@ -140,9 +142,9 @@ public class DefaultCollectionService implements CollectionService {
             validateAndThrowErrors(() -> schemaValidator.validateProperty(property, object));
             collection.add(object);
             manager.update(item);
-            report.getStats().incUpdated();
+            report.updatedInc(1);
           } else {
-            report.getStats().incIgnored();
+            report.ignoredInc(1);
           }
         });
     entityManager.refresh(object);
@@ -192,9 +194,9 @@ public class DefaultCollectionService implements CollectionService {
         item -> {
           if (collection.contains(item)) {
             collection.remove(item);
-            report.getStats().incDeleted();
+            report.deletedInc(1);
           } else {
-            report.getStats().incIgnored();
+            report.ignoredInc(1);
           }
         });
   }
@@ -219,9 +221,9 @@ public class DefaultCollectionService implements CollectionService {
             validateAndThrowErrors(() -> schemaValidator.validateProperty(owningProperty, item));
             collection.remove(object);
             manager.update(item);
-            report.getStats().incDeleted();
+            report.deletedInc(1);
           } else {
-            report.getStats().incIgnored();
+            report.ignoredInc(1);
           }
         });
     entityManager.refresh(object);
@@ -316,7 +318,7 @@ public class DefaultCollectionService implements CollectionService {
         ObjectReport objectReport = new ObjectReport(itemType, index, item.getUid());
         objectReport.addErrorReport(new ErrorReport(itemType, errorCode, ex.getMessage()));
         report.addObjectReport(objectReport);
-        report.getStats().incIgnored();
+        report.ignoredInc(1);
       }
       index++;
     }

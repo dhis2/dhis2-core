@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -206,6 +208,15 @@ public interface IdentifiableObjectManager {
       @Nonnull Class<T> type, @Nonnull Collection<String> uids);
 
   /**
+   * Gets a list of objects by uid but without starting a read-only transaction. This method is used
+   * by ProgramCategoryOptionValidator within an aggregate data exchange transaction that needs to
+   * be read/write.
+   */
+  @Nonnull
+  <T extends IdentifiableObject> List<T> getByUidWithoutTransaction(
+      @Nonnull Class<T> type, @Nonnull Collection<String> uids);
+
+  /**
    * Retrieves the objects of the given type and collection of UIDs, throws exception is any object
    * does not exist.
    *
@@ -299,8 +310,16 @@ public interface IdentifiableObjectManager {
    */
   void resetNonOwnerProperties(@Nonnull Object object);
 
+  /**
+   * Flushes the current session with the persistance manager. Note: Only for testing purposes,
+   * flushing the session during runtime is not advisable.
+   */
   void flush();
 
+  /**
+   * Clears the current session with the persistance manager. Note: Only for testing purposes,
+   * clearing the session during runtime is not advisable.
+   */
   void clear();
 
   <T extends IdentifiableObject> boolean isAttributeValueUniqueTo(

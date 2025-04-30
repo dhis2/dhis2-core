@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -214,6 +216,15 @@ class TextUtilsTest {
   }
 
   @Test
+  void testReplaceDefault() {
+    assertEquals(
+        "Hey John, my name is Bond",
+        TextUtils.replace("Hey ${name}, my name is ${surname:Bond}", Map.of("name", "John")));
+    assertEquals("${haha}", TextUtils.replace("${x:$}{haha}", Map.of()));
+    assertEquals("", TextUtils.replace("${x:}", Map.of()));
+  }
+
+  @Test
   void testReplaceWithNull() {
     assertThrows(
         IllegalArgumentException.class,
@@ -227,8 +238,39 @@ class TextUtilsTest {
   }
 
   @Test
+  void testReplaceVarUndefined() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            TextUtils.replace("Welcome ${first_name} ${last_name}", Map.of("first_name", "John")));
+  }
+
+  @Test
+  void testReplaceVarUnused() {
+    assertEquals(
+        "Welcome John",
+        TextUtils.replace(
+            "Welcome ${first_name}", Map.of("first_name", "John", "last_name", "Bond")));
+  }
+
+  @Test
   void testReplaceVarargs() {
     assertEquals("Welcome John", TextUtils.replace("Welcome ${first_name}", "first_name", "John"));
+  }
+
+  @Test
+  void testReplaceIncompleteVar() {
+    assertEquals("Welcome ${ John", TextUtils.replace("Welcome ${ John", "first_name", "John"));
+  }
+
+  @Test
+  void testReplace$() {
+    assertEquals("Welcome $ John", TextUtils.replace("Welcome $ John", "first_name", "John"));
+  }
+
+  @Test
+  void testReplace$$() {
+    assertEquals("Welcome $$ John", TextUtils.replace("Welcome $$ John", "first_name", "John"));
   }
 
   @Test

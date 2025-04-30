@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -51,7 +53,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
@@ -80,7 +81,6 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserLookup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.hisp.dhis.webapi.webdomain.user.UserLookups;
@@ -110,7 +110,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RequestMapping("/api/account")
 @Slf4j
 @AllArgsConstructor
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class AccountController {
   private static final int MAX_LENGTH = 80;
 
@@ -428,6 +427,11 @@ public class AccountController {
     user.setPhoneNumber(userRegistration.getPhoneNumber());
     user.setEmail(userRegistration.getEmail());
     user.setPhoneNumber(userRegistration.getPhoneNumber());
+
+    boolean autoVerifyEmail = settingsProvider.getCurrentSettings().getAutoVerifyInvitedUserEmail();
+    if (autoVerifyEmail && user.getEmail() != null) {
+      user.setVerifiedEmail(user.getEmail());
+    }
 
     userService.updateUser(user, new SystemUser());
 

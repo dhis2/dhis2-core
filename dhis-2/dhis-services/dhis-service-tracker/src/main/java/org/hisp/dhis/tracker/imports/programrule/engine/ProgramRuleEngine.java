@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -28,6 +30,7 @@
 package org.hisp.dhis.tracker.imports.programrule.engine;
 
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.program.Program;
@@ -41,15 +44,18 @@ public interface ProgramRuleEngine {
    * Evaluate program rules for {@link Program} for enrollment and tracker events. Rules are
    * evaluated under the authorization of given {@link UserDetails}.
    */
-  RuleEngineEffects evaluateEnrollmentAndEvents(
-      RuleEnrollment enrollment, List<RuleEvent> events, Program program, UserDetails user);
+  RuleEngineEffects evaluateEnrollmentAndTrackerEvents(
+      @Nonnull RuleEnrollment enrollment,
+      @Nonnull List<RuleEvent> events,
+      @Nonnull Program program,
+      @Nonnull UserDetails user);
 
   /**
    * Evaluate program rules as the given {@link UserDetails} for {@link Program} for program events.
    * Rules are evaluated under the authorization of given {@link UserDetails}.
    */
   RuleEngineEffects evaluateProgramEvents(
-      List<RuleEvent> events, Program program, UserDetails user);
+      @Nonnull List<RuleEvent> events, @Nonnull Program program, UserDetails user);
 
   /**
    * To getDescription rule condition in order to fetch its description
@@ -58,7 +64,8 @@ public interface ProgramRuleEngine {
    * @param programUid {@link Program} which the programRule is associated with.
    * @return RuleValidationResult contains description of program rule condition or errorMessage
    */
-  RuleValidationResult getDescription(String condition, UID programUid) throws BadRequestException;
+  RuleValidationResult getDescription(@Nonnull String condition, @Nonnull UID programUid)
+      throws BadRequestException;
 
   /**
    * To get description for program rule action data field.
@@ -67,6 +74,6 @@ public interface ProgramRuleEngine {
    * @param programUid {@link Program} which the programRule is associated with.
    * @return RuleValidationResult contains description of program rule condition or errorMessage
    */
-  RuleValidationResult getDataExpressionDescription(String dataExpression, UID programUid)
-      throws BadRequestException;
+  RuleValidationResult getDataExpressionDescription(
+      @Nonnull String dataExpression, @Nonnull UID programUid) throws BadRequestException;
 }

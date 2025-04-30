@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -66,7 +68,8 @@ public class DashboardCheck implements ObjectValidationCheck {
     processAclChecks(bundle, klass, persistedObjects, addReports);
     processLayoutLimitCheck(
         selectObjectsBasedOnImportStrategy(persistedObjects, nonPersistedObjects, importStrategy),
-        addReports);
+        addReports,
+        context);
   }
 
   private <T> void processAclChecks(
@@ -161,9 +164,10 @@ public class DashboardCheck implements ObjectValidationCheck {
    *
    * @param mergedObjects {@link Dashboard}s being imported for checking.
    * @param addReports add {@link ErrorCode#E4070} if layout column limit exceeded
+   * @param context if context is not null, mark object for removal
    */
   private <T> void processLayoutLimitCheck(
-      List<T> mergedObjects, Consumer<ObjectReport> addReports) {
+      List<T> mergedObjects, Consumer<ObjectReport> addReports, ValidationContext context) {
     mergedObjects.forEach(
         dashboard -> {
           Layout layout = ((Dashboard) dashboard).getLayout();
@@ -184,6 +188,9 @@ public class DashboardCheck implements ObjectValidationCheck {
                 new ObjectReport(Dashboard.class, 0, ((Dashboard) dashboard).getUid());
             objectReport.addErrorReport(error);
             addReports.accept(objectReport);
+            if (context != null) {
+              context.markForRemoval(((Dashboard) dashboard));
+            }
           }
         });
   }

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -68,6 +70,8 @@ import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.DimensionType;
@@ -85,7 +89,6 @@ import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -103,8 +106,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 /**
- * TODO could use row_number() and filtering for paging. TODO introduce dedicated "year" partition
- * column.
+ * TODO could use row_number() and filtering for paging.
+ *
+ * <p>TODO introduce dedicated "year" partition column.
  *
  * @author Lars Helge Overland
  */
@@ -120,23 +124,25 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       ProgramIndicatorService programIndicatorService,
       ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
+      PiDisagInfoInitializer piDisagInfoInitializer,
+      PiDisagQueryGenerator piDisagQueryGenerator,
       EventTimeFieldSqlRenderer timeFieldSqlRenderer,
       ExecutionPlanStore executionPlanStore,
       SystemSettingsService settingsService,
       DhisConfigurationProvider config,
-      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder,
-      @Qualifier("postgresAnalyticsSqlBuilder") AnalyticsSqlBuilder analyticsSqlBuilder,
+      AnalyticsSqlBuilder sqlBuilder,
       OrganisationUnitResolver organisationUnitResolver) {
     super(
         jdbcTemplate,
         programIndicatorService,
         programIndicatorSubqueryBuilder,
+        piDisagInfoInitializer,
+        piDisagQueryGenerator,
         executionPlanStore,
         sqlBuilder,
         settingsService,
         config,
-        organisationUnitResolver,
-        analyticsSqlBuilder);
+        organisationUnitResolver);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
@@ -522,7 +528,11 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
             Set.of(DimensionType.CATEGORY, DimensionType.CATEGORY_OPTION_GROUP_SET));
 
     for (DimensionalObject dim : dynamicDimensions) {
-      String col = quoteAlias(dim.getDimensionName());
+      String dimName = dim.getDimensionName();
+      String col =
+          params.isPiDisagDimension(dimName)
+              ? piDisagQueryGenerator.getColumnForWhereClause(params, dimName)
+              : quoteAlias(dimName);
 
       sql +=
           hlp.whereAnd()
@@ -532,6 +542,12 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
               + sqlBuilder.singleQuotedCommaDelimited(getUids(dim.getItems()))
               + ") ";
     }
+
+    StringBuilder sb = new StringBuilder();
+    for (String condition : piDisagQueryGenerator.getCocWhereConditions(params)) {
+      sb.append(hlp.whereAnd()).append(condition);
+    }
+    sql += sb.toString();
 
     List<DimensionalObject> orgUnitGroupSetDimension =
         params.getDimensionsAndFilters(Set.of(DimensionType.ORGANISATION_UNIT_GROUP_SET));

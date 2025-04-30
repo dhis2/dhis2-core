@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -28,116 +30,60 @@
 package org.hisp.dhis.feedback;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.DxfNamespaces;
+import com.fasterxml.jackson.annotation.JsonRootName;
+import java.util.Collection;
+import javax.annotation.Nonnull;
 
 /**
+ * New immutable instances are returned for all operations. Make sure to use the returned instance
+ * if updated stats are to be tracked correctly.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author david mackessy
  */
-@JacksonXmlRootElement(localName = "stats", namespace = DxfNamespaces.DXF_2_0)
-public class Stats {
-  private int created;
-
-  private int updated;
-
-  private int deleted;
-
-  private int ignored;
-
-  public Stats() {}
-
-  public void merge(Stats stats) {
-    created += stats.getCreated();
-    updated += stats.getUpdated();
-    deleted += stats.getDeleted();
-    ignored += stats.getIgnored();
-  }
+@JsonRootName("stats")
+public record Stats(
+    @JsonProperty int created,
+    @JsonProperty int updated,
+    @JsonProperty int deleted,
+    @JsonProperty int ignored) {
 
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public int getTotal() {
     return created + updated + deleted + ignored;
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getCreated() {
-    return created;
+  public Stats createdInc(int amount) {
+    return new Stats(this.created + amount, this.updated, this.deleted, this.ignored);
   }
 
-  public void incCreated() {
-    created++;
+  public Stats updatedInc(int amount) {
+    return new Stats(this.created, this.updated + amount, this.deleted, this.ignored);
   }
 
-  public void incCreated(int n) {
-    created += n;
+  public Stats deletedInc(int amount) {
+    return new Stats(this.created, this.updated, this.deleted + amount, this.ignored);
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getUpdated() {
-    return updated;
+  public Stats deletedDec(int amount) {
+    return new Stats(this.created, this.updated, this.deleted - amount, this.ignored);
   }
 
-  public void incUpdated() {
-    updated++;
+  public Stats ignoredInc(int amount) {
+    return new Stats(this.created, this.updated, this.deleted, this.ignored + amount);
   }
 
-  public void incUpdated(int n) {
-    updated += n;
+  public Stats withStats(@Nonnull Stats stats) {
+    return new Stats(
+        this.created + stats.created(),
+        this.updated + stats.updated(),
+        this.deleted + stats.deleted(),
+        this.ignored + stats.ignored());
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getDeleted() {
-    return deleted;
-  }
-
-  public void incDeleted() {
-    deleted++;
-  }
-
-  public void decDeleted() {
-    deleted--;
-  }
-
-  public void incDeleted(int n) {
-    deleted += n;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public int getIgnored() {
-    return ignored;
-  }
-
-  public void incIgnored() {
-    ignored++;
-  }
-
-  public void incIgnored(int n) {
-    ignored += n;
-  }
-
-  public void ignored() {
-    ignored += created;
-    ignored += updated;
-    ignored += deleted;
-
-    created = 0;
-    updated = 0;
-    deleted = 0;
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("created", created)
-        .add("updated", updated)
-        .add("deleted", deleted)
-        .add("ignored", ignored)
-        .toString();
+  public static Stats getAccumulatedStatsFromTypeReports(Collection<TypeReport> reports) {
+    return reports.stream()
+        .map(TypeReport::getStats)
+        .reduce(new Stats(0, 0, 0, 0), Stats::withStats);
   }
 }

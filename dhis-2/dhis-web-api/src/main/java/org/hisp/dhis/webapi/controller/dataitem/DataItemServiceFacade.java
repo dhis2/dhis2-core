@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -45,7 +47,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dataitem.query.QueryExecutor;
 import org.hisp.dhis.dxf2.common.OrderParams;
@@ -83,7 +85,7 @@ public class DataItemServiceFacade {
    * @return the consolidated collection of entities found.
    */
   List<DataItem> retrieveDataItemEntities(
-      Set<Class<? extends BaseIdentifiableObject>> targetEntities,
+      Set<Class<? extends IdentifiableObject>> targetEntities,
       Set<String> filters,
       WebOptions options,
       OrderParams orderParams) {
@@ -117,8 +119,8 @@ public class DataItemServiceFacade {
    * @param filters
    * @return the data items classes to be queried
    */
-  Set<Class<? extends BaseIdentifiableObject>> extractTargetEntities(Set<String> filters) {
-    Set<Class<? extends BaseIdentifiableObject>> targetedEntities = new HashSet<>(0);
+  Set<Class<? extends IdentifiableObject>> extractTargetEntities(Set<String> filters) {
+    Set<Class<? extends IdentifiableObject>> targetedEntities = new HashSet<>(0);
 
     if (containsFilterWithAnyOfPrefixes(
         filters, DIMENSION_TYPE_EQUAL.getCombination(), DIMENSION_TYPE_IN.getCombination())) {
@@ -132,13 +134,13 @@ public class DataItemServiceFacade {
   }
 
   private void addFilteredTargetEntities(
-      Set<String> filters, Set<Class<? extends BaseIdentifiableObject>> targetedEntities) {
+      Set<String> filters, Set<Class<? extends IdentifiableObject>> targetedEntities) {
     Iterator<String> iterator = filters.iterator();
 
     while (iterator.hasNext()) {
       String filter = iterator.next();
-      Class<? extends BaseIdentifiableObject> entity = extractEntityFromEqualFilter(filter);
-      Set<Class<? extends BaseIdentifiableObject>> entities = extractEntitiesFromInFilter(filter);
+      Class<? extends IdentifiableObject> entity = extractEntityFromEqualFilter(filter);
+      Set<Class<? extends IdentifiableObject>> entities = extractEntitiesFromInFilter(filter);
 
       if (entity != null || isNotEmpty(entities)) {
         if (entity != null) {

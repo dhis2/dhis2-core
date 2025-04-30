@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -78,7 +80,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder) {
+      SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,
@@ -143,7 +145,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
             """
             \sfrom ${enrollment} en \
             inner join ${program} pr on en.programid=pr.programid \
-            left join ${trackedentity} te on en.trackedentityid=te.trackedentityid and te.deleted = false \
+            left join ${trackedentity} te on en.trackedentityid=te.trackedentityid and ${teDeletedClause} \
             left join ${organisationunit} registrationou on te.organisationunitid=registrationou.organisationunitid \
             inner join ${organisationunit} ou on en.organisationunitid=ou.organisationunitid \
             left join analytics_rs_dateperiodstructure dps on cast(en.enrollmentdate as date)=dps.dateperiod \
@@ -155,11 +157,13 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
             and (ougs.startdate is null or dps.monthstartdate=ougs.startdate) \
             and en.lastupdated <= '${startTime}' \
             and en.occurreddate is not null \
-            and en.deleted = false\s""",
+            and ${enDeletedClause} """,
             Map.of(
                 "attributeJoinClause", attributeJoinClause,
                 "programId", String.valueOf(program.getId()),
-                "startTime", toLongDate(params.getStartTime())));
+                "startTime", toLongDate(params.getStartTime()),
+                "teDeletedClause", sqlBuilder.isFalse("te", "deleted"),
+                "enDeletedClause", sqlBuilder.isFalse("en", "deleted")));
 
     populateTableInternal(partition, fromClause);
   }

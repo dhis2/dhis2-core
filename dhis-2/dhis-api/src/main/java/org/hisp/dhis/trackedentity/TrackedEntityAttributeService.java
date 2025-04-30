@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -28,7 +30,6 @@
 package org.hisp.dhis.trackedentity;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.program.Program;
@@ -159,15 +160,6 @@ public interface TrackedEntityAttributeService {
   List<TrackedEntityAttribute> getTrackedEntityAttributesByDisplayOnVisitSchedule(
       boolean displayOnVisitSchedule);
 
-  /**
-   * Validate value against tracked entity attribute value type.
-   *
-   * @param trackedEntityAttribute TrackedEntityAttribute
-   * @param value Value
-   * @return null if valid, a message if not
-   */
-  String validateValueType(TrackedEntityAttribute trackedEntityAttribute, String value);
-
   @Transactional(readOnly = true)
   List<TrackedEntityAttribute> getAllUniqueTrackedEntityAttributes();
 
@@ -180,10 +172,9 @@ public interface TrackedEntityAttributeService {
   Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes();
 
   /**
-   * Get all {@link TrackedEntityAttribute} grouped by {@link Program}
+   * Fetches all {@link TrackedEntityAttribute} UIDs of the given {@link Program}
    *
-   * @return a Map, where the key is the {@link Program} and the values is a Set of {@link
-   *     TrackedEntityAttribute} associated to the {@link Program} in the key
+   * @return a Set of {@link TrackedEntityAttribute} UIDs
    */
-  Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram();
+  Set<String> getTrackedEntityAttributesInProgram(@Nonnull Program program);
 }

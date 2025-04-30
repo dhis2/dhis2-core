@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -329,9 +331,9 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     ValueType valueType =
         switch (programRuleVariable.getSourceType()) {
           case DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE,
-                  DATAELEMENT_PREVIOUS_EVENT,
-                  DATAELEMENT_NEWEST_EVENT_PROGRAM,
-                  DATAELEMENT_CURRENT_EVENT ->
+              DATAELEMENT_PREVIOUS_EVENT,
+              DATAELEMENT_NEWEST_EVENT_PROGRAM,
+              DATAELEMENT_CURRENT_EVENT ->
               programRuleVariable.getDataElement().getValueType();
           case CALCULATED_VALUE -> programRuleVariable.getValueType();
           case TEI_ATTRIBUTE -> programRuleVariable.getAttribute().getValueType();
@@ -367,9 +369,9 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
   private DataItem getDescription(ProgramRuleVariable prv) {
     return switch (prv.getSourceType()) {
       case DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE,
-              DATAELEMENT_PREVIOUS_EVENT,
-              DATAELEMENT_NEWEST_EVENT_PROGRAM,
-              DATAELEMENT_CURRENT_EVENT ->
+          DATAELEMENT_PREVIOUS_EVENT,
+          DATAELEMENT_NEWEST_EVENT_PROGRAM,
+          DATAELEMENT_CURRENT_EVENT ->
           new DataItem(
               ObjectUtils.firstNonNull(
                   prv.getDataElement().getDisplayFormName(),

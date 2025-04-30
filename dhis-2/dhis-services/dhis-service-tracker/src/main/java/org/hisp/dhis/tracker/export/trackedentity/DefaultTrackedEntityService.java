@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -52,7 +54,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
@@ -71,8 +72,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   private final HibernateTrackedEntityStore trackedEntityStore;
 
   private final TrackedEntityAuditService trackedEntityAuditService;
-
-  private final TrackerAccessManager trackerAccessManager;
 
   private final TrackedEntityAggregate trackedEntityAggregate;
 
@@ -108,7 +107,9 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       throws NotFoundException, ForbiddenException {
     TrackedEntity trackedEntity =
         getTrackedEntity(
-            trackedEntityUid, programUid, TrackedEntityParams.FALSE.withIncludeAttributes(true));
+            trackedEntityUid,
+            programUid,
+            TrackedEntityFields.builder().includeAttributes().build());
 
     TrackedEntityAttribute attribute =
         trackedEntity.getTrackedEntityAttributeValues().stream()
@@ -145,14 +146,14 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   @Override
   public TrackedEntity getTrackedEntity(@Nonnull UID uid)
       throws NotFoundException, ForbiddenException {
-    return getTrackedEntity(uid, (Program) null, TrackedEntityParams.FALSE);
+    return getTrackedEntity(uid, (Program) null, TrackedEntityFields.none());
   }
 
   @Nonnull
   @Override
   public Optional<TrackedEntity> findTrackedEntity(@Nonnull UID uid) {
     try {
-      return Optional.of(getTrackedEntity(uid, (Program) null, TrackedEntityParams.FALSE));
+      return Optional.of(getTrackedEntity(uid, (Program) null, TrackedEntityFields.none()));
     } catch (NotFoundException | ForbiddenException e) {
       return Optional.empty();
     }
@@ -163,7 +164,7 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   public TrackedEntity getTrackedEntity(
       @Nonnull UID trackedEntityUid,
       @CheckForNull UID programIdentifier,
-      @Nonnull TrackedEntityParams params)
+      @Nonnull TrackedEntityFields fields)
       throws NotFoundException, ForbiddenException {
     Program program = null;
     if (programIdentifier != null) {
@@ -176,17 +177,17 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       }
     }
 
-    return getTrackedEntity(trackedEntityUid, program, params);
+    return getTrackedEntity(trackedEntityUid, program, fields);
   }
 
-  private TrackedEntity getTrackedEntity(UID uid, Program program, TrackedEntityParams params)
+  private TrackedEntity getTrackedEntity(UID uid, Program program, TrackedEntityFields fields)
       throws NotFoundException, ForbiddenException {
     Page<TrackedEntity> trackedEntities;
     try {
       TrackedEntityOperationParams operationParams =
           TrackedEntityOperationParams.builder()
               .trackedEntities(Set.of(uid))
-              .trackedEntityParams(params)
+              .fields(fields)
               .program(program)
               .build();
       trackedEntities = findTrackedEntities(operationParams, PageParams.single());
@@ -231,18 +232,12 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       @Nonnull TrackedEntityOperationParams operationParams, @Nonnull PageParams pageParams)
       throws BadRequestException, ForbiddenException {
     UserDetails user = getCurrentUserDetails();
-    TrackedEntityQueryParams queryParams = mapper.map(operationParams, user);
+    TrackedEntityQueryParams queryParams = mapper.map(operationParams, user, pageParams);
     final Page<TrackedEntityIdentifiers> ids =
         trackedEntityStore.getTrackedEntityIds(queryParams, pageParams);
 
     List<TrackedEntity> trackedEntities =
         findTrackedEntities(ids.getItems(), operationParams, queryParams, user);
-
-    // TODO(tracker): Push this filter into the store because it is breaking pagination
-    trackedEntities =
-        trackedEntities.stream()
-            .filter(te -> trackerAccessManager.canRead(user, te).isEmpty())
-            .toList();
 
     return ids.withFilteredItems(trackedEntities);
   }
@@ -254,26 +249,23 @@ class DefaultTrackedEntityService implements TrackedEntityService {
       UserDetails user) {
 
     List<TrackedEntity> trackedEntities =
-        this.trackedEntityAggregate.find(
-            ids,
-            operationParams.getTrackedEntityParams(),
-            queryParams,
-            queryParams.getOrgUnitMode());
+        this.trackedEntityAggregate.find(ids, operationParams.getFields(), queryParams);
     for (TrackedEntity trackedEntity : trackedEntities) {
-      if (operationParams.getTrackedEntityParams().isIncludeRelationships()) {
+      if (operationParams.getFields().isIncludesRelationships()) {
         trackedEntity.setRelationshipItems(
             relationshipService.findRelationshipItems(
                 TrackerType.TRACKED_ENTITY, UID.of(trackedEntity), queryParams.isIncludeDeleted()));
       }
     }
     for (TrackedEntity trackedEntity : trackedEntities) {
-      if (operationParams.getTrackedEntityParams().isIncludeProgramOwners()) {
+      if (operationParams.getFields().isIncludesProgramOwners()) {
         trackedEntity.setProgramOwners(
             getTrackedEntityProgramOwners(
                 trackedEntity, queryParams.getEnrolledInTrackerProgram()));
       }
     }
     trackedEntityAuditService.addTrackedEntityAudit(SEARCH, user.getUsername(), trackedEntities);
+
     return trackedEntities;
   }
 

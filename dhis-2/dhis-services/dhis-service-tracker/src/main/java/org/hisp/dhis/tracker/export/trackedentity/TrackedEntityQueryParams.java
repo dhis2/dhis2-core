@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -38,6 +40,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetUtils;
@@ -54,98 +58,98 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.export.JdbcPredicate;
 import org.hisp.dhis.tracker.export.Order;
 
 @ToString
 public class TrackedEntityQueryParams {
 
   /** Each attribute will affect the final SQL query. Some attributes are filtered on. */
-  private final Map<TrackedEntityAttribute, List<QueryFilter>> filters = new HashMap<>();
+  @Getter private final Map<TrackedEntityAttribute, List<JdbcPredicate>> filters = new HashMap<>();
 
   /**
    * Organisation units for which instances in the response were registered at. Is related to the
    * specified OrganisationUnitMode.
    */
-  private Set<OrganisationUnit> orgUnits = new HashSet<>();
+  @Getter private Set<OrganisationUnit> orgUnits = new HashSet<>();
 
   /**
    * Tracker program the tracked entity must be enrolled in. This should not be set when {@link
    * #accessibleTrackerPrograms} is set. The user must have data read access to this program.
    */
-  private Program enrolledInTrackerProgram;
+  @Getter private Program enrolledInTrackerProgram;
 
   /**
    * Tracker programs the user has data read access to. This should not be set when {@link
    * #enrolledInTrackerProgram} is set.
    */
-  private List<Program> accessibleTrackerPrograms = List.of();
+  @Getter private List<Program> accessibleTrackerPrograms = List.of();
 
   /** Status of a tracked entities enrollment into a given program. */
-  private EnrollmentStatus enrollmentStatus;
+  @Getter private EnrollmentStatus enrollmentStatus;
 
   /** Indicates whether tracked entity is marked for follow up for the specified program. */
-  private Boolean followUp;
+  @Getter private Boolean followUp;
 
   /** Start date for last updated. */
-  private Date lastUpdatedStartDate;
+  @Getter private Date lastUpdatedStartDate;
 
   /** End date for last updated. */
-  private Date lastUpdatedEndDate;
+  @Getter private Date lastUpdatedEndDate;
 
   /** The last updated duration filter. */
-  private String lastUpdatedDuration;
+  @Getter private String lastUpdatedDuration;
 
   /** Start date for enrollment in the given program. */
-  private Date programEnrollmentStartDate;
+  @Getter private Date programEnrollmentStartDate;
 
   /** End date for enrollment in the given program. */
-  private Date programEnrollmentEndDate;
+  @Getter private Date programEnrollmentEndDate;
 
   /** Start date for incident in the given program. */
-  private Date programIncidentStartDate;
+  @Getter private Date programIncidentStartDate;
 
   /** End date for incident in the given program. */
-  private Date programIncidentEndDate;
+  @Getter private Date programIncidentEndDate;
 
   /** Tracked entity of the instances in the response. */
-  private TrackedEntityType trackedEntityType;
+  @Getter private TrackedEntityType trackedEntityType;
 
   /** Tracked entity types to fetch. */
-  private List<TrackedEntityType> trackedEntityTypes = Lists.newArrayList();
+  @Getter private List<TrackedEntityType> trackedEntityTypes = Lists.newArrayList();
 
   /** Selection mode for the specified organisation units */
-  private OrganisationUnitSelectionMode orgUnitMode;
+  @Getter private OrganisationUnitSelectionMode orgUnitMode;
 
-  private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
+  @Getter private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
   /** Set of te uids to explicitly select. */
-  private Set<UID> trackedEntities = new HashSet<>();
+  @Getter private Set<UID> trackedEntities = new HashSet<>();
 
   /** ProgramStage to be used in conjunction with eventstatus. */
-  private ProgramStage programStage;
+  @Getter private ProgramStage programStage;
 
   /** Status of any events in the specified program. */
-  private EventStatus eventStatus;
+  @Getter private EventStatus eventStatus;
 
   /** Start date for event for the given program. */
-  private Date eventStartDate;
+  @Getter private Date eventStartDate;
 
   /** End date for event for the given program. */
-  private Date eventEndDate;
-
-  /** Indicates if there is a maximum te retrieval limit. 0 no limit. */
-  private int maxTeLimit;
+  @Getter private Date eventEndDate;
 
   /** Indicates whether to include soft-deleted elements. Default to false */
-  private boolean includeDeleted = false;
+  @Getter private boolean includeDeleted = false;
 
   /**
    * Potential Duplicate query parameter value. If null, we don't check whether a TE is a
    * potentialDuplicate or not
    */
-  private Boolean potentialDuplicate;
+  @Getter private Boolean potentialDuplicate;
 
-  private final List<Order> order = new ArrayList<>();
+  @Getter private final List<Order> order = new ArrayList<>();
+
+  @Setter private boolean isSearchOutsideCaptureScope = false;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -296,14 +300,6 @@ public class TrackedEntityQueryParams {
     return SetUtils.union(getOrderAttributes(), filters.keySet());
   }
 
-  public Map<TrackedEntityAttribute, List<QueryFilter>> getFilters() {
-    return filters;
-  }
-
-  public Set<OrganisationUnit> getOrgUnits() {
-    return orgUnits;
-  }
-
   public TrackedEntityQueryParams addOrgUnits(Set<OrganisationUnit> orgUnits) {
     this.orgUnits.addAll(orgUnits);
     return this;
@@ -314,17 +310,9 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public Program getEnrolledInTrackerProgram() {
-    return enrolledInTrackerProgram;
-  }
-
   public TrackedEntityQueryParams setEnrolledInTrackerProgram(Program enrolledInTrackerProgram) {
     this.enrolledInTrackerProgram = enrolledInTrackerProgram;
     return this;
-  }
-
-  public List<Program> getAccessibleTrackerPrograms() {
-    return accessibleTrackerPrograms;
   }
 
   public TrackedEntityQueryParams setAccessibleTrackerPrograms(
@@ -333,17 +321,9 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public ProgramStage getProgramStage() {
-    return programStage;
-  }
-
   public TrackedEntityQueryParams setProgramStage(ProgramStage programStage) {
     this.programStage = programStage;
     return this;
-  }
-
-  public EnrollmentStatus getEnrollmentStatus() {
-    return enrollmentStatus;
   }
 
   public TrackedEntityQueryParams setEnrollmentStatus(EnrollmentStatus enrollmentStatus) {
@@ -351,17 +331,9 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public Boolean getFollowUp() {
-    return followUp;
-  }
-
   public TrackedEntityQueryParams setFollowUp(Boolean followUp) {
     this.followUp = followUp;
     return this;
-  }
-
-  public Boolean getPotentialDuplicate() {
-    return this.potentialDuplicate;
   }
 
   public TrackedEntityQueryParams setPotentialDuplicate(Boolean potentialDuplicate) {
@@ -369,17 +341,9 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public Date getLastUpdatedStartDate() {
-    return lastUpdatedStartDate;
-  }
-
   public TrackedEntityQueryParams setLastUpdatedStartDate(Date lastUpdatedStartDate) {
     this.lastUpdatedStartDate = lastUpdatedStartDate;
     return this;
-  }
-
-  public Date getLastUpdatedEndDate() {
-    return lastUpdatedEndDate;
   }
 
   public TrackedEntityQueryParams setLastUpdatedEndDate(Date lastUpdatedEndDate) {
@@ -387,17 +351,9 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public String getLastUpdatedDuration() {
-    return lastUpdatedDuration;
-  }
-
   public TrackedEntityQueryParams setLastUpdatedDuration(String lastUpdatedDuration) {
     this.lastUpdatedDuration = lastUpdatedDuration;
     return this;
-  }
-
-  public Date getProgramEnrollmentStartDate() {
-    return programEnrollmentStartDate;
   }
 
   public TrackedEntityQueryParams setProgramEnrollmentStartDate(Date programEnrollmentStartDate) {
@@ -405,17 +361,9 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public Date getProgramEnrollmentEndDate() {
-    return programEnrollmentEndDate;
-  }
-
   public TrackedEntityQueryParams setProgramEnrollmentEndDate(Date programEnrollmentEndDate) {
     this.programEnrollmentEndDate = programEnrollmentEndDate;
     return this;
-  }
-
-  public Date getProgramIncidentStartDate() {
-    return programIncidentStartDate;
   }
 
   public TrackedEntityQueryParams setProgramIncidentStartDate(Date programIncidentStartDate) {
@@ -423,17 +371,9 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public Date getProgramIncidentEndDate() {
-    return programIncidentEndDate;
-  }
-
   public TrackedEntityQueryParams setProgramIncidentEndDate(Date programIncidentEndDate) {
     this.programIncidentEndDate = programIncidentEndDate;
     return this;
-  }
-
-  public TrackedEntityType getTrackedEntityType() {
-    return trackedEntityType;
   }
 
   public TrackedEntityQueryParams setTrackedEntityType(TrackedEntityType trackedEntityType) {
@@ -441,17 +381,9 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public OrganisationUnitSelectionMode getOrgUnitMode() {
-    return orgUnitMode;
-  }
-
   public TrackedEntityQueryParams setOrgUnitMode(OrganisationUnitSelectionMode orgUnitMode) {
     this.orgUnitMode = orgUnitMode;
     return this;
-  }
-
-  public AssignedUserQueryParam getAssignedUserQueryParam() {
-    return this.assignedUserQueryParam;
   }
 
   public TrackedEntityQueryParams setAssignedUserQueryParam(
@@ -460,17 +392,9 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public EventStatus getEventStatus() {
-    return eventStatus;
-  }
-
   public TrackedEntityQueryParams setEventStatus(EventStatus eventStatus) {
     this.eventStatus = eventStatus;
     return this;
-  }
-
-  public Date getEventStartDate() {
-    return eventStartDate;
   }
 
   public TrackedEntityQueryParams setEventStartDate(Date eventStartDate) {
@@ -478,26 +402,9 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public Date getEventEndDate() {
-    return eventEndDate;
-  }
-
   public TrackedEntityQueryParams setEventEndDate(Date eventEndDate) {
     this.eventEndDate = eventEndDate;
     return this;
-  }
-
-  public int getMaxTeLimit() {
-    return maxTeLimit;
-  }
-
-  public TrackedEntityQueryParams setMaxTeLimit(int maxTeLimit) {
-    this.maxTeLimit = maxTeLimit;
-    return this;
-  }
-
-  public boolean isIncludeDeleted() {
-    return includeDeleted;
   }
 
   public TrackedEntityQueryParams setIncludeDeleted(boolean includeDeleted) {
@@ -511,7 +418,7 @@ public class TrackedEntityQueryParams {
    */
   public TrackedEntityQueryParams filterBy(TrackedEntityAttribute tea, List<QueryFilter> filter) {
     this.filters.putIfAbsent(tea, new ArrayList<>());
-    this.filters.get(tea).addAll(filter);
+    this.filters.get(tea).addAll(filter.stream().map(f -> JdbcPredicate.of(tea, f)).toList());
     return this;
   }
 
@@ -531,10 +438,6 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public List<Order> getOrder() {
-    return order;
-  }
-
   private Set<TrackedEntityAttribute> getOrderAttributes() {
     return order.stream()
         .filter(o -> o.getField() instanceof TrackedEntityAttribute)
@@ -542,22 +445,18 @@ public class TrackedEntityQueryParams {
         .collect(Collectors.toSet());
   }
 
-  public Set<UID> getTrackedEntities() {
-    return trackedEntities;
-  }
-
   public TrackedEntityQueryParams setTrackedEntities(Set<UID> trackedEntities) {
     this.trackedEntities = trackedEntities;
     return this;
-  }
-
-  public List<TrackedEntityType> getTrackedEntityTypes() {
-    return trackedEntityTypes;
   }
 
   public TrackedEntityQueryParams setTrackedEntityTypes(
       List<TrackedEntityType> trackedEntityTypes) {
     this.trackedEntityTypes = trackedEntityTypes;
     return this;
+  }
+
+  public boolean isSearchOutsideCaptureScope() {
+    return isSearchOutsideCaptureScope;
   }
 }

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -39,7 +41,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -53,7 +54,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,7 +98,6 @@ public class TrackedEntityAttributeController
   @GetMapping(
       value = "/{id}/generateAndReserve",
       produces = {ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_JAVASCRIPT})
-  @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
   public @ResponseBody List<ReservedValue> generateAndReserveValues(
       @RequestParam(required = false, defaultValue = "1") Integer numberToReserve,
       @RequestParam(required = false, defaultValue = "60") Integer expiration,
@@ -118,7 +117,6 @@ public class TrackedEntityAttributeController
    * @throws WebMessageException
    */
   @GetMapping("/{id}/generate")
-  @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
   public @ResponseBody ReservedValue legacyQueryTrackedEntityInstancesJson(
       @PathVariable String id,
       @RequestParam(required = false, defaultValue = "3") Integer expiration)
@@ -127,7 +125,6 @@ public class TrackedEntityAttributeController
   }
 
   @GetMapping("/{id}/requiredValues")
-  @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
   public @ResponseBody Map<String, List<String>> getRequiredValues(@PathVariable String id)
       throws WebMessageException {
     TrackedEntityAttribute trackedEntityAttribute = getTrackedEntityAttribute(id);

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -29,7 +31,6 @@ package org.hisp.dhis.webapi.filter;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_ENABLED;
 import static org.hisp.dhis.security.utils.CspConstants.EXTERNAL_STATIC_CONTENT_URL_PATTERNS;
-import static org.hisp.dhis.security.utils.CspConstants.LOGIN_PATTERN;
 import static org.hisp.dhis.security.utils.CspConstants.SCRIPT_SOURCE_DEFAULT;
 
 import jakarta.servlet.FilterChain;
@@ -39,7 +40,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Set;
 import java.util.regex.Pattern;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -50,11 +50,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class CspFilter extends OncePerRequestFilter {
   public static final String CONTENT_SECURITY_POLICY_HEADER_NAME = "Content-Security-Policy";
 
-  public static final String SCRIPT_SOURCE_SELF = "script-src 'self' ";
-
   public static final String FRAME_ANCESTORS_DEFAULT_CSP = "frame-ancestors 'self'";
-
-  public static final String FRAME_ANCESTORS_STRICT_CSP = "frame-ancestors 'none';";
 
   private final boolean enabled;
 
@@ -74,17 +70,6 @@ public class CspFilter extends OncePerRequestFilter {
 
     if (!enabled) {
       res.addHeader("X-Frame-Options", "SAMEORIGIN");
-      chain.doFilter(req, res);
-      return;
-    }
-
-    if (LOGIN_PATTERN.matcher(url).matches()) {
-      String nonce = CodeGenerator.getRandomSecureToken();
-      req.getSession().setAttribute("nonce", nonce);
-
-      res.addHeader(
-          CONTENT_SECURITY_POLICY_HEADER_NAME, SCRIPT_SOURCE_SELF + "'nonce-" + nonce + "';");
-      res.addHeader(CONTENT_SECURITY_POLICY_HEADER_NAME, FRAME_ANCESTORS_STRICT_CSP);
       chain.doFilter(req, res);
       return;
     }

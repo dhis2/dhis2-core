@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -50,10 +52,10 @@ import org.hisp.dhis.dxf2.webmessage.responses.ImportReportWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.MergeWebResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.ObjectReportWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.responses.SoftwareUpdateResponse;
+import org.hisp.dhis.dxf2.webmessage.responses.TrackerJobWebMessageResponse;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.predictor.PredictionSummary;
-import org.hisp.dhis.webapi.controller.tracker.imports.TrackerJobWebMessageResponse;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.hisp.dhis.webmessage.WebResponse;
 import org.springframework.http.HttpStatus;

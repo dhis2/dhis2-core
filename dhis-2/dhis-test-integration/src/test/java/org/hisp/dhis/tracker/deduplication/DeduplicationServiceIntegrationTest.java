@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -35,8 +37,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
+import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.Page;
@@ -44,7 +48,6 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TestSetup;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -209,7 +212,7 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldGetPaginatedPotentialDuplicatesGivenNonDefaultPageSize()
-      throws PotentialDuplicateConflictException {
+      throws PotentialDuplicateConflictException, BadRequestException {
     PotentialDuplicate potentialDuplicate1 =
         new PotentialDuplicate(trackedEntityAOriginal, trackedEntityADuplicate);
     PotentialDuplicate potentialDuplicate2 =
@@ -227,7 +230,7 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     Page<UID> firstPage =
         deduplicationService
-            .getPotentialDuplicates(criteria, new PageParams(1, 2, false))
+            .getPotentialDuplicates(criteria, PageParams.of(1, 2, false))
             .withMappedItems(PotentialDuplicate::getOriginal);
 
     assertEquals(
@@ -237,7 +240,7 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     Page<UID> secondPage =
         deduplicationService
-            .getPotentialDuplicates(criteria, new PageParams(2, 2, false))
+            .getPotentialDuplicates(criteria, PageParams.of(2, 2, false))
             .withMappedItems(PotentialDuplicate::getOriginal);
 
     assertEquals(
@@ -247,7 +250,7 @@ class DeduplicationServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     Page<UID> thirdPage =
         deduplicationService
-            .getPotentialDuplicates(criteria, new PageParams(3, 3, false))
+            .getPotentialDuplicates(criteria, PageParams.of(3, 3, false))
             .withMappedItems(PotentialDuplicate::getOriginal);
 
     assertEquals(new Page<>(List.of(), 3, 3, null, 2, null), thirdPage, "past the last page");

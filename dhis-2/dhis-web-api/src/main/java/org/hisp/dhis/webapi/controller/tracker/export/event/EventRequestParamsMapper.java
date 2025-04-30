@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -29,10 +31,10 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static java.util.Collections.emptySet;
 import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
-import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.parseFilters;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrgUnitModeForEnrollmentsAndEvents;
+import static org.hisp.dhis.webapi.controller.tracker.export.FilterParser.parseFilters;
 
 import java.util.List;
 import java.util.Map;
@@ -40,17 +42,20 @@ import java.util.Map.Entry;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.export.event.EventFields;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.springframework.stereotype.Component;
@@ -64,7 +69,7 @@ import org.springframework.stereotype.Component;
 class EventRequestParamsMapper {
   private static final Set<String> ORDERABLE_FIELD_NAMES = EventMapper.ORDERABLE_FIELDS.keySet();
 
-  private final EventFieldsParamMapper eventsMapper;
+  private final FieldFilterService fieldFilterService;
 
   public EventOperationParams map(
       EventRequestParams eventRequestParams, TrackerIdSchemeParams idSchemeParams)
@@ -84,9 +89,10 @@ class EventRequestParamsMapper {
             eventRequestParams.getEnrollmentStatus());
 
     validateFilter(eventRequestParams.getFilter(), eventRequestParams.getEvents());
-    Map<UID, List<QueryFilter>> dataElementFilters = parseFilters(eventRequestParams.getFilter());
+    Map<UID, List<QueryFilter>> dataElementFilters =
+        parseFilters("filter", eventRequestParams.getFilter());
     Map<UID, List<QueryFilter>> attributeFilters =
-        parseFilters(eventRequestParams.getFilterAttributes());
+        parseFilters("filterAttributes", eventRequestParams.getFilterAttributes());
 
     validateUpdateDurationParams(eventRequestParams);
     validateOrderParams(
@@ -134,7 +140,11 @@ class EventRequestParamsMapper {
             .events(eventRequestParams.getEvents())
             .enrollments(eventRequestParams.getEnrollments())
             .includeDeleted(eventRequestParams.isIncludeDeleted())
-            .eventParams(eventsMapper.map(eventRequestParams.getFields()))
+            .fields(
+                EventFields.of(
+                    f ->
+                        fieldFilterService.filterIncludes(
+                            Event.class, eventRequestParams.getFields(), f)))
             .idSchemeParams(idSchemeParams);
 
     mapOrderParam(builder, eventRequestParams.getOrder());

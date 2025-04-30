@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -28,10 +30,10 @@
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
-import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.parseFilters;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateDeprecatedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateOrgUnitModeForTrackedEntities;
+import static org.hisp.dhis.webapi.controller.tracker.export.FilterParser.parseFilters;
 
 import java.util.List;
 import java.util.Map;
@@ -39,18 +41,21 @@ import java.util.Map.Entry;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.AssignedUserQueryParam;
+import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams.TrackedEntityOperationParamsBuilder;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.springframework.stereotype.Component;
@@ -66,7 +71,7 @@ class TrackedEntityRequestParamsMapper {
   private static final Set<String> ORDERABLE_FIELD_NAMES =
       TrackedEntityMapper.ORDERABLE_FIELDS.keySet();
 
-  private final TrackedEntityFieldsParamMapper fieldsParamMapper;
+  private final FieldFilterService fieldFilterService;
 
   public TrackedEntityOperationParams map(
       TrackedEntityRequestParams trackedEntityRequestParams, UserDetails user)
@@ -96,7 +101,8 @@ class TrackedEntityRequestParamsMapper {
     validateRequestParams(
         trackedEntityRequestParams, trackedEntityRequestParams.getTrackedEntities());
 
-    Map<UID, List<QueryFilter>> filters = parseFilters(trackedEntityRequestParams.getFilter());
+    Map<UID, List<QueryFilter>> filters =
+        parseFilters("filter", trackedEntityRequestParams.getFilter());
 
     TrackedEntityOperationParamsBuilder builder =
         TrackedEntityOperationParams.builder()
@@ -139,7 +145,10 @@ class TrackedEntityRequestParamsMapper {
             .trackedEntities(trackedEntityRequestParams.getTrackedEntities())
             .includeDeleted(trackedEntityRequestParams.isIncludeDeleted())
             .potentialDuplicate(trackedEntityRequestParams.getPotentialDuplicate())
-            .trackedEntityParams(fieldsParamMapper.map(fields));
+            .fields(
+                TrackedEntityFields.of(
+                    f -> fieldFilterService.filterIncludes(TrackedEntity.class, fields, f),
+                    FieldPath.FIELD_PATH_SEPARATOR));
 
     mapOrderParam(builder, trackedEntityRequestParams.getOrder());
     mapFilterParam(builder, filters);

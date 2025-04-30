@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -50,13 +52,15 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.UserDetails;
@@ -78,13 +82,11 @@ class TrackedEntityOperationParamsMapper {
 
   @Nonnull private final AclService aclService;
 
-  // TODO Remove this dependency from the mapper when working on
-  // https://dhis2.atlassian.net/browse/DHIS2-15915
-  @Nonnull private final HibernateTrackedEntityStore trackedEntityStore;
-
   @Nonnull private final TrackedEntityAttributeService trackedEntityAttributeService;
 
-  @Nonnull private final ProgramService programService;
+  @Nonnull private final TrackerProgramService trackerProgramService;
+
+  @Nonnull private final SystemSettingsService systemSettingsService;
 
   private final OperationsParamsValidator paramsValidator;
 
@@ -92,6 +94,15 @@ class TrackedEntityOperationParamsMapper {
   public TrackedEntityQueryParams map(
       TrackedEntityOperationParams operationParams, UserDetails user)
       throws BadRequestException, ForbiddenException {
+    return map(operationParams, user, null);
+  }
+
+  @Transactional(readOnly = true)
+  public TrackedEntityQueryParams map(
+      TrackedEntityOperationParams operationParams, UserDetails user, PageParams pageParams)
+      throws BadRequestException, ForbiddenException {
+    validatePagination(pageParams);
+
     Program program = paramsValidator.validateTrackerProgram(operationParams.getProgram(), user);
     ProgramStage programStage = validateProgramStage(operationParams, program);
 
@@ -100,7 +111,7 @@ class TrackedEntityOperationParamsMapper {
 
     List<TrackedEntityType> trackedEntityTypes = getTrackedEntityTypes(program, user);
 
-    List<Program> programs = getTrackerPrograms(program, user);
+    List<Program> programs = getTrackerPrograms(program);
 
     Set<OrganisationUnit> orgUnits =
         paramsValidator.validateOrgUnits(operationParams.getOrganisationUnits(), user);
@@ -139,7 +150,7 @@ class TrackedEntityOperationParamsMapper {
         .setIncludeDeleted(operationParams.isIncludeDeleted())
         .setPotentialDuplicate(operationParams.getPotentialDuplicate());
 
-    validateGlobalSearchParameters(params, user);
+    validateSearchOutsideCaptureScopeParameters(params, user);
 
     return params;
   }
@@ -168,12 +179,9 @@ class TrackedEntityOperationParamsMapper {
     return trackedEntityTypes;
   }
 
-  private List<Program> getTrackerPrograms(Program program, UserDetails user) {
+  private List<Program> getTrackerPrograms(Program program) {
     if (program == null) {
-      return programService.getAllPrograms().stream()
-          .filter(Program::isRegistration)
-          .filter(p -> aclService.canDataRead(user, p))
-          .toList();
+      return trackerProgramService.getAccessibleTrackerPrograms();
     }
 
     return emptyList();
@@ -274,23 +282,29 @@ class TrackedEntityOperationParamsMapper {
     }
   }
 
-  private void validateGlobalSearchParameters(TrackedEntityQueryParams params, UserDetails user)
-      throws IllegalQueryException {
-    if (!isLocalSearch(params, user)) {
-
-      if (params.hasFilters()) {
-        List<UID> searchableAttributeIds = getSearchableAttributeIds(params);
-        validateSearchableAttributes(params, searchableAttributeIds);
-      }
-
-      int maxTeLimit = getMaxTeLimit(params);
-      if (maxTeLimit > 0
-          && trackedEntityStore.getTrackedEntityCountWithMaxTrackedEntityLimit(params)
-              > maxTeLimit) {
-        throw new IllegalQueryException("maxteicountreached");
-      }
-      params.setMaxTeLimit(maxTeLimit);
+  private void validatePagination(PageParams pageParams) throws BadRequestException {
+    if (pageParams == null) {
+      return;
     }
+
+    int systemMaxLimit = systemSettingsService.getCurrentSettings().getTrackedEntityMaxLimit();
+    if (systemMaxLimit > 0 && pageParams.getPageSize() > systemMaxLimit) {
+      throw new BadRequestException(
+          String.format(
+              "Invalid page size: %d. It must not exceed the system limit of KeyTrackedEntityMaxLimit %d.",
+              pageParams.getPageSize(), systemMaxLimit));
+    }
+  }
+
+  private void validateSearchOutsideCaptureScopeParameters(
+      TrackedEntityQueryParams params, UserDetails user) throws IllegalQueryException {
+    if (isSearchInCaptureScope(params, user)) {
+      return;
+    }
+
+    params.setSearchOutsideCaptureScope(true);
+    validateSearchableAttributes(params);
+    validateMinAttributesToSearch(params);
   }
 
   private List<UID> getSearchableAttributeIds(TrackedEntityQueryParams params) {
@@ -316,9 +330,13 @@ class TrackedEntityOperationParamsMapper {
     return searchableAttributeIds;
   }
 
-  private void validateSearchableAttributes(
-      TrackedEntityQueryParams params, List<UID> searchableAttributeIds) {
+  private void validateSearchableAttributes(TrackedEntityQueryParams params) {
+    if (!params.hasFilters()) {
+      return;
+    }
+
     List<UID> violatingAttributes = new ArrayList<>();
+    List<UID> searchableAttributeIds = getSearchableAttributeIds(params);
 
     for (UID attributeId : params.getFilterIds()) {
       if (!searchableAttributeIds.contains(attributeId)) {
@@ -333,34 +351,25 @@ class TrackedEntityOperationParamsMapper {
     }
   }
 
-  private int getMaxTeLimit(TrackedEntityQueryParams params) {
-    int maxTeLimit = 0;
-    if (params.hasTrackedEntityType()) {
-      maxTeLimit = params.getTrackedEntityType().getMaxTeiCountToReturn();
-
-      if (!params.hasTrackedEntities() && isTeTypeMinAttributesViolated(params)) {
-        throw new IllegalQueryException(
-            "At least "
-                + params.getTrackedEntityType().getMinAttributesRequiredToSearch()
-                + " attributes should be mentioned in the search criteria.");
-      }
+  private void validateMinAttributesToSearch(TrackedEntityQueryParams params) {
+    if (params.hasTrackedEntities()) {
+      return;
     }
 
-    if (params.hasEnrolledInTrackerProgram()) {
-      maxTeLimit = params.getEnrolledInTrackerProgram().getMaxTeiCountToReturn();
-
-      if (!params.hasTrackedEntities() && isProgramMinAttributesViolated(params)) {
-        throw new IllegalQueryException(
-            "At least "
-                + params.getEnrolledInTrackerProgram().getMinAttributesRequiredToSearch()
-                + " attributes should be mentioned in the search criteria.");
-      }
+    if (params.hasTrackedEntityType() && isTeTypeMinAttributesViolated(params)) {
+      throw new IllegalQueryException(
+          "At least "
+              + params.getTrackedEntityType().getMinAttributesRequiredToSearch()
+              + " attributes should be mentioned in the search criteria.");
+    } else if (params.hasEnrolledInTrackerProgram() && isProgramMinAttributesViolated(params)) {
+      throw new IllegalQueryException(
+          "At least "
+              + params.getEnrolledInTrackerProgram().getMinAttributesRequiredToSearch()
+              + " attributes should be mentioned in the search criteria.");
     }
-
-    return maxTeLimit;
   }
 
-  private boolean isLocalSearch(TrackedEntityQueryParams params, UserDetails user) {
+  private boolean isSearchInCaptureScope(TrackedEntityQueryParams params, UserDetails user) {
     // If the organization unit selection mode is set to CAPTURE, then it's a local search.
     if (OrganisationUnitSelectionMode.CAPTURE == params.getOrgUnitMode()) {
       return true;

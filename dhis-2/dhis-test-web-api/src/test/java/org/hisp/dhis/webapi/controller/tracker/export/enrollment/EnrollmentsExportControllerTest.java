@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -28,8 +30,10 @@
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
 import static org.hisp.dhis.http.HttpStatus.BAD_REQUEST;
+import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
+import static org.hisp.dhis.test.webapi.Assertions.assertNoDiff;
 import static org.hisp.dhis.webapi.controller.tracker.Assertions.*;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContains;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
@@ -55,6 +59,7 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -113,6 +118,23 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
   @BeforeEach
   void setUpUser() {
     switchContextToUser(importUser);
+  }
+
+  @Test
+  void getEnrollmentByPathIsIdenticalToQueryParam() {
+    Enrollment enrollment = get(Enrollment.class, "TvctPPhpD8z");
+
+    JsonEnrollment pathEnrollment =
+        GET("/tracker/enrollments/{id}?fields=*", enrollment.getUid())
+            .content(HttpStatus.OK)
+            .as(JsonEnrollment.class);
+    JsonList<JsonEnrollment> queryEnrollment =
+        GET("/tracker/enrollments?fields=*&enrollments={id}", enrollment.getUid())
+            .content(HttpStatus.OK)
+            .getList("enrollments", JsonEnrollment.class);
+
+    assertHasSize(1, queryEnrollment.stream().toList());
+    assertNoDiff(pathEnrollment, queryEnrollment.get(0));
   }
 
   @Test
@@ -260,6 +282,30 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
         () -> assertHasMember(jsonRelationship, "createdAt"),
         () -> assertHasMember(jsonRelationship, "updatedAt"),
         () -> assertHasMember(jsonRelationship, "bidirectional"));
+  }
+
+  @Test
+  void
+      shouldGetEnrollmentWithNoRelationshipsWhenEnrollmentIsOnTheToSideOfAUnidirectionalRelationship() {
+    Relationship relationship = get(Relationship.class, "p53a6314631");
+
+    assertNotNull(
+        relationship.getTo().getEnrollment(),
+        "test expects relationship to have a 'to' enrollment");
+    RelationshipType relationshipType = relationship.getRelationshipType();
+    relationshipType.setBidirectional(false);
+    manager.save(relationshipType);
+
+    JsonList<JsonRelationship> jsonRelationships =
+        GET(
+                "/tracker/enrollments?enrollments={id}&fields=*&includeDeleted=true",
+                relationship.getTo().getEnrollment().getUid())
+            .content(HttpStatus.OK)
+            .getList("enrollments", JsonEnrollment.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    assertIsEmpty(jsonRelationships.stream().toList());
   }
 
   @ParameterizedTest

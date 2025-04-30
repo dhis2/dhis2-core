@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -627,7 +629,8 @@ public class UserController
     ImportReport importReport =
         importService.importMetadata(params, new MetadataObjects().addObject(inputUser));
 
-    if (importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1) {
+    if (importReport.getStatus() == Status.OK
+        && importReport.getAccumulatedStats().updated() == 1) {
       updateUserGroups(userUid, inputUser, currentUser);
 
       // If it was a pw change attempt (input.pw != null) and update was
@@ -738,7 +741,8 @@ public class UserController
     ImportReport importReport =
         importService.importMetadata(importParams, new MetadataObjects().addObject(user));
 
-    if (importReport.getStatus() == Status.OK && importReport.getStats().getCreated() == 1) {
+    if (importReport.getStatus() == Status.OK
+        && importReport.getAccumulatedStats().created() == 1) {
       userGroupService.addUserToGroups(user, getUids(user.getGroups()), currentUser);
     }
 
@@ -777,7 +781,7 @@ public class UserController
     ObjectReport objectReport = getObjectReport(importReport);
 
     if (importReport.getStatus() == Status.OK
-        && importReport.getStats().getCreated() == 1
+        && importReport.getAccumulatedStats().created() == 1
         && objectReport != null) {
       userService.sendRestoreOrInviteMessage(
           user, HttpServletRequestPaths.getContextPath(request), restoreOptions);

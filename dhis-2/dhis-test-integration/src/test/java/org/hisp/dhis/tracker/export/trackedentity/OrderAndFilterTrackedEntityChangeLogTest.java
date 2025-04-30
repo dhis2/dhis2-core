@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -73,9 +75,12 @@ class OrderAndFilterTrackedEntityChangeLogTest extends PostgresIntegrationTestBa
 
   private User importUser;
 
-  private final PageParams defaultPageParams = PageParams.of(1, 10, false);
-
+  private final PageParams defaultPageParams;
   private TrackerObjects trackerObjects;
+
+  OrderAndFilterTrackedEntityChangeLogTest() throws BadRequestException {
+    defaultPageParams = PageParams.of(1, 10, false);
+  }
 
   @BeforeAll
   void setUp() throws IOException {
@@ -107,7 +112,7 @@ class OrderAndFilterTrackedEntityChangeLogTest extends PostgresIntegrationTestBa
     TrackedEntityChangeLogOperationParams params =
         TrackedEntityChangeLogOperationParams.builder().orderBy(field, sortDirection).build();
     String trackedEntity = "QS6w44flWAf";
-    String trackedEntityAttribute = "numericAttr";
+    String trackedEntityAttribute = "integerAttr";
     String updatedValue = "100";
 
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
@@ -133,7 +138,7 @@ class OrderAndFilterTrackedEntityChangeLogTest extends PostgresIntegrationTestBa
             .orderBy("createdAt", SortDirection.ASC)
             .build();
     String trackedEntity = "QS6w44flWAf";
-    String trackedEntityAttribute = "numericAttr";
+    String trackedEntityAttribute = "integerAttr";
     String updatedValue = "100";
 
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
@@ -159,11 +164,10 @@ class OrderAndFilterTrackedEntityChangeLogTest extends PostgresIntegrationTestBa
             .orderBy("attribute", SortDirection.ASC)
             .build();
     String trackedEntity = "QS6w44flWAf";
-    String trackedEntityAttribute = "numericAttr";
+    String trackedEntityAttribute = "integerAttr";
     String updatedValue = "100";
 
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
-    updateAttributeValue(trackedEntity, "dIVt4l5vIOa", "new value");
 
     List<String> changeLogs =
         trackedEntityChangeLogService
@@ -175,11 +179,7 @@ class OrderAndFilterTrackedEntityChangeLogTest extends PostgresIntegrationTestBa
 
     assertEquals(
         List.of(
-            "numeric-attribute",
-            "numeric-attribute",
-            "TA First name",
-            "TA First name",
-            "to-update-tei-attribute"),
+            "integer-attribute", "integer-attribute", "to-update-tei-attribute", "Weight in kg"),
         changeLogs);
   }
 
@@ -191,11 +191,10 @@ class OrderAndFilterTrackedEntityChangeLogTest extends PostgresIntegrationTestBa
             .orderBy("attribute", SortDirection.DESC)
             .build();
     String trackedEntity = "QS6w44flWAf";
-    String trackedEntityAttribute = "numericAttr";
+    String trackedEntityAttribute = "integerAttr";
     String updatedValue = "100";
 
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
-    updateAttributeValue(trackedEntity, "dIVt4l5vIOa", "new value");
 
     List<String> changeLogs =
         trackedEntityChangeLogService
@@ -207,11 +206,7 @@ class OrderAndFilterTrackedEntityChangeLogTest extends PostgresIntegrationTestBa
 
     assertEquals(
         List.of(
-            "to-update-tei-attribute",
-            "TA First name",
-            "TA First name",
-            "numeric-attribute",
-            "numeric-attribute"),
+            "Weight in kg", "to-update-tei-attribute", "integer-attribute", "integer-attribute"),
         changeLogs);
   }
 

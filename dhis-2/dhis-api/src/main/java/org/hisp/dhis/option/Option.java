@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -39,6 +41,7 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.SortableObject;
 import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Property;
 
 /**
@@ -94,6 +97,7 @@ public class Option extends BaseNameableObject implements MetadataObject, Sortab
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
   @Property(PropertyType.TEXT)
+  @Gist(order = 2)
   public String getCode() {
     return super.getCode();
   }
@@ -101,6 +105,7 @@ public class Option extends BaseNameableObject implements MetadataObject, Sortab
   @JsonProperty
   @JsonSerialize(as = BaseIdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Gist(order = 1)
   public OptionSet getOptionSet() {
     return optionSet;
   }

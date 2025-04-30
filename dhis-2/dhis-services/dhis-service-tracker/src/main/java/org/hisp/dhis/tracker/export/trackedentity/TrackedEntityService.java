@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -68,7 +70,7 @@ public interface TrackedEntityService {
    * currently authenticated user. This method only includes TETAs (Tracked Entity Type Attributes)
    * and excludes program attributes, enrollments, and relationships. To include enrollments,
    * relationships, and program attributes, use {@link #getTrackedEntity(UID, UID,
-   * TrackedEntityParams)}.
+   * TrackedEntityFields)}.
    *
    * @return the tracked entity associated with the specified {@code UID}
    * @throws NotFoundException if the tracked entity cannot be found
@@ -82,14 +84,14 @@ public interface TrackedEntityService {
    * currently authenticated user. If the {@code program} is provided, the program attributes for
    * the specified program are included; otherwise, only TETAs (Tracked Entity Type Attributes) are
    * included. This method also includes any enrollments, relationships, attributes, and ownerships
-   * as defined by the provided {@code params}.
+   * as defined by the provided {@code fields}.
    *
    * @return the tracked entity with additional details based on the provided parameters
    * @throws NotFoundException if the tracked entity cannot be found
    * @throws ForbiddenException if the user does not have permission to access the tracked entity
    */
   @Nonnull
-  TrackedEntity getTrackedEntity(@Nonnull UID uid, UID program, @Nonnull TrackedEntityParams params)
+  TrackedEntity getTrackedEntity(@Nonnull UID uid, UID program, @Nonnull TrackedEntityFields fields)
       throws NotFoundException, ForbiddenException;
 
   /** Find all tracked entities matching given params. */

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -97,10 +99,10 @@ class ValidatingEventCheckerTest {
     // verify that object has been removed from bundle
     assertThat(bundle.getObjects(Attribute.class, false), hasSize(0));
     assertThat(bundle.getObjects(Attribute.class, true), hasSize(0));
-    assertThat(typeReport.getStats().getCreated(), is(0));
-    assertThat(typeReport.getStats().getUpdated(), is(0));
-    assertThat(typeReport.getStats().getDeleted(), is(0));
-    assertThat(typeReport.getStats().getIgnored(), is(1));
+    assertThat(typeReport.getStats().created(), is(0));
+    assertThat(typeReport.getStats().updated(), is(0));
+    assertThat(typeReport.getStats().deleted(), is(0));
+    assertThat(typeReport.getStats().ignored(), is(1));
     assertThat(typeReport.getObjectReportsCount(), is(1));
   }
 

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -32,13 +34,13 @@ import java.util.List;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.tracker.FieldsRequestParam;
 import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
 
@@ -51,21 +53,21 @@ public class RelationshipRequestParams implements PageRequestParams, FieldsReque
       "relationship,relationshipType,createdAtClient,from[trackedEntity[trackedEntity],enrollment[enrollment],event[event]],to[trackedEntity[trackedEntity],enrollment[enrollment],event[event]]";
 
   @OpenApi.Description(
-      """
+"""
 Get the given page.
 """)
   @OpenApi.Property(defaultValue = "1")
   private Integer page;
 
   @OpenApi.Description(
-      """
+"""
 Get given number of items per page.
 """)
   @OpenApi.Property(defaultValue = "50")
   private Integer pageSize;
 
   @OpenApi.Description(
-      """
+"""
 Get the total number of items and pages in the pager.
 
 **Only enable this if absolutely necessary as this is resource intensive.** Use the pagers
@@ -74,7 +76,7 @@ Get the total number of items and pages in the pager.
   private boolean totalPages = false;
 
   @OpenApi.Description(
-      """
+"""
 Get all items by specifying `paging=false`. Requests are paginated by default.
 
 **Be aware that the performance is directly related to the amount of data requested. Larger pages

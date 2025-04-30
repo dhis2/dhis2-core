@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -35,7 +37,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -109,20 +110,8 @@ public class OptionGroupSet extends BaseDimensionalObject implements MetadataObj
     return DimensionType.OPTION_GROUP_SET;
   }
 
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
-
   public void addOptionGroup(OptionGroup optionGroup) {
     members.add(optionGroup);
-  }
-
-  public void removeOptionGroup(OptionGroup optionGroup) {
-    members.remove(optionGroup);
-  }
-
-  public void removeAllOptionGroups() {
-    members.clear();
   }
 
   public Collection<Option> getOptions() {
@@ -133,27 +122,5 @@ public class OptionGroupSet extends BaseDimensionalObject implements MetadataObj
     }
 
     return options;
-  }
-
-  public Boolean isMemberOfOptionGroups(Option option) {
-    for (OptionGroup group : members) {
-      if (group.getMembers().contains(option)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  public Boolean hasOptionGroups() {
-    return members != null && members.size() > 0;
-  }
-
-  public List<OptionGroup> getSortedGroups() {
-    List<OptionGroup> sortedGroups = new ArrayList<>(members);
-
-    Collections.sort(sortedGroups);
-
-    return sortedGroups;
   }
 }

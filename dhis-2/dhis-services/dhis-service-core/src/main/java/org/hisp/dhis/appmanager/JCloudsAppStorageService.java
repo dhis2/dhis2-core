@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -44,6 +46,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
@@ -121,7 +125,7 @@ public class JCloudsAppStorageService implements AppStorageService {
   @Override
   public Map<String, App> discoverInstalledApps() {
     Map<String, App> apps = new HashMap<>();
-    discoverInstalledApps(app -> apps.put(app.getUrlFriendlyName(), app));
+    discoverInstalledApps(app -> apps.put(app.getKey(), app));
 
     if (apps.isEmpty()) {
       log.info("No apps found during JClouds discovery.");
@@ -273,7 +277,7 @@ public class JCloudsAppStorageService implements AppStorageService {
             if (key.equals(other.getKey()) && !version.equals(other.getVersion()))
               otherVersions.add(other);
           });
-      otherVersions.forEach(this::deleteApp);
+      otherVersions.forEach(this::deleteAppAsync);
 
       String namespace = app.getActivities().getDhis().getNamespace();
 
@@ -305,17 +309,18 @@ public class JCloudsAppStorageService implements AppStorageService {
   }
 
   @Override
-  public void deleteApp(App app) {
+  public Future<Boolean> deleteAppAsync(App app) {
     log.info("Deleting app {}", app.getName());
+
+    // delete the manifest file first in case the system crashes during deletion
+    // and the manifest file is not deleted, resulting in an app that can't be installed
+    jCloudsStore.removeBlob(app.getFolderName() + "manifest.webapp");
 
     if (jCloudsStore.isUsingFileSystem()) {
       // Delete all files related to app (works for local filestore):
       jCloudsStore.deleteDirectory(app.getFolderName());
     } else {
       // slower but works for S3:
-      // delete the manifest file first in case the system crashes during deletion
-      // and the manifest file is not deleted, resulting in an app that can't be installed
-      jCloudsStore.removeBlob(app.getFolderName() + "manifest.webapp");
       // Delete all files related to app
       ListContainerOptions options = prefix(app.getFolderName()).recursive();
       for (StorageMetadata resource : jCloudsStore.getBlobList(options)) {
@@ -324,6 +329,7 @@ public class JCloudsAppStorageService implements AppStorageService {
       }
     }
     log.info("Deleted app {}", app.getName());
+    return CompletableFuture.completedFuture(true);
   }
 
   @Override

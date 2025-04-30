@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -85,10 +87,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentFields;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
@@ -250,7 +252,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
         POST(
                 "/sms/inbound",
                 format(
-                    """
+"""
 {
 "text": "%s",
 "originator": "%s"
@@ -276,12 +278,12 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
             trackedEntityService.getTrackedEntity(
                 UID.of(submission.getTrackedEntityInstance().getUid()),
                 UID.of(submission.getTrackerProgram().getUid()),
-                TrackedEntityParams.FALSE));
+                TrackedEntityFields.none()));
     TrackedEntity actualTe =
         trackedEntityService.getTrackedEntity(
             UID.of(submission.getTrackedEntityInstance().getUid()),
             UID.of(submission.getTrackerProgram().getUid()),
-            TrackedEntityParams.FALSE.withIncludeAttributes(true));
+            TrackedEntityFields.builder().includeAttributes().build());
     assertAll(
         "created tracked entity with tracked entity attribute values",
         () -> assertEqualUids(submission.getTrackedEntityInstance(), actualTe),
@@ -367,7 +369,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
             assertSmsResponse(submissionId + ":" + SmsResponse.SUCCESS, originator, messageSender));
     Enrollment actual =
         enrollmentService.getEnrollment(
-            UID.of(enrollment), EnrollmentParams.FALSE.withIncludeAttributes(true));
+            UID.of(enrollment), EnrollmentFields.builder().includeAttributes().build());
     assertAll(
         "update enrollment and program attributes",
         () -> assertEqualUids(submission.getTrackedEntityInstance(), actual.getTrackedEntity()));
@@ -376,12 +378,12 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
             trackedEntityService.getTrackedEntity(
                 UID.of(submission.getTrackedEntityInstance().getUid()),
                 UID.of(submission.getTrackerProgram().getUid()),
-                TrackedEntityParams.FALSE));
+                TrackedEntityFields.none()));
     TrackedEntity actualTe =
         trackedEntityService.getTrackedEntity(
             UID.of(submission.getTrackedEntityInstance().getUid()),
             UID.of(submission.getTrackerProgram().getUid()),
-            TrackedEntityParams.FALSE.withIncludeAttributes(true));
+            TrackedEntityFields.builder().includeAttributes().build());
     assertAll(
         "update tracked entity with tracked entity attribute values",
         () -> assertEqualUids(submission.getTrackedEntityInstance(), actualTe),
@@ -423,7 +425,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
         POST(
                 "/sms/inbound",
                 format(
-                    """
+"""
 {
 "text": "register a=hello|c=there|x=codeIsNotFoundOnCommand",
 "originator": "%s"
@@ -462,12 +464,12 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     assertDoesNotThrow(
         () ->
             trackedEntityService.getTrackedEntity(
-                UID.of(trackedEntity), UID.of(trackerProgram), TrackedEntityParams.FALSE));
+                UID.of(trackedEntity), UID.of(trackerProgram), TrackedEntityFields.none()));
     TrackedEntity actualTe =
         trackedEntityService.getTrackedEntity(
             UID.of(trackedEntity),
             UID.of(trackerProgram),
-            TrackedEntityParams.FALSE.withIncludeAttributes(true));
+            TrackedEntityFields.builder().includeAttributes().build());
     assertAll(
         "created tracked entity with tracked entity attribute values",
         () -> {

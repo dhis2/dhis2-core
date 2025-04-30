@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -56,7 +58,6 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
@@ -69,6 +70,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -170,7 +172,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      @Qualifier("analyticsReadOnlyJdbcTemplate") JdbcTemplate jdbcTemplate,
+      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
@@ -275,7 +277,8 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
     String doubleDataType = sqlBuilder.dataTypeDouble();
     String numericClause =
         skipDataTypeValidation ? "" : "and " + sqlBuilder.regexpMatch("dv.value", NUMERIC_REGEXP);
-    String zeroValueCondition = includeZeroValues ? " or des.zeroissignificant = true" : "";
+    String zeroValueCondition =
+        includeZeroValues ? " or " + sqlBuilder.isTrue("des", "zeroissignificant") : "";
     String zeroValueClause =
         replace(
             """
@@ -386,12 +389,13 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
             and (ougs.startdate is null or ps.monthstartdate=ougs.startdate) \
             and dv.lastupdated < '${startTime}' \
             and dv.value is not null \
-            and dv.deleted = false\s""",
+            and ${deletedClause} """,
             Map.of(
                 "approvalClause", approvalClause,
                 "valTypes", valTypes,
                 "partitionClause", partitionClause,
-                "startTime", toLongDate(params.getStartTime()))));
+                "startTime", toLongDate(params.getStartTime()),
+                "deletedClause", sqlBuilder.isFalse("dv", "deleted"))));
 
     if (respectStartEndDates) {
       sql.append(
@@ -674,32 +678,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   @Override
   public void applyAggregationLevels(
       Table table, Collection<String> dataElements, int aggregationLevel) {
-    StringBuilder sql = new StringBuilder("update ${tableName} set ");
-
-    for (int i = 0; i < aggregationLevel; i++) {
-      int level = i + 1;
-
-      String column = quote(DataQueryParams.LEVEL_PREFIX + level);
-
-      sql.append(column + " = null,");
-    }
-
-    sql.deleteCharAt(sql.length() - ",".length()).append(" ");
-    sql.append(
-        """
-        where oulevel > ${aggregationLevel} \
-        and dx in ( ${dataElements} )\s""");
-
-    String updateQuery =
-        replace(
-            sql.toString(),
-            Map.of(
-                "tableName", table.getName(),
-                "aggregationLevel", String.valueOf(aggregationLevel),
-                "dataElements", quotedCommaDelimitedString(dataElements)));
-
-    log.debug("Aggregation level SQL: '{}'", updateQuery);
-    jdbcTemplate.execute(updateQuery);
+    // Doris does not support update statements on multikey tables
+    boolean supportsUpdate = !sqlBuilder.getDatabase().equals(Database.DORIS);
+    new AggregationLevelsHelper(jdbcTemplate, sqlBuilder)
+        .applyAggregationLevels(table, dataElements, aggregationLevel, supportsUpdate);
   }
 
   /**

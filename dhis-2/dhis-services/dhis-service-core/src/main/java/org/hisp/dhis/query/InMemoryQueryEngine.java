@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -31,8 +33,10 @@ import static org.hisp.dhis.query.Filters.eq;
 import static org.hisp.dhis.query.Filters.ilike;
 import static org.hisp.dhis.query.Filters.in;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -97,13 +101,21 @@ public class InMemoryQueryEngine implements QueryEngine {
     return query.getObjects().stream().filter(object -> matches(query, object, matchers)).toList();
   }
 
-  private <T extends IdentifiableObject> List<T> runSorter(Query<T> query, List<T> objects) {
-    List<T> sorted = new ArrayList<>(objects);
+  private record OrderBy(Order order, Property property) {}
 
+  private <T extends IdentifiableObject> List<T> runSorter(Query<T> query, List<T> objects) {
+    Schema schema = schemaService.getDynamicSchema(query.getObjectType());
+    List<OrderBy> orders = new ArrayList<>();
+    for (Order order : query.getOrders()) {
+      Property p = schema.getProperty(order.getProperty());
+      if (p == null) throw new IllegalArgumentException("No such property: " + order.getProperty());
+      orders.add(new OrderBy(order, p));
+    }
+    List<T> sorted = new ArrayList<>(objects);
     sorted.sort(
         (o1, o2) -> {
-          for (Order order : query.getOrders()) {
-            int result = order.compare(o1, o2);
+          for (OrderBy orderBy : orders) {
+            int result = compare(o1, o2, orderBy);
             if (result != 0) return result;
           }
 
@@ -111,6 +123,41 @@ public class InMemoryQueryEngine implements QueryEngine {
         });
 
     return sorted;
+  }
+
+  private static int compare(Object lside, Object rside, OrderBy orderBy) {
+    Method getter = orderBy.property.getGetterMethod();
+    Object left = ReflectionUtils.invokeMethod(lside, getter);
+    Object right = ReflectionUtils.invokeMethod(rside, getter);
+
+    if (left == right) return 0;
+
+    boolean ascending = orderBy.order.isAscending();
+    // for null values use the same order like PostgreSQL in order to have
+    // same effect like DB ordering
+    // (NULLs are greater than other values)
+    if (left == null || right == null)
+      return left == null ? ascending ? 1 : -1 : ascending ? -1 : 1;
+    if (left instanceof String l && right instanceof String r) {
+      if (orderBy.order.isIgnoreCase())
+        return ascending ? l.compareToIgnoreCase(r) : r.compareToIgnoreCase(l);
+      return ascending ? l.compareTo(r) : r.compareTo(l);
+    }
+    if (left instanceof Boolean l && right instanceof Boolean r)
+      return ascending ? l.compareTo(r) : r.compareTo(l);
+    if (left instanceof Integer l && right instanceof Integer r)
+      return ascending ? l.compareTo(r) : r.compareTo(l);
+    if (left instanceof Float l && right instanceof Float r)
+      return ascending ? l.compareTo(r) : r.compareTo(l);
+    if (left instanceof Double l && right instanceof Double r)
+      return ascending ? l.compareTo(r) : r.compareTo(l);
+    if (left instanceof Date l && right instanceof Date r)
+      return ascending ? l.compareTo(r) : r.compareTo(l);
+    if (left instanceof Enum<?> l && right instanceof Enum<?> r)
+      return ascending
+          ? l.toString().compareTo(r.toString())
+          : r.toString().compareTo(l.toString());
+    return 0;
   }
 
   private <T extends IdentifiableObject> boolean matches(

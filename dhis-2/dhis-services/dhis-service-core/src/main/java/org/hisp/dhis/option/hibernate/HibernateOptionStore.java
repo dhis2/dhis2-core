@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -28,8 +30,12 @@
 package org.hisp.dhis.option.hibernate;
 
 import jakarta.persistence.EntityManager;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import javax.annotation.Nonnull;
 import org.hibernate.query.Query;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionStore;
@@ -57,24 +63,56 @@ public class HibernateOptionStore extends HibernateIdentifiableObjectStore<Optio
   // -------------------------------------------------------------------------
 
   @Override
-  public List<Option> getOptions(long optionSetId, String key, Integer max) {
+  public List<Option> findOptionsByNamePattern(UID optionSet, String infix, Integer maxResults) {
     String hql =
         "select option from OptionSet as optionset "
-            + "join optionset.options as option where optionset.id = :optionSetId ";
+            + "join optionset.options as option where optionset.uid = :optionSetId ";
 
-    if (key != null) {
-      hql += "and lower(option.name) like lower('%" + key + "%') ";
+    if (infix != null && !infix.isEmpty()) {
+      hql += "and lower(option.name) like lower('%" + infix + "%') ";
     }
 
     hql += "order by option.sortOrder";
 
     Query<Option> query = getQuery(hql);
-    query.setParameter("optionSetId", optionSetId);
+    query.setParameter("optionSetId", optionSet.getValue());
 
-    if (max != null) {
-      query.setMaxResults(max);
+    if (maxResults != null) {
+      query.setMaxResults(maxResults);
     }
 
     return query.list();
+  }
+
+  @Override
+  public Optional<Option> findOptionByCode(@Nonnull UID optionSet, @Nonnull String code) {
+    String sql =
+        """
+      select * from optionvalue
+      where optionsetid = (select optionsetid from optionset s where s.uid = :uid)
+      and code = :code""";
+    @SuppressWarnings("unchecked")
+    List<Option> options =
+        nativeSynchronizedQuery(sql)
+            .setParameter("uid", optionSet.getValue())
+            .setParameter("code", code)
+            .list();
+    return options.isEmpty() ? Optional.empty() : Optional.of(options.get(0));
+  }
+
+  @Override
+  public boolean existsAllOptions(@Nonnull UID optionSet, @Nonnull Collection<String> codes) {
+    String sql =
+        """
+      select count(*) from optionvalue
+      where optionsetid = (select optionsetid from optionset s where s.uid = :uid)
+      and code in :codes
+      """;
+    Object res =
+        nativeSynchronizedQuery(sql)
+            .setParameter("uid", optionSet.getValue())
+            .setParameterList("codes", codes)
+            .getSingleResult();
+    return res instanceof Number n && n.intValue() == codes.size();
   }
 }

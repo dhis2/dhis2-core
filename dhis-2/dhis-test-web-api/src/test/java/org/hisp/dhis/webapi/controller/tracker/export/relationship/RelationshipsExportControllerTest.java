@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -30,6 +32,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 import static org.hisp.dhis.http.HttpStatus.FORBIDDEN;
 import static org.hisp.dhis.http.HttpStatus.NOT_FOUND;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.Assertions.*;
@@ -237,6 +240,35 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
+  void shouldGetNoRelationshipsByEventWhenRelationshipTypeIsUnidirectionalAndEventIsOnTheToSide() {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "TV9oB9LT3sh");
+    relationshipType.setBidirectional(false);
+    manager.update(relationshipType);
+
+    Relationship relationship = getRelationship(UID.of("x8919212736"));
+
+    org.hisp.dhis.program.Event to = manager.get(org.hisp.dhis.program.Event.class, "QRYjLTiJTrA");
+    assertHasSize(
+        1,
+        to.getRelationshipItems(),
+        "test expects relationship to have 'to' event with uid " + to.getUid());
+
+    JsonList<JsonRelationship> jsonRelationships =
+        GET("/tracker/relationships?event={uid}", to.getUid())
+            .content(HttpStatus.OK)
+            .getList("relationships", JsonRelationship.class);
+
+    JsonRelationship jsonRelationship =
+        assertContains(
+            jsonRelationships,
+            rel -> relationship.getUid().getValue().equals(rel.getRelationship()),
+            "expected to find relationship " + relationship.getUid());
+
+    assertRelationship(relationship, jsonRelationship);
+    assertHasOnlyUid(UID.of(to), "event", jsonRelationship.getTo());
+  }
+
+  @Test
   void shouldGetRelationshipsByEventWithAllFields() {
     JsonList<JsonRelationship> jsonRelationships =
         GET("/tracker/relationships?event={uid}&fields=*", relationship1To.getUid())
@@ -337,7 +369,34 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
             .getList("relationships", JsonRelationship.class);
 
     JsonRelationship jsonRelationship = assertFirstRelationship(relationship2, jsonRelationships);
-    assertHasOnlyMembers(jsonRelationship, "relationship", "relationshipType", "from", "to");
+    assertHasOnlyMembers(
+        jsonRelationship, "relationship", "relationshipType", "from", "to", "createdAtClient");
+    assertHasOnlyUid(relationship2From.getUid(), "trackedEntity", jsonRelationship.getFrom());
+    assertHasOnlyUid(relationship2To.getUid(), "enrollment", jsonRelationship.getTo());
+  }
+
+  @Test
+  void
+      shouldGetNoRelationshipsByEnrollmentWhenRelationshipTypeIsUnidirectionalAndEnrollmentIsOnTheToSide() {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "xLmPUYJX8Ks");
+    relationshipType.setBidirectional(false);
+    manager.update(relationshipType);
+
+    org.hisp.dhis.program.Enrollment to =
+        manager.get(org.hisp.dhis.program.Enrollment.class, "nxP7UnKhomJ");
+    assertHasSize(
+        1,
+        to.getRelationshipItems(),
+        "test expects relationship to have 'to' enrollment with uid " + to.getUid());
+
+    JsonList<JsonRelationship> jsonRelationships =
+        GET("/tracker/relationships?enrollment=" + to.getUid())
+            .content(HttpStatus.OK)
+            .getList("relationships", JsonRelationship.class);
+
+    JsonRelationship jsonRelationship = assertFirstRelationship(relationship2, jsonRelationships);
+    assertHasOnlyMembers(
+        jsonRelationship, "relationship", "relationshipType", "from", "to", "createdAtClient");
     assertHasOnlyUid(relationship2From.getUid(), "trackedEntity", jsonRelationship.getFrom());
     assertHasOnlyUid(relationship2To.getUid(), "enrollment", jsonRelationship.getTo());
   }
@@ -476,6 +535,37 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
         jsonRelationship, "relationship", "relationshipType", "createdAtClient", "from", "to");
     assertHasOnlyUid(relationship1From.getUid(), "trackedEntity", jsonRelationship.getFrom());
     assertHasOnlyUid(relationship1To.getUid(), "event", jsonRelationship.getTo());
+  }
+
+  @Test
+  void
+      shouldGetNoRelationshipsByTrackedEntityWhenRelationshipTypeIsUnidirectionalAndTrackedEntityIsOnTheToSide() {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "m1575931405");
+    relationshipType.setBidirectional(false);
+    manager.update(relationshipType);
+
+    Relationship relationship = getRelationship(UID.of("N8800829a58"));
+
+    org.hisp.dhis.trackedentity.TrackedEntity to =
+        manager.get(org.hisp.dhis.trackedentity.TrackedEntity.class, "QesgJkTyTCk");
+    assertHasSize(
+        1,
+        to.getRelationshipItems(),
+        "test expects relationship to have 'to' tracked entity with uid " + to.getUid());
+
+    JsonList<JsonRelationship> jsonRelationships =
+        GET("/tracker/relationships?trackedEntity={trackedEntity}", to.getUid())
+            .content(HttpStatus.OK)
+            .getList("relationships", JsonRelationship.class);
+
+    JsonRelationship jsonRelationship =
+        assertContains(
+            jsonRelationships,
+            rel -> relationship.getUid().getValue().equals(rel.getRelationship()),
+            "expected to find relationship " + relationship.getUid());
+
+    assertRelationship(relationship, jsonRelationship);
+    assertHasOnlyUid(UID.of(to), "trackedEntity", jsonRelationship.getTo());
   }
 
   @Test
@@ -661,7 +751,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   void shouldGetRelationshipsByTrackedEntityWithAttributesWithTrackerDataViewDefined() {
     RelationshipType relationshipType = manager.get(RelationshipType.class, "TV9oB9LT3sh");
     TrackerDataView trackerDataView = new TrackerDataView();
-    String expectedAttribute = "numericAttr";
+    String expectedAttribute = "integerAttr";
     trackerDataView.getAttributes().add(expectedAttribute);
     relationshipType.getFromConstraint().setTrackerDataView(trackerDataView);
     manager.save(relationshipType, false);

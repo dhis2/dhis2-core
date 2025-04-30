@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -62,6 +64,8 @@ import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
@@ -70,9 +74,7 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
-import org.hisp.dhis.db.sql.PostgreSqlBuilder;
-import org.hisp.dhis.db.sql.SqlBuilder;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -96,6 +98,7 @@ import org.mockito.quality.Strictness;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 
 /**
  * @author Luciano Fiandesio
@@ -111,27 +114,31 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private SqlRowSet rowSet;
 
+  @Mock private SqlRowSetMetaData rowSetMetaData;
+
   @Mock private ProgramIndicatorService programIndicatorService;
 
-  @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
-
-  @Spy
-  private PostgreSqlAnalyticsSqlBuilder analyticsSqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
+  @Spy private PostgreSqlAnalyticsSqlBuilder sqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
 
   @Mock private SystemSettingsService systemSettingsService;
 
   @Mock private OrganisationUnitResolver organisationUnitResolver;
+
+  @Mock private PiDisagInfoInitializer piDisagInfoInitializer;
+
+  @Mock private PiDisagQueryGenerator piDisagQueryGenerator;
 
   @Spy
   private EnrollmentTimeFieldSqlRenderer enrollmentTimeFieldSqlRenderer =
       new EnrollmentTimeFieldSqlRenderer(sqlBuilder);
 
   @Spy private SystemSettings systemSettings;
-  @Mock private DhisConfigurationProvider config;
+
+  @Mock private DefaultDhisConfigurationProvider config;
 
   @Captor private ArgumentCaptor<String> sql;
 
-  private String DEFAULT_COLUMNS =
+  private static final String DEFAULT_COLUMNS =
       "enrollment,trackedentity,enrollmentdate,occurreddate,storedby,"
           + "createdbydisplayname"
           + ","
@@ -147,18 +154,20 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
         new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService, systemSettingsService);
+    when(rowSet.getMetaData()).thenReturn(rowSetMetaData);
 
     subject =
         new JdbcEnrollmentAnalyticsManager(
             jdbcTemplate,
             programIndicatorService,
             programIndicatorSubqueryBuilder,
+            piDisagInfoInitializer,
+            piDisagQueryGenerator,
             enrollmentTimeFieldSqlRenderer,
             executionPlanStore,
             systemSettingsService,
             config,
             sqlBuilder,
-            analyticsSqlBuilder,
             organisationUnitResolver);
   }
 

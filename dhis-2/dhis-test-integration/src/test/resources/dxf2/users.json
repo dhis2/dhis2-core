@@ -9,12 +9,10 @@
       "authorities": [
         "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
         "ALL",
-        "F_TRACKED_ENTITY_INSTANCE_DELETE",
         "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
         "F_MAP_PUBLIC_ADD",
         "F_USER_ADD_WITHIN_MANAGED_GROUP",
         "F_TRACKED_ENTITY_INSTANCE_SEARCH",
-        "F_PROGRAM_ENROLLMENT",
         "F_SQLVIEW_EXTERNAL",
         "F_GIS_ADMIN",
         "F_REPLICATE_USER",
@@ -27,16 +25,12 @@
         "F_VIEW_UNAPPROVED_DATA",
         "F_VISUALIZATION_EXTERNAL",
         "F_METADATA_EXPORT",
-        "F_PROGRAM_UNENROLLMENT",
         "F_APPROVE_DATA",
         "F_ACCEPT_DATA_LOWER_LEVELS",
-        "F_TRACKED_ENTITY_INSTANCE_ADD",
         "F_USERGROUP_PUBLIC_ADD",
         "F_OAUTH2_CLIENT_MANAGE",
-        "F_TRACKED_ENTITY_DATAVALUE_ADD",
         "F_MAP_EXTERNAL",
-        "F_APPROVE_DATA_LOWER_LEVELS",
-        "F_TRACKED_ENTITY_DATAVALUE_DELETE"
+        "F_APPROVE_DATA_LOWER_LEVELS"
       ],
       "id": "tHEWGwIMsJk",
       "sharing": {
@@ -73,6 +67,7 @@
       "attributeValues": [],
       "description": "Person",
       "name": "Person",
+      "shortName": "Person",
       "created": "2016-03-09T09:56:10.596+0000",
       "lastUpdated": "2016-03-09T09:56:10.597+0000"
     }

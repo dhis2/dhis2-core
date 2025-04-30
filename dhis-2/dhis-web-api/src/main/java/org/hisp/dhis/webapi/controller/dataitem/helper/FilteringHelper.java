@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -90,7 +92,7 @@ import javax.annotation.Nonnull;
 import lombok.NoArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataitem.query.QueryableDataItem;
@@ -121,9 +123,9 @@ public class FilteringHelper {
    * @return the respective classes associated with the given IN filter
    * @throws IllegalQueryException if the filter points to a non supported class/entity
    */
-  public static Set<Class<? extends BaseIdentifiableObject>> extractEntitiesFromInFilter(
+  public static Set<Class<? extends IdentifiableObject>> extractEntitiesFromInFilter(
       String filter) {
-    Set<Class<? extends BaseIdentifiableObject>> dataItemsEntity = new HashSet<>();
+    Set<Class<? extends IdentifiableObject>> dataItemsEntity = new HashSet<>();
 
     if (contains(filter, DIMENSION_TYPE_IN.getCombination())) {
       String[] dimensionItemTypesInFilter =
@@ -152,9 +154,9 @@ public class FilteringHelper {
    * @return the respective classes associated with the given IN filter
    * @throws IllegalQueryException if the filter points to a non-supported class/entity
    */
-  public static Set<Class<? extends BaseIdentifiableObject>> extractEntitiesFromInFilter(
+  public static Set<Class<? extends IdentifiableObject>> extractEntitiesFromInFilter(
       Set<String> filters) {
-    Set<Class<? extends BaseIdentifiableObject>> dataItemsEntity = new HashSet<>();
+    Set<Class<? extends IdentifiableObject>> dataItemsEntity = new HashSet<>();
 
     if (CollectionUtils.isNotEmpty(filters)) {
       for (String filter : filters) {
@@ -179,10 +181,9 @@ public class FilteringHelper {
    * @return the respective class associated with the given filter
    * @throws IllegalQueryException if the filter points to a non supported class/entity
    */
-  public static Class<? extends BaseIdentifiableObject> extractEntityFromEqualFilter(
-      String filter) {
+  public static Class<? extends IdentifiableObject> extractEntityFromEqualFilter(String filter) {
     final byte DIMENSION_TYPE = 2;
-    Class<? extends BaseIdentifiableObject> entity = null;
+    Class<? extends IdentifiableObject> entity = null;
 
     if (filterHasPrefix(filter, DIMENSION_TYPE_EQUAL.getCombination())) {
       String[] dimensionFilterPair = filter.split(":");
@@ -343,7 +344,7 @@ public class FilteringHelper {
     String programId = extractValueFromFilter(filters, PROGRAM_ID_EQUAL, true);
     addIfNotBlank(paramsMap, PROGRAM_ID, programId);
 
-    Set<Class<? extends BaseIdentifiableObject>> entities = extractEntitiesFromInFilter(filters);
+    Set<Class<? extends IdentifiableObject>> entities = extractEntitiesFromInFilter(filters);
 
     // Add program id/item filtering from program data element option, if present.
     if (entities.contains(PROGRAM_DATA_ELEMENT_OPTION.getEntity())) {
@@ -536,8 +537,7 @@ public class FilteringHelper {
     }
   }
 
-  private static Class<? extends BaseIdentifiableObject> entityClassFromString(
-      String dimensionItem) {
+  private static Class<? extends IdentifiableObject> entityClassFromString(String dimensionItem) {
     QueryableDataItem item = getIfPresent(QueryableDataItem.class, dimensionItem).orNull();
 
     if (item == null) {

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -28,8 +30,6 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.common.DhisApiVersion.ALL;
-import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
@@ -67,7 +67,6 @@ import org.hisp.dhis.fileresource.SimpleImageResource;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.setting.SystemSettings;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -91,18 +90,12 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/staticContent")
 @Slf4j
-@ApiVersion({DEFAULT, ALL})
 @RequiredArgsConstructor
 public class StaticContentController {
-  protected static final String RESOURCE_PATH = "";
-
   private final StyleManager styleManager;
   private final FileResourceContentStore contentStore;
-
   static final String LOGO_BANNER = "logo_banner";
-
   static final String LOGO_FRONT = "logo_front";
-
   private static final FileResourceDomain DEFAULT_RESOURCE_DOMAIN = DOCUMENT;
 
   /**
@@ -129,7 +122,7 @@ public class StaticContentController {
       final boolean customFileExists = contentStore.fileResourceContentExists(storageKey);
 
       if (customFileExists) {
-        final String blobEndpoint = getContextPath(request) + "/api" + RESOURCE_PATH + "/" + key;
+        final String blobEndpoint = getContextPath(request) + "/api/staticContent/" + key;
 
         final SimpleImageResource imageResource = new SimpleImageResource();
         imageResource.addImage(IMAGE_PNG.getSubtype(), blobEndpoint);

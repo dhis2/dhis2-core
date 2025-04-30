@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -38,8 +40,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryFilter;
@@ -66,7 +68,6 @@ import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
-import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
@@ -131,8 +132,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
     // expect to be run by the importUser
     injectSecurityContextUser(importUser);
 
-    eventParamsBuilder = EventOperationParams.builder().eventParams(EventParams.FALSE);
-    eventParamsBuilder.orgUnitMode(SELECTED);
+    eventParamsBuilder = EventOperationParams.builder().orgUnitMode(SELECTED);
   }
 
   @Test
@@ -143,12 +143,12 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .organisationUnits(orgUnit)
             .orgUnitMode(DESCENDANTS)
             .trackedEntityType(trackedEntityType)
-            .orderBy(UID.of("numericAttr"), SortDirection.ASC)
+            .orderBy(UID.of("integerAttr"), SortDirection.ASC)
             .build();
 
     Page<String> firstPage =
         trackedEntityService
-            .findTrackedEntities(params, new PageParams(1, 3, false))
+            .findTrackedEntities(params, PageParams.of(1, 3, false))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
@@ -158,7 +158,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     Page<String> secondPage =
         trackedEntityService
-            .findTrackedEntities(params, new PageParams(2, 3, true))
+            .findTrackedEntities(params, PageParams.of(2, 3, true))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
@@ -168,7 +168,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     Page<String> thirdPage =
         trackedEntityService
-            .findTrackedEntities(params, new PageParams(3, 3, false))
+            .findTrackedEntities(params, PageParams.of(3, 3, false))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(new Page<>(List.of(), 3, 3, null, 2, null), thirdPage, "past the last page");
@@ -185,19 +185,19 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .orgUnitMode(SELECTED)
             .program(UID.of("BFcipDERJnf"))
             .trackedEntities(UID.of("QS6w44flWAf", "dUE514NMOlo"))
-            .orderBy(UID.of("numericAttr"), SortDirection.ASC)
+            .orderBy(UID.of("integerAttr"), SortDirection.ASC)
             .build();
 
     Page<String> firstPage =
         trackedEntityService
-            .findTrackedEntities(params, new PageParams(1, 1, false))
+            .findTrackedEntities(params, PageParams.of(1, 1, false))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(new Page<>(List.of("dUE514NMOlo"), 1, 1, null, null, 2), firstPage, "first page");
 
     Page<String> secondPage =
         trackedEntityService
-            .findTrackedEntities(params, new PageParams(2, 1, true))
+            .findTrackedEntities(params, PageParams.of(2, 1, true))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
@@ -205,10 +205,29 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     Page<String> thirdPage =
         trackedEntityService
-            .findTrackedEntities(params, new PageParams(3, 1, false))
+            .findTrackedEntities(params, PageParams.of(3, 1, false))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(new Page<>(List.of(), 3, 1, null, 2, null), thirdPage, "past the last page");
+  }
+
+  @Test
+  void shouldPaginateTrackedEntitiesWhenOrgUnitNotSpecified()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    injectSecurityContextUser(userService.getUser("fZidJVYpWWE"));
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .trackedEntities(
+                Set.of(UID.of("woitxQbWYNq"), UID.of("QesgJkTyTCk"), UID.of("guVNoAerxWo")))
+            .build();
+
+    Page<String> paginatedEntities =
+        trackedEntityService
+            .findTrackedEntities(params, PageParams.of(1, 10, true))
+            .withMappedItems(IdentifiableObject::getUid);
+
+    assertContainsOnly(List.of("woitxQbWYNq", "guVNoAerxWo"), paginatedEntities.getItems());
+    assertEquals(2, paginatedEntities.getTotal());
   }
 
   @Test
@@ -475,7 +494,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .orgUnitMode(SELECTED)
             .trackedEntityType(trackedEntityType)
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
-            .filterBy(UID.of("numericAttr"), List.of(new QueryFilter(QueryOperator.LT, "75")))
+            .filterBy(UID.of("integerAttr"), List.of(new QueryFilter(QueryOperator.LT, "75")))
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -491,8 +510,8 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .organisationUnits(orgUnit)
             .orgUnitMode(SELECTED)
             .trackedEntityType(trackedEntityType)
-            .filterBy(UID.of("numericAttr"), List.of(new QueryFilter(QueryOperator.LT, "75")))
-            .orderBy(UID.of("numericAttr"), SortDirection.DESC)
+            .filterBy(UID.of("integerAttr"), List.of(new QueryFilter(QueryOperator.LT, "75")))
+            .orderBy(UID.of("integerAttr"), SortDirection.DESC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -532,7 +551,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .trackedEntities(UID.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityType(trackedEntityType)
             .orderBy(UID.of("toDelete000"), SortDirection.DESC)
-            .orderBy(UID.of("numericAttr"), SortDirection.ASC)
+            .orderBy(UID.of("integerAttr"), SortDirection.ASC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -550,7 +569,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .trackedEntities(UID.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityType(trackedEntityType)
             .orderBy(UID.of("toDelete000"), SortDirection.DESC)
-            .orderBy(UID.of("numericAttr"), SortDirection.DESC)
+            .orderBy(UID.of("integerAttr"), SortDirection.DESC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -635,14 +654,14 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     Page<String> secondPage =
         enrollmentService
-            .findEnrollments(operationParams, new PageParams(2, 1, false))
+            .findEnrollments(operationParams, PageParams.of(2, 1, false))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
         new Page<>(List.of("TvctPPhpD8z"), 2, 1, null, 1, null), secondPage, "second (last) page");
 
     Page<Enrollment> thirdPage =
-        enrollmentService.findEnrollments(operationParams, new PageParams(3, 1, false));
+        enrollmentService.findEnrollments(operationParams, PageParams.of(3, 1, false));
 
     assertEquals(new Page<>(List.of(), 3, 1, null, 2, null), thirdPage, "past the last page");
   }
@@ -659,21 +678,21 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     Page<String> firstPage =
         enrollmentService
-            .findEnrollments(operationParams, new PageParams(1, 1, true))
+            .findEnrollments(operationParams, PageParams.of(1, 1, true))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(new Page<>(List.of("nxP7UnKhomJ"), 1, 1, 2L, null, 2), firstPage, "first page");
 
     Page<String> secondPage =
         enrollmentService
-            .findEnrollments(operationParams, new PageParams(2, 1, true))
+            .findEnrollments(operationParams, PageParams.of(2, 1, true))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
         new Page<>(List.of("TvctPPhpD8z"), 2, 1, 2L, 1, null), secondPage, "second (last) page");
 
     Page<Enrollment> thirdPage =
-        enrollmentService.findEnrollments(operationParams, new PageParams(3, 1, true));
+        enrollmentService.findEnrollments(operationParams, PageParams.of(3, 1, true));
 
     assertEquals(new Page<>(List.of(), 3, 1, 2L, 2, null), thirdPage, "past the last page");
   }
@@ -767,13 +786,13 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     Page<String> secondPage =
         eventService
-            .findEvents(operationParams, new PageParams(2, 1, true))
+            .findEvents(operationParams, PageParams.of(2, 1, true))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
         new Page<>(List.of("pTzf9KYMk72"), 2, 1, 2L, 1, null), secondPage, "second (last) page");
 
-    Page<Event> thirdPage = eventService.findEvents(operationParams, new PageParams(3, 1, false));
+    Page<Event> thirdPage = eventService.findEvents(operationParams, PageParams.of(3, 1, false));
 
     assertEquals(new Page<>(List.of(), 3, 1, null, 2, null), thirdPage, "past the last page");
   }
@@ -793,7 +812,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     Page<String> firstPage =
         eventService
-            .findEvents(operationParams, new PageParams(1, 3, false))
+            .findEvents(operationParams, PageParams.of(1, 3, false))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
@@ -803,7 +822,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     Page<String> secondPage =
         eventService
-            .findEvents(operationParams, new PageParams(2, 3, true))
+            .findEvents(operationParams, PageParams.of(2, 3, true))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
@@ -811,7 +830,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
         secondPage,
         "second (last) page");
 
-    Page<Event> thirdPage = eventService.findEvents(operationParams, new PageParams(3, 3, true));
+    Page<Event> thirdPage = eventService.findEvents(operationParams, PageParams.of(3, 3, true));
 
     assertEquals(new Page<>(List.of(), 3, 3, 6L, 2, null), thirdPage, "past the last page");
   }
@@ -979,7 +998,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     Page<String> secondPage =
         eventService
-            .findEvents(operationParams, new PageParams(2, 1, false))
+            .findEvents(operationParams, PageParams.of(2, 1, false))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
@@ -987,7 +1006,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     Page<String> thirdPage =
         eventService
-            .findEvents(operationParams, new PageParams(3, 3, false))
+            .findEvents(operationParams, PageParams.of(3, 3, false))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(new Page<>(List.of(), 3, 3, null, 2, null), thirdPage, "past the last page");
@@ -1331,10 +1350,11 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldOrderRelationshipsByCreatedAtClientAndByDefaultOrder()
       throws ForbiddenException, BadRequestException, NotFoundException {
-    Relationship oLT07jKRu9e = get(Relationship.class, "fHn74P5T3r1");
+    Relationship fHn74P5T3r1 = get(Relationship.class, "fHn74P5T3r1");
+    Relationship p53a6314631 = get(Relationship.class, "p53a6314631");
     Relationship yZxjxJli9mO = get(Relationship.class, "yZxjxJli9mO");
     List<String> expected =
-        Stream.of(oLT07jKRu9e, yZxjxJli9mO)
+        Stream.of(fHn74P5T3r1, p53a6314631, yZxjxJli9mO)
             .sorted(Comparator.comparing(Relationship::getId).reversed()) // reversed = desc
             .map(Relationship::getUid)
             .toList();
@@ -1424,14 +1444,14 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     Page<String> secondPage =
         relationshipService
-            .findRelationships(params, new PageParams(2, 1, true))
+            .findRelationships(params, PageParams.of(2, 1, true))
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(
         new Page<>(List.of(expectedOnPage2), 2, 1, 2L, 1, null), secondPage, "second (last) page");
 
     Page<Relationship> thirdPage =
-        relationshipService.findRelationships(params, new PageParams(3, 1, true));
+        relationshipService.findRelationships(params, PageParams.of(3, 1, true));
 
     assertEquals(new Page<>(List.of(), 3, 1, 2L, 2, null), thirdPage, "past the last page");
   }
@@ -1522,7 +1542,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
     return uids(relationshipService.findRelationships(params));
   }
 
-  private static List<String> uids(List<? extends BaseIdentifiableObject> identifiableObject) {
-    return identifiableObject.stream().map(BaseIdentifiableObject::getUid).toList();
+  private static List<String> uids(List<? extends IdentifiableObject> identifiableObject) {
+    return identifiableObject.stream().map(IdentifiableObject::getUid).toList();
   }
 }

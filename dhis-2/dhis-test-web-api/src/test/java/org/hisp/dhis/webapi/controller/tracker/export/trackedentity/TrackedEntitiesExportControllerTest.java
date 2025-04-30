@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -258,7 +260,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   void getTrackedEntityByIdWithAttributesReturnsTrackedEntityTypeAttributesOnly() {
     TrackedEntity te = get(TrackedEntity.class, "dUE514NMOlo");
     // TETA
-    TrackedEntityAttribute tea1 = get(TrackedEntityAttribute.class, "numericAttr");
+    TrackedEntityAttribute tea1 = get(TrackedEntityAttribute.class, "integerAttr");
     TrackedEntityAttribute tea2 = get(TrackedEntityAttribute.class, "toUpdate000");
 
     JsonList<JsonAttribute> attributes =
@@ -277,7 +279,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     assertNotEmpty(te.getEnrollments(), "test expects a tracked entity with an enrollment");
     String program = te.getEnrollments().iterator().next().getProgram().getUid();
     // TETA
-    TrackedEntityAttribute tea1 = get(TrackedEntityAttribute.class, "numericAttr");
+    TrackedEntityAttribute tea1 = get(TrackedEntityAttribute.class, "integerAttr");
     TrackedEntityAttribute tea2 = get(TrackedEntityAttribute.class, "toUpdate000");
     // PTEA
     TrackedEntityAttribute tea3 = get(TrackedEntityAttribute.class, "dIVt4l5vIOa");
@@ -342,6 +344,27 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     JsonRelationship relationship = assertFirstRelationship(r, rels);
     assertTrackedEntityWithinRelationship(from, relationship.getFrom());
     assertTrackedEntityWithinRelationship(to, relationship.getTo());
+  }
+
+  @Test
+  void
+      shouldGetTrackedEntityWithNoRelationshipsWhenTrackedEntityIsOnTheToSideOfAUnidirectionalRelationship() {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "m1575931405");
+    relationshipType.setBidirectional(false);
+    manager.update(relationshipType);
+
+    TrackedEntity to = get(TrackedEntity.class, "QesgJkTyTCk");
+    assertHasSize(
+        1, to.getRelationshipItems(), "test expects a tracked entity with one relationship");
+
+    JsonList<JsonRelationship> rels =
+        GET("/tracker/trackedEntities?trackedEntities={id}&fields=relationships", to.getUid())
+            .content(HttpStatus.OK)
+            .getList("trackedEntities", JsonTrackedEntity.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    assertIsEmpty(rels.stream().toList());
   }
 
   @Test
@@ -497,9 +520,9 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
             .filter(teav -> !"toDelete000".equals(teav.getAttribute().getUid()))
             .toList();
     assertHasSize(
-        2,
+        3,
         trackedEntityTypeAttributeValues,
-        "test expects the tracked entity to have 2 tracked entity type attribute values");
+        "test expects the tracked entity to have 3 tracked entity type attribute values");
 
     HttpResponse response =
         GET("/tracker/trackedEntities/{id}", te.getUid(), Accept(ContextUtils.CONTENT_TYPE_CSV));

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -69,6 +71,16 @@ public @interface Gist {
    * @return the type used in case the user has not specified the type explicitly.
    */
   Transform transformation() default Transform.AUTO;
+
+  /**
+   * If an object type should not be sorted by their ID in case no order was specified in a paged
+   * query this marks the property or properties that should be added to the {@code order by} clause
+   * starting with 1 as the primary order, 2 for secondary and so on. 0 or negative values are
+   * ignored.
+   *
+   * @return the default order priority starting with 1
+   */
+  int order() default -1;
 
   enum Include {
     FALSE,

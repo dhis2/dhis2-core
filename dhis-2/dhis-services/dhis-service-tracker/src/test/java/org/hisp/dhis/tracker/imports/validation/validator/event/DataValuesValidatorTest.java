@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -31,6 +33,8 @@ import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertNoErrors;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -44,6 +48,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStage;
@@ -76,13 +81,14 @@ class DataValuesValidatorTest {
 
   private DataValuesValidator validator;
 
+  @Mock OptionService optionService;
   @Mock TrackerPreheat preheat;
 
   private static final String PROGRAM_STAGE_UID = "programStageUid";
 
   private static final String DATA_ELEMENT_UID = "dataElement";
 
-  private static final String ORGANISATION_UNIT_UID = "organisationUnitUid";
+  private static final String ORGANISATION_UNIT_UID = UID.generate().getValue();
 
   @Mock private TrackerBundle bundle;
 
@@ -118,7 +124,7 @@ class DataValuesValidatorTest {
 
   @BeforeEach
   public void setUp() {
-    validator = new DataValuesValidator();
+    validator = new DataValuesValidator(optionService);
 
     when(bundle.getPreheat()).thenReturn(preheat);
 
@@ -456,7 +462,7 @@ class DataValuesValidatorTest {
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
-    assertHasError(reporter, event, ValidationCode.E1084);
+    assertHasError(reporter, event, ValidationCode.E1302);
   }
 
   @Test
@@ -868,6 +874,8 @@ class DataValuesValidatorTest {
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
+    when(optionService.existsAllOptions(any(), anyList())).thenReturn(true);
+
     Event event =
         Event.builder()
             .event(UID.generate())
@@ -936,6 +944,8 @@ class DataValuesValidatorTest {
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
+    when(optionService.existsAllOptions(any(), anyList())).thenReturn(true);
+
     Event event =
         Event.builder()
             .event(UID.generate())
@@ -990,7 +1000,6 @@ class DataValuesValidatorTest {
         .thenReturn(validDataElement);
 
     DataValue invalidDataValue = dataValue("invlaid_org_unit");
-    when(preheat.getOrganisationUnit(invalidDataValue.getValue())).thenReturn(null);
 
     ProgramStage programStage = programStage(validDataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
@@ -1006,7 +1015,7 @@ class DataValuesValidatorTest {
 
     validator.validate(reporter, bundle, event);
 
-    assertHasError(reporter, event, ValidationCode.E1007);
+    assertHasError(reporter, event, ValidationCode.E1302);
   }
 
   @Test

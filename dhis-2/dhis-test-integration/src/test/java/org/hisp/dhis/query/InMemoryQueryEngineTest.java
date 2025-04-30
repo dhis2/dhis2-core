@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -41,7 +43,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.query.operators.MatchMode;
-import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.jfree.data.time.Year;
@@ -317,10 +318,9 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void sortNameDesc() {
-    Schema schema = schemaService.getDynamicSchema(DataElement.class);
     Query<DataElement> query = Query.of(DataElement.class);
     query.setObjects(dataElements);
-    query.addOrder(new Order(schema.getProperty("name"), Direction.DESCENDING));
+    query.addOrder(new Order("name", Direction.DESCENDING));
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
     assertEquals(6, objects.size());
     assertEquals("deabcdefghF", objects.get(0).getUid());
@@ -333,10 +333,9 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void sortNameAsc() {
-    Schema schema = schemaService.getDynamicSchema(DataElement.class);
     Query<DataElement> query = Query.of(DataElement.class);
     query.setObjects(dataElements);
-    query.addOrder(new Order(schema.getProperty("name"), Direction.ASCENDING));
+    query.addOrder(new Order("name", Direction.ASCENDING));
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
     assertEquals(6, objects.size());
     assertEquals("deabcdefghA", objects.get(0).getUid());
@@ -349,10 +348,9 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void sortCreatedDesc() {
-    Schema schema = schemaService.getDynamicSchema(DataElement.class);
     Query<DataElement> query = Query.of(DataElement.class);
     query.setObjects(dataElements);
-    query.addOrder(new Order(schema.getProperty("created"), Direction.DESCENDING));
+    query.addOrder(new Order("created", Direction.DESCENDING));
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
     assertEquals(6, objects.size());
     assertEquals("deabcdefghF", objects.get(0).getUid());
@@ -365,10 +363,9 @@ class InMemoryQueryEngineTest extends PostgresIntegrationTestBase {
 
   @Test
   void sortCreatedAsc() {
-    Schema schema = schemaService.getDynamicSchema(DataElement.class);
     Query<DataElement> query = Query.of(DataElement.class);
     query.setObjects(dataElements);
-    query.addOrder(new Order(schema.getProperty("created"), Direction.ASCENDING));
+    query.addOrder(new Order("created", Direction.ASCENDING));
     List<? extends IdentifiableObject> objects = queryEngine.query(query);
     assertEquals(6, objects.size());
     assertEquals("deabcdefghA", objects.get(0).getUid());

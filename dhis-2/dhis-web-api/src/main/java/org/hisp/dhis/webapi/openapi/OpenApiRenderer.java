@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -96,7 +98,7 @@ public class OpenApiRenderer {
        --color-tooltip: #444;
        --color-tooltiptext: #eee;
        --color-tooltipborder: lightgray;
-       --color-target: #2A303A;
+       --color-target: blue;
        --width-nav: 360px;
    }
   html {
@@ -119,11 +121,13 @@ public class OpenApiRenderer {
   h4 { font-weight: normal; padding: 0 1em; }
   nav > summary { margin: 1em 0 0.5em 0; font-weight: normal; font-size: 85%; }
 
-  h2 a[target="_blank"] { text-decoration: none; margin-right: 2em; float: right; }
+  h2 a[onclick] { text-decoration: none; margin-right: 2em; float: right; }
   a[href^="#"] { text-decoration: none; }
   a[title="permalink"] { position: absolute;  right: 1em; display: inline-block; width: 24px; height: 24px;
     text-align: center; vertical-align: middle; border-radius: 50%; line-height: 24px; color: dimgray; margin-top: -0.125rem; }
   a:not([href]) { color: blue; cursor: pointer; }
+  a.gh { display: inline-block; width: 24px; height: 24px; color: transparent; background-size: 24px 24px;
+  background-image: url(data:image/png;base64,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); }
   #hotkeys a { color: #eee; display: block; margin-top: 2px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; font-size: 75%; }
   #hotkeys a:visited { color: #eee; }
   button, input { font-family: inherit; }
@@ -235,7 +239,8 @@ public class OpenApiRenderer {
   code.http.content { margin-top: -2px; color: #aaa; display: inline-grid; grid-template-columns: 1fr 1fr 1fr; vertical-align: top; text-align: center; }
   code.http.content > span { font-size: 70%; font-weight: normal; padding: 0 0.25em; margin: 1px; }
   code.http.content > span.status4xx { background: color-mix(in srgb, tomato 75%, transparent); color: snow; }
-  code.http.content > span.status2xx { background: color-mix(in srgb, seagreen 75%, transparent); color: snow; }
+  code.http.content > span.status2xx { color: black; }
+  body:not([content-]) code.http.content > span.status2xx { background: color-mix(in srgb, seagreen 75%, transparent); color: snow; }
   code.http.content .on { color: black; }
   code.http.method { width: 4rem; text-align: right; color: dimgray; }
   .desc code { background: color-mix(in srgb, snow 70%, transparent); padding: 0.125em 0.25em; }
@@ -279,8 +284,8 @@ public class OpenApiRenderer {
 
 
   /* target highlighting */
-  details.op:target > summary,
-  details.schema:target > summary,
+  details.op:target > summary code.url.path,
+  details.schema:target > summary code.type,
   details.param:target > summary > code:first-of-type,
   details.property:target > summary > code:first-of-type,
   details.request:target > summary > code:first-of-type,
@@ -327,7 +332,9 @@ public class OpenApiRenderer {
   #body[request-] .op > summary > code.request + code.type,
   #body[response-] .op > summary > code.response,
   #body[response-] .op > summary > code.response + code.type,
-  #body[content-] .op > summary > code.http.content { display: none; }
+  #body[content-] .op > summary > code.http.content:first-of-type,
+  #body[content-] .op > summary > code.http.content:not(:first-of-type) span:not(:first-child) { display: none; }
+  #body[content-] .op > summary > code.http.content { display: inline-block; }
 
   nav button {
       border: none;
@@ -342,7 +349,7 @@ public class OpenApiRenderer {
   nav button:before { content: '🞕'; margin-right: 0.5rem;font-weight: normal; }
 
   details.box aside button,
-  details.box aside .button { background-color: #444; color: white; border: none; display: inline-block;
+  details.box aside .button { background-color: #2A303A; color: white; border: none; display: inline-block;
     cursor: pointer; margin: 0 1em 0 0; padding: 0.25em 0.5em; font-size: 90%;
     box-shadow: 1px 1px 0 0, 2px 2px 0 0, 3px 3px 0 0, 4px 4px 0 0, 5px 5px 0 0;}
   details.box aside .button > summary { display: inline-block; margin: 0; padding: 0; }
@@ -452,14 +459,14 @@ public class OpenApiRenderer {
     window.location.pathname = base + '/'+name;
   }
 
-  function setLocationSearch(name, value) {
+  function setLocationSearch(name, value, blank) {
     const searchParams = new URLSearchParams(window.location.search)
     if (value === '' || value == null) {
       searchParams.delete(name);
     } else {
       searchParams.set(name, value);
     }
-    setLocationSearchParams(searchParams);
+    setLocationSearchParams(searchParams, blank);
   }
 
   function removeLocationSearch(name, value) {
@@ -484,9 +491,17 @@ public class OpenApiRenderer {
     setLocationSearchParams(params);
   }
 
-  function setLocationSearchParams(params) {
+  function setLocationSearchParams(params, blank) {
     // undo : and / escaping for URL readability
-    window.location.search = params.toString().replaceAll('%3A', ':').replaceAll('%2F', '/');
+    const search = params.toString().replaceAll('%3A', ':').replaceAll('%2F', '/');
+    if (blank) {
+      let currentUrl = window.location.href;
+      let updatedUrl = new URL(currentUrl);
+      updatedUrl.search = search;
+      window.open(updatedUrl.href, '_blank');
+    } else {
+      window.location.search = search;
+    }
   }
 
   function addHashHotkey() {
@@ -644,7 +659,7 @@ public class OpenApiRenderer {
               });
           appendTag(
               "body",
-              Map.of("id", "body"),
+              Map.of("id", "body", "content-", ""),
               () -> {
                 renderPageMenu();
                 renderPageHeader();
@@ -876,7 +891,10 @@ public class OpenApiRenderer {
         "h2",
         () -> {
           appendRaw(toWords(op.entity()));
-          appendA("/api/openapi/openapi.html?scope=entity:" + op.entity, true, "&#x1F5D7;");
+          appendA(
+              "setLocationSearch('scope', 'entity:%s', true)".formatted(op.entity),
+              "&#x1F5D7;",
+              "");
         });
   }
 
@@ -923,7 +941,16 @@ public class OpenApiRenderer {
         operationStyle(op),
         () -> {
           appendSummary(id, op.summary(), () -> renderOperationSummary(op));
-          renderBoxToolbar(null);
+          renderBoxToolbar(
+              () -> {
+                String declaringClass = op.x_class();
+                if (declaringClass != null) {
+                  String url =
+                      "https://github.com/dhis2/dhis2-core/blob/master/dhis-2/dhis-web-api/src/main/java/%s.java"
+                          .formatted(declaringClass.replace('.', '/'));
+                  appendTag("a", Map.of("href", url, "target", "_blank", "class", "gh"), "GH");
+                }
+              });
           appendTag("header", markdownToHTML(op.description(), op.parameterNames()));
           renderLabelledValue("operationId", op.operationId());
           renderLabelledValue("since", op.x_since());
@@ -1224,7 +1251,7 @@ public class OpenApiRenderer {
 
   private void renderSchemaSignatureType(SchemaObject schema) {
     if (schema.isShared()) {
-      appendA("#" + schema.getSharedName(), false, schema.getSharedName());
+      appendA("#" + schema.getSharedName(), schema.getSharedName());
       return;
     }
     renderSchemaSignatureTypeAny(schema);
@@ -1480,7 +1507,7 @@ public class OpenApiRenderer {
         "summary",
         attrs,
         () -> {
-          if (id != null) appendA("#" + id, false, "#");
+          if (id != null) appendA("#" + id, "#");
           body.run();
         });
   }
@@ -1489,10 +1516,9 @@ public class OpenApiRenderer {
     appendTag("input", Map.of("type", "button", "value", text, "onclick", onclick));
   }
 
-  private void appendA(String href, boolean blank, String text) {
-    String target = blank ? "_blank" : "";
+  private void appendA(String href, String text) {
     String title = "#".equals(text) ? "permalink" : "";
-    appendTag("a", Map.of("href", href, "target", target, "title", title), text);
+    appendTag("a", Map.of("href", href, "title", title), text);
   }
 
   private void appendA(String onclick, String text, String title) {

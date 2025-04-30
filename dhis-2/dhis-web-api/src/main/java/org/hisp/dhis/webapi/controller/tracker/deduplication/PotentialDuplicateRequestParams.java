@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -32,11 +34,11 @@ import java.util.List;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.tracker.deduplication.DeduplicationStatus;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.tracker.FieldsRequestParam;
 import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
 
@@ -49,14 +51,14 @@ public class PotentialDuplicateRequestParams implements PageRequestParams, Field
       "id,created,lastUpdated,original,duplicate,status";
 
   @OpenApi.Description(
-      """
+"""
 Get the given page.
 """)
   @OpenApi.Property(defaultValue = "1")
   private Integer page;
 
   @OpenApi.Description(
-      """
+"""
 Get given number of items per page.
 """)
   @OpenApi.Property(defaultValue = "50")
@@ -70,7 +72,7 @@ Get given number of items per page.
   }
 
   @OpenApi.Description(
-      """
+"""
 Get all items by specifying `paging=false`. Requests are paginated by default.
 
 **Be aware that the performance is directly related to the amount of data requested. Larger pages
@@ -79,13 +81,13 @@ will take more time to return.**
   private boolean paging = true;
 
   @OpenApi.Description(
-      """
+"""
 Get potential duplicates that are in given status.
 """)
   private DeduplicationStatus status = DeduplicationStatus.OPEN;
 
   @OpenApi.Description(
-      """
+"""
 `<propertyName1:sortDirection>[,<propertyName2:sortDirection>...]`
 
 Get potential duplicates in given order.
@@ -95,7 +97,7 @@ Valid `sortDirection`s are `asc` and `desc`. `sortDirection` is case-insensitive
   private List<OrderCriteria> order = new ArrayList<>();
 
   @OpenApi.Description(
-      """
+"""
 `<uid1>[,<uid2>...]`
 
 Get potential duplicates for given tracked entities.
@@ -103,7 +105,7 @@ Get potential duplicates for given tracked entities.
   private List<UID> trackedEntities = new ArrayList<>();
 
   @OpenApi.Description(
-      """
+"""
 Get only the given fields in the JSON response. This query parameter allows you to remove
 unnecessary fields from the JSON response and in some cases decrease the response time. Refer to
 [metadata field filter](https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata.html#webapi_metadata_field_filter)

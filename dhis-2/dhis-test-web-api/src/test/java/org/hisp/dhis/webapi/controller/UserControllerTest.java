@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -47,7 +49,7 @@ import com.google.gson.JsonElement;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
@@ -710,8 +712,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("admin", lastUpdatedByAdmin.getUsername());
 
     // switch to new user & add usergroup to new user
-    String role =
-        newUser.getUserRoles().stream().map(BaseIdentifiableObject::getUid).findFirst().get();
+    String role = newUser.getUserRoles().stream().map(IdentifiableObject::getUid).findFirst().get();
     switchToNewUser(newUser);
     PUT(
             "/users/" + newUser.getUid(),
@@ -776,8 +777,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     manager.clear();
 
     // switch to new user & assign usergroup to new user
-    String role =
-        newUser.getUserRoles().stream().map(BaseIdentifiableObject::getUid).findFirst().get();
+    String role = newUser.getUserRoles().stream().map(IdentifiableObject::getUid).findFirst().get();
     switchToNewUser(newUser);
     PUT(
             "/users/" + newUser.getUid(),

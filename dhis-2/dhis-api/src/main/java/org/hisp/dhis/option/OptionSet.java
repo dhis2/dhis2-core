@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -35,16 +37,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.VersionedObject;
@@ -101,10 +97,6 @@ public class OptionSet extends BaseIdentifiableObject implements VersionedObject
     option.setOptionSet(this);
   }
 
-  public void removeAllOptions() {
-    options.clear();
-  }
-
   public void removeOption(Option option) {
     if (!CollectionUtils.isEmpty(options)) {
       options.remove(option);
@@ -114,55 +106,6 @@ public class OptionSet extends BaseIdentifiableObject implements VersionedObject
   @Override
   public int increaseVersion() {
     return ++version;
-  }
-
-  public boolean hasAllOptions(Collection<String> optionCodes) {
-    for (String code : optionCodes) {
-      if (getOptionByCode(code) == null) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  public List<String> getOptionCodes() {
-    return options.stream()
-        .filter(Objects::nonNull)
-        .map(Option::getCode)
-        .collect(Collectors.toList());
-  }
-
-  public Set<String> getOptionCodesAsSet() {
-    return options.stream()
-        .filter(Objects::nonNull)
-        .map(Option::getCode)
-        .collect(Collectors.toSet());
-  }
-
-  public Option getOptionByCode(String code) {
-    for (Option option : options) {
-      if (option != null && option.getCode().equals(code)) {
-        return option;
-      }
-    }
-
-    return null;
-  }
-
-  public Option getOptionByUid(String uid) {
-    for (Option option : options) {
-      if (option != null && option.getUid().equals(uid)) {
-        return option;
-      }
-    }
-
-    return null;
-  }
-
-  public Map<String, String> getOptionCodePropertyMap(IdScheme idScheme) {
-    return options.stream()
-        .filter(Objects::nonNull)
-        .collect(Collectors.toMap(Option::getCode, o -> o.getDisplayPropertyValue(idScheme)));
   }
 
   // -------------------------------------------------------------------------

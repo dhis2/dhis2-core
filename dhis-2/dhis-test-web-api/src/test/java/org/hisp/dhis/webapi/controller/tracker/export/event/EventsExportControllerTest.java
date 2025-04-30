@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -33,6 +35,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.test.webapi.Assertions.assertNoDiff;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOnlyMembers;
@@ -191,8 +194,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
             .getList("events", JsonEvent.class);
 
     assertHasSize(1, queryEvents.stream().toList());
-    assertEquals(
-        pathEvent.toJson(), queryEvents.get(0).toJson(), "the event JSON must be identical");
+    assertNoDiff(pathEvent, queryEvents.get(0));
   }
 
   @Test
@@ -310,6 +312,29 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertHasMember(jsonRelationship, "createdAt");
     assertHasMember(jsonRelationship, "updatedAt");
     assertHasMember(jsonRelationship, "bidirectional");
+  }
+
+  @Test
+  void shouldGetEventWithNoRelationshipsWhenEventIsOnTheToSideOfAUnidirectionalRelationship() {
+    TrackedEntity from = trackedEntity();
+    Event to = event(enrollment(from));
+    Relationship relationship = relationship(from, to);
+
+    RelationshipType relationshipType =
+        manager.get(RelationshipType.class, relationship.getRelationshipType().getUid());
+    relationshipType.setBidirectional(false);
+    manager.update(relationshipType);
+
+    switchContextToUser(user);
+
+    JsonList<JsonRelationship> relationships =
+        GET("/tracker/events/?events={id}&fields=relationships", to.getUid())
+            .content(HttpStatus.OK)
+            .getList("events", JsonEvent.class)
+            .get(0)
+            .getList("relationships", JsonRelationship.class);
+
+    assertIsEmpty(relationships.stream().toList());
   }
 
   @Test
@@ -1008,7 +1033,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     return r;
   }
 
-  private void relationship(TrackedEntity from, Event to) {
+  private Relationship relationship(TrackedEntity from, Event to) {
     Relationship r = new Relationship();
 
     RelationshipItem fromItem = new RelationshipItem();
@@ -1033,6 +1058,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     r.setAutoFields();
     r.getSharing().setOwner(owner);
     manager.save(r, false);
+    return r;
   }
 
   private Note note(String uid, String value, String storedBy) {

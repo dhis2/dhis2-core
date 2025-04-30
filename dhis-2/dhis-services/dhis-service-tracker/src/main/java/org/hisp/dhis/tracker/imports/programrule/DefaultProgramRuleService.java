@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -36,6 +38,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -47,8 +50,8 @@ import org.hisp.dhis.rules.models.RuleAttributeValue;
 import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.tracker.export.event.EventFields;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
-import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
@@ -112,7 +115,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
               RuleEnrollment enrollment =
                   RuleEngineMapper.mapPayloadEnrollment(preheat, e, attributes);
 
-              return programRuleEngine.evaluateEnrollmentAndEvents(
+              return programRuleEngine.evaluateEnrollmentAndTrackerEvents(
                   enrollment,
                   getEventsFromEnrollment(e.getUid(), bundle, preheat),
                   preheat.getProgram(e.getProgram()),
@@ -137,7 +140,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
               List<RuleAttributeValue> attributes =
                   getAttributes(UID.of(e), UID.of(e.getTrackedEntity()), bundle, preheat);
               RuleEnrollment enrollment = RuleEngineMapper.mapSavedEnrollment(e, attributes);
-              return programRuleEngine.evaluateEnrollmentAndEvents(
+              return programRuleEngine.evaluateEnrollmentAndTrackerEvents(
                   enrollment,
                   getEventsFromEnrollment(UID.of(e), bundle, preheat),
                   e.getProgram(),
@@ -207,6 +210,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
 
   // Get all the events linked to enrollment from the payload and the DB,
   // using the one from payload if they are present in both places
+  @Nonnull
   private List<RuleEvent> getEventsFromEnrollment(
       UID enrollmentUid, TrackerBundle bundle, TrackerPreheat preheat) {
     Stream<Event> events;
@@ -215,7 +219,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
           eventService
               .findEvents(
                   EventOperationParams.builder()
-                      .eventParams(EventParams.TRUE)
+                      .fields(EventFields.all())
                       .orgUnitMode(ACCESSIBLE)
                       .enrollments(Set.of(enrollmentUid))
                       .build())

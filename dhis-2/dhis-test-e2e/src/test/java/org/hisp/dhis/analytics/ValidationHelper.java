@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,11 +29,18 @@
  */
 package org.hisp.dhis.analytics;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
 import java.util.List;
+import java.util.Map;
+import java.util.OptionalInt;
+import java.util.stream.IntStream;
+import lombok.experimental.UtilityClass;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 
 /**
@@ -39,8 +48,323 @@ import org.hisp.dhis.test.e2e.dto.ApiResponse;
  *
  * @author maikel arabori
  */
+@UtilityClass
 public class ValidationHelper {
-  private ValidationHelper() {}
+
+  // --- Core Utility Methods ---
+
+  /**
+   * Finds a header map by its 'name' property within the extracted list of headers.
+   *
+   * @param actualHeaders List of headers extracted from the response (e.g., using
+   *     response.extract("headers")).
+   * @param headerName The exact 'name' of the header to find.
+   * @return The Map representing the found header.
+   * @throws AssertionError if the header with the given name is not found.
+   */
+  public static Map<String, Object> getHeaderByName(
+      List<Map<String, Object>> actualHeaders, String headerName) {
+    return actualHeaders.stream()
+        .filter(h -> headerName.equals(h.get("name")))
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("Header with name '" + headerName + "' not found."));
+  }
+
+  /**
+   * Finds the index of a header by its 'name' property within the extracted list of headers.
+   *
+   * @param actualHeaders List of headers extracted from the response.
+   * @param headerName The exact 'name' of the header to find.
+   * @return The 0-based index of the header.
+   * @throws AssertionError if the header with the given name is not found.
+   */
+  public static int getHeaderIndexByName(
+      List<Map<String, Object>> actualHeaders, String headerName) {
+    OptionalInt indexOpt =
+        IntStream.range(0, actualHeaders.size())
+            .filter(i -> headerName.equals(actualHeaders.get(i).get("name")))
+            .findFirst();
+
+    return indexOpt.orElseThrow(
+        () ->
+            new AssertionError(
+                "Header with name '" + headerName + "' not found, cannot determine index."));
+  }
+
+  // --- Response Structure Validation ---
+
+  /**
+   * Validates the overall structure (header count, width) based on whether PostGIS columns are
+   * expected.
+   *
+   * @param response The ApiResponse object.
+   * @param expectPostgis True if PostGIS-specific headers (geometry, etc.) are expected, false
+   *     otherwise.
+   * @param expectedRowCount The expected number of rows (height).
+   * @param expectedHeaderCountWithPostgis The expected header count/width when PostGIS is enabled.
+   * @param expectedHeaderCountWithoutPostgis The expected header count/width when PostGIS is
+   *     disabled.
+   */
+  public static void validateResponseStructure(
+      ApiResponse response,
+      boolean expectPostgis,
+      int expectedRowCount,
+      int expectedHeaderCountWithPostgis,
+      int expectedHeaderCountWithoutPostgis) {
+    int expectedSize =
+        expectPostgis ? expectedHeaderCountWithPostgis : expectedHeaderCountWithoutPostgis;
+
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(expectedSize))
+        .body("rows", hasSize(expectedRowCount))
+        .body("height", equalTo(expectedRowCount))
+        .body("width", equalTo(expectedSize))
+        .body("headerWidth", equalTo(expectedSize));
+  }
+
+  // --- Header Validation Methods ---
+
+  /**
+   * Asserts whether a header with the given name exists or does not exist in the response.
+   *
+   * @param actualHeaders List of headers extracted from the response.
+   * @param headerName The name of the header to check.
+   * @param shouldExist True if the header is expected to exist, false if it's expected to be
+   *     absent.
+   */
+  public static void validateHeaderExistence(
+      List<Map<String, Object>> actualHeaders, String headerName, boolean shouldExist) {
+    boolean actuallyExists = actualHeaders.stream().anyMatch(h -> headerName.equals(h.get("name")));
+
+    assertThat(
+        "Expectation failed for header '" + headerName + "' existence.",
+        actuallyExists,
+        is(shouldExist));
+  }
+
+  /**
+   * Validates the common properties of a specific header identified by its name.
+   *
+   * @param response The ApiResponse object.
+   * @param actualHeaders List of headers extracted from the response.
+   * @param headerName The exact 'name' of the header to validate.
+   * @param expectedColumn The expected 'column' property value.
+   * @param expectedValueType The expected 'valueType' property value.
+   * @param expectedType The expected 'type' property value.
+   * @param expectedHidden The expected 'hidden' property value.
+   * @param expectedMeta The expected 'meta' property value.
+   */
+  public static void validateHeaderPropertiesByName(
+      ApiResponse response,
+      List<Map<String, Object>> actualHeaders,
+      String headerName,
+      String expectedColumn,
+      String expectedValueType,
+      String expectedType,
+      boolean expectedHidden,
+      boolean expectedMeta) {
+
+    // Find the header first to ensure it exists before using index
+    Map<String, Object> header = getHeaderByName(actualHeaders, headerName);
+    int headerIndex =
+        getHeaderIndexByName(actualHeaders, headerName); // Get index for RestAssured path
+
+    // Use RestAssured's validation for easy path access and standard error format
+    response
+        .validate()
+        .body("headers[" + headerIndex + "].name", equalTo(headerName))
+        .body("headers[" + headerIndex + "].column", equalTo(expectedColumn))
+        .body("headers[" + headerIndex + "].valueType", equalTo(expectedValueType))
+        .body("headers[" + headerIndex + "].type", equalTo(expectedType))
+        .body("headers[" + headerIndex + "].hidden", is(expectedHidden))
+        .body("headers[" + headerIndex + "].meta", is(expectedMeta));
+
+    // Optional: Use Hamcrest for potentially better messages on individual property failures
+    // assertThat("Header '" + headerName + "' column mismatch", header.get("column"),
+    // equalTo(expectedColumn));
+    // assertThat("Header '" + headerName + "' valueType mismatch", header.get("valueType"),
+    // equalTo(expectedValueType));
+    // ... and so on
+  }
+
+  /**
+   * Validates common properties plus the 'optionSet' property for a header identified by name.
+   *
+   * @param response The ApiResponse object.
+   * @param actualHeaders List of headers extracted from the response.
+   * @param headerName The exact 'name' of the header to validate.
+   * @param expectedColumn The expected 'column' property value.
+   * @param expectedValueType The expected 'valueType' property value.
+   * @param expectedType The expected 'type' property value.
+   * @param expectedHidden The expected 'hidden' property value.
+   * @param expectedMeta The expected 'meta' property value.
+   * @param expectedOptionSet The expected 'optionSet' UID.
+   */
+  public static void validateHeaderPropertiesByName_WithOptionSet(
+      ApiResponse response,
+      List<Map<String, Object>> actualHeaders,
+      String headerName,
+      String expectedColumn,
+      String expectedValueType,
+      String expectedType,
+      boolean expectedHidden,
+      boolean expectedMeta,
+      String expectedOptionSet) {
+
+    // Validate common properties first
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        headerName,
+        expectedColumn,
+        expectedValueType,
+        expectedType,
+        expectedHidden,
+        expectedMeta);
+
+    // Validate the specific additional property
+    int headerIndex = getHeaderIndexByName(actualHeaders, headerName);
+    response.validate().body("headers[" + headerIndex + "].optionSet", is(expectedOptionSet));
+
+    // Optional Hamcrest check:
+    // Map<String, Object> header = getHeaderByName(actualHeaders, headerName);
+    // assertThat("Header '" + headerName + "' must have an optionSet", header,
+    // hasKey("optionSet"));
+    // assertThat("Header '" + headerName + "' optionSet mismatch", header.get("optionSet"),
+    // is(expectedOptionSet));
+  }
+
+  /**
+   * Validates common properties plus program stage related properties for a header identified by
+   * name.
+   *
+   * @param response The ApiResponse object.
+   * @param actualHeaders List of headers extracted from the response.
+   * @param headerName The exact 'name' of the header to validate.
+   * @param expectedColumn The expected 'column' property value.
+   * @param expectedValueType The expected 'valueType' property value.
+   * @param expectedType The expected 'type' property value.
+   * @param expectedHidden The expected 'hidden' property value.
+   * @param expectedMeta The expected 'meta' property value.
+   * @param expectedProgramStage The expected 'programStage' UID.
+   * @param expectedRepeatableStageParams The expected 'repeatableStageParams' string.
+   * @param expectedStageOffset The expected 'stageOffset' value.
+   */
+  public static void validateHeaderPropertiesByName_WithProgramStage(
+      ApiResponse response,
+      List<Map<String, Object>> actualHeaders,
+      String headerName,
+      String expectedColumn,
+      String expectedValueType,
+      String expectedType,
+      boolean expectedHidden,
+      boolean expectedMeta,
+      String expectedProgramStage,
+      String expectedRepeatableStageParams,
+      int expectedStageOffset) {
+
+    // Validate common properties first
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        headerName,
+        expectedColumn,
+        expectedValueType,
+        expectedType,
+        expectedHidden,
+        expectedMeta);
+
+    // Validate the specific additional properties
+    int headerIndex = getHeaderIndexByName(actualHeaders, headerName);
+    response
+        .validate()
+        .body("headers[" + headerIndex + "].programStage", equalTo(expectedProgramStage))
+        .body(
+            "headers[" + headerIndex + "].repeatableStageParams",
+            equalTo(expectedRepeatableStageParams))
+        .body("headers[" + headerIndex + "].stageOffset", equalTo(expectedStageOffset));
+
+    // Optional Hamcrest checks:
+    // Map<String, Object> header = getHeaderByName(actualHeaders, headerName);
+    // assertThat("Header '" + headerName + "' must have programStage", header,
+    // hasKey("programStage"));
+    // assertThat("Header '" + headerName + "' programStage mismatch", header.get("programStage"),
+    // equalTo(expectedProgramStage));
+    // ... etc.
+  }
+
+  // --- Row and Row Context Validation ---
+
+  /**
+   * Validates a specific cell value in the response rows, identifying the column by header name.
+   *
+   * @param response The ApiResponse object.
+   * @param actualHeaders List of headers extracted from the response.
+   * @param rowIndex The 0-based index of the row to validate.
+   * @param headerName The name of the header defining the column to validate.
+   * @param expectedValue The expected string value for the cell. Use "" for empty strings. Use null
+   *     check separately if null is expected.
+   */
+  public static void validateRowValueByName(
+      ApiResponse response,
+      List<Map<String, Object>> actualHeaders,
+      int rowIndex,
+      String headerName,
+      String expectedValue) {
+    int colIndex = getHeaderIndexByName(actualHeaders, headerName);
+    String jsonPath = String.format("rows[%d][%d]", rowIndex, colIndex);
+
+    // Note: RestAssured might return numbers as BigDecimal/Integer.
+    // Casting or using `equalTo(expectedValue)` might require adjustments
+    // if the expected value is numeric. For simplicity, assuming string comparison works
+    // for most cases or expectedValue is already formatted as a string.
+    response.validate().body(jsonPath, equalTo(expectedValue));
+  }
+
+  /**
+   * Validates the 'valueStatus' within the rowContext for a specific cell, identifying the column
+   * by header name.
+   *
+   * @param response The ApiResponse object.
+   * @param actualHeaders List of headers extracted from the response.
+   * @param rowIndex The 0-based index of the row context entry.
+   * @param headerName The name of the header defining the column context to validate.
+   * @param expectedValueStatus The expected 'valueStatus' string (e.g., "NS", "ND").
+   */
+  public static void validateRowContextByName(
+      ApiResponse response,
+      List<Map<String, Object>> actualHeaders,
+      int rowIndex,
+      String headerName,
+      String expectedValueStatus) {
+    int colIndex = getHeaderIndexByName(actualHeaders, headerName);
+
+    // Construct the base path to the column context object
+    String colContextPath = String.format("rowContext.%d.%d", rowIndex, colIndex);
+    // Construct the full path to the valueStatus
+    String valueStatusPath = colContextPath + ".valueStatus";
+
+    // --- Corrected Check ---
+    // 1. Check if the intermediate object for the column exists within the row context map.
+    //    This ensures rowContext.<rowIndex> has a key <colIndex>.
+    response.validate().body("rowContext." + rowIndex, hasKey(String.valueOf(colIndex)));
+
+    // 2. Check if the valueStatus key exists within that column context object.
+    //    This ensures rowContext.<rowIndex>.<colIndex> has a key 'valueStatus'.
+    response.validate().body(colContextPath, hasKey("valueStatus"));
+
+    // 3. Now, validate the actual valueStatus value.
+    response.validate().body(valueStatusPath, equalTo(expectedValueStatus));
+
+    // --- Previous problematic check (removed) ---
+    // JsonPath responseJsonPath = response.extract().jsonPath(); // No longer needed here
+    // assertThat(
+    //    "rowContext path '" + valueStatusPath + "' should exist",
+    //    responseJsonPath.get(colContextPath), // This check was slightly off anyway
+    //    is(not(nullValue())));
+  }
 
   /**
    * Validate/assert all attributes of the given header (represented by the index), matching each

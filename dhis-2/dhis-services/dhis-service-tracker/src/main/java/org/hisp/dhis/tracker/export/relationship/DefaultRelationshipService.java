@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -76,6 +78,10 @@ public class DefaultRelationshipService implements RelationshipService {
           case RELATIONSHIP -> throw new IllegalArgumentException("Unsupported type");
         };
     return relationshipItems.stream()
+        .filter(
+            ri ->
+                ri.getRelationship().getFrom().equals(ri)
+                    || ri.getRelationship().getRelationshipType().isBidirectional())
         .filter(
             ri ->
                 trackerAccessManager
@@ -181,31 +187,9 @@ public class DefaultRelationshipService implements RelationshipService {
     RelationshipType type = new RelationshipType();
     type.setUid(relationship.getRelationshipType().getUid());
     result.setRelationshipType(relationship.getRelationshipType());
-    result.setFrom(withNestedEntity(relationship.getFrom()));
-    result.setTo(withNestedEntity(relationship.getTo()));
+    result.setFrom(RELATIONSHIP_ITEM_MAPPER.map(relationship.getFrom()));
+    result.setTo(RELATIONSHIP_ITEM_MAPPER.map(relationship.getTo()));
     result.setCreatedAtClient(relationship.getCreatedAtClient());
-    return result;
-  }
-
-  private RelationshipItem withNestedEntity(RelationshipItem item) {
-    // relationships of relationship items are not mapped to JSON so there is no need to fetch them
-    RelationshipItem result = new RelationshipItem();
-
-    // the call to the individual services is to detach and apply some logic like filtering out
-    // attribute values
-    // for tracked entity type attributes from enrollment.trackedEntity. Enrollment attributes are
-    // actually
-    // owned by the TE and cannot be set on the Enrollment. When returning enrollments in our API
-    // an enrollment
-    // should only have the program tracked entity attributes.
-    if (item.getTrackedEntity() != null) {
-      result.setTrackedEntity(item.getTrackedEntity());
-    } else if (item.getEnrollment() != null) {
-      result.setEnrollment(item.getEnrollment());
-    } else if (item.getEvent() != null) {
-      result.setEvent(item.getEvent());
-    }
-
     return result;
   }
 

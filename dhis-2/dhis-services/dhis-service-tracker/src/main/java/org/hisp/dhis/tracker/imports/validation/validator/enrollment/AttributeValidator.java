@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -34,6 +36,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1075;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1076;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.getTrackedEntityAttributes;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateOptionSet;
+import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateValueType;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Streams;
@@ -43,6 +46,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -56,7 +60,6 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
-import org.hisp.dhis.tracker.imports.validation.service.attribute.TrackedAttributeValidationService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -67,10 +70,12 @@ class AttributeValidator
     extends org.hisp.dhis.tracker.imports.validation.validator.AttributeValidator
     implements Validator<Enrollment> {
 
+  private final OptionService optionService;
+
   public AttributeValidator(
-      TrackedAttributeValidationService teAttrService,
-      DhisConfigurationProvider dhisConfigurationProvider) {
-    super(teAttrService, dhisConfigurationProvider);
+      DhisConfigurationProvider dhisConfigurationProvider, OptionService optionService) {
+    super(dhisConfigurationProvider);
+    this.optionService = optionService;
   }
 
   @Override
@@ -96,8 +101,8 @@ class AttributeValidator
 
         attributeValueMap.put(attribute.getAttribute(), attribute.getValue());
         validateAttributeValue(reporter, enrollment, teAttribute, attribute.getValue());
-        validateAttrValueType(reporter, bundle, enrollment, attribute, teAttribute);
-        validateOptionSet(reporter, enrollment, teAttribute, attribute.getValue());
+        validateValueType(reporter, bundle, enrollment, attribute.getValue(), teAttribute);
+        validateOptionSet(reporter, enrollment, teAttribute, attribute.getValue(), optionService);
 
         validateAttributeUniqueness(
             reporter, preheat, enrollment, attribute.getValue(), teAttribute, te, orgUnit);

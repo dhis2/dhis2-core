@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -143,11 +145,11 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     if (aclService.isClassShareable(clazz)) {
       if (clearSharing) {
-        if (aclService.canMakePublic(userDetails, (BaseIdentifiableObject) object)) {
-          if (aclService.defaultPublic((BaseIdentifiableObject) object)) {
+        if (aclService.canMakePublic(userDetails, object)) {
+          if (aclService.defaultPublic(object)) {
             object.getSharing().setPublicAccess(AccessStringHelper.READ_WRITE);
           }
-        } else if (aclService.canMakePrivate(userDetails, (BaseIdentifiableObject) object)) {
+        } else if (aclService.canMakePrivate(userDetails, object)) {
           object.getSharing().setPublicAccess(AccessStringHelper.newInstance().build());
         }
       }
@@ -188,6 +190,28 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_UPDATE);
     getSession().update(object);
+  }
+
+  @Override
+  public void merge(@Nonnull T object, @Nonnull UserDetails userDetails) {
+    checkNotNull(object);
+    checkNotNull(userDetails);
+
+    String username = userDetails.getUsername();
+
+    setFields(object, userDetails);
+
+    if (object.getSharing().getOwner() == null) {
+      object.getSharing().setOwner(userDetails.getUid());
+    }
+
+    if (!isUpdateAllowed(object, userDetails)) {
+      AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_UPDATE_DENIED);
+      throw new AccessDeniedException(String.valueOf(object));
+    }
+
+    AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_UPDATE);
+    getSession().merge(object);
   }
 
   private void setFields(T object, UserDetails userDetails) {

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,12 +29,13 @@
  */
 package org.hisp.dhis.tracker.trackedentityattributevalue;
 
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
@@ -70,15 +73,9 @@ class TrackedEntityAttributeValueServiceTest extends PostgresIntegrationTestBase
 
   private TrackedEntityAttribute attributeB;
 
-  private TrackedEntityAttribute attributeC;
-
   private TrackedEntity trackedEntityA;
 
   private TrackedEntity trackedEntityB;
-
-  private TrackedEntity trackedEntityC;
-
-  private TrackedEntity trackedEntityD;
 
   private TrackedEntityAttributeValue attributeValueA;
 
@@ -95,18 +92,12 @@ class TrackedEntityAttributeValueServiceTest extends PostgresIntegrationTestBase
     manager.save(trackedEntityType);
     trackedEntityA = createTrackedEntity(organisationUnit, trackedEntityType);
     trackedEntityB = createTrackedEntity(organisationUnit, trackedEntityType);
-    trackedEntityC = createTrackedEntity(organisationUnit, trackedEntityType);
-    trackedEntityD = createTrackedEntity(organisationUnit, trackedEntityType);
     manager.save(trackedEntityA);
     manager.save(trackedEntityB);
-    manager.save(trackedEntityC);
-    manager.save(trackedEntityD);
     attributeA = createTrackedEntityAttribute('A');
     attributeB = createTrackedEntityAttribute('B');
-    attributeC = createTrackedEntityAttribute('C');
     attributeService.addTrackedEntityAttribute(attributeA);
     attributeService.addTrackedEntityAttribute(attributeB);
-    attributeService.addTrackedEntityAttribute(attributeC);
     attributeValueA = new TrackedEntityAttributeValue(attributeA, trackedEntityA, "A");
     attributeValueB = new TrackedEntityAttributeValue(attributeB, trackedEntityA, "B");
     attributeValueC = new TrackedEntityAttributeValue(attributeA, trackedEntityB, "C");
@@ -116,34 +107,36 @@ class TrackedEntityAttributeValueServiceTest extends PostgresIntegrationTestBase
   void testSaveTrackedEntityAttributeValue() {
     attributeValueService.addTrackedEntityAttributeValue(attributeValueA);
     attributeValueService.addTrackedEntityAttributeValue(attributeValueB);
-    assertNotNull(attributeValueService.getTrackedEntityAttributeValue(trackedEntityA, attributeA));
-    assertNotNull(attributeValueService.getTrackedEntityAttributeValue(trackedEntityA, attributeA));
+    assertContainsOnly(
+        Set.of(attributeValueA, attributeValueB),
+        attributeValueService.getTrackedEntityAttributeValues(trackedEntityA));
   }
 
   @Test
   void testDeleteTrackedEntityAttributeValue() {
     attributeValueService.addTrackedEntityAttributeValue(attributeValueA);
     attributeValueService.addTrackedEntityAttributeValue(attributeValueB);
-    assertNotNull(attributeValueService.getTrackedEntityAttributeValue(trackedEntityA, attributeA));
-    assertNotNull(attributeValueService.getTrackedEntityAttributeValue(trackedEntityA, attributeB));
+    assertContainsOnly(
+        Set.of(attributeValueA, attributeValueB),
+        attributeValueService.getTrackedEntityAttributeValues(trackedEntityA));
     attributeValueService.deleteTrackedEntityAttributeValue(attributeValueA);
-    assertNull(attributeValueService.getTrackedEntityAttributeValue(trackedEntityA, attributeA));
-    assertNotNull(attributeValueService.getTrackedEntityAttributeValue(trackedEntityA, attributeB));
+    assertContainsOnly(
+        Set.of(attributeValueB),
+        attributeValueService.getTrackedEntityAttributeValues(trackedEntityA));
     attributeValueService.deleteTrackedEntityAttributeValue(attributeValueB);
-    assertNull(attributeValueService.getTrackedEntityAttributeValue(trackedEntityA, attributeA));
-    assertNull(attributeValueService.getTrackedEntityAttributeValue(trackedEntityA, attributeB));
+    assertIsEmpty(attributeValueService.getTrackedEntityAttributeValues(trackedEntityA));
   }
 
   @Test
   void testGetTrackedEntityAttributeValue() {
     attributeValueService.addTrackedEntityAttributeValue(attributeValueA);
     attributeValueService.addTrackedEntityAttributeValue(attributeValueC);
-    assertEquals(
-        attributeValueA,
-        attributeValueService.getTrackedEntityAttributeValue(trackedEntityA, attributeA));
-    assertEquals(
-        attributeValueC,
-        attributeValueService.getTrackedEntityAttributeValue(trackedEntityB, attributeA));
+    assertContainsOnly(
+        Set.of(attributeValueA),
+        attributeValueService.getTrackedEntityAttributeValues(trackedEntityA));
+    assertContainsOnly(
+        Set.of(attributeValueC),
+        attributeValueService.getTrackedEntityAttributeValues(trackedEntityB));
   }
 
   @Test
@@ -158,21 +151,6 @@ class TrackedEntityAttributeValueServiceTest extends PostgresIntegrationTestBase
     attributeValues = attributeValueService.getTrackedEntityAttributeValues(trackedEntityB);
     assertEquals(1, attributeValues.size());
     assertTrue(equals(attributeValues, attributeValueC));
-  }
-
-  @Test
-  void testGetTrackedEntityAttributeValuesbyAttribute() {
-    attributeValueService.addTrackedEntityAttributeValue(attributeValueA);
-    attributeValueService.addTrackedEntityAttributeValue(attributeValueB);
-    attributeValueService.addTrackedEntityAttributeValue(attributeValueC);
-    List<TrackedEntityAttributeValue> attributeValues =
-        attributeValueService.getTrackedEntityAttributeValues(attributeA);
-    assertEquals(2, attributeValues.size());
-    assertTrue(attributeValues.contains(attributeValueA));
-    assertTrue(attributeValues.contains(attributeValueC));
-    attributeValues = attributeValueService.getTrackedEntityAttributeValues(attributeB);
-    assertEquals(1, attributeValues.size());
-    assertTrue(attributeValues.contains(attributeValueB));
   }
 
   @Test

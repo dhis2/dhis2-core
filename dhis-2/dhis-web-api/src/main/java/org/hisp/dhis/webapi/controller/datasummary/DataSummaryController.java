@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -32,12 +34,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 import org.hisp.dhis.common.Dhis2Info;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datastatistics.DataStatisticsService;
 import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.PrometheusTextBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -55,7 +55,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
     classifiers = {"team:analytics", "purpose:analytics"})
 @Controller
 @RequestMapping("/api/dataSummary")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class DataSummaryController {
 
   private final DataStatisticsService dataStatisticsService;
@@ -133,6 +132,12 @@ public class DataSummaryController {
         "data_summary_event_count",
         "days",
         "Count of updated events by day");
+
+    metrics.addMetrics(
+        summary.getEnrollmentCount(),
+        "data_summary_enrollment_count",
+        "days",
+        "Count of updated enrollments by day");
 
     appendSystemInfoMetrics(metrics, summary.getSystem());
     return metrics.getMetrics();

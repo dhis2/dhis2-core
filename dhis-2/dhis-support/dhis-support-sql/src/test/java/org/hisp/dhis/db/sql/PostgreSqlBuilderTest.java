@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -146,7 +148,8 @@ class PostgreSqlBuilderTest {
   @Test
   void testQuote() {
     assertEquals(
-        "\"Treated \"\"malaria\"\" at facility\"",
+        """
+        "Treated ""malaria"" at facility\"""",
         sqlBuilder.quote("Treated \"malaria\" at facility"));
     assertEquals("\"quarterly\"", sqlBuilder.quote("quarterly"));
     assertEquals("\"Fully immunized\"", sqlBuilder.quote("Fully immunized"));
@@ -155,7 +158,8 @@ class PostgreSqlBuilderTest {
   @Test
   void testQuoteAlias() {
     assertEquals(
-        "ax.\"Treated \"\"malaria\"\" at facility\"",
+        """
+        ax."Treated ""malaria"" at facility\"""",
         sqlBuilder.quote("ax", "Treated \"malaria\" at facility"));
     assertEquals("analytics.\"quarterly\"", sqlBuilder.quote("analytics", "quarterly"));
     assertEquals("dv.\"Fully immunized\"", sqlBuilder.quote("dv", "Fully immunized"));
@@ -164,7 +168,8 @@ class PostgreSqlBuilderTest {
   @Test
   void testQuoteAx() {
     assertEquals(
-        "ax.\"Treated \"\"malaria\"\" at facility\"",
+        """
+        ax."Treated ""malaria"" at facility\"""",
         sqlBuilder.quoteAx("Treated \"malaria\" at facility"));
     assertEquals("ax.\"quarterly\"", sqlBuilder.quoteAx("quarterly"));
     assertEquals("ax.\"Fully immunized\"", sqlBuilder.quoteAx("Fully immunized"));
@@ -187,7 +192,8 @@ class PostgreSqlBuilderTest {
   @Test
   void testSinqleQuotedCommaDelimited() {
     assertEquals(
-        "'dmPbDBKwXyF', 'zMl4kciwJtz', 'q1Nqu1r1GTn'",
+        """
+        'dmPbDBKwXyF', 'zMl4kciwJtz', 'q1Nqu1r1GTn'""",
         sqlBuilder.singleQuotedCommaDelimited(
             List.of("dmPbDBKwXyF", "zMl4kciwJtz", "q1Nqu1r1GTn")));
     assertEquals("'1', '3', '5'", sqlBuilder.singleQuotedCommaDelimited(List.of("1", "3", "5")));
@@ -198,6 +204,12 @@ class PostgreSqlBuilderTest {
   @Test
   void testConcat() {
     assertEquals("concat(de.uid, pe.iso, ou.uid)", sqlBuilder.concat("de.uid", "pe.iso", "ou.uid"));
+  }
+
+  @Test
+  void testConcat_FromList() {
+    String result = sqlBuilder.concat(List.of("column1", "column2", "column3"));
+    assertEquals("concat(column1, column2, column3)", result);
   }
 
   @Test
@@ -214,18 +226,34 @@ class PostgreSqlBuilderTest {
   @Test
   void testDateTrunc() {
     assertEquals(
-        "date_trunc('month', pe.startdate)", sqlBuilder.dateTrunc("month", "pe.startdate"));
+        """
+        date_trunc('month', pe.startdate)""",
+        sqlBuilder.dateTrunc("month", "pe.startdate"));
   }
 
   @Test
   void testDifferenceInSeconds() {
     assertEquals(
-        "extract(epoch from (a.startdate - b.enddate))",
+        """
+        extract(epoch from (a.startdate - b.enddate))""",
         sqlBuilder.differenceInSeconds("a.startdate", "b.enddate"));
     assertEquals(
-        "extract(epoch from (a.\"startdate\" - b.\"enddate\"))",
+        """
+        extract(epoch from (a.\"startdate\" - b.\"enddate\"))""",
         sqlBuilder.differenceInSeconds(
             sqlBuilder.quote("a", "startdate"), sqlBuilder.quote("b", "enddate")));
+  }
+
+  @Test
+  void testIsTrue() {
+    assertEquals("dv.\"deleted\" = true", sqlBuilder.isTrue("dv", "deleted"));
+    assertEquals("tei.\"followup\" = true", sqlBuilder.isTrue("tei", "followup"));
+  }
+
+  @Test
+  void testIsFalse() {
+    assertEquals("dv.\"deleted\" = false", sqlBuilder.isFalse("dv", "deleted"));
+    assertEquals("tei.\"followup\" = false", sqlBuilder.isFalse("tei", "followup"));
   }
 
   @Test
@@ -244,10 +272,12 @@ class PostgreSqlBuilderTest {
   @Test
   void testJsonExtractObject() {
     assertEquals(
-        "ev.eventdatavalues #>> '{D7m8vpzxHDJ, value}'",
+        """
+        ev.eventdatavalues #>> '{D7m8vpzxHDJ, value}'""",
         sqlBuilder.jsonExtract("ev.eventdatavalues", "D7m8vpzxHDJ", "value"));
     assertEquals(
-        "ev.eventdatavalues #>> '{qrur9Dvnyt5, value}'",
+        """
+        ev.eventdatavalues #>> '{qrur9Dvnyt5, value}'""",
         sqlBuilder.jsonExtract("ev.eventdatavalues", "qrur9Dvnyt5", "value"));
   }
 
@@ -350,7 +380,9 @@ class PostgreSqlBuilderTest {
   void testAnalyzeTable() {
     Table table = getTableA();
 
-    String expected = "analyze \"immunization\";";
+    String expected =
+        """
+        analyze "immunization";""";
 
     assertEquals(expected, sqlBuilder.analyzeTable(table));
   }
@@ -359,7 +391,9 @@ class PostgreSqlBuilderTest {
   void testVacuumTable() {
     Table table = getTableA();
 
-    String expected = "vacuum \"immunization\";";
+    String expected =
+        """
+        vacuum "immunization";""";
 
     assertEquals(expected, sqlBuilder.vacuumTable(table));
   }
@@ -368,7 +402,9 @@ class PostgreSqlBuilderTest {
   void testRenameTable() {
     Table table = getTableA();
 
-    String expected = "alter table \"immunization\" rename to \"vaccination\";";
+    String expected =
+        """
+        alter table "immunization" rename to "vaccination";""";
 
     assertEquals(expected, sqlBuilder.renameTable(table, "vaccination"));
   }
@@ -377,14 +413,18 @@ class PostgreSqlBuilderTest {
   void testDropTableIfExists() {
     Table table = getTableA();
 
-    String expected = "drop table if exists \"immunization\";";
+    String expected =
+        """
+        drop table if exists "immunization";""";
 
     assertEquals(expected, sqlBuilder.dropTableIfExists(table));
   }
 
   @Test
   void testDropTableIfExistsString() {
-    String expected = "drop table if exists \"immunization\";";
+    String expected =
+        """
+        drop table if exists \"immunization\";""";
 
     assertEquals(expected, sqlBuilder.dropTableIfExists("immunization"));
   }
@@ -393,14 +433,18 @@ class PostgreSqlBuilderTest {
   void testDropTableIfExistsCascade() {
     Table table = getTableA();
 
-    String expected = "drop table if exists \"immunization\" cascade;";
+    String expected =
+        """
+        drop table if exists "immunization" cascade;""";
 
     assertEquals(expected, sqlBuilder.dropTableIfExistsCascade(table));
   }
 
   @Test
   void testDropTableIfExistsCascadeString() {
-    String expected = "drop table if exists \"immunization\" cascade;";
+    String expected =
+        """
+        drop table if exists "immunization" cascade;""";
 
     assertEquals(expected, sqlBuilder.dropTableIfExistsCascade("immunization"));
   }
@@ -417,14 +461,18 @@ class PostgreSqlBuilderTest {
 
   @Test
   void testSetParent() {
-    String expected = "alter table \"immunization\" inherit \"vaccination\";";
+    String expected =
+        """
+        alter table "immunization" inherit "vaccination";""";
 
     assertEquals(expected, sqlBuilder.setParentTable(getTableA(), "vaccination"));
   }
 
   @Test
   void testRemoveParent() {
-    String expected = "alter table \"immunization\" no inherit \"vaccination\";";
+    String expected =
+        """
+        alter table "immunization" no inherit "vaccination";""";
 
     assertEquals(expected, sqlBuilder.removeParentTable(getTableA(), "vaccination"));
   }
@@ -444,7 +492,8 @@ class PostgreSqlBuilderTest {
     String expected =
         """
         select t.table_name from information_schema.tables t \
-        where t.table_schema = 'public' and t.table_name = 'immunization';""";
+        where t.table_schema = 'public' \
+        and t.table_name = 'immunization';""";
 
     assertEquals(expected, sqlBuilder.tableExists("immunization"));
   }
@@ -463,7 +512,9 @@ class PostgreSqlBuilderTest {
     List<Index> indexes = getIndexesA();
 
     String expected =
-        "create index \"in_immunization_data\" on \"immunization\" using btree(\"data\");";
+        """
+        create index "in_immunization_data" \
+        on "immunization" using btree("data");""";
 
     assertEquals(expected, sqlBuilder.createIndex(indexes.get(0)));
   }
@@ -473,7 +524,9 @@ class PostgreSqlBuilderTest {
     List<Index> indexes = getIndexesA();
 
     String expected =
-        "create index \"in_immunization_period_created\" on \"immunization\" using btree(\"period\",\"created\");";
+        """
+        create index "in_immunization_period_created" \
+        on "immunization" using btree("period","created");""";
 
     assertEquals(expected, sqlBuilder.createIndex(indexes.get(1)));
   }
@@ -483,7 +536,9 @@ class PostgreSqlBuilderTest {
     List<Index> indexes = getIndexesA();
 
     String expected =
-        "create index \"in_immunization_user\" on \"immunization\" using gin(\"user\");";
+        """
+        create index "in_immunization_user" \
+        on "immunization" using gin("user");""";
 
     assertEquals(expected, sqlBuilder.createIndex(indexes.get(2)));
   }
@@ -493,7 +548,9 @@ class PostgreSqlBuilderTest {
     List<Index> indexes = getIndexesA();
 
     String expected =
-        "create index \"in_immunization_data_period\" on \"immunization\" using btree(lower(\"data\"),lower(\"period\"));";
+        """
+        create index "in_immunization_data_period" \
+        on "immunization" using btree(lower("data"),lower("period"));""";
 
     assertEquals(expected, sqlBuilder.createIndex(indexes.get(3)));
   }
@@ -501,7 +558,9 @@ class PostgreSqlBuilderTest {
   @Test
   void testCreateIndexWithDescNullsLast() {
     String expected =
-        "create unique index \"index_a\" on \"table_a\" using btree(\"column_a\" desc nulls last);";
+        """
+        create unique index "index_a" on "table_a" \
+        using btree("column_a" desc nulls last);""";
     Index index =
         Index.builder()
             .name("index_a")

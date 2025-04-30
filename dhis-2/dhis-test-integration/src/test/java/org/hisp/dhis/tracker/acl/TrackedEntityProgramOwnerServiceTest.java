@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,11 +29,14 @@
  */
 package org.hisp.dhis.tracker.acl;
 
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -118,5 +123,31 @@ class TrackedEntityProgramOwnerServiceTest extends PostgresIntegrationTestBase {
     programOwner = programOwnerService.getTrackedEntityProgramOwner(trackedEntityA1, programA);
     assertNotNull(programOwner);
     assertEquals(organisationUnitB.getUid(), programOwner.getOrganisationUnit().getUid());
+  }
+
+  @Test
+  void shouldUpdateTrackedEntityOwnerIfExists() throws BadRequestException {
+    programOwnerService.createTrackedEntityProgramOwner(
+        trackedEntityA1, programA, organisationUnitA);
+    programOwnerService.updateTrackedEntityProgramOwner(
+        trackedEntityA1, programA, organisationUnitA);
+
+    assertEquals(
+        organisationUnitA.getUid(),
+        programOwnerService
+            .getTrackedEntityProgramOwner(trackedEntityA1, programA)
+            .getOrganisationUnit()
+            .getUid());
+  }
+
+  @Test
+  void shouldFailToUpdateTrackedEntityOwnerIfNotExists() {
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () ->
+                programOwnerService.updateTrackedEntityProgramOwner(
+                    trackedEntityA1, programA, organisationUnitA));
+    assertStartsWith("Tracked entity not transferred. No owner found", exception.getMessage());
   }
 }

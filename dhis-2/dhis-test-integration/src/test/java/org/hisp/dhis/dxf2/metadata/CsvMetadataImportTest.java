@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -85,7 +87,7 @@ class CsvMetadataImportTest extends PostgresIntegrationTestBase {
             "metadata/organisationUnits.csv",
             CsvImportClass.ORGANISATION_UNIT,
             metadata -> assertEquals(6, metadata.getOrganisationUnits().size()));
-    assertEquals(6, importReport.getStats().getCreated());
+    assertEquals(6, importReport.getAccumulatedStats().created());
     assertEquals(6, organisationUnitService.getAllOrganisationUnits().size());
   }
 
@@ -96,7 +98,7 @@ class CsvMetadataImportTest extends PostgresIntegrationTestBase {
             "metadata/organisationUnits.csv",
             CsvImportClass.ORGANISATION_UNIT,
             metadata -> assertEquals(6, metadata.getOrganisationUnits().size()));
-    assertEquals(6, importReport.getStats().getCreated());
+    assertEquals(6, importReport.getAccumulatedStats().created());
     assertEquals(6, organisationUnitService.getAllOrganisationUnits().size());
   }
 
@@ -107,7 +109,7 @@ class CsvMetadataImportTest extends PostgresIntegrationTestBase {
             "metadata/dataElements.csv",
             CsvImportClass.DATA_ELEMENT,
             metadata -> assertEquals(2, metadata.getDataElements().size()));
-    assertEquals(2, importReport.getStats().getCreated());
+    assertEquals(2, importReport.getAccumulatedStats().created());
     assertEquals(2, dataElementService.getAllDataElements().size());
   }
 
@@ -124,7 +126,7 @@ class CsvMetadataImportTest extends PostgresIntegrationTestBase {
               assertEquals(3, metadata.getOptionSets().get(2).getOptions().size());
               assertEquals(3, metadata.getOptionSets().get(3).getOptions().size());
             });
-    assertEquals(16, importReport.getStats().getCreated());
+    assertEquals(16, importReport.getAccumulatedStats().created());
     List<OptionSet> optionSets = new ArrayList<>(optionService.getAllOptionSets());
     assertEquals(4, optionSets.size());
     assertEquals(3, optionSets.get(0).getOptions().size());
@@ -137,10 +139,10 @@ class CsvMetadataImportTest extends PostgresIntegrationTestBase {
   void testOptionSetReplace() throws IOException {
     // Import 1 OptionSet with 3 Options
     ImportReport importReport = runImport("metadata/optionSet_add.csv", CsvImportClass.OPTION_SET);
-    assertEquals(4, importReport.getStats().getCreated());
+    assertEquals(4, importReport.getAccumulatedStats().created());
     // Send payload with 2 new Options
     importReport = runImport("metadata/optionSet_update.csv", CsvImportClass.OPTION_SET);
-    assertEquals(2, importReport.getStats().getCreated());
+    assertEquals(2, importReport.getAccumulatedStats().created());
     OptionSet optionSet = optionService.getOptionSetByCode("COLOR");
     // 3 old Options are replaced by 2 new added Options
     assertEquals(2, optionSet.getOptions().size());
@@ -149,7 +151,7 @@ class CsvMetadataImportTest extends PostgresIntegrationTestBase {
   @Test
   void testImportOptionGroupSet() throws IOException {
     ImportReport importReport = runImport("metadata/option_set.csv", CsvImportClass.OPTION_SET);
-    assertEquals(5, importReport.getStats().getCreated());
+    assertEquals(5, importReport.getAccumulatedStats().created());
     OptionSet optionSetA = manager.get(OptionSet.class, "xmRubJIhmaK");
     assertNotNull(optionSetA);
     assertEquals(2, optionSetA.getOptions().size());
@@ -157,7 +159,7 @@ class CsvMetadataImportTest extends PostgresIntegrationTestBase {
     assertNotNull(optionSetB);
     assertEquals(1, optionSetB.getOptions().size());
     importReport = runImport("metadata/option_groups.csv", CsvImportClass.OPTION_GROUP);
-    assertEquals(2, importReport.getStats().getCreated());
+    assertEquals(2, importReport.getAccumulatedStats().created());
     OptionGroup optionGroupA = manager.get(OptionGroup.class, "UeHtizvXbx6");
     assertNotNull(optionGroupA);
     assertEquals(2, optionGroupA.getMembers().size());
@@ -165,7 +167,7 @@ class CsvMetadataImportTest extends PostgresIntegrationTestBase {
     assertNotNull(optionGroupB);
     assertEquals(1, optionGroupB.getMembers().size());
     importReport = runImport("metadata/option_group_set.csv", CsvImportClass.OPTION_GROUP_SET);
-    assertEquals(2, importReport.getStats().getCreated());
+    assertEquals(2, importReport.getAccumulatedStats().created());
     OptionGroupSet optionGroupSetA = manager.get(OptionGroupSet.class, "FB9i0Jl2R80");
     assertNotNull(optionGroupSetA);
     OptionGroupSet optionGroupSetB = manager.get(OptionGroupSet.class, "K30djctzUtN");
@@ -173,7 +175,7 @@ class CsvMetadataImportTest extends PostgresIntegrationTestBase {
     importReport =
         runImport(
             "metadata/option_group_set_members.csv", CsvImportClass.OPTION_GROUP_SET_MEMBERSHIP);
-    assertEquals(2, importReport.getStats().getUpdated());
+    assertEquals(2, importReport.getAccumulatedStats().updated());
     OptionGroupSet ogsA = optionService.getOptionGroupSet("FB9i0Jl2R80");
     OptionGroupSet ogsB = optionService.getOptionGroupSet("K30djctzUtN");
     assertEquals(1, ogsA.getMembers().size());
@@ -188,7 +190,7 @@ class CsvMetadataImportTest extends PostgresIntegrationTestBase {
             "metadata/organisationUnitMembers.csv",
             CsvImportClass.ORGANISATION_UNIT,
             metadata -> assertEquals(4, metadata.getOrganisationUnits().size()));
-    assertEquals(4, importReport.getStats().getCreated());
+    assertEquals(4, importReport.getAccumulatedStats().created());
     assertEquals(4, organisationUnitService.getAllOrganisationUnits().size());
 
     importReport =
@@ -196,14 +198,14 @@ class CsvMetadataImportTest extends PostgresIntegrationTestBase {
             "metadata/organisationUnitGroup.csv",
             CsvImportClass.ORGANISATION_UNIT_GROUP,
             metadata -> assertEquals(2, metadata.getOrganisationUnitGroups().size()));
-    assertEquals(2, importReport.getStats().getCreated());
+    assertEquals(2, importReport.getAccumulatedStats().created());
 
     importReport =
         runImport(
             "metadata/organisationUnitGroup_members.csv",
             CsvImportClass.ORGANISATION_UNIT_GROUP_MEMBERSHIP,
             metadata -> assertEquals(2, metadata.getOrganisationUnitGroups().size()));
-    assertEquals(2, importReport.getStats().getUpdated());
+    assertEquals(2, importReport.getAccumulatedStats().updated());
     OrganisationUnitGroup orgUnitA = manager.get(OrganisationUnitGroup.class, "a1234567890");
     assertEquals(2, orgUnitA.getMembers().size());
     OrganisationUnitGroup orgUnitB = manager.get(OrganisationUnitGroup.class, "b1234567890");

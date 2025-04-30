@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -83,9 +85,12 @@ public class MinMaxSqlStatementProcessor implements OutlierSqlStatementProcessor
         + ouPathClause
         + " "
         + "and dv.deleted is false "
-        +
+        + "and (trim(dv.value) ~ '"
+        + OutlierDetectionUtils.PG_DOUBLE_REGEX
+        + "' "
+        + "and length(split_part(trim(dv.value), '.', 1)) <= 307) "
         // Filter for values outside the min-max range
-        "and (dv.value::double precision < mm.minimumvalue or dv.value::double precision > mm.maximumvalue) "
+        + "and (dv.value::double precision < mm.minimumvalue or dv.value::double precision > mm.maximumvalue) "
         +
         // Order and limit
         "order by bound_abs_dev desc "

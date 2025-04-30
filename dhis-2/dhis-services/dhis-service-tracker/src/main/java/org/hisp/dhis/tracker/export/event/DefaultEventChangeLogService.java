@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -30,6 +32,7 @@ package org.hisp.dhis.tracker.export.event;
 import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -44,6 +47,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.Page;
@@ -58,6 +62,7 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
 
   private final EventService eventService;
   private final HibernateEventChangeLogStore hibernateEventChangeLogStore;
+  private final DhisConfigurationProvider config;
 
   @Nonnull
   @Override
@@ -92,6 +97,9 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
       String value,
       ChangeLogType changeLogType,
       String userName) {
+    if (config.isDisabled(CHANGELOG_TRACKER)) {
+      return;
+    }
 
     EventChangeLog eventChangeLog =
         new EventChangeLog(
@@ -104,6 +112,10 @@ public class DefaultEventChangeLogService implements EventChangeLogService {
   @Transactional
   public void addFieldChangeLog(
       @Nonnull Event currentEvent, @Nonnull Event event, @Nonnull String username) {
+    if (config.isDisabled(CHANGELOG_TRACKER)) {
+      return;
+    }
+
     logIfChanged(
         "occurredAt", Event::getOccurredDate, this::formatDate, currentEvent, event, username);
     logIfChanged(

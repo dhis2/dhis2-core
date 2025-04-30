@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -120,7 +122,6 @@ class DefaultEventService implements EventService {
           EventOperationParams.builder()
               .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
               .events(Set.of(eventUid))
-              .eventParams(EventParams.FALSE)
               .filterByDataElement(dataElementUid)
               .build();
       events = findEvents(operationParams, PageParams.single());
@@ -173,7 +174,7 @@ class DefaultEventService implements EventService {
   @Nonnull
   @Override
   public Event getEvent(@Nonnull UID event) throws NotFoundException {
-    return getEvent(event, TrackerIdSchemeParams.builder().build(), EventParams.FALSE);
+    return getEvent(event, TrackerIdSchemeParams.builder().build(), EventFields.none());
   }
 
   @Nonnull
@@ -181,7 +182,7 @@ class DefaultEventService implements EventService {
   public Event getEvent(
       @Nonnull UID eventUid,
       @Nonnull TrackerIdSchemeParams idSchemeParams,
-      @Nonnull EventParams eventParams)
+      @Nonnull EventFields fields)
       throws NotFoundException {
     Page<Event> events;
     try {
@@ -189,7 +190,7 @@ class DefaultEventService implements EventService {
           EventOperationParams.builder()
               .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
               .events(Set.of(eventUid))
-              .eventParams(eventParams)
+              .fields(fields)
               .idSchemeParams(idSchemeParams)
               .build();
       events = findEvents(operationParams, PageParams.single());
@@ -239,7 +240,7 @@ class DefaultEventService implements EventService {
       throws BadRequestException, ForbiddenException {
     EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
     List<Event> events = eventStore.getEvents(queryParams);
-    if (operationParams.getEventParams().isIncludeRelationships()) {
+    if (operationParams.getFields().isIncludesRelationships()) {
       for (Event event : events) {
         event.setRelationshipItems(
             relationshipService.findRelationshipItems(
@@ -256,7 +257,7 @@ class DefaultEventService implements EventService {
       throws BadRequestException, ForbiddenException {
     EventQueryParams queryParams = paramsMapper.map(operationParams, getCurrentUserDetails());
     Page<Event> events = eventStore.getEvents(queryParams, pageParams);
-    if (operationParams.getEventParams().isIncludeRelationships()) {
+    if (operationParams.getFields().isIncludesRelationships()) {
       for (Event event : events.getItems()) {
         event.setRelationshipItems(
             relationshipService.findRelationshipItems(

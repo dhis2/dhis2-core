@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -28,10 +30,8 @@
 package org.hisp.dhis.webapi.controller.tracker.ownership;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
-import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateMandatoryDeprecatedUidParameter;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -39,15 +39,10 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -65,20 +60,15 @@ import org.springframework.web.bind.annotation.ResponseBody;
     classifiers = {"team:tracker", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/tracker/ownership")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class TrackerOwnershipController {
 
-  @Autowired private TrackerOwnershipManager trackerOwnershipAccessManager;
+  @Autowired private TrackerOwnershipManager trackerOwnershipManager;
 
   @Autowired protected FieldFilterService fieldFilterService;
 
   @Autowired protected ContextService contextService;
 
   @Autowired private TrackedEntityService trackedEntityService;
-
-  @Autowired private ProgramService programService;
-
-  @Autowired private OrganisationUnitService organisationUnitService;
 
   // -------------------------------------------------------------------------
   // 1. Transfer ownership if the logged in user is part of the owner ou.
@@ -88,21 +78,13 @@ public class TrackerOwnershipController {
   @PutMapping(value = "/transfer", produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public WebMessage updateTrackerProgramOwner(
-      @RequestParam UID trackedEntity,
-      @RequestParam UID program,
-      @Deprecated(
-              since = "2.42",
-              forRemoval = true) // TODO(tracker) remove `ou` parameter in favor of `orgUnit` in v43
-          @RequestParam(required = false)
-          UID ou,
-      @RequestParam(required = false) UID orgUnit)
-      throws BadRequestException, ForbiddenException, NotFoundException {
-    UID orgUnitUid = validateMandatoryDeprecatedUidParameter("ou", ou, "orgUnit", orgUnit);
+      @RequestParam UID trackedEntity, @RequestParam UID program, @RequestParam UID orgUnit)
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    trackerOwnershipManager.transferOwnership(
+        trackedEntityService.getTrackedEntity(trackedEntity, program, TrackedEntityFields.none()),
+        program,
+        orgUnit);
 
-    trackerOwnershipAccessManager.transferOwnership(
-        trackedEntityService.getTrackedEntity(trackedEntity, program, TrackedEntityParams.FALSE),
-        programService.getProgram(program.getValue()),
-        organisationUnitService.getOrganisationUnit(orgUnitUid.getValue()));
     return ok("Ownership transferred");
   }
 
@@ -110,13 +92,8 @@ public class TrackerOwnershipController {
   @ResponseBody
   public WebMessage grantTemporaryAccess(
       @RequestParam UID trackedEntity, @RequestParam String reason, @RequestParam UID program)
-      throws ForbiddenException, NotFoundException {
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    trackerOwnershipAccessManager.grantTemporaryOwnership(
-        trackedEntityService.getTrackedEntity(trackedEntity),
-        programService.getProgram(program.getValue()),
-        currentUser,
-        reason);
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    trackerOwnershipManager.grantTemporaryOwnership(trackedEntity, program, reason);
 
     return ok("Temporary Ownership granted");
   }

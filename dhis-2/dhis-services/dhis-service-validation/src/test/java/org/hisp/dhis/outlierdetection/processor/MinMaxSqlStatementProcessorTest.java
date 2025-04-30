@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -81,7 +83,7 @@ class MinMaxSqlStatementProcessorTest {
             .build();
     String sql = subject.getSqlStatement(request);
     String expected =
-        "select de.uid as de_uid, ou.uid as ou_uid, coc.uid as coc_uid, aoc.uid as aoc_uid, de.name as de_name, ou.name as ou_name, coc.name as coc_name, aoc.name as aoc_name, pe.startdate as pe_start_date, pt.name as pt_name, dv.value::double precision as value, dv.followup as follow_up, least(abs(dv.value::double precision - mm.minimumvalue), abs(dv.value::double precision - mm.maximumvalue)) as bound_abs_dev, mm.minimumvalue as lower_bound, mm.maximumvalue as upper_bound from datavalue dv inner join dataelement de on dv.dataelementid = de.dataelementid inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid inner join categoryoptioncombo aoc on dv.attributeoptioncomboid = aoc.categoryoptioncomboid inner join period pe on dv.periodid = pe.periodid inner join periodtype pt on pe.periodtypeid = pt.periodtypeid inner join organisationunit ou on dv.sourceid = ou.organisationunitid inner join minmaxdataelement mm on (dv.dataelementid = mm.dataelementid and dv.sourceid = mm.sourceid and dv.categoryoptioncomboid = mm.categoryoptioncomboid) where dv.dataelementid in (:data_element_ids) and pe.startdate >= :start_date and pe.enddate <= :end_date and (ou.\"path\" like '/ouabcdefghA%' or ou.\"path\" like '/ouabcdefghB%') and dv.deleted is false and (dv.value::double precision < mm.minimumvalue or dv.value::double precision > mm.maximumvalue) order by bound_abs_dev desc limit :max_results;";
+        "select de.uid as de_uid, ou.uid as ou_uid, coc.uid as coc_uid, aoc.uid as aoc_uid, de.name as de_name, ou.name as ou_name, coc.name as coc_name, aoc.name as aoc_name, pe.startdate as pe_start_date, pt.name as pt_name, dv.value::double precision as value, dv.followup as follow_up, least(abs(dv.value::double precision - mm.minimumvalue), abs(dv.value::double precision - mm.maximumvalue)) as bound_abs_dev, mm.minimumvalue as lower_bound, mm.maximumvalue as upper_bound from datavalue dv inner join dataelement de on dv.dataelementid = de.dataelementid inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid inner join categoryoptioncombo aoc on dv.attributeoptioncomboid = aoc.categoryoptioncomboid inner join period pe on dv.periodid = pe.periodid inner join periodtype pt on pe.periodtypeid = pt.periodtypeid inner join organisationunit ou on dv.sourceid = ou.organisationunitid inner join minmaxdataelement mm on (dv.dataelementid = mm.dataelementid and dv.sourceid = mm.sourceid and dv.categoryoptioncomboid = mm.categoryoptioncomboid) where dv.dataelementid in (:data_element_ids) and pe.startdate >= :start_date and pe.enddate <= :end_date and (ou.\"path\" like '/ouabcdefghA%' or ou.\"path\" like '/ouabcdefghB%') and dv.deleted is false and (trim(dv.value) ~ '^[+-]?(\\d+(\\.\\d*)?|\\.\\d+)$' and length(split_part(trim(dv.value), '.', 1)) <= 307) and (dv.value::double precision < mm.minimumvalue or dv.value::double precision > mm.maximumvalue) order by bound_abs_dev desc limit :max_results;";
     assertEquals(expected, sql);
   }
 

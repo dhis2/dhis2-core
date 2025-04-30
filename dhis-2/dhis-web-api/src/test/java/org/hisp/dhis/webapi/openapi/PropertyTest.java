@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -28,12 +30,15 @@
 package org.hisp.dhis.webapi.openapi;
 
 import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import lombok.Getter;
 import lombok.Setter;
@@ -42,45 +47,61 @@ import org.hisp.dhis.jsontree.Json;
 import org.junit.jupiter.api.Test;
 
 class PropertyTest {
+
   @OpenApi.Property(value = String.class)
-  private static class AProperty {}
+  private static class StringInOpenAPI {}
 
-  private static class AnotherProperty {
-    @OpenApi.Property
-    public void setOpenApiProperty(String openApiProperty) {}
+  private static class RedefinedType {
 
-    public void setProperty(String property) {}
+    @JsonProperty private StringInOpenAPI text;
   }
-
-  private static class IgnoredProperty {
-
-    @OpenApi.Ignore @JsonProperty private String openApiProperty;
-
-    @JsonProperty
-    public void setOpenApiProperty(String openApiProperty) {}
-  }
-
-  @JsonProperty private AProperty aProperty;
 
   @Test
   void testGetPropertiesGivenOpenApiPropertyAnnotatedClassThatHasValueSet() {
-    Collection<Property> properties = Property.getProperties(PropertyTest.class);
+    Collection<Property> properties = Property.getProperties(RedefinedType.class);
+    assertEquals(1, properties.size());
     assertEquals(String.class, new ArrayList<>(properties).get(0).getType());
+  }
+
+  /**
+   * When some properties have OpenAPI annotation but none has jackson annotations all properties
+   * are included implicitly. This is because it is assumed that the OpenAPI annotation is used to
+   * adjust the annotated property, not to select it.
+   */
+  private static class AnnotatedSetter {
+    @OpenApi.Property
+    public void setExplicit(String value) {}
+
+    public void setImplicit(String value) {}
   }
 
   @Test
   void testGetPropertiesGivenOpenApiPropertyAnnotatedSetter() {
-    Collection<Property> properties = Property.getProperties(AnotherProperty.class);
-    assertEquals(1, properties.size());
-    Property property = new ArrayList<>(properties).get(0);
-    assertEquals("openApiProperty", property.getName());
-    assertEquals(String.class, property.getType());
+    Collection<Property> properties = Property.getProperties(AnnotatedSetter.class);
+    assertEquals(2, properties.size());
+    assertEquals(
+        Set.of("explicit", "implicit"),
+        properties.stream().map(Property::getName).collect(toSet()));
+    assertEquals(Set.of(String.class), properties.stream().map(Property::getType).collect(toSet()));
+  }
+
+  /**
+   * When a jackson annotated property is ignored using OpenAPI annotations that property is
+   * excluded. Any accessor with a OpenAPI or jackson annotation is also included.
+   */
+  private static class IgnoredField {
+
+    @OpenApi.Ignore @JsonProperty private String excluded;
+
+    @JsonProperty
+    public void setIncluded(String value) {}
   }
 
   @Test
   void testGetPropertiesGivenOpenApiIgnoreAndJsonPropertyAnnotatedField() {
-    Collection<Property> properties = Property.getProperties(IgnoredProperty.class);
-    assertEquals(0, properties.size());
+    List<Property> properties = Property.getProperties(IgnoredField.class);
+    assertEquals(1, properties.size());
+    assertEquals("included", properties.get(0).getName());
   }
 
   @Getter

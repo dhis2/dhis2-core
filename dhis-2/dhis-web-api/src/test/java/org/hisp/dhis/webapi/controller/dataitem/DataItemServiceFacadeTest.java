@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -50,8 +52,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dataitem.query.QueryExecutor;
 import org.hisp.dhis.dataset.DataSet;
@@ -96,8 +98,8 @@ class DataItemServiceFacadeTest {
   @Test
   void testRetrieveDataItemEntities() {
     // Given
-    final Class<? extends BaseIdentifiableObject> targetEntity = Indicator.class;
-    final Set<Class<? extends BaseIdentifiableObject>> anyTargetEntities =
+    final Class<? extends IdentifiableObject> targetEntity = Indicator.class;
+    final Set<Class<? extends IdentifiableObject>> anyTargetEntities =
         new HashSet<>(asList(targetEntity));
     final List<DataItem> expectedItemsFound =
         asList(mockDataItem(INDICATOR), mockDataItem(INDICATOR));
@@ -136,7 +138,7 @@ class DataItemServiceFacadeTest {
   @Test
   void testRetrieveDataItemEntitiesWhenTargetEntitiesIsEmpty() {
     // Given
-    final Set<Class<? extends BaseIdentifiableObject>> anyTargetEntities = emptySet();
+    final Set<Class<? extends IdentifiableObject>> anyTargetEntities = emptySet();
     final Set<String> anyFilters = newHashSet("anyFilter");
     final WebOptions anyWebOptions = mockWebOptions(10, 1);
     final Set<String> anyOrdering = new HashSet<>(asList("name:desc"));
@@ -154,12 +156,12 @@ class DataItemServiceFacadeTest {
   @Test
   void testExtractTargetEntitiesUsingEqualsFilter() {
     // Given
-    final Set<Class<? extends BaseIdentifiableObject>> expectedTargetEntities =
+    final Set<Class<? extends IdentifiableObject>> expectedTargetEntities =
         new HashSet<>(asList(Indicator.class));
     final Set<String> theFilters = newHashSet("dimensionItemType:eq:INDICATOR");
 
     // When
-    final Set<Class<? extends BaseIdentifiableObject>> actualTargetEntities =
+    final Set<Class<? extends IdentifiableObject>> actualTargetEntities =
         dataItemServiceFacade.extractTargetEntities(theFilters);
 
     // Then
@@ -169,12 +171,12 @@ class DataItemServiceFacadeTest {
   @Test
   void testExtractTargetEntitiesUsingInFilter() {
     // Given
-    final Set<Class<? extends BaseIdentifiableObject>> expectedTargetEntities =
+    final Set<Class<? extends IdentifiableObject>> expectedTargetEntities =
         new HashSet<>(asList(Indicator.class, DataSet.class));
     final Set<String> theFilters = newHashSet("dimensionItemType:in:[INDICATOR, DATA_SET]");
 
     // When
-    final Set<Class<? extends BaseIdentifiableObject>> actualTargetEntities =
+    final Set<Class<? extends IdentifiableObject>> actualTargetEntities =
         dataItemServiceFacade.extractTargetEntities(theFilters);
 
     // Then
@@ -187,7 +189,7 @@ class DataItemServiceFacadeTest {
     final Set<String> noTargetEntitiesFilters = emptySet();
 
     // When
-    final Set<Class<? extends BaseIdentifiableObject>> actualTargetEntities =
+    final Set<Class<? extends IdentifiableObject>> actualTargetEntities =
         dataItemServiceFacade.extractTargetEntities(noTargetEntitiesFilters);
 
     // Then

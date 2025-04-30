@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -75,8 +77,8 @@ final class GistLogic {
     return p.isCollection() ? p.getItemKlass() : p.getKlass();
   }
 
-  static boolean isNonNestedPath(String path) {
-    return path.indexOf('.') < 0;
+  static boolean isNestedPath(String path) {
+    return path.indexOf('.') >= 0;
   }
 
   static boolean isAttributePath(String path) {
@@ -92,11 +94,11 @@ final class GistLogic {
   }
 
   static String parentPath(String path) {
-    return isNonNestedPath(path) ? "" : path.substring(0, path.lastIndexOf('.'));
+    return !isNestedPath(path) ? "" : path.substring(0, path.lastIndexOf('.'));
   }
 
   static String pathOnSameParent(String path, String property) {
-    return isNonNestedPath(path) ? property : parentPath(path) + '.' + property;
+    return !isNestedPath(path) ? property : parentPath(path) + '.' + property;
   }
 
   static boolean isHrefProperty(Property p) {
@@ -117,8 +119,12 @@ final class GistLogic {
   }
 
   static boolean isCollectionSizeFilter(Filter filter, Property property) {
-    return filter.getOperator().isEmptinessCompare()
+    return property.isRelation() && filter.getOperator().isEmptinessCompare()
         || (filter.getOperator().isNumericCompare() && property.isCollection());
+  }
+
+  static boolean isJsonCollectionFilter(Filter filter, Property property) {
+    return property.isCollection() && !property.isRelation();
   }
 
   static boolean isStringLengthFilter(Filter filter, Property property) {

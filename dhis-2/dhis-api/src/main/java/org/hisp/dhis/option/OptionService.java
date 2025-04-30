@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,7 +29,11 @@
  */
 package org.hisp.dhis.option;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorMessage;
 
@@ -35,7 +41,6 @@ import org.hisp.dhis.feedback.ErrorMessage;
  * @author Lars Helge Overland
  */
 public interface OptionService {
-  String ID = OptionService.class.getName();
 
   // -------------------------------------------------------------------------
   // OptionSet
@@ -55,61 +60,32 @@ public interface OptionService {
 
   ErrorMessage validateOption(OptionSet optionSet, Option option);
 
-  OptionSet getOptionSet(long id);
-
   OptionSet getOptionSet(String uid);
-
-  OptionSet getOptionSetByName(String name);
 
   OptionSet getOptionSetByCode(String code);
 
-  void deleteOptionSet(OptionSet optionSet);
-
   List<OptionSet> getAllOptionSets();
 
-  List<Option> getOptions(long optionSetId, String name, Integer max);
+  List<Option> findOptionsByNamePattern(
+      @Nonnull String optionSet, @CheckForNull String infix, @CheckForNull Integer maxResults);
 
-  // -------------------------------------------------------------------------
-  // Option
-  // -------------------------------------------------------------------------
+  boolean existsAllOptions(@Nonnull String optionSet, @Nonnull Collection<String> codes);
 
-  void updateOption(Option option);
-
-  Option getOption(long id);
-
-  Option getOptionByCode(String code);
-
-  void deleteOption(Option option);
+  Optional<Option> findOptionByCode(@Nonnull String optionSet, @Nonnull String code);
 
   // -------------------------------------------------------------------------
   // OptionGroup
   // -------------------------------------------------------------------------
 
-  long saveOptionGroup(OptionGroup group);
-
-  void updateOptionGroup(OptionGroup group);
-
-  OptionGroup getOptionGroup(long id);
+  void saveOptionGroup(OptionGroup group);
 
   OptionGroup getOptionGroup(String uid);
-
-  void deleteOptionGroup(OptionGroup group);
-
-  List<OptionGroup> getAllOptionGroups();
 
   // -------------------------------------------------------------------------
   // OptionGroupSet
   // -------------------------------------------------------------------------
 
-  long saveOptionGroupSet(OptionGroupSet group);
-
-  void updateOptionGroupSet(OptionGroupSet group);
-
-  OptionGroupSet getOptionGroupSet(long id);
+  void saveOptionGroupSet(OptionGroupSet group);
 
   OptionGroupSet getOptionGroupSet(String uid);
-
-  void deleteOptionGroupSet(OptionGroupSet group);
-
-  List<OptionGroupSet> getAllOptionGroupSets();
 }

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -78,7 +80,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -2152,7 +2153,7 @@ public abstract class TestBase {
     relationshipType.setName("RelationshipType_" + relationshipType.getUid());
     relationshipType.setFromConstraint(fromRelationShipConstraint);
     relationshipType.setToConstraint(toRelationShipConstraint);
-
+    relationshipType.setBidirectional(true);
     return relationshipType;
   }
 
@@ -2170,6 +2171,7 @@ public abstract class TestBase {
     TrackedEntityType trackedEntityType = new TrackedEntityType();
     trackedEntityType.setAutoFields();
     trackedEntityType.setName("TrackedEntityType" + uniqueChar);
+    trackedEntityType.setShortName("TrackedEntityTypeShort" + uniqueChar);
     trackedEntityType.setDescription("TrackedEntityType" + uniqueChar + " description");
 
     return trackedEntityType;
@@ -3146,7 +3148,7 @@ public abstract class TestBase {
             coc -> {
               Set<String> categoryOptions =
                   coc.getCategoryOptions().stream()
-                      .map(BaseIdentifiableObject::getName)
+                      .map(IdentifiableObject::getName)
                       .collect(Collectors.toSet());
               return categoryOptions.containsAll(List.of(co1, co2));
             })

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -38,7 +40,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class Pager {
   public static final int DEFAULT_PAGE_SIZE = 50;
 
-  private int page = 1;
+  public static final int DEFAULT_PAGE = 1;
+
+  private int page = DEFAULT_PAGE;
 
   private long total = 0;
 
@@ -57,7 +61,7 @@ public class Pager {
 
   public Pager(int page, long total, int pageSize) {
     this.total = Math.max(total, 0);
-    this.pageSize = Math.max(pageSize, 1);
+    this.pageSize = Math.max(pageSize, DEFAULT_PAGE);
     this.page = getPageInternal(page);
   }
 
@@ -83,7 +87,7 @@ public class Pager {
    */
   private int getPageInternal(int page) {
     page = Math.min(page, getPageCount());
-    return Math.max(page, 1);
+    return Math.max(page, DEFAULT_PAGE);
   }
 
   public boolean pageSizeIsDefault() {

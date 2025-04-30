@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -44,6 +46,7 @@ import static org.hisp.dhis.analytics.AggregationType.LAST;
 import static org.hisp.dhis.analytics.AggregationType.LAST_AVERAGE_ORG_UNIT;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AggregationType.SUM;
+import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
@@ -73,6 +76,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -108,6 +112,8 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramCategoryMapping;
+import org.hisp.dhis.program.ProgramCategoryOptionMapping;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramOwnershipHistory;
 import org.hisp.dhis.program.ProgramOwnershipHistoryService;
@@ -213,15 +219,23 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
 
   private CategoryOption coB;
 
+  private CategoryOption coC;
+
+  private CategoryOption coD;
+
   private Category caA;
 
   private Category caB;
 
   private CategoryCombo ccA;
 
-  private CategoryOptionCombo cocA;
+  private CategoryOptionCombo cocAC;
 
-  private CategoryOptionCombo cocB;
+  private CategoryOptionCombo cocAD;
+
+  private CategoryOptionCombo cocBC;
+
+  private CategoryOptionCombo cocBD;
 
   private DataElement deA;
 
@@ -230,6 +244,10 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   private DataElement deM;
 
   private DataElement deU;
+
+  private ProgramCategoryMapping cmA;
+
+  private ProgramCategoryMapping cmB;
 
   private TrackedEntityAttribute atU;
 
@@ -296,37 +314,57 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     // Category Options
     coA = createCategoryOption('A');
     coB = createCategoryOption('B');
+    coC = createCategoryOption('C');
+    coD = createCategoryOption('D');
     coA.setUid("cataOptionA");
     coB.setUid("cataOptionB");
-    categoryService.addCategoryOption(coA);
-    categoryService.addCategoryOption(coB);
+    coC.setUid("cataOptionC");
+    coD.setUid("cataOptionD");
+    manager.save(coA);
+    manager.save(coB);
+    manager.save(coC);
+    manager.save(coD);
 
     // Categories
-    caA = createCategory('A', coA);
-    caB = createCategory('B', coB);
+    caA = createCategory('A', coA, coB);
+    caB = createCategory('B', coC, coD);
     caA.setDataDimensionType(DataDimensionType.ATTRIBUTE);
     caB.setDataDimensionType(DataDimensionType.ATTRIBUTE);
     caA.setUid("categoryIdA");
     caB.setUid("categoryIdB");
-    categoryService.addCategory(caA);
-    categoryService.addCategory(caB);
+    manager.save(caA);
+    manager.save(caB);
 
     // Category Combos
     ccA = createCategoryCombo("CCa", "categComboA", caA, caB);
-    categoryService.addCategoryCombo(ccA);
+    manager.save(ccA);
 
     // Category Option Combos
-    cocA = createCategoryOptionCombo("COCa", "catOptCombA", ccA, coA);
-    cocB = createCategoryOptionCombo("COCb", "catOptCombB", ccA, coB);
-    categoryService.addCategoryOptionCombo(cocA);
-    categoryService.addCategoryOptionCombo(cocB);
-    ccA.getOptionCombos().add(cocA);
-    ccA.getOptionCombos().add(cocB);
-    categoryService.updateCategoryCombo(ccA);
-    coA.getCategoryOptionCombos().add(cocA);
-    coB.getCategoryOptionCombos().add(cocB);
-    categoryService.updateCategoryOption(coA);
-    categoryService.updateCategoryOption(coB);
+    cocAC = createCategoryOptionCombo("COCac", "catOptComAC", ccA, coA, coC);
+    cocAD = createCategoryOptionCombo("COCad", "catOptComAD", ccA, coA, coD);
+    cocBC = createCategoryOptionCombo("COCbc", "catOptComBC", ccA, coB, coC);
+    cocBD = createCategoryOptionCombo("COCbd", "catOptComBD", ccA, coB, coD);
+    categoryService.addCategoryOptionCombo(cocAC);
+    categoryService.addCategoryOptionCombo(cocAD);
+    categoryService.addCategoryOptionCombo(cocBC);
+    categoryService.addCategoryOptionCombo(cocBD);
+    ccA.getOptionCombos().add(cocAC);
+    ccA.getOptionCombos().add(cocAD);
+    ccA.getOptionCombos().add(cocBC);
+    ccA.getOptionCombos().add(cocBD);
+    manager.save(ccA);
+    coA.getCategoryOptionCombos().add(cocAC);
+    coA.getCategoryOptionCombos().add(cocAD);
+    coB.getCategoryOptionCombos().add(cocBC);
+    coB.getCategoryOptionCombos().add(cocBD);
+    coC.getCategoryOptionCombos().add(cocAC);
+    coC.getCategoryOptionCombos().add(cocBC);
+    coD.getCategoryOptionCombos().add(cocAD);
+    coD.getCategoryOptionCombos().add(cocBD);
+    manager.save(coA);
+    manager.save(coB);
+    manager.save(coC);
+    manager.save(coD);
 
     // Default Category Option Combo
     CategoryOptionCombo cocDefault = categoryService.getDefaultCategoryOptionCombo();
@@ -383,6 +421,44 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     psB.addDataElement(deM, 3);
     manager.save(psB);
 
+    // Program Category Option Mappings
+    ProgramCategoryOptionMapping omA =
+        ProgramCategoryOptionMapping.builder()
+            .optionId(coA.getUid())
+            .filter("#{" + psB.getUid() + "." + deA.getUid() + "} < 15")
+            .build();
+    ProgramCategoryOptionMapping omB =
+        ProgramCategoryOptionMapping.builder()
+            .optionId(coB.getUid())
+            .filter("#{" + psB.getUid() + "." + deA.getUid() + "} >= 15")
+            .build();
+    ProgramCategoryOptionMapping omC =
+        ProgramCategoryOptionMapping.builder()
+            .optionId(coC.getUid())
+            .filter("is(#{" + psB.getUid() + "." + deB.getUid() + "} in 'A','B','C')")
+            .build();
+    ProgramCategoryOptionMapping omD =
+        ProgramCategoryOptionMapping.builder()
+            .optionId(coD.getUid())
+            .filter("not is(#{" + psB.getUid() + "." + deB.getUid() + "} in 'A','B','C')")
+            .build();
+
+    // Program Category Mappings
+    cmA =
+        ProgramCategoryMapping.builder()
+            .id("ProgCatMapA")
+            .categoryId(caA.getUid())
+            .mappingName("Category A mapping")
+            .optionMappings(List.of(omA, omB))
+            .build();
+    cmB =
+        ProgramCategoryMapping.builder()
+            .id("ProgCatMapB")
+            .categoryId(caB.getUid())
+            .mappingName("Category B mapping")
+            .optionMappings(List.of(omC, omD))
+            .build();
+
     // Programs
     programA = createProgram('A');
     programA.getProgramStages().add(psA);
@@ -395,6 +471,7 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     programB.getOrganisationUnits().addAll(level3Ous);
     programB.setUid("programB123");
     programB.setCategoryCombo(ccA);
+    programB.setCategoryMappings(Set.of(cmA, cmB));
     manager.save(programB);
 
     // Tracked Entity Attributes
@@ -1376,11 +1453,141 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
   }
 
   // -------------------------------------------------------------------------
+  // Test program indicator with category mappings
+  // -------------------------------------------------------------------------
+
+  @Test
+  void testEventProgramIndicatorCategoryMappingsWithNoExtraDimension() {
+    ProgramIndicator pi = createProgramIndicatorBWithCategoryMappings();
+
+    EventQueryParams params =
+        getBaseEventQueryParamsBuilder()
+            .withAggregateData(true)
+            .addItemProgramIndicator(pi)
+            .withPeriods(List.of(peJan, peFeb, peMar), "Monthly")
+            .withOrganisationUnits(level3Ous)
+            .build();
+
+    Grid grid = eventAggregateService.getAggregatedData(params);
+
+    assertGridContains(
+        // Headers
+        List.of("dy", "pe", "ou", "value"),
+        // Grid
+        List.of(
+            List.of("programIndB", "201701", "ouabcdefghI", "2.0"),
+            List.of("programIndB", "201701", "ouabcdefghJ", "2.0"),
+            List.of("programIndB", "201702", "ouabcdefghI", "2.0"),
+            List.of("programIndB", "201702", "ouabcdefghJ", "2.0")),
+        grid);
+  }
+
+  @Test
+  void testEventProgramIndicatorCategoryMappingsWithOneExtraDimension() {
+    ProgramIndicator pi = createProgramIndicatorBWithCategoryMappings();
+
+    EventQueryParams params =
+        getBaseEventQueryParamsBuilder()
+            .withAggregateData(true)
+            .addItemProgramIndicator(pi)
+            .addDimension(caA)
+            .withPeriods(List.of(peJan, peFeb, peMar), "Monthly")
+            .withOrganisationUnits(level3Ous)
+            .build();
+
+    Grid grid = eventAggregateService.getAggregatedData(params);
+
+    assertGridContains(
+        // Headers
+        List.of("dy", "categoryIdA", "pe", "ou", "value"),
+        // Grid
+        List.of(
+            List.of("programIndB", "cataOptionA", "201701", "ouabcdefghI", "1.0"),
+            List.of("programIndB", "cataOptionB", "201701", "ouabcdefghI", "1.0"),
+            List.of("programIndB", "cataOptionB", "201701", "ouabcdefghJ", "2.0"),
+            List.of("programIndB", "cataOptionB", "201702", "ouabcdefghI", "2.0"),
+            List.of("programIndB", "cataOptionB", "201702", "ouabcdefghJ", "2.0")),
+        grid);
+  }
+
+  @Test
+  void testEventProgramIndicatorCategoryMappingsWithTwoExtraDimensions() {
+    ProgramIndicator pi = createProgramIndicatorBWithCategoryMappings();
+
+    EventQueryParams params =
+        getBaseEventQueryParamsBuilder()
+            .withAggregateData(true)
+            .addItemProgramIndicator(pi)
+            .addDimension(caA)
+            .addDimension(caB)
+            .withPeriods(List.of(peJan, peFeb, peMar), "Monthly")
+            .withOrganisationUnits(level3Ous)
+            .build();
+
+    Grid grid = eventAggregateService.getAggregatedData(params);
+
+    assertGridContains(
+        // Headers
+        List.of("dy", "categoryIdA", "categoryIdB", "pe", "ou", "value"),
+        // Grid
+        List.of(
+            List.of("programIndB", "cataOptionA", "cataOptionC", "201701", "ouabcdefghI", "1.0"),
+            List.of("programIndB", "cataOptionB", "cataOptionC", "201701", "ouabcdefghI", "1.0"),
+            List.of("programIndB", "cataOptionB", "cataOptionC", "201701", "ouabcdefghJ", "1.0"),
+            List.of("programIndB", "cataOptionB", "cataOptionD", "201701", "ouabcdefghJ", "1.0"),
+            List.of("programIndB", "cataOptionB", "cataOptionD", "201702", "ouabcdefghI", "2.0"),
+            List.of("programIndB", "cataOptionB", "cataOptionD", "201702", "ouabcdefghJ", "2.0")),
+        grid);
+  }
+
+  @Test
+  void testEventProgramIndicatorCategoryMappingsAsDataValueSet() {
+    ProgramIndicator pi = createProgramIndicatorBWithCategoryMappings();
+
+    DataQueryParams dataQueryParams =
+        DataQueryParams.newBuilder().withOutputFormat(DATA_VALUE_SET).build();
+
+    EventQueryParams params =
+        getBaseEventQueryParamsBuilder(dataQueryParams)
+            .withAggregateData(true)
+            .addItemProgramIndicator(pi)
+            .withPeriods(List.of(peJan, peFeb, peMar), "Monthly")
+            .withOrganisationUnits(level3Ous)
+            .build();
+
+    Grid grid = eventAggregateService.getAggregatedData(params);
+
+    assertGridContains(
+        // Headers
+        List.of("dy", "pe", "ou", "value"),
+        // Grid
+        List.of(
+            List.of("programIndB.*.catOptComAC", "201701", "ouabcdefghI", "1.0"),
+            List.of("programIndB.*.catOptComBC", "201701", "ouabcdefghI", "1.0"),
+            List.of("programIndB.*.catOptComBC", "201701", "ouabcdefghJ", "1.0"),
+            List.of("programIndB.*.catOptComBD", "201701", "ouabcdefghJ", "1.0"),
+            List.of("programIndB.*.catOptComBD", "201702", "ouabcdefghI", "2.0"),
+            List.of("programIndB.*.catOptComBD", "201702", "ouabcdefghJ", "2.0")),
+        grid);
+  }
+
+  // -------------------------------------------------------------------------
   // Supportive test methods
   // -------------------------------------------------------------------------
 
+  /** EventQueryParams.Builder with frequently-used fields */
   private EventQueryParams.Builder getBaseEventQueryParamsBuilder() {
-    return new EventQueryParams.Builder()
+    return addToBuilder(new EventQueryParams.Builder());
+  }
+
+  /** EventQueryParams.Builder with frequently-used fields, based on DataQueryParams */
+  private EventQueryParams.Builder getBaseEventQueryParamsBuilder(DataQueryParams dataQueryParams) {
+    return addToBuilder(new EventQueryParams.Builder(dataQueryParams));
+  }
+
+  /** Adds the frequently-used fields to an EventQueryParams.Builder */
+  private EventQueryParams.Builder addToBuilder(EventQueryParams.Builder builder) {
+    return builder
         .withOutputType(EventOutputType.EVENT)
         .withDisplayProperty(DisplayProperty.SHORTNAME)
         .withEndpointItem(RequestTypeAware.EndpointItem.EVENT)
@@ -1474,6 +1681,14 @@ class EventAnalyticsServiceTest extends PostgresIntegrationTestBase {
     ProgramIndicator pi = createProgramIndicator('B', analyticsType, programB, expression, filter);
     pi.setUid("programIndB");
     pi.setAggregationType(aggregationType);
+    return pi;
+  }
+
+  /** Creates program indicator for program B with category mappings. */
+  private ProgramIndicator createProgramIndicatorBWithCategoryMappings() {
+    ProgramIndicator pi = createProgramIndicatorB(EVENT, "V{event_count}", null, SUM);
+    pi.setCategoryMappingIds(Set.of(cmA.getId(), cmB.getId()));
+    pi.setAttributeCombo(ccA);
     return pi;
   }
 

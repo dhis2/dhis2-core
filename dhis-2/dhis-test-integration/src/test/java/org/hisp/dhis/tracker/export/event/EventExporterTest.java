@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -46,23 +48,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -90,13 +83,9 @@ class EventExporterTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 
-  @Autowired private DataElementService dataElementService;
-
   private OrganisationUnit orgUnit;
 
   private ProgramStage programStage;
-
-  private Program program;
 
   private TrackedEntity trackedEntity;
   private User importUser;
@@ -113,7 +102,6 @@ class EventExporterTest extends PostgresIntegrationTestBase {
     testSetup.importTrackerData();
     orgUnit = get(OrganisationUnit.class, "h4w96yEMlzO");
     programStage = get(ProgramStage.class, "NpsdDv6kKSO");
-    program = programStage.getProgram();
     trackedEntity = get(TrackedEntity.class, "dUE514NMOlo");
 
     // to test that events are only returned if the user has read access to ALL COs of an events COC
@@ -129,8 +117,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
     // expect to be run by the importUser
     injectSecurityContextUser(importUser);
 
-    operationParamsBuilder = EventOperationParams.builder().eventParams(EventParams.FALSE);
-    operationParamsBuilder.orgUnit(orgUnit).orgUnitMode(SELECTED);
+    operationParamsBuilder = EventOperationParams.builder().orgUnit(orgUnit).orgUnitMode(SELECTED);
   }
 
   @Test
@@ -153,7 +140,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
     EventOperationParams params =
         operationParamsBuilder
             .events(Set.of(UID.of("pTzf9KYMk72")))
-            .eventParams(EventParams.TRUE)
+            .fields(EventFields.all())
             .build();
 
     List<Event> events = eventService.findEvents(params);
@@ -338,121 +325,6 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testExportEventsWhenFilteringByDataElementsLike()
-      throws ForbiddenException, BadRequestException {
-    DataElement dataElement = dataElement(UID.of("DATAEL00001"));
-    EventOperationParams params =
-        operationParamsBuilder
-            .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
-            .programStage(programStage)
-            .filterByDataElement(
-                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%val%")))
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertContainsOnly(List.of("pTzf9KYMk72"), events);
-
-    new QueryItem(dataElement, QueryOperator.LIKE, "val", dataElement.getValueType(), null, null);
-  }
-
-  @Test
-  void testExportEventsWhenFilteringByDataElementsWithStatusFilter()
-      throws ForbiddenException, BadRequestException {
-    DataElement dataElement = dataElement(UID.of("DATAEL00001"));
-
-    EventOperationParams params =
-        operationParamsBuilder
-            .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
-            .programStage(programStage)
-            .enrollmentStatus(EnrollmentStatus.ACTIVE)
-            .filterByDataElement(
-                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%val%")))
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertContainsOnly(List.of("pTzf9KYMk72"), events);
-  }
-
-  @Test
-  void testExportEventsWhenFilteringByDataElementsWithProgramTypeFilter()
-      throws ForbiddenException, BadRequestException {
-    DataElement dataElement = dataElement(UID.of("DATAEL00001"));
-
-    EventOperationParams params =
-        operationParamsBuilder
-            .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
-            .programStage(programStage)
-            .programType(ProgramType.WITH_REGISTRATION)
-            .filterByDataElement(
-                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%val%")))
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertContainsOnly(List.of("pTzf9KYMk72"), events);
-  }
-
-  @Test
-  void testExportEventsWhenFilteringByDataElementsEqual()
-      throws ForbiddenException, BadRequestException {
-    DataElement dataElement = dataElement(UID.of("DATAEL00001"));
-
-    EventOperationParams params =
-        operationParamsBuilder
-            .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
-            .programStage(programStage)
-            .filterByDataElement(
-                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%value00001%")))
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertContainsOnly(List.of("pTzf9KYMk72"), events);
-  }
-
-  @Test
-  void testExportEventsWhenFilteringByDataElementsIn()
-      throws ForbiddenException, BadRequestException {
-    DataElement dataElement = dataElement(UID.of("DATAEL00001"));
-
-    EventOperationParams params =
-        operationParamsBuilder
-            .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
-            .programStage(programStage)
-            .filterByDataElement(
-                UID.of(dataElement),
-                List.of(new QueryFilter(QueryOperator.IN, "value00001;value00002")))
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertContainsOnly(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
-  }
-
-  @Test
-  void testExportEventsWhenFilteringByDataElementsWithCategoryOptionSuperUser()
-      throws ForbiddenException, BadRequestException {
-    DataElement dataElement = dataElement(UID.of("DATAEL00001"));
-
-    EventOperationParams params =
-        operationParamsBuilder
-            .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
-            .programStage(programStage)
-            .program(program)
-            .attributeCategoryCombo(UID.of("bjDvmb4bfuf"))
-            .attributeCategoryOptions(Set.of(UID.of("xYerKDKCefk")))
-            .filterByDataElement(
-                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.EQ, "value00001")))
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertContainsOnly(List.of("pTzf9KYMk72"), events);
-  }
-
-  @Test
   void shouldReturnEventsGivenCategoryOptionCombo() throws ForbiddenException, BadRequestException {
     EventOperationParams params =
         operationParamsBuilder
@@ -484,172 +356,6 @@ class EventExporterTest extends PostgresIntegrationTestBase {
                                             .collect(Collectors.toSet()))))
             .toList();
     assertAll("all events should have the same category option combo and options", executables);
-  }
-
-  @Test
-  void testExportEventsWhenFilteringByDataElementsWithCategoryOptionNotSuperUser()
-      throws ForbiddenException, BadRequestException {
-    injectSecurityContextUser(
-        createAndAddUser(false, "user", Set.of(orgUnit), Set.of(orgUnit), "F_EXPORT_DATA"));
-    DataElement dataElement = dataElement(UID.of("DATAEL00002"));
-
-    EventOperationParams params =
-        operationParamsBuilder
-            .enrollments(Set.of(UID.of("TvctPPhpD8z")))
-            .programStage(programStage)
-            .program(program)
-            .attributeCategoryCombo(UID.of("bjDvmb4bfuf"))
-            .attributeCategoryOptions(Set.of(UID.of("xYerKDKCefk")))
-            .filterByDataElement(
-                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.EQ, "value00002")))
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
-  }
-
-  @Test
-  void testExportEventsWhenFilteringByDataElementsWithOptionSetEqual()
-      throws ForbiddenException, BadRequestException {
-    DataElement dataElement = dataElement(UID.of("DATAEL00005"));
-    EventOperationParams params =
-        operationParamsBuilder
-            .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
-            .programStage(programStage)
-            .filterByDataElement(
-                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.EQ, "option1")))
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertContainsOnly(List.of("pTzf9KYMk72"), events);
-  }
-
-  @Test
-  void testExportEventsWhenFilteringByDataElementsWithOptionSetIn()
-      throws ForbiddenException, BadRequestException {
-    DataElement dataElement = dataElement(UID.of("DATAEL00005"));
-    EventOperationParams params =
-        operationParamsBuilder
-            .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
-            .programStage(programStage)
-            .filterByDataElement(
-                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.IN, "option1;option2")))
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertContainsOnly(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
-  }
-
-  @Test
-  void testExportEventsWhenFilteringByDataElementsWithOptionSetLike()
-      throws ForbiddenException, BadRequestException {
-    DataElement dataElement = dataElement(UID.of("DATAEL00005"));
-    EventOperationParams params =
-        operationParamsBuilder
-            .enrollments(Set.of(UID.of("nxP7UnKhomJ")))
-            .programStage(programStage)
-            .filterByDataElement(
-                UID.of(dataElement), List.of(new QueryFilter(QueryOperator.LIKE, "%opt%")))
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertContainsOnly(List.of("pTzf9KYMk72"), events);
-  }
-
-  @Test
-  void testExportEventsWhenFilteringByNumericDataElements()
-      throws ForbiddenException, BadRequestException {
-    DataElement dataElement = dataElement(UID.of("DATAEL00006"));
-    EventOperationParams params =
-        operationParamsBuilder
-            .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
-            .programStage(programStage)
-            .filterByDataElement(
-                UID.of(dataElement),
-                List.of(
-                    new QueryFilter(QueryOperator.LT, "77"),
-                    new QueryFilter(QueryOperator.GT, "8")))
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
-  }
-
-  @Test
-  void shouldFilterByEventsContainingGivenDataValuesWhenFilteringByNonNullDataValues()
-      throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        EventOperationParams.builder()
-            .eventParams(EventParams.FALSE)
-            .filterByDataElement(
-                UID.of("GieVkTxp4HH"), List.of(new QueryFilter(QueryOperator.NNULL)))
-            .filterByDataElement(
-                UID.of("GieVkTxp4HG"), List.of(new QueryFilter(QueryOperator.NNULL)))
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertContainsOnly(List.of("kWjSezkXHVp"), events);
-  }
-
-  @Test
-  void shouldFilterByEventsNotContainingGivenDataValueWhenFilteringByNullDataValues()
-      throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        EventOperationParams.builder()
-            .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
-            .programStage(programStage)
-            .eventParams(EventParams.FALSE)
-            .filterByDataElement(
-                UID.of("DATAEL00002"), List.of(new QueryFilter(QueryOperator.NULL)))
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertContainsOnly(List.of("pTzf9KYMk72"), events);
-  }
-
-  @Test
-  void shouldFilterByEventsContainingGivenDataValueWhenCombiningUnaryAndBinaryOperatorsInFilter()
-      throws ForbiddenException, BadRequestException {
-    DataElement dataElement = dataElement(UID.of("DATAEL00005"));
-    EventOperationParams params =
-        operationParamsBuilder
-            .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
-            .programStage(programStage)
-            .filterByDataElement(
-                UID.of(dataElement),
-                List.of(
-                    new QueryFilter(QueryOperator.IN, "option2"),
-                    new QueryFilter(QueryOperator.NNULL)))
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
-  }
-
-  @Test
-  void shouldFilterByEventsContainingGivenDataValueWhenCombiningTwoUnaryOperatorsInFilter()
-      throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        EventOperationParams.builder()
-            .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
-            .programStage(programStage)
-            .eventParams(EventParams.FALSE)
-            .filterByDataElement(
-                UID.of("DATAEL00002"),
-                List.of(new QueryFilter(QueryOperator.NNULL), new QueryFilter(QueryOperator.NNULL)))
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
   }
 
   @Test
@@ -829,165 +535,6 @@ class EventExporterTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldOnlyIncludeEventsWithGivenAttributeWhenFilterAttributeHasNoQueryFilter()
-      throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder.orgUnit(orgUnit).filterByAttribute(UID.of("notUpdated0")).build();
-
-    List<String> trackedEntities =
-        eventService.findEvents(params).stream()
-            .map(event -> event.getEnrollment().getTrackedEntity().getUid())
-            .toList();
-
-    assertContainsOnly(List.of("dUE514NMOlo"), trackedEntities);
-  }
-
-  @Test
-  void testEnrollmentFilterNumericAttributes() throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder
-            .orgUnit(orgUnit)
-            .filterByAttribute(
-                UID.of("numericAttr"),
-                List.of(
-                    new QueryFilter(QueryOperator.LT, "77"),
-                    new QueryFilter(QueryOperator.GT, "8")))
-            .build();
-
-    List<String> trackedEntities =
-        eventService.findEvents(params).stream()
-            .map(event -> event.getEnrollment().getTrackedEntity().getUid())
-            .toList();
-
-    assertContainsOnly(List.of("dUE514NMOlo"), trackedEntities);
-  }
-
-  @Test
-  void testEnrollmentFilterAttributes() throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder
-            .orgUnit(orgUnit)
-            .filterByAttribute(
-                UID.of("toUpdate000"), List.of(new QueryFilter(QueryOperator.EQ, "summer day")))
-            .build();
-
-    List<String> trackedEntities =
-        eventService.findEvents(params).stream()
-            .map(event -> event.getEnrollment().getTrackedEntity().getUid())
-            .toList();
-
-    assertContainsOnly(List.of("QS6w44flWAf"), trackedEntities);
-  }
-
-  @Test
-  void testEnrollmentFilterAttributesWithMultipleFiltersOnDifferentAttributes()
-      throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder
-            .orgUnit(orgUnit)
-            .filterByAttribute(
-                UID.of("toUpdate000"), List.of(new QueryFilter(QueryOperator.EQ, "rainy day")))
-            .filterByAttribute(
-                UID.of("notUpdated0"), List.of(new QueryFilter(QueryOperator.EQ, "winter day")))
-            .build();
-
-    List<String> trackedEntities =
-        eventService.findEvents(params).stream()
-            .map(event -> event.getEnrollment().getTrackedEntity().getUid())
-            .toList();
-
-    assertContainsOnly(List.of("dUE514NMOlo"), trackedEntities);
-  }
-
-  @Test
-  void testEnrollmentFilterAttributesWithMultipleFiltersOnTheSameAttribute()
-      throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        operationParamsBuilder
-            .orgUnit(orgUnit)
-            .filterByAttribute(
-                UID.of("toUpdate000"),
-                List.of(
-                    new QueryFilter(QueryOperator.LIKE, "day"),
-                    new QueryFilter(QueryOperator.LIKE, "in")))
-            .build();
-
-    List<String> trackedEntities =
-        eventService.findEvents(params).stream()
-            .map(event -> event.getEnrollment().getTrackedEntity().getUid())
-            .toList();
-
-    assertContainsOnly(List.of("dUE514NMOlo"), trackedEntities);
-  }
-
-  @Test
-  void shouldFilterByEventsContainingGivenAttributeValueWhenCombiningTwoUnaryOperators()
-      throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        EventOperationParams.builder()
-            .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
-            .programStage(programStage)
-            .eventParams(EventParams.FALSE)
-            .filterByAttribute(
-                UID.of("dIVt4l5vIOa"),
-                List.of(new QueryFilter(QueryOperator.NNULL), new QueryFilter(QueryOperator.NNULL)))
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertContainsOnly(List.of("pTzf9KYMk72"), events);
-  }
-
-  @Test
-  void shouldFilterByEventsContainingGivenAttributeValueWhenCombiningUnaryAndBinaryOperators()
-      throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        EventOperationParams.builder()
-            .enrollments(UID.of("nxP7UnKhomJ", "TvctPPhpD8z"))
-            .programStage(programStage)
-            .eventParams(EventParams.FALSE)
-            .filterByAttribute(
-                UID.of("toUpdate000"),
-                List.of(
-                    new QueryFilter(QueryOperator.NNULL),
-                    new QueryFilter(QueryOperator.EQ, "rainy day")))
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertContainsOnly(List.of("D9PbzJY8bJM"), events);
-  }
-
-  @Test
-  void shouldFilterByEventsNotContainingGivenAttributeValueWhenFilteringByNullValues()
-      throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        EventOperationParams.builder()
-            .eventParams(EventParams.FALSE)
-            .filterByAttribute(UID.of("toDelete000"), List.of(new QueryFilter(QueryOperator.NULL)))
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertContainsOnly(List.of("H0PbzJY8bJG"), events);
-  }
-
-  @Test
-  void shouldFilterByEventsContainingGivenAttributeValueWhenFilteringByNonNullValues()
-      throws ForbiddenException, BadRequestException {
-    EventOperationParams params =
-        EventOperationParams.builder()
-            .programStage(programStage)
-            .eventParams(EventParams.FALSE)
-            .filterByAttribute(UID.of("dIVt4l5vIOa"), List.of(new QueryFilter(QueryOperator.NNULL)))
-            .build();
-
-    List<String> events = getEvents(params);
-
-    assertContainsOnly(List.of("pTzf9KYMk72"), events);
-  }
-
-  @Test
   void testEnrollmentOccurredAfterSetToAfterLastOccurredAtDate()
       throws ForbiddenException, BadRequestException {
     EventOperationParams params =
@@ -1047,10 +594,6 @@ class EventExporterTest extends PostgresIntegrationTestBase {
     assertContainsOnly(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
   }
 
-  private DataElement dataElement(UID uid) {
-    return dataElementService.getDataElement(uid.getValue());
-  }
-
   private <T extends IdentifiableObject> T get(Class<T> type, String uid) {
     T t = manager.get(type, uid);
     assertNotNull(
@@ -1066,7 +609,7 @@ class EventExporterTest extends PostgresIntegrationTestBase {
     return uids(eventService.findEvents(params));
   }
 
-  private static List<String> uids(List<? extends BaseIdentifiableObject> identifiableObject) {
-    return identifiableObject.stream().map(BaseIdentifiableObject::getUid).toList();
+  private static List<String> uids(List<? extends IdentifiableObject> identifiableObject) {
+    return identifiableObject.stream().map(IdentifiableObject::getUid).toList();
   }
 }

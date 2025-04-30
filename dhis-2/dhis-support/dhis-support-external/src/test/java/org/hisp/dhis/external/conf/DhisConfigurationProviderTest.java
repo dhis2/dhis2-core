@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -84,10 +86,10 @@ class DhisConfigurationProviderTest {
 
   @Test
   @DisplayName("remote servers retrieved from config should have expected values")
-  void getRemoteServersAllowedTest() {
+  void getMetaDataSyncRemoteServersAllowedTest() {
     // given there are 2 remote servers in the test config allowed list
     // when we retrieve the remote servers allowed
-    List<String> remoteServersAllowed = configProvider.getRemoteServersAllowed();
+    List<String> remoteServersAllowed = configProvider.getMetaDataSyncRemoteServersAllowed();
 
     // then it should contain the expected values
     assertNotNull(remoteServersAllowed);
@@ -104,7 +106,7 @@ class DhisConfigurationProviderTest {
   void invalidUrlTest(String url) {
     // given there are 2 remote servers in the test config allowed list
     // when we check if an invalid url is in the allowed list
-    boolean urlIsAllowed = configProvider.remoteServerIsInAllowedList(url);
+    boolean urlIsAllowed = configProvider.isMetaDataSyncRemoteServerAllowed(url);
 
     // then it should be false
     assertFalse(urlIsAllowed);
@@ -116,7 +118,7 @@ class DhisConfigurationProviderTest {
     // given there are 2 remote servers in the test config allowed list
     // when we check if a valid url is in the allowed list
     boolean urlIsAllowed =
-        configProvider.remoteServerIsInAllowedList(
+        configProvider.isMetaDataSyncRemoteServerAllowed(
             "https://validtesturl.com/success/with/extra/path");
 
     // then it should be true

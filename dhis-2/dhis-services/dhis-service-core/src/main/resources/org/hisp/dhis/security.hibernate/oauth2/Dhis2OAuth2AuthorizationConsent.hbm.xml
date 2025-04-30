@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.security.oauth2.consent.Dhis2OAuth2AuthorizationConsent"
+    table="oauth2_authorization_consent">
+
+    <cache usage="read-write"/>
+
+    <id name="id" column="id">
+      <generator class="native"/>
+    </id>
+
+    &identifiableProperties;
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="createdby" foreign-key="fk_oauth2_authorization_consent_userid" />
+
+    <property name="registeredClientId" column="registered_client_id" not-null="true" length="255"/>
+    <property name="principalName" column="principal_name" not-null="true" length="255"/>
+    <property name="authorities" column="authorities" length="1000"/>
+
+  </class>
+</hibernate-mapping> 

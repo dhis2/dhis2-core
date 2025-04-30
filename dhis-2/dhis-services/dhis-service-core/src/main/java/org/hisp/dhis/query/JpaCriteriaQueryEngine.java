@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -27,6 +29,7 @@
  */
 package org.hisp.dhis.query;
 
+import static org.hisp.dhis.query.JpaQueryUtils.isPropertyTypeText;
 import static org.hisp.dhis.query.JpaQueryUtils.stringPredicateIgnoreCase;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
@@ -52,6 +55,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.query.operators.Operator;
+import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.UserDetails;
@@ -174,24 +178,28 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
   }
 
   @Nonnull
-  private static <T extends IdentifiableObject> List<jakarta.persistence.criteria.Order> getOrders(
+  private <T extends IdentifiableObject> List<jakarta.persistence.criteria.Order> getOrders(
       Query<T> query, CriteriaBuilder builder, Root<T> root) {
-    return query.getOrders().stream().map(o -> getOrderPredicate(builder, root, o)).toList();
+    Schema schema = schemaService.getDynamicSchema(query.getObjectType());
+    return query.getOrders().stream()
+        .map(o -> getOrderPredicate(builder, root, schema, o))
+        .toList();
   }
 
   private static <T extends IdentifiableObject>
       jakarta.persistence.criteria.Order getOrderPredicate(
-          CriteriaBuilder builder, Root<T> root, @Nonnull Order order) {
+          CriteriaBuilder builder, Root<T> root, Schema schema, @Nonnull Order order) {
 
-    if (order.isIgnoreCase()) {
+    Property property = schema.getProperty(order.getProperty());
+    if (property == null)
+      throw new IllegalArgumentException("No such property: " + order.getProperty());
+    String name = property.getFieldName();
+    if (order.isIgnoreCase() && isPropertyTypeText(property)) {
       return order.isAscending()
-          ? builder.asc(builder.lower(root.get(order.getProperty().getFieldName())))
-          : builder.desc(builder.lower(root.get(order.getProperty().getFieldName())));
+          ? builder.asc(builder.lower(root.get(name)))
+          : builder.desc(builder.lower(root.get(name)));
     }
-
-    return order.isAscending()
-        ? builder.asc(root.get(order.getProperty().getFieldName()))
-        : builder.desc(root.get(order.getProperty().getFieldName()));
+    return order.isAscending() ? builder.asc(root.get(name)) : builder.desc(root.get(name));
   }
 
   private void initStoreMap() {

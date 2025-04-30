@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -69,9 +71,13 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   private final TrackedEntityChangeLogOperationParams defaultOperationParams =
       TrackedEntityChangeLogOperationParams.builder().build();
-  private final PageParams defaultPageParams = PageParams.of(1, 10, false);
+  private final PageParams defaultPageParams;
 
   private TrackerObjects trackerObjects;
+
+  TrackedEntityChangeLogServiceTest() throws BadRequestException {
+    defaultPageParams = PageParams.of(1, 10, false);
+  }
 
   @BeforeAll
   void setUp() throws IOException {
@@ -128,6 +134,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFailWhenUserHasNoAccessToTET() {
+    injectSecurityContextUser(manager.get(User.class, "o1HMTIzBGo7"));
     String trackedEntity = "XUitxQbWYNq";
 
     Exception exception =
@@ -144,7 +151,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFailWhenUserHasNoAccessToOrgUnitScope() {
-    injectSecurityContextUser(manager.get(User.class, "o1HMTIzBGo7"));
+    injectSecurityContextUser(manager.get(User.class, "FIgVWzUCkpw"));
     String trackedEntity = "XUitxQbWYNq";
 
     Exception exception =
@@ -162,7 +169,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnChangeLogsWhenTrackedEntityAttributeValueIsCreated()
       throws NotFoundException, ForbiddenException, BadRequestException {
-    String trackedEntityAttribute = "numericAttr";
+    String trackedEntityAttribute = "integerAttr";
     List<TrackedEntityChangeLog> changeLogs =
         filterTrackedEntityAttribute(
             trackedEntityChangeLogService.getTrackedEntityChangeLog(
@@ -170,14 +177,14 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
             trackedEntityAttribute);
 
     assertNumberOfChanges(1, changeLogs);
-    assertAll(() -> assertCreate("numericAttr", "88", changeLogs.get(0)));
+    assertAll(() -> assertCreate("integerAttr", "88", changeLogs.get(0)));
   }
 
   @Test
   void shouldReturnChangeLogsWhenTrackedEntityAttributeValueIsDeleted()
       throws NotFoundException, ForbiddenException, BadRequestException {
     String trackedEntity = "QS6w44flWAf";
-    String trackedEntityAttribute = "numericAttr";
+    String trackedEntityAttribute = "integerAttr";
     updateAttributeValue(trackedEntity, trackedEntityAttribute, "");
 
     List<TrackedEntityChangeLog> changeLogs =
@@ -196,7 +203,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
   void shouldReturnChangeLogsWhenTrackedEntityAttributeValueIsUpdated()
       throws NotFoundException, ForbiddenException, BadRequestException {
     String trackedEntity = "QS6w44flWAf";
-    String trackedEntityAttribute = "numericAttr";
+    String trackedEntityAttribute = "integerAttr";
     String updatedValue = "100";
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
 
@@ -216,7 +223,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
   void shouldReturnChangeLogsWhenTrackedEntityAttributeValueIsUpdatedTwiceInARow()
       throws NotFoundException, ForbiddenException, BadRequestException {
     String trackedEntity = "QS6w44flWAf";
-    String trackedEntityAttribute = "numericAttr";
+    String trackedEntityAttribute = "integerAttr";
     String updatedValue = "100";
     String secondUpdatedValue = "200";
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
@@ -241,7 +248,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
   void shouldReturnChangeLogsWhenTrackedEntityAttributeValueIsCreatedUpdatedAndDeleted()
       throws NotFoundException, ForbiddenException, BadRequestException {
     String trackedEntity = "QS6w44flWAf";
-    String trackedEntityAttribute = "numericAttr";
+    String trackedEntityAttribute = "integerAttr";
     String updatedValue = "100";
     updateAttributeValue(trackedEntity, trackedEntityAttribute, updatedValue);
     updateAttributeValue(trackedEntity, trackedEntityAttribute, "");
@@ -264,7 +271,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
       throws NotFoundException, ForbiddenException, BadRequestException {
     String trackedEntity = "dUE514NMOlo";
     String program = "BFcipDERJnf";
-    String programAttribute = "fRGt4l6yIRb";
+    String programAttribute = "dIVt4l5vIOa";
 
     updateAttributeValue(trackedEntity, programAttribute, "updated program attribute value");
 
@@ -277,12 +284,10 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
         () ->
             assertUpdate(
                 programAttribute,
-                "program attribute value",
+                "Frank PTEA",
                 "updated program attribute value",
                 changeLogs.getItems().get(0)),
-        () ->
-            assertCreate(
-                programAttribute, "program attribute value", changeLogs.getItems().get(1)));
+        () -> assertCreate(programAttribute, "Frank PTEA", changeLogs.getItems().get(1)));
   }
 
   private static void assertNumberOfChanges(int expected, List<TrackedEntityChangeLog> changeLogs) {
@@ -298,6 +303,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
   private void assertCreate(
       String trackedEntityAttribute, String currentValue, TrackedEntityChangeLog changeLog) {
     assertAll(
+        "asserting create of tracked entity attribute " + trackedEntityAttribute,
         () -> assertUser(importUser, changeLog),
         () -> assertEquals("CREATE", changeLog.getChangeLogType().name()),
         () -> assertChange(trackedEntityAttribute, null, currentValue, changeLog));
@@ -309,6 +315,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
       String currentValue,
       TrackedEntityChangeLog changeLog) {
     assertAll(
+        "asserting update of tracked entity attribute " + trackedEntityAttribute,
         () -> assertUser(importUser, changeLog),
         () -> assertEquals("UPDATE", changeLog.getChangeLogType().name()),
         () -> assertChange(trackedEntityAttribute, previousValue, currentValue, changeLog));
@@ -317,6 +324,7 @@ class TrackedEntityChangeLogServiceTest extends PostgresIntegrationTestBase {
   private void assertDelete(
       String trackedEntityAttribute, String previousValue, TrackedEntityChangeLog changeLog) {
     assertAll(
+        "asserting delete of tracked entity attribute " + trackedEntityAttribute,
         () -> assertUser(importUser, changeLog),
         () -> assertEquals("DELETE", changeLog.getChangeLogType().name()),
         () -> assertChange(trackedEntityAttribute, previousValue, null, changeLog));

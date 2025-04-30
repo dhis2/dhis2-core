@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -71,8 +73,8 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationStore;
 import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.indicator.Indicator;
@@ -2540,7 +2542,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName(
       "EventChangeLogs with references to source DataElements are not changed or deleted when sources not deleted")
-  void eventChangeLogMergeTest() throws ConflictException, ForbiddenException, NotFoundException {
+  void eventChangeLogMergeTest() throws ConflictException, NotFoundException, BadRequestException {
     // given
     TrackedEntityType trackedEntityType = createTrackedEntityType('O');
     identifiableObjectManager.save(trackedEntityType);
@@ -2554,7 +2556,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     e.setAttributeOptionCombo(coc1);
     identifiableObjectManager.save(e);
     EventChangeLogOperationParams operationParams = EventChangeLogOperationParams.builder().build();
-    PageParams pageParams = new PageParams(1, 50, false);
+    PageParams pageParams = PageParams.of(1, 50, false);
 
     addEventChangeLog(e, deSource1, "1");
     addEventChangeLog(e, deSource1, "2");
@@ -2596,7 +2598,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   @DisplayName(
       "TrackedEntityChangeLogs with references to source DataElements are deleted when sources are deleted")
   void trackedEntityChangeLogMergeDeletedTest()
-      throws ConflictException, ForbiddenException, NotFoundException {
+      throws ConflictException, NotFoundException, BadRequestException {
     // given
     TrackedEntityType trackedEntityType = createTrackedEntityType('O');
     identifiableObjectManager.save(trackedEntityType);
@@ -2610,7 +2612,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     e.setAttributeOptionCombo(coc1);
     identifiableObjectManager.save(e);
     EventChangeLogOperationParams operationParams = EventChangeLogOperationParams.builder().build();
-    PageParams pageParams = new PageParams(1, 50, false);
+    PageParams pageParams = PageParams.of(1, 50, false);
 
     addEventChangeLog(e, deSource1, "1");
     addEventChangeLog(e, deSource1, "2");

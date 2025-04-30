@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -30,20 +32,16 @@ package org.hisp.dhis.webapi.openapi;
 import static java.lang.String.format;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toSet;
 
 import java.lang.reflect.Member;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
@@ -172,7 +170,7 @@ public class ApiIntegrator {
    * <p>All shared types are transferred to {@link Api.Components#getSchemas()}.
    */
   private void nameSharedSchemas() {
-    Map<String, List<Api.Schema>> sharedSchemasByName = new LinkedHashMap<>();
+    Map<String, List<Api.Schema>> sharedSchemasByName = new TreeMap<>();
     Consumer<Api.Schema> addSchema =
         schema ->
             sharedSchemasByName
@@ -227,7 +225,7 @@ public class ApiIntegrator {
    */
   private void nameSharedParameters() {
     Map<String, List<Map.Entry<Class<?>, List<Api.Parameter>>>> sharedParametersByName =
-        new HashMap<>();
+        new TreeMap<>();
     api.getComponents()
         .getParameters()
         .entrySet()
@@ -249,7 +247,7 @@ public class ApiIntegrator {
             params.get(0).getValue().forEach(p -> p.getSharedName().setValue(name));
           } else {
             // there might be a clash if a parameter name occurs in more than one
-            Set<String> usedNames = new HashSet<>();
+            Set<String> usedNames = new TreeSet<>();
             params.stream()
                 .flatMap(e -> e.getValue().stream())
                 .forEach(
@@ -285,9 +283,9 @@ public class ApiIntegrator {
           if (params.size() > 1) {
             List<Api.Parameter> paramsInNamespace =
                 params.stream().flatMap(e -> e.getValue().stream()).toList();
-            Set<String> names =
-                paramsInNamespace.stream().map(Api.Parameter::getName).collect(toSet());
-            if (paramsInNamespace.size() > names.size()) {
+            int names =
+                (int) paramsInNamespace.stream().map(Api.Parameter::getName).distinct().count();
+            if (paramsInNamespace.size() > names) {
               throw new IllegalStateException(createParamNameClashMessage(name, params));
             }
           }
@@ -344,16 +342,16 @@ public class ApiIntegrator {
     }
     Api.Schema input = Api.Schema.ofObject(output.getSource(), schemaType);
     output.getInput().setValue(input);
+    input.getDirection().setValue(Api.Schema.Direction.IN);
     if (output.isShared()) {
       String name = output.getSharedName().getValue() + "Params";
       Map<String, Api.Schema> schemas = api.getComponents().getSchemas();
       if (schemas.containsKey(name)) name = output.getSharedName().getValue() + "_Params";
       input.getSharedName().setValue(name);
       api.getGeneratorSchemas()
-          .computeIfAbsent(Api.Schema.Direction.class, k -> new ConcurrentHashMap<>())
+          .computeIfAbsent(Api.Schema.Direction.class, k -> newClassMap())
           .put(schemaType, input);
     }
-    input.getDirection().setValue(Api.Schema.Direction.IN);
     output.getProperties().stream()
         .filter(Api.Property::isInput)
         .forEach(p -> input.getProperties().add(p.withType(generateInputReferenceSchema(p))));
@@ -372,7 +370,7 @@ public class ApiIntegrator {
     Class<?> schemaType = of.getIdentifyAs();
     Api.Schema object = Api.Schema.ofObject(of.getSource(), schemaType);
     Map<Class<?>, Api.Schema> idSchemas =
-        api.getGeneratorSchemas().computeIfAbsent(UID.class, key -> new ConcurrentHashMap<>());
+        api.getGeneratorSchemas().computeIfAbsent(UID.class, key -> newClassMap());
 
     Api.Schema idType =
         idSchemas.computeIfAbsent(
@@ -384,6 +382,11 @@ public class ApiIntegrator {
             });
     object.addProperty(new Api.Property(null, "id", true, idType));
     return object;
+  }
+
+  @Nonnull
+  private static <T> TreeMap<Class<?>, T> newClassMap() {
+    return new TreeMap<>(comparing(Class::getName));
   }
 
   /*
@@ -550,7 +553,7 @@ public class ApiIntegrator {
     if (endpoints.size() == 1) return Map.of("", endpoints.get(0));
 
     Api.Endpoint defaultEndpoint = getDefaultEndpoint(endpoints);
-    Map<String, Api.Endpoint> endpointsByFragment = new HashMap<>();
+    Map<String, Api.Endpoint> endpointsByFragment = new TreeMap<>();
     for (Api.Endpoint endpoint : endpoints) {
       if (!endpoint.equals(defaultEndpoint)) {
         if (isMergeable(endpoint, defaultEndpoint)) {

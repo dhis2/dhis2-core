@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -32,6 +34,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.FlushMode;
@@ -48,6 +51,11 @@ import org.hisp.dhis.tracker.imports.bundle.TrackerBundleMode;
 @AllArgsConstructor
 @Builder
 public class ImportRequestParams {
+  public static final String OPENAPI_DESCRIPTION_ASYNC =
+"""
+Tracker data is imported asynchronously by default (as with `async=true`). Asynchronous imports get a `WebMessage` response with a URL to the job executing the import. Check the job status by following the `response.location` URL. Set `async=true` to import synchronously in which case the response will be the `ImportReport`. Prefer asynchronous imports for large data sets.
+""";
+
   /** Should import be imported or just validated. */
   @JsonProperty @Builder.Default private TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
 
@@ -63,6 +71,11 @@ public class ImportRequestParams {
 
   /** Validation mode to use, defaults to fully validated objects. */
   @JsonProperty @Builder.Default private ValidationMode validationMode = ValidationMode.FULL;
+
+  @OpenApi.Description(OPENAPI_DESCRIPTION_ASYNC)
+  @JsonProperty
+  @Builder.Default
+  private boolean async = true;
 
   /** Should text pattern validation be skipped or not, default is not. */
   @JsonProperty @Builder.Default private boolean skipPatternValidation = false;

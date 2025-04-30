@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -75,6 +77,8 @@ import org.hisp.dhis.analytics.common.InQueryCteFilter;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.util.sql.Condition;
@@ -102,7 +106,6 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -117,6 +120,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.InvalidResultSetAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 import org.springframework.stereotype.Service;
 
 /**
@@ -148,23 +152,25 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       ProgramIndicatorService programIndicatorService,
       ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
+      PiDisagInfoInitializer piDisagInfoInitializer,
+      PiDisagQueryGenerator piDisagQueryGenerator,
       EnrollmentTimeFieldSqlRenderer timeFieldSqlRenderer,
       ExecutionPlanStore executionPlanStore,
       SystemSettingsService settingsService,
       DhisConfigurationProvider config,
-      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder,
-      @Qualifier("postgresAnalyticsSqlBuilder") AnalyticsSqlBuilder analyticsSqlBuilder,
+      AnalyticsSqlBuilder sqlBuilder,
       OrganisationUnitResolver organisationUnitResolver) {
     super(
         jdbcTemplate,
         programIndicatorService,
         programIndicatorSubqueryBuilder,
+        piDisagInfoInitializer,
+        piDisagQueryGenerator,
         executionPlanStore,
         sqlBuilder,
         settingsService,
         config,
-        organisationUnitResolver,
-        analyticsSqlBuilder);
+        organisationUnitResolver);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
@@ -203,6 +209,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     log.debug("Analytics enrollment query SQL: '{}'", sql);
 
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
+    List<String> columnLabels = getColumnLabels(rowSet);
 
     int rowsRed = 0;
 
@@ -229,7 +236,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
         if (params.isRowContext()) {
           addValueOriginInfo(grid, rowSet, grid.getHeaders().get(i).getName());
-          columnOffset += getRowSetOriginItems(rowSet, grid.getHeaders().get(i).getName());
+          columnOffset += getRowSetOriginItems(columnLabels, grid.getHeaders().get(i).getName());
         }
       }
     }
@@ -238,18 +245,19 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   /**
    * Retrieves the amount of the supportive columns in database result set.
    *
-   * @param rowSet {@link SqlRowSet}.
+   * @param columns List of columns from a {@link SqlRowSet}.
    * @param columnName The name of the investigated column.
    * @return if the investigated column has some supportive columns like .exists or .status, the
    *     count of the columns is returned.
    */
-  private long getRowSetOriginItems(SqlRowSet rowSet, String columnName) {
-    return Arrays.stream(rowSet.getMetaData().getColumnNames())
-        .filter(
-            c ->
-                c.equalsIgnoreCase(columnName + ".exists")
-                    || c.equalsIgnoreCase(columnName + ".status"))
-        .count();
+  private int getRowSetOriginItems(List<String> columns, String columnName) {
+    return (int)
+        columns.stream()
+            .filter(
+                c ->
+                    c.equalsIgnoreCase(columnName + ".exists")
+                        || c.equalsIgnoreCase(columnName + ".status"))
+            .count();
   }
 
   /**
@@ -430,7 +438,11 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     for (DimensionalObject dim : dynamicDimensions) {
       if (!isAttributeCategory(dim)) {
-        String col = quoteAlias(dim.getDimensionName());
+        String dimName = dim.getDimensionName();
+        String col =
+            params.isPiDisagDimension(dimName)
+                ? piDisagQueryGenerator.getColumnForWhereClause(params, dimName)
+                : quoteAlias(dimName);
 
         sql +=
             "and " + col + " in (" + getQuotedCommaDelimitedString(getUids(dim.getItems())) + ") ";
@@ -635,7 +647,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   private Condition buildInFilterCondition(
       QueryFilter filter, QueryItem item, CteDefinition cteDef) {
     InQueryCteFilter inQueryCteFilter =
-        new InQueryCteFilter("value", filter.getFilter(), item.isText(), cteDef);
+        new InQueryCteFilter("value", filter.getFilter(), !item.isNumeric(), cteDef);
 
     return Condition.raw(
         inQueryCteFilter.getSqlFilter(computeRowNumberOffset(item.getProgramStageOffset())));
@@ -1788,5 +1800,24 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         sb.groupBy(col);
       }
     }
+  }
+
+  /**
+   * Returns a list of column labels from the given {@link SqlRowSet}. The JDBC-compliant way of
+   * getting the alias of a column, is by calling ResultSetMetaData.getColumnLabel().
+   *
+   * @param rowSet the {@link SqlRowSet} to extract column labels from
+   * @return a list of column labels
+   */
+  private List<String> getColumnLabels(SqlRowSet rowSet) {
+    SqlRowSetMetaData metaData = rowSet.getMetaData();
+    int columnCount = metaData.getColumnCount();
+
+    List<String> columnLabels = new ArrayList<>();
+    for (int i = 1; i <= columnCount; i++) {
+      columnLabels.add(metaData.getColumnLabel(i));
+    }
+
+    return columnLabels;
   }
 }

@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -46,7 +48,6 @@ import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.webapi.mvc.CurrentSystemSettingsHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
-import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.SystemSettingsInterceptor;
@@ -167,14 +168,8 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     return new StandardServletMultipartResolver();
   }
 
-  @Bean
-  public DhisApiVersionHandlerMethodArgumentResolver dhisApiVersionHandlerMethodArgumentResolver() {
-    return new DhisApiVersionHandlerMethodArgumentResolver();
-  }
-
   @Override
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-    resolvers.add(dhisApiVersionHandlerMethodArgumentResolver());
     resolvers.add(currentUserHandlerMethodArgumentResolver);
     resolvers.add(currentSystemSettingsHandlerMethodArgumentResolver);
   }
@@ -243,7 +238,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Override
   public ContentNegotiationManager mvcContentNegotiationManager() {
     CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy =
-        new CustomPathExtensionContentNegotiationStrategy(mediaTypeMap);
+        new CustomPathExtensionContentNegotiationStrategy(MEDIA_TYPE_MAP);
     pathExtensionNegotiationStrategy.setUseRegisteredExtensionsOnly(true);
 
     return new ContentNegotiationManager(
@@ -284,7 +279,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
         .mediaType("xml", MediaType.APPLICATION_XML);
   }
 
-  private Map<String, MediaType> mediaTypeMap =
+  public static final Map<String, MediaType> MEDIA_TYPE_MAP =
       new ImmutableMap.Builder<String, MediaType>()
           .put("json", MediaType.APPLICATION_JSON)
           .put("json.gz", parseMediaType("application/json+gzip"))

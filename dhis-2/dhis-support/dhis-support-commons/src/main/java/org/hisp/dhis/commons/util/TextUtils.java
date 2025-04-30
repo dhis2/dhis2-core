@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -41,7 +43,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.common.RegexUtils;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -546,14 +547,61 @@ public class TextUtils {
   /**
    * Replaces variables in the given template string with the given variable values.
    *
-   * @param template the template string.
-   * @param variables the map of variables and values.
-   * @return a resolved string.
+   * <p>Variables placeholders must use <code>${name}</code> or <code>${name:default}</code>.
+   *
+   * <p>If no closing curly bracket is present this is not a placeholder and left as is. A variable
+   * value can be any value except null. Replacement is not recursive.
+   *
+   * @param template a template with zero to many placeholders
+   * @param variables the map of variables to substitute placeholders with
+   * @return the substituted template string
+   * @throws IllegalArgumentException when a placeholder has no non-null value in the variables map
+   *     and no default in the template
+   * @implNote The behaviour of this implementation is inspired by apache {@code
+   *     StringSubstitutor#replace} but stripped down to the minimum features of one-pass named
+   *     variable replacement with defaults. This is to avoid accidental collisions with advanced
+   *     features and to avoid the overhead that comes with the apache implementation because of the
+   *     advanced features that are not used but paid for.
    */
-  public static String replace(String template, Map<String, String> variables) {
-    return new StringSubstitutor(variables)
-        .setEnableUndefinedVariableException(true)
-        .replace(template);
+  public static String replace(String template, Map<String, String> variables)
+      throws IllegalArgumentException {
+    StringBuilder res = new StringBuilder();
+    int length = template.length();
+    for (int i = 0; i < length; i++) {
+      char current = template.charAt(i);
+      if (current == '$' && i + 1 < length) {
+        char nextChar = template.charAt(i + 1);
+        // Handle ${variable} substitution
+        if (nextChar == '{') {
+          int startVar = i + 2;
+          int endBrace = template.indexOf('}', startVar);
+          if (endBrace == -1) {
+            // Unterminated ${... is treated as literal
+            res.append(template, i, length);
+            return res.toString();
+          }
+          int startDefault = template.indexOf(':', startVar);
+          int endVar = (startDefault > 0 && startDefault < endBrace) ? startDefault : endBrace;
+          String varName = template.substring(startVar, endVar);
+          String value = variables.get(varName);
+          if (value == null && startDefault < 0)
+            throw new IllegalArgumentException("Undefined variable: " + varName);
+          if (value != null) {
+            res.append(value);
+          } else {
+            res.append(template, startDefault + 1, endBrace);
+          }
+          i = endBrace; // Jump to the closing brace
+        } else {
+          // Lone '$' (not part of ${) is kept as-is
+          res.append('$');
+        }
+      } else {
+        // Regular character (not part of $ pattern)
+        res.append(current);
+      }
+    }
+    return res.toString();
   }
 
   /**

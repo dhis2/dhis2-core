@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -48,7 +50,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.statistics.StatisticsProvider;
-import org.hisp.dhis.system.SystemInfo;
+import org.hisp.dhis.system.SystemInfo.SystemInfoForDataStats;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInvitationStatus;
@@ -243,6 +245,29 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
         30, (long) idObjectManager.getCountByLastUpdated(Event.class, todayMinusDays(30)));
     statistics.setEventCount(eventCount);
 
+    Map<Integer, Long> enrollmentCount = new HashMap<>();
+    enrollmentCount.put(
+        0,
+        (long)
+            idObjectManager.getCountByLastUpdated(
+                org.hisp.dhis.program.Enrollment.class, todayMinusDays(0)));
+    enrollmentCount.put(
+        1,
+        (long)
+            idObjectManager.getCountByLastUpdated(
+                org.hisp.dhis.program.Enrollment.class, todayMinusDays(1)));
+    enrollmentCount.put(
+        7,
+        (long)
+            idObjectManager.getCountByLastUpdated(
+                org.hisp.dhis.program.Enrollment.class, todayMinusDays(7)));
+    enrollmentCount.put(
+        30,
+        (long)
+            idObjectManager.getCountByLastUpdated(
+                org.hisp.dhis.program.Enrollment.class, todayMinusDays(30)));
+    statistics.setEnrollmentCount(enrollmentCount);
+
     statistics.setSystem(getDhis2Info());
 
     return statistics;
@@ -272,13 +297,13 @@ public class DefaultDataStatisticsService implements DataStatisticsService {
   }
 
   private Dhis2Info getDhis2Info() {
-    SystemInfo system = systemService.getSystemInfo();
+    SystemInfoForDataStats system = systemService.getSystemInfoForDataStats();
 
     return new Dhis2Info()
-        .setVersion(system.getVersion())
-        .setRevision(system.getRevision())
-        .setBuildTime(system.getBuildTime())
-        .setSystemId(system.getSystemId())
-        .setServerDate(system.getServerDate());
+        .setVersion(system.version())
+        .setRevision(system.revision())
+        .setBuildTime(system.buildTime())
+        .setSystemId(system.id())
+        .setServerDate(system.serverDate());
   }
 }

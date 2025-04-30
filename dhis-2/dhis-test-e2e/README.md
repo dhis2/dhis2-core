@@ -23,6 +23,13 @@ mvn test \
     -Dtest.track_called_endpoints=true
 ```
 
+### Selenium Grid and CPU architecture
+
+When running docker compose locally on MacOS with M1/M2/M3..., you need to use the Selenium Grid image for ARM64 architecture. 
+The image is `seleniarm/standalone-chromium`. The "default" image for x86 architecture is `selenium/standalone-chrome`.
+Change the `SELENIUM_IMAGE` environment variable to use the ARM64 image.
+
+
 ### Inside Docker
 
 The following describes 2 options for you to run and test DHIS2 using Docker. Refer to [Run DHIS2 in
@@ -33,7 +40,7 @@ Docker](../../README.md#run-dhis2-in-docker) on how to build or pick a Docker im
 If you only want to run DHIS2 in Docker but the tests outside of Docker do
 
 ```sh
-docker compose up --detach
+SELENIUM_IMAGE=selenium/standalone-chrome:latest docker compose up --detach
 ```
 
 Note: `--detach` will run the containers in the background. If you can open a separate terminal
@@ -57,7 +64,7 @@ mvn test \
 If you want to run both DHIS2 and the tests inside Docker
 
 ```sh
-docker compose -f docker-compose.yml -f docker-compose.e2e.yml up --exit-code-from test
+SELENIUM_IMAGE=selenium/standalone-chrome:latest docker compose -f docker-compose.yml -f docker-compose.e2e.yml up --exit-code-from test
 ```
 
 Note: running everything outside of Docker will be faster. Option 1. has the advantage of running
@@ -103,7 +110,7 @@ If e2e tests fail on GitHub/Jenkins a few things might help figuring out what's 
 Logs can be retrieved from both `web` and `db` containers. Like so
 
 ```sh
-docker compose logs web
+SELENIUM_IMAGE=selenium/standalone-chrome:latest docker compose logs web
 ```
 
 Check our pipeline code for where the logs are uploaded. We usually store them as pipeline
@@ -117,7 +124,7 @@ dhis2/core-pr](https://hub.docker.com/r/dhis2/core-pr/tags).
 To run PR [12065](https://github.com/dhis2/dhis2-core/pull/12065) locally you need to run
 
 ```sh
-DHIS2_IMAGE=dhis2/core-pr:12065 docker compose -f docker-compose.yml -f docker-compose.e2e.yml up --exit-code-from test
+SELENIUM_IMAGE=selenium/standalone-chrome:latest DHIS2_IMAGE=dhis2/core-pr:12065 docker compose -f docker-compose.yml -f docker-compose.e2e.yml up --exit-code-from test
 ```
 
 Note that the PR number `12065` is the id at the end of the PR url https://github.com/dhis2/dhis2-core/pull/12065
@@ -152,9 +159,25 @@ For convenience, every REST endpoint should be represented by object of type Res
 
  > private RestApiActions optionSetActions = new RestApiActions("/optionSets");
 
-### Connecting to Selenium Grid (for debugging)
+## Test with Selenium Grid (without docker compose) locally on MacOS (using Docker) native silicon M1/M2/M3... image
 
-http://selenium:7900/?autoconnect=1&resize=scale&password=secret
+1. Start the DHIS2 server locally on port 8080
+
+2. Start the Selenium Grid locally on port 4444 and 7900:
+
+```
+docker run -d \
+-p 4444:4444 -p 7900:7900 \
+--shm-size="2g" \
+seleniarm/standalone-chromium
+```
+
+3. In the tests you must substitute the host URL with "http://host.docker.internal:8080/" instead
+   of "http://localhost:8080/", since the DHIS2 server is running outside the container, on the host.
+
+### Connecting to Selenium Grid VNC (for debugging)
+
+http://localhost:7900/?autoconnect=1&resize=scale&password=secret
 
 ## Auto-generating analytics tests
 

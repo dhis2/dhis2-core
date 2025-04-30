@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -52,7 +54,7 @@ import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SystemSettings;
-import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.setting.SystemSettingsService;
 
 /**
  * Implements the {@link Notifier} API on top of a {@link NotifierStore}.
@@ -80,7 +82,7 @@ public class DefaultNotifier implements Notifier {
 
   private final NotifierStore store;
   private final ObjectMapper jsonMapper;
-  private final SystemSettingsProvider settingsProvider;
+  private final SystemSettingsService settingsService;
   private final LongSupplier clock;
   private final BlockingQueue<Entry<UID, Notification>> pushToStore;
   private final AtomicBoolean cleaning = new AtomicBoolean();
@@ -92,13 +94,13 @@ public class DefaultNotifier implements Notifier {
   public DefaultNotifier(
       NotifierStore store,
       ObjectMapper jsonMapper,
-      SystemSettingsProvider settingsProvider,
+      SystemSettingsService settingsService,
       LongSupplier clock) {
     this.store = store;
     this.jsonMapper = jsonMapper;
-    this.settingsProvider = settingsProvider;
+    this.settingsService = settingsService;
     this.clock = clock;
-    SystemSettings settings = settingsProvider.getCurrentSettings();
+    SystemSettings settings = settingsService.getCurrentSettings();
     this.maxMessagesPerJob = settings.getNotifierMaxMessagesPerJob();
     this.cleanAfterIdleTime = settings.getNotifierCleanAfterIdleTime();
     this.settingsSince = currentTimeMillis();
@@ -176,7 +178,7 @@ public class DefaultNotifier implements Notifier {
   private void asyncAutomaticCleanup() {
     cleaning.set(true);
     try {
-      SystemSettings settings = settingsProvider.getCurrentSettings();
+      SystemSettings settings = settingsService.getCurrentSettings();
       store.capMaxAge(settings.getNotifierMaxAgeDays());
       store.capMaxCount(settings.getNotifierMaxJobsPerType());
     } finally {
@@ -188,7 +190,9 @@ public class DefaultNotifier implements Notifier {
   private int getMaxMessagesPerJob() {
     long now = currentTimeMillis();
     if (now - settingsSince > 10_000) {
-      SystemSettings settings = settingsProvider.getCurrentSettings();
+      settingsService
+          .clearCurrentSettings(); // since this is in its own worder we have to clear it to refresh
+      SystemSettings settings = settingsService.getCurrentSettings();
       maxMessagesPerJob = settings.getNotifierMaxMessagesPerJob();
       cleanAfterIdleTime = settings.getNotifierCleanAfterIdleTime();
       settingsSince = now;
@@ -257,7 +261,7 @@ public class DefaultNotifier implements Notifier {
 
   @Override
   public Map<String, Deque<Notification>> getNotificationsByJobType(JobType jobType, Boolean gist) {
-    if (gist == null) gist = settingsProvider.getCurrentSettings().isNotifierGistOverview();
+    if (gist == null) gist = settingsService.getCurrentSettings().isNotifierGistOverview();
     BiFunction<JobType, UID, Deque<Notification>> read =
         gist ? this::getGistNotificationsByJobId : this::getAllNotificationsByJobId;
     Map<String, Deque<Notification>> res = new LinkedHashMap<>();

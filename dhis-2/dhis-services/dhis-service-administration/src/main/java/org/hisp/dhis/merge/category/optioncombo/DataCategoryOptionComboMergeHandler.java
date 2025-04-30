@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -43,7 +45,7 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataapproval.DataApproval;
@@ -115,12 +117,12 @@ public class DataCategoryOptionComboMergeHandler {
     if (DISCARD == mergeRequest.getDataMergeStrategy()) {
       log.info("Deleting source data approvals as dataMergeStrategy is DISCARD");
       dataApprovalStore.deleteByCategoryOptionCombo(
-          UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
+          UID.of(sources.stream().map(IdentifiableObject::getUid).toList()));
     } else {
       log.info("Merging source data approvals as dataMergeStrategy is LAST_UPDATED");
       List<DataApproval> sourceDas =
           dataApprovalStore.getByCategoryOptionCombo(
-              UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
+              UID.of(sources.stream().map(IdentifiableObject::getUid).toList()));
 
       // sort into duplicate & non-duplicates
       // get map of target data approvals, using the duplicate key constraints as the key
@@ -182,7 +184,7 @@ public class DataCategoryOptionComboMergeHandler {
       log.info("Merging source events as dataMergeStrategy is LAST_UPDATED");
 
       eventStore.setAttributeOptionCombo(
-          sources.stream().map(BaseIdentifiableObject::getId).collect(Collectors.toSet()),
+          sources.stream().map(IdentifiableObject::getId).collect(Collectors.toSet()),
           target.getId());
     }
   }
@@ -206,7 +208,7 @@ public class DataCategoryOptionComboMergeHandler {
       // get CDSRs from sources
       List<CompleteDataSetRegistration> sourceCdsr =
           completeDataSetRegistrationStore.getAllByCategoryOptionCombo(
-              UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
+              UID.of(sources.stream().map(IdentifiableObject::getUid).toList()));
 
       // get map of target cdsr, using the duplicate key constraints as the key
       Map<String, CompleteDataSetRegistration> targetcdsr =
@@ -338,7 +340,7 @@ public class DataCategoryOptionComboMergeHandler {
 
     // delete the rest of the source data values after handling the last update duplicate
     dataApprovalStore.deleteByCategoryOptionCombo(
-        UID.of(sources.stream().map(BaseIdentifiableObject::getUid).toList()));
+        UID.of(sources.stream().map(IdentifiableObject::getUid).toList()));
   }
 
   /**

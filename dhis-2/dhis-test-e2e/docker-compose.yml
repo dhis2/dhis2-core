@@ -58,3 +58,8 @@ services:
       MINIO_ROOT_USER: root
       MINIO_ROOT_PASSWORD: dhisdhis
 
+  selenium:
+    image: "${SELENIUM_IMAGE:-selenium/standalone-chrome:latest}"
+    ports:
+      - "4444"
+      - "7900"

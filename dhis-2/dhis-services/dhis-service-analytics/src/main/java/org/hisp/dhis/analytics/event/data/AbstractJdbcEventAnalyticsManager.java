@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -61,7 +63,9 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
+import static org.hisp.dhis.commons.collection.ListUtils.union;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.feedback.ErrorCode.E7149;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
@@ -100,6 +104,9 @@ import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagDataHandler;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.analytics.util.sql.SqlConditionJoiner;
 import org.hisp.dhis.common.DimensionType;
@@ -122,7 +129,6 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
-import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
@@ -165,24 +171,26 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   private static final Collector<CharSequence, ?, String> AND_JOINER = joining(AND);
 
-  @Qualifier("analyticsJdbcTemplate")
+  @Qualifier("analyticsReadOnlyJdbcTemplate")
   protected final JdbcTemplate jdbcTemplate;
 
   protected final ProgramIndicatorService programIndicatorService;
 
   protected final ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder;
 
+  protected final PiDisagInfoInitializer piDisagInfoInitializer;
+
+  protected final PiDisagQueryGenerator piDisagQueryGenerator;
+
   protected final ExecutionPlanStore executionPlanStore;
 
-  protected final SqlBuilder sqlBuilder;
+  protected final AnalyticsSqlBuilder sqlBuilder;
 
   protected final SystemSettingsService settingsService;
 
   private final DhisConfigurationProvider config;
 
   private final OrganisationUnitResolver organisationUnitResolver;
-
-  private final AnalyticsSqlBuilder analyticsSqlBuilder;
 
   /**
    * Returns a SQL paging clause.
@@ -551,12 +559,15 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   @Transactional(readOnly = true, propagation = REQUIRES_NEW)
-  public Grid getAggregatedEventData(EventQueryParams params, Grid grid, int maxLimit) {
+  public Grid getAggregatedEventData(EventQueryParams passedParams, Grid grid, int maxLimit) {
+    EventQueryParams params = piDisagInfoInitializer.getParamsWithDisaggregationInfo(passedParams);
     String aggregateClause = getAggregateClause(params);
-    String columns = StringUtils.join(getSelectColumns(params, true), ",");
+    List<String> columns =
+        union(getSelectColumns(params, true), piDisagQueryGenerator.getCocSelectColumns(params));
 
     String sql =
-        TextUtils.removeLastComma("select " + aggregateClause + " as value," + columns + " ");
+        TextUtils.removeLastComma(
+            "select " + aggregateClause + " as value," + StringUtils.join(columns, ",") + " ");
 
     // ---------------------------------------------------------------------
     // Criteria
@@ -598,7 +609,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // ---------------------------------------------------------------------
 
     final String finalSqlValue = sql;
-
     if (params.analyzeOnly()) {
       withExceptionHandling(
           () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), finalSqlValue));
@@ -620,7 +630,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     String sql = "";
 
     if (params.isAggregation()) {
-      List<String> selectColumnNames = getGroupByColumnNames(params, true);
+      List<String> selectColumnNames =
+          union(
+              getGroupByColumnNames(params, true),
+              piDisagQueryGenerator.getCocColumnsForGroupBy(params));
 
       if (isNotEmpty(selectColumnNames)) {
         sql += "group by " + getCommaDelimitedString(selectColumnNames) + " ";
@@ -636,13 +649,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
     while (rowSet.next()) {
-      grid.addRow();
+      List<Object> row = new ArrayList<>();
 
       if (params.isAggregateData()) {
         if (params.hasValueDimension()) {
-          grid.addValue(getItemId(params));
+          row.add(getItemId(params));
         } else if (params.hasProgramIndicatorDimension()) {
-          grid.addValue(params.getProgramIndicator().getUid());
+          row.add(params.getProgramIndicator().getUid());
         }
       } else {
         for (QueryItem queryItem : params.getItems()) {
@@ -660,7 +673,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                   : itemName;
 
           if (params.getOutputIdScheme() == null || params.getOutputIdScheme() == IdScheme.NAME) {
-            grid.addValue(itemValue);
+            row.add(itemValue);
           } else {
             String value = null;
 
@@ -676,36 +689,43 @@ public abstract class AbstractJdbcEventAnalyticsManager {
               }
             }
 
-            grid.addValue(value == null ? itemValue : value);
+            row.add(value == null ? itemValue : value);
           }
         }
       }
 
       for (DimensionalObject dimension : params.getDimensions()) {
         String dimensionValue = rowSet.getString(dimension.getDimensionName());
-        grid.addValue(dimensionValue);
+        row.add(dimensionValue);
       }
 
       if (params.hasValueDimension()) {
         if (params.hasTextValueDimension()) {
           String value = rowSet.getString(COL_VALUE);
-          grid.addValue(value);
+          row.add(value);
         } else // Numeric
         {
           double value = rowSet.getDouble(COL_VALUE);
-          grid.addValue(params.isSkipRounding() ? value : getRounded(value));
+          row.add(params.isSkipRounding() ? value : getRounded(value));
         }
       } else if (params.hasProgramIndicatorDimension()) {
         double value = rowSet.getDouble(COL_VALUE);
         ProgramIndicator indicator = params.getProgramIndicator();
-        grid.addValue(AnalyticsUtils.getRoundedValue(params, indicator.getDecimals(), value));
+        row.add(AnalyticsUtils.getRoundedValue(params, indicator.getDecimals(), value));
       } else {
         int value = rowSet.getInt(COL_VALUE);
-        grid.addValue(value);
+        row.add(value);
       }
 
       if (params.isIncludeNumDen()) {
-        grid.addNullValues(NUMERATOR_DENOMINATOR_PROPERTIES_COUNT);
+        for (int i = 0; i < NUMERATOR_DENOMINATOR_PROPERTIES_COUNT; i++) {
+          row.add(null);
+        }
+      }
+
+      if (PiDisagDataHandler.addCocAndAoc(params, grid, row, rowSet)) {
+        grid.addRow();
+        grid.addValuesAsList(row);
       }
     }
   }
@@ -736,6 +756,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   protected String getAggregateClause(EventQueryParams params) {
     // TODO include output type if aggregation type is count
+
+    // If no aggregation type is set for this event data item and no override aggregation type is
+    // set
+    // no need to continue and skip aggregation all together by returning NULL
+    if (hasNoAggregationType(params)) {
+      return "null";
+    }
 
     EventOutputType outputType = params.getOutputType();
 
@@ -949,6 +976,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           .getOrgUnitField()
           .withSqlBuilder(sqlBuilder)
           .getOrgUnitGroupSetCol(col, getAnalyticsType(), isGroupByClause);
+    } else if (params.isPiDisagDimension(col)) {
+      return piDisagQueryGenerator.getColumnForSelectOrGroupBy(params, col, isGroupByClause);
     } else {
       return quoteAlias(col);
     }
@@ -1080,7 +1109,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         grid.addValue(json);
       }
     } else if (header.getValueType() == ValueType.DATETIME) {
-      grid.addValue(analyticsSqlBuilder.renderTimestamp(sqlRowSet.getString(index)));
+      grid.addValue(sqlBuilder.renderTimestamp(sqlRowSet.getString(index)));
     } else {
       grid.addValue(StringUtils.trimToNull(sqlRowSet.getString(index)));
     }
@@ -1503,7 +1532,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @return true if the experimental analytics query engine should be used, false otherwise.
    */
   protected boolean useExperimentalAnalyticsQueryEngine() {
-    return this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine();
+    String analyticsDatabase = config.getPropertyOrDefault(ANALYTICS_DATABASE, "").trim();
+    return "doris".equalsIgnoreCase(analyticsDatabase)
+        || "clickhouse".equalsIgnoreCase(analyticsDatabase)
+        || this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine();
   }
 
   /**
@@ -1597,4 +1629,26 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @return the {@link AnalyticsType}.
    */
   protected abstract AnalyticsType getAnalyticsType();
+
+  /**
+   * Check if the aggregation type is NONE on both the param value's aggregation type and the
+   * EventQueryParams aggregation type (in case of aggregation type override).
+   *
+   * @param params the {@link EventQueryParams}.
+   * @return true if the aggregation type is NONE on both the param value's aggregation type
+   */
+  private boolean hasNoAggregationType(EventQueryParams params) {
+    if (params.getValue() == null) {
+      return false;
+    }
+
+    // Check if there's an explicit aggregation type override
+    if (params.getAggregationType() != null) {
+      // If the override is NOT NONE, return false
+      return params.getAggregationType().getAggregationType() == AggregationType.NONE;
+    }
+
+    // No override exists, so check the value's aggregation type
+    return params.getValue().getAggregationType() == AggregationType.NONE;
+  }
 }

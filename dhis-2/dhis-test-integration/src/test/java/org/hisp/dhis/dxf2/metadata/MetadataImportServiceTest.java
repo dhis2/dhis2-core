@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -997,12 +999,12 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
     ImportReport report = importService.importMetadata(params, new MetadataObjects(metadata));
     TypeReport typeReport = report.getTypeReport(AggregateDataExchange.class);
 
-    assertNotNull(report.getStats());
+    assertNotNull(report.getAccumulatedStats());
     assertNotNull(typeReport);
     assertEquals(Status.OK, report.getStatus(), report.toString());
     assertEquals(0, report.getErrorReportsCount());
-    assertEquals(6, report.getStats().getCreated());
-    assertEquals(3, typeReport.getStats().getCreated());
+    assertEquals(6, report.getAccumulatedStats().created());
+    assertEquals(3, typeReport.getStats().created());
 
     AggregateDataExchange aeA = manager.get(AggregateDataExchange.class, "iFOyIpQciyk");
     assertNotNull(aeA);

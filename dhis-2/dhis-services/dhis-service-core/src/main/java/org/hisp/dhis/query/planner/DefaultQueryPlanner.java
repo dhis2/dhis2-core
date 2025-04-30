@@ -4,14 +4,16 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
  * list of conditions and the following disclaimer.
  *
- * Redistributions in binary form must reproduce the above copyright notice,
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -70,10 +72,8 @@ public class DefaultQueryPlanner implements QueryPlanner {
   private void autoFill(Query<?> query) {
     Schema schema = schemaService.getDynamicSchema(query.getObjectType());
     if (query.isDefaultOrders()) {
-      if (schema.hasPersistedProperty("name"))
-        query.addOrder(Order.iasc(schema.getPersistedProperty("name")));
-      if (schema.hasPersistedProperty("id"))
-        query.addOrder(Order.asc(schema.getPersistedProperty("id")));
+      if (schema.hasPersistedProperty("name")) query.addOrder(Order.iasc("name"));
+      if (schema.hasPersistedProperty("id")) query.addOrder(Order.asc("id"));
     }
     query.setShortNamePersisted(schema.hasPersistedProperty("shortName"));
   }
@@ -103,7 +103,13 @@ public class DefaultQueryPlanner implements QueryPlanner {
       memoryQuery.getFilters().addAll(query.getFilters());
     }
 
-    if (query.ordersPersisted()) {
+    Schema schema = schemaService.getDynamicSchema(query.getObjectType());
+    boolean dbOrdering =
+        query.getOrders().stream()
+            .map(Order::getProperty)
+            .map(schema::getProperty)
+            .allMatch(p -> p != null && p.isPersisted() && p.isSimple());
+    if (dbOrdering) {
       dbQuery.addOrders(query.getOrders());
       memoryQuery.clearOrders();
     }
