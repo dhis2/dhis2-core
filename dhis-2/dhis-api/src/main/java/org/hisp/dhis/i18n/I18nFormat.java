@@ -33,9 +33,7 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.temporal.WeekFields;
 import java.util.Date;
 import java.util.List;
@@ -55,7 +53,6 @@ import org.hisp.dhis.period.WeeklySaturdayPeriodType;
 import org.hisp.dhis.period.WeeklySundayPeriodType;
 import org.hisp.dhis.period.WeeklyThursdayPeriodType;
 import org.hisp.dhis.period.WeeklyWednesdayPeriodType;
-import org.joda.time.DateTime;
 
 /**
  * @author Pham Thi Thuy
@@ -272,45 +269,35 @@ public class I18nFormat {
 
     PeriodType periodType = period.getPeriodType();
     String typeName = periodType.getName();
+    Calendar calendar = PeriodType.getCalendar();
 
-    if (periodType instanceof WeeklyAbstractPeriodType) // Use ISO dates
-    // due to
-    // potential week
-    // confusion
-    {
-      DateTime dateTime = new DateTime(period.getStartDate());
-      LocalDate startDate =
-          Instant.ofEpochMilli(period.getStartDate().getTime())
-              .atZone(ZoneId.systemDefault())
-              .toLocalDate();
-      LocalDate endDate =
-          Instant.ofEpochMilli(period.getEndDate().getTime())
-              .atZone(ZoneId.systemDefault())
-              .toLocalDate();
-      WeekFields weekFields = WeekFields.of(PeriodType.MAP_WEEK_TYPE.get(periodType.getName()), 4);
-      String year = String.valueOf(startDate.get(weekFields.weekBasedYear()));
-      String week = String.valueOf(startDate.get(weekFields.weekOfWeekBasedYear()));
+    if (periodType instanceof WeeklyAbstractPeriodType) {
+      DateTimeUnit start;
+      DateTimeUnit end;
 
-      if (isWeeklyPeriodType(periodType)) {
-        return String.format(
-            shortVersion
-                ? "W%s %d-%02d-%02d - %d-%02d-%02d"
-                : "Week %s %d-%02d-%02d - %d-%02d-%02d",
-            week,
-            startDate.getYear(),
-            startDate.getMonth().getValue(),
-            startDate.getDayOfMonth(),
-            endDate.getYear(),
-            endDate.getMonth().getValue(),
-            endDate.getDayOfMonth());
+      if (calendar.isIso8601()) {
+        start = DateTimeUnit.fromJdkDate(period.getStartDate());
+        end = DateTimeUnit.fromJdkDate(period.getEndDate());
+
+      } else {
+        start = calendar.fromIso(period.getStartDate());
+        end = calendar.fromIso(period.getEndDate());
       }
 
-      year += dateTime.dayOfWeek().getAsShortText() + " " + year;
+      String week = String.valueOf(calendar.week(start));
 
-      return String.format("Week %s %s", week, year);
+      return String.format(
+          shortVersion ? "W%s %d-%02d-%02d - %d-%02d-%02d" : "Week %s %d-%02d-%02d - %d-%02d-%02d",
+          week,
+          start.getYear(),
+          start.getMonth(),
+          start.getDay(),
+          end.getYear(),
+          end.getMonth(),
+          end.getDay());
+
     } else if (periodType instanceof BiWeeklyAbstractPeriodType) {
       int week;
-      Calendar calendar = PeriodType.getCalendar();
       BiWeeklyAbstractPeriodType biWeeklyAbstractPeriodType =
           (BiWeeklyAbstractPeriodType) periodType;
       DateTimeUnit startDateTimeUnit = DateTimeUnit.fromJdkDate(period.getStartDate());
