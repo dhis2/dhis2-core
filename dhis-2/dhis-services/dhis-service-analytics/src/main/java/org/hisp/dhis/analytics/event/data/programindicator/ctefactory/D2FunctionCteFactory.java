@@ -52,9 +52,6 @@ import org.hisp.dhis.program.ProgramIndicator;
 public class D2FunctionCteFactory implements CteSqlFactory {
 
   private static final Pattern PATTERN = PlaceholderParser.d2FuncPattern();
-  // Pattern to parse simple conditions like '< 10', '!= "Completed"' etc.
-  private static final Pattern SIMPLE_CONDITION_PATTERN =
-      Pattern.compile("\\s*([<>!=]+)\\s*(.*)"); // Group 1: Operator, Group 2: Value
 
   @Override
   public boolean supports(String rawSql) {
@@ -228,7 +225,18 @@ public class D2FunctionCteFactory implements CteSqlFactory {
     },
 
     COUNT_IF_CONDITION("countIfCondition") {
-      private final Pattern SIMPLE = Pattern.compile("\\s*([<>!=]+)\\s*(.*)");
+
+      /**
+       * Simple parser for condition-literals like "< 5", ">= 100", "!= 'Closed'".
+       *
+       * <p>^\s* – ignore leading whitespace ([<>!=]+) – **Group 1:** one-or-more comparison symbols
+       * (<, >, =, !) \s* – optional whitespace (.*) – **Group 2:** the remainder (number, quoted
+       * text, etc.)
+       *
+       * <p>The expression does not account for illegal operators like `<<<`; exact casting/quoting
+       * is handled after the match.
+       */
+      private static final Pattern SIMPLE = Pattern.compile("\\s*([<>!=]+)\\s*(.*)");
 
       @Override
       String buildCondition(SqlBuilder qb, String deQuoted, String arg) {

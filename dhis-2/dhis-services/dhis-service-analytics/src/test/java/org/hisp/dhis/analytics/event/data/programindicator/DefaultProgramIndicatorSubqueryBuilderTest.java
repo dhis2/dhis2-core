@@ -757,8 +757,6 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     CteDefinition psdeDef2 =
         CteDefinition.forProgramStageDataElement(psdeKey2, "SELECT ...", "enrollment", 3);
     CteDefinition d2FuncDef = CteDefinition.forVariable(d2FuncKey, "SELECT COUNT...", "enrollment");
-    // Manually set type if factory doesn't support D2_FUNCTION yet
-    // ReflectionTestUtils.setField(d2FuncDef, "cteType", CteType.D2_FUNCTION);
     CteDefinition filterDef = CteDefinition.forFilter(filterKey, "psUid", "SELECT ...");
 
     localCteContext.addVariableCte(varKey, variableDef.getCteDefinition(), "enrollment");
