@@ -48,7 +48,7 @@ public class MinMaxCsvParser {
    *
    * @param inputStream the input stream of the CSV file
    * @return a list of MinMaxValueDto objects
-   * @throws IOException if an error occurs while reading the file
+   * @throws BadRequestException if an error occurs while reading the file
    */
   public static List<MinMaxValueDto> parse(InputStream inputStream) throws BadRequestException {
     List<MinMaxValueDto> result = new ArrayList<>();

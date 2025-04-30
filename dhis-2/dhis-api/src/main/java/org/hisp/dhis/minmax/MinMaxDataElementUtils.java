@@ -30,6 +30,7 @@
 package org.hisp.dhis.minmax;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ErrorCode;
 
@@ -37,27 +38,41 @@ import org.hisp.dhis.feedback.ErrorCode;
  * @author Jason P. Pickering
  */
 @Slf4j
-public class MinMaxDataElementUtils {
+public class MinMaxDataElementUtils
+{
 
-  private MinMaxDataElementUtils() {}
+  private MinMaxDataElementUtils()
+  {
+  }
 
-  public static void validateDto(MinMaxValueDto dto) throws BadRequestException {
+  public static void validateDto( MinMaxValueDto dto )
+      throws
+      BadRequestException
+  {
 
-    Integer min = dto.getMinValue();
-    Integer max = dto.getMaxValue();
+    if (dto.getDataElement() == null ||
+        dto.getOrgUnit() == null ||
+        dto.getCategoryOptionCombo() == null ||
+        dto.getMinValue() == null ||
+        dto.getMaxValue() == null) {
+      throw new BadRequestException(ErrorCode.E7801, formatDtoInfo(dto));
+    }
 
-    if (min >= max) {
-      throw new BadRequestException(ErrorCode.E7802, formatDtoInfo(dto));
+    if ( dto.getMinValue() >= dto.getMaxValue() )
+    {
+      throw new BadRequestException( ErrorCode.E7802, formatDtoInfo( dto ) );
     }
   }
 
-  public static String formatDtoInfo(MinMaxValueDto dto) {
+  public static String formatDtoInfo( MinMaxValueDto dto )
+  {
     return String.format(
         "dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=%s, max=%s",
         dto.getDataElement(),
         dto.getOrgUnit(),
         dto.getCategoryOptionCombo(),
         dto.getMinValue(),
-        dto.getMaxValue());
+        dto.getMaxValue() );
   }
+
 }
