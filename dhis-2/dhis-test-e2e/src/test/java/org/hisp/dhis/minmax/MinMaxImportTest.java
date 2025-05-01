@@ -92,7 +92,7 @@ class MinMaxImportTest extends ApiTest {
                 }"""
             .formatted(dataSet, orgUnit, dataElement, orgUnit, defaultCOC);
     ApiResponse response = minMaxValuesActions.post(payload);
-    response.validate().statusCode(200).body("message", containsString("Successfully imported"));
+    response.validate().statusCode(200).body("message", containsString("Successfully imported 1 min-max values"));
   }
 
   @Test
@@ -114,7 +114,7 @@ class MinMaxImportTest extends ApiTest {
     queryParamsBuilder.add("importStrategy", "DELETE");
     ApiResponse response = minMaxValuesActions.post("", payload, queryParamsBuilder);
 
-    response.validate().statusCode(200).body("message", containsString("Successfully deleted"));
+    response.validate().statusCode(200).body("message", containsString("Successfully deleted 1 min-max values"));
   }
 
   @Test
@@ -127,7 +127,7 @@ class MinMaxImportTest extends ApiTest {
             new File("src/test/resources/minmax/minmax.csv"),
             "application/csv",
             queryParamsBuilder);
-    response.validate().statusCode(200).body("message", containsString("Successfully imported"));
+    response.validate().statusCode(200).body("message", containsString("Successfully imported 4 min-max values"));
   }
 
   @Test
