@@ -64,40 +64,48 @@ public class MinMaxCsvParser {
       int rowNum = 1;
       while ((line = reader.readLine()) != null) {
         rowNum++;
-        String[] fields = line.split(",", 6);
+        String[] fields = line.split(",", -1); // keep empty fields
         if (fields.length < 5) {
           continue;
         }
 
-        MinMaxValueDto dto = new MinMaxValueDto();
         try {
-          parseDtoFromFields(dto, fields, result);
-        } catch (NumberFormatException e) {
-
+          MinMaxValueDto dto = parseDtoFromFields(fields, rowNum);
+          result.add(dto);
+        } catch (IllegalArgumentException e) {
           throw new IOException(
-              String.format("Invalid number format at row %d: %s", rowNum, e.getMessage()), e);
+              String.format("Invalid value at row %d: %s", rowNum, e.getMessage()), e);
         }
       }
     } catch (IOException e) {
       throw new BadRequestException(ErrorCode.E7800, e);
     }
+
     return result;
   }
 
-  private static void parseDtoFromFields(
-      MinMaxValueDto dto, String[] fields, List<MinMaxValueDto> result) {
+  private static MinMaxValueDto parseDtoFromFields(String[] fields, int rowNum) {
+    MinMaxValueDto dto = new MinMaxValueDto();
+
     dto.setDataElement(trimToEmpty(fields[0]));
     dto.setOrgUnit(trimToEmpty(fields[1]));
     dto.setCategoryOptionCombo(trimToEmpty(fields[2]));
-    if (isNotEmpty(fields[3])) {
-      dto.setMinValue(Integer.parseInt(trimToEmpty(fields[3])));
+
+    try {
+      if (isNotEmpty(fields[3])) {
+        dto.setMinValue(Integer.parseInt(trimToEmpty(fields[3])));
+      }
+      if (isNotEmpty(fields[4])) {
+        dto.setMaxValue(Integer.parseInt(trimToEmpty(fields[4])));
+      }
+    } catch (NumberFormatException e) {
+      throw new IllegalArgumentException("min/max must be valid integers", e);
     }
-    if (isNotEmpty(fields[4])) {
-      dto.setMaxValue(Integer.parseInt(trimToEmpty(fields[4])));
-    }
-    if (fields.length > 5 && !trimToEmpty(fields[5]).isEmpty()) {
+
+    if (fields.length > 5 && isNotEmpty(fields[5])) {
       dto.setGenerated(Boolean.parseBoolean(trimToEmpty(fields[5])));
     }
-    result.add(dto);
+
+    return dto;
   }
 }
