@@ -58,7 +58,7 @@ public interface EnrollmentService {
    * Retrieves the enrollment that matches the given {@code UID} based on the privileges of the
    * currently authenticated user. This does not include program attributes,events, and
    * relationships. To include events, relationships, and program attributes, use {@link
-   * #getEnrollment(UID, EnrollmentParams)}.
+   * #getEnrollment(UID, EnrollmentFields)}.
    *
    * @return the enrollment associated with the specified {@code UID}
    * @throws NotFoundException if the enrollment cannot be found
@@ -69,13 +69,13 @@ public interface EnrollmentService {
   /**
    * Retrieves the enrollment that matches the given {@code UID} based on the privileges of the
    * currently authenticated user. This method also includes any events, relationships and program
-   * attributes as defined by the provided {@code params}.
+   * attributes as defined by the provided {@code fields}.
    *
    * @return the enrollment associated with the specified {@code UID}
    * @throws NotFoundException if the enrollment cannot be found
    */
   @Nonnull
-  Enrollment getEnrollment(UID uid, EnrollmentParams params) throws NotFoundException;
+  Enrollment getEnrollment(UID uid, EnrollmentFields fields) throws NotFoundException;
 
   /** Find all enrollments matching given params. */
   @Nonnull

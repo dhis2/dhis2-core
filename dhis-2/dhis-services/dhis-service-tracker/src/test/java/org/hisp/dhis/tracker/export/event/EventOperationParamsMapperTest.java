@@ -81,9 +81,10 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.tracker.export.JdbcPredicate;
+import org.hisp.dhis.tracker.export.JdbcPredicate.Parameter;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.tracker.export.event.JdbcPredicate.Parameter;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
@@ -133,8 +134,7 @@ class EventOperationParamsMapperTest {
 
   private final Map<String, User> userMap = new HashMap<>();
 
-  private EventOperationParams.EventOperationParamsBuilder eventBuilder =
-      EventOperationParams.builder();
+  private EventOperationParams.EventOperationParamsBuilder eventBuilder;
 
   @BeforeEach
   void setUp() {
@@ -147,9 +147,7 @@ class EventOperationParamsMapperTest {
     testUser.setOrganisationUnits(Set.of(orgUnit));
     user = UserDetails.fromUser(testUser);
 
-    // By default, set to ACCESSIBLE for tests that don't set an orgUnit. The orgUnitMode needs to
-    // be set because its validation is in the EventRequestParamsMapper.
-    eventBuilder = eventBuilder.orgUnitMode(ACCESSIBLE).eventParams(EventParams.FALSE);
+    eventBuilder = EventOperationParams.builder();
 
     userMap.put("admin", createUserWithAuthority(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS));
     userMap.put("superuser", createUserWithAuthority(Authorities.ALL));
@@ -531,7 +529,7 @@ class EventOperationParamsMapperTest {
     mappedUser.setUsername("admin");
 
     EventOperationParams operationParams =
-        eventBuilder.orgUnitMode(ALL).eventParams(EventParams.TRUE).build();
+        eventBuilder.orgUnitMode(ALL).fields(EventFields.all()).build();
     EventQueryParams params = mapper.map(operationParams, UserDetails.fromUser(mappedUser));
     assertTrue(params.isIncludeRelationships());
   }
@@ -544,8 +542,10 @@ class EventOperationParamsMapperTest {
     mappedUser.setUsername("admin");
 
     EventOperationParams operationParams =
-        eventBuilder.orgUnitMode(ALL).eventParams(EventParams.FALSE).build();
+        eventBuilder.orgUnitMode(ALL).fields(EventFields.none()).build();
+
     EventQueryParams params = mapper.map(operationParams, UserDetails.fromUser(mappedUser));
+
     assertFalse(params.isIncludeRelationships());
   }
 
@@ -560,17 +560,17 @@ class EventOperationParamsMapperTest {
 
   private static void assertQueryFilterValue(
       JdbcPredicate actual, String sqlOperator, SqlParameterValue value) {
-    assertContains(sqlOperator, actual.sql());
+    assertContains(sqlOperator, actual.getSql());
 
     if (value != null) {
-      assertTrue(actual.parameter().isPresent(), "expected a parameter but got none");
-      Parameter parameter = actual.parameter().get();
+      assertTrue(actual.getParameter().isPresent(), "expected a getParameter but got none");
+      Parameter parameter = actual.getParameter().get();
       assertEquals(value.getSqlType(), parameter.value().getSqlType());
       assertEquals(value.getValue(), parameter.value().getValue());
     } else {
       assertTrue(
-          actual.parameter().isEmpty(),
-          () -> "parameter should be empty but got " + actual.parameter().get());
+          actual.getParameter().isEmpty(),
+          () -> "getParameter should be empty but got " + actual.getParameter().get());
     }
   }
 }

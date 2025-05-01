@@ -60,7 +60,7 @@ class DefaultTrackerAccessManagerTest {
   private User user;
 
   @BeforeEach
-  public void before() {
+  void before() {
     program = createProgram('A');
     orgUnit = createOrganisationUnit('A');
     user = new User();

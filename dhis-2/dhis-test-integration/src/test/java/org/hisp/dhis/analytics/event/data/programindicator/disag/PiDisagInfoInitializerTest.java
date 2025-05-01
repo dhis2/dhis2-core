@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.analytics.event.data.programindicator.disag;
 
+import static java.util.Collections.emptyMap;
+import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -40,6 +42,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.program.ProgramCategoryMapping;
 import org.hisp.dhis.program.ProgramCategoryMappingValidator;
@@ -55,11 +58,17 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Transactional
-class PIDisagInfoInitializerTest extends AbstractPIDisagTest {
+class PiDisagInfoInitializerTest extends AbstractPiDisagTest {
 
   @Autowired private ProgramCategoryMappingValidator mappingValidator;
 
   private PiDisagInfoInitializer target;
+
+  private EventQueryParams.Builder dataValueSetParamsBuilder() {
+    DataQueryParams dataQueryParams =
+        DataQueryParams.newBuilder().withOutputFormat(DATA_VALUE_SET).build();
+    return new EventQueryParams.Builder(dataQueryParams);
+  }
 
   @Override
   @BeforeAll
@@ -72,13 +81,13 @@ class PIDisagInfoInitializerTest extends AbstractPIDisagTest {
   void testGetParamsWithDisaggregationInfo() {
 
     // Given
-    assertFalse(eventQueryParams.hasPiDisagInfo());
+    assertFalse(dataValueSetEventQueryParams.hasPiDisagInfo());
 
     // When
-    EventQueryParams params = target.getParamsWithDisaggregationInfo(eventQueryParams);
+    EventQueryParams params = target.getParamsWithDisaggregationInfo(dataValueSetEventQueryParams);
 
     // Then
-    assertNotSame(eventQueryParams, params);
+    assertNotSame(dataValueSetEventQueryParams, params);
     assertTrue(params.hasPiDisagInfo());
   }
 
@@ -87,7 +96,7 @@ class PIDisagInfoInitializerTest extends AbstractPIDisagTest {
 
     // Given
     EventQueryParams testParams = new EventQueryParams.Builder().build();
-    assertFalse(eventQueryParams.hasPiDisagInfo());
+    assertFalse(dataValueSetEventQueryParams.hasPiDisagInfo());
 
     // When
     EventQueryParams params = target.getParamsWithDisaggregationInfo(testParams);
@@ -103,7 +112,7 @@ class PIDisagInfoInitializerTest extends AbstractPIDisagTest {
     // Given
     ProgramIndicator pi = createProgramIndicator('A', program, "42", "");
     EventQueryParams testParams = new EventQueryParams.Builder().withProgramIndicator(pi).build();
-    assertFalse(eventQueryParams.hasPiDisagInfo());
+    assertFalse(dataValueSetEventQueryParams.hasPiDisagInfo());
 
     // When
     EventQueryParams params = target.getParamsWithDisaggregationInfo(testParams);
@@ -161,10 +170,11 @@ class PIDisagInfoInitializerTest extends AbstractPIDisagTest {
     // Given
     Set<String> expectedDimensionCategories = Set.of(category2.getUid());
 
-    Set<String> expectedCocCategories = Set.of(category1.getUid(), category3.getUid());
+    Set<String> expectedCocCategories =
+        Set.of(category1.getUid(), category3.getUid(), category4.getUid());
 
     Map<String, ProgramCategoryMapping> expectedCategoryMappings =
-        Map.of("CategoryId1", cm1, "CategoryId2", cm2, "CategoryId3", cm3);
+        Map.of("CategoryId1", cm1, "CategoryId2", cm2, "CategoryId3", cm3, "CategoryId4", cm4);
 
     Map<String, String> expectedCocResolver =
         Map.of(
@@ -175,11 +185,13 @@ class PIDisagInfoInitializerTest extends AbstractPIDisagTest {
 
     Map<String, String> expectedAocResolver =
         Map.of(
-            "catOption0E", "cocE5678901",
-            "catOption0F", "cocF5678901");
+            "catOption0EcatOption0G", "cocEG678901",
+            "catOption0EcatOption0H", "cocEH678901",
+            "catOption0FcatOption0G", "cocFG678901",
+            "catOption0FcatOption0H", "cocFH678901");
 
     // When
-    PiDisagInfo info = target.getPiDisagInfo(eventQueryParams);
+    PiDisagInfo info = target.getPiDisagInfo(dataValueSetEventQueryParams);
 
     // Then
     assertNotNull(info);
@@ -194,17 +206,20 @@ class PIDisagInfoInitializerTest extends AbstractPIDisagTest {
   @Test
   void testGetCocCategories() {
     // Given
-    Set<String> expectedCocCategories = Set.of(category1.getUid(), category3.getUid());
+    Set<String> expectedCocCategories =
+        Set.of(category1.getUid(), category3.getUid(), category4.getUid());
 
     // When
-    List<String> result = target.getCocCategories(eventQueryParams);
+    List<String> result = target.getCocCategories(dataValueSetEventQueryParams);
 
     assertEquals(expectedCocCategories, new HashSet<>(result)); // In any order
   }
 
   @Test
-  void testGetResolver() {
+  void testGetResolverWithDataValueSet() {
     // Given
+    ProgramIndicator pi = createProgramIndicator('A', program, "42", "");
+    EventQueryParams params = dataValueSetParamsBuilder().withProgramIndicator(pi).build();
     Map<String, String> expectedResolver =
         Map.of(
             "catOption0AcatOption0C", "cocAC678901",
@@ -213,7 +228,21 @@ class PIDisagInfoInitializerTest extends AbstractPIDisagTest {
             "catOption0BcatOption0D", "cocBD678901");
 
     // When
-    Map<String, String> result = target.getResolver(catComboA);
+    Map<String, String> result = target.getResolver(params, catComboA);
+
+    // Then
+    assertEquals(expectedResolver, result);
+  }
+
+  @Test
+  void testGetResolverWithoutDataValueSet() {
+    // Given
+    ProgramIndicator pi = createProgramIndicator('A', program, "42", "");
+    EventQueryParams params = new EventQueryParams.Builder().withProgramIndicator(pi).build();
+    Map<String, String> expectedResolver = emptyMap();
+
+    // When
+    Map<String, String> result = target.getResolver(params, catComboA);
 
     // Then
     assertEquals(expectedResolver, result);

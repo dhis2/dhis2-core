@@ -1318,7 +1318,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         .content(HttpStatus.CREATED);
 
     JsonList<JsonIdentifiableObject> response =
-        GET("/categories?order=craeted:idesc")
+        GET("/categories?order=created:idesc")
             .content()
             .getList("categories", JsonIdentifiableObject.class);
     assertEquals("births attended by", response.get(0).getDisplayName());

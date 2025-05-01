@@ -30,13 +30,11 @@
 package org.hisp.dhis.webapi.controller.security.oauth;
 
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
@@ -51,7 +49,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping({"/api/oAuth2Clients"})
 @RequiredArgsConstructor
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class OAuth2ClientController
     extends AbstractCrudController<Dhis2OAuth2Client, GetObjectListParams> {
 

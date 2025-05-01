@@ -30,8 +30,6 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.hisp.dhis.common.DhisApiVersion.ALL;
-import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.OTHER;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.EVENT;
@@ -63,7 +61,6 @@ import org.hisp.dhis.analytics.event.EventAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.EventQueryService;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 import org.hisp.dhis.common.Grid;
@@ -81,7 +78,6 @@ import org.hisp.dhis.webapi.dimension.DimensionMapperService;
 import org.hisp.dhis.webapi.dimension.DimensionResponse;
 import org.hisp.dhis.webapi.dimension.DimensionsCriteria;
 import org.hisp.dhis.webapi.dimension.EventAnalyticsPrefixStrategy;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -94,7 +90,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
     entity = Event.class,
     classifiers = {"team:analytics", "purpose:analytics"})
 @Controller
-@ApiVersion({DEFAULT, ALL})
 @AllArgsConstructor
 @RequestMapping("/api/analytics/events")
 public class EventQueryAnalyticsController {
@@ -121,9 +116,8 @@ public class EventQueryAnalyticsController {
   public @ResponseBody Rectangle getCountJson( // JSON, JSONP
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, OTHER);
+    EventQueryParams params = getEventQueryParams(program, criteria, false, OTHER);
 
     configResponseForJson(response);
 
@@ -139,9 +133,8 @@ public class EventQueryAnalyticsController {
       @RequestParam Long clusterSize,
       @RequestParam String bbox,
       @RequestParam(required = false) boolean includeClusterPoints,
-      DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, OTHER);
+    EventQueryParams params = getEventQueryParams(program, criteria, false, OTHER);
 
     params =
         new EventQueryParams.Builder(params)
@@ -162,9 +155,8 @@ public class EventQueryAnalyticsController {
   public @ResponseBody Grid getExplainQueryJson( // JSON, JSONP
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, true, QUERY);
+    EventQueryParams params = getEventQueryParams(program, criteria, true, QUERY);
 
     configResponseForJson(response);
 
@@ -183,9 +175,8 @@ public class EventQueryAnalyticsController {
   public @ResponseBody Grid getQueryJson( // JSON, JSONP
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, QUERY);
+    EventQueryParams params = getEventQueryParams(program, criteria, false, QUERY);
 
     configResponseForJson(response);
 
@@ -196,12 +187,11 @@ public class EventQueryAnalyticsController {
   public void getQueryXml(
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
     toXml(
         getListGridWithAttachment(
-            criteria, program, apiVersion, CONTENT_TYPE_XML, "events.xml", false, response),
+            criteria, program, CONTENT_TYPE_XML, "events.xml", false, response),
         response.getOutputStream());
   }
 
@@ -209,12 +199,11 @@ public class EventQueryAnalyticsController {
   public void getQueryXls(
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
     toXls(
         getListGridWithAttachment(
-            criteria, program, apiVersion, CONTENT_TYPE_EXCEL, "events.xls", true, response),
+            criteria, program, CONTENT_TYPE_EXCEL, "events.xls", true, response),
         response.getOutputStream());
   }
 
@@ -222,12 +211,11 @@ public class EventQueryAnalyticsController {
   public void getQueryXlsx(
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
     toXlsx(
         getListGridWithAttachment(
-            criteria, program, apiVersion, CONTENT_TYPE_EXCEL, "events.xlsx", true, response),
+            criteria, program, CONTENT_TYPE_EXCEL, "events.xlsx", true, response),
         response.getOutputStream());
   }
 
@@ -235,12 +223,11 @@ public class EventQueryAnalyticsController {
   public void getQueryCsv(
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
     toCsv(
         getListGridWithAttachment(
-            criteria, program, apiVersion, CONTENT_TYPE_CSV, "events.csv", true, response),
+            criteria, program, CONTENT_TYPE_CSV, "events.csv", true, response),
         response.getWriter());
   }
 
@@ -248,12 +235,11 @@ public class EventQueryAnalyticsController {
   public void getQueryHtml(
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
     toHtml(
         getListGridWithAttachment(
-            criteria, program, apiVersion, CONTENT_TYPE_HTML, "events.html", false, response),
+            criteria, program, CONTENT_TYPE_HTML, "events.html", false, response),
         response.getWriter());
   }
 
@@ -261,12 +247,11 @@ public class EventQueryAnalyticsController {
   public void getQueryHtmlCss(
       @PathVariable String program,
       EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       HttpServletResponse response)
       throws Exception {
     toHtmlCss(
         getListGridWithAttachment(
-            criteria, program, apiVersion, CONTENT_TYPE_HTML, "events.html", false, response),
+            criteria, program, CONTENT_TYPE_HTML, "events.html", false, response),
         response.getWriter());
   }
 
@@ -306,12 +291,11 @@ public class EventQueryAnalyticsController {
   private Grid getListGridWithAttachment(
       EventsAnalyticsQueryCriteria criteria,
       String program,
-      DhisApiVersion apiVersion,
       String contentType,
       String file,
       boolean attachment,
       HttpServletResponse response) {
-    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, QUERY);
+    EventQueryParams params = getEventQueryParams(program, criteria, false, QUERY);
 
     contextUtils.configureResponse(response, contentType, RESPECT_SYSTEM_SETTING, file, attachment);
 
@@ -321,7 +305,6 @@ public class EventQueryAnalyticsController {
   private EventQueryParams getEventQueryParams(
       String program,
       EventsAnalyticsQueryCriteria criteria,
-      DhisApiVersion apiVersion,
       boolean analyzeOnly,
       EndpointAction endpointAction) {
     criteria.definePageSize(settingsProvider.getCurrentSettings().getAnalyticsMaxLimit());
@@ -335,7 +318,6 @@ public class EventQueryAnalyticsController {
                 (EventsAnalyticsQueryCriteria)
                     criteria.withEndpointAction(endpointAction).withEndpointItem(EVENT))
             .program(program)
-            .apiVersion(apiVersion)
             .build();
 
     return eventDataService.getFromRequest(request, analyzeOnly);

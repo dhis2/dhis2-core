@@ -33,7 +33,6 @@ import java.util.Collection;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.BaseAnalyticalObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.DefaultAnalyticalObjectImportHandler;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -164,8 +163,8 @@ public class EmbeddedObjectObjectBundleHook extends AbstractObjectBundleHook<Ide
       return;
     }
 
-    if (property.isIdentifiableObject()) {
-      ((BaseIdentifiableObject) object).setAutoFields();
+    if (property.isIdentifiableObject() && object instanceof IdentifiableObject obj) {
+      obj.setAutoFields();
     }
 
     Schema embeddedSchema =

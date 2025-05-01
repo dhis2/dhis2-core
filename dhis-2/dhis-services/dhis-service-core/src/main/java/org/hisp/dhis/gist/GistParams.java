@@ -101,7 +101,7 @@ public final class GistParams {
 
   @OpenApi.Description(
       """
-      Use absolute (`true`) or relative URLs (`false`, default) when linking to other objects.
+      Use absolute (`true`) or relative URLs (`false`, default) when linking to other objects in `apiEndpoints`.
       See [Gist absoluteUrls parameter](https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata-gist.html#gist_parameters_absoluteUrls).""")
   boolean absoluteUrls = false;
 

@@ -55,7 +55,8 @@ public class D2CountIfValue extends ProgramCountFunction {
   }
 
   @Override
-  public String getConditionSql(ExprContext ctx, CommonExpressionVisitor visitor) {
-    return " = " + visitor.visit(ctx.expr(0));
+  public String getConditionSql(
+      ExprContext ctx, CommonExpressionVisitor visitor, String baseColumn) {
+    return baseColumn + " = " + visitor.visit(ctx.expr(0));
   }
 }

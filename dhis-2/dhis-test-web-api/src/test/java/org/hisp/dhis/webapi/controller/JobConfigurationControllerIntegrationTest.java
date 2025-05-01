@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,27 +27,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.enrollment;
+package org.hisp.dhis.webapi.controller;
 
-import lombok.Value;
-import lombok.With;
-import org.hisp.dhis.tracker.export.event.EventParams;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+
+import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @author Luca Camnbi
- *     <p>Class used to define inclusion in {@link EnrollmentParams} of {@link EventParams}
- *     properties
+ * Tests the {@link org.hisp.dhis.webapi.controller.scheduling.JobConfigurationController} that
+ * cannot be tested with H2.
+ *
+ * @author Jan Bernitt
  */
-@With
-@Value
-public class EnrollmentEventsParams {
-  public static final EnrollmentEventsParams TRUE =
-      new EnrollmentEventsParams(true, EventParams.TRUE);
+@Transactional
+class JobConfigurationControllerIntegrationTest extends PostgresControllerIntegrationTestBase {
 
-  public static final EnrollmentEventsParams FALSE =
-      new EnrollmentEventsParams(false, EventParams.FALSE);
-
-  boolean includeEvents;
-
-  EventParams eventParams;
+  @Test
+  void testRevert() {
+    String json =
+        """
+        {
+        "name": "test",
+        "jobType": "DATA_INTEGRITY",
+        "cronExpression": "0 0 12 ? * MON-FRI"
+        }
+        """;
+    String jobId = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", json));
+    switchToNewUser("no-auth");
+    assertStatus(HttpStatus.FORBIDDEN, POST("/jobConfigurations/" + jobId + "/revert"));
+    switchToAdminUser();
+    assertStatus(HttpStatus.CONFLICT, POST("/jobConfigurations/" + jobId + "/revert"));
+  }
 }

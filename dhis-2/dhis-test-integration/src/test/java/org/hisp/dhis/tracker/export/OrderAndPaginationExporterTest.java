@@ -40,8 +40,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryFilter;
@@ -68,7 +68,6 @@ import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
-import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
@@ -133,8 +132,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
     // expect to be run by the importUser
     injectSecurityContextUser(importUser);
 
-    eventParamsBuilder = EventOperationParams.builder().eventParams(EventParams.FALSE);
-    eventParamsBuilder.orgUnitMode(SELECTED);
+    eventParamsBuilder = EventOperationParams.builder().orgUnitMode(SELECTED);
   }
 
   @Test
@@ -211,6 +209,25 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(new Page<>(List.of(), 3, 1, null, 2, null), thirdPage, "past the last page");
+  }
+
+  @Test
+  void shouldPaginateTrackedEntitiesWhenOrgUnitNotSpecified()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    injectSecurityContextUser(userService.getUser("fZidJVYpWWE"));
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .trackedEntities(
+                Set.of(UID.of("woitxQbWYNq"), UID.of("QesgJkTyTCk"), UID.of("guVNoAerxWo")))
+            .build();
+
+    Page<String> paginatedEntities =
+        trackedEntityService
+            .findTrackedEntities(params, PageParams.of(1, 10, true))
+            .withMappedItems(IdentifiableObject::getUid);
+
+    assertContainsOnly(List.of("woitxQbWYNq", "guVNoAerxWo"), paginatedEntities.getItems());
+    assertEquals(2, paginatedEntities.getTotal());
   }
 
   @Test
@@ -1525,7 +1542,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
     return uids(relationshipService.findRelationships(params));
   }
 
-  private static List<String> uids(List<? extends BaseIdentifiableObject> identifiableObject) {
-    return identifiableObject.stream().map(BaseIdentifiableObject::getUid).toList();
+  private static List<String> uids(List<? extends IdentifiableObject> identifiableObject) {
+    return identifiableObject.stream().map(IdentifiableObject::getUid).toList();
   }
 }

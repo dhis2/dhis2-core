@@ -33,6 +33,7 @@ import static java.time.LocalDate.now;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.db.model.DataType.BIGINT;
+import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
 import static org.hisp.dhis.db.model.DataType.DOUBLE;
 import static org.hisp.dhis.db.model.DataType.INTEGER;
 import static org.hisp.dhis.db.model.DataType.TEXT;
@@ -40,8 +41,12 @@ import static org.hisp.dhis.db.model.DataType.TIMESTAMP;
 import static org.hisp.dhis.db.model.Table.STAGING_TABLE_SUFFIX;
 import static org.hisp.dhis.period.PeriodDataProvider.PeriodSource.DATABASE;
 import static org.hisp.dhis.test.TestBase.createDataElement;
+import static org.hisp.dhis.test.TestBase.createLegend;
+import static org.hisp.dhis.test.TestBase.createLegendSet;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramStage;
+import static org.hisp.dhis.test.TestBase.createProgramTrackedEntityAttribute;
+import static org.hisp.dhis.test.TestBase.createTrackedEntityAttribute;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
@@ -64,15 +69,19 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.model.IndexType;
 import org.hisp.dhis.db.sql.DorisSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.legend.Legend;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodDataProvider.PeriodSource;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -157,8 +166,16 @@ class JdbcEventAnalyticsTableManagerDorisTest {
     DataElement deG = createDataElement('G', ValueType.COORDINATE, AggregationType.NONE);
 
     ProgramStage ps1 = createProgramStage('A', Set.of(deA, deB, deC, deD, deE, deF, deG));
+    Legend leA = createLegend('A', 0d, 10d);
+    LegendSet lsA = createLegendSet('A');
+    lsA.setLegends(Set.of(leA));
 
+    TrackedEntityAttribute tea = createTrackedEntityAttribute('A', ValueType.INTEGER);
+    tea.setLegendSets(List.of(lsA));
+    ProgramTrackedEntityAttribute ptea = createProgramTrackedEntityAttribute(program, tea);
     program.setProgramStages(Set.of(ps1));
+
+    program.setProgramAttributes(List.of(ptea));
 
     when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
 
@@ -174,6 +191,8 @@ class JdbcEventAnalyticsTableManagerDorisTest {
         "(select ou.name from dhis2.public.`organisationunit` ou where ou.uid = json_unquote(json_extract(eventdatavalues, '$.%s.value'))) as `%s`";
     String aliasG =
         "case when json_unquote(json_extract(eventdatavalues, '$.%s.value')) regexp '^(-?[0-9]+)(\\.[0-9]+)?$' then cast(json_unquote(json_extract(eventdatavalues, '$.%s.value')) as bigint) end as `%s`";
+    String legendsetAlias =
+        " (select l.uid   from   dhis2.public.`maplegend` l   join   trackedentityattributevalue av          on av.trackedentityattributeid=0          and value regexp '^(-?[0-9]+)(\\.[0-9]+)?$'         and l.maplegendsetid=0         and l.startvalue <= CAST(av.value AS DECIMAL)         and l.endvalue   > CAST(av.value AS DECIMAL)   where av.trackedentityid = en.trackedentityid   limit  1) as %s";
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()
@@ -193,7 +212,7 @@ class JdbcEventAnalyticsTableManagerDorisTest {
         .withName(TABLE_PREFIX + program.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
         .withMainName(TABLE_PREFIX + program.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
-        .withColumnSize(58 + OU_NAME_HIERARCHY_COUNT)
+        .withColumnSize(60 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
         .addColumn(
             deA.getUid(),
@@ -229,6 +248,11 @@ class JdbcEventAnalyticsTableManagerDorisTest {
         // element d5 also creates a Name column
         .addColumn(
             deE.getUid() + "_name", TEXT, toSelectExpression(aliasF, deE.getUid()), Skip.SKIP)
+        .addColumn(
+            tea.getUid() + "_" + lsA.getUid(),
+            CHARACTER_11,
+            legendsetAlias.formatted(tea.getUid() + "_" + lsA.getUid()),
+            Skip.INCLUDE)
         .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder))
         .build()
         .verify();

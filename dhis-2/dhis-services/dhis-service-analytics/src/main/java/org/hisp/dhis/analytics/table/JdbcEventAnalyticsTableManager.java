@@ -33,6 +33,7 @@ import static java.lang.String.join;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.commons.util.TextUtils.emptyIfTrue;
@@ -630,16 +631,21 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       return List.of();
     }
 
-    String columnExpression = getColumnExpression(attribute.getValueType(), "value");
+    String columnExpression = sqlBuilder.cast("av.value", NUMERIC);
     String numericClause = getNumericClause("value");
+
     String query =
         """
-        \s(select l.uid from ${maplegend} l \
-        inner join trackedentityattributevalue av on l.startvalue <= ${selectClause} \
-        and l.endvalue > ${selectClause} \
-        and l.maplegendsetid=${legendSetId} \
-        and av.trackedentityid=en.trackedentityid \
-        and av.trackedentityattributeid=${attributeId} ${numericClause}) as ${column}""";
+            \s(select l.uid \
+              from   ${maplegend} l \
+              join   trackedentityattributevalue av \
+                     on av.trackedentityattributeid=${attributeId} \
+                    ${numericClause} \
+                    and l.maplegendsetid=${legendSetId} \
+                    and l.startvalue <= ${castExpr} \
+                    and l.endvalue   > ${castExpr} \
+              where av.trackedentityid = en.trackedentityid \
+              limit  1) as ${column}""";
 
     return attribute.getLegendSets().stream()
         .map(
@@ -649,7 +655,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                   replaceQualify(
                       query,
                       Map.of(
-                          "selectClause", columnExpression,
+                          "castExpr", columnExpression,
                           "legendSetId", String.valueOf(ls.getId()),
                           "column", column,
                           "attributeId", String.valueOf(attribute.getId()),
