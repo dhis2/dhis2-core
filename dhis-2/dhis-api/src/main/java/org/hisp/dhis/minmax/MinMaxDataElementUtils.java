@@ -62,11 +62,12 @@ public class MinMaxDataElementUtils {
 
   public static String formatDtoInfo(MinMaxValueDto dto) {
     return String.format(
-        "dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=%s, max=%s",
-        dto.getDataElement(),
-        dto.getOrgUnit(),
-        dto.getCategoryOptionCombo(),
-        dto.getMinValue(),
-        dto.getMaxValue());
+            "dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=%s, max=%s",
+            dto.getDataElement(),
+            dto.getOrgUnit(),
+            dto.getCategoryOptionCombo(),
+            dto.getMinValue(),
+            dto.getMaxValue())
+        .replaceAll("[\\r\\n]", "_");
   }
 }
