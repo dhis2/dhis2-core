@@ -40,6 +40,7 @@ import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Jan Bernitt
@@ -47,6 +48,12 @@ import org.hisp.dhis.scheduling.JobParameters;
 @Getter
 @Setter
 public class AggregateDataExchangeJobParameters implements JobParameters {
+
+  /** UID of the User to use for job (important for threaded execution). */
+  @OpenApi.Property({UID.class, User.class})
+  @JsonProperty
+  private UID executedBy;
+
   @JsonProperty
   @OpenApi.Property({UID[].class, AggregateDataExchange.class})
   private List<String> dataExchangeIds;
