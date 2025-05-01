@@ -33,6 +33,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ErrorCode;
 
+import java.util.regex.Pattern;
+
 /**
  * @author Jason P. Pickering
  */
@@ -60,14 +62,18 @@ public class MinMaxDataElementUtils {
     }
   }
 
+  private static final Pattern LINE_BREAKS = Pattern.compile("[\\r\\n]");
+
   public static String formatDtoInfo(MinMaxValueDto dto) {
-    return String.format(
-            "dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=%s, max=%s",
-            dto.getDataElement(),
-            dto.getOrgUnit(),
-            dto.getCategoryOptionCombo(),
-            dto.getMinValue(),
-            dto.getMaxValue())
-        .replaceAll("[\\r\\n]", "_");
+    String raw = String.format(
+        "dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=%s, max=%s",
+        dto.getDataElement(),
+        dto.getOrgUnit(),
+        dto.getCategoryOptionCombo(),
+        dto.getMinValue(),
+        dto.getMaxValue()
+    );
+
+    return LINE_BREAKS.matcher(raw).replaceAll("_");
   }
 }
