@@ -157,7 +157,12 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
     List<MinMaxValueDto> dtos = Optional.ofNullable(request.values()).orElse(List.of());
 
     if (dtos.isEmpty()) return;
-
+    log.info(
+        "Starting min-max import: {} values for dataset={}, orgunit={}",
+        dtos.size(),
+        request.datasetId(),
+        request.organisationUnitId());
+    long startTime = System.nanoTime();
     List<ResolvedMinMaxDto> resolvedDtos = resolveAllValidDtos(dtos, true, minMaxDataElementStore);
     final int CHUNK_SIZE = 500;
     for (int i = 0; i < resolvedDtos.size(); i += CHUNK_SIZE) {
@@ -165,6 +170,12 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
       List<ResolvedMinMaxDto> chunk = resolvedDtos.subList(i, end);
       minMaxDataElementStore.upsertResolvedDtos(chunk);
     }
+    long elapsedMillis = (System.nanoTime() - startTime) / 1_000_000;
+
+    log.info(
+        "Min-max import completed: {} values processed in {} ms",
+        resolvedDtos.size(),
+        elapsedMillis);
   }
 
   private static List<ResolvedMinMaxDto> resolveAllValidDtos(
@@ -191,6 +202,7 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
         orgUnitUids.add(ou);
         cocUids.add(coc);
       } catch (IllegalArgumentException e) {
+        log.error("Invalid UID in min-max import: {}", formatDtoInfo(dto));
         throw new BadRequestException(ErrorCode.E7805, formatDtoInfo(dto));
       }
     }
@@ -213,6 +225,7 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
       Long cocId = cocMap.get(uids.coc());
 
       if (deId == null || ouId == null || cocId == null) {
+        log.error("Missing required fields in min-max import: {}", formatDtoInfo(dto));
         throw new BadRequestException(ErrorCode.E7803, formatDtoInfo(dto));
       }
 
@@ -235,6 +248,12 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
     List<MinMaxValueDto> dtos = Optional.ofNullable(request.values()).orElse(List.of());
     if (dtos.isEmpty()) return;
 
+    log.info(
+        "Starting min-max delete: {} values for dataset={}, orgunit={}",
+        dtos.size(),
+        request.datasetId(),
+        request.organisationUnitId());
+    long startTime = System.nanoTime();
     List<ResolvedMinMaxDto> resolvedDtos = resolveAllValidDtos(dtos, false, minMaxDataElementStore);
     final int CHUNK_SIZE = 500;
     for (int i = 0; i < resolvedDtos.size(); i += CHUNK_SIZE) {
@@ -242,5 +261,10 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
       List<ResolvedMinMaxDto> chunk = resolvedDtos.subList(i, end);
       minMaxDataElementStore.deleteBulkByDtos(chunk);
     }
+    long elapsedMillis = (System.nanoTime() - startTime) / 1_000_000;
+    log.info(
+        "Min-max delete completed: {} values processed in {} ms",
+        resolvedDtos.size(),
+        elapsedMillis);
   }
 }

@@ -29,8 +29,11 @@
  */
 package org.hisp.dhis.minmax;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import org.hisp.dhis.common.UID;
 
 public record MinMaxValueBatchRequest(
-    UID datasetId, UID organisationUnitId, List<MinMaxValueDto> values) {}
+    @JsonProperty("dataset") UID datasetId,
+    @JsonProperty("orgunit") UID organisationUnitId,
+    @JsonProperty("values") List<MinMaxValueDto> values) {}

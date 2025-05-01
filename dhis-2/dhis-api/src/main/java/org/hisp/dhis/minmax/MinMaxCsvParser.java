@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.minmax;
 
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 import java.io.BufferedReader;
@@ -70,17 +71,9 @@ public class MinMaxCsvParser {
 
         MinMaxValueDto dto = new MinMaxValueDto();
         try {
-          dto.setDataElement(trimToEmpty(fields[0]));
-          dto.setOrgUnit(trimToEmpty(fields[1]));
-          dto.setCategoryOptionCombo(trimToEmpty(fields[2]));
-          dto.setMinValue(Integer.parseInt(trimToEmpty(fields[3])));
-          dto.setMaxValue(Integer.parseInt(trimToEmpty(fields[4])));
-          if (fields.length > 5 && !trimToEmpty(fields[5]).isEmpty()) {
-            dto.setGenerated(Boolean.parseBoolean(trimToEmpty(fields[5])));
-          }
-
-          result.add(dto);
+          parseDtoFromFields(dto, fields, result);
         } catch (NumberFormatException e) {
+
           throw new IOException(
               String.format("Invalid number format at row %d: %s", rowNum, e.getMessage()), e);
         }
@@ -89,5 +82,22 @@ public class MinMaxCsvParser {
       throw new BadRequestException(ErrorCode.E7800, e);
     }
     return result;
+  }
+
+  private static void parseDtoFromFields(
+      MinMaxValueDto dto, String[] fields, List<MinMaxValueDto> result) {
+    dto.setDataElement(trimToEmpty(fields[0]));
+    dto.setOrgUnit(trimToEmpty(fields[1]));
+    dto.setCategoryOptionCombo(trimToEmpty(fields[2]));
+    if (isNotEmpty(fields[3])) {
+      dto.setMinValue(Integer.parseInt(trimToEmpty(fields[3])));
+    }
+    if (isNotEmpty(fields[4])) {
+      dto.setMaxValue(Integer.parseInt(trimToEmpty(fields[4])));
+    }
+    if (fields.length > 5 && !trimToEmpty(fields[5]).isEmpty()) {
+      dto.setGenerated(Boolean.parseBoolean(trimToEmpty(fields[5])));
+    }
+    result.add(dto);
   }
 }
