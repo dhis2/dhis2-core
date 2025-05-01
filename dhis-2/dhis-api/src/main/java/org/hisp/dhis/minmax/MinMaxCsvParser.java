@@ -70,7 +70,7 @@ public class MinMaxCsvParser {
         }
 
         try {
-          MinMaxValueDto dto = parseDtoFromFields(fields, rowNum);
+          MinMaxValueDto dto = parseDtoFromFields(fields);
           result.add(dto);
         } catch (IllegalArgumentException e) {
           throw new IOException(
@@ -84,7 +84,7 @@ public class MinMaxCsvParser {
     return result;
   }
 
-  private static MinMaxValueDto parseDtoFromFields(String[] fields, int rowNum) {
+  private static MinMaxValueDto parseDtoFromFields(String[] fields) {
     MinMaxValueDto dto = new MinMaxValueDto();
 
     dto.setDataElement(trimToEmpty(fields[0]));

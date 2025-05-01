@@ -345,7 +345,7 @@ class DataElementMergeTest extends ApiTest {
             equalTo("Access is denied, requires one Authority from [F_DATA_ELEMENT_MERGE]"));
   }
 
-  @Disabled("Temporarily disabling this for bulk min-max import PR")
+  @Test
   @DisplayName("DataElement merge completes successfully with DataValues handled correctly")
   void deMergeDataValuesTest() {
     // Given

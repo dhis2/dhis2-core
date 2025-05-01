@@ -68,6 +68,7 @@ public class TestCleanUp {
       }
 
       new MaintenanceActions().removeSoftDeletedData();
+
     }
 
     while (deleteCount < 2 && !createdEntities.isEmpty()) {
