@@ -62,20 +62,17 @@ public class MinMaxCsvParser {
 
       String line;
       int rowNum = 1;
+
       while ((line = reader.readLine()) != null) {
         rowNum++;
-        String[] fields = line.split(",", -1); // keep empty fields
+        String[] fields = line.split(",", -1);
+
         if (fields.length < 5) {
           continue;
         }
 
-        try {
-          MinMaxValueDto dto = parseDtoFromFields(fields);
-          result.add(dto);
-        } catch (IllegalArgumentException e) {
-          throw new IOException(
-              String.format("Invalid value at row %d: %s", rowNum, e.getMessage()), e);
-        }
+        MinMaxValueDto dto = parseDto(fields, rowNum);
+        result.add(dto);
       }
     } catch (IOException e) {
       throw new BadRequestException(ErrorCode.E7800, e);
@@ -84,7 +81,7 @@ public class MinMaxCsvParser {
     return result;
   }
 
-  private static MinMaxValueDto parseDtoFromFields(String[] fields) {
+  private static MinMaxValueDto parseDto(String[] fields, int rowNum) {
     MinMaxValueDto dto = new MinMaxValueDto();
 
     dto.setDataElement(trimToEmpty(fields[0]));
@@ -99,7 +96,7 @@ public class MinMaxCsvParser {
         dto.setMaxValue(Integer.parseInt(trimToEmpty(fields[4])));
       }
     } catch (NumberFormatException e) {
-      throw new IllegalArgumentException("min/max must be valid integers", e);
+      throw new IllegalArgumentException("Invalid number format for min/max at row " + rowNum, e);
     }
 
     if (fields.length > 5 && isNotEmpty(fields[5])) {

@@ -251,7 +251,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
                   "values": []
                 }
                 """
-                    .formatted(orgUnitId, dataElementId, categoryOptionComboId))
+                    .formatted(orgUnitId, dataElementId))
             .content(HttpStatus.OK));
   }
 }
