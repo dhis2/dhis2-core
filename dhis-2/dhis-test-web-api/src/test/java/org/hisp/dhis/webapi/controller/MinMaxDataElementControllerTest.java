@@ -133,8 +133,8 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
                 .trim(),
             """
                 {
-                  "dataset": "%s",
-                  "orgunit": "%s",
+                  "dataSet": "%s",
+                  "orgUnit": "%s",
                   "values": [{
                     "dataElement": "%s",
                     "orgUnit": "%s",
@@ -156,8 +156,8 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
                 .trim(),
             """
                 {
-                  "dataset": "%s",
-                  "orgunit": "%s",
+                  "dataSet": "%s",
+                  "orgUnit": "%s",
                   "values": [{
                     "dataElement": "%s",
                     "orgUnit": "%s",
@@ -179,14 +179,39 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
                 .trim(),
             """
                 {
-                  "dataset": "%s",
-                  "orgunit": "%s",
+                  "dataSet": "%s",
+                  "orgUnit": "%s",
                   "values": [{
                     "dataElement": "%s",
                     "orgUnit": "%s",
                     "categoryOptionCombo": "%s",
                     "minValue": 10,
                     "maxValue": 10
+                  }]
+                }
+                """
+                .formatted(
+                    fakeDataSetID,
+                    fakeOrgUnitID,
+                    fakeDataElementID,
+                    fakeOrgUnitID,
+                    fakeCategoryOptionComboID),
+            HttpStatus.BAD_REQUEST),
+        // This payload should be valid, but we have not loaded the required metadata
+        arguments(
+            "Could not resolve references for min-max object: dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=10, max=100"
+                .formatted(fakeDataElementID, fakeOrgUnitID, fakeCategoryOptionComboID)
+                .trim(),
+            """
+                {
+                  "dataSet": "%s",
+                  "orgUnit": "%s",
+                  "values": [{
+                    "dataElement": "%s",
+                    "orgUnit": "%s",
+                    "categoryOptionCombo": "%s",
+                    "minValue": 10,
+                    "maxValue": 100
                   }]
                 }
                 """
@@ -208,5 +233,25 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
         "ERROR",
         expectedMessage,
         POST("/minMaxDataElements/values", payload).content(expectedStatus));
+  }
+
+  @Test
+  void testBulkPostJson_EmptyValues() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Successfully imported 0 min-max values",
+        POST(
+                "/minMaxDataElements/values",
+                """
+                  {
+                  "dataSet": "%s",
+                  "orgUnit": "%s",
+                  "values": []
+                }
+                """
+                    .formatted(orgUnitId, dataElementId, categoryOptionComboId))
+            .content(HttpStatus.OK));
   }
 }

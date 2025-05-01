@@ -153,15 +153,18 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
 
   @Transactional
   @Override
-  public void importFromJson(MinMaxValueBatchRequest request) throws BadRequestException {
+  public int importFromJson(MinMaxValueBatchRequest request) throws BadRequestException {
     List<MinMaxValueDto> dtos = Optional.ofNullable(request.values()).orElse(List.of());
 
-    if (dtos.isEmpty()) return;
+    if (dtos.isEmpty()) {
+      return 0;
+    }
+
     log.info(
         "Starting min-max import: {} values for dataset={}, orgunit={}",
         dtos.size(),
-        request.datasetId(),
-        request.organisationUnitId());
+        request.dataSet(),
+        request.orgUnit());
     long startTime = System.nanoTime();
     List<ResolvedMinMaxDto> resolvedDtos = resolveAllValidDtos(dtos, true, minMaxDataElementStore);
     final int CHUNK_SIZE = 500;
@@ -176,6 +179,8 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
         "Min-max import completed: {} values processed in {} ms",
         resolvedDtos.size(),
         elapsedMillis);
+
+    return resolvedDtos.size();
   }
 
   private static List<ResolvedMinMaxDto> resolveAllValidDtos(
@@ -244,15 +249,15 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
 
   @Transactional
   @Override
-  public void deleteFromJson(MinMaxValueBatchRequest request) throws BadRequestException {
+  public int deleteFromJson(MinMaxValueBatchRequest request) throws BadRequestException {
     List<MinMaxValueDto> dtos = Optional.ofNullable(request.values()).orElse(List.of());
-    if (dtos.isEmpty()) return;
+    if (dtos.isEmpty()) return 0;
 
     log.info(
         "Starting min-max delete: {} values for dataset={}, orgunit={}",
         dtos.size(),
-        request.datasetId(),
-        request.organisationUnitId());
+        request.dataSet(),
+        request.orgUnit());
     long startTime = System.nanoTime();
     List<ResolvedMinMaxDto> resolvedDtos = resolveAllValidDtos(dtos, false, minMaxDataElementStore);
     final int CHUNK_SIZE = 500;
@@ -266,5 +271,7 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
         "Min-max delete completed: {} values processed in {} ms",
         resolvedDtos.size(),
         elapsedMillis);
+
+    return resolvedDtos.size();
   }
 }

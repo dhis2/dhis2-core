@@ -34,6 +34,6 @@ import java.util.List;
 import org.hisp.dhis.common.UID;
 
 public record MinMaxValueBatchRequest(
-    @JsonProperty("dataset") UID datasetId,
-    @JsonProperty("orgunit") UID organisationUnitId,
+    @JsonProperty("dataSet") UID dataSet,
+    @JsonProperty("orgUnit") UID orgUnit,
     @JsonProperty("values") List<MinMaxValueDto> values) {}

@@ -66,7 +66,7 @@ public interface MinMaxDataElementService {
 
   void removeMinMaxDataElements(Collection<DataElement> dataElements, OrganisationUnit parent);
 
-  void importFromJson(MinMaxValueBatchRequest request) throws BadRequestException;
+  int importFromJson(MinMaxValueBatchRequest request) throws BadRequestException;
 
-  void deleteFromJson(MinMaxValueBatchRequest request) throws BadRequestException;
+  int deleteFromJson(MinMaxValueBatchRequest request) throws BadRequestException;
 }
