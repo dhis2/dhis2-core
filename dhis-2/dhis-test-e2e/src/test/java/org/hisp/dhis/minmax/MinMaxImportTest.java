@@ -57,7 +57,7 @@ class MinMaxImportTest extends ApiTest {
   private final String defaultCOC = "HllvX50cXC0";
 
   @BeforeAll
-  public void before() {
+  void before() {
     loginActions = new LoginActions();
     metadataActions = new MetadataActions();
     minMaxValuesActions = new MinMaxValuesActions();
@@ -70,28 +70,14 @@ class MinMaxImportTest extends ApiTest {
   }
 
   @BeforeEach
-  public void setup() {
+  void setup() {
     loginActions.loginAsSuperUser();
   }
 
   @Test
-  void minMaxValuesCanBeImportedInBulk_JSON() throws IOException {
+  void minMaxValuesCanBeImportedInBulk_JSON() {
 
-    String payload =
-        """
-                { "dataset": "%s",
-                    "orgunit": "%s",
-                 "values" : [{
-                    "dataElement": "%s",
-                    "orgUnit": "%s",
-                    "categoryOptionCombo": "%s",
-                    "minValue": 10,
-                    "maxValue": 100
-                  }
-                ]
-                }"""
-            .formatted(dataSet, orgUnit, dataElement, orgUnit, defaultCOC);
-    ApiResponse response = minMaxValuesActions.post(payload);
+    ApiResponse response = postMinMaxJSONFile(false);
     response
         .validate()
         .statusCode(200)
@@ -100,6 +86,15 @@ class MinMaxImportTest extends ApiTest {
 
   @Test
   void minMaxValuesCanBeDeletedInBulk_JSON() throws IOException {
+    postMinMaxJSONFile(false);
+    ApiResponse response = postMinMaxJSONFile(true);
+    response
+        .validate()
+        .statusCode(200)
+        .body("message", containsString("Successfully deleted 1 min-max values"));
+  }
+
+  private ApiResponse postMinMaxJSONFile(Boolean delete) {
     String payload =
         """
         { "dataset": "%s",
@@ -107,36 +102,45 @@ class MinMaxImportTest extends ApiTest {
           "values" : [{
               "dataElement": "%s",
               "orgUnit": "%s",
-              "categoryOptionCombo": "%s"
+              "categoryOptionCombo": "%s",
+                "minValue": 10,
+                "maxValue": 100
             }]
         }
         """
             .formatted(dataSet, orgUnit, dataElement, orgUnit, defaultCOC);
 
     QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-    queryParamsBuilder.add("importStrategy", "DELETE");
-    ApiResponse response = minMaxValuesActions.post("", payload, queryParamsBuilder);
-
-    response
-        .validate()
-        .statusCode(200)
-        .body("message", containsString("Successfully deleted 1 min-max values"));
+    if (delete) {
+      queryParamsBuilder.add("importStrategy", "DELETE");
+    }
+    return minMaxValuesActions.post("", payload, queryParamsBuilder);
   }
 
   @Test
   void minMaxValueCanBeImportedInBulk_CSV() throws IOException {
+    postMinMaxCSVFile(false);
+  }
 
-    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-    queryParamsBuilder.add("dataSet", dataSet).add("orgUnit", orgUnit);
-    ApiResponse response =
-        minMaxValuesActions.postMultiPartFile(
-            new File("src/test/resources/minmax/minmax.csv"),
-            "application/csv",
-            queryParamsBuilder);
+  @Test
+  void minMaxValueCanBeDeletedInBulk_CSV() throws IOException {
+    postMinMaxCSVFile(false);
+    ApiResponse response = postMinMaxCSVFile(true);
     response
         .validate()
         .statusCode(200)
-        .body("message", containsString("Successfully imported 4 min-max values"));
+        .body("message", containsString("Successfully deleted 4 min-max values"));
+  }
+
+  private ApiResponse postMinMaxCSVFile(Boolean delete) {
+    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+    queryParamsBuilder.add("dataSet", dataSet).add("orgUnit", orgUnit);
+    if (delete) {
+      queryParamsBuilder.add("importStrategy", "DELETE");
+    }
+
+    return minMaxValuesActions.postMultiPartFile(
+        new File("src/test/resources/minmax/minmax.csv"), "application/csv", queryParamsBuilder);
   }
 
   @Test
@@ -165,6 +169,8 @@ class MinMaxImportTest extends ApiTest {
   @AfterAll
   void tearDown() {
     loginActions.loginAsSuperUser();
+    postMinMaxCSVFile(true);
+    postMinMaxJSONFile(true);
     ApiResponse response =
         metadataActions.importMetadata(
             new File("src/test/resources/minmax/metadata.json"),
