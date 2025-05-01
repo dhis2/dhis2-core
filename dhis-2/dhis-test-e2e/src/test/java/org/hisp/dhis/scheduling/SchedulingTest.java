@@ -37,6 +37,7 @@ import org.hisp.dhis.test.e2e.actions.RestApiActions;
 import org.hisp.dhis.test.e2e.actions.SystemActions;
 import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,6 +53,15 @@ class SchedulingTest extends ApiTest {
     metadataActions = new MetadataActions();
     systemActions = new SystemActions();
     jobConfigActions = new RestApiActions("jobConfigurations");
+  }
+
+  @AfterAll
+  public void afterAllDelete() {
+    metadataActions
+        .importMetadata(
+            new File("src/test/resources/metadata/adex-metadata.json"),
+            "async=false&importMode=DELETE")
+        .validateStatus(200);
   }
 
   @Test

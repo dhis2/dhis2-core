@@ -2,34 +2,8 @@
   "dataSets": [
     {
       "name": "ANX DX test",
-      "created": "2024-10-30T07:22:53.773",
-      "lastUpdated": "2024-10-30T07:22:53.773",
-      "translations": [],
-      "createdBy": {
-        "id": "GOLswS44mh8",
-        "code": null,
-        "name": "Tom Wakiki",
-        "displayName": "Tom Wakiki",
-        "username": "system"
-      },
-      "lastUpdatedBy": {
-        "id": "GOLswS44mh8",
-        "code": null,
-        "name": "Tom Wakiki",
-        "displayName": "Tom Wakiki",
-        "username": "system"
-      },
-      "sharing": {
-        "owner": "GOLswS44mh8",
-        "external": false,
-        "users": {},
-        "userGroups": {},
-        "public": "rw------"
-      },
       "shortName": "ANC DX test",
-      "legendSets": [],
       "periodType": "Monthly",
-      "dataInputPeriods": [],
       "dataSetElements": [
         {
           "dataSet": {
@@ -45,27 +19,10 @@
           "id": "N2OO7qp1XhT"
         }
       ],
-      "compulsoryDataElementOperands": [],
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       },
-      "mobile": false,
-      "version": 0,
-      "expiryDays": 0,
-      "timelyDays": 15,
-      "notifyCompletingUser": false,
-      "openFuturePeriods": 0,
-      "openPeriodsAfterCoEndDate": 0,
-      "fieldCombinationRequired": false,
-      "validCompleteOnly": false,
-      "noValueRequiresComment": false,
-      "skipOffline": false,
-      "dataElementDecoration": false,
-      "renderAsTabs": false,
-      "renderHorizontally": false,
-      "compulsoryFieldsCompleteOnly": false,
       "id": "H91km2xaqGN",
-      "attributeValues": [],
       "organisationUnits": [
         {
           "id": "ImspTQPwCqd"
@@ -77,39 +34,11 @@
     {
       "code": "ANC1_TARGET",
       "name": "ANC1 target",
-      "created": "2024-10-30T07:08:10.055",
-      "lastUpdated": "2024-10-30T07:08:10.055",
-      "translations": [],
-      "createdBy": {
-        "id": "xE7jOejl9FI",
-        "code": null,
-        "name": "John Traore",
-        "displayName": "John Traore",
-        "username": "admin"
-      },
-      "lastUpdatedBy": {
-        "id": "xE7jOejl9FI",
-        "code": null,
-        "name": "John Traore",
-        "displayName": "John Traore",
-        "username": "admin"
-      },
-      "sharing": {
-        "owner": "xE7jOejl9FI",
-        "external": false,
-        "users": {},
-        "userGroups": {},
-        "public": "rw------"
-      },
       "shortName": "ANC1 target",
-      "legendSets": [],
       "aggregationType": "SUM",
       "valueType": "INTEGER_ZERO_OR_POSITIVE",
       "domainType": "AGGREGATE",
-      "aggregationLevels": [],
-      "zeroIsSignificant": false,
       "id": "ny4hnfb4rDF",
-      "attributeValues": [],
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       }
@@ -119,23 +48,6 @@
     {
       "code": "ANC1_TARGET",
       "name": "ANC1 source",
-      "created": "2024-10-30T07:09:34.353",
-      "lastUpdated": "2024-10-30T07:09:34.353",
-      "translations": [],
-      "createdBy": {
-        "id": "xE7jOejl9FI",
-        "code": null,
-        "name": "John Traore",
-        "displayName": "John Traore",
-        "username": "admin"
-      },
-      "lastUpdatedBy": {
-        "id": "xE7jOejl9FI",
-        "code": null,
-        "name": "John Traore",
-        "displayName": "John Traore",
-        "username": "admin"
-      },
       "sharing": {
         "owner": "xE7jOejl9FI",
         "external": false,
@@ -144,9 +56,6 @@
         "public": "rw------"
       },
       "shortName": "ANC1 source",
-      "legendSets": [],
-      "annualized": false,
-      "decimals": 0,
       "indicatorType": {
         "id": "JkWynlWMjJR"
       },
@@ -154,8 +63,7 @@
       "numeratorDescription": "ANC 1",
       "denominator": "1",
       "denominatorDescription": "1",
-      "id": "N2OO7qp1XhT",
-      "attributeValues": []
+      "id": "N2OO7qp1XhT"
     }
   ],
   "indicatorTypes": [
@@ -169,30 +77,6 @@
   "aggregateDataExchanges": [
     {
       "name": "ANC test",
-      "created": "2024-10-30T07:13:25.686",
-      "lastUpdated": "2024-11-04T09:14:55.246",
-      "translations": [],
-      "createdBy": {
-        "id": "GOLswS44mh8",
-        "code": null,
-        "name": "Tom Wakiki",
-        "displayName": "Tom Wakiki",
-        "username": "system"
-      },
-      "lastUpdatedBy": {
-        "id": "GOLswS44mh8",
-        "code": null,
-        "name": "Tom Wakiki",
-        "displayName": "Tom Wakiki",
-        "username": "system"
-      },
-      "sharing": {
-        "owner": "GOLswS44mh8",
-        "external": false,
-        "users": {},
-        "userGroups": {},
-        "public": "rw------"
-      },
       "source": {
         "requests": [
           {
@@ -207,7 +91,6 @@
               "fdc6uOvgoji",
               "LEVEL-m9lBJogzE95"
             ],
-            "filters": [],
             "inputIdScheme": "UID",
             "outputDataElementIdScheme": "CODE",
             "outputOrgUnitIdScheme": "CODE",
@@ -222,8 +105,7 @@
           "idScheme": "CODE"
         }
       },
-      "id": "R9Urc25BSio",
-      "attributeValues": []
+      "id": "R9Urc25BSio"
     }
   ]
 }
