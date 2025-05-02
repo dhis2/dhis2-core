@@ -2425,7 +2425,6 @@ jasperreports.version=${jasperreports.version}
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <parallel>none</parallel>
               <skipTests>false</skipTests>
               <trimStackTrace>false</trimStackTrace>
               <argLine>@{argLine} ${surefireArgLine}</argLine>
@@ -2451,7 +2450,6 @@ jasperreports.version=${jasperreports.version}
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <parallel>none</parallel>
               <skipTests>false</skipTests>
               <trimStackTrace>false</trimStackTrace>
               <argLine>@{argLine} ${surefireArgLine}</argLine>
