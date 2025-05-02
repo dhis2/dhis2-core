@@ -32,12 +32,16 @@ package org.hisp.dhis.test.webapi;
 import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.http.HttpStatus.CREATED;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.cache.CacheManager;
+import javax.cache.Caching;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.test.IntegrationH2Test;
 import org.hisp.dhis.test.config.H2TestConfig;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -50,6 +54,12 @@ import org.springframework.test.context.ContextConfiguration;
 @ActiveProfiles("test-h2")
 @ContextConfiguration(classes = H2TestConfig.class)
 public abstract class H2ControllerIntegrationTestBase extends ControllerIntegrationTestBase {
+
+  @BeforeEach
+  void assertCacheOpen() {
+    CacheManager cm = Caching.getCachingProvider().getCacheManager();
+    assertFalse(cm.isClosed(), "Previous test closed the CacheManager");
+  }
 
   protected final HttpResponse postCategory(
       String name, DataDimensionType type, List<String> options) {
