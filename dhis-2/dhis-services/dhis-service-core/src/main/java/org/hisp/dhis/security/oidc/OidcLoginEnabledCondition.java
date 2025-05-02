@@ -37,14 +37,13 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class OIDCLoginEnabledCondition extends PropertiesAwareConfigurationCondition {
+public class OidcLoginEnabledCondition extends PropertiesAwareConfigurationCondition {
   @Override
   public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
     if (isTestRun(context)) {
       return false;
     }
-    String isEnabled = getConfiguration().getProperty(ConfigurationKey.OIDC_OAUTH2_LOGIN_ENABLED);
-    return isEnabled.equalsIgnoreCase("on");
+    return getConfiguration().isEnabled(ConfigurationKey.OIDC_OAUTH2_LOGIN_ENABLED);
   }
 
   @Override
