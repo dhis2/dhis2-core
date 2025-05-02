@@ -33,8 +33,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.hisp.dhis.test.e2e.dependsOn.DependencyFile;
 import org.hisp.dhis.test.e2e.dependsOn.DependencySetupException;
-import org.hisp.dhis.test.e2e.dependsOn.ResourceType;
 import org.hisp.dhis.test.e2e.dependsOn.JsonDependencyLoader;
+import org.hisp.dhis.test.e2e.dependsOn.ResourceType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
