@@ -116,10 +116,8 @@ class ProgramItemStageElementTest extends TestBase {
             "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='0', boundaryHash='noboundaries', piUid='%s')",
             psUid, deUid, programIndicator.getUid());
 
-    // Act
     Object result = item.getSql(ctx, visitor);
 
-    // Assert
     assertEquals(expectedPlaceholder, result);
   }
 
@@ -216,7 +214,6 @@ class ProgramItemStageElementTest extends TestBase {
   @Test
   void getSql_whenNegativeOffsetWithBoundaries_thenReturnsCorrectPlaceholderAndHash()
       throws ParseException {
-    // Arrange
     int offset = -1;
     when(expressionState.getStageOffset()).thenReturn(offset);
     ProgramIndicator programIndicator = createProgramIndicator();
