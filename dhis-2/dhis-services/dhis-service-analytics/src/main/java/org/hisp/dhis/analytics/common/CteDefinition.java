@@ -305,7 +305,7 @@ public class CteDefinition {
   }
 
   public boolean isProgramStage() {
-    return this.cteType == CteType.PROGRAM_STAGE;
+    return this.cteType == CteType.PROGRAM_STAGE && !isExists;
   }
 
   private static String generateRandomAlias() {
