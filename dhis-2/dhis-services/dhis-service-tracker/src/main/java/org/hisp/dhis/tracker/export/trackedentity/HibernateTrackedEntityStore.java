@@ -727,7 +727,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
     if (params.hasFilterForEvents()) {
       sql.append("inner join (");
-      addEventQuery(sql, sqlParameters, params);
+      addEventFilter(sql, sqlParameters, params);
       sql.append(") EV on EV.enrollmentid = en.enrollmentid ");
     }
 
@@ -796,7 +796,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   /** Adds event query with event related query params to given {@code sql}. */
-  private void addEventQuery(
+  private void addEventFilter(
       StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
     sql.append("select ev.enrollmentid ").append("from event ev ");
 
@@ -862,10 +862,12 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     } else if (params.isEventStatus(EventStatus.SKIPPED)) {
       sql.append("ev.status = :eventStatus");
       sqlParameters.addValue("eventStatus", EventStatus.SKIPPED.name());
-    } else if (params.isEventStatus(EventStatus.SCHEDULE)
-        || params.isEventStatus(EventStatus.OVERDUE)) {
+    } else if (params.isEventStatus(EventStatus.SCHEDULE)) {
       sql.append(
           "ev.status is not null and ev.occurreddate is null and date(now()) <= date(EV.scheduleddate) ");
+    } else if (params.isEventStatus(EventStatus.OVERDUE)) {
+      sql.append(
+          "ev.status is not null and ev.occurreddate is null and date(now()) > date(EV.scheduleddate) ");
     }
   }
 
