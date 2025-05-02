@@ -64,7 +64,7 @@ public class DependsOnExtension
     Method testMethod = ctx.getRequiredTestMethod();
     DependsOn depends = testMethod.getAnnotation(DependsOn.class);
     if (depends == null) {
-      // nothing to do for this test
+      // Nothing to do for this test
       return;
     }
 
