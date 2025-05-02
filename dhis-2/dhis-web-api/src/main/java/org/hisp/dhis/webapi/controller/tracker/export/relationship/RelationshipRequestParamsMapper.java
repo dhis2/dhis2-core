@@ -42,10 +42,14 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams.RelationshipOperationParamsBuilder;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
 import org.springframework.stereotype.Component;
 
 /**
@@ -56,9 +60,10 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 class RelationshipRequestParamsMapper {
-
   private static final Set<String> ORDERABLE_FIELD_NAMES =
       RelationshipMapper.ORDERABLE_FIELDS.keySet();
+
+  private final FieldFilterService fieldFilterService;
 
   public RelationshipOperationParams map(RelationshipRequestParams relationshipRequestParams)
       throws BadRequestException {
@@ -87,7 +92,15 @@ class RelationshipRequestParamsMapper {
 
     mapOrderParam(builder, relationshipRequestParams.getOrder());
 
-    return builder.includeDeleted(relationshipRequestParams.isIncludeDeleted()).build();
+    return builder
+        .fields(
+            RelationshipFields.of(
+                f ->
+                    fieldFilterService.filterIncludes(
+                        Relationship.class, relationshipRequestParams.getFields(), f),
+                FieldPath.FIELD_PATH_SEPARATOR))
+        .includeDeleted(relationshipRequestParams.isIncludeDeleted())
+        .build();
   }
 
   private TrackerType getTrackerType(UID trackedEntity, UID enrollment, UID event)

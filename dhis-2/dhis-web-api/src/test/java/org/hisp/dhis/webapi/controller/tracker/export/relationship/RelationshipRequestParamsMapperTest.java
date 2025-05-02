@@ -38,19 +38,27 @@ import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
 
 import java.util.List;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class RelationshipRequestParamsMapperTest {
+  private RelationshipRequestParamsMapper mapper;
 
-  private final RelationshipRequestParamsMapper mapper = new RelationshipRequestParamsMapper();
+  @BeforeEach
+  void setUp() {
+    FieldFilterService fieldFilterService = mock(FieldFilterService.class);
+    mapper = new RelationshipRequestParamsMapper(fieldFilterService);
+  }
 
   @Test
   void getIdentifierParamThrowsIfNoParamsIsSet() {

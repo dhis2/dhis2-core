@@ -44,10 +44,11 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentFields;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.webapi.controller.tracker.RequestHandler;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
@@ -80,17 +81,17 @@ class EnrollmentsExportController {
 
   private final RequestHandler requestHandler;
 
-  private final EnrollmentFieldsParamMapper fieldsMapper;
+  private final FieldFilterService fieldFilterService;
 
   public EnrollmentsExportController(
       EnrollmentService enrollmentService,
       EnrollmentRequestParamsMapper paramsMapper,
       RequestHandler requestHandler,
-      EnrollmentFieldsParamMapper fieldsMapper) {
+      FieldFilterService fieldFilterService) {
     this.enrollmentService = enrollmentService;
     this.paramsMapper = paramsMapper;
     this.requestHandler = requestHandler;
-    this.fieldsMapper = fieldsMapper;
+    this.fieldFilterService = fieldFilterService;
 
     assertUserOrderableFieldsAreSupported(
         "enrollment", EnrollmentMapper.ORDERABLE_FIELDS, enrollmentService.getOrderableFields());
@@ -137,10 +138,13 @@ class EnrollmentsExportController {
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
           List<FieldPath> fields)
       throws NotFoundException {
-    EnrollmentParams enrollmentParams = fieldsMapper.map(fields);
+    EnrollmentFields enrollmentFields =
+        EnrollmentFields.of(
+            f -> fieldFilterService.filterIncludes(Enrollment.class, fields, f),
+            FieldPath.FIELD_PATH_SEPARATOR);
 
     Enrollment enrollment =
-        ENROLLMENT_MAPPER.map(enrollmentService.getEnrollment(uid, enrollmentParams));
+        ENROLLMENT_MAPPER.map(enrollmentService.getEnrollment(uid, enrollmentFields));
 
     return requestHandler.serve(enrollment, fields);
   }

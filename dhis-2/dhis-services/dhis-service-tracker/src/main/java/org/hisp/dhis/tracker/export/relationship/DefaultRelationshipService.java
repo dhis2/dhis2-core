@@ -63,11 +63,13 @@ public class DefaultRelationshipService implements RelationshipService {
   private final HibernateRelationshipStore relationshipStore;
   private final RelationshipOperationParamsMapper mapper;
 
-  // TODO(DHIS2-19137) Pass fields params as a parameter
   @Nonnull
   @Override
   public Set<RelationshipItem> findRelationshipItems(
-      TrackerType trackerType, UID uid, boolean includeDeleted) {
+      @Nonnull TrackerType trackerType,
+      @Nonnull UID uid,
+      @Nonnull RelationshipFields fields,
+      boolean includeDeleted) {
     List<RelationshipItem> relationshipItems =
         switch (trackerType) {
           case TRACKED_ENTITY ->
@@ -80,14 +82,10 @@ public class DefaultRelationshipService implements RelationshipService {
     return relationshipItems.stream()
         .filter(
             ri ->
-                ri.getRelationship().getFrom().equals(ri)
-                    || ri.getRelationship().getRelationshipType().isBidirectional())
-        .filter(
-            ri ->
                 trackerAccessManager
                     .canRead(CurrentUserUtil.getCurrentUserDetails(), ri.getRelationship())
                     .isEmpty())
-        .map(RELATIONSHIP_ITEM_MAPPER::map)
+        .map(ri -> RELATIONSHIP_ITEM_MAPPER.map(fields, ri))
         .collect(Collectors.toSet());
   }
 
@@ -96,8 +94,7 @@ public class DefaultRelationshipService implements RelationshipService {
   public List<Relationship> findRelationships(@Nonnull RelationshipOperationParams params)
       throws ForbiddenException, NotFoundException, BadRequestException {
     RelationshipQueryParams queryParams = mapper.map(params);
-
-    return map(relationshipStore.getRelationships(queryParams));
+    return map(params.getFields(), relationshipStore.getRelationships(queryParams));
   }
 
   @Nonnull
@@ -107,14 +104,14 @@ public class DefaultRelationshipService implements RelationshipService {
       throws ForbiddenException, NotFoundException, BadRequestException {
     RelationshipQueryParams queryParams = mapper.map(params);
     Page<Relationship> relationships = relationshipStore.getRelationships(queryParams, pageParams);
-    return relationships.withFilteredItems(map(relationships.getItems()));
+    return relationships.withFilteredItems(map(params.getFields(), relationships.getItems()));
   }
 
   @Nonnull
   @Override
   public Optional<Relationship> findRelationship(@Nonnull UID uid) {
     try {
-      return Optional.of(getRelationship(uid));
+      return Optional.of(getRelationship(uid, RelationshipFields.none()));
     } catch (NotFoundException e) {
       return Optional.empty();
     }
@@ -122,12 +119,14 @@ public class DefaultRelationshipService implements RelationshipService {
 
   @Nonnull
   @Override
-  public Relationship getRelationship(@Nonnull UID uid) throws NotFoundException {
+  public Relationship getRelationship(@Nonnull UID uid, @Nonnull RelationshipFields fields)
+      throws NotFoundException {
     Page<Relationship> relationships;
     try {
       relationships =
           findRelationships(
-              RelationshipOperationParams.builder(Set.of(uid)).build(), PageParams.single());
+              RelationshipOperationParams.builder(Set.of(uid)).fields(fields).build(),
+              PageParams.single());
     } catch (BadRequestException | ForbiddenException e) {
       throw new IllegalArgumentException(
           "this must be a bug in how the RelationshipOperationParams are built");
@@ -164,19 +163,19 @@ public class DefaultRelationshipService implements RelationshipService {
   }
 
   /** Map to a non-proxied Relationship to prevent hibernate exceptions. */
-  private List<Relationship> map(List<Relationship> relationships) {
+  private List<Relationship> map(RelationshipFields fields, List<Relationship> relationships) {
     List<Relationship> result = new ArrayList<>(relationships.size());
     for (Relationship relationship : relationships) {
       if (trackerAccessManager
           .canRead(CurrentUserUtil.getCurrentUserDetails(), relationship)
           .isEmpty()) {
-        result.add(map(relationship));
+        result.add(map(fields, relationship));
       }
     }
     return result;
   }
 
-  private Relationship map(Relationship relationship) {
+  private Relationship map(RelationshipFields fields, Relationship relationship) {
     Relationship result = new Relationship();
     result.setUid(relationship.getUid());
     result.setCreated(relationship.getCreated());
@@ -187,31 +186,13 @@ public class DefaultRelationshipService implements RelationshipService {
     RelationshipType type = new RelationshipType();
     type.setUid(relationship.getRelationshipType().getUid());
     result.setRelationshipType(relationship.getRelationshipType());
-    result.setFrom(withNestedEntity(relationship.getFrom()));
-    result.setTo(withNestedEntity(relationship.getTo()));
+    result.setFrom(
+        RELATIONSHIP_ITEM_MAPPER.mapRelationshipItemWithoutRelationship(
+            fields.getFromFields(), relationship.getFrom()));
+    result.setTo(
+        RELATIONSHIP_ITEM_MAPPER.mapRelationshipItemWithoutRelationship(
+            fields.getToFields(), relationship.getTo()));
     result.setCreatedAtClient(relationship.getCreatedAtClient());
-    return result;
-  }
-
-  private RelationshipItem withNestedEntity(RelationshipItem item) {
-    // relationships of relationship items are not mapped to JSON so there is no need to fetch them
-    RelationshipItem result = new RelationshipItem();
-
-    // the call to the individual services is to detach and apply some logic like filtering out
-    // attribute values
-    // for tracked entity type attributes from enrollment.trackedEntity. Enrollment attributes are
-    // actually
-    // owned by the TE and cannot be set on the Enrollment. When returning enrollments in our API
-    // an enrollment
-    // should only have the program tracked entity attributes.
-    if (item.getTrackedEntity() != null) {
-      result.setTrackedEntity(item.getTrackedEntity());
-    } else if (item.getEnrollment() != null) {
-      result.setEnrollment(item.getEnrollment());
-    } else if (item.getEvent() != null) {
-      result.setEvent(item.getEvent());
-    }
-
     return result;
   }
 

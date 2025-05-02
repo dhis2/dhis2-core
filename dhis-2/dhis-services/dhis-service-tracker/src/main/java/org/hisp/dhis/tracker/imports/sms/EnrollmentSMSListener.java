@@ -48,7 +48,7 @@ import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.models.EnrollmentSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -101,7 +101,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener {
           trackedEntityService.getTrackedEntity(
               UID.of(subm.getTrackedEntityInstance().getUid()),
               UID.of(subm.getTrackerProgram().getUid()),
-              TrackedEntityParams.FALSE.withIncludeAttributes(true));
+              TrackedEntityFields.builder().includeAttributes().build());
     } catch (NotFoundException e) {
       // new TE will be created
     } catch (ForbiddenException e) {
