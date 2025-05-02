@@ -113,7 +113,7 @@ public class EmailVerificationTest extends BaseE2ETest {
     // Verify the user can login successfully
     ResponseEntity<LoginResponse> loginResponse =
         loginWithUsernameAndPassword(invitedUsername, newPassword, null);
-    assertLoginSuccess(loginResponse, DEFAULT_DASHBOARD_PATH);
+    assertLoginSuccess(loginResponse, DEFAULT_LOGIN_REDIRECT);
   }
 
   /**
