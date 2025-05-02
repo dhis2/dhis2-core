@@ -51,6 +51,4 @@ public class CspConstants {
 
   public static final List<Pattern> EXTERNAL_STATIC_CONTENT_URL_PATTERNS =
       List.of(P_1, P_2, P_2, P_4, P_5);
-
-  public static final Pattern LOGIN_PATTERN = Pattern.compile("^.+/dhis-web-commons/security/.+$");
 }
