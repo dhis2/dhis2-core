@@ -49,6 +49,8 @@ import org.hisp.dhis.tracker.export.Order;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString
 public class RelationshipOperationParams {
+  private final RelationshipFields fields;
+
   private final TrackerType type;
 
   private final UID identifier;
@@ -88,11 +90,11 @@ public class RelationshipOperationParams {
   }
 
   public static class RelationshipOperationParamsBuilder {
-
     private final List<Order> order = new ArrayList<>();
     private TrackerType type;
     private UID identifier;
     private Set<UID> relationships;
+    private RelationshipFields fields = RelationshipFields.none();
     private boolean includeDeleted;
 
     RelationshipOperationParamsBuilder() {}
@@ -122,9 +124,19 @@ public class RelationshipOperationParams {
       return this;
     }
 
+    public RelationshipOperationParamsBuilder fields(@Nonnull RelationshipFields fields) {
+      this.fields = fields;
+      return this;
+    }
+
     public RelationshipOperationParams build() {
       return new RelationshipOperationParams(
-          this.type, this.identifier, this.relationships, this.order, this.includeDeleted);
+          this.fields,
+          this.type,
+          this.identifier,
+          this.relationships,
+          this.order,
+          this.includeDeleted);
     }
   }
 

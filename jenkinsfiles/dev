@@ -39,6 +39,19 @@ pipeline {
                     }
                 }
             }
+
+            post {
+                always {
+                    teamscale includePattern: '**/target/site/jacoco/**.xml',
+                        credentialsId: 'teamscale-credentials',
+                        partition: "jenkins-dev-${env.GIT_BRANCH}",
+                        reportFormatId: 'JACOCO',
+                        teamscaleProject: 'dhis-2-core',
+                        uploadMessage: "JaCoCo reports from ${GIT_COMMIT}",
+                        url: 'https://dhis2.teamscale.io',
+                        revision: "${GIT_COMMIT}"
+                }
+            }
         }
 
         stage('Run api tests') {

@@ -35,6 +35,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import org.hisp.dhis.tracker.export.event.EventFields;
+import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
 
 /**
  * EnrollmentFields indicates which of the enrollment fields should be exported. This is used to
@@ -49,24 +50,40 @@ import org.hisp.dhis.tracker.export.event.EventFields;
 @EqualsAndHashCode
 public class EnrollmentFields {
   private final boolean includesAttributes;
+
   private final boolean includesRelationships;
+  private final RelationshipFields relationshipFields;
 
   private final boolean includesEvents;
   private final EventFields eventFields;
 
   private EnrollmentFields(Builder builder) {
-    this.includesRelationships = builder.includesRelationships;
     this.includesAttributes = builder.includesAttributes;
+
+    this.includesRelationships = builder.includesRelationships;
+    this.relationshipFields =
+        builder.includesRelationships ? builder.relationshipFields : RelationshipFields.none();
+
     this.includesEvents = builder.includeEvents;
     this.eventFields = builder.includeEvents ? builder.eventFields : EventFields.none();
   }
 
   private EnrollmentFields(Predicate<String> includesFields, String pathSeparator) {
     this.includesAttributes = includesFields.test("attributes");
-    this.includesRelationships = includesFields.test("relationships");
+
+    if (includesFields.test("relationships")) {
+      this.includesRelationships = true;
+      this.relationshipFields =
+          RelationshipFields.of(
+              f -> includesFields.test("relationships" + pathSeparator + f), pathSeparator);
+    } else {
+      this.includesRelationships = false;
+      this.relationshipFields = RelationshipFields.none();
+    }
 
     if (includesFields.test("events")) {
-      this.eventFields = EventFields.of(f -> includesFields.test("events" + pathSeparator + f));
+      this.eventFields =
+          EventFields.of(f -> includesFields.test("events" + pathSeparator + f), pathSeparator);
       this.includesEvents = true;
     } else {
       this.eventFields = EventFields.none();
@@ -74,6 +91,14 @@ public class EnrollmentFields {
     }
   }
 
+  /**
+   * Create fields class using the predicate to test if a given field should be exported. {@code
+   * pathSeparator} is used to concatenate paths for nested fields. The field filtering service
+   * which can be used as the predicate for example supports dot notation. That means you can use it
+   * to test if a nested path like {@code "events.relationships"} is included in the users {@code
+   * fields}. This allows us to compose fields classes in the same way as the structure the fields
+   * class is supposed to represent.
+   */
   public static EnrollmentFields of(
       @Nonnull Predicate<String> includesFields, @Nonnull String pathSeparator) {
     return new EnrollmentFields(includesFields, pathSeparator);
@@ -85,7 +110,7 @@ public class EnrollmentFields {
     return new EnrollmentFields(f -> false, "x");
   }
 
-  /** Use this if you do want fields to be exported. This is potentially expensive! */
+  /** Use this if you do want all fields to be exported. This is potentially expensive! */
   public static EnrollmentFields all() {
     // the path separator does not matter as the predicate returns true regardless of the path
     return new EnrollmentFields(f -> true, "x");
@@ -96,20 +121,25 @@ public class EnrollmentFields {
   }
 
   public static class Builder {
-    private boolean includesRelationships;
     private boolean includesAttributes;
+
+    private boolean includesRelationships;
+    private RelationshipFields relationshipFields;
+
     private boolean includeEvents;
     private EventFields eventFields;
 
     private Builder() {}
 
-    public Builder includeRelationships() {
-      this.includesRelationships = true;
+    public Builder includeAttributes() {
+      this.includesAttributes = true;
       return this;
     }
 
-    public Builder includeAttributes() {
-      this.includesAttributes = true;
+    /** Indicates that relationships should be exported with the given {@code fields}. */
+    public Builder includeRelationships(@Nonnull RelationshipFields fields) {
+      this.includesRelationships = true;
+      this.relationshipFields = fields;
       return this;
     }
 

@@ -565,15 +565,7 @@ class JdbcEventStore {
     }
 
     sqlBuilder.append(") as event left join (");
-
-    if (queryParams.isIncludeAttributes()) {
-      sqlBuilder.append(getAttributeValueQuery());
-
-      sqlBuilder.append(") as att on event.te_id=att.pav_id left join (");
-    }
-
     sqlBuilder.append(EVENT_NOTE_QUERY);
-
     sqlBuilder.append(") as cm on event.");
     sqlBuilder.append(COLUMN_EVENT_ID);
     sqlBuilder.append("=cm.evn_id ");
@@ -918,17 +910,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
     fromBuilder.append(addLastUpdatedFilters(params, sqlParameters, hlp));
 
-    // Comparing milliseconds instead of always creating new Date(0)
-    if (params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0) {
-      sqlParameters.addValue("skipChangedBefore", params.getSkipChangedBefore(), Types.TIMESTAMP);
-
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(EVENT_LASTUPDATED_GT)
-          .append(":skipChangedBefore")
-          .append(" ");
-    }
-
     if (params.getCategoryOptionCombo() != null) {
       sqlParameters.addValue("attributeoptioncomboid", params.getCategoryOptionCombo().getId());
 
@@ -1015,10 +996,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           .append(" (ps.uid in (")
           .append(":programstage_uid")
           .append(")) ");
-    }
-
-    if (params.isSynchronizationQuery()) {
-      fromBuilder.append(hlp.whereAnd()).append(" ev.lastupdated > ev.lastsynchronized ");
     }
 
     if (!CollectionUtils.isEmpty(params.getEnrollments())) {
@@ -1261,8 +1238,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    *       COCs COs. We thus need to aggregate these COs for each event.
    *   <li>COCs should be returned in the user specified idScheme. So in order to have access to
    *       uid, code, name, attributes we need another join as all of these fields cannot be added
-   *       to the above aggregation. IdSchemes SELECT are handled in {@link
-   *       #getEventSelectIdentifiersByIdScheme}.
+   *       to the above aggregation.
    *   <li>A user must have access to all COs of the events COC to have access to an event.
    * </ul>
    */
@@ -1285,7 +1261,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
  coc.categoryoptioncomboid \
 """;
 
-    if (!isSuper(user)) {
+    if (isNotSuperUser(user)) {
       joinCondition =
           joinCondition
               + " having bool_and(case when "
@@ -1337,17 +1313,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
   }
 
-  private String getAttributeValueQuery() {
-    return """
-           select pav.trackedentityid as pav_id, pav.created as pav_created, pav.lastupdated as\
-            pav_lastupdated, pav.value as pav_value, ta.uid as ta_uid, ta.name as ta_name,\
-            ta.valuetype as ta_valuetype from trackedentityattributevalue pav inner join\
-            trackedentityattribute ta on\
-            pav.trackedentityattributeid=ta.trackedentityattributeid\s""";
-  }
-
-  private boolean isSuper(User user) {
-    return user == null || user.isSuper();
+  private boolean isNotSuperUser(User user) {
+    return user != null && !user.isSuper();
   }
 
   private Set<EventDataValue> convertEventDataValueJsonIntoSet(String jsonString) {
@@ -1361,7 +1328,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private void setAccessiblePrograms(User user, EventQueryParams params) {
-    if (!isSuper(user)) {
+    if (isNotSuperUser(user)) {
       params.setAccessiblePrograms(
           manager.getDataReadAll(Program.class).stream().map(UID::of).collect(Collectors.toSet()));
 

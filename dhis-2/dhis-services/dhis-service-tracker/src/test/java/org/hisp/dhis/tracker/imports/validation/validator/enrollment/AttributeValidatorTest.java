@@ -59,7 +59,6 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
-import org.hisp.dhis.tracker.imports.validation.service.attribute.TrackedAttributeValidationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -85,8 +84,6 @@ class AttributeValidatorTest {
   @Mock private TrackerPreheat preheat;
 
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
-
-  @Mock private TrackedAttributeValidationService teAttrService;
 
   private TrackerBundle bundle;
 
@@ -426,7 +423,7 @@ class AttributeValidatorTest {
 
     validator.validate(reporter, bundle, enrollment);
 
-    assertHasError(reporter, enrollment, ValidationCode.E1085);
+    assertHasError(reporter, enrollment, ValidationCode.E1007);
   }
 
   @Test
