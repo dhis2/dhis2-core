@@ -96,7 +96,6 @@ public class CteDefinition {
       String cteDefinition,
       String alias,
       boolean rowContext,
-      // Removed boolean type flags
       boolean isExists,
       boolean requiresCoalesce,
       String aggregateWhereClause,
