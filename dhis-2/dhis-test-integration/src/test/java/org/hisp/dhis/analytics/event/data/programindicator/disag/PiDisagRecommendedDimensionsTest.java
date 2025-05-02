@@ -27,35 +27,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.analytics.event.data.programindicator.disag;
 
-import java.util.HashMap;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
-import org.hisp.dhis.fieldfiltering.FieldPath;
+import java.util.Set;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.common.DimensionalObject;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Provides basic methods to transform input fields into {@link FieldPath } based on {@link
- * FieldFilterParser }. It follows the principles of {@link
- * org.hisp.dhis.fieldfiltering.FieldFilterService}
+ * @author Jim Grace
  */
-public class FieldsParamMapper {
-  private FieldsParamMapper() {}
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Transactional
+class PiDisagRecommendedDimensionsTest extends AbstractPiDisagTest {
 
-  public static final String FIELD_RELATIONSHIPS = "relationships";
+  @Override
+  @BeforeAll
+  protected void setUp() {
+    super.setUp();
+  }
 
-  public static final String FIELD_EVENTS = "events";
+  @Test
+  void testGetRecommendedDimensions() {
 
-  public static final String FIELD_ATTRIBUTES = "attributes";
+    // Given
+    Set<Category> expectedCategories = Set.of(category1, category2, category3, category4);
 
-  public static Map<String, FieldPath> rootFields(List<FieldPath> fieldPaths) {
-    Map<String, FieldPath> roots = new HashMap<>();
-    for (FieldPath p : fieldPaths) {
-      if (p.isRoot() && (!roots.containsKey(p.getName()) || p.isExclude())) {
-        roots.put(p.getName(), p);
-      }
-    }
-    return roots;
+    // When
+    List<? extends DimensionalObject> recommendations =
+        PiDisagRecommendedDimensions.getRecommendations(dataValueSetEventQueryParams, manager);
+
+    // Then (in any order)
+    assertEquals(expectedCategories, new HashSet<>(recommendations));
   }
 }

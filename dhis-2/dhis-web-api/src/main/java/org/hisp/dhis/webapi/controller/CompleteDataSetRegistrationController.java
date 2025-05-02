@@ -48,7 +48,6 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
@@ -72,7 +71,6 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.CompleteDataSetRegQueryParams;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -94,7 +92,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
     entity = CompleteDataSetRegistration.class,
     classifiers = {"team:platform", "purpose:data"})
 @Controller
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequestMapping("/api/completeDataSetRegistrations")
 @RequiredArgsConstructor
 public class CompleteDataSetRegistrationController {

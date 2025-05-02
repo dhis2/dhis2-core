@@ -36,7 +36,6 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -47,7 +46,6 @@ import org.hisp.dhis.fileresource.ExternalFileResource;
 import org.hisp.dhis.fileresource.ExternalFileResourceService;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -65,7 +63,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
     classifiers = {"team:platform", "purpose:support"})
 @Controller
 @RequestMapping("/api/externalFileResources")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class ExternalFileResourceController {
   @Autowired private ExternalFileResourceService externalFileResourceService;
 

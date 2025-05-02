@@ -29,31 +29,25 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1007;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1009;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1076;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1084;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1302;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1303;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1304;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1305;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateDeletionMandatoryDataValue;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateMandatoryDataValue;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateOptionSet;
+import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateValueType;
 
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -124,16 +118,8 @@ class DataValuesValidator implements Validator<Event> {
 
     if (dataElement.hasOptionSet()) {
       validateOptionSet(reporter, event, dataElement, dataValue.getValue(), optionService);
-    } else if (dataElement.getValueType().isFile()) {
-      validateFileNotAlreadyAssigned(reporter, bundle, event, dataValue.getValue());
-    } else if (dataElement.getValueType().isOrganisationUnit()) {
-      validateOrgUnitValueType(reporter, bundle, event, dataValue.getValue());
-    } else {
-      String status = ValidationUtils.valueIsValid(dataValue.getValue(), dataElement);
-      if (status != null) {
-        reporter.addError(event, E1302, dataElement.getUid(), status);
-      }
     }
+    validateValueType(reporter, bundle, event, dataValue.getValue(), dataElement);
   }
 
   private void validateDataValueDataElementIsConnectedToProgramStage(
@@ -152,33 +138,5 @@ class DataValuesValidator implements Validator<Event> {
         reporter.addError(event, E1305, payloadDataElement, programStage.getUid());
       }
     }
-  }
-
-  private void validateFileNotAlreadyAssigned(
-      Reporter reporter, TrackerBundle bundle, Event event, @Nonnull String value) {
-    FileResource fileResource = bundle.getPreheat().get(FileResource.class, value);
-
-    reporter.addErrorIfNull(fileResource, event, E1084, value);
-
-    if (bundle.getStrategy(event).isCreate()) {
-      reporter.addErrorIf(
-          () -> fileResource != null && fileResource.isAssigned(), event, E1009, value);
-    }
-
-    if (bundle.getStrategy(event).isUpdate()) {
-      reporter.addErrorIf(
-          () ->
-              fileResource != null
-                  && fileResource.getFileResourceOwner() != null
-                  && !fileResource.getFileResourceOwner().equals(event.getEvent().getValue()),
-          event,
-          E1009,
-          value);
-    }
-  }
-
-  private void validateOrgUnitValueType(
-      Reporter reporter, TrackerBundle bundle, Event event, @Nonnull String value) {
-    reporter.addErrorIfNull(bundle.getPreheat().getOrganisationUnit(value), event, E1007, value);
   }
 }
