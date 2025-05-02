@@ -49,7 +49,6 @@ import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
 @RequiredArgsConstructor
 public class CreateEventExecutor implements RuleActionExecutor<Event> {
   private final JobExecutionService jobExecutionService;
-  private final UID rule;
   private final UID programStage;
   private final String scheduledAt;
 
