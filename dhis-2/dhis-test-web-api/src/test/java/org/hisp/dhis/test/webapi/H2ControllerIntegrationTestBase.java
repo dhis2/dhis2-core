@@ -35,9 +35,11 @@ import static org.hisp.dhis.http.HttpStatus.CREATED;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.cache.Caching;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.test.IntegrationH2Test;
 import org.hisp.dhis.test.config.H2TestConfig;
+import org.junit.AfterClass;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -50,6 +52,11 @@ import org.springframework.test.context.ContextConfiguration;
 @ActiveProfiles("test-h2")
 @ContextConfiguration(classes = H2TestConfig.class)
 public abstract class H2ControllerIntegrationTestBase extends ControllerIntegrationTestBase {
+
+  @AfterClass
+  public static void tearDownClass() {
+    Caching.getCachingProvider().close();
+  }
 
   protected final HttpResponse postCategory(
       String name, DataDimensionType type, List<String> options) {
