@@ -31,4 +31,4 @@ package org.hisp.dhis.test.e2e.dependsOn;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-public record DependencyFile(DependencyType type, JsonNode payload) {}
+public record DependencyFile(ResourceType type, JsonNode payload) {}

@@ -230,16 +230,16 @@ Any failure during those phases (missing file, malformed JSON, HTTP error, dupli
 #### Usage
 ```java
 @DependsOn(files = { "pi-birth.json", "ind-valid.json" }, delete = true)
-void analyticsProducesExpectedResult(List<CreatedResource> deps) {
+void analyticsProducesExpectedResult(List<Resource> deps) {
 
     String indicatorUid =
         deps.stream()
-            .filter(cr -> cr.type() == DependencyType.IND)
+            .filter(cr -> cr.type() == ResourceType.INDICATOR)
             .findFirst()
             .orElseThrow()
             .uid();
 
-    // perform test logic that relies on the created Indicator UID …
+    // Perform test logic that relies on the created Indicator UID …
 }
 ```
 
@@ -271,11 +271,12 @@ Example (`ind-expected-pregnancies.json`):
 ```
 
 #### Supported Types
-| `type` | DHIS 2 endpoint              |
-|--------|------------------------------|
-| `pi`   | `/api/programIndicators`     |
-| `ind`  | `/api/indicators`            |
+| `type`              | DHIS 2 endpoint              |
+|---------------------|------------------------------|
+| `program_indicator` | `/api/programIndicators`     |
+| `indicator`         | `/api/indicators`            |
 
 #### Accessing Created UIDs
-Add a `List<CreatedResource>` (or a single `CreatedResource`) parameter to your test method; the extension injects the objects it created, each exposing `type`, `code`, and `uid`.
+Add a `List<Resource>` (or a single `Resource`) parameter to your test method; 
+the extension injects the created objects, each exposing `type`, `code`, and `uid`.
 

@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.test.e2e.dependsOn;
 
-public enum DependencyOpType {
+public enum OperationType {
   CREATE,
   DELETE;
 }

@@ -51,15 +51,15 @@ public class DependsOnExtension
 
   private static final ExtensionContext.Namespace NS =
       ExtensionContext.Namespace.create(DependsOnExtension.class.getName());
-  private final Map<DependencyType, org.hisp.dhis.test.e2e.dependsOn.services.ResourceService>
+  private final Map<ResourceType, org.hisp.dhis.test.e2e.dependsOn.services.ResourceService>
       services =
           Map.of(
-              DependencyType.PROGRAM_INDICATOR, new ProgramIndicatorService(),
-              DependencyType.INDICATOR, new IndicatorService());
+              ResourceType.PROGRAM_INDICATOR, new ProgramIndicatorService(),
+              ResourceType.INDICATOR, new IndicatorService());
 
   @Override
   public void beforeEach(ExtensionContext ctx) {
-    List<CreatedResource> created = new ArrayList<>();
+    List<Resource> created = new ArrayList<>();
 
     Method testMethod = ctx.getRequiredTestMethod();
     DependsOn depends = testMethod.getAnnotation(DependsOn.class);
@@ -82,27 +82,27 @@ public class DependsOnExtension
       Optional<String> foundUid = svc.lookup(code);
       if (foundUid.isPresent()) {
         log.info("{} with code='{}' exists – skipping", df.type(), code);
-        created.add(new CreatedResource(df.type(), foundUid.get()));
+        created.add(new Resource(df.type(), foundUid.get()));
         continue;
       }
       String uid = svc.create(df.payload());
-      created.add(new CreatedResource(df.type(), uid));
+      created.add(new Resource(df.type(), uid));
     }
     // Store created UIDs so afterEach can delete them if requested
-    ctx.getStore(NS).put(DependencyOpType.CREATE, created);
-    ctx.getStore(NS).put(DependencyOpType.DELETE, depends.delete());
+    ctx.getStore(NS).put(OperationType.CREATE, created);
+    ctx.getStore(NS).put(OperationType.DELETE, depends.delete());
   }
 
   @Override
   @SuppressWarnings("unchecked")
   public void afterEach(ExtensionContext ctx) {
-    Boolean delete = ctx.getStore(NS).remove(DependencyOpType.DELETE, Boolean.class);
+    Boolean delete = ctx.getStore(NS).remove(OperationType.DELETE, Boolean.class);
     if (delete == null || !delete) return;
 
-    List<CreatedResource> created = ctx.getStore(NS).remove(DependencyOpType.CREATE, List.class);
+    List<Resource> created = ctx.getStore(NS).remove(OperationType.CREATE, List.class);
     if (created == null) return;
 
-    for (CreatedResource cr : created) {
+    for (Resource cr : created) {
       services.get(cr.type()).delete(cr.uid());
     }
   }
@@ -114,12 +114,12 @@ public class DependsOnExtension
         && pc.getParameter()
             .getParameterizedType()
             .getTypeName()
-            .contains(CreatedResource.class.getName());
+            .contains(Resource.class.getName());
   }
 
   @Override
   public Object resolveParameter(ParameterContext pc, ExtensionContext ec)
       throws ParameterResolutionException {
-    return ec.getStore(NS).getOrDefault(DependencyOpType.CREATE, List.class, List.of());
+    return ec.getStore(NS).getOrDefault(OperationType.CREATE, List.class, List.of());
   }
 }

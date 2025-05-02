@@ -29,4 +29,4 @@
  */
 package org.hisp.dhis.test.e2e.dependsOn;
 
-public record CreatedResource(DependencyType type, String uid) {}
+public record Resource(ResourceType type, String uid) {}

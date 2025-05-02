@@ -31,11 +31,11 @@ package org.hisp.dhis.test.e2e.dependsOn;
 
 import java.util.Locale;
 
-public enum DependencyType {
+public enum ResourceType {
   PROGRAM_INDICATOR,
   INDICATOR;
 
-  public static DependencyType from(String s) {
+  public static ResourceType from(String s) {
     return valueOf(s.toUpperCase(Locale.ROOT));
   }
 }

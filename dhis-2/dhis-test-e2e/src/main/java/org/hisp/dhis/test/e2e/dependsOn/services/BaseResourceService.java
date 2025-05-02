@@ -111,7 +111,7 @@ public abstract class BaseResourceService implements ResourceService {
       throw new DependencySetupException(label + " create returned HTTP " + rsp.statusCode());
     }
 
-    // check errorReports
+    // Check errorReports
     try {
       JsonNode errs = MAPPER.readTree(rsp.getAsString()).path("response").path("errorReports");
       if (errs.isArray() && !errs.isEmpty()) {
