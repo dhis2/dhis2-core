@@ -1422,7 +1422,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
       // Handle 'Exists' type CTE
       if (cteDef.isExists()) {
-        builder.leftJoin(itemUid, "ee", tableAlias -> tableAlias + ".enrollment = ax.enrollment");
+        builder.leftJoin(
+            cteDef.getAlias(), "ee", tableAlias -> tableAlias + ".enrollment = ax.enrollment");
       }
 
       // Handle Program Indicator CTE
@@ -1702,7 +1703,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    * definitions, nothing is appended.
    */
   private void addCteClause(SelectBuilder sb, CteContext cteContext) {
-    cteContext.getCteDefinitions().forEach(sb::withCTE);
+    cteContext.getAliasAndDefinitionSqlMap().forEach(sb::withCTE);
   }
 
   private boolean columnIsInFormula(String col) {

@@ -236,8 +236,65 @@ public class CteContext {
     return cteDefinitions.entrySet().stream()
         .collect(
             LinkedHashMap::new,
-            (map, entry) -> map.put(entry.getKey(), entry.getValue().getCteDefinition()),
+            (map, entry) -> {
+              if (entry.getValue() != null) {
+                map.put(entry.getKey(), entry.getValue().getCteDefinition());
+              }
+            },
             Map::putAll);
+  }
+
+  /**
+   * Returns a map suitable for building the final SQL query's WITH clause. The map keys are the
+   * short, generated aliases for the CTEs, and the values are the corresponding CTE definition SQL
+   * bodies. Preserves insertion order.
+   *
+   * @return A map where key=shortAlias, value=definitionSql.
+   */
+  public Map<String, String> getAliasAndDefinitionSqlMap() {
+    Map<String, String> aliasMap = new LinkedHashMap<>();
+    for (Map.Entry<String, CteDefinition> entry : cteDefinitions.entrySet()) {
+      CteDefinition definition = entry.getValue();
+      if (definition != null) {
+        String alias = useKeyAsAlias(definition) ? entry.getKey() : definition.getAlias();
+        String definitionSql = definition.getCteDefinition();
+        if (alias != null && definitionSql != null) {
+          if (aliasMap.containsKey(alias)) {
+            // This should be rare with random aliases, but log if it happens
+            log.warn(
+                "Duplicate CTE alias encountered: '{}'. Overwriting previous definition for key '{}' with definition for key '{}'.",
+                alias,
+                findKeyForAlias(alias),
+                entry.getKey());
+          }
+          aliasMap.put(alias, definitionSql);
+        } else {
+          log.warn("Skipping CTE with null alias or definition for key: {}", entry.getKey());
+        }
+      }
+    }
+    return aliasMap;
+  }
+
+  /**
+   * Determines whether to use the key as the alias for the CTE definition. We do want to use the
+   * key as the alias for program stages, program indicators, and filters. This simplifies the left
+   * join logic.
+   *
+   * @param definition the CTE definition
+   * @return true if the key should be used as the alias, false otherwise
+   */
+  private boolean useKeyAsAlias(CteDefinition definition) {
+    return definition.isProgramStage() || definition.isProgramIndicator() || definition.isFilter();
+  }
+
+  private String findKeyForAlias(String alias) {
+    for (Map.Entry<String, CteDefinition> entry : cteDefinitions.entrySet()) {
+      if (entry.getValue() != null && alias.equals(entry.getValue().getAlias())) {
+        return entry.getKey();
+      }
+    }
+    return null; // Should not happen if called after alias exists
   }
 
   public Set<String> getCteKeys() {

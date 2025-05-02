@@ -171,6 +171,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
             cteContext,
             variableAliasMap,
             sqlBuilder);
+
     String processedFilterSql1 =
         placeholderUtils.processPlaceholdersAndGenerateVariableCtes(
             rawComplexFilterSql,
@@ -336,7 +337,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
   private String formatVariableJoin(String key, String alias) {
     return String.format(
         "left join %s %s on %s.enrollment = %s.enrollment and %s.rn = 1",
-        key, alias, alias, SUBQUERY_TABLE_ALIAS, alias);
+        alias, alias, alias, SUBQUERY_TABLE_ALIAS, alias);
   }
 
   /** Formats the LEFT JOIN for PSDE CTEs (rn=targetRank). */
@@ -344,7 +345,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
     if (targetRank != null) {
       return String.format(
           "left join %s %s on %s.enrollment = %s.enrollment and %s.rn = %d",
-          key, alias, alias, SUBQUERY_TABLE_ALIAS, alias, targetRank);
+          alias, alias, alias, SUBQUERY_TABLE_ALIAS, alias, targetRank);
     } else {
       log.error(
           "PSDE CTE definition for key '{}' is missing targetRank. Cannot generate join.", key);
@@ -356,7 +357,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
   private String formatD2FunctionJoin(String key, String alias) {
     return String.format(
         "left join %s %s on %s.enrollment = %s.enrollment",
-        key, alias, alias, SUBQUERY_TABLE_ALIAS);
+        alias, alias, alias, SUBQUERY_TABLE_ALIAS);
   }
 
   private boolean requireCoalesce(String function) {

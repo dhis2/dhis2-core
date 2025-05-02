@@ -301,7 +301,11 @@ public class CteDefinition {
   }
 
   private String computeAlias(int offset) {
-    return alias + "_" + offset;
+    if (offset < 0) {
+      return alias + "_neg" + Math.abs(offset);
+    } else {
+      return alias + "_" + offset;
+    }
   }
 
   public boolean isProgramStage() {

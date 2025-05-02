@@ -35,7 +35,9 @@ import org.hisp.dhis.common.ValueType;
 @RequiredArgsConstructor
 public enum ValueCoalescePolicy {
   NUMBER("0"),
-  BOOLEAN("false"),
+  // use 0 for all boolean values, since "yes/no" data type is converted to 0/1 in
+  // analytics tables
+  BOOLEAN("0"),
   TEXT("''"),
   DATE(null);
 
