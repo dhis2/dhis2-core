@@ -764,6 +764,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .organisationUnits(orgUnitA)
             .orgUnitMode(SELECTED)
             .program(programB)
+            .fields(TrackedEntityFields.builder().includeAttributes().build())
             .build();
 
     final List<TrackedEntity> trackedEntities =
@@ -783,6 +784,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .organisationUnits(orgUnitA)
             .orgUnitMode(SELECTED)
             .program(programA)
+            .fields(TrackedEntityFields.builder().includeAttributes().build())
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
