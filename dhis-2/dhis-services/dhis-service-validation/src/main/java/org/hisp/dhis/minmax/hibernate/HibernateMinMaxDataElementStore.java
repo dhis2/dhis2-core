@@ -74,6 +74,8 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
 
   private final SchemaService schemaService;
 
+  private static final int CHUNK_SIZE = 500;
+
   public HibernateMinMaxDataElementStore(
       EntityManager entityManager,
       JdbcTemplate jdbcTemplate,
@@ -201,56 +203,6 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
         .executeUpdate();
   }
 
-  /**
-   * Deletes a list of MinMaxDataElement records in bulk based on the provided list of
-   *
-   * @param dtos
-   */
-  @Override
-  @Transactional
-  public void deleteBulkByDtos(List<ResolvedMinMaxDto> dtos) {
-    if (dtos == null || dtos.isEmpty()) return;
-
-    final int CHUNK_SIZE = 1000;
-
-    for (int i = 0; i < dtos.size(); i += CHUNK_SIZE) {
-      List<ResolvedMinMaxDto> chunk = dtos.subList(i, Math.min(i + CHUNK_SIZE, dtos.size()));
-      executeChunkedDelete(chunk);
-    }
-  }
-
-  /**
-   * Deletes a chunk of MinMaxDataElement records based on resolved DTOs.
-   *
-   * @param chunk List of resolved DTOs containing internal IDs.
-   */
-  private void executeChunkedDelete(List<ResolvedMinMaxDto> chunk) {
-    StringBuilder sql =
-        new StringBuilder(
-            """
-      DELETE FROM minmaxdataelement
-      WHERE (dataelementid, sourceid, categoryoptioncomboid) IN (
-  """);
-
-    List<String> placeholders = new ArrayList<>();
-    for (int i = 0; i < chunk.size(); i++) {
-      placeholders.add(String.format("(:de%d, :ou%d, :coc%d)", i, i, i));
-    }
-
-    sql.append(String.join(", ", placeholders)).append(")");
-
-    Query<?> query = getSession().createNativeQuery(sql.toString());
-
-    for (int i = 0; i < chunk.size(); i++) {
-      ResolvedMinMaxDto dto = chunk.get(i);
-      query.setParameter("de" + i, dto.dataElementId());
-      query.setParameter("ou" + i, dto.orgUnitId());
-      query.setParameter("coc" + i, dto.categoryOptionComboId());
-    }
-
-    query.executeUpdate();
-  }
-
   @Override
   @Transactional(readOnly = true)
   public Map<UID, Long> getDataElementMap(@Nonnull Collection<UID> uids) {
@@ -309,7 +261,58 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
 
   @Override
   @Transactional
-  public void upsertResolvedDtos(List<ResolvedMinMaxDto> chunk) {
+  public void delete(List<ResolvedMinMaxDto> dtos) {
+    if (dtos == null || dtos.isEmpty()) return;
+    for (int i = 0; i < dtos.size(); i += CHUNK_SIZE) {
+      List<ResolvedMinMaxDto> chunk = dtos.subList(i, Math.min(i + CHUNK_SIZE, dtos.size()));
+      executeChunkedDelete(chunk);
+    }
+  }
+
+  /**
+   * Deletes a chunk of MinMaxDataElement records based on resolved DTOs.
+   *
+   * @param chunk List of resolved DTOs containing internal IDs.
+   */
+  private void executeChunkedDelete(List<ResolvedMinMaxDto> chunk) {
+    StringBuilder sql =
+        new StringBuilder(
+            """
+      DELETE FROM minmaxdataelement
+      WHERE (dataelementid, sourceid, categoryoptioncomboid) IN (
+  """);
+
+    List<String> placeholders = new ArrayList<>();
+    for (int i = 0; i < chunk.size(); i++) {
+      placeholders.add(String.format("(:de%d, :ou%d, :coc%d)", i, i, i));
+    }
+
+    sql.append(String.join(", ", placeholders)).append(")");
+
+    Query<?> query = getSession().createNativeQuery(sql.toString());
+
+    for (int i = 0; i < chunk.size(); i++) {
+      ResolvedMinMaxDto dto = chunk.get(i);
+      query.setParameter("de" + i, dto.dataElementId());
+      query.setParameter("ou" + i, dto.orgUnitId());
+      query.setParameter("coc" + i, dto.categoryOptionComboId());
+    }
+
+    query.executeUpdate();
+  }
+
+  @Override
+  @Transactional
+  public void upsert(List<ResolvedMinMaxDto> dtos) {
+    if (dtos == null || dtos.isEmpty()) return;
+    for (int i = 0; i < dtos.size(); i += CHUNK_SIZE) {
+      int end = Math.min(i + CHUNK_SIZE, dtos.size());
+      List<ResolvedMinMaxDto> chunk = dtos.subList(i, end);
+      executeChunkedUpsert(chunk);
+    }
+  }
+
+  private void executeChunkedUpsert(List<ResolvedMinMaxDto> chunk) {
     if (chunk == null || chunk.isEmpty()) {
       return;
     }

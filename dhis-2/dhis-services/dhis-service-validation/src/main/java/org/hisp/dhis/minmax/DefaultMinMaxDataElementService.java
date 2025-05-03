@@ -54,7 +54,6 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,8 +71,6 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
   private final OrganisationUnitService organisationUnitService;
 
   private final CategoryService categoryService;
-
-  private final BatchHandlerFactory batchHandlerFactory;
 
   // -------------------------------------------------------------------------
   // MinMaxDataElementService implementation
@@ -151,6 +148,14 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
     minMaxDataElementStore.delete(dataElements, parent);
   }
 
+  /**
+   * Imports a list of min-max values from a web service request. This method processes the incoming
+   * JSON request, validates the data, and stores the min-max values in the database.
+   *
+   * @param request the JSON request containing the min-max values to import.
+   * @return the number of values processed.
+   * @throws BadRequestException if any validation fails.
+   */
   @Transactional
   @Override
   public int importFromJson(MinMaxValueBatchRequest request) throws BadRequestException {
@@ -167,12 +172,7 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
         request.orgUnit());
     long startTime = System.nanoTime();
     List<ResolvedMinMaxDto> resolvedDtos = resolveAllValidDtos(dtos, true, minMaxDataElementStore);
-    final int CHUNK_SIZE = 500;
-    for (int i = 0; i < resolvedDtos.size(); i += CHUNK_SIZE) {
-      int end = Math.min(i + CHUNK_SIZE, resolvedDtos.size());
-      List<ResolvedMinMaxDto> chunk = resolvedDtos.subList(i, end);
-      minMaxDataElementStore.upsertResolvedDtos(chunk);
-    }
+    minMaxDataElementStore.upsert(resolvedDtos);
     long elapsedMillis = (System.nanoTime() - startTime) / 1_000_000;
 
     log.info(
@@ -183,6 +183,17 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
     return resolvedDtos.size();
   }
 
+  /**
+   * Resolves all valid DTOs and returns a list of {@link ResolvedMinMaxDto} objects. This helper
+   * method is responsible for transforming incoming DTO objects into a format suitable for direct
+   * database operations. Note that unresolvable DTOs will throw a BadRequestException.
+   *
+   * @param dtos the list of DTOs to resolve.
+   * @param requireValues whether to validate min/max values.
+   * @param minMaxDataElementStore the data element store.
+   * @return a list of resolved DTOs.
+   * @throws BadRequestException if any validation fails.
+   */
   private static List<ResolvedMinMaxDto> resolveAllValidDtos(
       List<MinMaxValueDto> dtos,
       boolean requireValues,
@@ -247,6 +258,13 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
     return resolvedDtos;
   }
 
+  /**
+   * Deletes a list of min-max values from a web service request. This method processes the incoming
+   * JSON request and removes the specified min-max values from the database.
+   *
+   * @param request the JSON request containing the min-max values to delete.
+   * @return the number of values processed.
+   */
   @Transactional
   @Override
   public int deleteFromJson(MinMaxValueBatchRequest request) throws BadRequestException {
@@ -260,12 +278,7 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
         request.orgUnit());
     long startTime = System.nanoTime();
     List<ResolvedMinMaxDto> resolvedDtos = resolveAllValidDtos(dtos, false, minMaxDataElementStore);
-    final int CHUNK_SIZE = 500;
-    for (int i = 0; i < resolvedDtos.size(); i += CHUNK_SIZE) {
-      int end = Math.min(i + CHUNK_SIZE, resolvedDtos.size());
-      List<ResolvedMinMaxDto> chunk = resolvedDtos.subList(i, end);
-      minMaxDataElementStore.deleteBulkByDtos(chunk);
-    }
+    minMaxDataElementStore.delete(resolvedDtos);
     long elapsedMillis = (System.nanoTime() - startTime) / 1_000_000;
     log.info(
         "Min-max delete completed: {} values processed in {} ms",
