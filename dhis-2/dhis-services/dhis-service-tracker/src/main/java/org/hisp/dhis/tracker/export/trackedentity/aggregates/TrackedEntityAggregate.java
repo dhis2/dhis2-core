@@ -45,7 +45,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +53,6 @@ import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -152,7 +150,10 @@ public class TrackedEntityAggregate {
      * Async fetch TrackedEntity Attributes by TrackedEntity id
      */
     final CompletableFuture<Multimap<String, TrackedEntityAttributeValue>> attributesAsync =
-        supplyAsync(() -> trackedEntityStore.getAttributes(ids), getPool());
+        conditionalAsyncFetch(
+            ctx.getFields().isIncludesAttributes(),
+            () -> trackedEntityStore.getAttributes(ids),
+            getPool());
 
     /*
      * Execute all queries and merge the results
@@ -165,28 +166,12 @@ public class TrackedEntityAggregate {
               Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
               Multimap<String, Enrollment> enrollments = enrollmentsAsync.join();
               Multimap<String, TrackedEntityProgramOwner> programOwners = programOwnersAsync.join();
-
-              Stream<String> teUidStream = trackedEntities.keySet().parallelStream();
-
-              Set<String> teasInProgram;
-              if (ctx.getQueryParams().hasEnrolledInTrackerProgram()) {
-                teasInProgram =
-                    trackedEntityAttributeService.getTrackedEntityAttributesInProgram(
-                        ctx.getQueryParams().getEnrolledInTrackerProgram());
-              } else {
-                teasInProgram = Set.of();
-              }
-
-              return teUidStream
+              return trackedEntities.keySet().parallelStream()
                   .map(
                       uid -> {
                         TrackedEntity te = trackedEntities.get(uid);
                         te.setTrackedEntityAttributeValues(
-                            filterAttributes(
-                                attributes.get(uid),
-                                trackedEntityAttributeService
-                                    .getTrackedEntityAttributesByTrackedEntityTypes(),
-                                teasInProgram));
+                            filterAttributes(ctx.getQueryParams(), attributes.get(uid)));
                         te.setEnrollments(new HashSet<>(enrollments.get(uid)));
                         te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
                         return te;
@@ -198,20 +183,23 @@ public class TrackedEntityAggregate {
   }
 
   private Set<TrackedEntityAttributeValue> filterAttributes(
-      Collection<TrackedEntityAttributeValue> attributes,
-      Set<TrackedEntityAttribute> trackedEntityTypeAttributes,
-      Set<String> teasInProgram) {
+      TrackedEntityQueryParams params, Collection<TrackedEntityAttributeValue> attributes) {
     if (attributes.isEmpty()) {
       return Set.of();
     }
 
     // Add all tet attributes
     Set<String> allowedAttributeUids =
-        trackedEntityTypeAttributes.stream()
+        trackedEntityAttributeService.getTrackedEntityAttributesByTrackedEntityTypes().stream()
             .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet());
 
-    allowedAttributeUids.addAll(teasInProgram);
+    if (params.hasEnrolledInTrackerProgram()) {
+      Set<String> teasInProgram =
+          trackedEntityAttributeService.getTrackedEntityAttributesInProgram(
+              params.getEnrolledInTrackerProgram());
+      allowedAttributeUids.addAll(teasInProgram);
+    }
 
     return attributes.stream()
         .filter(av -> allowedAttributeUids.contains(av.getAttribute().getUid()))
