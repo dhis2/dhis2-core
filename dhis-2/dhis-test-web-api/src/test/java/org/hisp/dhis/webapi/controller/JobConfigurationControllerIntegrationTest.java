@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,31 +27,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.gist;
+package org.hisp.dhis.webapi.controller;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.ToString;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+
+import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Pager POJO for paging gist lists.
+ * Tests the {@link org.hisp.dhis.webapi.controller.scheduling.JobConfigurationController} that
+ * cannot be tested with H2.
  *
  * @author Jan Bernitt
  */
-@Getter
-@AllArgsConstructor
-@ToString
-public final class GistPager {
+@Transactional
+class JobConfigurationControllerIntegrationTest extends PostgresControllerIntegrationTestBase {
 
-  @JsonProperty private final int page;
-  @JsonProperty private final int pageSize;
-  @JsonProperty private final Integer total;
-  @JsonProperty private final String prevPage;
-  @JsonProperty private final String nextPage;
-
-  @JsonProperty
-  public Integer getPageCount() {
-    return total == null ? null : (int) Math.ceil(total / (double) pageSize);
+  @Test
+  void testRevert() {
+    String json =
+        """
+        {
+        "name": "test",
+        "jobType": "DATA_INTEGRITY",
+        "cronExpression": "0 0 12 ? * MON-FRI"
+        }
+        """;
+    String jobId = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", json));
+    switchToNewUser("no-auth");
+    assertStatus(HttpStatus.FORBIDDEN, POST("/jobConfigurations/" + jobId + "/revert"));
+    switchToAdminUser();
+    assertStatus(HttpStatus.CONFLICT, POST("/jobConfigurations/" + jobId + "/revert"));
   }
 }

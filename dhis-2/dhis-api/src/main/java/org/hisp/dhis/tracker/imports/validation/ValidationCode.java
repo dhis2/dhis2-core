@@ -67,7 +67,6 @@ public enum ValidationCode {
   E1031("Event occurredAt date is missing."),
   E1032("Event: `{0}`, do not exist."),
   E1033("Event: `{0}`, Enrollment value is null."),
-  E1035("Event: `{0}`, ProgramStage value is null."),
   E1039("ProgramStage: `{0}`, is not repeatable and an event already exists."),
   E1041("Enrollment OrganisationUnit: `{0}`, and Program: `{1}`, don't match."),
   E1043("Event: `{0}`, completeness date has expired. Not possible to make changes to this event."),
@@ -164,7 +163,6 @@ public enum ValidationCode {
   E4016("Relationship: `{0}`, do not exist."),
   E4017("Relationship: `{0}`, is already deleted and cannot be modified."),
   E4018("Relationship: `{0}`, linking {1}: `{2}` to {3}: `{4}` already exists."),
-  E4019("User: `{0}`, has no data write access to relationship type: `{1}`."),
   E4020("User: `{0}`, has no write access to relationship: `{1}`."),
   E5000(
       "\"{0}\" `{1}` cannot be persisted because \"{2}\" `{3}` referenced by it cannot be persisted."),

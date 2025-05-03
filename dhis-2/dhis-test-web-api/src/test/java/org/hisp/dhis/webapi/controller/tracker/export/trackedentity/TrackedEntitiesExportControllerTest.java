@@ -37,7 +37,8 @@ import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
-import static org.hisp.dhis.webapi.controller.tracker.Assertions.*;
+import static org.hisp.dhis.test.webapi.Assertions.assertNoDiff;
+import static org.hisp.dhis.webapi.controller.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
@@ -62,6 +63,7 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonDiff.Mode;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -218,6 +220,26 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
             .getList("trackedEntities", JsonTrackedEntity.class);
 
     assertEquals(0, trackedEntities.size());
+  }
+
+  @Test
+  void getTrackedEntityByPathIsIdenticalToQueryParam() {
+    TrackedEntity trackedEntity = get(TrackedEntity.class, "QS6w44flWAf");
+
+    JsonTrackedEntity pathTrackedEntity =
+        GET("/tracker/trackedEntities/{id}?fields=*", trackedEntity.getUid())
+            .content(HttpStatus.OK)
+            .as(JsonTrackedEntity.class);
+    JsonList<JsonTrackedEntity> queryTrackedEntity =
+        GET(
+                "/tracker/trackedEntities?fields=*&trackedEntities={id}&trackedEntityType={type}",
+                trackedEntity.getUid(),
+                trackedEntity.getTrackedEntityType().getUid())
+            .content(HttpStatus.OK)
+            .getList("trackedEntities", JsonTrackedEntity.class);
+
+    assertHasSize(1, queryTrackedEntity.stream().toList());
+    assertNoDiff(pathTrackedEntity, queryTrackedEntity.get(0), Mode.LENIENT);
   }
 
   @Test

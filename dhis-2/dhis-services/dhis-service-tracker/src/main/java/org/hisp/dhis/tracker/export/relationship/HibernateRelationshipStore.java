@@ -142,7 +142,6 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
   }
 
   public List<Relationship> getRelationships(@Nonnull RelationshipQueryParams queryParams) {
-
     return relationshipsList(queryParams, null);
   }
 
@@ -175,11 +174,16 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     @Language("hql")
     String hql =
         """
-                from RelationshipItem ri
-                where ri.trackedEntity.uid = :trackedEntity
-                """;
+           select ri
+           from RelationshipItem ri
+           join ri.relationship r
+           join r.relationshipType rt
+           where
+            (r.from = ri or rt.bidirectional = true)
+            and ri.trackedEntity.uid = :trackedEntity
+        """;
     if (!includeDeleted) {
-      hql += "and ri.relationship.deleted = false";
+      hql += "and r.deleted = false";
     }
     return getQuery(hql, RelationshipItem.class)
         .setParameter("trackedEntity", trackedEntity.getValue())
@@ -191,11 +195,16 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     @Language("hql")
     String hql =
         """
-                from RelationshipItem ri
-                where ri.enrollment.uid = :enrollment
-                """;
+          select ri
+          from RelationshipItem ri
+          join ri.relationship r
+          join r.relationshipType rt
+          where
+           (r.from = ri or rt.bidirectional = true)
+           and ri.enrollment.uid = :enrollment
+        """;
     if (!includeDeleted) {
-      hql += "and ri.relationship.deleted = false";
+      hql += "and r.deleted = false";
     }
     return getQuery(hql, RelationshipItem.class)
         .setParameter("enrollment", enrollment.getValue())
@@ -206,11 +215,16 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     @Language("hql")
     String hql =
         """
-                from RelationshipItem ri
-                where ri.event.uid = :event
-                """;
+          select ri
+          from RelationshipItem ri
+          join ri.relationship r
+          join r.relationshipType rt
+          where
+           (r.from = ri or rt.bidirectional = true)
+           and ri.event.uid = :event
+        """;
     if (!includeDeleted) {
-      hql += "and ri.relationship.deleted = false";
+      hql += "and r.deleted = false";
     }
     return getQuery(hql, RelationshipItem.class).setParameter("event", event.getValue()).list();
   }

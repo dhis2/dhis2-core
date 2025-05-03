@@ -177,7 +177,7 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   default String getStartModule() {
-    return asString("startModule", "dashboard");
+    return asString("startModule", "dhis-web-dashboard");
   }
 
   default boolean getStartModuleEnableLightweight() {
