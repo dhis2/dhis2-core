@@ -68,7 +68,9 @@ public class IndexController {
       HttpServletRequest request, HttpServletResponse response, SystemSettings settings)
       throws IOException {
 
-    String redirectUrl = "/apps/"; // By default, redirect to the global shell root
+    String contextPath = contextService.getContextPath();
+
+    String redirectUrl = contextPath + "/apps/"; // By default, redirect to the global shell root
     String sanitizedStartModule = settings.getStartModule();
     if (sanitizedStartModule != null) {
       if (sanitizedStartModule.startsWith("dhis-web-")) {
@@ -77,7 +79,7 @@ public class IndexController {
         sanitizedStartModule = sanitizedStartModule.substring(4);
       }
 
-      App app = appManager.getApp(sanitizedStartModule);
+      App app = appManager.getApp(sanitizedStartModule, contextPath);
 
       if (app != null) {
         redirectUrl = app.getLaunchUrl();
