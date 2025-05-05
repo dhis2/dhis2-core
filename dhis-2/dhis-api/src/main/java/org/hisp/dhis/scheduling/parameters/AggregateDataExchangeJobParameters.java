@@ -47,7 +47,6 @@ import org.hisp.dhis.scheduling.JobParameters;
 @Getter
 @Setter
 public class AggregateDataExchangeJobParameters implements JobParameters {
-
   @JsonProperty
   @OpenApi.Property({UID[].class, AggregateDataExchange.class})
   private List<String> dataExchangeIds;
