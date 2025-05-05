@@ -90,7 +90,7 @@ public class LoginTest extends BaseE2ETest {
 
     ResponseEntity<LoginResponse> loginResponse =
         loginWithUsernameAndPassword(username, password, null);
-    assertLoginSuccess(loginResponse, DEFAULT_DASHBOARD_PATH);
+    assertLoginSuccess(loginResponse, DEFAULT_LOGIN_REDIRECT);
     String cookie = extractSessionCookie(loginResponse);
 
     // Verify session cookie works
@@ -152,7 +152,7 @@ public class LoginTest extends BaseE2ETest {
     // Test Login works without 2FA code
     ResponseEntity<LoginResponse> successfulLoginResp =
         loginWithUsernameAndPassword(username, password, null);
-    assertLoginSuccess(successfulLoginResp, DEFAULT_DASHBOARD_PATH);
+    assertLoginSuccess(successfulLoginResp, DEFAULT_LOGIN_REDIRECT);
   }
 
   @Test
@@ -172,7 +172,7 @@ public class LoginTest extends BaseE2ETest {
     // Test Login works without 2FA code
     ResponseEntity<LoginResponse> successfulLoginResp =
         loginWithUsernameAndPassword(username, password, null);
-    assertLoginSuccess(successfulLoginResp, DEFAULT_DASHBOARD_PATH);
+    assertLoginSuccess(successfulLoginResp, DEFAULT_LOGIN_REDIRECT);
   }
 
   @Test
@@ -228,26 +228,46 @@ public class LoginTest extends BaseE2ETest {
   }
 
   @Test
+  void testRedirectWithQueryParam() {
+    assertRedirectUrl("/api/users?fields=id,name,displayName", DEFAULT_LOGIN_REDIRECT, false);
+  }
+
+  @Test
+  void testRedirectWithoutQueryParam() {
+    assertRedirectUrl("/api/users", DEFAULT_LOGIN_REDIRECT, false);
+  }
+
+  @Test
   void testRedirectToResource() {
-    assertRedirectUrl("/users/resource.js", DEFAULT_DASHBOARD_PATH, false);
+    assertRedirectUrl("/users/resource.js", DEFAULT_LOGIN_REDIRECT, false);
+  }
+
+  @Test
+  void testRedirectToHtmlResource() {
+    assertRedirectUrl("/users/resource.html", DEFAULT_LOGIN_REDIRECT, false);
+  }
+
+  @Test
+  void testRedirectToSlashEnding() {
+    assertRedirectUrl("/users/", DEFAULT_LOGIN_REDIRECT, false);
   }
 
   @Test
   void testRedirectToResourceWorker() {
-    assertRedirectUrl("/dhis-web-dashboard/service-worker.js", DEFAULT_DASHBOARD_PATH, false);
+    assertRedirectUrl("/dhis-web-dashboard/service-worker.js", DEFAULT_LOGIN_REDIRECT, true);
   }
 
   @Test
   void testRedirectToCssResourceWorker() {
     assertRedirectUrl(
-        "/dhis-web-dashboard/static/css/main.4536e618.css", DEFAULT_DASHBOARD_PATH, false);
+        "/dhis-web-dashboard/static/css/main.4536e618.css", DEFAULT_LOGIN_REDIRECT, true);
   }
 
   @Test
   void testRedirectAccountWhenVerifiedEmailEnforced() {
     changeSystemSetting("enforceVerifiedEmail", "true");
     try {
-      assertRedirectUrl("/dhis-web-dashboard/", "/api/apps/user-profile/#/profile", false);
+      assertRedirectUrl("/dhis-web-dashboard/", "/dhis-web-user-profile/#/profile", true);
     } finally {
       changeSystemSetting("enforceVerifiedEmail", "false");
     }
@@ -255,12 +275,18 @@ public class LoginTest extends BaseE2ETest {
 
   @Test
   void testRedirectEndingSlash() {
-    assertRedirectToSameUrl("/api/apps/dashboard/");
+    assertRedirectToSameUrl("/dhis-web-dashboard/");
   }
 
   @Test
   void testRedirectMissingEndingSlash() {
     testRedirectWhenLoggedIn("dhis-web-dashboard", "dhis-web-dashboard/");
+  }
+
+  @Test
+  void testRedirectIcon() {
+    testRedirectAsUser(
+        "/api/icons/medicines_positive/icon.svg", "api/icons/medicines_positive/icon");
   }
 
   @Test
