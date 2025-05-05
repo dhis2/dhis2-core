@@ -237,20 +237,14 @@ public class AuthenticationController {
   private String getRedirectUrl(
       Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
     // Default redirect URL
-    String redirectUrl =
-        request.getContextPath()
-            + "/api/apps/"
-            + settingsProvider.getCurrentSettings().getStartModule();
-    if (!redirectUrl.endsWith("/")) {
-      redirectUrl += "/";
-    }
+    String redirectUrl = request.getContextPath() + "/";
 
     // Check enforce verified email, redirect to the profile page if email is not verified
     boolean enforceVerifiedEmail = settingsProvider.getCurrentSettings().getEnforceVerifiedEmail();
     if (enforceVerifiedEmail) {
       UserDetails userDetails = (UserDetails) authentication.getPrincipal();
       if (!userDetails.isEmailVerified()) {
-        return request.getContextPath() + "/api/apps/user-profile/#/profile";
+        return request.getContextPath() + "/dhis-web-user-profile/#/profile";
       }
     }
 
