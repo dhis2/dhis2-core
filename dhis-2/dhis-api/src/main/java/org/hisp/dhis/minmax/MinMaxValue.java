@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,44 +29,46 @@
  */
 package org.hisp.dhis.minmax;
 
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ErrorCode;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
- * @author Jason P. Pickering
+ * DTO which represents a {@link MinMaxDataElement} in the API.
+ *
+ * @author Lars Helge Overland
  */
-@Slf4j
-public class MinMaxDataElementUtils {
+@Getter
+@Setter
+@Accessors(chain = true)
+@NoArgsConstructor
+@EqualsAndHashCode
+@ToString
+public class MinMaxValue {
+  @JsonProperty
+  @OpenApi.Property({UID.class, DataElement.class})
+  private UID dataElement;
 
-  private MinMaxDataElementUtils() {}
+  @JsonProperty
+  @OpenApi.Property({UID.class, OrganisationUnit.class})
+  private UID orgUnit;
 
-  public static void validateRequiredFields(MinMaxValueDto dto) throws BadRequestException {
+  @JsonProperty
+  @OpenApi.Property({UID.class, CategoryOptionCombo.class})
+  private UID categoryOptionCombo;
 
-    if (dto.getDataElement() == null
-        || dto.getOrgUnit() == null
-        || dto.getCategoryOptionCombo() == null) {
-      throw new BadRequestException(ErrorCode.E7801, formatDtoInfo(dto));
-    }
-  }
+  @JsonProperty private Integer minValue;
 
-  public static void validateMinMaxValues(MinMaxValueDto dto) throws BadRequestException {
-    if (dto.getMinValue() == null || dto.getMaxValue() == null) {
-      throw new BadRequestException(ErrorCode.E7801, formatDtoInfo(dto));
-    }
+  @JsonProperty private Integer maxValue;
 
-    if (dto.getMinValue() >= dto.getMaxValue()) {
-      throw new BadRequestException(ErrorCode.E7802, formatDtoInfo(dto));
-    }
-  }
-
-  public static String formatDtoInfo(MinMaxValueDto dto) {
-    return String.format(
-        "dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=%s, max=%s",
-        dto.getDataElement(),
-        dto.getOrgUnit(),
-        dto.getCategoryOptionCombo(),
-        dto.getMinValue(),
-        dto.getMaxValue());
-  }
+  @JsonProperty private Boolean generated;
 }

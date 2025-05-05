@@ -29,11 +29,20 @@
  */
 package org.hisp.dhis.minmax;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.List;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
-public record MinMaxValueBatchRequest(
-    @JsonProperty("dataSet") UID dataSet,
-    @JsonProperty("orgUnit") UID orgUnit,
-    @JsonProperty("values") List<MinMaxValueDto> values) {}
+/**
+ * A unique key combination for a {@link MinMaxDataElement} row.
+ *
+ * @param dataElement data element ID
+ * @param orgUnit organisation unit ID
+ * @param categoryOptionCombo category option combo ID
+ */
+public record MinMaxValueKey(
+    @OpenApi.Property({UID.class, OrganisationUnit.class}) @Nonnull UID dataElement,
+    @OpenApi.Property({UID.class, OrganisationUnit.class}) @Nonnull UID orgUnit,
+    @OpenApi.Property({UID.class, CategoryOptionCombo.class}) @Nonnull UID categoryOptionCombo) {}

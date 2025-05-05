@@ -36,13 +36,18 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
-import org.hibernate.query.Query;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.UID;
@@ -52,6 +57,8 @@ import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementQueryParams;
 import org.hisp.dhis.minmax.MinMaxDataElementStore;
+import org.hisp.dhis.minmax.MinMaxValue;
+import org.hisp.dhis.minmax.MinMaxValueKey;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.QueryParser;
@@ -59,6 +66,7 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -73,8 +81,6 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
   private final QueryParser queryParser;
 
   private final SchemaService schemaService;
-
-  private static final int CHUNK_SIZE = 500;
 
   public HibernateMinMaxDataElementStore(
       EntityManager entityManager,
@@ -185,178 +191,118 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
         .executeUpdate();
   }
 
-  @Override
-  public void delete(UID deUID, UID ouUID, UID cocUID) {
-    String sql =
-        """
-      DELETE FROM minmaxdataelement
-      WHERE dataelementid = (SELECT dataelementid FROM dataelement WHERE uid = :de)
-        AND sourceid = (SELECT organisationunitid FROM organisationunit WHERE uid = :ou)
-        AND categoryoptioncomboid = (SELECT categoryoptioncomboid FROM categoryoptioncombo WHERE uid = :coc)
-      """;
-
-    getSession()
-        .createNativeQuery(sql)
-        .setParameter("de", deUID.getValue())
-        .setParameter("ou", ouUID.getValue())
-        .setParameter("coc", cocUID.getValue())
-        .executeUpdate();
+  private Map<String, Long> getDataElementMap(Stream<UID> ids) {
+    String sql = "SELECT uid, dataelementid FROM dataelement WHERE uid IN :ids";
+    return selectIdMapping(sql, "ids", ids);
   }
 
-  @Override
-  @Transactional(readOnly = true)
-  public Map<UID, Long> getDataElementMap(@Nonnull Collection<UID> uids) {
-    if (uids.isEmpty()) return Map.of();
+  private Map<String, Long> getOrgUnitMap(Stream<UID> ids) {
+    String sql = "SELECT uid, organisationunitid FROM organisationunit WHERE uid IN :ids";
+    return selectIdMapping(sql, "ids", ids);
+  }
 
-    List<Object[]> results =
-        getSession()
-            .createNativeQuery("SELECT uid, dataelementid FROM dataelement WHERE uid IN :uids")
-            .setParameter("uids", uids.stream().map(UID::getValue).toList())
-            .getResultList();
+  private Map<String, Long> getCategoryOptionComboMap(Stream<UID> ids) {
+    String sql = "SELECT uid, categoryoptioncomboid FROM categoryoptioncombo WHERE uid IN :ids";
+    return selectIdMapping(sql, "ids", ids);
+  }
 
+  private Map<String, Long> selectIdMapping(
+      @Language("sql") String sql, String name, Stream<UID> values) {
+    return mapIdToLong(
+        (List<Object[]>)
+            getSession()
+                .createNativeQuery(sql)
+                .setParameter(name, values.map(UID::getValue).toList())
+                .getResultList());
+  }
+
+  private static Map<String, Long> mapIdToLong(List<Object[]> results) {
     return Map.copyOf(
         results.stream()
             .collect(
-                Collectors.toMap(
-                    row -> UID.of((String) row[0]), row -> ((Number) row[1]).longValue())));
+                Collectors.toMap(row -> (String) row[0], row -> ((Number) row[1]).longValue())));
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public Map<UID, Long> getOrgUnitMap(@Nonnull Collection<UID> uids) {
-    if (uids.isEmpty()) return Map.of();
+  public int deleteByKeys(List<MinMaxValueKey> keys) {
+    if (keys == null || keys.isEmpty()) return 0;
 
-    List<Object[]> results =
-        getSession()
-            .createNativeQuery(
-                "SELECT uid, organisationunitid FROM organisationunit WHERE uid IN :uids")
-            .setParameter("uids", uids.stream().map(UID::getValue).toList())
-            .getResultList();
+    Map<String, Long> des = getDataElementMap(keys.stream().map(MinMaxValueKey::dataElement));
+    Map<String, Long> ous = getOrgUnitMap(keys.stream().map(MinMaxValueKey::orgUnit));
+    Map<String, Long> cocs =
+        getCategoryOptionComboMap(keys.stream().map(MinMaxValueKey::categoryOptionCombo));
 
-    return Map.copyOf(
-        results.stream()
-            .collect(
-                Collectors.toMap(
-                    row -> UID.of((String) row[0]), row -> ((Number) row[1]).longValue())));
-  }
+    Session session = entityManager.unwrap(Session.class);
+    session.getTransaction().begin();
 
-  @Override
-  @Transactional(readOnly = true)
-  public Map<UID, Long> getCategoryOptionComboMap(@Nonnull Collection<UID> uids) {
-    if (uids.isEmpty()) return Map.of();
+    AtomicInteger deleted = new AtomicInteger();
+    session.doWork(
+        connection -> {
+          String sql =
+              """
+        DELETE FROM minmaxdataelement
+        WHERE dataelementid = ? AND sourceid = ? AND categoryoptioncomboid = ?""";
+          try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            for (MinMaxValueKey key : keys) {
+              stmt.setLong(1, des.get(key.dataElement().getValue()));
+              stmt.setObject(2, ous.get(key.orgUnit().getValue()));
+              stmt.setObject(3, cocs.get(key.categoryOptionCombo().getValue()));
+              stmt.addBatch();
+            }
+            deleted.set(IntStream.of(stmt.executeBatch()).sum());
+          }
+        });
 
-    List<Object[]> results =
-        getSession()
-            .createNativeQuery(
-                "SELECT uid, categoryoptioncomboid FROM categoryoptioncombo WHERE uid IN :uids")
-            .setParameter("uids", uids.stream().map(UID::getValue).toList())
-            .getResultList();
+    session.getTransaction().commit();
+    session.close();
 
-    return Map.copyOf(
-        results.stream()
-            .collect(
-                Collectors.toMap(
-                    row -> UID.of((String) row[0]), row -> ((Number) row[1]).longValue())));
+    return deleted.get();
   }
 
   @Override
   @Transactional
-  public void delete(List<ResolvedMinMaxDto> dtos) {
-    if (dtos == null || dtos.isEmpty()) return;
-    for (int i = 0; i < dtos.size(); i += CHUNK_SIZE) {
-      List<ResolvedMinMaxDto> chunk = dtos.subList(i, Math.min(i + CHUNK_SIZE, dtos.size()));
-      executeChunkedDelete(chunk);
-    }
-  }
+  public int upsertValues(List<MinMaxValue> values) {
+    if (values == null || values.isEmpty()) return 0;
 
-  /**
-   * Deletes a chunk of MinMaxDataElement records based on resolved DTOs.
-   *
-   * @param chunk List of resolved DTOs containing internal IDs.
-   */
-  private void executeChunkedDelete(List<ResolvedMinMaxDto> chunk) {
-    StringBuilder sql =
-        new StringBuilder(
-            """
-      DELETE FROM minmaxdataelement
-      WHERE (dataelementid, sourceid, categoryoptioncomboid) IN (
-  """);
+    Map<String, Long> des = getDataElementMap(values.stream().map(MinMaxValue::getDataElement));
+    Map<String, Long> ous = getOrgUnitMap(values.stream().map(MinMaxValue::getOrgUnit));
+    Map<String, Long> cocs =
+        getCategoryOptionComboMap(values.stream().map(MinMaxValue::getCategoryOptionCombo));
 
-    List<String> placeholders = new ArrayList<>();
-    for (int i = 0; i < chunk.size(); i++) {
-      placeholders.add(String.format("(:de%d, :ou%d, :coc%d)", i, i, i));
-    }
+    Session session = entityManager.unwrap(Session.class);
+    session.getTransaction().begin();
 
-    sql.append(String.join(", ", placeholders)).append(")");
+    AtomicInteger imported = new AtomicInteger();
+    session.doWork(
+        connection -> {
+          String sql =
+              """
+        INSERT INTO minmaxdataelement
+        (dataelementid, sourceid, categoryoptioncomboid, minimumvalue, maximumvalue, generatedvalue)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ON CONFLICT (sourceid, dataelementid, categoryoptioncomboid)
+        DO UPDATE SET
+          minimumvalue = EXCLUDED.minimumvalue,
+          maximumvalue = EXCLUDED.maximumvalue,
+          generatedvalue = EXCLUDED.generatedvalue""";
+          try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            for (MinMaxValue value : values) {
+              stmt.setLong(1, des.get(value.getDataElement().getValue()));
+              stmt.setObject(2, ous.get(value.getOrgUnit().getValue()));
+              stmt.setObject(3, cocs.get(value.getCategoryOptionCombo().getValue()));
+              stmt.setObject(4, value.getMinValue());
+              stmt.setObject(5, value.getMaxValue());
+              stmt.setObject(6, value.getGenerated());
+              stmt.addBatch();
+            }
+            imported.set(IntStream.of(stmt.executeBatch()).sum());
+          }
+        });
 
-    Query<?> query = getSession().createNativeQuery(sql.toString());
+    session.getTransaction().commit();
+    session.close();
 
-    for (int i = 0; i < chunk.size(); i++) {
-      ResolvedMinMaxDto dto = chunk.get(i);
-      query.setParameter("de" + i, dto.dataElementId());
-      query.setParameter("ou" + i, dto.orgUnitId());
-      query.setParameter("coc" + i, dto.categoryOptionComboId());
-    }
-
-    query.executeUpdate();
-  }
-
-  @Override
-  @Transactional
-  public void upsert(List<ResolvedMinMaxDto> dtos) {
-    if (dtos == null || dtos.isEmpty()) return;
-    for (int i = 0; i < dtos.size(); i += CHUNK_SIZE) {
-      int end = Math.min(i + CHUNK_SIZE, dtos.size());
-      List<ResolvedMinMaxDto> chunk = dtos.subList(i, end);
-      executeChunkedUpsert(chunk);
-    }
-  }
-
-  private void executeChunkedUpsert(List<ResolvedMinMaxDto> chunk) {
-    if (chunk == null || chunk.isEmpty()) {
-      return;
-    }
-
-    StringBuilder sql =
-        new StringBuilder(
-            """
-    INSERT INTO minmaxdataelement (
-      dataelementid, sourceid, categoryoptioncomboid,
-      minimumvalue, maximumvalue, generatedvalue
-    )
-    VALUES
-  """);
-
-    List<String> valuePlaceholders = new ArrayList<>();
-    for (int i = 0; i < chunk.size(); i++) {
-      valuePlaceholders.add(
-          String.format("(:de%d, :ou%d, :coc%d, :min%d, :max%d, :gen%d)", i, i, i, i, i, i));
-    }
-
-    sql.append(String.join(",\n", valuePlaceholders))
-        .append(
-            """
-
-    ON CONFLICT (sourceid, dataelementid, categoryoptioncomboid)
-    DO UPDATE SET
-      minimumvalue = EXCLUDED.minimumvalue,
-      maximumvalue = EXCLUDED.maximumvalue,
-      generatedvalue = EXCLUDED.generatedvalue
-  """);
-
-    Query<?> query = getSession().createNativeQuery(sql.toString());
-
-    for (int i = 0; i < chunk.size(); i++) {
-      ResolvedMinMaxDto dto = chunk.get(i);
-      query.setParameter("de" + i, dto.dataElementId());
-      query.setParameter("ou" + i, dto.orgUnitId());
-      query.setParameter("coc" + i, dto.categoryOptionComboId());
-      query.setParameter("min" + i, dto.minValue());
-      query.setParameter("max" + i, dto.maxValue());
-      query.setParameter("gen" + i, dto.generated());
-    }
-
-    query.executeUpdate();
+    return imported.get();
   }
 
   @Override

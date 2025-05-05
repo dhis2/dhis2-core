@@ -46,8 +46,6 @@ public interface MinMaxDataElementService {
 
   void updateMinMaxDataElement(MinMaxDataElement minMaxDataElement);
 
-  MinMaxDataElement getMinMaxDataElement(long id);
-
   MinMaxDataElement getMinMaxDataElement(
       OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo);
 
@@ -66,7 +64,7 @@ public interface MinMaxDataElementService {
 
   void removeMinMaxDataElements(Collection<DataElement> dataElements, OrganisationUnit parent);
 
-  int importFromJson(MinMaxValueBatchRequest request) throws BadRequestException;
+  int importAll(MinMaxValueUpsertRequest request) throws BadRequestException;
 
-  int deleteFromJson(MinMaxValueBatchRequest request) throws BadRequestException;
+  int deleteAll(MinMaxValueDeleteRequest request) throws BadRequestException;
 }

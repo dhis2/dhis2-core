@@ -38,7 +38,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
-import org.hisp.dhis.minmax.MinMaxValueDto;
+import org.hisp.dhis.minmax.MinMaxValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
@@ -68,7 +68,7 @@ public class MinMaxValueController {
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @PostMapping("/minMaxValues")
   @ResponseStatus(value = HttpStatus.OK)
-  public void saveOrUpdateMinMaxValue(@RequestBody MinMaxValueDto valueDto) {
+  public void saveOrUpdateMinMaxValue(@RequestBody MinMaxValue valueDto) {
     saveOrUpdateMinMaxDataElement(valueDto);
   }
 
@@ -82,13 +82,13 @@ public class MinMaxValueController {
   /**
    * Saves or updates a {@link MinMaxDataElement}.
    *
-   * @param dto the {@link MinMaxValueDto}.
+   * @param dto the {@link MinMaxValue}.
    */
-  private void saveOrUpdateMinMaxDataElement(MinMaxValueDto dto) {
-    DataElement de = dataValidator.getAndValidateDataElement(dto.getDataElement());
-    OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit(dto.getOrgUnit());
+  private void saveOrUpdateMinMaxDataElement(MinMaxValue dto) {
+    DataElement de = dataValidator.getAndValidateDataElement(dto.getDataElement().getValue());
+    OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit(dto.getOrgUnit().getValue());
     CategoryOptionCombo coc =
-        dataValidator.getAndValidateCategoryOptionCombo(dto.getCategoryOptionCombo());
+        dataValidator.getAndValidateCategoryOptionCombo(dto.getCategoryOptionCombo().getValue());
     dataValidator.validateMinMaxValues(dto.getMinValue(), dto.getMaxValue());
     MinMaxDataElement value = minMaxValueService.getMinMaxDataElement(ou, de, coc);
 
