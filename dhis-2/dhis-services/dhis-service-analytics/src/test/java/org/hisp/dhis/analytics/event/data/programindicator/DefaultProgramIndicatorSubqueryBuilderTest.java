@@ -183,7 +183,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     assertTrue(
         mainCteSql.contains(
             "left join "
-                + expectedValueCteKey
+                + valueCteAlias
                 + " "
                 + valueCteAlias
                 + " on "
@@ -332,10 +332,10 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
         mainCteSql.contains(" inner join "),
         "Main CTE SQL should not contain INNER JOIN"); // No filter joins
     assertTrue(
-        mainCteSql.contains("left join " + expectedCreatedCteKey + " " + createdAlias + " on "),
+        mainCteSql.contains("left join " + createdAlias + " " + createdAlias + " on "),
         "Main CTE SQL LEFT JOIN check (created)");
     assertTrue(
-        mainCteSql.contains("left join " + expectedScheduledCteKey + " " + scheduledAlias + " on "),
+        mainCteSql.contains("left join " + scheduledAlias + " " + scheduledAlias + " on "),
         "Main CTE SQL LEFT JOIN check (scheduled)");
     assertTrue(
         mainCteSql.contains(
@@ -399,7 +399,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
         mainCteSql.contains("inner join " + expectedFilterCteKey + " " + filterAlias + " on "),
         "Main CTE SQL INNER JOIN check");
     assertTrue(
-        mainCteSql.contains("left join " + expectedValueCteKey + " " + valueAlias + " on "),
+        mainCteSql.contains("left join " + valueAlias + " " + valueAlias + " on "),
         "Main CTE SQL LEFT JOIN check");
     assertFalse(mainCteSql.contains(" where "), "Main CTE SQL should not contain WHERE");
     assertTrue(mainCteSql.endsWith(" group by subax.enrollment"), "Main CTE SQL end check");
@@ -447,7 +447,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
         mainCteSql.contains("avg(" + valueAlias + ".value + " + valueAlias + ".value)"),
         "Main CTE SQL should use same alias twice");
     assertTrue(
-        mainCteSql.contains("left join " + expectedValueCteKey + " " + valueAlias + " on "),
+        mainCteSql.contains("left join " + valueAlias + " " + valueAlias + " on "),
         "Main CTE SQL should contain one LEFT JOIN");
 
     String expectedMainSql =
@@ -461,7 +461,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
             valueAlias,
             valueAlias,
             enrollmentTable,
-            expectedValueCteKey,
+            valueAlias,
             valueAlias,
             valueAlias,
             valueAlias);
@@ -778,19 +778,19 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     String expectedVarJoin =
         String.format(
             "left join %s %s on %s.enrollment = subax.enrollment and %s.rn = 1",
-            varKey, varAlias, varAlias, varAlias);
+            varAlias, varAlias, varAlias, varAlias);
     String expectedPsde1Join =
         String.format(
             "left join %s %s on %s.enrollment = subax.enrollment and %s.rn = 1",
-            psdeKey1, psdeAlias1, psdeAlias1, psdeAlias1);
+            psdeAlias1, psdeAlias1, psdeAlias1, psdeAlias1);
     String expectedPsde2Join =
         String.format(
             "left join %s %s on %s.enrollment = subax.enrollment and %s.rn = 3",
-            psdeKey2, psdeAlias2, psdeAlias2, psdeAlias2);
+            psdeAlias2, psdeAlias2, psdeAlias2, psdeAlias2);
     String expectedD2FuncJoin =
         String.format(
             "left join %s %s on %s.enrollment = subax.enrollment",
-            d2FuncKey, d2FuncAlias, d2FuncAlias);
+            d2FuncAlias, d2FuncAlias, d2FuncAlias);
 
     String result = builder.buildLeftJoinsForAllValueCtes(localCteContext);
 
@@ -931,11 +931,11 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
         "Main PI SQL should NOT contain the filter condition in the WHERE clause");
 
     // 6. Verify Joins in main PI SQL (using buildLeftJoinsForAllValueCtes)
-    String expectedVarJoin = String.format("left join %s %s on", varCteKeyED, varAliasED);
-    String expectedPsdeJoin = String.format("left join %s %s on", psdeCteKey1, psdeAlias1);
-    String expectedD2FuncJoin = String.format("left join %s %s on", d2FuncCteKey1, d2FuncAlias1);
+    String expectedVarJoin = String.format("left join %s %s on", varAliasED, varAliasED);
+    String expectedPsdeJoin = String.format("left join %s %s on", psdeAlias1, psdeAlias1);
+    String expectedD2FuncJoin = String.format("left join %s %s on", d2FuncAlias1, d2FuncAlias1);
     String expectedFilterVarJoin =
-        String.format("left join %s %s on", filterVarCteKeyCD, filterVarAliasCD);
+        String.format("left join %s %s on", filterVarAliasCD, filterVarAliasCD);
 
     assertTrue(
         mainPiSql.contains(expectedVarJoin), "Main PI SQL should contain join for V{event_date}");

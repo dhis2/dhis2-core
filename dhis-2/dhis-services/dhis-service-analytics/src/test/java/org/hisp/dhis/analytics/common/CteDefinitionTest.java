@@ -166,7 +166,7 @@ class CteDefinitionTest {
       var cte = new CteDefinition("ps", "de", "sql", 0);
       String alias = cte.getAlias(-1);
 
-      assertTrue(alias.endsWith("_-1"));
+      assertTrue(alias.endsWith("_neg1"));
     }
 
     @Test
@@ -174,7 +174,7 @@ class CteDefinitionTest {
     void extremeOffsetAlias() {
       var cte = new CteDefinition("ps", "de", "sql", 0);
       assertTrue(cte.getAlias(Integer.MAX_VALUE).endsWith("_" + Integer.MAX_VALUE));
-      assertTrue(cte.getAlias(Integer.MIN_VALUE).endsWith("_" + Integer.MIN_VALUE));
+      assertTrue(cte.getAlias(Integer.MIN_VALUE).endsWith("_neg" + Integer.MIN_VALUE));
     }
 
     @Test
