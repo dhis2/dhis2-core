@@ -26,23 +26,26 @@ for how to use it.
 
 ### `*.parameter.EnrollmentRequestParams.enrolledAfter`
 
-Get enrollments enrolled after the given date and time.
-This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+Get enrollments with an enrollment date after the given date and time. This parameter is inclusive, 
+so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.EnrollmentRequestParams.enrolledBefore`
 
-Get enrollments enrolled before the given date and time.
-This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+Get enrollments with an enrollment date before the given date and time. This parameter is inclusive, 
+so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.EnrollmentRequestParams.enrollments`
 
 `<enrollment1-uid>[,<enrollment2-uid>...]`
 
-Get enrollments with given UID(s).
+Get enrollments with given UID(s). Multiple enrollment UIDs can be specified by separating them 
+with commas.
 
 ### `*.parameter.EnrollmentRequestParams.followUp`
 
-Get enrollments with the given follow-up status.
+Get enrollments with the given follow-up status. When set to true, only enrollments marked for 
+follow-up will be returned. When set to false, only enrollments not marked for follow-up will be 
+returned.
 
 ### `*.parameter.EnrollmentRequestParams.includeDeleted`
 
@@ -53,12 +56,13 @@ excluded by default.
 
 `<orgUnit1-uid>[,<orgUnit2-uid>...]`
 
-Get enrollments owned by given `orgUnits` relative to the `orgUnitMode`.
+Get enrollments owned by given organisation units in `orgUnits` parameter relative to the 
+`orgUnitMode` parameter.
 
 - When `orgUnitMode=SELECTED` - or no `orgUnitMode` is given (default) - the enrollments owned by
   the `orgUnits` are returned.
 - When `orgUnitMode=CHILDREN` the enrollments owned by the `orgUnits` or by the `orgUnits` direct
-  children is returned.
+  children are returned.
 - When `orgUnitMode=DESCENDANTS` the enrollments owned by the `orgUnits` or any of its descendants
   are returned.
 - When `orgUnitMode=ALL`, `orgUnitMode=CAPTURE` or `orgUnitMode=ACCESSIBLE` the `orgUnits` parameter
@@ -66,28 +70,25 @@ Get enrollments owned by given `orgUnits` relative to the `orgUnitMode`.
 
 ### `*.parameter.EnrollmentRequestParams.orgUnitMode`
 
-Get enrollments using given organisation unit selection mode.
+Get enrollments using the given organisation unit selection mode.
 
-- When `orgUnitMode=SELECTED`, `orgUnitMode=CHILDREN` or `orgUnitMode=DESCENDANTS`, the `orgUnit`
-  parameter is
-  required to specify which enrollments to return.
+- When `orgUnitMode=SELECTED`, `orgUnitMode=CHILDREN` or `orgUnitMode=DESCENDANTS`, the `orgUnits`
+  parameter is required to specify which enrollments to return.
 - When `orgUnitMode=ALL` enrollments will be downloaded irrespective of the organization unit they
-  are
-  owned by. To use this parameter, the user needs the `Search Tracked entity in all org units`
+  are owned by. To use this parameter, the user needs the `Search Tracked entity in all org units`
   authority.
-- When `orgUnitMode=ACCESSIBLE` enrollments owned by any org unit in the users capture scope will be
-  returned.
-- When `orgUnitMode=CAPTURE` enrollments that has an enrollment org unit in the users capture scope
-  will
-  be returned.
+- When `orgUnitMode=ACCESSIBLE` enrollments owned by any organisation unit in the user's capture 
+  scope will be returned.
+- When `orgUnitMode=CAPTURE` enrollments that have an enrollment organisation unit in the user's 
+  capture scope will be returned.
 
 ### `*.parameter.EnrollmentRequestParams.program`
 
-Get enrollments enrolled in the given tracker program.
+Get enrollments enrolled in the given tracker program. Only enrollments related to the specified program will be returned.
 
 ### `*.parameter.EnrollmentRequestParams.status`
 
-Get enrollments in the given status.
+Get enrollments in the given status. Valid statuses are ACTIVE, COMPLETED, and CANCELLED.
 
 ### `*.parameter.EnrollmentRequestParams.programStatus`
 
@@ -95,31 +96,35 @@ Get enrollments in the given status.
 
 **DEPRECATED as of 2.42:** Use parameter `status` instead.
 
-See `status` for details.
+See `status` for details on valid statuses.
 
 ### `*.parameter.EnrollmentRequestParams.trackedEntityType`
 
-Get enrollments of tracked entities of the given type.
+Get enrollments of tracked entities of the given type. Only enrollments associated with tracked 
+entities of the specified type will be returned.
 
 ### `*.parameter.EnrollmentRequestParams.trackedEntity`
 
-Get enrollments of tracked entity with the given UID.
+Get enrollments of the tracked entity with the given UID. Only enrollments associated with the 
+specified tracked entity will be returned.
 
 ### `*.parameter.EnrollmentRequestParams.updatedAfter`
 
-Get enrollments updated after the given date and time.
-This parameter is inclusive, so results with the exact date and time specified will be included in the response.
+Get enrollments updated after the given date and time. An enrollment is considered updated if 
+any of its attributes or related events have been modified. This parameter is inclusive, so 
+results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.EnrollmentRequestParams.updatedWithin`
 
-Get enrollments updated within the given ISO-8601 duration.
+Get enrollments updated within the given ISO-8601 duration. An enrollment is considered updated 
+if any of its attributes or related events have been modified.
 
 ### `*.parameter.EnrollmentRequestParams.order`
 
 `<propertyName1:sortDirection>[,<propertyName2:sortDirection>...]`
 
 Get enrollments in given order. Enrollments can be ordered by the following case-sensitive
-properties
+properties:
 
 * `completedAt`
 * `createdAt`

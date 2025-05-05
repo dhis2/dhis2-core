@@ -28,22 +28,25 @@ for how to use it.
 
 ### `*.parameter.RelationshipRequestParams.trackedEntity`
 
-Get relationships of the given trackedEntity.
+Get relationships where the given tracked entity is either the from or to side of the 
+relationship. Only relationships associated with the specified tracked entity will be returned.
 
 ### `*.parameter.RelationshipRequestParams.enrollment`
 
-Get the relationships of the given enrollment.
+Get relationships where the given enrollment is either the from or to side of the relationship. 
+Only relationships associated with the specified enrollment will be returned.
 
 ### `*.parameter.RelationshipRequestParams.event`
 
-Get relationships of the given event.
+Get relationships where the given event is either the from or to side of the relationship. Only 
+relationships associated with the specified event will be returned.
 
 ### `*.parameter.RelationshipRequestParams.order`
 
 `<propertyName1:sortDirection>[,<propertyName2:sortDirection>...]`
 
 Get relationships in given order. Relationships can be ordered by the following case-sensitive
-properties
+properties:
 
 * `createdAt`
 * `createdAtClient`
@@ -64,4 +67,6 @@ for how to use it.
 
 ### `*.parameter.RelationshipRequestParams.includeDeleted`
 
-Get soft-deleted relationships by specifying `includeDeleted=true`. Soft-deleted relationships are excluded by default.
+Get soft-deleted relationships by specifying `includeDeleted=true`. Soft-deleted relationships 
+are excluded by default. This parameter allows you to retrieve relationships that have been 
+marked as deleted but are still in the database.

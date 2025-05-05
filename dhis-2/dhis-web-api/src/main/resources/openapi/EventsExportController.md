@@ -42,7 +42,12 @@ Get the change logs of all data elements related to that particular event UID.
 
 ### `*.parameter.EventRequestParams.program`
 
+Get events from the specified program. Only events related to the program will be returned.
+
 ### `*.parameter.EventRequestParams.programStage`
+
+Get events from the specified program stage. Only events related to the program stage will be 
+returned.
 
 ### `*.parameter.EventRequestParams.enrollmentStatus`
 
@@ -125,11 +130,21 @@ This parameter is inclusive, so results with the exact date and time specified w
 
 ### `*.parameter.EventRequestParams.status`
 
+Get events with the given status. Valid statuses are ACTIVE, COMPLETED, VISITED, SCHEDULE, 
+OVERDUE, and SKIPPED.
+
 ### `*.parameter.EventRequestParams.attributeCategoryCombo`
+
+Get events with the specified attribute category combination. Only events associated with the 
+given attribute category combination will be returned.
 
 ### `*.parameter.EventRequestParams.attributeCategoryOptions`
 
 `<attributeCategoryOption1-uid>[,<attributeCategoryOption2-uid>...]`
+
+Get events with the specified attribute category options. Only events associated with the given 
+attribute category options will be returned. Multiple attribute category option UIDs can be 
+specified by separating them with commas.
 
 ### `*.parameter.EventRequestParams.includeDeleted`
 
