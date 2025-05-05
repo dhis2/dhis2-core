@@ -32,7 +32,7 @@ package org.hisp.dhis.tracker.export.event;
 import static java.util.Map.entry;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.tracker.export.JdbcPredicate.mapPredicatesToSql;
+import static org.hisp.dhis.tracker.export.JdbcPredicate.addPredicates;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -606,10 +606,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     // a TE in a tracker program, so we can filter out
     // event programs
 
-    String predicates = mapPredicatesToSql(params.getAttributes(), sqlParameters);
-    if (!predicates.isEmpty()) {
+    if (!params.getAttributes().isEmpty()) {
       sql.append(AND);
-      sql.append(predicates);
+      addPredicates(sql, sqlParameters, params.getAttributes());
       sql.append(SPACE);
     }
     return sql.toString();
@@ -812,10 +811,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
     fromBuilder.append(getCategoryOptionComboQuery(user));
 
-    String predicates = mapPredicatesToSql(params.getDataElements(), sqlParameters);
-    if (!predicates.isEmpty()) {
+    if (!params.getDataElements().isEmpty()) {
       fromBuilder.append(AND);
-      fromBuilder.append(predicates);
+      addPredicates(fromBuilder, sqlParameters, params.getDataElements());
     }
     fromBuilder.append(SPACE);
 
