@@ -123,6 +123,8 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     testPI.setUid(piUid);
     testPI.setProgram(program);
     testPI.setAnalyticsPeriodBoundaries(Collections.emptySet());
+
+    builder.init();
   }
 
   @Test

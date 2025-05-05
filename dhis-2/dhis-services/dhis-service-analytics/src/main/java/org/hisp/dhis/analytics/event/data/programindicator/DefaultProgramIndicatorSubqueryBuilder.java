@@ -39,8 +39,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.AggregationType;
@@ -75,6 +78,12 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
   private final SystemSettingsService settingsService;
   private final SqlBuilder sqlBuilder;
   private final DataElementService dataElementService;
+  private ProgramIndicatorPlaceholderUtils placeholderUtils;
+
+  @PostConstruct
+  public void init() {
+    this.placeholderUtils = new ProgramIndicatorPlaceholderUtils(dataElementService);
+  }
 
   @Override
   public String getAggregateClauseForProgramIndicator(
@@ -105,12 +114,68 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
   }
 
   /**
-   * Adds the main Program Indicator CTE definition to the context, handling filter and expression
-   * processing including placeholder substitution and CTE generation for V{...} variables.
-   * Implements a hybrid approach: simple V{...} comparisons in the filter generate dedicated Filter
-   * CTEs (joined via INNER JOIN), while V{...} used in the expression or complex filter parts
-   * generate Value CTEs (joined via LEFT JOIN) and the complex filter logic is applied in the WHERE
-   * clause of the main PI CTE.
+   * Orchestrates the generation of the main Common Table Expression (CTE) for a given Program
+   * Indicator and adds it, along with any necessary supporting value/function CTEs, to the provided
+   * {@link CteContext}.
+   *
+   * <p>This method follows a multi-step process:
+   *
+   * <ol>
+   *   <li><b>Filter Preprocessing:</b> Analyzes the Program Indicator's filter using {@link
+   *       ProgramIndicatorPlaceholderUtils#analyzeFilterAndGenerateFilterCtes}. Simple filters
+   *       (like {@code V{var} = 'literal'}) are converted into dedicated Filter CTEs (added to the
+   *       {@code cteContext}) and joined later via INNER JOIN. The remaining complex filter parts
+   *       are returned as a string.
+   *   <li><b>Raw SQL Retrieval:</b> Fetches the initial SQL representations (containing
+   *       placeholders like {@code V{...}}, {@code #{...}}, {@code d2:func(...)}) for both the main
+   *       expression and the complex filter string by calling {@link
+   *       #getProgramIndicatorSql(String, DataType, ProgramIndicator, Date, Date)}.
+   *   <li><b>Placeholder Processing:</b> Sequentially processes the raw SQL strings using helper
+   *       methods from {@link ProgramIndicatorPlaceholderUtils}:
+   *       <ul>
+   *         <li>{@link ProgramIndicatorPlaceholderUtils#processPlaceholdersAndGenerateVariableCtes}
+   *             handles {@code V{...}} variables.
+   *         <li>{@link ProgramIndicatorPlaceholderUtils#processPsDePlaceholdersAndGenerateCtes}
+   *             handles {@code #{programStage.dataElement}} items.
+   *         <li>{@link
+   *             ProgramIndicatorPlaceholderUtils#processD2FunctionPlaceholdersAndGenerateCtes}
+   *             handles {@code d2:func(...)} rich placeholders.
+   *       </ul>
+   *       Each processor identifies its relevant placeholders, generates the required supporting
+   *       CTE definition (using specific logic like ROW_NUMBER or aggregation), adds the definition
+   *       to the {@code cteContext}, and replaces the placeholder in the SQL string with a
+   *       reference to the CTE's value (typically {@code coalesce(alias.value, default)}).
+   *   <li><b>Join Clause Construction:</b>
+   *       <ul>
+   *         <li>Builds INNER JOIN clauses for the simple Filter CTEs identified in step 1.
+   *         <li>Builds LEFT JOIN clauses for all value/function CTEs (Variable, PSDE, D2_Function)
+   *             added to the {@code cteContext} during step 3, using the appropriate join
+   *             conditions (e.g., matching row number 'rn' for PSDE/Variable CTEs).
+   *       </ul>
+   *   <li><b>WHERE Clause Construction:</b> Builds the WHERE clause for the main PI CTE using the
+   *       fully processed complex filter string from step 3.
+   *   <li><b>Main PI CTE Assembly:</b> Constructs the final SQL for the main Program Indicator CTE.
+   *       This SQL selects the enrollment ID and calculates the indicator's value (applying the
+   *       PI's aggregation function to the processed expression) by joining the base analytics
+   *       table with the generated Filter (INNER) and Value/Function (LEFT) CTEs, applying the
+   *       complex filter WHERE clause, and grouping by enrollment.
+   *   <li><b>Context Registration:</b> Adds the assembled main PI CTE SQL definition to the {@code
+   *       cteContext}, keyed by the Program Indicator's UID.
+   * </ol>
+   *
+   * This approach ensures that complex sub-calculations within the Program Indicator are isolated
+   * into reusable CTEs, improving query readability and avoiding issues with database limitations
+   * on subquery nesting (like in Apache Doris).
+   *
+   * @param programIndicator The Program Indicator to generate a CTE for.
+   * @param relationshipType The relationship type (if any) associated with the PI usage. (Currently
+   *     unused in this CTE generation path but kept for interface compatibility).
+   * @param outerSqlEntity The type of the outer query context (e.g., ENROLLMENT). (Currently unused
+   *     in this CTE generation path).
+   * @param earliestStartDate The start date for the reporting period.
+   * @param latestDate The end date for the reporting period.
+   * @param cteContext The shared context where all generated CTE definitions (supporting and main)
+   *     are stored. This object is modified by this method.
    */
   @Override
   public void addCte(
@@ -121,78 +186,92 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
       Date latestDate,
       CteContext cteContext) {
 
-    ProgramIndicatorPlaceholderUtils placeholderUtils =
-        new ProgramIndicatorPlaceholderUtils(dataElementService);
+    // 1. Pre-process Filter
+    FilterProcessingResult filterResult =
+        preprocessFilter(programIndicator, cteContext, earliestStartDate, latestDate);
 
-    // Creates a list to hold aliases of simple filter CTEs that are joined via INNER JOIN
-    List<String> filterAliases = new ArrayList<>();
-
-    // Creates maps to store mappings between original placeholder strings found in the SQL
-    // and the short aliases assigned to the CTEs generated for them.
-
-    // For V{...} CTEs
-    Map<String, String> variableAliasMap = new HashMap<>();
-    // For #{...} CTEs
-    Map<String, String> psdeAliasMap = new HashMap<>();
-    // For d2 function CTEs
-    Map<String, String> d2FunctionAliasMap = new HashMap<>(); // Map for d2 func aliases
-
-    // Determines the SQL aggregation function (like sum, avg, count)
-    // based on the PI's definition
-    String function =
-        TextUtils.emptyIfEqual(
-            programIndicator.getAggregationTypeFallback().getValue(),
-            AggregationType.CUSTOM.getValue());
-
-    /*
-     * - Scans the programIndicator.getFilter() string
-     * - Look for simple comparisons like V{creation_date} > '2024-01-01'
-     * - For each simple comparison found, it potentially:
-     *  - Generates a CTE for the comparison
-     *  - Adds this Filter CTE definition to the cteContext.
-     *  - Adds the alias of the generated Filter CTE to the filterAliases list.
-     * - It returns the remaining, more complex parts of the filter string that couldn't be converted into simple Filter CTEs.
-     *   This complexFilterString will be processed later.
-     */
-    String complexFilterString =
-        new ProgramIndicatorPlaceholderUtils(dataElementService)
-            .analyzeFilterAndGenerateFilterCtes(
-                programIndicator,
-                cteContext,
-                filterAliases,
-                sqlBuilder,
-                earliestStartDate,
-                latestDate);
-
-    /*
-     * Calls ProgramIndicatorService to get the SQL translation of the PI's main expression.
-     * The SQL may contain placeholders like FUNC_CTE_VAR(...), __PSDE_CTE_PLACEHOLDER__(...), and __D2FUNC__(...)
-     * generated by the underlying ExpressionItem classes.
-     */
+    // 2. Get the raw SQL for the main expression of the Program Indicator
     String rawExpressionSql =
-        getProgramIndicatorSql(
-            programIndicator.getExpression(),
-            NUMERIC,
+        getRawSqlForExpression(programIndicator, earliestStartDate, latestDate);
+    String rawComplexFilterSql =
+        getRawSqlForFilter(
+            filterResult.complexFilterString(), programIndicator, earliestStartDate, latestDate);
+
+    // 3. Process Placeholders & Populate Context
+    ProcessedSql processedSql =
+        processAllPlaceholders(
+            rawExpressionSql,
+            rawComplexFilterSql,
             programIndicator,
             earliestStartDate,
-            latestDate);
+            latestDate,
+            cteContext);
 
-    String rawComplexFilterSql = "";
+    // 4. Build Join Clauses
+    String innerJoinSql = buildInnerJoinsForFilters(filterResult.filterAliases(), cteContext);
+    String leftJoinSql = buildLeftJoinsForAllValueCtes(cteContext);
 
-    /*
-     * If the complexFilterString is not empty, it means that there are complex filter conditions
-     * that need to be processed. This SQL will be used in the WHERE clause of the main CTE.
-     * The complexFilterString may contain placeholders like V{...} or #{...} that need to be processed.
-     */
-    if (!Strings.isNullOrEmpty(complexFilterString)) {
-      rawComplexFilterSql =
-          getProgramIndicatorSql(
-              complexFilterString, BOOLEAN, programIndicator, earliestStartDate, latestDate);
+    // 5. Build Where Clause
+    String whereClause = buildWhereClause(processedSql.processedFilterSql());
+
+    // 6. Assemble Main PI CTE SQL
+    String mainCteSql =
+        assembleMainPiCteSql(
+            programIndicator,
+            processedSql.processedExpressionSql(),
+            innerJoinSql,
+            leftJoinSql,
+            whereClause);
+
+    // 7. Register Main PI CTE
+    cteContext.addProgramIndicatorCte(
+        programIndicator, mainCteSql, requireCoalesce(programIndicator));
+  }
+
+  private FilterProcessingResult preprocessFilter(
+      ProgramIndicator programIndicator, CteContext cteContext, Date startDate, Date endDate) {
+    List<String> filterAliases = new ArrayList<>();
+    // Assuming static method calls for placeholder utils
+    String complexFilterString =
+        placeholderUtils.analyzeFilterAndGenerateFilterCtes(
+            programIndicator, cteContext, filterAliases, sqlBuilder, startDate, endDate);
+    return new FilterProcessingResult(filterAliases, complexFilterString);
+  }
+
+  private String getRawSqlForExpression(
+      ProgramIndicator programIndicator, Date startDate, Date endDate) {
+    return getProgramIndicatorSql(
+        programIndicator.getExpression(), NUMERIC, programIndicator, startDate, endDate);
+  }
+
+  /** Retrieves the raw SQL for the complex filter string. */
+  private String getRawSqlForFilter(
+      String complexFilterString, ProgramIndicator programIndicator, Date startDate, Date endDate) {
+    if (Strings.isNullOrEmpty(complexFilterString)) {
+      return "";
     }
+    return getProgramIndicatorSql(
+        complexFilterString, BOOLEAN, programIndicator, startDate, endDate);
+  }
 
-    /* Sequential Placeholder Processing */
+  /**
+   * Orchestrates the sequential processing of all placeholder types (V{}, #{}, d2:func). Populates
+   * the CteContext with necessary supporting CTEs. Returns the final processed SQL strings.
+   */
+  private ProcessedSql processAllPlaceholders(
+      String rawExpressionSql,
+      String rawComplexFilterSql,
+      ProgramIndicator programIndicator,
+      Date earliestStartDate,
+      Date latestDate,
+      CteContext cteContext) {
 
-    // Process V{...} placeholders
+    // Internal alias maps - implementation detail of this method
+    Map<String, String> variableAliasMap = new HashMap<>();
+    Map<String, String> psdeAliasMap = new HashMap<>();
+    Map<String, String> d2FunctionAliasMap = new HashMap<>();
+
+    // Process V{...}
     String processedSql1 =
         placeholderUtils.processPlaceholdersAndGenerateVariableCtes(
             rawExpressionSql,
@@ -202,7 +281,6 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
             cteContext,
             variableAliasMap,
             sqlBuilder);
-
     String processedFilterSql1 =
         placeholderUtils.processPlaceholdersAndGenerateVariableCtes(
             rawComplexFilterSql,
@@ -213,7 +291,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
             variableAliasMap,
             sqlBuilder);
 
-    // Process #{...} placeholders
+    // Process #{...}
     String processedSql2 =
         placeholderUtils.processPsDePlaceholdersAndGenerateCtes(
             processedSql1,
@@ -233,7 +311,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
             psdeAliasMap,
             sqlBuilder);
 
-    // Process D2 Function placeholders
+    // Process d2:func(...)
     String finalProcessedExpressionSql =
         placeholderUtils.processD2FunctionPlaceholdersAndGenerateCtes(
             processedSql2,
@@ -253,52 +331,68 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
             d2FunctionAliasMap,
             sqlBuilder);
 
-    /* Construct JOIN Clauses */
-    String innerJoinSql =
-        filterAliases.stream()
-            .distinct() // Avoid joining the same filter CTE multiple times
-            .map(
-                alias -> {
-                  String key = findKeyForAlias(alias, cteContext);
-                  if (key == null) {
-                    log.error(
-                        "Cannot generate INNER JOIN for unknown filter CTE alias: {} for PI: {}",
-                        alias,
-                        programIndicator.getUid());
-                    return "";
-                  }
-                  return String.format(
-                      "inner join %s %s on %s.enrollment = %s.enrollment",
-                      key, alias, alias, SUBQUERY_TABLE_ALIAS);
-                })
-            .filter(join -> !join.isEmpty())
+    return new ProcessedSql(finalProcessedExpressionSql, finalProcessedFilterSql);
+  }
+
+  /** Builds the INNER JOIN clause string for simple Filter CTEs. */
+  private String buildInnerJoinsForFilters(List<String> filterAliases, CteContext cteContext) {
+    if (filterAliases == null || filterAliases.isEmpty()) {
+      return "";
+    }
+    return filterAliases.stream()
+        .distinct()
+        .map(
+            alias -> {
+              String key = findKeyForAlias(alias, cteContext);
+              if (key == null) {
+                log.error("Cannot generate INNER JOIN for unknown filter CTE alias: {}", alias);
+                return null;
+              }
+              return String.format(
+                  "inner join %s %s on %s.enrollment = %s.enrollment",
+                  key, alias, alias, SUBQUERY_TABLE_ALIAS);
+            })
+        .filter(Objects::nonNull)
+        .collect(Collectors.joining(" "));
+  }
+
+  /** Builds the WHERE clause string from the processed complex filter SQL. */
+  private String buildWhereClause(String finalProcessedFilterSql) {
+    if (!Strings.isNullOrEmpty(finalProcessedFilterSql)) {
+      return "where " + finalProcessedFilterSql;
+    }
+    return "";
+  }
+
+  /** Assembles the final SQL string for the main Program Indicator CTE definition. */
+  private String assembleMainPiCteSql(
+      ProgramIndicator programIndicator,
+      String finalProcessedExpressionSql,
+      String innerJoinSql,
+      String leftJoinSql,
+      String whereClause) {
+
+    String function =
+        TextUtils.emptyIfEqual(
+            programIndicator.getAggregationTypeFallback().getValue(),
+            AggregationType.CUSTOM.getValue());
+    String tableName = getTableName(programIndicator);
+
+    // Ensure space separation between join/where clauses only if they exist
+    String joinsAndWhere =
+        Stream.of(innerJoinSql, leftJoinSql, whereClause)
+            .filter(s -> !Strings.isNullOrEmpty(s))
             .collect(Collectors.joining(" "));
 
-    // Construct LEFT JOIN SQL for Value CTEs
-    String leftJoinSql = buildLeftJoinsForAllValueCtes(cteContext);
-
-    // Construct WHERE Clause for Complex Filters
-    String whereClause = "";
-    if (!Strings.isNullOrEmpty(finalProcessedFilterSql)) {
-      whereClause = "where " + finalProcessedFilterSql;
-    }
-
-    // Construct Main PI CTE SQL
-    String cteSql =
-        String.format(
-            "select %s.enrollment, %s(%s) as value from %s as %s %s %s %s group by %s.enrollment",
-            SUBQUERY_TABLE_ALIAS,
-            function,
-            finalProcessedExpressionSql,
-            getTableName(programIndicator),
-            SUBQUERY_TABLE_ALIAS,
-            innerJoinSql,
-            leftJoinSql,
-            whereClause,
-            SUBQUERY_TABLE_ALIAS);
-
-    // Register Main PI CTE
-    cteContext.addProgramIndicatorCte(programIndicator, cteSql, requireCoalesce(function));
+    return String.format(
+        "select %s.enrollment, %s(%s) as value from %s as %s %s group by %s.enrollment",
+        SUBQUERY_TABLE_ALIAS,
+        function,
+        finalProcessedExpressionSql,
+        tableName,
+        SUBQUERY_TABLE_ALIAS,
+        joinsAndWhere, // Combined joins and where
+        SUBQUERY_TABLE_ALIAS);
   }
 
   /**
@@ -391,7 +485,11 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
         alias, alias, alias, SUBQUERY_TABLE_ALIAS);
   }
 
-  private boolean requireCoalesce(String function) {
+  private boolean requireCoalesce(ProgramIndicator programIndicator) {
+    String function =
+        TextUtils.emptyIfEqual(
+            programIndicator.getAggregationTypeFallback().getValue(),
+            AggregationType.CUSTOM.getValue());
     return switch (function.toLowerCase()) {
       case "count", "sum", "min", "max" -> true;
       default -> false;
@@ -497,4 +595,8 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
     log.warn("Could not find key for CTE alias: {}", alias);
     return null;
   }
+
+  private record FilterProcessingResult(List<String> filterAliases, String complexFilterString) {}
+
+  private record ProcessedSql(String processedExpressionSql, String processedFilterSql) {}
 }
