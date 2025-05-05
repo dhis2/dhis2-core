@@ -64,11 +64,15 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.Setter;
+import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.ListIndexBase;
@@ -94,6 +98,7 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.schema.annotation.PropertyTransformer;
 import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.security.acl.Access;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
@@ -183,6 +188,12 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
   /** Access information for this object. Applies to current user. */
   @Transient private Access access;
 
+  /**
+   * Cache for object translations, where the cache key is a combination of locale and translation
+   * property, and value is the translated value.
+   */
+  @Transient private final Map<String, String> translationCache = new ConcurrentHashMap<>();
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -203,6 +214,39 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
+
+  /**
+   * Returns a translated value for this object for the given property. The current locale is read
+   * from the user context.
+   *
+   * @param translationKey the translation key.
+   * @param defaultValue the value to use if there are no translations.
+   * @return a translated value.
+   */
+  protected String getTranslation(String translationKey, String defaultValue) {
+    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
+
+    final String defaultTranslation = defaultValue != null ? defaultValue.trim() : null;
+
+    if (locale == null || translationKey == null || CollectionUtils.isEmpty(translations)) {
+      return defaultValue;
+    }
+
+    return translationCache.computeIfAbsent(
+        Translation.getCacheKey(locale.toString(), translationKey),
+        key -> getTranslationValue(locale.toString(), translationKey, defaultTranslation));
+  }
+
+  private String getTranslationValue(
+      String locale, String translationKey, String defaultTranslation) {
+    for (Translation translation : translations) {
+      if (translation.getLocale().equals(locale)
+          && translation.getProperty().equals(translationKey)) {
+        return translation.getValue();
+      }
+    }
+    return defaultTranslation;
+  }
 
   @Override
   public int hashCode() {
@@ -456,7 +500,7 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Translatable(propertyName = "name", key = "NAME")
   public String getDisplayName() {
-    return name;
+    return getDisplayPropertyValue();
   }
 
   @Override
