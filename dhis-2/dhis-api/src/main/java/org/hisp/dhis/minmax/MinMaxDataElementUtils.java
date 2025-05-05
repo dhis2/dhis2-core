@@ -29,44 +29,44 @@
  */
 package org.hisp.dhis.minmax;
 
-import java.util.Collection;
-import java.util.List;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElement;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.feedback.ErrorCode;
 
 /**
- * @author Lars Helge Overland
+ * @author Jason P. Pickering
  */
-public interface MinMaxDataElementService {
-  long addMinMaxDataElement(MinMaxDataElement minMaxDataElement);
+@Slf4j
+public class MinMaxDataElementUtils {
 
-  void deleteMinMaxDataElement(MinMaxDataElement minMaxDataElement);
+  private MinMaxDataElementUtils() {}
 
-  void updateMinMaxDataElement(MinMaxDataElement minMaxDataElement);
+  public static void validateRequiredFields(MinMaxValueDto dto) throws BadRequestException {
 
-  MinMaxDataElement getMinMaxDataElement(long id);
+    if (dto.getDataElement() == null
+        || dto.getOrgUnit() == null
+        || dto.getCategoryOptionCombo() == null) {
+      throw new BadRequestException(ErrorCode.E7801, formatDtoInfo(dto));
+    }
+  }
 
-  MinMaxDataElement getMinMaxDataElement(
-      OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo);
+  public static void validateMinMaxValues(MinMaxValueDto dto) throws BadRequestException {
+    if (dto.getMinValue() == null || dto.getMaxValue() == null) {
+      throw new BadRequestException(ErrorCode.E7801, formatDtoInfo(dto));
+    }
 
-  List<MinMaxDataElement> getMinMaxDataElements(
-      OrganisationUnit source, Collection<DataElement> dataElements);
+    if (dto.getMinValue() >= dto.getMaxValue()) {
+      throw new BadRequestException(ErrorCode.E7802, formatDtoInfo(dto));
+    }
+  }
 
-  List<MinMaxDataElement> getMinMaxDataElements(MinMaxDataElementQueryParams query);
-
-  int countMinMaxDataElements(MinMaxDataElementQueryParams query);
-
-  void removeMinMaxDataElements(OrganisationUnit organisationUnit);
-
-  void removeMinMaxDataElements(DataElement dataElement);
-
-  void removeMinMaxDataElements(CategoryOptionCombo optionCombo);
-
-  void removeMinMaxDataElements(Collection<DataElement> dataElements, OrganisationUnit parent);
-
-  int importFromJson(MinMaxValueBatchRequest request) throws BadRequestException;
-
-  int deleteFromJson(MinMaxValueBatchRequest request) throws BadRequestException;
+  public static String formatDtoInfo(MinMaxValueDto dto) {
+    return String.format(
+        "dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=%s, max=%s",
+        dto.getDataElement(),
+        dto.getOrgUnit(),
+        dto.getCategoryOptionCombo(),
+        dto.getMinValue(),
+        dto.getMaxValue());
+  }
 }

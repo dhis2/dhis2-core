@@ -27,46 +27,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.minmax;
+package org.hisp.dhis.test.e2e.actions.aggregate;
 
-import java.util.Collection;
-import java.util.List;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.test.e2e.actions.RestApiActions;
 
 /**
- * @author Lars Helge Overland
+ * @author Jason P. Pickering <jason@dhis2.org>
  */
-public interface MinMaxDataElementService {
-  long addMinMaxDataElement(MinMaxDataElement minMaxDataElement);
-
-  void deleteMinMaxDataElement(MinMaxDataElement minMaxDataElement);
-
-  void updateMinMaxDataElement(MinMaxDataElement minMaxDataElement);
-
-  MinMaxDataElement getMinMaxDataElement(long id);
-
-  MinMaxDataElement getMinMaxDataElement(
-      OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo);
-
-  List<MinMaxDataElement> getMinMaxDataElements(
-      OrganisationUnit source, Collection<DataElement> dataElements);
-
-  List<MinMaxDataElement> getMinMaxDataElements(MinMaxDataElementQueryParams query);
-
-  int countMinMaxDataElements(MinMaxDataElementQueryParams query);
-
-  void removeMinMaxDataElements(OrganisationUnit organisationUnit);
-
-  void removeMinMaxDataElements(DataElement dataElement);
-
-  void removeMinMaxDataElements(CategoryOptionCombo optionCombo);
-
-  void removeMinMaxDataElements(Collection<DataElement> dataElements, OrganisationUnit parent);
-
-  int importFromJson(MinMaxValueBatchRequest request) throws BadRequestException;
-
-  int deleteFromJson(MinMaxValueBatchRequest request) throws BadRequestException;
+public class MinMaxValuesActions extends RestApiActions {
+  public MinMaxValuesActions() {
+    super("/minMaxDataElements/values");
+  }
 }
