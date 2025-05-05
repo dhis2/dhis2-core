@@ -200,7 +200,7 @@ class DataElementMergeTest extends ApiTest {
         .body("httpStatus", equalTo("Conflict"))
         .body("status", equalTo("ERROR"))
         .body("message", containsString("ERROR: duplicate key value violates unique constraint"))
-        .body("message", containsString("minmaxdataelement_unique_key"));
+        .body("message", containsString("minmaxdataelement_pkey"));
   }
 
   @Test

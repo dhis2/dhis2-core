@@ -82,7 +82,7 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
             .as(JsonLoginResponse.class);
 
     assertEquals("SUCCESS", response.getLoginStatus());
-    assertEquals("/api/apps/dashboard/", response.getRedirectUrl());
+    assertEquals("/", response.getRedirectUrl());
   }
 
   @Test
@@ -96,7 +96,7 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
             .as(JsonLoginResponse.class);
 
     assertEquals("SUCCESS", response.getLoginStatus());
-    assertEquals("/api/apps/dashboard/", response.getRedirectUrl());
+    assertEquals("/", response.getRedirectUrl());
     userService.invalidateAllSessions();
   }
 
@@ -173,7 +173,7 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
 
     // This means that the user can still log in as normal while the 2FA enrolment is ongoing.
     assertEquals("SUCCESS", loginResponse.getLoginStatus());
-    assertEquals("/api/apps/dashboard/", loginResponse.getRedirectUrl());
+    assertEquals("/", loginResponse.getRedirectUrl());
   }
 
   @Test
@@ -278,6 +278,6 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
             .content(HttpStatus.OK)
             .as(JsonLoginResponse.class);
     assertEquals("SUCCESS", ok2FaCodeResponse.getLoginStatus());
-    assertEquals("/api/apps/dashboard/", ok2FaCodeResponse.getRedirectUrl());
+    assertEquals("/", ok2FaCodeResponse.getRedirectUrl());
   }
 }
