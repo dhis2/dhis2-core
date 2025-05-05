@@ -27,28 +27,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oidc;
+package org.hisp.dhis.minmax;
 
-import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ErrorCode;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Jason P. Pickering
  */
-public class OIDCLoginEnabledCondition extends PropertiesAwareConfigurationCondition {
-  @Override
-  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-    if (isTestRun(context)) {
-      return false;
+@Slf4j
+public class MinMaxDataElementUtils {
+
+  private MinMaxDataElementUtils() {}
+
+  public static void validateRequiredFields(MinMaxValueDto dto) throws BadRequestException {
+
+    if (dto.getDataElement() == null
+        || dto.getOrgUnit() == null
+        || dto.getCategoryOptionCombo() == null) {
+      throw new BadRequestException(ErrorCode.E7801, formatDtoInfo(dto));
     }
-    String isEnabled = getConfiguration().getProperty(ConfigurationKey.OIDC_OAUTH2_LOGIN_ENABLED);
-    return isEnabled.equalsIgnoreCase("on");
   }
 
-  @Override
-  public ConfigurationPhase getConfigurationPhase() {
-    return ConfigurationPhase.PARSE_CONFIGURATION;
+  public static void validateMinMaxValues(MinMaxValueDto dto) throws BadRequestException {
+    if (dto.getMinValue() == null || dto.getMaxValue() == null) {
+      throw new BadRequestException(ErrorCode.E7801, formatDtoInfo(dto));
+    }
+
+    if (dto.getMinValue() >= dto.getMaxValue()) {
+      throw new BadRequestException(ErrorCode.E7802, formatDtoInfo(dto));
+    }
+  }
+
+  public static String formatDtoInfo(MinMaxValueDto dto) {
+    return String.format(
+        "dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=%s, max=%s",
+        dto.getDataElement(),
+        dto.getOrgUnit(),
+        dto.getCategoryOptionCombo(),
+        dto.getMinValue(),
+        dto.getMaxValue());
   }
 }
