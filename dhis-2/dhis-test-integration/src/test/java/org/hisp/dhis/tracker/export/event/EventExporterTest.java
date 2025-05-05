@@ -211,7 +211,6 @@ class EventExporterTest extends PostgresIntegrationTestBase {
             .programStage(programStage)
             .occurredAfter(getDate(2018, 1, 1))
             .occurredBefore(getDate(2020, 1, 29))
-            .skipChangedBefore(getDate(2018, 1, 1))
             .build();
 
     List<String> events = getEvents(params);

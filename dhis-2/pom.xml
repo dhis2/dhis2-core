@@ -199,6 +199,7 @@
     <commons-io.version>2.18.0</commons-io.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
+    <jakarta-email.version>1.6.7</jakarta-email.version>
     <httpcomponents-core.version>5.3.4</httpcomponents-core.version>
     <httpcomponents-client5.version>5.4.2</httpcomponents-client5.version>
     <kafka.version>4.0.0</kafka.version>
@@ -946,6 +947,11 @@
         </exclusions>
       </dependency>
       <dependency>
+        <groupId>com.sun.mail</groupId>
+        <artifactId>jakarta.mail</artifactId>
+        <version>${jakarta-email.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.apache.httpcomponents.client5</groupId>
         <artifactId>httpclient5</artifactId>
         <version>${httpcomponents-client5.version}</version>
@@ -1370,6 +1376,11 @@
             <artifactId>xercesImpl</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-metadata</artifactId>
+        <version>${geotools.version}</version>
       </dependency>
       <dependency>
         <groupId>org.geotools</groupId>

@@ -157,14 +157,6 @@ class EventQueryParams {
 
   public EventQueryParams() {}
 
-  public boolean hasProgram() {
-    return program != null;
-  }
-
-  public boolean hasProgramStage() {
-    return programStage != null;
-  }
-
   /** Indicates whether this parameters specifies a last updated start date. */
   public boolean hasUpdatedAtStartDate() {
     return updatedAtStartDate != null;
