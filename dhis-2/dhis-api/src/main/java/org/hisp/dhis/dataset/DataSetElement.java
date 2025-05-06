@@ -74,9 +74,7 @@ public class DataSetElement implements EmbeddedObject, Serializable {
   @ManyToOne
   @JoinColumn(
       name = "datasetid",
-      foreignKey = @ForeignKey(name = "fk_datasetelement_datasetid"),
-      unique = false,
-      nullable = true)
+      foreignKey = @ForeignKey(name = "fk_datasetelement_datasetid"))
   private DataSet dataSet;
 
   /** Data element, never null. */
@@ -84,7 +82,6 @@ public class DataSetElement implements EmbeddedObject, Serializable {
   @JoinColumn(
       name = "dataelementid",
       foreignKey = @ForeignKey(name = "fk_datasetelement_dataelementid"),
-      unique = false,
       nullable = false)
   private DataElement dataElement;
 
@@ -92,8 +89,7 @@ public class DataSetElement implements EmbeddedObject, Serializable {
   @ManyToOne
   @JoinColumn(
       name = "categorycomboid",
-      foreignKey = @ForeignKey(name = "fk_datasetelement_categorycomboid"),
-      nullable = true)
+      foreignKey = @ForeignKey(name = "fk_datasetelement_categorycomboid"))
   private CategoryCombo categoryCombo;
 
   // -------------------------------------------------------------------------
