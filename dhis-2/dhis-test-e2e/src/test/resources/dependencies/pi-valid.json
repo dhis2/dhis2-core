@@ -1,0 +1,11 @@
+{
+  "type": "program_indicator",
+  "code": "PI_TEST_001",
+  "name": "Test PI",
+  "shortName": "Test PI",
+  "expression": "1 + 1",
+  "analyticsType": "ENROLLMENT",
+  "program": { "id": "IpHINAT79UW" },
+  "analyticsPeriodBoundaries": [],
+  "legendSets": []
+}
