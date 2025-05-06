@@ -236,7 +236,7 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
   @Override
   public boolean equals(Object obj) {
     return this == obj
-        || obj instanceof BaseIdentifiableObject
+        || obj instanceof IdentifiableObject
             && getRealClass(this) == getRealClass(obj)
             && typedEquals((IdentifiableObject) obj);
   }
