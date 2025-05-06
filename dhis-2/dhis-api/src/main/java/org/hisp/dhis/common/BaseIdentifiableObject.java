@@ -313,17 +313,18 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
    * @return a translated value.
    */
   protected String getTranslation(String translationKey, String defaultValue) {
-    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
+//    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
 
     final String defaultTranslation = defaultValue != null ? defaultValue.trim() : null;
+    return defaultValue;
 
-    if (locale == null || translationKey == null || CollectionUtils.isEmpty(translations)) {
-      return defaultValue;
-    }
-
-    return translationCache.computeIfAbsent(
-        Translation.getCacheKey(locale.toString(), translationKey),
-        key -> getTranslationValue(locale.toString(), translationKey, defaultTranslation));
+//    if (locale == null || translationKey == null || CollectionUtils.isEmpty(translations)) {
+//      return defaultValue;
+//    }
+//
+//    return translationCache.computeIfAbsent(
+//        Translation.getCacheKey(locale.toString(), translationKey),
+//        key -> getTranslationValue(locale.toString(), translationKey, defaultTranslation));
   }
 
   @Override
