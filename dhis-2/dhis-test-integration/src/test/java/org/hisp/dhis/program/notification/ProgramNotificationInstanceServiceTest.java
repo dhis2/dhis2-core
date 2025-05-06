@@ -62,7 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class ProgramNotificationInstanceServiceTest extends PostgresIntegrationTestBase {
   private static final int TEST_USER_COUNT = 60;
-  private static final Date NOW = Date.from(Instant.now());
+  private static final Date DATE = Date.from(Instant.parse("2024-01-01"));
   private static final int EXPECTED_NOTIFICATIONS = 20;
 
   @Autowired private ProgramNotificationInstanceService programNotificationInstanceService;
@@ -71,6 +71,7 @@ class ProgramNotificationInstanceServiceTest extends PostgresIntegrationTestBase
 
   private OrganisationUnit organisationUnit;
   private UserGroup userGroup;
+  private int expectedNotifications;
 
   @BeforeEach
   void setUp() {
@@ -89,22 +90,24 @@ class ProgramNotificationInstanceServiceTest extends PostgresIntegrationTestBase
     Enrollment enrollment = createEnrollment(program, trackedEntity, organisationUnit);
     manager.save(enrollment);
 
-    getNotifications().forEach(n -> notificationSender.send(n, enrollment));
+    List<Notification> notifications = getNotifications();
+    expectedNotifications = notifications.size();
+    notifications.forEach(n -> notificationSender.send(n, enrollment));
   }
 
   @Test
   @DisplayName("Should fetch scheduled notifications within timeout")
   void shouldReturnProgramNotificationInstancesForGivenDate() {
     ProgramNotificationInstanceParam param =
-        ProgramNotificationInstanceParam.builder().scheduledAt(NOW).build();
+        ProgramNotificationInstanceParam.builder().scheduledAt(DATE).build();
 
     List<ProgramNotificationInstance> instances =
         programNotificationInstanceService.getProgramNotificationInstances(param);
 
     assertEquals(
-        EXPECTED_NOTIFICATIONS,
+        expectedNotifications,
         instances.size(),
-        "Expected " + EXPECTED_NOTIFICATIONS + " notification instances, but got " + instances);
+        "Expected " + expectedNotifications + " notification instances, but got " + instances);
   }
 
   private String createNotification() {
@@ -136,7 +139,7 @@ class ProgramNotificationInstanceServiceTest extends PostgresIntegrationTestBase
   }
 
   List<Notification> getNotifications() {
-    return Stream.generate(() -> new Notification(UID.of(createNotification()), NOW))
+    return Stream.generate(() -> new Notification(UID.of(createNotification()), DATE))
         .limit(EXPECTED_NOTIFICATIONS)
         .toList();
   }
