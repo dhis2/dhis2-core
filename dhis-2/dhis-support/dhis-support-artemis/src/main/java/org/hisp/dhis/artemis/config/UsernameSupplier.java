@@ -47,22 +47,20 @@ public class UsernameSupplier implements Supplier<String> {
   @Override
   public String get() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//    if (authentication == null
-//        || !authentication.isAuthenticated()
-//        || authentication.getPrincipal() == null) {
-//      return DEFAULT_USERNAME;
-//    } else {
-//      Object principal = authentication.getPrincipal();
-//      if (!(principal instanceof org.springframework.security.core.userdetails.UserDetails)) {
-//        return DEFAULT_USERNAME;
-//      } else {
-//        org.springframework.security.core.userdetails.UserDetails userDetails =
-//            (org.springframework.security.core.userdetails.UserDetails)
-//                authentication.getPrincipal();
-//        return userDetails.getUsername();
-//      }
-//    }
-    return null;
+    if (authentication == null
+        || !authentication.isAuthenticated()
+        || authentication.getPrincipal() == null) {
+      return DEFAULT_USERNAME;
+    } else {
+      Object principal = authentication.getPrincipal();
+      if (!(principal instanceof org.springframework.security.core.userdetails.UserDetails)) {
+        return DEFAULT_USERNAME;
+      } else {
+        org.springframework.security.core.userdetails.UserDetails userDetails =
+            (org.springframework.security.core.userdetails.UserDetails)
+                authentication.getPrincipal();
+        return userDetails.getUsername();
+      }
+    }
   }
-
 }

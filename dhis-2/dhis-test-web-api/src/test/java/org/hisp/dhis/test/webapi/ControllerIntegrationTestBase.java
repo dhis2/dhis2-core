@@ -116,7 +116,6 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
 
   @BeforeEach
   void setup() {
-    clearSecurityContext();
     renderService = _renderService;
 
     mvc =

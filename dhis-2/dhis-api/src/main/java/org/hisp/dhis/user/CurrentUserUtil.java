@@ -64,7 +64,7 @@ public class CurrentUserUtil {
           (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal();
       String username = userDetails.getUsername();
       if(username==null){
-        throw new IllegalStateException("Username is NULL!!!");
+        throw new IllegalStateException("Username is NULL!!!:" + userDetails);
       }
       return username;
 

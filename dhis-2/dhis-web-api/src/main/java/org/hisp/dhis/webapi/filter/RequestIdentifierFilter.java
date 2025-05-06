@@ -41,8 +41,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.slf4j.MDC;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -76,20 +74,19 @@ public class RequestIdentifierFilter extends OncePerRequestFilter {
   protected void doFilterInternal(
       HttpServletRequest req, HttpServletResponse res, FilterChain chain)
       throws ServletException, IOException {
-//    if (enabled) {
-//      try {
-//        CurrentUserUtil.hasCurrentUser();
-//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//        if (authentication != null
-//            && authentication.isAuthenticated()
-//            && !authentication.getPrincipal().equals("anonymousUser")) {
-//
-//          MDC.put(SESSION_ID_KEY, IDENTIFIER_PREFIX + hashToBase64(req.getSession().getId()));
-//        }
-//      } catch (NoSuchAlgorithmException e) {
-//        log.error(String.format("Invalid Hash algorithm provided (%s)", HASH_ALGO), e);
-//      }
-//    }
+    if (enabled) {
+      try {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null
+            && authentication.isAuthenticated()
+            && !authentication.getPrincipal().equals("anonymousUser")) {
+
+          MDC.put(SESSION_ID_KEY, IDENTIFIER_PREFIX + hashToBase64(req.getSession().getId()));
+        }
+      } catch (NoSuchAlgorithmException e) {
+        log.error(String.format("Invalid Hash algorithm provided (%s)", HASH_ALGO), e);
+      }
+    }
 
     chain.doFilter(req, res);
   }
