@@ -75,8 +75,11 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.attribute.AttributeValuesDeserializer;
+import org.hisp.dhis.attribute.AttributeValuesSerializer;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseIdentifiableObject.AttributeValue;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -158,7 +161,6 @@ public class OptionSet implements IdentifiableObject, VersionedObject, MetadataO
   private List<Option> options = new ArrayList<>();
 
   @Type(type = "jsbAttributeValues")
-  @Column(name = "attributeValues")
   @AuditAttribute
   private AttributeValues attributeValues = AttributeValues.empty();
 
@@ -396,8 +398,12 @@ public class OptionSet implements IdentifiableObject, VersionedObject, MetadataO
   }
 
   @Override
+  @OpenApi.Property(AttributeValue[].class)
+  @JsonProperty("attributeValues")
+  @JsonDeserialize(using = AttributeValuesDeserializer.class)
+  @JsonSerialize(using = AttributeValuesSerializer.class)
   public AttributeValues getAttributeValues() {
-    return AttributeValues.empty();
+    return attributeValues;
   }
 
   @Override
