@@ -270,7 +270,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     addSelect(sql, params);
     sql.append(" from ");
     addTrackedEntityFromItem(sql, sqlParameters, params, pageParams, false);
-    addOrderBy(sql, params, false);
+    addOrderBy(sql, params);
     return sql.toString();
   }
 
@@ -362,7 +362,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
     if (!isCountQuery) {
       sql.append(" ");
-      addOrderBy(sql, params, true);
+      addOrderBy(sql, params);
       sql.append(" ");
       addLimitAndOffset(sql, pageParams);
     }
@@ -371,13 +371,13 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
   }
 
   /**
-   * Add the sub-query projection. If we are sorting by attribute, we need to include the value in
-   * the sub-query projection.
+   * Add the SELECT to the {@code sql}. Columns for attribute values and the {@code enrolledAt} date
+   * are only included if tracked entities should be ordered by them. The column names in here and
+   * {@link #addJoinOnAttributes(StringBuilder, TrackedEntityQueryParams)} and {@link
+   * #addJoinOnEnrollment(StringBuilder, MapSqlParameterSource, TrackedEntityQueryParams)} and
+   * {@link #addOrderBy(StringBuilder, TrackedEntityQueryParams)} have to stay in sync.
    */
   private void addTrackedEntityFromItemSelect(StringBuilder sql, TrackedEntityQueryParams params) {
-    // TODO(ivo) are these the same as in addSelect just with an alias? can we merge them or
-    // better, what is the minimum we need?
-    // the top level select clause actually only needs the trackedentityid right now, no?
     LinkedHashSet<String> columns =
         new LinkedHashSet<>(
             List.of(
@@ -406,7 +406,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
           columns.add(ENROLLMENT_ALIAS + ".enrollmentdate as " + ENROLLMENT_DATE_ALIAS);
         }
       } else if (order.getField() instanceof TrackedEntityAttribute tea) {
-        columns.add(quote(tea.getUid()) + ".value AS " + quote(tea.getUid()));
+        columns.add(quote(tea.getUid()) + ".value as " + quote(tea.getUid()));
       } else {
         throw new IllegalArgumentException(
             String.format(
@@ -659,7 +659,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     }
 
     if (!params.isIncludeDeleted()) {
-      sql.append(whereAnd.whereAnd()).append("te.deleted IS FALSE ");
+      sql.append(whereAnd.whereAnd()).append("te.deleted is false ");
     }
 
     if (params.hasPotentialDuplicateFilter()) {
@@ -816,10 +816,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
    * it in the sub-query, we want to make sure we get the right tracked entities. When we order in
    * the main query, it's to make sure we return the results in the correct order, since order might
    * be mixed after GROUP BY.
-   *
-   * @param innerOrder indicates whether this is the sub-query order by or main query order by
    */
-  private void addOrderBy(StringBuilder sql, TrackedEntityQueryParams params, boolean innerOrder) {
+  private void addOrderBy(StringBuilder sql, TrackedEntityQueryParams params) {
     List<String> orderFields = new ArrayList<>();
     for (Order order : params.getOrder()) {
       if (order.getField() instanceof String field) {
@@ -832,12 +830,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
         orderFields.add(ORDERABLE_FIELDS.get(field) + " " + order.getDirection());
       } else if (order.getField() instanceof TrackedEntityAttribute tea) {
-        String orderField =
-            innerOrder
-                ? quote(tea.getUid()) + ".value "
-                : MAIN_QUERY_ALIAS + "." + quote(tea.getUid());
-
-        orderFields.add(orderField + " " + order.getDirection());
+        orderFields.add(quote(tea.getUid()) + " " + order.getDirection());
       } else {
         throw new IllegalArgumentException(
             String.format(
