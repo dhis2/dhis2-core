@@ -128,8 +128,7 @@ public class PlaceholderParser {
     Matcher m = PSDE_PATTERN.matcher(placeholder);
     if (!m.matches()) return Optional.empty();
     return Optional.of(
-        new PsDeFields(
-            m.group(1), m.group(2), Integer.parseInt(m.group(3)), m.group(4), m.group(5)));
+        new PsDeFields(m.group(1), m.group(2), toInteger(m.group(3)), m.group(4), m.group(5)));
   }
 
   /**
@@ -188,7 +187,7 @@ public class PlaceholderParser {
             m.group(2),
             m.group(3),
             "null".equals(m.group(4)) ? null : m.group(4),
-            Integer.parseInt(m.group(5))));
+            toInteger(m.group(5))));
   }
 
   /** Expose the pattern so callers can iterate through a SQL blob efficiently. */
@@ -207,5 +206,13 @@ public class PlaceholderParser {
 
   public static Pattern variablePattern() {
     return VARIABLE_PATTERN;
+  }
+
+  private int toInteger(String stringAsInt) {
+    try {
+      return Integer.parseInt(stringAsInt);
+    } catch (NumberFormatException ex) {
+      throw new IllegalArgumentException("Invalid integer value: " + stringAsInt, ex);
+    }
   }
 }

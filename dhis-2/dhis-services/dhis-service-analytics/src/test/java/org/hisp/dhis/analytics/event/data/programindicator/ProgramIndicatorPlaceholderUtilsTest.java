@@ -251,15 +251,14 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
       String expectedCteKey =
           "varcte_created_" + piUid + "_0"; // Offset is part of key, PS UID isn't currently
 
-      String result =
-          processPlaceholdersAndGenerateVariableCtes(
-              placeholder,
-              programIndicator,
-              startDate,
-              endDate,
-              cteContext,
-              variableAliasMap,
-              sqlBuilder);
+      processPlaceholdersAndGenerateVariableCtes(
+          placeholder,
+          programIndicator,
+          startDate,
+          endDate,
+          cteContext,
+          variableAliasMap,
+          sqlBuilder);
 
       CteDefinition cteDef = assertCteCreated(expectedCteKey, VARIABLE, "enrollment");
       assertTrue(cteDef.getCteDefinition().contains("and ps = '" + psUid + "'"));
@@ -850,9 +849,9 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
 
       // Verify 3 distinct CTEs were generated
       assertEquals(3, cteContext.getCteKeys().size(), "Should generate 3 distinct CTEs");
-      CteDefinition cteDef1 = assertCteCreated(expectedCteKey1, PSDE, "enrollment", expectedRank1);
-      CteDefinition cteDef2 = assertCteCreated(expectedCteKey2, PSDE, "enrollment", expectedRank2);
-      CteDefinition cteDef3 = assertCteCreated(expectedCteKey3, PSDE, "enrollment", expectedRank3);
+      assertCteCreated(expectedCteKey1, PSDE, "enrollment", expectedRank1);
+      assertCteCreated(expectedCteKey2, PSDE, "enrollment", expectedRank2);
+      assertCteCreated(expectedCteKey3, PSDE, "enrollment", expectedRank3);
 
       // Verify alias map contains entries for all 3 placeholders
       String alias1 = assertPlaceholderMapped(placeholder1, expectedCteKey1, psdeAliasMap);

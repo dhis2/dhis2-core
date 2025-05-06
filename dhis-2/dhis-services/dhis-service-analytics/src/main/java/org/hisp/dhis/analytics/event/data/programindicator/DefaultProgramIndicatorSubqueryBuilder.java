@@ -447,7 +447,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
     return switch (definition.getCteType()) {
       case VARIABLE -> formatVariableJoin(key, alias);
       case PSDE -> formatPsdeJoin(key, alias, definition.getTargetRank());
-      case D2_FUNCTION -> formatD2FunctionJoin(key, alias);
+      case D2_FUNCTION -> formatD2FunctionJoin(alias);
       default -> {
         log.trace(
             "Skipping join generation for non-value CTE type: {} with key: {}",
@@ -479,7 +479,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
   }
 
   /** Formats the LEFT JOIN for D2 Function CTEs (no rn). */
-  private String formatD2FunctionJoin(String key, String alias) {
+  private String formatD2FunctionJoin(String alias) {
     return String.format(
         "left join %s %s on %s.enrollment = %s.enrollment",
         alias, alias, alias, SUBQUERY_TABLE_ALIAS);
