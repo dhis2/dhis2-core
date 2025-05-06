@@ -45,6 +45,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -52,7 +53,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OrderBy;
+import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
@@ -70,6 +71,8 @@ import javax.annotation.Nonnull;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.audit.AuditAttribute;
@@ -104,9 +107,9 @@ import org.hisp.dhis.user.sharing.Sharing;
  * @author Lars Helge Overland
  */
 @JacksonXmlRootElement(localName = "optionSet", namespace = DxfNamespaces.DXF_2_0)
+@Setter
 @Entity
 @Table(name = "optionset")
-@Setter
 public class OptionSet implements IdentifiableObject, VersionedObject, MetadataObject {
 
   @Id
@@ -148,13 +151,13 @@ public class OptionSet implements IdentifiableObject, VersionedObject, MetadataO
   @Column(name = "translations")
   private Set<Translation> translations = new HashSet<>();
 
-  @OneToMany(mappedBy = "optionSet", cascade = CascadeType.ALL, orphanRemoval = true)
-  @OrderBy("sortOrder")
-  @org.hibernate.annotations.Cache(
-      usage = org.hibernate.annotations.CacheConcurrencyStrategy.READ_WRITE)
+  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @JoinColumn(name = "optionsetid", foreignKey = @ForeignKey(name = "fk_optionset_optionid"))
+  @OrderColumn(name = "sort_order")
+  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private List<Option> options = new ArrayList<>();
 
-  @org.hibernate.annotations.Type(type = "jsbAttributeValues")
+  @Type(type = "jsbAttributeValues")
   @Column(name = "attributeValues")
   @AuditAttribute
   private AttributeValues attributeValues = AttributeValues.empty();
@@ -186,6 +189,9 @@ public class OptionSet implements IdentifiableObject, VersionedObject, MetadataO
    */
   @Transient private transient String href;
 
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
   public OptionSet() {}
 
   public OptionSet(String name, ValueType valueType) {

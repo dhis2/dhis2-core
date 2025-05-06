@@ -180,7 +180,6 @@ public class HibernateConfig {
     }
 
     properties.put(AvailableSettings.HBM2DDL_AUTO, Action.VALIDATE.getExternalHbm2ddlName());
-    properties.put(AvailableSettings.ARTIFACT_PROCESSING_ORDER, "class,hbm");
 
     // TODO: this is anti-pattern and should be turn off
     properties.put("hibernate.allow_update_outside_transaction", "true");
