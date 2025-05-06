@@ -34,8 +34,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.Cacheable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.Objects;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -45,18 +57,42 @@ import org.hisp.dhis.dataelement.DataElement;
 /**
  * @author Lars Helge Overland
  */
+@Entity
+@Table(name = "dataSetElement")
+@Cacheable
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @JacksonXmlRootElement(localName = "dataSetElement", namespace = DxfNamespaces.DXF_2_0)
 public class DataSetElement implements EmbeddedObject, Serializable {
   /** The database internal identifier for this Object. */
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "datasetelementid")
   private int id;
 
   /** Data set, never null. */
+  @ManyToOne
+  @JoinColumn(
+      name = "datasetid",
+      foreignKey = @ForeignKey(name = "fk_datasetelement_datasetid"),
+      unique = false,
+      nullable = true)
   private DataSet dataSet;
 
   /** Data element, never null. */
+  @ManyToOne
+  @JoinColumn(
+      name = "dataelementid",
+      foreignKey = @ForeignKey(name = "fk_datasetelement_dataelementid"),
+      unique = false,
+      nullable = false)
   private DataElement dataElement;
 
   /** Category combination, potentially null. */
+  @ManyToOne
+  @JoinColumn(
+      name = "categorycomboid",
+      foreignKey = @ForeignKey(name = "fk_datasetelement_categorycomboid"),
+      nullable = true)
   private CategoryCombo categoryCombo;
 
   // -------------------------------------------------------------------------
