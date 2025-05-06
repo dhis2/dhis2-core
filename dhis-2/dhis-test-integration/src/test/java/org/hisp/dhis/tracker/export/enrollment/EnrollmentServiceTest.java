@@ -76,6 +76,8 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.export.event.EventFields;
+import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -281,7 +283,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     manager.updateNoAcl(programA);
 
     Enrollment enrollment =
-        enrollmentService.getEnrollment(UID.of(enrollmentA), EnrollmentParams.FALSE);
+        enrollmentService.getEnrollment(UID.of(enrollmentA), EnrollmentFields.none());
 
     assertNotNull(enrollment);
     assertEquals(enrollmentA.getUid(), enrollment.getUid());
@@ -301,10 +303,9 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldGetEnrollmentWithEventsWhenUserHasAccessToEvent() throws NotFoundException {
-    EnrollmentParams params = EnrollmentParams.FALSE;
-    params = params.withEnrollmentEventsParams(EnrollmentEventsParams.TRUE);
+    EnrollmentFields fields = EnrollmentFields.builder().includeEvents(EventFields.all()).build();
 
-    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params);
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), fields);
 
     assertNotNull(enrollment);
     assertContainsOnly(
@@ -318,10 +319,9 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     programStageA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.updateNoAcl(programStageA);
 
-    EnrollmentParams params = EnrollmentParams.FALSE;
-    params = params.withIncludeEvents(true);
+    EnrollmentFields fields = EnrollmentFields.builder().includeEvents(EventFields.all()).build();
 
-    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params);
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), fields);
 
     assertNotNull(enrollment);
     assertIsEmpty(enrollment.getEvents());
@@ -329,10 +329,10 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldGetEnrollmentWithRelationshipsWhenUserHasAccessToThem() throws NotFoundException {
-    EnrollmentParams params = EnrollmentParams.FALSE;
-    params = params.withIncludeRelationships(true);
+    EnrollmentFields fields =
+        EnrollmentFields.builder().includeRelationships(RelationshipFields.all()).build();
 
-    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params);
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), fields);
 
     assertNotNull(enrollment);
     assertContainsOnly(Set.of(relationshipA.getUid()), relationshipUids(enrollment));
@@ -343,10 +343,10 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     relationshipTypeA.getSharing().setOwner(admin);
     relationshipTypeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
 
-    EnrollmentParams params = EnrollmentParams.FALSE;
-    params = params.withIncludeRelationships(true);
+    EnrollmentFields fields =
+        EnrollmentFields.builder().includeRelationships(RelationshipFields.all()).build();
 
-    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params);
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), fields);
 
     assertNotNull(enrollment);
     assertIsEmpty(enrollment.getRelationshipItems());
@@ -354,10 +354,9 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldGetEnrollmentWithAttributesWhenUserHasAccessToThem() throws NotFoundException {
-    EnrollmentParams params = EnrollmentParams.FALSE;
-    params = params.withIncludeAttributes(true);
+    EnrollmentFields fields = EnrollmentFields.builder().includeAttributes().build();
 
-    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), params);
+    Enrollment enrollment = enrollmentService.getEnrollment(UID.of(enrollmentA), fields);
 
     assertNotNull(enrollment);
     assertContainsOnly(List.of(trackedEntityAttributeA.getUid()), attributeUids(enrollment));

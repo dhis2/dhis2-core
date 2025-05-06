@@ -95,7 +95,13 @@ public class SqlUtils {
    *
    * @param value the value.
    * @return the single quoted relation.
+   * @deprecated this single quotes and escapes the values single quotes and backslashes which is
+   *     not correct in every context. Backslashes only need to be escaped in a like and in case <a
+   *     href="https://postgresqlco.nf/doc/en/param/standard_conforming_strings/">standard_conforming_strings</a>
+   *     is enabled. The latter is taken care of by the JDBC driver. Quoting single quotes is also
+   *     taken care of by the JDBC driver when using JDBC templates with SQL parameters.
    */
+  @Deprecated(forRemoval = true)
   public static String singleQuote(String value) {
     return SINGLE_QUOTE + escape(value) + SINGLE_QUOTE;
   }
@@ -106,7 +112,13 @@ public class SqlUtils {
    *
    * @param value the value to escape.
    * @return the escaped value.
+   * @deprecated this escapes single quotes and backslashes which is not correct in every context.
+   *     Backslashes only need to be escaped in a like and in case <a
+   *     href="https://postgresqlco.nf/doc/en/param/standard_conforming_strings/">standard_conforming_strings</a>
+   *     is enabled. The latter is taken care of by the JDBC driver. Quoting single quotes is also
+   *     taken care of by the JDBC driver when using JDBC templates with SQL parameters.
    */
+  @Deprecated(forRemoval = true)
   public static String escape(String value) {
     return value
         .replace(SINGLE_QUOTE, (SINGLE_QUOTE + SINGLE_QUOTE))
@@ -114,8 +126,9 @@ public class SqlUtils {
   }
 
   /**
-   * Escapes {@code like} wildcards '%' and '_' in a given string using the default '\' escape
-   * character. Make sure to call this before inserting any like wildcard characters!
+   * Escapes {@code like} wildcards '%' and '_' and the default escape character '\' in a given
+   * string using the default escape character. This expects you to use the default escape character
+   * '\' in your SQL. Make sure to call this before inserting any like wildcard characters!
    *
    * <p>See <a
    * href="https://www.postgresql.org/docs/current/functions-matching.html#FUNCTIONS-LIKE">PostgreSQL
@@ -123,6 +136,7 @@ public class SqlUtils {
    */
   public static String escapeLikeWildcards(String value) {
     return value
+        .replace(BACKSLASH, (BACKSLASH + BACKSLASH))
         .replace(PERCENT, (BACKSLASH + PERCENT))
         .replace(UNDERSCORE, (BACKSLASH + UNDERSCORE));
   }

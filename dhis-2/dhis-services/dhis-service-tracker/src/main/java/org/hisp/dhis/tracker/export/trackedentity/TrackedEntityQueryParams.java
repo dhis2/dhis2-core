@@ -258,17 +258,7 @@ public class TrackedEntityQueryParams {
    * Indicates whether the event status specified for the params is equal to the given event status.
    */
   public boolean isEventStatus(EventStatus eventStatus) {
-    return this.eventStatus != null && this.eventStatus.equals(eventStatus);
-  }
-
-  /** Indicates whether these parameters specify an event start date. */
-  public boolean hasEventStartDate() {
-    return eventStartDate != null;
-  }
-
-  /** Indicates whether these parameters specify an event end date. */
-  public boolean hasEventEndDate() {
-    return eventEndDate != null;
+    return this.eventStatus == eventStatus;
   }
 
   /** Check whether we are filtering for potential duplicate property. */

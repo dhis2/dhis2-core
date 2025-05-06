@@ -40,10 +40,14 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentFields;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.EnrollmentOperationParamsBuilder;
 import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.springframework.stereotype.Component;
@@ -59,7 +63,7 @@ class EnrollmentRequestParamsMapper {
   private static final Set<String> ORDERABLE_FIELD_NAMES =
       EnrollmentMapper.ORDERABLE_FIELDS.keySet();
 
-  private final EnrollmentFieldsParamMapper fieldsParamMapper;
+  private final FieldFilterService fieldFilterService;
 
   public EnrollmentOperationParams map(EnrollmentRequestParams enrollmentRequestParams)
       throws BadRequestException {
@@ -95,7 +99,12 @@ class EnrollmentRequestParamsMapper {
             .orgUnitMode(orgUnitMode)
             .includeDeleted(enrollmentRequestParams.isIncludeDeleted())
             .enrollments(enrollmentRequestParams.getEnrollments())
-            .enrollmentParams(fieldsParamMapper.map(enrollmentRequestParams.getFields()));
+            .fields(
+                EnrollmentFields.of(
+                    f ->
+                        fieldFilterService.filterIncludes(
+                            Enrollment.class, enrollmentRequestParams.getFields(), f),
+                    FieldPath.FIELD_PATH_SEPARATOR));
 
     mapOrderParam(builder, enrollmentRequestParams.getOrder());
 

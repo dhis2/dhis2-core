@@ -137,7 +137,7 @@ public class TrackerIdentifierCollector {
   private void collectNotes(Map<Class<?>, Set<String>> identifiers, List<Note> notes) {
     notes.forEach(
         note -> {
-          if (note.getNote() != null && StringUtils.isNotEmpty(note.getValue())) {
+          if (StringUtils.isNotEmpty(note.getValue())) {
             addIdentifier(identifiers, org.hisp.dhis.note.Note.class, note.getNote());
           }
         });

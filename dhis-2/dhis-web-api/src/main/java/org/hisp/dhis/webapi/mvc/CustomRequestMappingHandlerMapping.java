@@ -30,7 +30,6 @@
 package org.hisp.dhis.webapi.mvc;
 
 import java.lang.reflect.Method;
-import java.util.List;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.condition.PatternsRequestCondition;
 import org.springframework.web.servlet.mvc.condition.RequestMethodsRequestCondition;
@@ -59,15 +58,6 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
       return null;
     }
 
-    // allow API calls with versions 28-43 in the path e.g. `/api/42/icons`
-    List<String> versionedApiEndpoints =
-        new java.util.ArrayList<>(
-            info.getPatternValues().stream()
-                .map(pv -> pv.replace("/api/", "/api/{apiVersion:^[2][8-9]|^[3][0-9]|^[4][0-3]$}/"))
-                .toList());
-    // allow original API path with no version in it e.g. `/api/icons
-    versionedApiEndpoints.addAll(info.getPatternValues());
-
     RequestMethodsRequestCondition methodsCondition = info.getMethodsCondition();
 
     if (methodsCondition.getMethods().isEmpty()) {
@@ -76,7 +66,7 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
 
     PatternsRequestCondition patternsRequestCondition =
         new PatternsRequestCondition(
-            versionedApiEndpoints.toArray(new String[] {}), null, null, true, true, null);
+            info.getPatternValues().toArray(new String[] {}), null, null, true, true, null);
     return new RequestMappingInfo(
         null,
         patternsRequestCondition,

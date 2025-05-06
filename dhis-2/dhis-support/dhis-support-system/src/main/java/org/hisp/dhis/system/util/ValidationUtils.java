@@ -513,6 +513,7 @@ public class ValidationUtils {
 
     // Value type checks
     return switch (valueType) {
+      case TEXT, LONG_TEXT, MULTI_TEXT, TRACKER_ASSOCIATE, REFERENCE, GEOJSON -> null;
       case LETTER -> !isValidLetter(value) ? "value_not_valid_letter" : null;
       case NUMBER -> !isNumeric(value) ? "value_not_numeric" : null;
       case UNIT_INTERVAL -> !isUnitInterval(value) ? "value_not_unit_interval" : null;
@@ -522,6 +523,8 @@ public class ValidationUtils {
       case INTEGER_NEGATIVE -> !isNegativeInteger(value) ? "value_not_negative_integer" : null;
       case INTEGER_ZERO_OR_POSITIVE ->
           !isZeroOrPositiveInteger(value) ? "value_not_zero_or_positive_integer" : null;
+      case PHONE_NUMBER -> !isPhoneNumber(value) ? "value_not_phone_number" : null;
+      case EMAIL -> !emailIsValid(value) ? "value_not_valid_email" : null;
       case BOOLEAN -> !isBool(value.toLowerCase()) ? "value_not_bool" : null;
       case TRUE_ONLY -> !TRUE.equalsIgnoreCase(value) ? "value_not_true_only" : null;
       case DATE -> !dateIsValid(value) ? "value_not_valid_date" : null;
@@ -529,7 +532,10 @@ public class ValidationUtils {
       case COORDINATE -> !isCoordinate(value) ? "value_not_coordinate" : null;
       case URL -> !urlIsValid(value) ? "value_not_url" : null;
       case FILE_RESOURCE, IMAGE -> !isValidUid(value) ? "value_not_valid_file_resource_uid" : null;
-      default -> null;
+      case TIME -> !timeIsValid(value) ? "value_not_valid_time" : null;
+      case USERNAME -> !usernameIsValid(value) ? "value_not_valid_username" : null;
+      case ORGANISATION_UNIT -> !isValidUid(value) ? "value_not_valid_org_unit_uid" : null;
+      case AGE -> !dateIsValid(value) ? "value_not_valid_age" : null;
     };
   }
 
@@ -547,40 +553,17 @@ public class ValidationUtils {
     }
 
     // Value type grouped checks.
-    switch (valueType) {
-      case INTEGER:
-      case INTEGER_POSITIVE:
-      case INTEGER_NEGATIVE:
-      case INTEGER_ZERO_OR_POSITIVE:
-        return isInteger(trim(value));
-      case NUMBER:
-      case UNIT_INTERVAL:
-      case PERCENTAGE:
-        return isValidDouble(parseDouble(trim(value)));
-      case BOOLEAN:
-      case TRUE_ONLY:
-        return isBool(defaultIfBlank(BOOLEAN_VALUES.get(lowerCase(trim(value))), EMPTY));
-      case DATE:
-        return dateIsValid(trim(value));
-      case TIME:
-        return timeIsValid(trim(value));
-      case DATETIME:
-        return dateTimeIsValid(trim(value));
-      case LONG_TEXT:
-      case MULTI_TEXT:
-      case PHONE_NUMBER:
-      case EMAIL:
-      case TEXT:
-      case LETTER:
-      case COORDINATE:
-      case URL:
-      case FILE_RESOURCE:
-      case IMAGE:
-      case USERNAME:
-      case GEOJSON:
-      default:
-        return true;
-    }
+    return switch (valueType) {
+      case INTEGER, INTEGER_POSITIVE, INTEGER_NEGATIVE, INTEGER_ZERO_OR_POSITIVE ->
+          isInteger(trim(value));
+      case NUMBER, UNIT_INTERVAL, PERCENTAGE -> isValidDouble(parseDouble(trim(value)));
+      case BOOLEAN, TRUE_ONLY ->
+          isBool(defaultIfBlank(BOOLEAN_VALUES.get(lowerCase(trim(value))), EMPTY));
+      case DATE -> dateIsValid(trim(value));
+      case TIME -> timeIsValid(trim(value));
+      case DATETIME -> dateTimeIsValid(trim(value));
+      default -> true;
+    };
   }
 
   public static boolean isValidLetter(String value) {

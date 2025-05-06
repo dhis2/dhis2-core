@@ -32,11 +32,9 @@ package org.hisp.dhis.webapi.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.InputStream;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.i18n.I18nInput;
 import org.hisp.dhis.webapi.webdomain.i18n.I18nOutput;
 import org.springframework.http.MediaType;
@@ -54,7 +52,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
     classifiers = {"team:platform", "purpose:support"})
 @Controller
 @RequestMapping("/api/i18n")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class I18nController {
   private final I18nManager i18nManager;
 

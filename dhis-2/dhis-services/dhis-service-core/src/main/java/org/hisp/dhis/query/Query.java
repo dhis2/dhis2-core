@@ -138,10 +138,6 @@ public class Query<T extends IdentifiableObject> {
     return filters.isEmpty() && orders.isEmpty();
   }
 
-  public boolean ordersPersisted() {
-    return orders.stream().noneMatch(Order::isNonPersisted);
-  }
-
   public void clearOrders() {
     orders.clear();
   }

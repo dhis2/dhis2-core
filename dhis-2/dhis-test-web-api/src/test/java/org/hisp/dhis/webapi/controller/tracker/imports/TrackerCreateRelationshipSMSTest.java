@@ -71,6 +71,7 @@ import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -200,7 +201,9 @@ class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTest
         () -> assertEquals(originator, sms.getOriginator()),
         () -> assertEquals(user, sms.getCreatedBy()),
         () -> {
-          Relationship relationship = relationshipService.getRelationship(UID.of(relationshipUid));
+          Relationship relationship =
+              relationshipService.getRelationship(
+                  UID.of(relationshipUid), RelationshipFields.all());
           assertAll(
               () -> assertEquals(relationshipUid, relationship.getUid()),
               () -> assertEquals(event1, relationship.getFrom().getEvent()),

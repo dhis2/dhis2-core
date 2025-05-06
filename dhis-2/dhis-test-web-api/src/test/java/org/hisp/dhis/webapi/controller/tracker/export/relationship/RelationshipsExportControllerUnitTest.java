@@ -67,7 +67,7 @@ class RelationshipsExportControllerUnitTest {
     Exception exception =
         assertThrows(
             IllegalStateException.class,
-            () -> new RelationshipsExportController(relationshipService, paramsMapper, null));
+            () -> new RelationshipsExportController(relationshipService, paramsMapper, null, null));
 
     assertAll(
         () ->

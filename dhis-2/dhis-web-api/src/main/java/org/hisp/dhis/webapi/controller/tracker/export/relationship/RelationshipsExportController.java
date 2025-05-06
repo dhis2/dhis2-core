@@ -38,20 +38,20 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.webapi.controller.tracker.RequestHandler;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -66,7 +66,6 @@ import org.springframework.web.bind.annotation.RestController;
     classifiers = {"team:tracker", "purpose:data"})
 @RestController
 @RequestMapping(produces = APPLICATION_JSON_VALUE, value = "/api/tracker/relationships")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 class RelationshipsExportController {
 
   protected static final String RELATIONSHIPS = "relationships";
@@ -80,13 +79,17 @@ class RelationshipsExportController {
 
   private final RequestHandler requestHandler;
 
+  private final FieldFilterService fieldFilterService;
+
   public RelationshipsExportController(
       RelationshipService relationshipService,
       RelationshipRequestParamsMapper mapper,
-      RequestHandler requestHandler) {
+      RequestHandler requestHandler,
+      FieldFilterService fieldFilterService) {
     this.relationshipService = relationshipService;
     this.requestHandler = requestHandler;
     this.mapper = mapper;
+    this.fieldFilterService = fieldFilterService;
 
     assertUserOrderableFieldsAreSupported(
         "relationship",
@@ -136,7 +139,13 @@ class RelationshipsExportController {
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
           List<FieldPath> fields)
       throws NotFoundException, ForbiddenException {
-    Relationship relationship = RELATIONSHIP_MAPPER.map(relationshipService.getRelationship(uid));
+    RelationshipFields relationshipFields =
+        RelationshipFields.of(
+            f -> fieldFilterService.filterIncludes(Relationship.class, fields, f),
+            FieldPath.FIELD_PATH_SEPARATOR);
+
+    Relationship relationship =
+        RELATIONSHIP_MAPPER.map(relationshipService.getRelationship(uid, relationshipFields));
 
     return requestHandler.serve(relationship, fields);
   }
