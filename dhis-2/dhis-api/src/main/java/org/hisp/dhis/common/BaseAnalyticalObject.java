@@ -715,17 +715,19 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
                 .collect(toSet()));
       }
 
-      for (String period : rawPeriods) {
-        if (RelativePeriodEnum.contains(period)) {
-          RelativePeriodEnum relPeriodTypeEnum = RelativePeriodEnum.valueOf(period);
-          Period relPeriod = new Period(relPeriodTypeEnum);
+      if (isNotEmpty(rawPeriods)) {
+        for (String period : rawPeriods) {
+          if (RelativePeriodEnum.contains(period)) {
+            RelativePeriodEnum relPeriodTypeEnum = RelativePeriodEnum.valueOf(period);
+            Period relPeriod = new Period(relPeriodTypeEnum);
 
-          periodList.add(relPeriod);
-        } else {
-          Period isoPeriod = PeriodType.getPeriodFromIsoString(period);
+            periodList.add(relPeriod);
+          } else {
+            Period isoPeriod = PeriodType.getPeriodFromIsoString(period);
 
-          if (isoPeriod != null) {
-            periodList.add(isoPeriod);
+            if (isoPeriod != null) {
+              periodList.add(isoPeriod);
+            }
           }
         }
       }
