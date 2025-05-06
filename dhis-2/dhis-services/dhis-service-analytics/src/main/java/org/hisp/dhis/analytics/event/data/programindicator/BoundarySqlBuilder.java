@@ -29,6 +29,10 @@
  */
 package org.hisp.dhis.analytics.event.data.programindicator;
 
+import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_ENROLLMENT_DATE;
+import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_INCIDENT_DATE;
+import static org.hisp.dhis.program.AnalyticsPeriodBoundary.DB_SCHEDULED_DATE;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Set;
@@ -67,32 +71,35 @@ public class BoundarySqlBuilder {
     StringBuilder sql = new StringBuilder();
     SimpleDateFormat df = new SimpleDateFormat(Period.DEFAULT_DATE_FORMAT);
 
-    for (AnalyticsPeriodBoundary b : boundaries) {
-      if (b == null) continue;
+    for (AnalyticsPeriodBoundary boundary : boundaries) {
+      if (boundary == null) continue;
+      if (boundary.getAnalyticsPeriodBoundaryType() == null) continue;
+      if (boundary.getBoundaryTarget() == null) continue;
 
-      /* 1. Resolve DB column */
+      /* Resolve DB column */
       String dbColumn;
-      if (b.isEventDateBoundary()) dbColumn = defaultEventTimeColumn;
-      else if (b.isEnrollmentDateBoundary()) dbColumn = AnalyticsPeriodBoundary.DB_ENROLLMENT_DATE;
-      else if (b.isIncidentDateBoundary()) dbColumn = AnalyticsPeriodBoundary.DB_INCIDENT_DATE;
-      else if (b.isScheduledDateBoundary()) dbColumn = AnalyticsPeriodBoundary.DB_SCHEDULED_DATE;
+
+      if (boundary.isEventDateBoundary()) dbColumn = defaultEventTimeColumn;
+      else if (boundary.isEnrollmentDateBoundary()) dbColumn = DB_ENROLLMENT_DATE;
+      else if (boundary.isIncidentDateBoundary()) dbColumn = DB_INCIDENT_DATE;
+      else if (boundary.isScheduledDateBoundary()) dbColumn = DB_SCHEDULED_DATE;
       else {
         log.warn(
             "Unsupported boundary type {} for PI {}",
-            b.getAnalyticsPeriodBoundaryType(),
+            boundary.getAnalyticsPeriodBoundaryType(),
             pi.getUid());
         continue;
       }
 
-      /* 2. Resolve boundary date */
-      Date bd = b.getBoundaryDate(reportingStart, reportingEnd);
+      /* Resolve boundary date */
+      Date bd = boundary.getBoundaryDate(reportingStart, reportingEnd);
       if (bd == null) {
-        log.warn("Cannot compute date for boundary {} in PI {}", b.getUid(), pi.getUid());
+        log.warn("Cannot compute date for boundary {} in PI {}", boundary.getUid(), pi.getUid());
         continue;
       }
 
-      /* 3. Build operator + clause */
-      String op = b.getAnalyticsPeriodBoundaryType().isEndBoundary() ? "<" : ">=";
+      /* Build operator + clause */
+      String op = boundary.getAnalyticsPeriodBoundaryType().isEndBoundary() ? "<" : ">=";
       sql.append(" and ")
           .append(qb.quote(dbColumn))
           .append(' ')
