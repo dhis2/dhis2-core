@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.category;
 
-import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -66,13 +64,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.Setter;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.ListIndexBase;
@@ -85,6 +83,7 @@ import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
@@ -194,6 +193,12 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
    */
   @Transient private final Map<String, String> translationCache = new ConcurrentHashMap<>();
 
+  /**
+   * As part of the serializing process, this field can be set to indicate a link to this
+   * identifiable object (will be used on the web layer for navigating the REST API)
+   */
+  @Transient private transient String href;
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -214,79 +219,6 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
-
-  /**
-   * Returns a translated value for this object for the given property. The current locale is read
-   * from the user context.
-   *
-   * @param translationKey the translation key.
-   * @param defaultValue the value to use if there are no translations.
-   * @return a translated value.
-   */
-  protected String getTranslation(String translationKey, String defaultValue) {
-    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
-
-    final String defaultTranslation = defaultValue != null ? defaultValue.trim() : null;
-
-    if (locale == null || translationKey == null || CollectionUtils.isEmpty(translations)) {
-      return defaultValue;
-    }
-
-    return translationCache.computeIfAbsent(
-        Translation.getCacheKey(locale.toString(), translationKey),
-        key -> getTranslationValue(locale.toString(), translationKey, defaultTranslation));
-  }
-
-  private String getTranslationValue(
-      String locale, String translationKey, String defaultTranslation) {
-    for (Translation translation : translations) {
-      if (translation.getLocale().equals(locale)
-          && translation.getProperty().equals(translationKey)) {
-        return translation.getValue();
-      }
-    }
-    return defaultTranslation;
-  }
-
-  @Override
-  public int hashCode() {
-    int result = getUid() != null ? getUid().hashCode() : 0;
-    result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
-    result = 31 * result + (getName() != null ? getName().hashCode() : 0);
-
-    return result;
-  }
-
-  /** Class check uses isAssignableFrom and get-methods to handle proxied objects. */
-  @Override
-  public boolean equals(Object obj) {
-    return this == obj
-        || obj instanceof IdentifiableObject
-            && getRealClass(this) == getRealClass(obj)
-            && typedEquals((IdentifiableObject) obj);
-  }
-
-  /**
-   * Equality check against typed identifiable object. This method is not vulnerable to proxy
-   * issues, where an uninitialized object class type fails comparison to a real class.
-   *
-   * @param other the identifiable object to compare this object against.
-   * @return true if equal.
-   */
-  public final boolean typedEquals(IdentifiableObject other) {
-    if (other == null) {
-      return false;
-    }
-    return Objects.equals(getUid(), other.getUid())
-        && Objects.equals(getCode(), other.getCode())
-        && Objects.equals(getName(), other.getName());
-  }
-
-  @JsonProperty("isDefault")
-  @Override
-  public boolean isDefault() {
-    return DEFAULT_CATEGORY_COMBO_NAME.equals(name);
-  }
 
   /**
    * Indicates whether this category combo has at least one category, has at least one category
@@ -333,6 +265,13 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
         .collect(Collectors.toList());
   }
 
+  /**
+   * Generates a list of all possible combinations of category option combos for this category
+   * combo. This is done by generating all possible combinations of the category options in the
+   * categories of this category combo.
+   *
+   * @return a list of all possible combinations of category option combos for this category combo.
+   */
   public List<CategoryOptionCombo> generateOptionCombosList() {
     // return default option combos if default
     if (this.isDefault()) return this.optionCombos.stream().toList();
@@ -384,9 +323,11 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
     return categories.stream().filter(Category::isDataDimension).toList();
   }
 
-  // -------------------------------------------------------------------------
-  // Logic
-  // -------------------------------------------------------------------------
+  @JsonProperty("isDefault")
+  @Override
+  public boolean isDefault() {
+    return DEFAULT_CATEGORY_COMBO_NAME.equals(name);
+  }
 
   public void addCategory(Category category) {
     categories.add(category);
@@ -500,7 +441,7 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Translatable(propertyName = "name", key = "NAME")
   public String getDisplayName() {
-    return getDisplayPropertyValue();
+    return getTranslation("NAME", name);
   }
 
   @Override
@@ -556,13 +497,161 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
   }
 
   @Override
-  public void setAttributeValues(AttributeValues attributeValues) {}
+  @OpenApi.Ignore
+  @JsonProperty
+  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
+  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
+  @PropertyTransformer(UserPropertyTransformer.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public User getUser() {
+    return createdBy;
+  }
 
   @Override
-  public void addAttributeValue(String attributeUid, String value) {}
+  public void setUser(User user) {
+    // TODO remove this after implementing functions for using Owner
+    setCreatedBy(createdBy == null ? user : createdBy);
+    setOwner(user != null ? user.getUid() : null);
+  }
 
   @Override
-  public void removeAttributeValue(String attributeId) {}
+  @Sortable(value = false)
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JacksonXmlProperty(isAttribute = true)
+  @Property(PropertyType.URL)
+  public String getHref() {
+    return href;
+  }
+
+  @Override
+  public void setHref(String href) {
+    this.href = href;
+  }
+
+  @Override
+  public void setOwner(String ownerId) {
+    getSharing().setOwner(ownerId);
+  }
+
+  @Override
+  public int compareTo(@Nonnull IdentifiableObject o) {
+    return 0;
+  }
+
+  public Set<Translation> getTranslations() {
+    return translations == null ? Collections.emptySet() : new HashSet<>();
+  }
+
+  @Override
+  public long getId() {
+    return id;
+  }
+
+  @Override
+  @JsonProperty
+  public User getCreatedBy() {
+    return createdBy;
+  }
+
+  // --------------------------------------------------
+  // Copy methods from BaseIdentifiableObject
+  // --------------------------------------------------
+
+  /**
+   * Returns the value of the property referred to by the given {@link IdScheme}.
+   *
+   * @param idScheme the {@link IdScheme}.
+   * @return the value of the property referred to by the {@link IdScheme}.
+   */
+  @Override
+  public String getPropertyValue(IdScheme idScheme) {
+    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
+      return uid;
+    } else if (idScheme.is(IdentifiableProperty.CODE)) {
+      return code;
+    } else if (idScheme.is(IdentifiableProperty.NAME)) {
+      return name;
+    } else if (idScheme.is(IdentifiableProperty.ID)) {
+      return id > 0 ? String.valueOf(id) : null;
+    } else if (idScheme.is(IdentifiableProperty.ATTRIBUTE)) {
+      return null;
+    }
+    return null;
+  }
+
+  /**
+   * Returns the value of the property referred to by the given {@link IdScheme}. If this happens to
+   * refer to NAME, it returns the translatable/display version.
+   *
+   * @param idScheme the {@link IdScheme}.
+   * @return the value of the property referred to by the {@link IdScheme}.
+   */
+  @Override
+  public String getDisplayPropertyValue(IdScheme idScheme) {
+    if (idScheme.is(IdentifiableProperty.NAME)) {
+      return getDisplayName();
+    } else {
+      return getPropertyValue(idScheme);
+    }
+  }
+
+  /**
+   * Returns a translated value for this object for the given property. The current locale is read
+   * from the user context.
+   *
+   * @param translationKey the translation key.
+   * @param defaultValue the value to use if there are no translations.
+   * @return a translated value.
+   */
+  protected String getTranslation(String translationKey, String defaultValue) {
+    Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
+
+    final String defaultTranslation = defaultValue != null ? defaultValue.trim() : null;
+
+    if (locale == null || translationKey == null || CollectionUtils.isEmpty(translations)) {
+      return defaultValue;
+    }
+
+    return translationCache.computeIfAbsent(
+        Translation.getCacheKey(locale.toString(), translationKey),
+        key -> getTranslationValue(locale.toString(), translationKey, defaultTranslation));
+  }
+
+  /**
+   * Get Translation value from {@code Set<Translation>} by given locale and translationKey
+   *
+   * @return Translation value if exists, otherwise return default value.
+   */
+  private String getTranslationValue(String locale, String translationKey, String defaultValue) {
+    for (Translation translation : translations) {
+      if (locale.equals(translation.getLocale())
+          && translationKey.equals(translation.getProperty())
+          && !StringUtils.isEmpty(translation.getValue())) {
+        return translation.getValue();
+      }
+    }
+
+    return defaultValue;
+  }
+
+  // -------------------------------------------------
+  // Not Supported methods overridden from IdentifiableObject
+  // -------------------------------------------------
+
+  @Override
+  public void setAttributeValues(AttributeValues attributeValues) {
+    // DO NOTHING as this class does not have attributes
+  }
+
+  @Override
+  public void addAttributeValue(String attributeUid, String value) {
+    // DO NOTHING as this class does not have attributes
+  }
+
+  @Override
+  public void removeAttributeValue(String attributeId) {
+    // DO NOTHING as this class does not have attributes
+  }
 
   @Override
   public Set<String> getFavorites() {
@@ -582,58 +671,5 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
   @Override
   public boolean removeAsFavorite(UserDetails user) {
     return false;
-  }
-
-  @Override
-  public User getUser() {
-    return null;
-  }
-
-  @Override
-  public void setUser(User user) {
-    // TODO remove this after implementing functions for using Owner
-    setCreatedBy(createdBy == null ? user : createdBy);
-    setOwner(user != null ? user.getUid() : null);
-  }
-
-  @Override
-  public String getPropertyValue(IdScheme idScheme) {
-    return "";
-  }
-
-  @Override
-  public String getDisplayPropertyValue(IdScheme idScheme) {
-    return "";
-  }
-
-  @Override
-  public void setOwner(String owner) {}
-
-  @Override
-  public int compareTo(@Nonnull IdentifiableObject o) {
-    return 0;
-  }
-
-  @Override
-  public String getHref() {
-    return "";
-  }
-
-  @Override
-  public void setHref(String link) {}
-
-  public Set<Translation> getTranslations() {
-    return translations == null ? Collections.emptySet() : new HashSet<>();
-  }
-
-  @Override
-  public long getId() {
-    return id;
-  }
-
-  @Override
-  @JsonProperty
-  public User getCreatedBy() {
-    return createdBy;
   }
 }
