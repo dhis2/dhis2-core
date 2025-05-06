@@ -159,7 +159,6 @@ public abstract class ProgramCountFunction extends ProgramExpressionItem {
       argType = ARGTYPE_VAL_64;
 
     } else if (D2CountIfCondition.FUNCTION_NAME.equals(functionName)) {
-
       ExpressionParser.StringLiteralContext conditionNode = ctx.stringLiteral();
 
       if (conditionNode == null) {

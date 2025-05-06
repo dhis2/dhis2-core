@@ -267,7 +267,7 @@ class CteDefinitionTest {
     int rank = 2;
     CteDefinition result = CteDefinition.forProgramStageDataElement(key, sql, joinCol, rank);
     assertNotNull(result);
-    assertEquals(CteDefinition.CteType.PSDE, result.getCteType());
+    assertEquals(CteDefinition.CteType.PROGRAM_STAGE_DATE_ELEMENT, result.getCteType());
     assertEquals(rank, result.getTargetRank());
   }
 

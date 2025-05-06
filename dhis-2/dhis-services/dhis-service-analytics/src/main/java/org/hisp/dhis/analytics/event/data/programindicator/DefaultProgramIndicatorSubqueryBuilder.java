@@ -46,6 +46,7 @@ import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataType;
@@ -358,7 +359,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
 
   /** Builds the WHERE clause string from the processed complex filter SQL. */
   private String buildWhereClause(String finalProcessedFilterSql) {
-    if (!Strings.isNullOrEmpty(finalProcessedFilterSql)) {
+    if (StringUtils.isNotBlank(finalProcessedFilterSql)) {
       return "where " + finalProcessedFilterSql;
     }
     return "";
@@ -381,7 +382,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
     // Ensure space separation between join/where clauses only if they exist
     String joinsAndWhere =
         Stream.of(innerJoinSql, leftJoinSql, whereClause)
-            .filter(s -> !Strings.isNullOrEmpty(s))
+            .filter(StringUtils::isNotBlank)
             .collect(Collectors.joining(" "));
 
     if (requiresTableAlias(function, finalProcessedExpressionSql)) {
@@ -416,8 +417,9 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
 
       // Skip invalid definitions or those already handled
       if (definition == null || joinedAliases.contains(definition.getAlias())) {
-        if (definition != null)
+        if (definition != null) {
           log.trace("Skipping duplicate/invalid join for alias: {}", definition.getAlias());
+        }
         continue;
       }
 
@@ -450,7 +452,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
 
     return switch (definition.getCteType()) {
       case VARIABLE -> formatVariableJoin(alias);
-      case PSDE -> formatPsdeJoin(key, alias, definition.getTargetRank());
+      case PROGRAM_STAGE_DATE_ELEMENT -> formatPsdeJoin(key, alias, definition.getTargetRank());
       case D2_FUNCTION -> formatD2FunctionJoin(alias);
       default -> {
         log.trace(

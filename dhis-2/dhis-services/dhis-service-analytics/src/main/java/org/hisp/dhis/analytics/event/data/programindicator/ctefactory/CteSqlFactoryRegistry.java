@@ -45,7 +45,7 @@ public class CteSqlFactoryRegistry {
         List.of(
             new VariableCteFactory(),
             new FilterCteFactory(),
-            new PsDeCteFactory(dataElementService),
+            new ProgramStageDataElementCteFactory(dataElementService),
             new D2FunctionCteFactory());
   }
 

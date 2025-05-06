@@ -30,7 +30,7 @@
 package org.hisp.dhis.analytics.event.data.programindicator;
 
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.D2_FUNCTION;
-import static org.hisp.dhis.analytics.common.CteDefinition.CteType.PSDE;
+import static org.hisp.dhis.analytics.common.CteDefinition.CteType.PROGRAM_STAGE_DATE_ELEMENT;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.VARIABLE;
 import static org.hisp.dhis.program.AnalyticsPeriodBoundary.EVENT_DATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -364,7 +364,8 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
           processPsDePlaceholdersAndGenerateCtes(
               rawSql, programIndicator, startDate, endDate, cteContext, psdeAliasMap, sqlBuilder);
 
-      CteDefinition cteDef = assertCteCreated(expectedCteKey, PSDE, "enrollment");
+      CteDefinition cteDef =
+          assertCteCreated(expectedCteKey, PROGRAM_STAGE_DATE_ELEMENT, "enrollment");
       assertFalse(cteDef.isVariable());
       assertEquals(expectedTargetRank, cteDef.getTargetRank());
       assertCteSqlMatches(
@@ -394,7 +395,8 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
               psdeAliasMap,
               sqlBuilder);
 
-      CteDefinition cteDef = assertCteCreated(expectedCteKey, PSDE, "enrollment");
+      CteDefinition cteDef =
+          assertCteCreated(expectedCteKey, PROGRAM_STAGE_DATE_ELEMENT, "enrollment");
       assertEquals(expectedTargetRank, cteDef.getTargetRank());
 
       assertCteSqlMatches(
@@ -423,7 +425,8 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
               psdeAliasMap,
               sqlBuilder);
 
-      CteDefinition cteDef = assertCteCreated(expectedCteKey, PSDE, "enrollment");
+      CteDefinition cteDef =
+          assertCteCreated(expectedCteKey, PROGRAM_STAGE_DATE_ELEMENT, "enrollment");
       assertEquals(expectedTargetRank, cteDef.getTargetRank());
       assertCteSqlMatches(
           expectedCteKey, getExpectedPsdeSql(deUid, expectedOrderBy, eventTable, psUid));
@@ -451,8 +454,8 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
           processPsDePlaceholdersAndGenerateCtes(
               rawSql, programIndicator, startDate, endDate, cteContext, psdeAliasMap, sqlBuilder);
 
-      assertCteCreated(expectedCteKey1, PSDE, "enrollment", 1);
-      assertCteCreated(expectedCteKey2, PSDE, "enrollment", 2);
+      assertCteCreated(expectedCteKey1, PROGRAM_STAGE_DATE_ELEMENT, "enrollment", 1);
+      assertCteCreated(expectedCteKey2, PROGRAM_STAGE_DATE_ELEMENT, "enrollment", 2);
       assertEquals(2, cteContext.getCteKeys().size());
 
       // Verify alias map
@@ -477,7 +480,7 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
           processPsDePlaceholdersAndGenerateCtes(
               rawSql, programIndicator, startDate, endDate, cteContext, psdeAliasMap, sqlBuilder);
 
-      assertCteCreated(expectedCteKey, PSDE, "enrollment");
+      assertCteCreated(expectedCteKey, PROGRAM_STAGE_DATE_ELEMENT, "enrollment");
       assertEquals(1, cteContext.getCteKeys().size());
 
       String alias = assertPlaceholderMapped(placeholderString, expectedCteKey, psdeAliasMap);
@@ -517,7 +520,8 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
               psdeAliasMap,
               sqlBuilder);
 
-      CteDefinition cteDef = assertCteCreated(expectedCteKey, PSDE, "enrollment");
+      CteDefinition cteDef =
+          assertCteCreated(expectedCteKey, PROGRAM_STAGE_DATE_ELEMENT, "enrollment");
 
       // Verify CTE SQL includes boundary conditions (order might vary based on Set iteration)
       String cteSql = cteDef.getCteDefinition();
@@ -710,8 +714,10 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
 
       assertEquals(
           2, cteContext.getCteKeys().size(), "Should generate 2 CTEs for different UID casing");
-      CteDefinition cteDef1 = assertCteCreated(expectedCteKey1, PSDE, "enrollment");
-      CteDefinition cteDef2 = assertCteCreated(expectedCteKey2, PSDE, "enrollment");
+      CteDefinition cteDef1 =
+          assertCteCreated(expectedCteKey1, PROGRAM_STAGE_DATE_ELEMENT, "enrollment");
+      CteDefinition cteDef2 =
+          assertCteCreated(expectedCteKey2, PROGRAM_STAGE_DATE_ELEMENT, "enrollment");
 
       // Verify the CTE SQL uses the correct casing from the placeholder
       assertTrue(
@@ -862,9 +868,9 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
 
       // Verify 3 distinct CTEs were generated
       assertEquals(3, cteContext.getCteKeys().size(), "Should generate 3 distinct CTEs");
-      assertCteCreated(expectedCteKey1, PSDE, "enrollment", expectedRank1);
-      assertCteCreated(expectedCteKey2, PSDE, "enrollment", expectedRank2);
-      assertCteCreated(expectedCteKey3, PSDE, "enrollment", expectedRank3);
+      assertCteCreated(expectedCteKey1, PROGRAM_STAGE_DATE_ELEMENT, "enrollment", expectedRank1);
+      assertCteCreated(expectedCteKey2, PROGRAM_STAGE_DATE_ELEMENT, "enrollment", expectedRank2);
+      assertCteCreated(expectedCteKey3, PROGRAM_STAGE_DATE_ELEMENT, "enrollment", expectedRank3);
 
       // Verify alias map contains entries for all 3 placeholders
       String alias1 = assertPlaceholderMapped(placeholder1, expectedCteKey1, psdeAliasMap);
@@ -905,7 +911,7 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
               rawSql, programIndicator, startDate, endDate, cteContext, psdeAliasMap, sqlBuilder);
 
       assertEquals(1, cteContext.getCteKeys().size());
-      assertCteCreated(expectedCteKey, PSDE, "enrollment");
+      assertCteCreated(expectedCteKey, PROGRAM_STAGE_DATE_ELEMENT, "enrollment");
       String alias = assertPlaceholderMapped(placeholder, expectedCteKey, psdeAliasMap);
       assertEquals(1, psdeAliasMap.size());
 

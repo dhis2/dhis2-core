@@ -84,7 +84,7 @@ public class FilterCteFactory implements CteSqlFactory {
 
       FilterFields p = opt.get();
 
-      /* resolve column + SQL operator */
+      /* Resolve column + SQL operator */
       String column = mapVariable(p.variableName());
       String sqlOp = mapOperator(p.operator());
 
@@ -93,7 +93,7 @@ public class FilterCteFactory implements CteSqlFactory {
         continue;
       }
 
-      /* build / register CTE */
+      /* Build / register CTE */
       String cteKey =
           String.format(
               "filtercte_%s_%s_%s_%s",
@@ -106,12 +106,12 @@ public class FilterCteFactory implements CteSqlFactory {
       String alias = ctx.getDefinitionByKey(cteKey).getAlias();
       aliasMap.put(m.group(0), alias); // placeholder-to-alias
 
-      /* remove the simple clause from the filter string */
+      /* Remove the simple clause from the filter string */
       m.appendReplacement(out, "");
     }
     m.appendTail(out);
 
-    /* clean dangling AND/OR */
+    /* Clean dangling AND/OR */
     String cleaned = clean(out.toString());
 
     if (!simpleFound) {
@@ -154,7 +154,7 @@ public class FilterCteFactory implements CteSqlFactory {
         quotedCol, table, boundaries, sqlOp, qb.singleQuote(literal));
   }
 
-  /* maps V{variableName} → event analytics column */
+  /* Maps V{variableName} → event analytics column */
   private static String mapVariable(String name) {
     return switch (name) {
       case "event_status" -> "eventstatus";

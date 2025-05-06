@@ -57,7 +57,7 @@ public class CteDefinition {
     /** CTE replacing a V{...} variable subquery. */
     VARIABLE,
     /** CTE replacing a #{...} programStage/dataElement subquery. */
-    PSDE,
+    PROGRAM_STAGE_DATE_ELEMENT,
     /** CTE replacing a d2:function(...) subquery (like d2:countIfValue). */
     D2_FUNCTION,
     /** CTE for checking existence (rowContext=true). */
@@ -256,7 +256,7 @@ public class CteDefinition {
         null, // aggregateWhereClause
         joinColumn, // Pass joinColumn
         targetRank, // Pass targetRank
-        CteType.PSDE); // Set type
+        CteType.PROGRAM_STAGE_DATE_ELEMENT); // Set type
   }
 
   /**
@@ -326,7 +326,7 @@ public class CteDefinition {
   }
 
   public boolean isPsDe() {
-    return this.cteType == CteType.PSDE;
+    return this.cteType == CteType.PROGRAM_STAGE_DATE_ELEMENT;
   }
 
   public boolean isFilter() {

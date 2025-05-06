@@ -220,7 +220,7 @@ public class ProgramIndicatorPlaceholderUtils {
       Date earliestStartDate,
       Date latestDate,
       CteContext cteContext,
-      Map<String, String> d2FunctionAliasMap, // Output map
+      Map<String, String> d2FunctionAliasMap,
       SqlBuilder sqlBuilder) {
 
     return cteSqlFactoryRegistry

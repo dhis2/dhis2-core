@@ -50,12 +50,12 @@ import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.ProgramIndicator;
 
 @Slf4j
-public class PsDeCteFactory implements CteSqlFactory {
+public class ProgramStageDataElementCteFactory implements CteSqlFactory {
 
   private static final Pattern PATTERN = PlaceholderParser.psDePattern();
   private final DataElementService dataElementService;
 
-  public PsDeCteFactory(DataElementService dataElementService) {
+  public ProgramStageDataElementCteFactory(DataElementService dataElementService) {
     this.dataElementService = dataElementService;
   }
 
@@ -143,7 +143,7 @@ public class PsDeCteFactory implements CteSqlFactory {
       CteContext ctx,
       SqlBuilder qb) {
 
-    if (ctx.containsCte(key)) return; // already present
+    if (ctx.containsCte(key)) return; // CTE is already present
 
     if (pi.getProgram() == null) {
       log.error("PI {} has no Program – cannot create CTE {}", pi.getUid(), key);

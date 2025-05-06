@@ -50,6 +50,7 @@ import org.hisp.dhis.parser.expression.ExpressionState;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.test.TestBase;
@@ -292,6 +293,7 @@ class ProgramItemStageElementTest extends TestBase {
     Program program = createProgram('A');
     ProgramIndicator programIndicator = createProgramIndicator('A', program, "1+1", "1+1");
     programIndicator.setAnalyticsPeriodBoundaries(Collections.emptySet());
+    programIndicator.setAnalyticsType(AnalyticsType.ENROLLMENT);
     return programIndicator;
   }
 }

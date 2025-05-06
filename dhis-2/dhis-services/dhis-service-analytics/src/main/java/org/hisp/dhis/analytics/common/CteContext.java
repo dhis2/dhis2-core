@@ -151,11 +151,10 @@ public class CteContext {
    * @param cteDefinition The fully constructed CteDefinition object.
    */
   public void addProgramStageDataElementCte(String key, CteDefinition cteDefinition) {
-
     if (cteDefinition != null && key != null) {
       cteDefinitions.put(key, cteDefinition);
     } else {
-      log.error("Attempted to add null key or CteDefinition to CteContext"); // Replace with proper
+      log.error("Attempted to add null key or CteDefinition to CteContext");
     }
   }
 

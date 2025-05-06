@@ -126,7 +126,7 @@ public class D2FunctionCteFactory implements CteSqlFactory {
   private static String decodeArg(PlaceholderParser.D2FuncFields f) {
     if ("none".equals(f.argType())) return null;
 
-    if (StringUtils.isEmpty(f.valueSql())) {
+    if (StringUtils.isBlank(f.valueSql())) {
       log.warn("Placeholder had argType '{}' but arg64 empty: {}", f.argType(), f.raw());
       return "";
     }
@@ -272,7 +272,7 @@ public class D2FunctionCteFactory implements CteSqlFactory {
 
     abstract String buildCondition(SqlBuilder qb, String deQuoted, String arg);
 
-    /* map raw func string to enum */
+    /* Map raw func string to enum */
     static D2FuncType from(String func) {
       for (D2FuncType k : values()) if (k.id.equals(func)) return k;
       return null;
