@@ -46,7 +46,7 @@ public class UsernameSupplier implements Supplier<String> {
 
   @Override
   public String get() {
-//    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 //    if (authentication == null
 //        || !authentication.isAuthenticated()
 //        || authentication.getPrincipal() == null) {
