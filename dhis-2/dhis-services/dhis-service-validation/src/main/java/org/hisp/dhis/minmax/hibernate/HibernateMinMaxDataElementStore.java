@@ -47,7 +47,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.UID;
@@ -70,7 +69,6 @@ import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Kristian Nordal
@@ -233,7 +231,6 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
         getCategoryOptionComboMap(keys.stream().map(MinMaxValueKey::categoryOptionCombo));
 
     Session session = entityManager.unwrap(Session.class);
-    session.getTransaction().begin();
 
     AtomicInteger deleted = new AtomicInteger();
     session.doWork(
@@ -253,14 +250,12 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
           }
         });
 
-    session.getTransaction().commit();
-    session.close();
+    session.clear();
 
     return deleted.get();
   }
 
   @Override
-  @Transactional
   public int upsertValues(List<MinMaxValue> values) {
     if (values == null || values.isEmpty()) return 0;
 
@@ -270,7 +265,6 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
         getCategoryOptionComboMap(values.stream().map(MinMaxValue::getCategoryOptionCombo));
 
     Session session = entityManager.unwrap(Session.class);
-    session.getTransaction().begin();
 
     AtomicInteger imported = new AtomicInteger();
     session.doWork(
@@ -287,20 +281,24 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
           generatedvalue = EXCLUDED.generatedvalue""";
           try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             for (MinMaxValue value : values) {
-              stmt.setLong(1, des.get(value.getDataElement().getValue()));
-              stmt.setObject(2, ous.get(value.getOrgUnit().getValue()));
-              stmt.setObject(3, cocs.get(value.getCategoryOptionCombo().getValue()));
-              stmt.setObject(4, value.getMinValue());
-              stmt.setObject(5, value.getMaxValue());
-              stmt.setObject(6, value.getGenerated());
-              stmt.addBatch();
+              Long de = des.get(value.getDataElement().getValue());
+              Long ou = ous.get(value.getOrgUnit().getValue());
+              Long coc = cocs.get(value.getCategoryOptionCombo().getValue());
+              if (de != null && ou != null && coc != null) {
+                stmt.setLong(1, de);
+                stmt.setObject(2, ou);
+                stmt.setObject(3, coc);
+                stmt.setObject(4, value.getMinValue());
+                stmt.setObject(5, value.getMaxValue());
+                stmt.setObject(6, value.getGenerated());
+                stmt.addBatch();
+              }
             }
             imported.set(IntStream.of(stmt.executeBatch()).sum());
           }
         });
 
-    session.getTransaction().commit();
-    session.close();
+    session.clear();
 
     return imported.get();
   }

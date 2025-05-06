@@ -36,7 +36,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -140,8 +139,8 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
    * @return the number of values processed.
    * @throws BadRequestException if any validation fails.
    */
-  @Transactional
   @Override
+  @Transactional
   public int importAll(MinMaxValueUpsertRequest request) throws BadRequestException {
     List<MinMaxValue> values = Optional.ofNullable(request.values()).orElse(List.of());
 
@@ -170,7 +169,7 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
    * @return the number of values processed.
    */
   @Override
-  @IndirectTransactional
+  @Transactional
   public int deleteAll(MinMaxValueDeleteRequest request) throws BadRequestException {
     List<MinMaxValueKey> keys = Optional.ofNullable(request.keys()).orElse(List.of());
     if (keys.isEmpty()) return 0;
