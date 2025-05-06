@@ -178,6 +178,75 @@ class RouteServiceTest {
 
   @Test
   void
+      testValidateRoutePassesWhenRouteUrlWithSubPathAndPortNoMatchesGivenRouteRemoteServerAllowedEntryWithPortNo()
+          throws ConflictException {
+    Properties properties = new Properties();
+    properties.setProperty(
+        ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getKey(), "http://172.17.0.1:8080");
+    DhisConfigurationProvider dhisConfigurationProvider =
+        new TestDhisConfigurationProvider(properties);
+
+    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
+    routeService.postConstruct();
+
+    Route route = new Route();
+    route.setUrl("http://172.17.0.1:8080/foo/**");
+    routeService.validateRoute(route);
+  }
+
+  @Test
+  void
+      testValidateRouteFailsWhenRouteUrlWithSubPathDoesNotMatcheGivenRouteRemoteServerAllowedEntryWithPortNo() {
+    Properties properties = new Properties();
+    properties.setProperty(
+        ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getKey(), "http://172.17.0.1:8080");
+    DhisConfigurationProvider dhisConfigurationProvider =
+        new TestDhisConfigurationProvider(properties);
+
+    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
+    routeService.postConstruct();
+
+    Route route = new Route();
+    route.setUrl("http://172.17.0.1/foo/**");
+    assertThrows(ConflictException.class, () -> routeService.validateRoute(route));
+  }
+
+  @Test
+  void
+      testValidateRouteFailsWhenRouteUrlWithSubPathAndPortNoDoesNotMatcheGivenRouteRemoteServerAllowedEntryWithoutPortNo() {
+    Properties properties = new Properties();
+    properties.setProperty(
+        ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getKey(), "http://172.17.0.1");
+    DhisConfigurationProvider dhisConfigurationProvider =
+        new TestDhisConfigurationProvider(properties);
+
+    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
+    routeService.postConstruct();
+
+    Route route = new Route();
+    route.setUrl("http://172.17.0.1:8080/foo/**");
+    assertThrows(ConflictException.class, () -> routeService.validateRoute(route));
+  }
+
+  @Test
+  void testValidateRoutePassesWhenRouteUrlWithSubPathMatchesGivenRouteRemoteServerAllowedEntry()
+      throws ConflictException {
+    Properties properties = new Properties();
+    properties.setProperty(
+        ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getKey(), "http://172.17.0.1");
+    DhisConfigurationProvider dhisConfigurationProvider =
+        new TestDhisConfigurationProvider(properties);
+
+    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
+    routeService.postConstruct();
+
+    Route route = new Route();
+    route.setUrl("http://172.17.0.1/foo/**");
+    routeService.validateRoute(route);
+  }
+
+  @Test
+  void
       testValidateRouteFailsWhenRouteUrlDoesNotMatchGivenRouteRemoteServerAllowedWildcardIpAddressEntry() {
     Properties properties = new Properties();
     properties.setProperty(
