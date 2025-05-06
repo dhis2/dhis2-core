@@ -144,7 +144,7 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
 
   @Column
   @Type(
-      type = "org.hisp.dhis.hibernate.jsonb.type.JsonSetBinaryType",
+      type = "jblTranslations",
       parameters = {@Parameter(name = "clazz", value = "org.hisp.dhis.translation.Translation")})
   private Set<Translation> translations = new HashSet<>();
 
