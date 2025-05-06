@@ -189,13 +189,14 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
   // Transient fields
   // -------------------------------------------------------------------------
   /** Access information for this object. Applies to current user. */
-  @Transient private Access access;
+  @Transient private transient Access access;
 
   /**
    * Cache for object translations, where the cache key is a combination of locale and translation
    * property, and value is the translated value.
    */
-  @Transient private final Map<String, String> translationCache = new ConcurrentHashMap<>();
+  @Transient
+  private final transient Map<String, String> translationCache = new ConcurrentHashMap<>();
 
   /**
    * As part of the serializing process, this field can be set to indicate a link to this
