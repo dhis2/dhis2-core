@@ -31,16 +31,20 @@ package org.hisp.dhis.tracker.export.event;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SortDirection;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.export.JdbcPredicate;
 import org.hisp.dhis.tracker.export.Order;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,7 +58,9 @@ class EventQueryParamsTest extends TestBase {
   @BeforeEach
   void setUp() {
     tea1 = createTrackedEntityAttribute('a');
+    tea1.setValueType(ValueType.TEXT);
     de1 = createDataElement('a');
+    de1.setValueType(ValueType.TEXT);
   }
 
   @Test
@@ -64,11 +70,12 @@ class EventQueryParamsTest extends TestBase {
     QueryFilter filter = new QueryFilter(QueryOperator.EQ, "summer day");
     params.filterBy(tea1, filter);
 
-    assertEquals(Map.of(tea1, List.of(filter)), params.getAttributes());
+    assertEquals(Set.of(tea1), params.getAttributes().keySet());
+    Map<TrackedEntityAttribute, List<JdbcPredicate>> attributes = params.getAttributes();
 
     params.orderBy(tea1, SortDirection.DESC);
 
-    assertEquals(Map.of(tea1, List.of(filter)), params.getAttributes());
+    assertEquals(attributes, params.getAttributes());
   }
 
   @Test
@@ -90,11 +97,21 @@ class EventQueryParamsTest extends TestBase {
     params.filterBy(de1, filter);
 
     assertTrue(params.hasDataElementFilter());
-    assertEquals(Map.of(de1, List.of(filter)), params.getDataElements());
+    assertEquals(Set.of(de1), params.getDataElements().keySet());
+    Map<DataElement, List<JdbcPredicate>> dataElements = params.getDataElements();
 
     params.orderBy(de1, SortDirection.ASC);
 
     assertTrue(params.hasDataElementFilter());
-    assertEquals(Map.of(de1, List.of(filter)), params.getDataElements());
+    assertEquals(dataElements, params.getDataElements());
+  }
+
+  @Test
+  void shouldFailIfFilterValueForNumericDataElementIsNotNumeric() {
+    EventQueryParams params = new EventQueryParams();
+    de1.setValueType(ValueType.NUMBER);
+    QueryFilter filter = new QueryFilter(QueryOperator.EQ, "not a number");
+
+    assertThrows(IllegalArgumentException.class, () -> params.filterBy(de1, filter));
   }
 }

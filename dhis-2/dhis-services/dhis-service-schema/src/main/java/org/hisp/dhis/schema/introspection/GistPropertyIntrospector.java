@@ -58,7 +58,9 @@ public class GistPropertyIntrospector implements PropertyIntrospector {
     if (getter != null) {
       Gist gist = getAnnotation(getter, Gist.class);
       if (gist != null) {
-        property.setGistPreferences(new GistPreferences(gist.included(), gist.transformation()));
+        int order = gist.order();
+        property.setGistPreferences(
+            new GistPreferences(gist.included(), gist.transformation(), order <= 0 ? null : order));
       }
     }
   }

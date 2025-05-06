@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
@@ -77,7 +77,7 @@ class DataQueryServiceTest {
 
     assertEquals(3, userOrgUnits.size());
     assertThat(
-        userOrgUnits.stream().map(BaseIdentifiableObject::getName).toList(),
+        userOrgUnits.stream().map(IdentifiableObject::getName).toList(),
         containsInAnyOrder("OrganisationUnitB", "OrganisationUnitC", "OrganisationUnitD"));
   }
 
@@ -95,7 +95,7 @@ class DataQueryServiceTest {
 
     assertEquals(1, userOrgUnits.size());
     assertThat(
-        userOrgUnits.stream().map(BaseIdentifiableObject::getName).toList(),
+        userOrgUnits.stream().map(IdentifiableObject::getName).toList(),
         containsInAnyOrder("OrganisationUnitA"));
   }
 

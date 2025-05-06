@@ -52,6 +52,7 @@ import static org.hisp.dhis.util.DateUtils.dateTimeIsValid;
 
 import java.awt.geom.Point2D;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -68,6 +69,7 @@ import org.hisp.dhis.common.ValueTypeOptions;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.render.ObjectValueTypeRenderingOption;
 import org.hisp.dhis.render.StaticRenderingConfiguration;
@@ -428,8 +430,20 @@ public class ValidationUtils {
     return options.getClass().equals(valueType.getValueTypeOptionsClass());
   }
 
-  public static String valueIsValid(String value, DataElement dataElement) {
-    return valueIsValid(value, dataElement, true);
+  public static String valueIsValidOption(
+      String value, DataElement dataElement, OptionService optionService) {
+    String error = valueIsValid(value, dataElement);
+    if (error != null) return error;
+    OptionSet optionSet = dataElement.getOptionSet();
+    if (optionSet == null) return null;
+    boolean valid =
+        optionService.existsAllOptions(
+            optionSet.getUid(),
+            dataElement.getValueType().isMultiText()
+                ? ValueType.splitMultiText(value)
+                : List.of(value));
+    if (!valid) return "value_not_valid_option";
+    return null;
   }
 
   /**
@@ -458,12 +472,9 @@ public class ValidationUtils {
    *
    * @param value the value.
    * @param dataElement the data element.
-   * @param validateOptions indicates whether to validate against the options of the option set of
-   *     the given data element.
    * @return null if the value is valid, a non-empty string if not.
    */
-  public static String valueIsValid(
-      String value, DataElement dataElement, boolean validateOptions) {
+  public static String valueIsValid(String value, DataElement dataElement) {
     if (dataElement == null) {
       return "data_element_or_type_null_or_empty";
     }
@@ -474,17 +485,8 @@ public class ValidationUtils {
       return "data_element_or_type_null_or_empty";
     }
 
-    // note: avoid accessing options if not necessary for perf reasons
-    if (valueType.isMultiText()) {
-      OptionSet options = dataElement.getOptionSet();
-      if (options == null) return "data_element_lacks_option_set";
-      if (validateOptions && !options.hasAllOptions(ValueType.splitMultiText(value)))
-        return "value_not_valid_option";
-    } else if (validateOptions) {
-      OptionSet options = dataElement.getOptionSet();
-      if (options != null && options.getOptionByCode(value) == null)
-        return "value_not_valid_option";
-    }
+    if (valueType.isMultiText() && dataElement.getOptionSet() == null)
+      return "data_element_lacks_option_set";
 
     return valueIsValid(value, valueType);
   }
@@ -511,6 +513,7 @@ public class ValidationUtils {
 
     // Value type checks
     return switch (valueType) {
+      case TEXT, LONG_TEXT, MULTI_TEXT, TRACKER_ASSOCIATE, REFERENCE, GEOJSON -> null;
       case LETTER -> !isValidLetter(value) ? "value_not_valid_letter" : null;
       case NUMBER -> !isNumeric(value) ? "value_not_numeric" : null;
       case UNIT_INTERVAL -> !isUnitInterval(value) ? "value_not_unit_interval" : null;
@@ -520,6 +523,8 @@ public class ValidationUtils {
       case INTEGER_NEGATIVE -> !isNegativeInteger(value) ? "value_not_negative_integer" : null;
       case INTEGER_ZERO_OR_POSITIVE ->
           !isZeroOrPositiveInteger(value) ? "value_not_zero_or_positive_integer" : null;
+      case PHONE_NUMBER -> !isPhoneNumber(value) ? "value_not_phone_number" : null;
+      case EMAIL -> !emailIsValid(value) ? "value_not_valid_email" : null;
       case BOOLEAN -> !isBool(value.toLowerCase()) ? "value_not_bool" : null;
       case TRUE_ONLY -> !TRUE.equalsIgnoreCase(value) ? "value_not_true_only" : null;
       case DATE -> !dateIsValid(value) ? "value_not_valid_date" : null;
@@ -527,7 +532,10 @@ public class ValidationUtils {
       case COORDINATE -> !isCoordinate(value) ? "value_not_coordinate" : null;
       case URL -> !urlIsValid(value) ? "value_not_url" : null;
       case FILE_RESOURCE, IMAGE -> !isValidUid(value) ? "value_not_valid_file_resource_uid" : null;
-      default -> null;
+      case TIME -> !timeIsValid(value) ? "value_not_valid_time" : null;
+      case USERNAME -> !usernameIsValid(value) ? "value_not_valid_username" : null;
+      case ORGANISATION_UNIT -> !isValidUid(value) ? "value_not_valid_org_unit_uid" : null;
+      case AGE -> !dateIsValid(value) ? "value_not_valid_age" : null;
     };
   }
 
@@ -545,40 +553,17 @@ public class ValidationUtils {
     }
 
     // Value type grouped checks.
-    switch (valueType) {
-      case INTEGER:
-      case INTEGER_POSITIVE:
-      case INTEGER_NEGATIVE:
-      case INTEGER_ZERO_OR_POSITIVE:
-        return isInteger(trim(value));
-      case NUMBER:
-      case UNIT_INTERVAL:
-      case PERCENTAGE:
-        return isValidDouble(parseDouble(trim(value)));
-      case BOOLEAN:
-      case TRUE_ONLY:
-        return isBool(defaultIfBlank(BOOLEAN_VALUES.get(lowerCase(trim(value))), EMPTY));
-      case DATE:
-        return dateIsValid(trim(value));
-      case TIME:
-        return timeIsValid(trim(value));
-      case DATETIME:
-        return dateTimeIsValid(trim(value));
-      case LONG_TEXT:
-      case MULTI_TEXT:
-      case PHONE_NUMBER:
-      case EMAIL:
-      case TEXT:
-      case LETTER:
-      case COORDINATE:
-      case URL:
-      case FILE_RESOURCE:
-      case IMAGE:
-      case USERNAME:
-      case GEOJSON:
-      default:
-        return true;
-    }
+    return switch (valueType) {
+      case INTEGER, INTEGER_POSITIVE, INTEGER_NEGATIVE, INTEGER_ZERO_OR_POSITIVE ->
+          isInteger(trim(value));
+      case NUMBER, UNIT_INTERVAL, PERCENTAGE -> isValidDouble(parseDouble(trim(value)));
+      case BOOLEAN, TRUE_ONLY ->
+          isBool(defaultIfBlank(BOOLEAN_VALUES.get(lowerCase(trim(value))), EMPTY));
+      case DATE -> dateIsValid(trim(value));
+      case TIME -> timeIsValid(trim(value));
+      case DATETIME -> dateTimeIsValid(trim(value));
+      default -> true;
+    };
   }
 
   public static boolean isValidLetter(String value) {

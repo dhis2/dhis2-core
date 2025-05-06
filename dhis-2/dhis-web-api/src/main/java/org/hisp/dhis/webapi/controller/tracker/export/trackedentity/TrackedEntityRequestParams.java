@@ -37,6 +37,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
@@ -49,7 +50,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.tracker.FieldsRequestParam;
 import org.hisp.dhis.webapi.controller.tracker.PageRequestParams;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
@@ -68,21 +68,21 @@ public class TrackedEntityRequestParams implements PageRequestParams, FieldsRequ
   static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!enrollments,!events,!programOwners";
 
   @OpenApi.Description(
-      """
+"""
 Get the given page.
 """)
   @OpenApi.Property(defaultValue = "1")
   private Integer page;
 
   @OpenApi.Description(
-      """
+"""
 Get given number of items per page.
 """)
   @OpenApi.Property(defaultValue = "50")
   private Integer pageSize;
 
   @OpenApi.Description(
-      """
+"""
 Get the total number of items and pages in the pager.
 
 **Only enable this if absolutely necessary as this is resource intensive.** Use the pagers
@@ -91,7 +91,7 @@ Get the total number of items and pages in the pager.
   private boolean totalPages = false;
 
   @OpenApi.Description(
-      """
+"""
 Get all items by specifying `paging=false`. Requests are paginated by default.
 
 **Be aware that the performance is directly related to the amount of data requested. Larger pages

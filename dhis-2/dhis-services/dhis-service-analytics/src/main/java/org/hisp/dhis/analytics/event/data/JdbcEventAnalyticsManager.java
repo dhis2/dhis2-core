@@ -89,7 +89,7 @@ import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
-import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
@@ -106,8 +106,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 /**
- * TODO could use row_number() and filtering for paging. TODO introduce dedicated "year" partition
- * column.
+ * TODO could use row_number() and filtering for paging.
+ *
+ * <p>TODO introduce dedicated "year" partition column.
  *
  * @author Lars Helge Overland
  */
@@ -128,8 +129,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       EventTimeFieldSqlRenderer timeFieldSqlRenderer,
       ExecutionPlanStore executionPlanStore,
       SystemSettingsService settingsService,
-      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder,
-      @Qualifier("postgresAnalyticsSqlBuilder") AnalyticsSqlBuilder analyticsSqlBuilder,
+      DhisConfigurationProvider config,
+      AnalyticsSqlBuilder sqlBuilder,
       OrganisationUnitResolver organisationUnitResolver) {
     super(
         jdbcTemplate,
@@ -140,8 +141,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         executionPlanStore,
         sqlBuilder,
         settingsService,
-        organisationUnitResolver,
-        analyticsSqlBuilder);
+        config,
+        organisationUnitResolver);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
@@ -541,6 +542,12 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
               + sqlBuilder.singleQuotedCommaDelimited(getUids(dim.getItems()))
               + ") ";
     }
+
+    StringBuilder sb = new StringBuilder();
+    for (String condition : piDisagQueryGenerator.getCocWhereConditions(params)) {
+      sb.append(hlp.whereAnd()).append(condition);
+    }
+    sql += sb.toString();
 
     List<DimensionalObject> orgUnitGroupSetDimension =
         params.getDimensionsAndFilters(Set.of(DimensionType.ORGANISATION_UNIT_GROUP_SET));

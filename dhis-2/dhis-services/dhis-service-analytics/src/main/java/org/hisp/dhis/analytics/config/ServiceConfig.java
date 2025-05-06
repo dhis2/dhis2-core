@@ -43,8 +43,6 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.AnalyticsSqlBuilderProvider;
 import org.hisp.dhis.db.SqlBuilderProvider;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
-import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
-import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
@@ -64,20 +62,6 @@ public class ServiceConfig {
   @Bean
   public SqlBuilder sqlBuilder(SqlBuilderProvider provider) {
     return provider.getSqlBuilder();
-  }
-
-  /**
-   * A dedicated {@link SqlBuilder} for Postgres. Used for classes that require a Postgres specific
-   * implementation.
-   */
-  @Bean("postgresSqlBuilder")
-  public SqlBuilder postgresSqlBuilder() {
-    return new PostgreSqlBuilder();
-  }
-
-  @Bean("postgresAnalyticsSqlBuilder")
-  public AnalyticsSqlBuilder postgresAnalyticsSqlBuilder() {
-    return new PostgreSqlAnalyticsSqlBuilder();
   }
 
   @Bean
@@ -114,7 +98,7 @@ public class ServiceConfig {
         trackedEntityTypeService,
         analyticsTableSettings,
         periodDataProvider,
-        postgresSqlBuilder(),
+        sqlBuilder,
         analyticsSqlBuilder);
   }
 
@@ -133,7 +117,7 @@ public class ServiceConfig {
         dataElementService,
         resourceTableService,
         settingsProvider,
-        postgresSqlBuilder());
+        sqlBuilder);
   }
 
   @Bean("org.hisp.dhis.analytics.TrackedEntityEventsAnalyticsTableService")
@@ -151,7 +135,7 @@ public class ServiceConfig {
         dataElementService,
         resourceTableService,
         settingsProvider,
-        postgresSqlBuilder());
+        sqlBuilder);
   }
 
   @Bean("org.hisp.dhis.analytics.TrackedEntityEnrollmentsAnalyticsTableService")
@@ -169,7 +153,7 @@ public class ServiceConfig {
         dataElementService,
         resourceTableService,
         settingsProvider,
-        postgresSqlBuilder());
+        sqlBuilder);
   }
 
   @Bean("org.hisp.dhis.analytics.AnalyticsTableService")
@@ -277,7 +261,7 @@ public class ServiceConfig {
         dataElementService,
         resourceTableService,
         settingsProvider,
-        postgresSqlBuilder());
+        sqlBuilder);
   }
 
   @Bean("org.hisp.dhis.analytics.ValidationResultTableService")
@@ -313,6 +297,6 @@ public class ServiceConfig {
         dataElementService,
         resourceTableService,
         settingsProvider,
-        postgresSqlBuilder());
+        sqlBuilder);
   }
 }

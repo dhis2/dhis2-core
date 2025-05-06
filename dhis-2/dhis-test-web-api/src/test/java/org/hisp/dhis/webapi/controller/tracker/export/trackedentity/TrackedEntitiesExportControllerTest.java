@@ -37,7 +37,8 @@ import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
-import static org.hisp.dhis.webapi.controller.tracker.Assertions.*;
+import static org.hisp.dhis.test.webapi.Assertions.assertNoDiff;
+import static org.hisp.dhis.webapi.controller.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
@@ -62,6 +63,7 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonDiff.Mode;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -221,6 +223,26 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   }
 
   @Test
+  void getTrackedEntityByPathIsIdenticalToQueryParam() {
+    TrackedEntity trackedEntity = get(TrackedEntity.class, "QS6w44flWAf");
+
+    JsonTrackedEntity pathTrackedEntity =
+        GET("/tracker/trackedEntities/{id}?fields=*", trackedEntity.getUid())
+            .content(HttpStatus.OK)
+            .as(JsonTrackedEntity.class);
+    JsonList<JsonTrackedEntity> queryTrackedEntity =
+        GET(
+                "/tracker/trackedEntities?fields=*&trackedEntities={id}&trackedEntityType={type}",
+                trackedEntity.getUid(),
+                trackedEntity.getTrackedEntityType().getUid())
+            .content(HttpStatus.OK)
+            .getList("trackedEntities", JsonTrackedEntity.class);
+
+    assertHasSize(1, queryTrackedEntity.stream().toList());
+    assertNoDiff(pathTrackedEntity, queryTrackedEntity.get(0), Mode.LENIENT);
+  }
+
+  @Test
   void getTrackedEntityById() {
     TrackedEntity te = get(TrackedEntity.class, "QS6w44flWAf");
 
@@ -260,7 +282,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   void getTrackedEntityByIdWithAttributesReturnsTrackedEntityTypeAttributesOnly() {
     TrackedEntity te = get(TrackedEntity.class, "dUE514NMOlo");
     // TETA
-    TrackedEntityAttribute tea1 = get(TrackedEntityAttribute.class, "numericAttr");
+    TrackedEntityAttribute tea1 = get(TrackedEntityAttribute.class, "integerAttr");
     TrackedEntityAttribute tea2 = get(TrackedEntityAttribute.class, "toUpdate000");
 
     JsonList<JsonAttribute> attributes =
@@ -279,7 +301,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     assertNotEmpty(te.getEnrollments(), "test expects a tracked entity with an enrollment");
     String program = te.getEnrollments().iterator().next().getProgram().getUid();
     // TETA
-    TrackedEntityAttribute tea1 = get(TrackedEntityAttribute.class, "numericAttr");
+    TrackedEntityAttribute tea1 = get(TrackedEntityAttribute.class, "integerAttr");
     TrackedEntityAttribute tea2 = get(TrackedEntityAttribute.class, "toUpdate000");
     // PTEA
     TrackedEntityAttribute tea3 = get(TrackedEntityAttribute.class, "dIVt4l5vIOa");
@@ -520,9 +542,9 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
             .filter(teav -> !"toDelete000".equals(teav.getAttribute().getUid()))
             .toList();
     assertHasSize(
-        2,
+        3,
         trackedEntityTypeAttributeValues,
-        "test expects the tracked entity to have 2 tracked entity type attribute values");
+        "test expects the tracked entity to have 3 tracked entity type attribute values");
 
     HttpResponse response =
         GET("/tracker/trackedEntities/{id}", te.getUid(), Accept(ContextUtils.CONTENT_TYPE_CSV));

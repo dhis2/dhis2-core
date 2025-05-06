@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.query;
 
+import static org.hisp.dhis.query.JpaQueryUtils.isPropertyTypeText;
 import static org.hisp.dhis.query.JpaQueryUtils.stringPredicateIgnoreCase;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
@@ -46,6 +47,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.jpa.QueryHints;
@@ -54,6 +56,8 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.query.operators.Operator;
+import org.hisp.dhis.query.planner.PropertyPath;
+import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.UserDetails;
@@ -176,24 +180,28 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
   }
 
   @Nonnull
-  private static <T extends IdentifiableObject> List<jakarta.persistence.criteria.Order> getOrders(
+  private <T extends IdentifiableObject> List<jakarta.persistence.criteria.Order> getOrders(
       Query<T> query, CriteriaBuilder builder, Root<T> root) {
-    return query.getOrders().stream().map(o -> getOrderPredicate(builder, root, o)).toList();
+    Schema schema = schemaService.getDynamicSchema(query.getObjectType());
+    return query.getOrders().stream()
+        .map(o -> getOrderPredicate(builder, root, schema, o))
+        .toList();
   }
 
   private static <T extends IdentifiableObject>
       jakarta.persistence.criteria.Order getOrderPredicate(
-          CriteriaBuilder builder, Root<T> root, @Nonnull Order order) {
+          CriteriaBuilder builder, Root<T> root, Schema schema, @Nonnull Order order) {
 
-    if (order.isIgnoreCase()) {
+    Property property = schema.getProperty(order.getProperty());
+    if (property == null)
+      throw new IllegalArgumentException("No such property: " + order.getProperty());
+    String name = property.getFieldName();
+    if (order.isIgnoreCase() && isPropertyTypeText(property)) {
       return order.isAscending()
-          ? builder.asc(builder.lower(root.get(order.getProperty().getFieldName())))
-          : builder.desc(builder.lower(root.get(order.getProperty().getFieldName())));
+          ? builder.asc(builder.lower(root.get(name)))
+          : builder.desc(builder.lower(root.get(name)));
     }
-
-    return order.isAscending()
-        ? builder.asc(root.get(order.getProperty().getFieldName()))
-        : builder.desc(root.get(order.getProperty().getFieldName()));
+    return order.isAscending() ? builder.asc(root.get(name)) : builder.desc(root.get(name));
   }
 
   private void initStoreMap() {
@@ -227,16 +235,24 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     }
 
     Set<String> aliases = new HashSet<>();
-    query.getFilters().stream().flatMap(Filter::aliases).forEach(aliases::add);
+    query.getFilters().stream().flatMap(f -> aliases(f, query)).forEach(aliases::add);
     aliases.forEach(alias -> root.get(alias).alias(alias));
     return rootJunction;
+  }
+
+  private Stream<String> aliases(Filter filter, Query<?> query) {
+    if (filter.isVirtual()) return Stream.empty();
+    PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
+    return path == null ? Stream.empty() : Stream.of(path.getAlias());
   }
 
   private <Y> Predicate buildFilter(
       CriteriaBuilder builder, Root<Y> root, Filter filter, Query<?> query) {
     if (filter == null || filter.getOperator() == null) return null;
-    if (!filter.isVirtual())
-      return filter.getOperator().getPredicate(builder, root, filter.getPropertyPath());
+    if (!filter.isVirtual()) {
+      PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
+      return filter.getOperator().getPredicate(builder, root, path);
+    }
     // handle special cases:
     if (filter.isIdentifiable()) return buildIdentifiableFilter(builder, root, filter, query);
     if (filter.isQuery()) return buildQueryFilter(builder, root, filter);

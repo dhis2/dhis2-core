@@ -34,10 +34,12 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1076;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1090;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.getTrackedEntityAttributes;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateOptionSet;
+import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateValueType;
 
 import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -50,7 +52,6 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
-import org.hisp.dhis.tracker.imports.validation.service.attribute.TrackedAttributeValidationService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -60,10 +61,13 @@ import org.springframework.stereotype.Component;
 class AttributeValidator
     extends org.hisp.dhis.tracker.imports.validation.validator.AttributeValidator
     implements Validator<org.hisp.dhis.tracker.imports.domain.TrackedEntity> {
+
+  private final OptionService optionService;
+
   public AttributeValidator(
-      TrackedAttributeValidationService teAttrService,
-      DhisConfigurationProvider dhisConfigurationProvider) {
-    super(teAttrService, dhisConfigurationProvider);
+      DhisConfigurationProvider dhisConfigurationProvider, OptionService optionService) {
+    super(dhisConfigurationProvider);
+    this.optionService = optionService;
   }
 
   @Override
@@ -153,8 +157,8 @@ class AttributeValidator
       }
 
       validateAttributeValue(reporter, trackedEntity, tea, attribute.getValue());
-      validateAttrValueType(reporter, bundle, trackedEntity, attribute, tea);
-      validateOptionSet(reporter, trackedEntity, tea, attribute.getValue());
+      validateValueType(reporter, bundle, trackedEntity, attribute.getValue(), tea);
+      validateOptionSet(reporter, trackedEntity, tea, attribute.getValue(), optionService);
 
       validateAttributeUniqueness(
           reporter, preheat, trackedEntity, attribute.getValue(), tea, te, orgUnit);

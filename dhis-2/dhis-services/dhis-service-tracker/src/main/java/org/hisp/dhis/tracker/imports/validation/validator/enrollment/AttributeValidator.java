@@ -36,6 +36,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1075;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1076;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.getTrackedEntityAttributes;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateOptionSet;
+import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateValueType;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Streams;
@@ -45,6 +46,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -58,7 +60,6 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
-import org.hisp.dhis.tracker.imports.validation.service.attribute.TrackedAttributeValidationService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -69,10 +70,12 @@ class AttributeValidator
     extends org.hisp.dhis.tracker.imports.validation.validator.AttributeValidator
     implements Validator<Enrollment> {
 
+  private final OptionService optionService;
+
   public AttributeValidator(
-      TrackedAttributeValidationService teAttrService,
-      DhisConfigurationProvider dhisConfigurationProvider) {
-    super(teAttrService, dhisConfigurationProvider);
+      DhisConfigurationProvider dhisConfigurationProvider, OptionService optionService) {
+    super(dhisConfigurationProvider);
+    this.optionService = optionService;
   }
 
   @Override
@@ -98,8 +101,8 @@ class AttributeValidator
 
         attributeValueMap.put(attribute.getAttribute(), attribute.getValue());
         validateAttributeValue(reporter, enrollment, teAttribute, attribute.getValue());
-        validateAttrValueType(reporter, bundle, enrollment, attribute, teAttribute);
-        validateOptionSet(reporter, enrollment, teAttribute, attribute.getValue());
+        validateValueType(reporter, bundle, enrollment, attribute.getValue(), teAttribute);
+        validateOptionSet(reporter, enrollment, teAttribute, attribute.getValue(), optionService);
 
         validateAttributeUniqueness(
             reporter, preheat, enrollment, attribute.getValue(), teAttribute, te, orgUnit);

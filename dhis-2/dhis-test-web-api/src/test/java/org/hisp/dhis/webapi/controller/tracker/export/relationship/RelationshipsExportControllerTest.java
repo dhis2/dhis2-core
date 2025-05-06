@@ -369,7 +369,8 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
             .getList("relationships", JsonRelationship.class);
 
     JsonRelationship jsonRelationship = assertFirstRelationship(relationship2, jsonRelationships);
-    assertHasOnlyMembers(jsonRelationship, "relationship", "relationshipType", "from", "to");
+    assertHasOnlyMembers(
+        jsonRelationship, "relationship", "relationshipType", "from", "to", "createdAtClient");
     assertHasOnlyUid(relationship2From.getUid(), "trackedEntity", jsonRelationship.getFrom());
     assertHasOnlyUid(relationship2To.getUid(), "enrollment", jsonRelationship.getTo());
   }
@@ -394,7 +395,8 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
             .getList("relationships", JsonRelationship.class);
 
     JsonRelationship jsonRelationship = assertFirstRelationship(relationship2, jsonRelationships);
-    assertHasOnlyMembers(jsonRelationship, "relationship", "relationshipType", "from", "to");
+    assertHasOnlyMembers(
+        jsonRelationship, "relationship", "relationshipType", "from", "to", "createdAtClient");
     assertHasOnlyUid(relationship2From.getUid(), "trackedEntity", jsonRelationship.getFrom());
     assertHasOnlyUid(relationship2To.getUid(), "enrollment", jsonRelationship.getTo());
   }
@@ -749,7 +751,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   void shouldGetRelationshipsByTrackedEntityWithAttributesWithTrackerDataViewDefined() {
     RelationshipType relationshipType = manager.get(RelationshipType.class, "TV9oB9LT3sh");
     TrackerDataView trackerDataView = new TrackerDataView();
-    String expectedAttribute = "numericAttr";
+    String expectedAttribute = "integerAttr";
     trackerDataView.getAttributes().add(expectedAttribute);
     relationshipType.getFromConstraint().setTrackerDataView(trackerDataView);
     manager.save(relationshipType, false);

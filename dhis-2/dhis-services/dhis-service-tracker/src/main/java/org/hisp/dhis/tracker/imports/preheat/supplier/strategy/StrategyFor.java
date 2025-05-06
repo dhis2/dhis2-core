@@ -47,7 +47,7 @@ import org.hisp.dhis.tracker.imports.preheat.mappers.PreheatMapper;
 public @interface StrategyFor {
   Class<?> value();
 
-  Class<? extends PreheatMapper> mapper();
+  Class<? extends PreheatMapper<?>> mapper();
 
   /** Whether the object used in this Strategy can be cached */
   boolean cache() default false;

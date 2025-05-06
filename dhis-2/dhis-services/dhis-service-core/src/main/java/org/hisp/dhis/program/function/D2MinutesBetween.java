@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.program.function;
 
-import org.hisp.dhis.db.sql.DateUnit;
+import org.hisp.dhis.db.model.DateUnit;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
 /**

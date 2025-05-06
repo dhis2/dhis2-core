@@ -216,6 +216,15 @@ class TextUtilsTest {
   }
 
   @Test
+  void testReplaceDefault() {
+    assertEquals(
+        "Hey John, my name is Bond",
+        TextUtils.replace("Hey ${name}, my name is ${surname:Bond}", Map.of("name", "John")));
+    assertEquals("${haha}", TextUtils.replace("${x:$}{haha}", Map.of()));
+    assertEquals("", TextUtils.replace("${x:}", Map.of()));
+  }
+
+  @Test
   void testReplaceWithNull() {
     assertThrows(
         IllegalArgumentException.class,
@@ -229,8 +238,39 @@ class TextUtilsTest {
   }
 
   @Test
+  void testReplaceVarUndefined() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            TextUtils.replace("Welcome ${first_name} ${last_name}", Map.of("first_name", "John")));
+  }
+
+  @Test
+  void testReplaceVarUnused() {
+    assertEquals(
+        "Welcome John",
+        TextUtils.replace(
+            "Welcome ${first_name}", Map.of("first_name", "John", "last_name", "Bond")));
+  }
+
+  @Test
   void testReplaceVarargs() {
     assertEquals("Welcome John", TextUtils.replace("Welcome ${first_name}", "first_name", "John"));
+  }
+
+  @Test
+  void testReplaceIncompleteVar() {
+    assertEquals("Welcome ${ John", TextUtils.replace("Welcome ${ John", "first_name", "John"));
+  }
+
+  @Test
+  void testReplace$() {
+    assertEquals("Welcome $ John", TextUtils.replace("Welcome $ John", "first_name", "John"));
+  }
+
+  @Test
+  void testReplace$$() {
+    assertEquals("Welcome $$ John", TextUtils.replace("Welcome $$ John", "first_name", "John"));
   }
 
   @Test

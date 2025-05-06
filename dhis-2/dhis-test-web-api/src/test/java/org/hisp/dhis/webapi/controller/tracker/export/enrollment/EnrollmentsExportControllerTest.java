@@ -30,8 +30,10 @@
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
 import static org.hisp.dhis.http.HttpStatus.BAD_REQUEST;
+import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
+import static org.hisp.dhis.test.webapi.Assertions.assertNoDiff;
 import static org.hisp.dhis.webapi.controller.tracker.Assertions.*;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContains;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
@@ -53,6 +55,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonDiff.Mode;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -119,6 +122,23 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
   }
 
   @Test
+  void getEnrollmentByPathIsIdenticalToQueryParam() {
+    Enrollment enrollment = get(Enrollment.class, "TvctPPhpD8z");
+
+    JsonEnrollment pathEnrollment =
+        GET("/tracker/enrollments/{id}?fields=*", enrollment.getUid())
+            .content(HttpStatus.OK)
+            .as(JsonEnrollment.class);
+    JsonList<JsonEnrollment> queryEnrollment =
+        GET("/tracker/enrollments?fields=*&enrollments={id}", enrollment.getUid())
+            .content(HttpStatus.OK)
+            .getList("enrollments", JsonEnrollment.class);
+
+    assertHasSize(1, queryEnrollment.stream().toList());
+    assertNoDiff(pathEnrollment, queryEnrollment.get(0), Mode.LENIENT);
+  }
+
+  @Test
   void getEnrollmentById() {
     Enrollment enrollment = get(Enrollment.class, "TvctPPhpD8z");
 
@@ -163,13 +183,13 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
     assertNotEmpty(
         enrollment.getTrackedEntity().getTrackedEntityAttributeValues(),
         "test expects an enrollment with attribute values");
-    TrackedEntityAttribute ptea = get(TrackedEntityAttribute.class, "fRGt4l6yIRb");
+    TrackedEntityAttribute ptea = get(TrackedEntityAttribute.class, "dIVt4l5vIOa");
 
     JsonEnrollment jsonEnrollment = getEnrollment.apply(enrollment, "attributes");
     assertHasOnlyMembers(jsonEnrollment, "attributes");
     JsonAttribute attribute = jsonEnrollment.getAttributes().get(0);
     assertEquals(ptea.getUid(), attribute.getAttribute());
-    assertEquals("Test PTEA", attribute.getValue());
+    assertEquals("Frank PTEA", attribute.getValue());
     assertEquals(ValueType.TEXT.name(), attribute.getValueType());
     assertHasMember(attribute, "createdAt");
     assertHasMember(attribute, "updatedAt");

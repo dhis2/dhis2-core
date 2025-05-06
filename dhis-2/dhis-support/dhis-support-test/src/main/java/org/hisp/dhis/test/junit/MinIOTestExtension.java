@@ -60,7 +60,7 @@ public class MinIOTestExtension implements AfterAllCallback {
 
   static {
     MIN_IO_CONTAINER =
-        new MinIOContainer("minio/minio:RELEASE.2024-07-16T23-46-41Z")
+        new MinIOContainer("minio/minio:RELEASE.2025-04-22T22-12-26Z")
             .withUserName(MINIO_USER)
             .withPassword(MINIO_PASSWORD);
     MIN_IO_CONTAINER.start();
@@ -78,7 +78,7 @@ public class MinIOTestExtension implements AfterAllCallback {
       properties.put("filestore.identity", MINIO_USER);
       properties.put("filestore.secret", MINIO_PASSWORD);
 
-      PostgresDhisConfigurationProvider pgDhisConfig = new PostgresDhisConfigurationProvider();
+      PostgresDhisConfigurationProvider pgDhisConfig = new PostgresDhisConfigurationProvider(null);
       pgDhisConfig.addProperties(properties);
       return pgDhisConfig;
     }

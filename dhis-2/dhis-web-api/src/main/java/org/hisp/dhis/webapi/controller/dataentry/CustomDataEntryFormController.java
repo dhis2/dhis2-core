@@ -30,13 +30,11 @@
 package org.hisp.dhis.webapi.controller.dataentry;
 
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.dataentry.CustomDataEntryFormDto;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -52,7 +50,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/dataEntry")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class CustomDataEntryFormController {
   private final DataEntryFormService dataEntryFormService;
 

@@ -119,7 +119,7 @@ public class GlobalShellFilter extends OncePerRequestFilter {
 
     if (m.matches()) {
       String appName = m.group(1);
-      App app = appManager.getApp(appName);
+      App app = appManager.getApp(appName, baseUrl);
 
       String targetPath;
       if (app != null) {
@@ -217,6 +217,9 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       log.debug("Serving global shell resource. Path {}, resolved resource {}", path, resource);
       // Serve global app shell resources
       serveGlobalShellResource(request, response, resource);
+    }
+    if (!response.isCommitted()) {
+      response.sendError(HttpServletResponse.SC_NOT_FOUND);
     }
   }
 

@@ -192,7 +192,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Transactional
   public void updateTranslations(
       @Nonnull IdentifiableObject persistedObject, @Nonnull Set<Translation> translations) {
-    BaseIdentifiableObject translatedObject = (BaseIdentifiableObject) persistedObject;
+    IdentifiableObject translatedObject = persistedObject;
 
     translatedObject.setTranslations(
         translations.stream()

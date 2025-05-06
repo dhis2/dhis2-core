@@ -31,8 +31,6 @@ package org.hisp.dhis.webapi.controller.dataitem;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.common.DhisApiVersion.ALL;
-import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.feedback.ErrorCode.E3012;
 import static org.hisp.dhis.node.NodeUtils.createMetadata;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.checkNamesAndOperators;
@@ -46,7 +44,7 @@ import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataitem.DataItem;
@@ -59,7 +57,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.http.ResponseEntity;
@@ -79,7 +76,6 @@ import org.springframework.web.bind.annotation.RestController;
     entity = DataItem.class,
     classifiers = {"team:analytics", "purpose:analytics"})
 @Slf4j
-@ApiVersion({DEFAULT, ALL})
 @RequiredArgsConstructor
 @RestController
 public class DataItemQueryController {
@@ -154,7 +150,7 @@ public class DataItemQueryController {
     checkOrderParams(orderParams.getOrders());
 
     // Extracting the target entities to be queried.
-    Set<Class<? extends BaseIdentifiableObject>> targetEntities =
+    Set<Class<? extends IdentifiableObject>> targetEntities =
         dataItemServiceFacade.extractTargetEntities(filters);
 
     // Checking if the user can read all the target entities.
@@ -175,9 +171,9 @@ public class DataItemQueryController {
   }
 
   private void checkAuthorization(
-      User currentUser, Set<Class<? extends BaseIdentifiableObject>> entities) {
+      User currentUser, Set<Class<? extends IdentifiableObject>> entities) {
     if (isNotEmpty(entities)) {
-      for (Class<? extends BaseIdentifiableObject> entity : entities) {
+      for (Class<? extends IdentifiableObject> entity : entities) {
         if (!aclService.canRead(UserDetails.fromUser(currentUser), entity)) {
           throw new IllegalQueryException(
               new ErrorMessage(E3012, currentUser.getUsername(), entity.getSimpleName()));

@@ -34,10 +34,12 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import javax.sql.DataSource;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -57,6 +59,7 @@ import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.DhisCorsProcessor;
+import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
 import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
@@ -148,14 +151,19 @@ public class DhisWebApiWebSecurityConfig {
   @Autowired private RequestCache requestCache;
 
   private static class CustomRequestMatcher implements RequestMatcher {
-
-    private final List<String> excludePatterns =
-        List.of("", "/", "/dhis-web-login", "/dhis-web-login/");
+    private static final Pattern p1 = Pattern.compile("^/api/apps/.+", Pattern.CASE_INSENSITIVE);
+    private static final Pattern p2 = Pattern.compile("^/apps/.+", Pattern.CASE_INSENSITIVE);
+    private static final Pattern p3 = Pattern.compile("^/dhis-web-.+", Pattern.CASE_INSENSITIVE);
+    private final List<Pattern> includePatterns = new ArrayList<>(List.of(p1, p2, p3));
 
     @Override
     public boolean matches(HttpServletRequest request) {
-      String requestURI = request.getRequestURI();
-      return excludePatterns.stream().noneMatch(pattern -> pattern.equals(requestURI));
+      String requestURI = request.getRequestURI().substring(request.getContextPath().length());
+      // This is needed for the OAuth2 authorization code flow login
+      if (requestURI.contains("/oauth2/authorize")) {
+        return true;
+      }
+      return includePatterns.stream().anyMatch(pattern -> pattern.matcher(requestURI).matches());
     }
   }
 
@@ -242,7 +250,12 @@ public class DhisWebApiWebSecurityConfig {
     }
 
     http.cors(Customizer.withDefaults());
-    http.requestCache().requestCache(requestCache);
+
+    if (dhisConfig.isEnabled(ConfigurationKey.LOGIN_SAVED_REQUESTS_ENABLE)) {
+      http.requestCache().requestCache(requestCache);
+    } else {
+      http.requestCache().disable();
+    }
 
     configureMatchers(http);
     configureCspFilter(http, dhisConfig, configurationService);
@@ -296,53 +309,6 @@ public class DhisWebApiWebSecurityConfig {
 
                   // BUNDLED APPS
                   ////////////////////////////////////////////////////////////////////////////////////////////////
-
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-dashboard/**"))
-                  .hasAnyAuthority("ALL", "M_dhis-web-dashboard")
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-pivot/**"))
-                  .hasAnyAuthority("ALL", "M_dhis-web-pivot")
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-visualizer/**"))
-                  .hasAnyAuthority("ALL", "M_dhis-web-visualizer")
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-data-visualizer/**"))
-                  .hasAnyAuthority("ALL", "M_dhis-web-data-visualizer")
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-mapping/**"))
-                  .hasAnyAuthority("ALL", "M_dhis-web-mapping")
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-maps/**"))
-                  .hasAnyAuthority("ALL", "M_dhis-web-maps")
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-event-reports/**"))
-                  .hasAnyAuthority("ALL", "M_dhis-web-event-reports")
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-event-visualizer/**"))
-                  .hasAnyAuthority("ALL", "M_dhis-web-event-visualizer")
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-interpretation/**"))
-                  .hasAnyAuthority("ALL", "M_dhis-web-interpretation")
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-settings/**"))
-                  .hasAnyAuthority("ALL", "M_dhis-web-settings")
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-maintenance/**"))
-                  .hasAnyAuthority("ALL", "M_dhis-web-maintenance")
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-app-management/**"))
-                  .hasAnyAuthority("ALL", "M_dhis-web-app-management")
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-usage-analytics/**"))
-                  .hasAnyAuthority("ALL", "M_dhis-web-usage-analytics")
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-event-capture/**"))
-                  .hasAnyAuthority("ALL", "M_dhis-web-event-capture")
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-cache-cleaner/**"))
-                  .hasAnyAuthority("ALL", "M_dhis-web-cache-cleaner")
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-data-administration/**"))
-                  .hasAnyAuthority("ALL", "M_dhis-web-data-administration")
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-data-quality/**"))
-                  .hasAnyAuthority("ALL", "M_dhis-web-data-quality")
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-messaging/**"))
-                  .hasAnyAuthority("ALL", "M_dhis-web-messaging")
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-datastore/**"))
-                  .hasAnyAuthority("ALL", "M_dhis-web-datastore")
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-scheduler/**"))
-                  .hasAnyAuthority("ALL", "M_dhis-web-scheduler")
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-sms-configuration/**"))
-                  .hasAnyAuthority("ALL", "M_dhis-web-sms-configuration")
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-user/**"))
-                  .hasAnyAuthority("ALL", "M_dhis-web-user")
-                  .requestMatchers(new AntPathRequestMatcher("/dhis-web-aggregate-data-entry/**"))
-                  .hasAnyAuthority("ALL", "M_dhis-web-aggregate-data-entry")
 
                   /////////////////////////////////////////////////////////////////////////////////////////////////
                   .requestMatchers(new AntPathRequestMatcher("/oauth2/authorize"))
@@ -422,9 +388,6 @@ public class DhisWebApiWebSecurityConfig {
                       new AntPathRequestMatcher(apiContextPath + "/**/externalFileResources/**"))
                   .permitAll()
                   .requestMatchers(
-                      new AntPathRequestMatcher(apiContextPath + "/**/icons/*/icon.svg"))
-                  .permitAll()
-                  .requestMatchers(
                       new AntPathRequestMatcher(apiContextPath + "/**/files/style/external"))
                   .permitAll()
                   .requestMatchers(new AntPathRequestMatcher(apiContextPath + "/**/publicKeys/**"))
@@ -444,6 +407,7 @@ public class DhisWebApiWebSecurityConfig {
         /// HTTP BASIC///////////////////////////////////////
         .httpBasic()
         .authenticationDetailsSource(httpBasicWebAuthenticationDetailsSource)
+        .authenticationEntryPoint(formLoginBasicAuthenticationEntryPoint())
         .addObjectPostProcessor(
             new ObjectPostProcessor<BasicAuthenticationFilter>() {
               @Override
@@ -483,11 +447,16 @@ public class DhisWebApiWebSecurityConfig {
         .sessionManagement()
         .sessionFixation()
         .migrateSession()
-        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
+        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
         .enableSessionUrlRewriting(false)
         .maximumSessions(
             Integer.parseInt(dhisConfig.getProperty(ConfigurationKey.MAX_SESSIONS_PER_USER)))
         .expiredUrl("/dhis-web-commons-security/logout.action");
+  }
+
+  @Bean
+  public FormLoginBasicAuthenticationEntryPoint formLoginBasicAuthenticationEntryPoint() {
+    return new FormLoginBasicAuthenticationEntryPoint("/dhis-web-login");
   }
 
   @Bean

@@ -34,12 +34,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 
 import org.hisp.dhis.common.Dhis2Info;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datastatistics.DataStatisticsService;
 import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.PrometheusTextBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -57,7 +55,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
     classifiers = {"team:analytics", "purpose:analytics"})
 @Controller
 @RequestMapping("/api/dataSummary")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class DataSummaryController {
 
   private final DataStatisticsService dataStatisticsService;
@@ -135,6 +132,12 @@ public class DataSummaryController {
         "data_summary_event_count",
         "days",
         "Count of updated events by day");
+
+    metrics.addMetrics(
+        summary.getEnrollmentCount(),
+        "data_summary_enrollment_count",
+        "days",
+        "Count of updated enrollments by day");
 
     appendSystemInfoMetrics(metrics, summary.getSystem());
     return metrics.getMetrics();

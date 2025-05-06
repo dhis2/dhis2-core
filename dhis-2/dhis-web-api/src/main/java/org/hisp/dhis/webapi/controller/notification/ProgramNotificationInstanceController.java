@@ -36,7 +36,6 @@ import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestH
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Response.Status;
@@ -53,7 +52,6 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -64,12 +62,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Zubair Asghar
  */
+@OpenApi.EntityType(ProgramNotificationInstance.class)
 @OpenApi.Document(
     entity = ProgramNotificationInstance.class,
     classifiers = {"team:tracker", "purpose:data"})
 @Controller
 @RequestMapping("/api/programNotificationInstances")
-@ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
 public class ProgramNotificationInstanceController {
   private final ProgramNotificationInstanceService programNotificationInstanceService;

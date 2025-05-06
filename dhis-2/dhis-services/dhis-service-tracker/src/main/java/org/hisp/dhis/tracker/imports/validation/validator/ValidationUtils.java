@@ -30,8 +30,10 @@
 package org.hisp.dhis.tracker.imports.validation.validator;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.hisp.dhis.system.util.ValidationUtils.valueIsValid;
 import static org.hisp.dhis.tracker.imports.programrule.IssueType.ERROR;
 import static org.hisp.dhis.tracker.imports.programrule.IssueType.WARNING;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1009;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
@@ -42,15 +44,19 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.common.CodeGenerator;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -62,6 +68,7 @@ import org.hisp.dhis.tracker.imports.domain.Note;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.imports.util.Constant;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.locationtech.jts.geom.Geometry;
@@ -223,36 +230,107 @@ public class ValidationUtils {
   }
 
   public static <T extends ValueTypedDimensionalItemObject> void validateOptionSet(
-      Reporter reporter, TrackerDto dto, T optionalObject, @Nonnull String value) {
+      Reporter reporter,
+      TrackerDto dto,
+      T optionalObject,
+      @Nonnull String value,
+      OptionService optionService) {
     if (!optionalObject.hasOptionSet()) {
       return;
     }
 
-    boolean isValid;
-
-    if (optionalObject.getValueType().isMultiText()) {
-      isValid = optionalObject.getOptionSet().hasAllOptions(ValueType.splitMultiText(value));
-    } else {
-      isValid = optionalObject.getOptionSet().getOptionByCode(value) != null;
-    }
+    boolean isValid =
+        optionService.existsAllOptions(
+            optionalObject.getOptionSet().getUid(),
+            optionalObject.getValueType().isMultiText()
+                ? ValueType.splitMultiText(value)
+                : List.of(value));
 
     if (!isValid) {
       reporter.addError(dto, ValidationCode.E1125, value, optionalObject.getOptionSet().getUid());
     }
   }
 
-  /**
-   * Check if the given UID has a valid format.
-   *
-   * @param checkUid a UID to be checked
-   * @param reporter a {@see Reporter} to which the error is added
-   * @param dto the dto to which the report will be linked to
-   * @param args list of arguments for the Error report
-   */
-  public static void checkUidFormat(
-      String checkUid, Reporter reporter, TrackerDto dto, Object... args) {
-    if (!CodeGenerator.isValidUid(checkUid)) {
-      reporter.addError(dto, ValidationCode.E1048, checkUid, args[0], args[1]);
+  public static void validateValueType(
+      @Nonnull Reporter reporter,
+      @Nonnull TrackerBundle bundle,
+      @Nonnull TrackerDto dto,
+      @Nonnull String value,
+      @Nonnull ValueTypedDimensionalItemObject object) {
+    ValueType valueType = object.getValueType();
+    String error;
+    if (valueIsValid(value, valueType) != null) {
+      error = String.format("Value type is %s but the value `%s` is not.", valueType, value);
+    } else {
+      error =
+          switch (valueType) {
+            case FILE_RESOURCE ->
+                bundle.getPreheat().get(FileResource.class, value) == null
+                    ? "File resource `" + value + "` could not be found."
+                    : null;
+            case IMAGE ->
+                bundle.getPreheat().get(FileResource.class, value) == null
+                    ? "File resource `" + value + "` could not be found."
+                    : validateImage(bundle, value);
+            case ORGANISATION_UNIT ->
+                bundle.getPreheat().getOrganisationUnit(value) == null
+                    ? "Organisation unit `" + value + "` could not be found."
+                    : null;
+            case USERNAME ->
+                bundle.getPreheat().getUserByUsername(value).isEmpty()
+                    ? "Username `" + value + "` could not be found."
+                    : null;
+            default -> null;
+          };
+    }
+
+    if (error != null) {
+      if (object instanceof TrackedEntityAttribute) {
+        reporter.addError(dto, ValidationCode.E1007, valueType, error);
+      } else if (object instanceof DataElement) {
+        reporter.addError(dto, ValidationCode.E1302, valueType, error);
+      }
+    }
+
+    if (valueType.isFile()) {
+      validateFileNotAlreadyAssigned(reporter, bundle, dto, value);
+    }
+  }
+
+  private static String validateImage(TrackerBundle bundle, String value) {
+    FileResource fileResource = bundle.getPreheat().get(FileResource.class, value);
+
+    return Constant.VALID_IMAGE_FORMATS.contains(fileResource.getFormat())
+        ? "File resource with uid '"
+            + value
+            + "' is using invalid image format "
+            + fileResource.getFormat()
+            + ". Valid formats are: "
+            + StringUtils.join(Constant.VALID_IMAGE_FORMATS, ", ")
+            + "."
+        : null;
+  }
+
+  private static void validateFileNotAlreadyAssigned(
+      Reporter reporter,
+      TrackerBundle bundle,
+      org.hisp.dhis.tracker.imports.domain.TrackerDto trackerDto,
+      String value) {
+
+    FileResource fileResource = bundle.getPreheat().get(FileResource.class, value);
+
+    if (bundle.getStrategy(trackerDto).isCreate()) {
+      reporter.addErrorIf(
+          () -> fileResource != null && fileResource.isAssigned(), trackerDto, E1009, value);
+    } else if (bundle.getStrategy(trackerDto).isUpdate()) {
+      reporter.addErrorIf(
+          () ->
+              fileResource != null
+                  && fileResource.getFileResourceOwner() != null
+                  && !fileResource.getFileResourceOwner().equals(trackerDto.getUid().getValue()),
+          trackerDto,
+          E1009,
+          value);
     }
   }
 }

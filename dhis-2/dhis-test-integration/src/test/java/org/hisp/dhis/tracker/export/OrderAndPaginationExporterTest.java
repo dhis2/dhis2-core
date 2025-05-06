@@ -40,8 +40,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryFilter;
@@ -68,7 +68,6 @@ import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventOperationParams.EventOperationParamsBuilder;
-import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipOperationParams;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
@@ -133,8 +132,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
     // expect to be run by the importUser
     injectSecurityContextUser(importUser);
 
-    eventParamsBuilder = EventOperationParams.builder().eventParams(EventParams.FALSE);
-    eventParamsBuilder.orgUnitMode(SELECTED);
+    eventParamsBuilder = EventOperationParams.builder().orgUnitMode(SELECTED);
   }
 
   @Test
@@ -145,7 +143,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .organisationUnits(orgUnit)
             .orgUnitMode(DESCENDANTS)
             .trackedEntityType(trackedEntityType)
-            .orderBy(UID.of("numericAttr"), SortDirection.ASC)
+            .orderBy(UID.of("integerAttr"), SortDirection.ASC)
             .build();
 
     Page<String> firstPage =
@@ -187,7 +185,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .orgUnitMode(SELECTED)
             .program(UID.of("BFcipDERJnf"))
             .trackedEntities(UID.of("QS6w44flWAf", "dUE514NMOlo"))
-            .orderBy(UID.of("numericAttr"), SortDirection.ASC)
+            .orderBy(UID.of("integerAttr"), SortDirection.ASC)
             .build();
 
     Page<String> firstPage =
@@ -211,6 +209,25 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .withMappedItems(IdentifiableObject::getUid);
 
     assertEquals(new Page<>(List.of(), 3, 1, null, 2, null), thirdPage, "past the last page");
+  }
+
+  @Test
+  void shouldPaginateTrackedEntitiesWhenOrgUnitNotSpecified()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    injectSecurityContextUser(userService.getUser("fZidJVYpWWE"));
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.builder()
+            .trackedEntities(
+                Set.of(UID.of("woitxQbWYNq"), UID.of("QesgJkTyTCk"), UID.of("guVNoAerxWo")))
+            .build();
+
+    Page<String> paginatedEntities =
+        trackedEntityService
+            .findTrackedEntities(params, PageParams.of(1, 10, true))
+            .withMappedItems(IdentifiableObject::getUid);
+
+    assertContainsOnly(List.of("woitxQbWYNq", "guVNoAerxWo"), paginatedEntities.getItems());
+    assertEquals(2, paginatedEntities.getTotal());
   }
 
   @Test
@@ -477,7 +494,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .orgUnitMode(SELECTED)
             .trackedEntityType(trackedEntityType)
             .orderBy(UID.of("toUpdate000"), SortDirection.ASC)
-            .filterBy(UID.of("numericAttr"), List.of(new QueryFilter(QueryOperator.LT, "75")))
+            .filterBy(UID.of("integerAttr"), List.of(new QueryFilter(QueryOperator.LT, "75")))
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -493,8 +510,8 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .organisationUnits(orgUnit)
             .orgUnitMode(SELECTED)
             .trackedEntityType(trackedEntityType)
-            .filterBy(UID.of("numericAttr"), List.of(new QueryFilter(QueryOperator.LT, "75")))
-            .orderBy(UID.of("numericAttr"), SortDirection.DESC)
+            .filterBy(UID.of("integerAttr"), List.of(new QueryFilter(QueryOperator.LT, "75")))
+            .orderBy(UID.of("integerAttr"), SortDirection.DESC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -534,7 +551,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .trackedEntities(UID.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityType(trackedEntityType)
             .orderBy(UID.of("toDelete000"), SortDirection.DESC)
-            .orderBy(UID.of("numericAttr"), SortDirection.ASC)
+            .orderBy(UID.of("integerAttr"), SortDirection.ASC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -552,7 +569,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
             .trackedEntities(UID.of("QS6w44flWAf", "dUE514NMOlo"))
             .trackedEntityType(trackedEntityType)
             .orderBy(UID.of("toDelete000"), SortDirection.DESC)
-            .orderBy(UID.of("numericAttr"), SortDirection.DESC)
+            .orderBy(UID.of("integerAttr"), SortDirection.DESC)
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);
@@ -1333,10 +1350,11 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
   @Test
   void shouldOrderRelationshipsByCreatedAtClientAndByDefaultOrder()
       throws ForbiddenException, BadRequestException, NotFoundException {
-    Relationship oLT07jKRu9e = get(Relationship.class, "fHn74P5T3r1");
+    Relationship fHn74P5T3r1 = get(Relationship.class, "fHn74P5T3r1");
+    Relationship p53a6314631 = get(Relationship.class, "p53a6314631");
     Relationship yZxjxJli9mO = get(Relationship.class, "yZxjxJli9mO");
     List<String> expected =
-        Stream.of(oLT07jKRu9e, yZxjxJli9mO)
+        Stream.of(fHn74P5T3r1, p53a6314631, yZxjxJli9mO)
             .sorted(Comparator.comparing(Relationship::getId).reversed()) // reversed = desc
             .map(Relationship::getUid)
             .toList();
@@ -1524,7 +1542,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
     return uids(relationshipService.findRelationships(params));
   }
 
-  private static List<String> uids(List<? extends BaseIdentifiableObject> identifiableObject) {
-    return identifiableObject.stream().map(BaseIdentifiableObject::getUid).toList();
+  private static List<String> uids(List<? extends IdentifiableObject> identifiableObject) {
+    return identifiableObject.stream().map(IdentifiableObject::getUid).toList();
   }
 }

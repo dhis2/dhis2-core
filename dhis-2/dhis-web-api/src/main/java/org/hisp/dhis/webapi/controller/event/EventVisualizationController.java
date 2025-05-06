@@ -30,8 +30,6 @@
 package org.hisp.dhis.webapi.controller.event;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.common.DhisApiVersion.ALL;
-import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionType.PROGRAM_DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getQualifiedDimensions;
@@ -83,7 +81,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.ChartService;
 import org.hisp.dhis.visualization.PlotData;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
@@ -100,7 +97,6 @@ import org.springframework.web.bind.annotation.RequestParam;
  */
 @Controller
 @RequestMapping("/api/eventVisualizations")
-@ApiVersion({DEFAULT, ALL})
 @AllArgsConstructor
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:metadata"})
 public class EventVisualizationController
@@ -233,8 +229,8 @@ public class EventVisualizationController
 
         List<String> orgUnitUids = fromFilter(dimensionalObject.getFilter());
 
-        processOrganisationUnits(orgUnitUids, eventVisualization, roots);
         processOrganisationUnitLevelsGroups(orgUnitUids, eventVisualization);
+        processOrganisationUnits(orgUnitUids, eventVisualization, roots);
       }
     }
   }

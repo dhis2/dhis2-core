@@ -44,18 +44,19 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,7 +78,7 @@ class TrackedEntityRequestParamsMapperTest {
 
   private static final UID TRACKED_ENTITY_TYPE_UID = UID.of("Dp8baZYrLtr");
 
-  @Mock private TrackedEntityFieldsParamMapper fieldsParamMapper;
+  @Mock private FieldFilterService fieldFilterService;
 
   @InjectMocks private TrackedEntityRequestParamsMapper mapper;
 

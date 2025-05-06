@@ -344,10 +344,12 @@ public class DefaultFieldFilterService implements FieldFilterService {
 
     updateFields(fieldMap, schema.getKlass());
 
-    if (fieldMap.containsKey("access") && schema.isIdentifiableObject()) {
-      Access access = aclService.getAccess((IdentifiableObject) object, userDetails);
+    if (fieldMap.containsKey("access")
+        && schema.isIdentifiableObject()
+        && object instanceof IdentifiableObject obj) {
+      Access access = aclService.getAccess(obj, userDetails);
 
-      ((BaseIdentifiableObject) object).setAccess(access);
+      obj.setAccess(access);
     }
 
     if (Sharing.class.isAssignableFrom(object.getClass())) {
@@ -665,7 +667,7 @@ public class DefaultFieldFilterService implements FieldFilterService {
     // performance optimization for ID only queries on base identifiable
     // objects
     if (isBaseIdentifiableObjectIdOnly(object, fields)) {
-      return createBaseIdentifiableObjectIdNode(currentProperty, object);
+      return createBaseIdentifiableObjectIdNode(currentProperty, (IdentifiableObject) object);
     }
 
     ComplexNode complexNode = new ComplexNode(currentProperty.getName());
@@ -710,11 +712,9 @@ public class DefaultFieldFilterService implements FieldFilterService {
   }
 
   private ComplexNode createBaseIdentifiableObjectIdNode(
-      @Nonnull Property currentProperty, @Nonnull Object object) {
+      @Nonnull Property currentProperty, @Nonnull IdentifiableObject object) {
     return new ComplexNode(
-        currentProperty,
-        new SimpleNode(
-            "id", baseIdentifiableIdProperty, ((BaseIdentifiableObject) object).getUid()));
+        currentProperty, new SimpleNode("id", baseIdentifiableIdProperty, object.getUid()));
   }
 
   private boolean isProperIdObject(Class<?> klass) {

@@ -31,6 +31,8 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.security.Authorities.M_DHIS_WEB_APP_MANAGEMENT;
 
@@ -53,20 +55,17 @@ import org.hisp.dhis.appmanager.ResourceResult.Redirect;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
-import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -91,7 +90,6 @@ import org.springframework.web.multipart.MultipartFile;
 @Controller
 @RequestMapping("/api/apps")
 @Slf4j
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class AppController {
 
   public static final Pattern REGEX_REMOVE_PROTOCOL = Pattern.compile(".+:/+");
@@ -164,20 +162,29 @@ public class AppController {
   @GetMapping("/{app}/**")
   public void renderApp(
       @PathVariable("app") String appName, HttpServletRequest request, HttpServletResponse response)
-      throws IOException, WebMessageException, ForbiddenException {
+      throws IOException, WebMessageException {
     String contextPath = request.getContextPath();
     String baseUrl = contextService.getContextPath();
+
+    // Sanitize for logging, though Tomcat / Spring should have done this already
+    appName = TextUtils.removeNewlines(appName);
+
     App application = appManager.getApp(appName, baseUrl);
+    log.debug("Rendering app resource {}", TextUtils.removeNewlines(request.getPathInfo()));
 
     if (application == null) {
+      log.warn("App {} not found", appName);
       throw new WebMessageException(notFound("App '" + appName + "' not found."));
     }
 
     if (!appManager.isAccessible(application)) {
-      throw new ForbiddenException("You don't have access to application " + appName + ".");
+      log.debug("User does not have access to app {}", appName);
+      throw new WebMessageException(
+          forbidden("User does not have access to app '" + appName + "'."));
     }
 
     if (application.getAppState() == AppStatus.DELETION_IN_PROGRESS) {
+      log.debug("App deletion in progress {}", appName);
       throw new WebMessageException(
           conflict("App '" + appName + "' deletion is still in progress."));
     }
@@ -189,10 +196,8 @@ public class AppController {
 
     ResourceResult resourceResult = appManager.getAppResource(application, resource, baseUrl);
     if (resourceResult instanceof ResourceFound found) {
-      serveResource(request, response, found.resource());
-      return;
-    }
-    if (resourceResult instanceof Redirect redirect) {
+      serveResource(request, response, found, application);
+    } else if (resourceResult instanceof Redirect redirect) {
       String redirectUrl = TextUtils.cleanUrlPathOnly(application.getBaseUrl(), redirect.path());
       String queryString = request.getQueryString();
       if (queryString != null) {
@@ -200,30 +205,67 @@ public class AppController {
       }
       log.debug(String.format("App resource redirected to: %s", redirectUrl));
       response.sendRedirect(redirectUrl);
-    }
-    if (resourceResult instanceof ResourceNotFound) {
+    } else if (resourceResult instanceof ResourceNotFound) {
+      log.debug("Resource not found: {}", resource);
       response.sendError(HttpServletResponse.SC_NOT_FOUND);
+    } else {
+      log.warn("Internal server error - no resource result.  This is a bug.");
+      throw new WebMessageException(
+          error(
+              "Failed to locate resource for app '" + appName + "'.",
+              "AppManager should always return a ResourceResult, this is a bug."));
     }
   }
 
   private void serveResource(
-      HttpServletRequest request, HttpServletResponse response, Resource resource)
+      HttpServletRequest request,
+      HttpServletResponse response,
+      ResourceFound resourceResult,
+      App app)
       throws IOException {
-    String filename = resource.getFilename();
-    log.debug("App filename: '{}'", filename);
+    String filename = resourceResult.resource().getFilename();
+    log.debug("Serving app resource, filename: {}", filename);
 
-    if (new ServletWebRequest(request, response).checkNotModified(resource.lastModified())) {
+    // Use a combination of app version and last modified timestamp to generate an ETag
+    // This is to ensure that the ETag changes when the app is updated
+    // There is no guarantee that a new app uploaded will have a different version number, so we
+    // need to include the last modified timestamp
+    // Similarly, with classPath resources the lastModified timestamp may be missing or not
+    // reliable, so we need to include the version number
+    // See also AppHtmlNoCacheFilter for cache control headers set on index.html responses
+
+    long lastModified = resourceResult.resource().lastModified();
+    String etagSource = String.format("%s-%s", app.getVersion(), String.valueOf(lastModified));
+    String etag = HashUtils.hashMD5(etagSource.getBytes());
+
+    if (new ServletWebRequest(request, response).checkNotModified(etag, lastModified)) {
+      log.debug("Resource not modified (etag {}, source {})", etag, etagSource);
+      response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
       return;
     }
 
-    String mimeType = request.getSession().getServletContext().getMimeType(filename);
+    String mimeType =
+        resourceResult.mimeType() == null
+            ? request.getSession().getServletContext().getMimeType(filename)
+            : resourceResult.mimeType();
 
     if (mimeType != null) {
       response.setContentType(mimeType);
     }
 
-    response.setContentLengthLong(resource.contentLength());
-    StreamUtils.copyThenCloseInputStream(resource.getInputStream(), response.getOutputStream());
+    long contentLength = appManager.getUriContentLength(resourceResult.resource());
+
+    response.setContentLengthLong(contentLength);
+
+    log.debug(
+        "Serving resource: {} (contentType: {}, contentLength: {}, lastModified: {}, etag: {})",
+        filename,
+        mimeType,
+        contentLength,
+        String.valueOf(lastModified),
+        etag);
+    StreamUtils.copyThenCloseInputStream(
+        resourceResult.resource().getInputStream(), response.getOutputStream());
   }
 
   @DeleteMapping("/{app}")
@@ -280,6 +322,8 @@ public class AppController {
     // if path is prefixed by any protocol, clear it out (this is to ensure
     // that only files inside app directory can be resolved)
     resourcePath = REGEX_REMOVE_PROTOCOL.matcher(resourcePath).replaceAll("");
+
+    log.debug("Resource path: {} => {}", path, resourcePath);
 
     return resourcePath;
   }

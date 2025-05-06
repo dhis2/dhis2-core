@@ -29,10 +29,20 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -48,16 +58,6 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.Order;
-
-import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 @Getter
 @Builder(toBuilder = true)
@@ -113,6 +113,10 @@ public class EventOperationParams {
 
   @Builder.Default private Set<UID> attributeCategoryOptions = Collections.emptySet();
 
+  private CategoryOptionCombo categoryOptionCombo;
+
+  private boolean includeRelationships;
+
   /**
    * Events can be ordered by field names (given as {@link String}), data element (given as {@link
    * UID}) and tracked entity attribute (given as {@link UID}). It is crucial for the order values
@@ -135,9 +139,14 @@ public class EventOperationParams {
 
   private boolean includeDeleted;
 
+  private boolean synchronizationQuery;
+
+  /** Indicates a point in the time used to decide the data that should not be synchronized */
+  private Date skipChangedBefore;
+
   private Set<UID> enrollments;
 
-  @Builder.Default private EventParams eventParams = EventParams.FALSE;
+  @Builder.Default private EventFields fields = EventFields.none();
 
   @Builder.Default
   private TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();

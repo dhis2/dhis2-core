@@ -46,7 +46,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.event.EventStatus;
@@ -346,7 +346,7 @@ class SmsImportMapper {
   }
 
   @CheckForNull
-  private static MetadataIdentifier metadataUid(@CheckForNull BaseIdentifiableObject uid) {
+  private static MetadataIdentifier metadataUid(@CheckForNull IdentifiableObject uid) {
     return uid != null ? MetadataIdentifier.ofUid(uid.getUid()) : null;
   }
 

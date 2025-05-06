@@ -59,7 +59,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
@@ -78,7 +77,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
       JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
-      @Qualifier("postgresSqlBuilder") SqlBuilder sqlBuilder) {
+      SqlBuilder sqlBuilder) {
     super(
         idObjectManager,
         organisationUnitService,

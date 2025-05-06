@@ -49,8 +49,8 @@ import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.QueryItemLocator;
 import org.hisp.dhis.analytics.util.RepeatableStageParamsHelper;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RepeatableStageParams;
@@ -270,7 +270,7 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
   }
 
   private ProgramStage getProgramStageOrFail(String dimension) {
-    BaseIdentifiableObject baseIdentifiableObject = getIdObjectOrFail(dimension);
+    IdentifiableObject baseIdentifiableObject = getIdObjectOrFail(dimension);
 
     return (baseIdentifiableObject instanceof ProgramStage
         ? (ProgramStage) baseIdentifiableObject
@@ -282,21 +282,21 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
   }
 
   private RelationshipType getRelationshipTypeOrFail(String dimension) {
-    BaseIdentifiableObject baseIdentifiableObject = getIdObjectOrFail(dimension);
+    IdentifiableObject baseIdentifiableObject = getIdObjectOrFail(dimension);
     return (baseIdentifiableObject instanceof RelationshipType
         ? (RelationshipType) baseIdentifiableObject
         : null);
   }
 
-  private BaseIdentifiableObject getIdObjectOrFail(String dimension) {
-    Stream<Supplier<BaseIdentifiableObject>> fetchers =
+  private IdentifiableObject getIdObjectOrFail(String dimension) {
+    Stream<Supplier<IdentifiableObject>> fetchers =
         Stream.of(
             () -> relationshipTypeService.getRelationshipType(getFirstElement(dimension)),
             () -> programStageService.getProgramStage(getFirstElement(dimension)));
 
     boolean requiresIdObject = dimension.split("\\" + DIMENSION_IDENTIFIER_SEP).length > 1;
 
-    Optional<BaseIdentifiableObject> found =
+    Optional<IdentifiableObject> found =
         fetchers.map(Supplier::get).filter(Objects::nonNull).findFirst();
 
     if (requiresIdObject && found.isEmpty()) {

@@ -53,7 +53,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
@@ -82,7 +81,6 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserLookup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.hisp.dhis.webapi.webdomain.user.UserLookups;
@@ -112,7 +110,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @RequestMapping("/api/account")
 @Slf4j
 @AllArgsConstructor
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class AccountController {
   private static final int MAX_LENGTH = 80;
 
@@ -430,6 +427,11 @@ public class AccountController {
     user.setPhoneNumber(userRegistration.getPhoneNumber());
     user.setEmail(userRegistration.getEmail());
     user.setPhoneNumber(userRegistration.getPhoneNumber());
+
+    boolean autoVerifyEmail = settingsProvider.getCurrentSettings().getAutoVerifyInvitedUserEmail();
+    if (autoVerifyEmail && user.getEmail() != null) {
+      user.setVerifiedEmail(user.getEmail());
+    }
 
     userService.updateUser(user, new SystemUser());
 

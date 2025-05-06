@@ -29,14 +29,12 @@
  */
 package org.hisp.dhis.test.webapi;
 
-import static org.springframework.http.MediaType.parseMediaType;
+import static org.hisp.dhis.webapi.security.config.WebMvcConfig.MEDIA_TYPE_MAP;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
@@ -47,11 +45,9 @@ import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.hisp.dhis.test.message.DefaultFakeMessageSender;
-import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.webapi.mvc.CurrentSystemSettingsHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
-import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.SystemSettingsInterceptor;
@@ -98,8 +94,6 @@ import org.springframework.web.servlet.resource.ResourceUrlProviderExposingInter
 @EnableWebMvc
 @EnableMethodSecurity
 public class MvcTestConfig implements WebMvcConfigurer {
-  @Autowired private UserSettingsService userSettingsService;
-
   @Autowired public DefaultRequestInfoService requestInfoService;
 
   @Autowired private MetadataExportService metadataExportService;
@@ -151,7 +145,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
     mapping.setInterceptors(registry.getInterceptors().toArray());
 
     CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy =
-        new CustomPathExtensionContentNegotiationStrategy(mediaTypeMap);
+        new CustomPathExtensionContentNegotiationStrategy(MEDIA_TYPE_MAP);
     pathExtensionNegotiationStrategy.setUseRegisteredExtensionsOnly(true);
 
     mapping.setContentNegotiationManager(
@@ -168,32 +162,10 @@ public class MvcTestConfig implements WebMvcConfigurer {
     return mapping;
   }
 
-  private Map<String, MediaType> mediaTypeMap =
-      new ImmutableMap.Builder<String, MediaType>()
-          .put("json", MediaType.APPLICATION_JSON)
-          .put("json.gz", parseMediaType("application/json+gzip"))
-          .put("json.zip", parseMediaType("application/json+zip"))
-          .put("jsonp", parseMediaType("application/javascript"))
-          .put("xml", MediaType.APPLICATION_XML)
-          .put("xml.gz", parseMediaType("application/xml+gzip"))
-          .put("xml.zip", parseMediaType("application/xml+zip"))
-          .put("png", MediaType.IMAGE_PNG)
-          .put("pdf", MediaType.APPLICATION_PDF)
-          .put("xls", parseMediaType("application/vnd.ms-excel"))
-          .put("xlsx", parseMediaType("application/vnd.ms-excel"))
-          .put("csv", parseMediaType("text/csv"))
-          .put("csv.gz", parseMediaType("application/csv+gzip"))
-          .put("csv.zip", parseMediaType("application/csv+zip"))
-          .put("adx.xml", parseMediaType("application/adx+xml"))
-          .put("adx.xml.gz", parseMediaType("application/adx+xml+gzip"))
-          .put("adx.xml.zip", parseMediaType("application/adx+xml+zip"))
-          .put("geojson", parseMediaType("application/json+geojson"))
-          .build();
-
   @Override
   public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
     CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy =
-        new CustomPathExtensionContentNegotiationStrategy(mediaTypeMap);
+        new CustomPathExtensionContentNegotiationStrategy(MEDIA_TYPE_MAP);
 
     configurer.strategies(
         Arrays.asList(
@@ -274,14 +246,8 @@ public class MvcTestConfig implements WebMvcConfigurer {
     registry.addConverter(new FieldPathConverter());
   }
 
-  @Bean
-  public DhisApiVersionHandlerMethodArgumentResolver dhisApiVersionHandlerMethodArgumentResolver() {
-    return new DhisApiVersionHandlerMethodArgumentResolver();
-  }
-
   @Override
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-    resolvers.add(dhisApiVersionHandlerMethodArgumentResolver());
     resolvers.add(currentUserHandlerMethodArgumentResolver);
     resolvers.add(currentSystemSettingsHandlerMethodArgumentResolver);
   }

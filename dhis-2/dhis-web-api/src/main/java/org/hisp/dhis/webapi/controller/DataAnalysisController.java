@@ -46,9 +46,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.OpenApi;
@@ -73,6 +73,7 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.expression.Operator;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
@@ -82,6 +83,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -93,7 +95,6 @@ import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.hisp.dhis.validation.ValidationService;
 import org.hisp.dhis.validation.comparator.ValidationResultComparator;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.ValidationResultView;
 import org.joda.time.DateTime;
@@ -116,7 +117,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
     classifiers = {"team:tracker", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/dataAnalysis")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @Slf4j
 @RequiresAuthority(anyOf = F_RUN_VALIDATION)
 public class DataAnalysisController {
@@ -153,11 +153,13 @@ public class DataAnalysisController {
 
   @Autowired private FollowupAnalysisService followupAnalysisService;
 
+  @Autowired private SystemSettingsProvider settingsProvider;
+
   @PostMapping(value = "/validationRules", consumes = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
   public @ResponseBody List<ValidationResultView> performValidationRulesAnalysis(
       @RequestBody ValidationRulesAnalysisParams validationRulesAnalysisParams, HttpSession session)
-      throws WebMessageException {
+      throws WebMessageException, BadRequestException {
     I18nFormat format = i18nManager.getI18nFormat();
 
     ValidationRuleGroup group = null;
@@ -171,6 +173,16 @@ public class DataAnalysisController {
       throw new WebMessageException(badRequest("No organisation unit defined"));
     }
 
+    int maxResults =
+        ObjectUtils.firstNonNull(
+            validationRulesAnalysisParams.getMaxResults(),
+            ValidationService.MAX_INTERACTIVE_ALERTS);
+    final int MAX_ALLOWED_RESULTS = settingsProvider.getCurrentSettings().getDataQualityMaxLimit();
+
+    if (maxResults <= 0 || maxResults > MAX_ALLOWED_RESULTS) {
+      throw new BadRequestException("Max results must be between 1 and " + MAX_ALLOWED_RESULTS);
+    }
+
     ValidationAnalysisParams params =
         validationService
             .newParamsBuilder(
@@ -181,7 +193,7 @@ public class DataAnalysisController {
             .withIncludeOrgUnitDescendants(true)
             .withPersistResults(validationRulesAnalysisParams.isPersist())
             .withSendNotifications(validationRulesAnalysisParams.isNotification())
-            .withMaxResults(ValidationService.MAX_INTERACTIVE_ALERTS)
+            .withMaxResults(maxResults)
             .build();
 
     List<ValidationResult> validationResults =

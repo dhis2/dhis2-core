@@ -52,7 +52,6 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsService;
@@ -61,6 +60,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.PageParams;
+import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.user.UserDetails;
@@ -84,7 +84,7 @@ class TrackedEntityOperationParamsMapper {
 
   @Nonnull private final TrackedEntityAttributeService trackedEntityAttributeService;
 
-  @Nonnull private final ProgramService programService;
+  @Nonnull private final TrackerProgramService trackerProgramService;
 
   @Nonnull private final SystemSettingsService systemSettingsService;
 
@@ -111,7 +111,7 @@ class TrackedEntityOperationParamsMapper {
 
     List<TrackedEntityType> trackedEntityTypes = getTrackedEntityTypes(program, user);
 
-    List<Program> programs = getTrackerPrograms(program, user);
+    List<Program> programs = getTrackerPrograms(program);
 
     Set<OrganisationUnit> orgUnits =
         paramsValidator.validateOrgUnits(operationParams.getOrganisationUnits(), user);
@@ -179,12 +179,9 @@ class TrackedEntityOperationParamsMapper {
     return trackedEntityTypes;
   }
 
-  private List<Program> getTrackerPrograms(Program program, UserDetails user) {
+  private List<Program> getTrackerPrograms(Program program) {
     if (program == null) {
-      return programService.getAllPrograms().stream()
-          .filter(Program::isRegistration)
-          .filter(p -> aclService.canDataRead(user, p))
-          .toList();
+      return trackerProgramService.getAccessibleTrackerPrograms();
     }
 
     return emptyList();

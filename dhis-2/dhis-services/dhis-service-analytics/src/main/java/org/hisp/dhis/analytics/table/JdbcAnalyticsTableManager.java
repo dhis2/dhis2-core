@@ -58,7 +58,6 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
@@ -71,6 +70,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -172,7 +172,7 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
       ResourceTableService resourceTableService,
       AnalyticsTableHookService tableHookService,
       PartitionManager partitionManager,
-      @Qualifier("analyticsReadOnlyJdbcTemplate") JdbcTemplate jdbcTemplate,
+      @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       AnalyticsTableSettings analyticsTableSettings,
       PeriodDataProvider periodDataProvider,
       SqlBuilder sqlBuilder) {
@@ -678,32 +678,10 @@ public class JdbcAnalyticsTableManager extends AbstractJdbcTableManager {
   @Override
   public void applyAggregationLevels(
       Table table, Collection<String> dataElements, int aggregationLevel) {
-    StringBuilder sql = new StringBuilder("update ${tableName} set ");
-
-    for (int i = 0; i < aggregationLevel; i++) {
-      int level = i + 1;
-
-      String column = quote(DataQueryParams.LEVEL_PREFIX + level);
-
-      sql.append(column + " = null,");
-    }
-
-    sql.deleteCharAt(sql.length() - ",".length()).append(" ");
-    sql.append(
-        """
-        where oulevel > ${aggregationLevel} \
-        and dx in ( ${dataElements} )\s""");
-
-    String updateQuery =
-        replace(
-            sql.toString(),
-            Map.of(
-                "tableName", table.getName(),
-                "aggregationLevel", String.valueOf(aggregationLevel),
-                "dataElements", quotedCommaDelimitedString(dataElements)));
-
-    log.debug("Aggregation level SQL: '{}'", updateQuery);
-    jdbcTemplate.execute(updateQuery);
+    // Doris does not support update statements on multikey tables
+    boolean supportsUpdate = !sqlBuilder.getDatabase().equals(Database.DORIS);
+    new AggregationLevelsHelper(jdbcTemplate, sqlBuilder)
+        .applyAggregationLevels(table, dataElements, aggregationLevel, supportsUpdate);
   }
 
   /**

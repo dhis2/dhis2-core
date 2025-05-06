@@ -39,7 +39,6 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.timer.SystemTimer;
@@ -54,6 +53,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
@@ -129,8 +129,7 @@ public class DefaultMetadataImportService implements MetadataImportService {
 
       log.info("(" + bundle.getUsername() + ") Import:Commit took " + commitTimer.toString());
     } else {
-      report.getStats().ignored();
-      report.getTypeReports().forEach(tr -> tr.getStats().ignored());
+      report.getTypeReports().forEach(TypeReport::ignoreAll);
       report.setStatus(Status.ERROR);
     }
 
@@ -266,14 +265,11 @@ public class DefaultMetadataImportService implements MetadataImportService {
     }
 
     for (Class<? extends IdentifiableObject> klass : params.getObjects().keySet()) {
-      params
-          .getObjects()
-          .get(klass)
-          .forEach(o -> preCreateBundleObject((BaseIdentifiableObject) o, params));
+      params.getObjects().get(klass).forEach(o -> preCreateBundleObject(o, params));
     }
   }
 
-  private void preCreateBundleObject(BaseIdentifiableObject object, ObjectBundleParams params) {
+  private void preCreateBundleObject(IdentifiableObject object, ObjectBundleParams params) {
     if (StringUtils.isEmpty(object.getSharing().getPublicAccess())) {
       aclService.resetSharing(object, params.getUser());
     }

@@ -101,7 +101,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
-import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
@@ -500,7 +499,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         POST(
                 "/sms/inbound",
                 format(
-                    """
+"""
 {
 "text": "%s",
 "originator": "%s"
@@ -570,7 +569,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         POST(
                 "/sms/inbound",
                 format(
-                    """
+"""
 {
 "text": "%s",
 "originator": "%s"
@@ -634,7 +633,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         POST(
                 "/sms/inbound",
                 format(
-                    """
+"""
 {
 "text": "visit a=hello",
 "originator": "%s"
@@ -655,12 +654,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
                 "Command has been processed successfully", originator, smsMessageSender));
 
     List<Event> events =
-        eventService.findEvents(
-            EventOperationParams.builder()
-                .program(eventProgram)
-                .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
-                .eventParams(EventParams.FALSE)
-                .build());
+        eventService.findEvents(EventOperationParams.builder().program(eventProgram).build());
     assertHasSize(1, events);
     Event actual = events.get(0);
     assertAll(
@@ -701,7 +695,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         POST(
                 "/sms/inbound",
                 format(
-                    """
+"""
 {
 "text": "birth a=hello",
 "originator": "%s"
@@ -742,8 +736,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
             EventOperationParams.builder()
                 .trackedEntity(trackedEntity)
                 .program(trackerProgram)
-                .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
-                .eventParams(EventParams.FALSE)
                 .build());
     assertHasSize(1, events);
     Event actualEvent = events.get(0);
@@ -787,7 +779,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         POST(
                 "/sms/inbound",
                 format(
-                    """
+"""
 {
 "text": "birth a=hello",
 "originator": "%s"
@@ -812,8 +804,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
             EventOperationParams.builder()
                 .trackedEntity(trackedEntity)
                 .program(trackerProgram)
-                .orgUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)
-                .eventParams(EventParams.FALSE)
                 .build());
     assertHasSize(1, events);
     Event actual = events.get(0);

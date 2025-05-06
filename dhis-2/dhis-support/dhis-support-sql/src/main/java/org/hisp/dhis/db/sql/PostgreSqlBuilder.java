@@ -35,6 +35,7 @@ import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.db.model.Collation;
 import org.hisp.dhis.db.model.Column;
 import org.hisp.dhis.db.model.Database;
+import org.hisp.dhis.db.model.DateUnit;
 import org.hisp.dhis.db.model.Index;
 import org.hisp.dhis.db.model.Table;
 import org.hisp.dhis.db.model.constraint.Nullable;
@@ -326,6 +327,16 @@ public class PostgreSqlBuilder extends AbstractSqlBuilder {
   @Override
   public String log10(String expression) {
     return String.format("log(%s)", expression);
+  }
+
+  @Override
+  public String stddev(String expression) {
+    return String.format("stddev(%s)", expression);
+  }
+
+  @Override
+  public String variance(String expression) {
+    return String.format("variance(%s)", expression);
   }
 
   // Statements

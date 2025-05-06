@@ -108,20 +108,4 @@ public class OptionGroup extends BaseDimensionalItemObject implements MetadataOb
   public void removeOption(Option option) {
     members.remove(option);
   }
-
-  public void updateOptions(Set<Option> updates) {
-    for (Option option : new HashSet<>(members)) {
-      if (!updates.contains(option)) {
-        removeOption(option);
-      }
-    }
-
-    for (Option option : updates) {
-      addOption(option);
-    }
-  }
-
-  public void removeAllOptions() {
-    members.clear();
-  }
 }

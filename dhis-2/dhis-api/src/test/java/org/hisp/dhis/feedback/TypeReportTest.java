@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -109,5 +110,30 @@ class TypeReportTest {
     typeReport0.merge(typeReport1);
     assertEquals(6, typeReport0.getErrorReportsCount());
     assertEquals(6, typeReport0.getObjectReportsCount());
+  }
+
+  @Test
+  @DisplayName("Type report with all values ignored has correct values")
+  void allStatsIgnoredTest() {
+    // given
+    TypeReport typeReport = new TypeReport(DataElement.class);
+    typeReport.createdInc(1);
+    typeReport.updatedInc(2);
+    typeReport.deletedInc(3);
+    typeReport.ignoredInc(4);
+
+    // when
+    typeReport.ignoreAll();
+
+    // then
+    assertEquals(new Stats(0, 0, 0, 10), typeReport.getStats());
+  }
+
+  @Test
+  @DisplayName("Type report with decremented delete has correct values")
+  void decDeleteTest() {
+    TypeReport typeReport = new TypeReport(DataElement.class);
+    typeReport.deletedDec(1);
+    assertEquals(new Stats(0, 0, -1, 0), typeReport.getStats());
   }
 }

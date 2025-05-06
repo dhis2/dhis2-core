@@ -125,10 +125,10 @@ public class DefaultGistService implements GistService, GistBuilder.GistBuilderS
       }
     }
     if (schema.hasApiEndpoint()) {
-      URI baseURL = GistPager.computeBaseURL(query, params, schemaService::getDynamicSchema);
+      URI queryURI = URI.create(query.getRequestURL());
       if (page > 1) {
         prev =
-            UriComponentsBuilder.fromUri(baseURL)
+            UriComponentsBuilder.fromUri(queryURI)
                 .replaceQueryParam("page", page - 1)
                 .build()
                 .toString();
@@ -136,7 +136,7 @@ public class DefaultGistService implements GistService, GistBuilder.GistBuilderS
       if (total != null && query.getPageOffset() + rows.size() < total
           || total == null && query.getPageSize() == rows.size()) {
         next =
-            UriComponentsBuilder.fromUri(baseURL)
+            UriComponentsBuilder.fromUri(queryURI)
                 .replaceQueryParam("page", page + 1)
                 .build()
                 .toString();

@@ -29,11 +29,14 @@
  */
 package org.hisp.dhis.tracker.imports.programrule.engine;
 
+import static org.hisp.dhis.programrule.ProgramRuleActionType.SERVER_SUPPORTED_TYPES;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -42,6 +45,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.rules.api.RuleEngine;
@@ -65,7 +69,7 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
 
   private final ConstantService constantService;
 
-  private final ImplementableRuleService implementableRuleService;
+  private final ProgramRuleService programRuleService;
 
   private final SupplementaryDataProvider supplementaryDataProvider;
 
@@ -77,49 +81,20 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
       ProgramRuleEntityMapperService programRuleEntityMapperService,
       ProgramRuleVariableService programRuleVariableService,
       ConstantService constantService,
-      ImplementableRuleService implementableRuleService,
+      ProgramRuleService programRuleService,
       SupplementaryDataProvider supplementaryDataProvider,
       ProgramService programService) {
     this.programRuleEntityMapperService = programRuleEntityMapperService;
     this.programRuleVariableService = programRuleVariableService;
     this.constantService = constantService;
-    this.implementableRuleService = implementableRuleService;
+    this.programRuleService = programRuleService;
     this.supplementaryDataProvider = supplementaryDataProvider;
     this.programService = programService;
     this.ruleEngine = RuleEngine.getInstance();
   }
 
   @Override
-  public RuleEngineEffects evaluateEnrollmentAndEvents(
-      RuleEnrollment enrollment, List<RuleEvent> events, Program program, UserDetails user) {
-    List<ProgramRule> rules =
-        getProgramRules(
-            program, events.stream().map(RuleEvent::getProgramStage).collect(Collectors.toSet()));
-
-    if (rules.isEmpty()) {
-      return RuleEngineEffects.of(Collections.emptyList());
-    }
-
-    List<RuleEffects> ruleEffects =
-        evaluateProgramRulesForMultipleTrackerObjects(enrollment, program, events, rules, user);
-    return RuleEngineEffects.of(ruleEffects);
-  }
-
-  @Override
-  public RuleEngineEffects evaluateProgramEvents(
-      List<RuleEvent> events, Program program, UserDetails user) {
-    List<ProgramRule> rules = implementableRuleService.getProgramRules(program, null);
-
-    if (rules.isEmpty()) {
-      return RuleEngineEffects.of(Collections.emptyList());
-    }
-
-    return RuleEngineEffects.of(
-        evaluateProgramRulesForMultipleTrackerObjects(null, program, events, rules, user));
-  }
-
-  @Override
-  public RuleValidationResult getDescription(String condition, UID programUid)
+  public RuleValidationResult getDescription(@Nonnull String condition, @Nonnull UID programUid)
       throws BadRequestException {
     Program program = programService.getProgram(programUid.getValue());
 
@@ -134,8 +109,8 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
   }
 
   @Override
-  public RuleValidationResult getDataExpressionDescription(String dataExpression, UID programUid)
-      throws BadRequestException {
+  public RuleValidationResult getDataExpressionDescription(
+      @Nonnull String dataExpression, @Nonnull UID programUid) throws BadRequestException {
     Program program = programService.getProgram(programUid.getValue());
 
     if (program == null) {
@@ -148,12 +123,44 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
             constantService.getAllConstants()));
   }
 
+  @Override
+  public RuleEngineEffects evaluateEnrollmentAndTrackerEvents(
+      @Nonnull RuleEnrollment enrollment,
+      @Nonnull List<RuleEvent> events,
+      @Nonnull Program program,
+      @Nonnull UserDetails user) {
+    return evaluateEnrollmentAndEvents(enrollment, events, program, user);
+  }
+
+  @Override
+  public RuleEngineEffects evaluateProgramEvents(
+      @Nonnull List<RuleEvent> events, @Nonnull Program program, @Nonnull UserDetails user) {
+    return evaluateEnrollmentAndEvents(null, events, program, user);
+  }
+
+  private RuleEngineEffects evaluateEnrollmentAndEvents(
+      @CheckForNull RuleEnrollment enrollment,
+      @Nonnull List<RuleEvent> events,
+      @Nonnull Program program,
+      @Nonnull UserDetails user) {
+    List<ProgramRule> rules =
+        programRuleService.getProgramRulesByActionTypes(program, SERVER_SUPPORTED_TYPES);
+
+    if (rules.isEmpty()) {
+      return RuleEngineEffects.of(Collections.emptyList());
+    }
+
+    List<RuleEffects> ruleEffects =
+        evaluateProgramRulesForMultipleTrackerObjects(enrollment, program, events, rules, user);
+    return RuleEngineEffects.of(ruleEffects);
+  }
+
   private List<RuleEffects> evaluateProgramRulesForMultipleTrackerObjects(
-      RuleEnrollment ruleEnrollment,
-      Program program,
-      List<RuleEvent> ruleEvents,
-      List<ProgramRule> rules,
-      UserDetails user) {
+      @CheckForNull RuleEnrollment ruleEnrollment,
+      @Nonnull Program program,
+      @Nonnull List<RuleEvent> ruleEvents,
+      @Nonnull List<ProgramRule> rules,
+      @Nonnull UserDetails user) {
     try {
       RuleEngineContext ruleEngineContext = getRuleEngineContext(program, rules, user);
       return ruleEngine.evaluateAll(ruleEnrollment, ruleEvents, ruleEngineContext);
@@ -163,21 +170,10 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
     }
   }
 
-  private List<ProgramRule> getProgramRules(Program program, Set<String> programStageUids) {
-    if (programStageUids.isEmpty()) {
-      return implementableRuleService.getProgramRules(program, null);
-    }
-
-    Set<ProgramRule> programRules =
-        programStageUids.stream()
-            .flatMap(psUid -> implementableRuleService.getProgramRules(program, psUid).stream())
-            .collect(Collectors.toSet());
-
-    return List.copyOf(programRules);
-  }
-
   private RuleEngineContext getRuleEngineContext(
-      Program program, List<ProgramRule> programRules, UserDetails user) {
+      @Nonnull Program program,
+      @Nonnull List<ProgramRule> programRules,
+      @Nonnull UserDetails user) {
     List<ProgramRuleVariable> programRuleVariables =
         programRuleVariableService.getProgramRuleVariable(program);
 

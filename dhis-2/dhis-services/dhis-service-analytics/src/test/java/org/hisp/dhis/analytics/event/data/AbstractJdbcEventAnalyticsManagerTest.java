@@ -84,6 +84,7 @@ import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryParams.Builder;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
@@ -98,8 +99,8 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.db.sql.PostgreSqlBuilder;
-import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
+import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
@@ -142,11 +143,13 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private OrganisationUnitResolver organisationUnitResolver;
 
+  @Mock private PiDisagQueryGenerator piDisagQueryGenerator;
+
   @Spy
   private ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
       new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService, systemSettingsService);
 
-  @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
+  @Spy private AnalyticsSqlBuilder sqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
 
   @Spy
   private EventTimeFieldSqlRenderer eventTimeFieldSqlRenderer =

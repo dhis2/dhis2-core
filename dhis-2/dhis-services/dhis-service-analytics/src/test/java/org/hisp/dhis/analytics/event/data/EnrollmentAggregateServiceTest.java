@@ -56,7 +56,6 @@ import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.tracker.MetadataItemsHandler;
 import org.hisp.dhis.analytics.tracker.SchemeIdHandler;
 import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -131,7 +130,6 @@ class EnrollmentAggregateServiceTest {
             .withCoordinateFields(List.of(deB.getUid()))
             .withSkipData(true)
             .withSkipMeta(false)
-            .withApiVersion(DhisApiVersion.V33)
             .build();
 
     // When
@@ -200,7 +198,6 @@ class EnrollmentAggregateServiceTest {
             .withCoordinateFields(List.of(deB.getUid()))
             .withSkipData(true)
             .withSkipMeta(false)
-            .withApiVersion(DhisApiVersion.V33)
             .build();
 
     // When
