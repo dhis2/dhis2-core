@@ -72,41 +72,44 @@ public class BoundarySqlBuilder {
     SimpleDateFormat df = new SimpleDateFormat(Period.DEFAULT_DATE_FORMAT);
 
     for (AnalyticsPeriodBoundary boundary : boundaries) {
-      if (boundary == null) continue;
-      if (boundary.getAnalyticsPeriodBoundaryType() == null) continue;
-      if (boundary.getBoundaryTarget() == null) continue;
+      if (boundary == null || boundary.getAnalyticsPeriodBoundaryType() == null || boundary.getBoundaryTarget() == null) continue;
 
       /* Resolve DB column */
-      String dbColumn;
+      String dbColumn = resolveDbColumn(boundary, defaultEventTimeColumn);
 
-      if (boundary.isEventDateBoundary()) dbColumn = defaultEventTimeColumn;
-      else if (boundary.isEnrollmentDateBoundary()) dbColumn = DB_ENROLLMENT_DATE;
-      else if (boundary.isIncidentDateBoundary()) dbColumn = DB_INCIDENT_DATE;
-      else if (boundary.isScheduledDateBoundary()) dbColumn = DB_SCHEDULED_DATE;
-      else {
+      // Skip if unsupported boundary type
+      if (dbColumn == null) {
         log.warn(
-            "Unsupported boundary type {} for PI {}",
-            boundary.getAnalyticsPeriodBoundaryType(),
-            pi.getUid());
+                "Unsupported boundary type {} for PI {}",
+                boundary.getAnalyticsPeriodBoundaryType(),
+                pi.getUid());
         continue;
       }
 
-      /* Resolve boundary date */
+      // Try to resolve boundary date
       Date bd = boundary.getBoundaryDate(reportingStart, reportingEnd);
       if (bd == null) {
         log.warn("Cannot compute date for boundary {} in PI {}", boundary.getUid(), pi.getUid());
         continue;
       }
 
-      /* Build operator + clause */
+      // Build operator + clause
       String op = boundary.getAnalyticsPeriodBoundaryType().isEndBoundary() ? "<" : ">=";
       sql.append(" and ")
-          .append(qb.quote(dbColumn))
-          .append(' ')
-          .append(op)
-          .append(' ')
-          .append(qb.singleQuote(df.format(bd)));
+              .append(qb.quote(dbColumn))
+              .append(' ')
+              .append(op)
+              .append(' ')
+              .append(qb.singleQuote(df.format(bd)));
     }
     return sql.toString();
+  }
+
+  private String resolveDbColumn(AnalyticsPeriodBoundary boundary, String defaultEventTimeColumn) {
+    if (boundary.isEventDateBoundary()) return defaultEventTimeColumn;
+    if (boundary.isEnrollmentDateBoundary()) return DB_ENROLLMENT_DATE;
+    if (boundary.isIncidentDateBoundary()) return DB_INCIDENT_DATE;
+    if (boundary.isScheduledDateBoundary()) return DB_SCHEDULED_DATE;
+    return null;
   }
 }
