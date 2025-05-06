@@ -700,7 +700,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
     if (params.hasEnrollmentStatus()) {
       sql.append("and en.status = :enrollmentStatus ");
-      sqlParameters.addValue("enrollmentStatus", params.getEnrollmentStatus());
+      sqlParameters.addValue("enrollmentStatus", params.getEnrollmentStatus().name());
     }
 
     if (params.hasFollowUp()) {
@@ -710,22 +710,26 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
     if (params.hasProgramEnrollmentStartDate()) {
       sql.append("and en.enrollmentdate >= :enrollmentStartDate ");
-      sqlParameters.addValue("enrollmentStartDate", params.getProgramEnrollmentStartDate());
+      sqlParameters.addValue(
+          "enrollmentStartDate", timestampParameter(params.getProgramEnrollmentStartDate()));
     }
 
     if (params.hasProgramEnrollmentEndDate()) {
       sql.append("and en.enrollmentdate <= :enrollmentEndDate ");
-      sqlParameters.addValue("enrollmentEndDate", params.getProgramEnrollmentEndDate());
+      sqlParameters.addValue(
+          "enrollmentEndDate", timestampParameter(params.getProgramEnrollmentEndDate()));
     }
 
     if (params.hasProgramIncidentStartDate()) {
       sql.append("and en.occurreddate >= :occurredStartDate ");
-      sqlParameters.addValue("occurredStartDate", params.getProgramIncidentStartDate());
+      sqlParameters.addValue(
+          "occurredStartDate", timestampParameter(params.getProgramIncidentStartDate()));
     }
 
     if (params.hasProgramIncidentEndDate()) {
       sql.append("and en.occurreddate <= :occurredEndDate ");
-      sqlParameters.addValue("occurredEndDate", params.getProgramIncidentEndDate());
+      sqlParameters.addValue(
+          "occurredEndDate", timestampParameter(params.getProgramIncidentEndDate()));
     }
 
     if (!params.isIncludeDeleted()) {
