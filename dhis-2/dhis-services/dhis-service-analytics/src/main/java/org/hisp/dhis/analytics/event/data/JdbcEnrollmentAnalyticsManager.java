@@ -1592,11 +1592,18 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     // 3.4: Append JOINs for each relevant CTE definition
     for (String itemUid : cteContext.getCteKeysExcluding(ENROLLMENT_AGGR_BASE)) {
       CteDefinition cteDef = cteContext.getDefinitionByItemUid(itemUid);
+      String tableName = useItemUidForTable(cteDef) ? itemUid : cteDef.getAlias();
       sb.leftJoin(
-          itemUid, cteDef.getAlias(), tableAlias -> tableAlias + ".enrollment = eb.enrollment");
+          tableName, cteDef.getAlias(), tableAlias -> tableAlias + ".enrollment = eb.enrollment");
     }
 
     return sb.build();
+  }
+
+  private boolean useItemUidForTable(CteDefinition cteDefinition) {
+    return cteDefinition.getCteType() == CteDefinition.CteType.PROGRAM_INDICATOR
+        || cteDefinition.getCteType() == CteDefinition.CteType.PROGRAM_STAGE
+        || cteDefinition.getCteType() == CteDefinition.CteType.FILTER;
   }
 
   /**
@@ -1703,7 +1710,15 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    * definitions, nothing is appended.
    */
   private void addCteClause(SelectBuilder sb, CteContext cteContext) {
-    cteContext.getAliasAndDefinitionSqlMap().forEach(sb::withCTE);
+    Map<String, CteContext.SqlWithCteType> cteSqlWithTypeMap =
+        cteContext.getAliasAndDefinitionSqlMap();
+    for (Map.Entry<String, CteContext.SqlWithCteType> entry : cteSqlWithTypeMap.entrySet()) {
+      if (entry.getValue().cteType() == CteDefinition.CteType.BASE_AGGREGATION) {
+        sb.withCTE(ENROLLMENT_AGGR_BASE, entry.getValue().cteDefinitionSql());
+      } else {
+        sb.withCTE(entry.getKey(), entry.getValue().cteDefinitionSql());
+      }
+    }
   }
 
   private boolean columnIsInFormula(String col) {

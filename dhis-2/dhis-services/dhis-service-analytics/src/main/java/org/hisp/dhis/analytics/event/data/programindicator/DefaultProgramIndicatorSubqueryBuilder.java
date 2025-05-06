@@ -384,6 +384,10 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
             .filter(s -> !Strings.isNullOrEmpty(s))
             .collect(Collectors.joining(" "));
 
+    if (requiresTableAlias(function, finalProcessedExpressionSql)) {
+      finalProcessedExpressionSql = SUBQUERY_TABLE_ALIAS + "." + finalProcessedExpressionSql;
+    }
+
     return String.format(
         "select %s.enrollment, %s(%s) as value from %s as %s %s group by %s.enrollment",
         SUBQUERY_TABLE_ALIAS,
@@ -594,6 +598,10 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
     }
     log.warn("Could not find key for CTE alias: {}", alias);
     return null;
+  }
+
+  private boolean requiresTableAlias(String function, String expressionSql) {
+    return function.equalsIgnoreCase("count") && expressionSql.equalsIgnoreCase("enrollment");
   }
 
   private record FilterProcessingResult(List<String> filterAliases, String complexFilterString) {}

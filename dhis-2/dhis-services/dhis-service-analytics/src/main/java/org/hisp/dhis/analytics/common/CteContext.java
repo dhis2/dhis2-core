@@ -249,10 +249,10 @@ public class CteContext {
    * short, generated aliases for the CTEs, and the values are the corresponding CTE definition SQL
    * bodies. Preserves insertion order.
    *
-   * @return A map where key=shortAlias, value=definitionSql.
+   * @return A map where key=short alias, value=cte definition Sql + cte type.
    */
-  public Map<String, String> getAliasAndDefinitionSqlMap() {
-    Map<String, String> aliasMap = new LinkedHashMap<>();
+  public Map<String, SqlWithCteType> getAliasAndDefinitionSqlMap() {
+    Map<String, SqlWithCteType> aliasMap = new LinkedHashMap<>();
     for (Map.Entry<String, CteDefinition> entry : cteDefinitions.entrySet()) {
       CteDefinition definition = entry.getValue();
       if (definition != null) {
@@ -267,7 +267,7 @@ public class CteContext {
                 findKeyForAlias(alias),
                 entry.getKey());
           }
-          aliasMap.put(alias, definitionSql);
+          aliasMap.put(alias, new SqlWithCteType(definitionSql, definition.getCteType()));
         } else {
           log.warn("Skipping CTE with null alias or definition for key: {}", entry.getKey());
         }
@@ -321,4 +321,6 @@ public class CteContext {
   public boolean containsCte(String cteName) {
     return cteDefinitions.containsKey(cteName);
   }
+
+  public record SqlWithCteType(String cteDefinitionSql, CteDefinition.CteType cteType) {}
 }
