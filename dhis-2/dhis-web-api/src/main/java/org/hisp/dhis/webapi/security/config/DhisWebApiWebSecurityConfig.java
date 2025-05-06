@@ -34,10 +34,12 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import javax.sql.DataSource;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -149,14 +151,19 @@ public class DhisWebApiWebSecurityConfig {
   @Autowired private RequestCache requestCache;
 
   private static class CustomRequestMatcher implements RequestMatcher {
-
-    private final List<String> excludePatterns =
-        List.of("", "/", "/dhis-web-login", "/dhis-web-login/");
+    private static final Pattern p1 = Pattern.compile("^/api/apps/.+", Pattern.CASE_INSENSITIVE);
+    private static final Pattern p2 = Pattern.compile("^/apps/.+", Pattern.CASE_INSENSITIVE);
+    private static final Pattern p3 = Pattern.compile("^/dhis-web-.+", Pattern.CASE_INSENSITIVE);
+    private final List<Pattern> includePatterns = new ArrayList<>(List.of(p1, p2, p3));
 
     @Override
     public boolean matches(HttpServletRequest request) {
-      String requestURI = request.getRequestURI();
-      return excludePatterns.stream().noneMatch(pattern -> pattern.equals(requestURI));
+      String requestURI = request.getRequestURI().substring(request.getContextPath().length());
+      // This is needed for the OAuth2 authorization code flow login
+      if (requestURI.contains("/oauth2/authorize")) {
+        return true;
+      }
+      return includePatterns.stream().anyMatch(pattern -> pattern.matcher(requestURI).matches());
     }
   }
 
@@ -243,7 +250,12 @@ public class DhisWebApiWebSecurityConfig {
     }
 
     http.cors(Customizer.withDefaults());
-    http.requestCache().requestCache(requestCache);
+
+    if (dhisConfig.isEnabled(ConfigurationKey.LOGIN_SAVED_REQUESTS_ENABLE)) {
+      http.requestCache().requestCache(requestCache);
+    } else {
+      http.requestCache().disable();
+    }
 
     configureMatchers(http);
     configureCspFilter(http, dhisConfig, configurationService);
@@ -435,7 +447,7 @@ public class DhisWebApiWebSecurityConfig {
         .sessionManagement()
         .sessionFixation()
         .migrateSession()
-        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
+        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
         .enableSessionUrlRewriting(false)
         .maximumSessions(
             Integer.parseInt(dhisConfig.getProperty(ConfigurationKey.MAX_SESSIONS_PER_USER)))

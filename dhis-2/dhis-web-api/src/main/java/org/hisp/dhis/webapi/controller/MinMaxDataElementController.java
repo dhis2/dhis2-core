@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
@@ -37,22 +38,30 @@ import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletRequest;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
+import org.hisp.dhis.minmax.MinMaxCsvParser;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementQueryParams;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
+import org.hisp.dhis.minmax.MinMaxValueBatchRequest;
+import org.hisp.dhis.minmax.MinMaxValueDto;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -60,14 +69,18 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.util.ObjectUtils;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -77,12 +90,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
     classifiers = {"team:platform", "purpose:metadata"})
 @Controller
 @RequestMapping("/api/minMaxDataElements")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class MinMaxDataElementController {
   private final ContextService contextService;
 
   private final MinMaxDataElementService minMaxService;
+
+  private final DataValidator dataValidator;
 
   private final FieldFilterService fieldFilterService;
 
@@ -199,6 +213,65 @@ public class MinMaxDataElementController {
     } catch (NullPointerException e) {
       throw new WebMessageException(
           notFound("Invalid required parameters: source, dataElement, optionCombo"));
+    }
+  }
+
+  // Bulk import
+
+  @PostMapping(value = "/values", consumes = "application/json")
+  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
+  public @ResponseBody WebMessage bulkPostJson(
+      @RequestBody MinMaxValueBatchRequest request,
+      @RequestParam(value = "importStrategy", defaultValue = "UPDATE") String importStrategy)
+      throws BadRequestException {
+
+    int count;
+
+    if ("DELETE".equalsIgnoreCase(importStrategy)) {
+      count = minMaxService.deleteFromJson(request);
+    } else {
+      count = minMaxService.importFromJson(request);
+    }
+
+    return new WebMessage()
+        .setStatus(Status.OK)
+        .setHttpStatus(HttpStatus.OK)
+        .setMessage(
+            "Successfully %s %d min-max values"
+                .formatted(
+                    importStrategy.equalsIgnoreCase("DELETE") ? "deleted" : "imported", count));
+  }
+
+  @PostMapping(value = "/values", consumes = "multipart/form-data")
+  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
+  @Maturity.Alpha
+  public @ResponseBody WebMessage importMinMaxCsv(
+      @RequestParam("file") MultipartFile file,
+      @RequestParam UID dataSet,
+      @RequestParam UID orgUnit,
+      @RequestParam(value = "importStrategy", defaultValue = "UPDATE") String importStrategy)
+      throws WebMessageException {
+    try (InputStream is = file.getInputStream()) {
+      int count = 0;
+      List<MinMaxValueDto> dtos = MinMaxCsvParser.parse(is);
+      if (dtos.isEmpty()) {
+        return WebMessageUtils.badRequest("No data found in the CSV file.");
+      }
+      if (importStrategy.equalsIgnoreCase("DELETE")) {
+        count = minMaxService.deleteFromJson(new MinMaxValueBatchRequest(dataSet, orgUnit, dtos));
+      } else {
+        count = minMaxService.importFromJson(new MinMaxValueBatchRequest(dataSet, orgUnit, dtos));
+      }
+      return new WebMessage()
+          .setStatus(Status.OK)
+          .setHttpStatus(HttpStatus.OK)
+          .setMessage(
+              "Successfully %s %d min-max values"
+                  .formatted(
+                      importStrategy.equalsIgnoreCase("DELETE") ? "deleted" : "imported", count));
+    } catch (Exception e) {
+      throw new WebMessageException(
+          badRequest("Invalid CSV file. Please check the format and try again."));
     }
   }
 }

@@ -33,14 +33,9 @@ import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
-import static org.hisp.dhis.webapi.controller.tracker.export.enrollment.EnrollmentRequestParams.DEFAULT_FIELDS_PARAM;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
@@ -49,15 +44,13 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.webapi.webdomain.EndDateTime;
 import org.hisp.dhis.webapi.webdomain.StartDateTime;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -80,23 +73,9 @@ class EnrollmentRequestParamsMapperTest {
 
   private static final UID TRACKED_ENTITY_UID = UID.of("DGbr8GHG4li");
 
-  @Mock private EnrollmentFieldsParamMapper fieldsParamMapper;
+  @Mock private FieldFilterService fieldFilterService;
 
   @InjectMocks private EnrollmentRequestParamsMapper mapper;
-
-  @BeforeEach
-  void setUp() {
-    when(fieldsParamMapper.map(anyList())).thenReturn(EnrollmentParams.FALSE);
-  }
-
-  @Test
-  void testMappingDoesNotFetchOptionalEmptyQueryParametersFromDB() throws BadRequestException {
-    EnrollmentRequestParams enrollmentRequestParams = new EnrollmentRequestParams();
-
-    mapper.map(enrollmentRequestParams);
-
-    verify(fieldsParamMapper, times(1)).map(FieldFilterParser.parse(DEFAULT_FIELDS_PARAM));
-  }
 
   @Test
   void testMappingOrgUnits() throws BadRequestException {

@@ -50,7 +50,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Response.Status;
 import org.hisp.dhis.common.UID;
@@ -68,8 +67,8 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLogOperationParams;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
+import org.hisp.dhis.tracker.export.event.EventFields;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
-import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.webapi.controller.tracker.RequestHandler;
 import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
@@ -77,7 +76,6 @@ import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
 import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
@@ -91,7 +89,6 @@ import org.springframework.web.bind.annotation.RestController;
 @OpenApi.Document(classifiers = {"team:tracker", "purpose:data"})
 @RestController
 @RequestMapping("/api/tracker/events")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 class EventsExportController {
   protected static final String EVENTS = "events";
 
@@ -118,8 +115,6 @@ class EventsExportController {
 
   private final FieldFilterService fieldFilterService;
 
-  private final EventFieldsParamMapper eventsMapper;
-
   private final ObjectMapper objectMapper;
 
   private final EventChangeLogService eventChangeLogService;
@@ -130,7 +125,6 @@ class EventsExportController {
       CsvService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService,
       RequestHandler requestHandler,
       FieldFilterService fieldFilterService,
-      EventFieldsParamMapper eventsMapper,
       ObjectMapper objectMapper,
       EventChangeLogService eventChangeLogService) {
     this.eventService = eventService;
@@ -138,7 +132,6 @@ class EventsExportController {
     this.csvEventService = csvEventService;
     this.requestHandler = requestHandler;
     this.fieldFilterService = fieldFilterService;
-    this.eventsMapper = eventsMapper;
     this.objectMapper = objectMapper;
     this.eventChangeLogService = eventChangeLogService;
 
@@ -288,12 +281,16 @@ class EventsExportController {
           List<FieldPath> fields,
       TrackerIdSchemeParams idSchemeParams)
       throws NotFoundException, WebMessageException {
-    EventParams eventParams = eventsMapper.map(fields);
-
+    EventFields eventFields =
+        EventFields.of(
+            f ->
+                fieldFilterService.filterIncludes(
+                    org.hisp.dhis.webapi.controller.tracker.view.Event.class, fields, f),
+            FieldPath.FIELD_PATH_SEPARATOR);
     MappingErrors errors = new MappingErrors(idSchemeParams);
     org.hisp.dhis.webapi.controller.tracker.view.Event event =
         EVENTS_MAPPER.map(
-            idSchemeParams, errors, eventService.getEvent(uid, idSchemeParams, eventParams));
+            idSchemeParams, errors, eventService.getEvent(uid, idSchemeParams, eventFields));
     ensureNoMappingErrors(errors);
 
     return requestHandler.serve(event, fields);

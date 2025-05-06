@@ -46,37 +46,47 @@ import org.hisp.dhis.tracker.TrackerType;
 
 public interface RelationshipService {
 
-  /** Find all relationship items matching given params. */
+  /**
+   * Find all relationship items matching given params while only fetching the minimum required
+   * {@code fields}.
+   */
   @Nonnull
   Set<RelationshipItem> findRelationshipItems(
-      TrackerType trackerType, UID uid, boolean includeDeleted);
+      @Nonnull TrackerType trackerType,
+      @Nonnull UID uid,
+      @Nonnull RelationshipFields fields,
+      boolean includeDeleted);
 
   /** Find all relationships matching given params. */
   @Nonnull
-  List<Relationship> findRelationships(RelationshipOperationParams params)
+  List<Relationship> findRelationships(@Nonnull RelationshipOperationParams params)
       throws ForbiddenException, NotFoundException, BadRequestException;
 
   /** Get a page of relationships matching given params. */
   @Nonnull
-  Page<Relationship> findRelationships(RelationshipOperationParams params, PageParams pageParams)
+  Page<Relationship> findRelationships(
+      @Nonnull RelationshipOperationParams params, @Nonnull PageParams pageParams)
       throws ForbiddenException, NotFoundException, BadRequestException;
 
   /**
    * Get a relationship matching given {@code UID} under the privileges of the currently
    * authenticated user. Returns an {@link Optional} indicating whether the relationship was found.
    *
+   * <p>This will not fetch {@link Relationship#getFrom()} and {@link Relationship#getTo()}.
+   *
    * @return an {@link Optional} containing the relationship if found, or an empty {@link Optional}
    *     if not
    */
   @Nonnull
-  Optional<Relationship> findRelationship(UID uid);
+  Optional<Relationship> findRelationship(@Nonnull UID uid);
 
   /**
    * Get a relationship matching given {@code UID} under the privileges of the currently
-   * authenticated user.
+   * authenticated user while only fetching the minimum required {@code fields}.
    */
   @Nonnull
-  Relationship getRelationship(UID uid) throws ForbiddenException, NotFoundException;
+  Relationship getRelationship(@Nonnull UID uid, @Nonnull RelationshipFields fields)
+      throws ForbiddenException, NotFoundException;
 
   /**
    * Find relationships matching given {@code UID}s under the privileges of the currently

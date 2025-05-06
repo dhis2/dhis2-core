@@ -35,18 +35,12 @@ import jakarta.persistence.TypedQuery;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.util.DateUtils;
 
 /**
@@ -282,61 +276,6 @@ public final class QueryUtils {
       case "!null" -> "is not null";
       default -> throw new QueryParserException("`" + operator + "` is not a valid operator.");
     };
-  }
-
-  /**
-   * Converts the specified string orders (e.g. <code>name:asc</code>) to order objects.
-   *
-   * @param orders the order strings that should be converted.
-   * @param schema the schema that should be used to perform the conversion.
-   * @return the converted order.
-   */
-  @Nonnull
-  public static List<Order> convertOrderStrings(
-      @Nullable Collection<String> orders, @Nonnull Schema schema) {
-    if (orders == null) {
-      return Collections.emptyList();
-    }
-
-    final Map<String, Order> result = new LinkedHashMap<>();
-    for (String o : orders) {
-      String[] split = o.split(":");
-
-      String direction = "asc";
-
-      if (split.length < 1) {
-        continue;
-      }
-      if (split.length == 2) {
-        direction = split[1].toLowerCase();
-      }
-
-      String propertyName = split[0];
-      Property property = schema.getProperty(propertyName);
-
-      if (result.containsKey(propertyName)
-          || !schema.hasProperty(propertyName)
-          || !validProperty(property)
-          || !validDirection(direction)) {
-        continue;
-      }
-
-      result.put(propertyName, Order.from(direction, property));
-    }
-
-    return new ArrayList<>(result.values());
-  }
-
-  private static boolean validProperty(Property property) {
-    return property.isSimple()
-        || (property.getPropertyType() != null && property.getPropertyType().isSimple());
-  }
-
-  private static boolean validDirection(String direction) {
-    return "asc".equals(direction)
-        || "desc".equals(direction)
-        || "iasc".equals(direction)
-        || "idesc".equals(direction);
   }
 
   /**

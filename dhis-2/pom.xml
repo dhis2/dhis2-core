@@ -7,16 +7,21 @@
   <packaging>pom</packaging>
   <name>DHIS2</name>
 
-  <description>DHIS2 is a free and open-source software platform for collecting, managing, analyzing, and sharing data.
-    It supports online and offline data capture via web and mobile devices, and includes built-in features for data validation and visualization.
-    The generic DHIS2 data model supports both routine aggregate/statistical data collection and individual/event data, and can be applied to use cases in any sector, allowing decentralized access to data throughout an organizational hierarchy.
+  <description>DHIS2 is a free and open-source software platform for collecting, managing, 
+    analyzing, and sharing data. It supports online and offline data capture via web and mobile 
+    devices, and includes built-in features for data validation and visualization. The generic DHIS2 
+    data model supports both routine aggregate/statistical data collection and individual/event 
+    data, and can be applied to use cases in any sector, allowing decentralized access to data 
+    throughout an organizational hierarchy.
+    
     DHIS2 is fully customizable through the user interface without the need for coding skills,
-    and can be extended with custom applications, scripts, and integrations.
-    Each DHIS2 instance and the data stored within it are locally owned and managed.
+    and can be extended with custom applications, scripts, and integrations. Each DHIS2 instance and 
+    the data stored within it are locally owned and managed.
 
-    DHIS2 is designed and developed by the HISP Centre at University of Oslo,
-    with the goal of strengthening governance systems in low- and middle-income countries.
-    It is shared as a Digital Public Good.</description>
+    DHIS2 is designed and developed by the HISP Centre at University of Oslo, with the goal of 
+    strengthening governance systems in low- and middle-income countries. It is shared as a Digital 
+    Public Good.</description>
+
   <url>https://dhis2.org</url>
 
   <organization>
@@ -104,7 +109,7 @@
 
     <!-- Spring -->
     <spring.version>6.2.3</spring.version>
-    <spring-session-core.version>3.4.2</spring-session-core.version>
+    <spring-session-core.version>3.4.3</spring-session-core.version>
     <spring-data-redis.version>2.7.18</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.4</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
@@ -112,10 +117,10 @@
     <spring-restdocs.version>2.0.8.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.4</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.5.5.RELEASE</lettuce.version>
+    <lettuce.version>6.6.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>11.7.1</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>11.8.0</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <ehcache3.version>3.10.8</ehcache3.version>
     <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
@@ -126,8 +131,8 @@
     <postgresql-driver.version>42.7.5</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.10.1</datasource-proxy.version>
-    <mysql-connector-j.version>9.2.0</mysql-connector-j.version>
-    <clickhouse-jdbc.version>0.8.3</clickhouse-jdbc.version>
+    <mysql-connector-j.version>9.3.0</mysql-connector-j.version>
+    <clickhouse-jdbc.version>0.8.5</clickhouse-jdbc.version>
 
     <!-- Servlet -->
     <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
@@ -137,7 +142,7 @@
     <velocity-tools.version>3.1</velocity-tools.version>
 
     <!-- Jackson -->
-    <jackson.version>2.18.3</jackson.version>
+    <jackson.version>2.19.0</jackson.version>
     <jackson-datatype-jts.version>2.14</jackson-datatype-jts.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
 
@@ -168,7 +173,7 @@
     <jts.version>1.20.0</jts.version>
 
     <!-- Apache Artemis -->
-    <artemis-jakarta.version>2.40.0</artemis-jakarta.version>
+    <artemis-jakarta.version>2.41.0</artemis-jakarta.version>
     <netty-all.version>4.2.0.Final</netty-all.version>
     <classgraph.version>4.8.179</classgraph.version>
 
@@ -178,7 +183,7 @@
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
     <jsmpp.version>3.0.1</jsmpp.version>
     <json-path.version>2.9.0</json-path.version>
-    <jsoup.version>1.19.1</jsoup.version>
+    <jsoup.version>1.20.1</jsoup.version>
 
     <!-- Div. utils -->
     <guava.version>33.4.8-jre</guava.version>
@@ -189,7 +194,7 @@
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <joda-time.version>2.14.0</joda-time.version>
     <cron-utils.version>9.2.1</cron-utils.version>
-    <commons-collections4.version>4.4</commons-collections4.version>
+    <commons-collections4.version>4.5.0</commons-collections4.version>
     <commons-beanutils.version>1.10.1</commons-beanutils.version>
     <commons-lang3.version>3.17.0</commons-lang3.version>
     <commons-text.version>1.13.1</commons-text.version>
@@ -200,7 +205,7 @@
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
     <httpcomponents-core.version>5.3.4</httpcomponents-core.version>
-    <httpcomponents-client5.version>5.4.3</httpcomponents-client5.version>
+    <httpcomponents-client5.version>5.4.4</httpcomponents-client5.version>
     <kafka.version>4.0.0</kafka.version>
 
     <!-- Monitoring -->
@@ -217,7 +222,7 @@
     <mockito.version>5.2.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>3.0</hamcrest.version>
-    <testcontainers.version>1.20.6</testcontainers.version>
+    <testcontainers.version>1.21.0</testcontainers.version>
     <jsonassert.version>1.5.3</jsonassert.version>
     <awaitility.version>4.3.0</awaitility.version>
     <swagger.version>2.1.26</swagger.version>
@@ -245,7 +250,7 @@
     <jrebel-x-maven-plugin.version>1.2.0</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.36</dhis-antlr-expression-parser.version>
     <jai-imageio.version>1.1.1</jai-imageio.version>
-    <gson.version>2.13.0</gson.version>
+    <gson.version>2.13.1</gson.version>
     <semver4j.version>3.1.0</semver4j.version>
     <opentelemetry.version>2.15.0</opentelemetry.version>
   </properties>
@@ -602,7 +607,7 @@
       <dependency>
         <groupId>org.springframework.security</groupId>
         <artifactId>spring-security-oauth2-authorization-server</artifactId>
-        <version>1.4.2</version>
+        <version>1.4.3</version>
       </dependency>
 
       <!-- OAuth 2.0 -->
@@ -2344,7 +2349,6 @@ jasperreports.version=${jasperreports.version}
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
-        <version>${maven-dependency-plugin.version}</version>
         <executions>
           <execution>
             <id>analyze</id>
@@ -2362,9 +2366,11 @@ jasperreports.version=${jasperreports.version}
         <artifactId>jacoco-maven-plugin</artifactId>
       </plugin>
     </plugins>
-    <!-- <build><sourceDirectory> cannot be set in a profile, so it needs
+    <!--
+      <build><sourceDirectory> cannot be set in a profile, so it needs
       a custom property for overwriting it, see
-      https://github.com/awhitford/lombok.maven/issues/17#issuecomment-136606104 -->
+      https://github.com/awhitford/lombok.maven/issues/17#issuecomment-136606104 
+    -->
     <sourceDirectory>${sourceDir}</sourceDirectory>
   </build>
 

@@ -30,8 +30,10 @@
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
 import static org.hisp.dhis.http.HttpStatus.BAD_REQUEST;
+import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
+import static org.hisp.dhis.test.webapi.Assertions.assertNoDiff;
 import static org.hisp.dhis.webapi.controller.tracker.Assertions.*;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContains;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
@@ -53,6 +55,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonDiff.Mode;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -116,6 +119,23 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
   @BeforeEach
   void setUpUser() {
     switchContextToUser(importUser);
+  }
+
+  @Test
+  void getEnrollmentByPathIsIdenticalToQueryParam() {
+    Enrollment enrollment = get(Enrollment.class, "TvctPPhpD8z");
+
+    JsonEnrollment pathEnrollment =
+        GET("/tracker/enrollments/{id}?fields=*", enrollment.getUid())
+            .content(HttpStatus.OK)
+            .as(JsonEnrollment.class);
+    JsonList<JsonEnrollment> queryEnrollment =
+        GET("/tracker/enrollments?fields=*&enrollments={id}", enrollment.getUid())
+            .content(HttpStatus.OK)
+            .getList("enrollments", JsonEnrollment.class);
+
+    assertHasSize(1, queryEnrollment.stream().toList());
+    assertNoDiff(pathEnrollment, queryEnrollment.get(0), Mode.LENIENT);
   }
 
   @Test
