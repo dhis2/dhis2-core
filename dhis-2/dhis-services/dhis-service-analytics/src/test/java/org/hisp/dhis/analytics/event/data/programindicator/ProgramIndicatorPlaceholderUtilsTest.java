@@ -32,6 +32,7 @@ package org.hisp.dhis.analytics.event.data.programindicator;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.D2_FUNCTION;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.PSDE;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.VARIABLE;
+import static org.hisp.dhis.program.AnalyticsPeriodBoundary.EVENT_DATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -495,30 +496,22 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
           String.format("psdecte_%s_%s_%d_%s_%s", psUid, deUid, offset, boundaryHash, piUid);
 
       // Setup boundaries on the ProgramIndicator mock
-      AnalyticsPeriodBoundary boundary1 = mock(AnalyticsPeriodBoundary.class);
-      AnalyticsPeriodBoundary boundary2 = mock(AnalyticsPeriodBoundary.class);
+      AnalyticsPeriodBoundary boundary1 = createEventDateBoundary(AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD);
+
+      AnalyticsPeriodBoundary boundary2 = createScheduledDateBoundary(AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD);
       Set<AnalyticsPeriodBoundary> boundaries = Set.of(boundary1, boundary2);
       programIndicator.setAnalyticsPeriodBoundaries(boundaries); // Set boundaries on the mock
 
-      when(boundary1.getUid()).thenReturn("BoundUID1");
-      when(boundary2.getUid()).thenReturn("BoundUID2");
-      when(boundary1.getAnalyticsPeriodBoundaryType())
-          .thenReturn(AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD); // >=
-      when(boundary2.getAnalyticsPeriodBoundaryType())
-          .thenReturn(AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD); // <
+
       Date boundaryDate1 = dateFormat.parse("2024-02-15");
       Date boundaryDate2 = dateFormat.parse("2024-11-30");
-      when(boundary1.getBoundaryDate(startDate, endDate)).thenReturn(boundaryDate1);
-      when(boundary2.getBoundaryDate(startDate, endDate)).thenReturn(boundaryDate2);
-      when(boundary1.isEventDateBoundary()).thenReturn(true);
-      when(boundary2.isScheduledDateBoundary()).thenReturn(true);
 
       String result =
           processPsDePlaceholdersAndGenerateCtes(
               placeholderString,
               programIndicator,
-              startDate,
-              endDate,
+              boundaryDate1,
+              boundaryDate2,
               cteContext,
               psdeAliasMap,
               sqlBuilder);
@@ -528,7 +521,7 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
       // Verify CTE SQL includes boundary conditions (order might vary based on Set iteration)
       String cteSql = cteDef.getCteDefinition();
       assertTrue(cteSql.contains("and \"occurreddate\" >= '2024-02-15'"));
-      assertTrue(cteSql.contains("and \"scheduleddate\" < '2024-11-30'"));
+      assertTrue(cteSql.contains("and \"scheduleddate\" < '2024-12-01'")); // set to plusDays(1) by AnalyticsPeriodBoundary
       assertTrue(cteSql.contains("ps = '" + psUid + "'")); // Ensure PS condition is still there
       assertTrue(
           cteSql.contains(
@@ -538,6 +531,24 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
       String alias = assertPlaceholderMapped(placeholderString, expectedCteKey, psdeAliasMap);
       assertEquals(1, psdeAliasMap.size());
       assertEquals("coalesce(" + alias + ".value, 0)", result);
+    }
+
+    private AnalyticsPeriodBoundary createEventDateBoundary(
+            AnalyticsPeriodBoundaryType boundaryType) {
+      AnalyticsPeriodBoundary boundary = new AnalyticsPeriodBoundary();
+      boundary.setUid("event-boundary");
+      boundary.setAnalyticsPeriodBoundaryType(boundaryType);
+      boundary.setBoundaryTarget(EVENT_DATE);
+      return boundary;
+    }
+
+    private AnalyticsPeriodBoundary createScheduledDateBoundary(
+            AnalyticsPeriodBoundaryType boundaryType) {
+      AnalyticsPeriodBoundary boundary = new AnalyticsPeriodBoundary();
+      boundary.setUid("scheduled-boundary");
+      boundary.setAnalyticsPeriodBoundaryType(boundaryType);
+      boundary.setBoundaryTarget(AnalyticsPeriodBoundary.SCHEDULED_DATE);
+      return boundary;
     }
 
     @Test
