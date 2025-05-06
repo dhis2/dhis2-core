@@ -60,7 +60,6 @@ import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -143,11 +142,13 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
   @Column(name = "name", nullable = false, unique = true, length = 230)
   private String name;
 
-  @Column(name = "translations")
+  @Column
   @Type(
-      type = "jblTranslations",
+      type = "org.hisp.dhis.hibernate.jsonb.type.JsonSetBinaryType",
       parameters = {@Parameter(name = "clazz", value = "org.hisp.dhis.translation.Translation")})
-  private Set<Translation> translations;
+  private Set<Translation> translations = new HashSet<>();
+
+  ;
 
   @ManyToMany(fetch = FetchType.LAZY)
   @JoinTable(
@@ -579,8 +580,25 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
     return 0;
   }
 
+  @Gist(included = Include.FALSE)
+  @Override
+  @Sortable(value = false)
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
   public Set<Translation> getTranslations() {
-    return translations == null ? Collections.emptySet() : new HashSet<>();
+    if (translations == null) {
+      translations = new HashSet<>();
+    }
+
+    return translations;
+  }
+
+  /** Clears out cache when setting translations. */
+  @Override
+  public void setTranslations(Set<Translation> translations) {
+    this.translationCache.clear();
+    this.translations = translations;
   }
 
   @Override
