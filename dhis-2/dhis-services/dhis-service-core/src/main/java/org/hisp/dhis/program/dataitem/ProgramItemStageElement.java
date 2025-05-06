@@ -52,6 +52,7 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
@@ -105,28 +106,34 @@ public class ProgramItemStageElement extends ProgramExpressionItem {
     if (!visitor.isUseExperimentalSqlEngine()) {
       return getSqlLegacy(ctx, visitor);
     }
+
     assumeStageElementSyntax(ctx);
 
-    // Extract parameters
-    String programStageId = ctx.uid0.getText();
-    String dataElementId = ctx.uid1.getText();
     ProgramExpressionParams progParams = visitor.getProgParams();
     ProgramIndicator programIndicator = progParams.getProgramIndicator();
-    Date reportingStartDate = progParams.getReportingStartDate();
-    Date reportingEndDate = progParams.getReportingEndDate();
-    int stageOffsetRaw = visitor.getState().getStageOffset();
+    AnalyticsType analyticsType = programIndicator.getAnalyticsType();
 
-    // Treat MIN_VALUE (no explicit offset) as 0 (latest event)
-    int stageOffset = (stageOffsetRaw == Integer.MIN_VALUE) ? 0 : stageOffsetRaw;
+    if (AnalyticsType.ENROLLMENT == analyticsType) {
+      String programStageId = ctx.uid0.getText();
+      String dataElementId = ctx.uid1.getText();
+      Date reportingStartDate = progParams.getReportingStartDate();
+      Date reportingEndDate = progParams.getReportingEndDate();
+      int stageOffsetRaw = visitor.getState().getStageOffset();
 
-    // Generate boundary hash using the internal helper method
-    String boundaryHash =
-        generateBoundaryHash(programIndicator, reportingStartDate, reportingEndDate);
+      // Treat MIN_VALUE (no explicit offset) as 0 (latest event)
+      int stageOffset = (stageOffsetRaw == Integer.MIN_VALUE) ? 0 : stageOffsetRaw;
 
-    // Construct the placeholder string
-    return String.format(
-        "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='%d', boundaryHash='%s', piUid='%s')",
-        programStageId, dataElementId, stageOffset, boundaryHash, programIndicator.getUid());
+      // Generate boundary hash using the internal helper method
+      String boundaryHash =
+          generateBoundaryHash(programIndicator, reportingStartDate, reportingEndDate);
+
+      // Construct the placeholder string
+      return String.format(
+          "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='%d', boundaryHash='%s', piUid='%s')",
+          programStageId, dataElementId, stageOffset, boundaryHash, programIndicator.getUid());
+    } else { // no need to emit a placeholder for event analytics
+      return getSqlLegacy(ctx, visitor);
+    }
   }
 
   /**
