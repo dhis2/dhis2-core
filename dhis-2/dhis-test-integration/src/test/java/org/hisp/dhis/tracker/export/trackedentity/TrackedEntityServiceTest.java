@@ -1487,24 +1487,54 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
 
     assertNotEmpty(trackedEntities);
-    AtomicBoolean hasEnrollments = new AtomicBoolean();
     trackedEntities.forEach(
-        te ->
-            te.getEnrollments()
-                .forEach(
-                    enrollment -> {
-                      hasEnrollments.set(true);
-                      assertEquals(
-                          EnrollmentStatus.ACTIVE,
-                          enrollment.getStatus(),
-                          "Enrollment "
-                              + enrollment.getUid()
-                              + " has unexpected status: "
-                              + enrollment.getStatus());
-                    }));
-    assertTrue(
-        hasEnrollments.get(),
-        "test expects at least one tracked entity to have at least one enrollment");
+        te -> {
+          AtomicBoolean hasEnrollment = new AtomicBoolean();
+          te.getEnrollments()
+              .forEach(
+                  enrollment -> {
+                    if (EnrollmentStatus.ACTIVE == enrollment.getStatus()) {
+                      hasEnrollment.set(true);
+                    }
+                  });
+          assertTrue(
+              hasEnrollment.get(),
+              "test expects each tracked entity to have at least one enrollment");
+        });
+  }
+
+  @Test
+  void shouldReturnTrackedEntityWithEnrollmentsMarkedForFollowUp()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    TrackedEntityFields fields =
+        TrackedEntityFields.builder().includeEnrollments(EnrollmentFields.all()).build();
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnitA)
+            .orgUnitMode(SELECTED)
+            .trackedEntityType(trackedEntityTypeA)
+            .followUp(true)
+            .program(programA)
+            .fields(fields)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
+
+    assertNotEmpty(trackedEntities);
+    trackedEntities.forEach(
+        te -> {
+          AtomicBoolean hasEnrollment = new AtomicBoolean();
+          te.getEnrollments()
+              .forEach(
+                  enrollment -> {
+                    if (Boolean.TRUE.equals(enrollment.getFollowup())) {
+                      hasEnrollment.set(true);
+                    }
+                  });
+          assertTrue(
+              hasEnrollment.get(),
+              "test expects each tracked entity to have at least one enrollment");
+        });
   }
 
   @Test

@@ -704,7 +704,7 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
     }
 
     if (params.hasFollowUp()) {
-      sql.append("and en.followup IS :followUp ");
+      sql.append("and en.followup = :followUp ");
       sqlParameters.addValue("followUp", params.getFollowUp());
     }
 
