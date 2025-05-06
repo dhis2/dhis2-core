@@ -108,6 +108,8 @@ class ProgramNotificationInstanceServiceTest extends PostgresIntegrationTestBase
         expectedNotifications,
         instances.size(),
         "Expected " + expectedNotifications + " notification instances, but got " + instances);
+
+    instances.forEach(instance -> assertEquals(DATE, instance.getScheduledAt()));
   }
 
   private String createNotification() {
