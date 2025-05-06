@@ -496,12 +496,13 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
           String.format("psdecte_%s_%s_%d_%s_%s", psUid, deUid, offset, boundaryHash, piUid);
 
       // Setup boundaries on the ProgramIndicator mock
-      AnalyticsPeriodBoundary boundary1 = createEventDateBoundary(AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD);
+      AnalyticsPeriodBoundary boundary1 =
+          createEventDateBoundary(AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD);
 
-      AnalyticsPeriodBoundary boundary2 = createScheduledDateBoundary(AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD);
+      AnalyticsPeriodBoundary boundary2 =
+          createScheduledDateBoundary(AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD);
       Set<AnalyticsPeriodBoundary> boundaries = Set.of(boundary1, boundary2);
       programIndicator.setAnalyticsPeriodBoundaries(boundaries); // Set boundaries on the mock
-
 
       Date boundaryDate1 = dateFormat.parse("2024-02-15");
       Date boundaryDate2 = dateFormat.parse("2024-11-30");
@@ -521,7 +522,8 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
       // Verify CTE SQL includes boundary conditions (order might vary based on Set iteration)
       String cteSql = cteDef.getCteDefinition();
       assertTrue(cteSql.contains("and \"occurreddate\" >= '2024-02-15'"));
-      assertTrue(cteSql.contains("and \"scheduleddate\" < '2024-12-01'")); // set to plusDays(1) by AnalyticsPeriodBoundary
+      assertTrue(cteSql.contains("and \"scheduleddate\" < '2024-12-01'")); // set to plusDays(1) by
+      // AnalyticsPeriodBoundary
       assertTrue(cteSql.contains("ps = '" + psUid + "'")); // Ensure PS condition is still there
       assertTrue(
           cteSql.contains(
@@ -534,7 +536,7 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
     }
 
     private AnalyticsPeriodBoundary createEventDateBoundary(
-            AnalyticsPeriodBoundaryType boundaryType) {
+        AnalyticsPeriodBoundaryType boundaryType) {
       AnalyticsPeriodBoundary boundary = new AnalyticsPeriodBoundary();
       boundary.setUid("event-boundary");
       boundary.setAnalyticsPeriodBoundaryType(boundaryType);
@@ -543,7 +545,7 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
     }
 
     private AnalyticsPeriodBoundary createScheduledDateBoundary(
-            AnalyticsPeriodBoundaryType boundaryType) {
+        AnalyticsPeriodBoundaryType boundaryType) {
       AnalyticsPeriodBoundary boundary = new AnalyticsPeriodBoundary();
       boundary.setUid("scheduled-boundary");
       boundary.setAnalyticsPeriodBoundaryType(boundaryType);
