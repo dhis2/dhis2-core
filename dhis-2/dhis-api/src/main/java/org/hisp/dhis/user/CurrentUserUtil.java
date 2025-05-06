@@ -62,7 +62,11 @@ public class CurrentUserUtil {
     if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
       org.springframework.security.core.userdetails.UserDetails userDetails =
           (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal();
-      return userDetails.getUsername();
+      String username = userDetails.getUsername();
+      if(username==null){
+        throw new IllegalStateException("Username is NULL!!!");
+      }
+      return username;
 
     } else {
       throw new IllegalStateException(
