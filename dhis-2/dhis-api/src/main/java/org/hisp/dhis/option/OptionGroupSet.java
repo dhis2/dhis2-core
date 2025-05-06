@@ -44,6 +44,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 
 /**
@@ -82,7 +83,7 @@ public class OptionGroupSet extends BaseDimensionalObject implements MetadataObj
   }
 
   @JsonProperty("optionSet")
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(localName = "optionSet", namespace = DxfNamespaces.DXF_2_0)
   public OptionSet getOptionSet() {
     return optionSet;
