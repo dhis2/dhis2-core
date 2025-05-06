@@ -43,7 +43,6 @@ import java.io.InputStream;
 import java.util.Deque;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.StreamUtils;
@@ -72,7 +71,6 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.Note;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.locationtech.jts.io.ParseException;
 import org.mapstruct.factory.Mappers;
@@ -98,7 +96,6 @@ import org.springframework.web.client.HttpStatusCodeException;
     classifiers = {"team:tracker", "purpose:data"})
 @RestController
 @RequestMapping("/api/tracker")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
 public class TrackerImportController {
   static final String TRACKER_JOB_ADDED = "Tracker job added";

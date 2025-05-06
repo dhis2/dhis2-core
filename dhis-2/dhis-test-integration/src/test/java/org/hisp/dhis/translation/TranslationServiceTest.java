@@ -41,6 +41,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationType;
@@ -331,9 +332,24 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  public void testDisplayNameWithNoTranslation() {
+  void testDisplayNameWithNoTranslation() {
     DataElement dataElementA = createDataElement('A');
     manager.save(dataElementA);
     assertEquals("DataElementA", dataElementA.getDisplayName());
+  }
+
+  @Test
+  void testDashboardItemTextTranslation() {
+    DashboardItem dashboardItem = new DashboardItem();
+    dashboardItem.setText("Dashboard Item");
+    dashboardItem.setAutoFields();
+    manager.save(dashboardItem);
+
+    String translatedText = "Translated Dashboard Item";
+    Set<Translation> translations = new HashSet<>();
+    translations.add(new Translation(locale.getLanguage(), "TEXT", translatedText));
+    manager.updateTranslations(dashboardItem, translations);
+    dashboardItem = manager.get(DashboardItem.class, dashboardItem.getUid());
+    assertEquals(translatedText, dashboardItem.getDisplayText());
   }
 }

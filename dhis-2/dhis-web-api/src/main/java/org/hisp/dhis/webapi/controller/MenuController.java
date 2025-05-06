@@ -33,13 +33,11 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.InputStream;
 import java.util.List;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -52,7 +50,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
     classifiers = {"team:extensibility", "purpose:support"})
 @Controller
 @RequestMapping("/api/menu")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class MenuController {
 
   @Autowired private UserService userService;

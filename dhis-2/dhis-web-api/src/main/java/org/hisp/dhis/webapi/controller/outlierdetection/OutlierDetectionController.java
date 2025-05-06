@@ -36,7 +36,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.AllArgsConstructor;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.datavalue.DataValue;
@@ -47,7 +46,6 @@ import org.hisp.dhis.outlierdetection.parser.OutlierDetectionQueryParser;
 import org.hisp.dhis.outlierdetection.service.DefaultOutlierDetectionService;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.validation.outlierdetection.ValidationOutlierDetectionRequest;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -63,7 +61,6 @@ import org.springframework.web.bind.annotation.RestController;
     classifiers = {"team:platform", "purpose:data"})
 @RestController
 @AllArgsConstructor
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiresAuthority(anyOf = F_RUN_VALIDATION)
 public class OutlierDetectionController {
 

@@ -44,7 +44,6 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Locale;
 import lombok.Value;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
@@ -68,7 +67,6 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.webapi.CsvBuilder;
 import org.hisp.dhis.webapi.JsonBuilder;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -84,7 +82,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @Maturity.Stable
 @OpenApi.EntityType(OpenApi.EntityType.class)
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @OpenApi.Document(group = OpenApi.Document.GROUP_QUERY)
 public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject> {
   @Autowired protected ObjectMapper jsonMapper;
@@ -230,6 +227,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
         .elementType(elementType)
         .autoType(params.getAuto(autoDefault))
         .contextRoot(ContextUtils.getRootPath(ContextUtils.getRequest()))
+        .requestURL(ContextUtils.getRequestURL())
         .translationLocale(translationLocale)
         .typedAttributeValues(true)
         .build()

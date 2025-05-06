@@ -88,7 +88,7 @@ class DataValuesValidatorTest {
 
   private static final String DATA_ELEMENT_UID = "dataElement";
 
-  private static final String ORGANISATION_UNIT_UID = "organisationUnitUid";
+  private static final String ORGANISATION_UNIT_UID = UID.generate().getValue();
 
   @Mock private TrackerBundle bundle;
 
@@ -462,7 +462,7 @@ class DataValuesValidatorTest {
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
     validator.validate(reporter, bundle, event);
 
-    assertHasError(reporter, event, ValidationCode.E1084);
+    assertHasError(reporter, event, ValidationCode.E1302);
   }
 
   @Test
@@ -1000,7 +1000,6 @@ class DataValuesValidatorTest {
         .thenReturn(validDataElement);
 
     DataValue invalidDataValue = dataValue("invlaid_org_unit");
-    when(preheat.getOrganisationUnit(invalidDataValue.getValue())).thenReturn(null);
 
     ProgramStage programStage = programStage(validDataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
@@ -1016,7 +1015,7 @@ class DataValuesValidatorTest {
 
     validator.validate(reporter, bundle, event);
 
-    assertHasError(reporter, event, ValidationCode.E1007);
+    assertHasError(reporter, event, ValidationCode.E1302);
   }
 
   @Test

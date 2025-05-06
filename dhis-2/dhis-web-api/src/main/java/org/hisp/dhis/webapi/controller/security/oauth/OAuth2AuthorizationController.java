@@ -30,11 +30,9 @@
 package org.hisp.dhis.webapi.controller.security.oauth;
 
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.security.oauth2.authorization.Dhis2OAuth2Authorization;
 import org.hisp.dhis.webapi.controller.AbstractFullReadOnlyController;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -46,6 +44,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping({"/api/oAuth2Authorizations"})
 @RequiredArgsConstructor
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class OAuth2AuthorizationController
     extends AbstractFullReadOnlyController<Dhis2OAuth2Authorization, GetObjectListParams> {}

@@ -31,7 +31,6 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.AsyncUtils.conditionalAsyncFetch;
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolManager.getPool;
 
@@ -46,23 +45,19 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityIdentifiers;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -97,16 +92,11 @@ public class TrackedEntityAggregate {
 
   /**
    * Fetches a List of {@see TrackedEntity} based on the list of primary keys and search parameters
-   *
-   * @param identifiers a List of {@see TrackedEntity} primary key and uid tuples
-   * @param params an instance of {@see TrackedEntityParams}
-   * @return a List of {@see TrackedEntity} objects
    */
   public List<TrackedEntity> find(
       List<TrackedEntityIdentifiers> identifiers,
-      TrackedEntityParams params,
-      TrackedEntityQueryParams queryParams,
-      OrganisationUnitSelectionMode orgUnitMode) {
+      TrackedEntityFields fields,
+      TrackedEntityQueryParams queryParams) {
     if (identifiers.isEmpty()) {
       return Collections.emptyList();
     }
@@ -127,7 +117,7 @@ public class TrackedEntityAggregate {
                         .userUid(u.getUid())
                         .superUser(u.isSuper()))
             .orElse(Context.builder().superUser(true))
-            .params(params)
+            .fields(fields)
             .queryParams(queryParams)
             .build();
 
@@ -137,7 +127,7 @@ public class TrackedEntityAggregate {
      */
     final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync =
         conditionalAsyncFetch(
-            ctx.getParams().isIncludeEnrollments(),
+            ctx.getFields().isIncludesEnrollments(),
             () -> enrollmentAggregate.findByTrackedEntityIds(identifiers, ctx),
             getPool());
 
@@ -146,7 +136,7 @@ public class TrackedEntityAggregate {
      */
     final CompletableFuture<Multimap<String, TrackedEntityProgramOwner>> programOwnersAsync =
         conditionalAsyncFetch(
-            ctx.getParams().isIncludeProgramOwners(),
+            ctx.getFields().isIncludesProgramOwners(),
             () -> trackedEntityStore.getProgramOwners(ids),
             getPool());
 
@@ -160,21 +150,15 @@ public class TrackedEntityAggregate {
      * Async fetch TrackedEntity Attributes by TrackedEntity id
      */
     final CompletableFuture<Multimap<String, TrackedEntityAttributeValue>> attributesAsync =
-        supplyAsync(() -> trackedEntityStore.getAttributes(ids), getPool());
-
-    /*
-     * Async fetch Owned TE mapped to the provided program attributes by
-     * TrackedEntity id
-     */
-    final CompletableFuture<Multimap<String, String>> ownedTeiAsync =
         conditionalAsyncFetch(
-            user.isPresent(),
-            () -> trackedEntityStore.getOwnedTrackedEntities(ids, ctx, orgUnitMode == ALL),
+            ctx.getFields().isIncludesAttributes(),
+            () -> trackedEntityStore.getAttributes(ids),
             getPool());
+
     /*
      * Execute all queries and merge the results
      */
-    return allOf(trackedEntitiesAsync, attributesAsync, enrollmentsAsync, ownedTeiAsync)
+    return allOf(trackedEntitiesAsync, attributesAsync, enrollmentsAsync)
         .thenApplyAsync(
             fn -> {
               Map<String, TrackedEntity> trackedEntities = trackedEntitiesAsync.join();
@@ -182,22 +166,12 @@ public class TrackedEntityAggregate {
               Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
               Multimap<String, Enrollment> enrollments = enrollmentsAsync.join();
               Multimap<String, TrackedEntityProgramOwner> programOwners = programOwnersAsync.join();
-              Multimap<String, String> ownedTeis = ownedTeiAsync.join();
-
-              Stream<String> teUidStream = trackedEntities.keySet().parallelStream();
-
-              return teUidStream
+              return trackedEntities.keySet().parallelStream()
                   .map(
                       uid -> {
                         TrackedEntity te = trackedEntities.get(uid);
                         te.setTrackedEntityAttributeValues(
-                            filterAttributes(
-                                attributes.get(uid),
-                                ownedTeis.get(uid),
-                                trackedEntityAttributeService
-                                    .getTrackedEntityAttributesByTrackedEntityTypes(),
-                                trackedEntityAttributeService.getTrackedEntityAttributesByProgram(),
-                                ctx));
+                            filterAttributes(ctx.getQueryParams(), attributes.get(uid)));
                         te.setEnrollments(new HashSet<>(enrollments.get(uid)));
                         te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
                         return te;
@@ -208,28 +182,23 @@ public class TrackedEntityAggregate {
         .join();
   }
 
-  /** Filter attributes based on queryParams, ownership and superuser status */
   private Set<TrackedEntityAttributeValue> filterAttributes(
-      Collection<TrackedEntityAttributeValue> attributes,
-      Collection<String> programs,
-      Set<TrackedEntityAttribute> trackedEntityTypeAttributes,
-      Map<Program, Set<TrackedEntityAttribute>> teaByProgram,
-      Context ctx) {
+      TrackedEntityQueryParams params, Collection<TrackedEntityAttributeValue> attributes) {
     if (attributes.isEmpty()) {
       return Set.of();
     }
 
     // Add all tet attributes
     Set<String> allowedAttributeUids =
-        trackedEntityTypeAttributes.stream()
+        trackedEntityAttributeService.getTrackedEntityAttributesByTrackedEntityTypes().stream()
             .map(IdentifiableObject::getUid)
             .collect(Collectors.toSet());
 
-    if (ctx.getQueryParams().hasEnrolledInTrackerProgram()) {
-      allowedAttributeUids.addAll(
-          teaByProgram.get(ctx.getQueryParams().getEnrolledInTrackerProgram()).stream()
-              .map(IdentifiableObject::getUid)
-              .collect(Collectors.toSet()));
+    if (params.hasEnrolledInTrackerProgram()) {
+      Set<String> teasInProgram =
+          trackedEntityAttributeService.getTrackedEntityAttributesInProgram(
+              params.getEnrolledInTrackerProgram());
+      allowedAttributeUids.addAll(teasInProgram);
     }
 
     return attributes.stream()

@@ -30,8 +30,6 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.common.DhisApiVersion.ALL;
-import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
@@ -69,7 +67,6 @@ import org.hisp.dhis.fileresource.SimpleImageResource;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.setting.SystemSettings;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -93,18 +90,12 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/staticContent")
 @Slf4j
-@ApiVersion({DEFAULT, ALL})
 @RequiredArgsConstructor
 public class StaticContentController {
-  protected static final String RESOURCE_PATH = "";
-
   private final StyleManager styleManager;
   private final FileResourceContentStore contentStore;
-
   static final String LOGO_BANNER = "logo_banner";
-
   static final String LOGO_FRONT = "logo_front";
-
   private static final FileResourceDomain DEFAULT_RESOURCE_DOMAIN = DOCUMENT;
 
   /**
@@ -131,7 +122,7 @@ public class StaticContentController {
       final boolean customFileExists = contentStore.fileResourceContentExists(storageKey);
 
       if (customFileExists) {
-        final String blobEndpoint = getContextPath(request) + "/api" + RESOURCE_PATH + "/" + key;
+        final String blobEndpoint = getContextPath(request) + "/api/staticContent/" + key;
 
         final SimpleImageResource imageResource = new SimpleImageResource();
         imageResource.addImage(IMAGE_PNG.getSubtype(), blobEndpoint);

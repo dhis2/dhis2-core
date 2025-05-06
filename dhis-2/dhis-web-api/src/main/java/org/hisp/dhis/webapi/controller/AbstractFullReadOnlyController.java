@@ -54,7 +54,6 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Maturity;
@@ -86,7 +85,6 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserSettingsService;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -106,7 +104,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author Jan Bernitt
  */
 @Maturity.Stable
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @OpenApi.Document(group = OpenApi.Document.GROUP_QUERY)
 public abstract class AbstractFullReadOnlyController<
         T extends IdentifiableObject, P extends GetObjectListParams>
