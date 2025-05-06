@@ -103,9 +103,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     @Bean
     public DhisConfigurationProvider dhisConfigurationProvider() {
       Properties override = new Properties();
-      override.put(
-          ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getKey(),
-          "http://*,https://stub");
+      override.put(ConfigurationKey.ROUTE_REMOTE_SERVERS_ALLOWED.getKey(), "http://*,https://stub");
 
       PostgresDhisConfigurationProvider postgresDhisConfigurationProvider =
           new PostgresDhisConfigurationProvider(null);
