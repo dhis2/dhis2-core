@@ -621,7 +621,15 @@ public enum ErrorCode {
   E7709("Organisation unit could not be updated with new GeoJSON geometry"),
   E7710("User is not allowed to update the target organisation unit"),
   E7711("Organisation unit cannot be uniquely identified by its name"),
-  E7712("GeoJSON geometry coordinates must be non empty but was: `{0}`");
+  E7712("GeoJSON geometry coordinates must be non empty but was: `{0}`"),
+
+  /*Bulk MinMax import error codes*/
+  E7800("Error parsing MinMax CSV file: {0}"),
+  E7801("Missing required fields for min-max object: {0}"),
+  E7802("Min value is greater than or equal to Max value for: {0}"),
+  E7803("Could not resolve references for min-max object: {0}"),
+  E7804("Could not delete min-max object: {0}"),
+  E7805("Invalid UID value in min-max object: {0}");
 
   private String message;
 

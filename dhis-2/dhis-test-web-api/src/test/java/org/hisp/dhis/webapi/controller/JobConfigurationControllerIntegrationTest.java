@@ -30,9 +30,12 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.intellij.lang.annotations.Language;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,5 +63,35 @@ class JobConfigurationControllerIntegrationTest extends PostgresControllerIntegr
     assertStatus(HttpStatus.FORBIDDEN, POST("/jobConfigurations/" + jobId + "/revert"));
     switchToAdminUser();
     assertStatus(HttpStatus.CONFLICT, POST("/jobConfigurations/" + jobId + "/revert"));
+  }
+
+  @Test
+  @DisplayName("AGGREGATE_DATA_EXCHANGE job should have an executedBy value when job set up")
+  void aggregateDataExchangeJobHasExecutedByValueTest() {
+
+    // given a agg data exchange job is set up
+    @Language("json5")
+    String job =
+        """
+        {
+             "name": "adex-job-1",
+             "jobType": "AGGREGATE_DATA_EXCHANGE",
+             "cronExpression": "2 1 * ? * *",
+             "jobParameters": {
+                 "dataExchangeIds": [
+                     "RandomUid86"
+                 ]
+             }
+         }
+        """;
+    String jobId = assertStatus(HttpStatus.CREATED, POST("/jobConfigurations", job));
+
+    // when retrieving the job config
+    HttpResponse get = GET("/jobConfigurations/" + jobId);
+    assertEquals(HttpStatus.OK, get.status());
+    String executedBy = get.content().getString("executedBy").string();
+
+    // then the executedBy value should be that of the job creator
+    assertEquals("M5zQapPyTZI", executedBy);
   }
 }
