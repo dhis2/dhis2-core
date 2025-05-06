@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.category;
 
+import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -64,6 +66,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -214,6 +217,44 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
       String name, DataDimensionType dataDimensionType, List<Category> categories) {
     this(name, dataDimensionType);
     this.categories = categories;
+  }
+
+  // -------------------------------------------------------------------------
+  // hashCode and equals
+  // -------------------------------------------------------------------------
+
+  @Override
+  public int hashCode() {
+    int result = getUid() != null ? getUid().hashCode() : 0;
+    result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
+    result = 31 * result + (getName() != null ? getName().hashCode() : 0);
+
+    return result;
+  }
+
+  /** Class check uses isAssignableFrom and get-methods to handle proxied objects. */
+  @Override
+  public boolean equals(Object obj) {
+    return this == obj
+        || obj instanceof BaseIdentifiableObject
+            && getRealClass(this) == getRealClass(obj)
+            && typedEquals((IdentifiableObject) obj);
+  }
+
+  /**
+   * Equality check against typed identifiable object. This method is not vulnerable to proxy
+   * issues, where an uninitialized object class type fails comparison to a real class.
+   *
+   * @param other the identifiable object to compare this object against.
+   * @return true if equal.
+   */
+  public final boolean typedEquals(IdentifiableObject other) {
+    if (other == null) {
+      return false;
+    }
+    return Objects.equals(getUid(), other.getUid())
+        && Objects.equals(getCode(), other.getCode())
+        && Objects.equals(getName(), other.getName());
   }
 
   // -------------------------------------------------------------------------
