@@ -237,7 +237,7 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
 
       // Verify only one CTE added
       assertEquals(1, cteContext.getCteKeys().size());
-      CteDefinition cteDef = assertCteCreated(expectedCteKey, VARIABLE, "enrollment");
+      assertCteCreated(expectedCteKey, VARIABLE, "enrollment");
       String alias = assertPlaceholderMapped(placeholder, expectedCteKey, variableAliasMap);
 
       // Verify result SQL uses same alias twice

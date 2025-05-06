@@ -145,7 +145,6 @@ public class VariableCteFactory implements CteSqlFactory {
       return fallback;
     }
 
-    // TODO use policy?
     if (isDateType(typeToken)) {
       return alias + ".value";
     } else if (isTextType(typeToken)) {

@@ -445,7 +445,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
     }
 
     return switch (definition.getCteType()) {
-      case VARIABLE -> formatVariableJoin(key, alias);
+      case VARIABLE -> formatVariableJoin(alias);
       case PSDE -> formatPsdeJoin(key, alias, definition.getTargetRank());
       case D2_FUNCTION -> formatD2FunctionJoin(alias);
       default -> {
@@ -459,7 +459,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
   }
 
   /** Formats the LEFT JOIN for Variable CTEs (rn=1). */
-  private String formatVariableJoin(String key, String alias) {
+  private String formatVariableJoin(String alias) {
     return String.format(
         "left join %s %s on %s.enrollment = %s.enrollment and %s.rn = 1",
         alias, alias, alias, SUBQUERY_TABLE_ALIAS, alias);

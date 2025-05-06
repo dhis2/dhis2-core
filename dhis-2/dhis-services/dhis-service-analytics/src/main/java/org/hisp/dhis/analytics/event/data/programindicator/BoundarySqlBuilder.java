@@ -72,7 +72,9 @@ public class BoundarySqlBuilder {
     SimpleDateFormat df = new SimpleDateFormat(Period.DEFAULT_DATE_FORMAT);
 
     for (AnalyticsPeriodBoundary boundary : boundaries) {
-      if (boundary == null || boundary.getAnalyticsPeriodBoundaryType() == null || boundary.getBoundaryTarget() == null) continue;
+      if (boundary == null
+          || boundary.getAnalyticsPeriodBoundaryType() == null
+          || boundary.getBoundaryTarget() == null) continue;
 
       /* Resolve DB column */
       String dbColumn = resolveDbColumn(boundary, defaultEventTimeColumn);
@@ -80,9 +82,9 @@ public class BoundarySqlBuilder {
       // Skip if unsupported boundary type
       if (dbColumn == null) {
         log.warn(
-                "Unsupported boundary type {} for PI {}",
-                boundary.getAnalyticsPeriodBoundaryType(),
-                pi.getUid());
+            "Unsupported boundary type {} for PI {}",
+            boundary.getAnalyticsPeriodBoundaryType(),
+            pi.getUid());
         continue;
       }
 
@@ -96,11 +98,11 @@ public class BoundarySqlBuilder {
       // Build operator + clause
       String op = boundary.getAnalyticsPeriodBoundaryType().isEndBoundary() ? "<" : ">=";
       sql.append(" and ")
-              .append(qb.quote(dbColumn))
-              .append(' ')
-              .append(op)
-              .append(' ')
-              .append(qb.singleQuote(df.format(bd)));
+          .append(qb.quote(dbColumn))
+          .append(' ')
+          .append(op)
+          .append(' ')
+          .append(qb.singleQuote(df.format(bd)));
     }
     return sql.toString();
   }
