@@ -85,21 +85,21 @@ public class MinMaxValueController {
    * @param dto the {@link MinMaxValue}.
    */
   private void saveOrUpdateMinMaxDataElement(MinMaxValue dto) {
-    DataElement de = dataValidator.getAndValidateDataElement(dto.getDataElement().getValue());
-    OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit(dto.getOrgUnit().getValue());
+    DataElement de = dataValidator.getAndValidateDataElement(dto.dataElement().getValue());
+    OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit(dto.orgUnit().getValue());
     CategoryOptionCombo coc =
-        dataValidator.getAndValidateCategoryOptionCombo(dto.getCategoryOptionCombo().getValue());
-    dataValidator.validateMinMaxValues(dto.getMinValue(), dto.getMaxValue());
+        dataValidator.getAndValidateCategoryOptionCombo(dto.optionCombo().getValue());
+    dataValidator.validateMinMaxValues(dto.minValue(), dto.maxValue());
     MinMaxDataElement value = minMaxValueService.getMinMaxDataElement(ou, de, coc);
 
     if (value != null) {
-      value.setMin(dto.getMinValue());
-      value.setMax(dto.getMaxValue());
+      value.setMin(dto.minValue());
+      value.setMax(dto.maxValue());
       value.setGenerated(false);
 
       minMaxValueService.updateMinMaxDataElement(value);
     } else {
-      value = new MinMaxDataElement(de, ou, coc, dto.getMinValue(), dto.getMaxValue());
+      value = new MinMaxDataElement(de, ou, coc, dto.minValue(), dto.maxValue());
 
       minMaxValueService.addMinMaxDataElement(value);
     }

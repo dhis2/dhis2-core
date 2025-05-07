@@ -143,8 +143,9 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
   @Transactional
   public int importAll(MinMaxValueUpsertRequest request) throws BadRequestException {
     List<MinMaxValue> values = Optional.ofNullable(request.values()).orElse(List.of());
-
     if (values.isEmpty()) return 0;
+
+    for (MinMaxValue v : values) validate(v);
 
     log.info(
         "Starting min-max import: {} values for dataset={}, orgunit={}",
@@ -171,7 +172,7 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
   @Override
   @Transactional
   public int deleteAll(MinMaxValueDeleteRequest request) throws BadRequestException {
-    List<MinMaxValueKey> keys = Optional.ofNullable(request.keys()).orElse(List.of());
+    List<MinMaxValueKey> keys = Optional.ofNullable(request.values()).orElse(List.of());
     if (keys.isEmpty()) return 0;
 
     log.info("Starting min-max delete: {} values", keys.size());
@@ -180,27 +181,19 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
     long elapsedMillis = (System.nanoTime() - startTime) / 1_000_000;
     log.info(
         "Min-max delete completed: {} values processed in {} ms",
-        request.keys().size(),
+        request.values().size(),
         elapsedMillis);
     return count;
   }
 
-  private static void validateRequiredFields(MinMaxValue dto) throws BadRequestException {
-
-    if (dto.getDataElement() == null
-        || dto.getOrgUnit() == null
-        || dto.getCategoryOptionCombo() == null) {
-      throw new BadRequestException(ErrorCode.E7801, dto);
-    }
-  }
-
-  private static void validateMinMaxValues(MinMaxValue dto) throws BadRequestException {
-    if (dto.getMinValue() == null || dto.getMaxValue() == null) {
-      throw new BadRequestException(ErrorCode.E7801, dto);
-    }
-
-    if (dto.getMinValue() >= dto.getMaxValue()) {
-      throw new BadRequestException(ErrorCode.E7802, dto);
-    }
+  private static void validate(MinMaxValue value) throws BadRequestException {
+    if (value.dataElement() == null
+        || value.orgUnit() == null
+        || value.optionCombo() == null)
+      throw new BadRequestException(ErrorCode.E7801, value);
+    if (value.minValue() == null || value.maxValue() == null)
+      throw new BadRequestException(ErrorCode.E7801, value);
+    if (value.minValue() >= value.maxValue())
+      throw new BadRequestException(ErrorCode.E7802, value);
   }
 }

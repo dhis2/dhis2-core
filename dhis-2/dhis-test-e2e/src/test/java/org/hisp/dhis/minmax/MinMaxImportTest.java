@@ -102,7 +102,7 @@ class MinMaxImportTest extends ApiTest {
           "values" : [{
               "dataElement": "%s",
               "orgUnit": "%s",
-              "categoryOptionCombo": "%s",
+              "optionCombo": "%s",
                 "minValue": 10,
                 "maxValue": 100
             }]
@@ -111,20 +111,18 @@ class MinMaxImportTest extends ApiTest {
             .formatted(dataSet, orgUnit, dataElement, orgUnit, defaultCOC);
 
     QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-    if (delete) {
-      queryParamsBuilder.add("importStrategy", "DELETE");
-    }
-    return minMaxValuesActions.post("", payload, queryParamsBuilder);
+    String action = delete ? "/delete" : "/upsert";
+    return minMaxValuesActions.post(action, payload, queryParamsBuilder);
   }
 
   @Test
   void minMaxValueCanBeImportedInBulk_CSV() throws IOException {
-    postMinMaxCSVFile(false);
+    postMinMaxCSVFile(false).validate().statusCode(200);
   }
 
   @Test
   void minMaxValueCanBeDeletedInBulk_CSV() throws IOException {
-    postMinMaxCSVFile(false);
+    postMinMaxCSVFile(false).validate().statusCode(200);
     ApiResponse response = postMinMaxCSVFile(true);
     response
         .validate()
@@ -135,12 +133,10 @@ class MinMaxImportTest extends ApiTest {
   private ApiResponse postMinMaxCSVFile(Boolean delete) {
     QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
     queryParamsBuilder.add("dataSet", dataSet).add("orgUnit", orgUnit);
-    if (delete) {
-      queryParamsBuilder.add("importStrategy", "DELETE");
-    }
 
+    String action = delete ? "/delete" : "/upsert";
     return minMaxValuesActions.postMultiPartFile(
-        new File("src/test/resources/minmax/minmax.csv"), "application/csv", queryParamsBuilder);
+        new File("src/test/resources/minmax/minmax.csv"), "application/csv", action, queryParamsBuilder);
   }
 
   @Test

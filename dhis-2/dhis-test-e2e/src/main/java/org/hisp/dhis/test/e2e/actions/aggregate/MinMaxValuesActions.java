@@ -36,6 +36,6 @@ import org.hisp.dhis.test.e2e.actions.RestApiActions;
  */
 public class MinMaxValuesActions extends RestApiActions {
   public MinMaxValuesActions() {
-    super("/minMaxDataElements/values");
+    super("/minMaxDataElements");
   }
 }

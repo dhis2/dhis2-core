@@ -228,7 +228,7 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
     Map<String, Long> des = getDataElementMap(keys.stream().map(MinMaxValueKey::dataElement));
     Map<String, Long> ous = getOrgUnitMap(keys.stream().map(MinMaxValueKey::orgUnit));
     Map<String, Long> cocs =
-        getCategoryOptionComboMap(keys.stream().map(MinMaxValueKey::categoryOptionCombo));
+        getCategoryOptionComboMap(keys.stream().map(MinMaxValueKey::optionCombo));
 
     Session session = entityManager.unwrap(Session.class);
 
@@ -241,10 +241,15 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
         WHERE dataelementid = ? AND sourceid = ? AND categoryoptioncomboid = ?""";
           try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             for (MinMaxValueKey key : keys) {
-              stmt.setLong(1, des.get(key.dataElement().getValue()));
-              stmt.setObject(2, ous.get(key.orgUnit().getValue()));
-              stmt.setObject(3, cocs.get(key.categoryOptionCombo().getValue()));
-              stmt.addBatch();
+              Long de = des.get(key.dataElement().getValue());
+              Long ou = ous.get(key.orgUnit().getValue());
+              Long coc = cocs.get(key.optionCombo().getValue());
+              if (de != null && ou != null && coc != null) {
+                stmt.setLong(1, de);
+                stmt.setObject(2, ou);
+                stmt.setObject(3, coc);
+                stmt.addBatch();
+              }
             }
             deleted.set(IntStream.of(stmt.executeBatch()).sum());
           }
@@ -259,10 +264,10 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
   public int upsertValues(List<MinMaxValue> values) {
     if (values == null || values.isEmpty()) return 0;
 
-    Map<String, Long> des = getDataElementMap(values.stream().map(MinMaxValue::getDataElement));
-    Map<String, Long> ous = getOrgUnitMap(values.stream().map(MinMaxValue::getOrgUnit));
+    Map<String, Long> des = getDataElementMap(values.stream().map(MinMaxValue::dataElement));
+    Map<String, Long> ous = getOrgUnitMap(values.stream().map(MinMaxValue::orgUnit));
     Map<String, Long> cocs =
-        getCategoryOptionComboMap(values.stream().map(MinMaxValue::getCategoryOptionCombo));
+        getCategoryOptionComboMap(values.stream().map(MinMaxValue::optionCombo));
 
     Session session = entityManager.unwrap(Session.class);
 
@@ -281,16 +286,18 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
           generatedvalue = EXCLUDED.generatedvalue""";
           try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             for (MinMaxValue value : values) {
-              Long de = des.get(value.getDataElement().getValue());
-              Long ou = ous.get(value.getOrgUnit().getValue());
-              Long coc = cocs.get(value.getCategoryOptionCombo().getValue());
+              Long de = des.get(value.dataElement().getValue());
+              Long ou = ous.get(value.orgUnit().getValue());
+              Long coc = cocs.get(value.optionCombo().getValue());
               if (de != null && ou != null && coc != null) {
+                Boolean generated = value.generated();
+                if (generated == null) generated = true;
                 stmt.setLong(1, de);
                 stmt.setObject(2, ou);
                 stmt.setObject(3, coc);
-                stmt.setObject(4, value.getMinValue());
-                stmt.setObject(5, value.getMaxValue());
-                stmt.setObject(6, value.getGenerated());
+                stmt.setObject(4, value.minValue());
+                stmt.setObject(5, value.maxValue());
+                stmt.setObject(6, generated);
                 stmt.addBatch();
               }
             }

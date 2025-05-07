@@ -128,7 +128,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
   private static Stream<Arguments> provideTestCases() {
     return Stream.of(
         arguments(
-            "Missing required fields for min-max object: dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=10, max=null"
+            "Missing required fields for min-max object: MinMaxValue[dataElement=%s, orgUnit=%s, optionCombo=%s, minValue=10, maxValue=null, generated=null]"
                 .formatted(fakeDataElementID, fakeOrgUnitID, fakeCategoryOptionComboID)
                 .trim(),
             """
@@ -138,7 +138,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
                   "values": [{
                     "dataElement": "%s",
                     "orgUnit": "%s",
-                    "categoryOptionCombo": "%s",
+                    "optionCombo": "%s",
                     "minValue": 10
                   }]
                 }
@@ -151,7 +151,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
                     fakeCategoryOptionComboID),
             HttpStatus.BAD_REQUEST),
         arguments(
-            "Missing required fields for min-max object: dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=null, max=10"
+            "Missing required fields for min-max object: MinMaxValue[dataElement=%s, orgUnit=%s, optionCombo=%s, minValue=null, maxValue=10, generated=null]"
                 .formatted(fakeDataElementID, fakeOrgUnitID, fakeCategoryOptionComboID)
                 .trim(),
             """
@@ -161,7 +161,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
                   "values": [{
                     "dataElement": "%s",
                     "orgUnit": "%s",
-                    "categoryOptionCombo": "%s",
+                    "optionCombo": "%s",
                     "maxValue": 10
                   }]
                 }
@@ -174,7 +174,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
                     fakeCategoryOptionComboID),
             HttpStatus.BAD_REQUEST),
         arguments(
-            "Min value is greater than or equal to Max value for: dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=10, max=10"
+            "Min value is greater than or equal to Max value for: MinMaxValue[dataElement=%s, orgUnit=%s, optionCombo=%s, minValue=10, maxValue=10, generated=null]"
                 .formatted(fakeDataElementID, fakeOrgUnitID, fakeCategoryOptionComboID)
                 .trim(),
             """
@@ -184,7 +184,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
                   "values": [{
                     "dataElement": "%s",
                     "orgUnit": "%s",
-                    "categoryOptionCombo": "%s",
+                    "optionCombo": "%s",
                     "minValue": 10,
                     "maxValue": 10
                   }]
@@ -199,7 +199,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
             HttpStatus.BAD_REQUEST),
         // This payload should be valid, but we have not loaded the required metadata
         arguments(
-            "Could not resolve references for min-max object: dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=10, max=100"
+            "Could not resolve references for min-max object: dataElement=%s, orgUnit=%s, optionCombo=%s, min=10, max=100"
                 .formatted(fakeDataElementID, fakeOrgUnitID, fakeCategoryOptionComboID)
                 .trim(),
             """
@@ -209,7 +209,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
                   "values": [{
                     "dataElement": "%s",
                     "orgUnit": "%s",
-                    "categoryOptionCombo": "%s",
+                    "optionCombo": "%s",
                     "minValue": 10,
                     "maxValue": 100
                   }]
@@ -232,7 +232,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
         400,
         "ERROR",
         expectedMessage,
-        POST("/minMaxDataElements/values", payload).content(expectedStatus));
+        POST("/minMaxDataElements/upsert", payload).content(expectedStatus));
   }
 
   @Test
@@ -243,7 +243,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
         "OK",
         "Successfully imported 0 min-max values",
         POST(
-                "/minMaxDataElements/values",
+                "/minMaxDataElements/upsert",
                 """
                   {
                   "dataSet": "%s",

@@ -35,7 +35,10 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.security.Authorities.F_MINMAX_DATAELEMENT_ADD;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvParser;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletRequest;
@@ -48,6 +51,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.csv.CSV;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -91,21 +95,12 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/minMaxDataElements")
 @AllArgsConstructor
 public class MinMaxDataElementController {
+
   private final ContextService contextService;
-
   private final MinMaxDataElementService minMaxService;
-
-  private final DataValidator dataValidator;
-
   private final FieldFilterService fieldFilterService;
-
   private final RenderService renderService;
-
   private final IdentifiableObjectManager manager;
-
-  // --------------------------------------------------------------------------
-  // GET
-  // --------------------------------------------------------------------------
 
   @GetMapping
   public @ResponseBody RootNode getObjectList(MinMaxDataElementQueryParams query)
@@ -217,7 +212,7 @@ public class MinMaxDataElementController {
 
   // Bulk import
 
-  @PostMapping(value = "/values", consumes = "application/json")
+  @PostMapping(value = "/upsert", consumes = "application/json")
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   public @ResponseBody WebMessage bulkPostJson(@RequestBody MinMaxValueUpsertRequest request)
       throws BadRequestException {
@@ -227,7 +222,7 @@ public class MinMaxDataElementController {
     return ok("Successfully imported %d min-max values".formatted(imported));
   }
 
-  @DeleteMapping(value = "/values", consumes = "application/json")
+  @PostMapping(value = "/delete", consumes = "application/json")
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   public @ResponseBody WebMessage bulkDeleteJson(@RequestBody MinMaxValueDeleteRequest request)
       throws BadRequestException {
@@ -237,7 +232,7 @@ public class MinMaxDataElementController {
     return ok("Successfully deleted %d min-max values".formatted(deleted));
   }
 
-  @PostMapping(value = "/values", consumes = "multipart/form-data")
+  @PostMapping(value = "/upsert", consumes = "multipart/form-data")
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @Maturity.Alpha
   public @ResponseBody WebMessage bulkPostCsv(
@@ -249,7 +244,7 @@ public class MinMaxDataElementController {
     return bulkPostJson(new MinMaxValueUpsertRequest(dataSet, orgUnit, csvToEntries(file)));
   }
 
-  @DeleteMapping(value = "/values", consumes = "multipart/form-data")
+  @PostMapping(value = "/delete", consumes = "multipart/form-data")
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @Maturity.Alpha
   public @ResponseBody WebMessage bulkDeleteCsv(
@@ -263,10 +258,7 @@ public class MinMaxDataElementController {
 
   private static List<MinMaxValue> csvToEntries(MultipartFile file) throws BadRequestException {
     try (InputStream in = file.getInputStream()) {
-      CsvMapper mapper = new CsvMapper();
-      CsvSchema schema = mapper.schemaFor(MinMaxValue.class).withHeader().withColumnSeparator(',');
-      List<MinMaxValue> entries =
-          mapper.readerFor(MinMaxValue.class).with(schema).<MinMaxValue>readValues(in).readAll();
+      List<MinMaxValue> entries = CSV.of(in).as(MinMaxValue.class).list();
       if (entries.isEmpty()) throw new BadRequestException("No data found in the CSV file.");
       return entries;
     } catch (Exception ex) {
@@ -276,15 +268,11 @@ public class MinMaxDataElementController {
 
   private static List<MinMaxValueKey> csvToKeys(MultipartFile file) throws BadRequestException {
     try (InputStream in = file.getInputStream()) {
-      CsvMapper mapper = new CsvMapper();
-      CsvSchema schema =
-          mapper.schemaFor(MinMaxValueKey.class).withHeader().withColumnSeparator(',');
-      List<MinMaxValue> keys =
-          mapper.readerFor(MinMaxValueKey.class).with(schema).<MinMaxValue>readValues(in).readAll();
+      List<MinMaxValueKey> keys = CSV.of(in).as(MinMaxValueKey.class).list();
       if (keys.isEmpty()) throw new BadRequestException("No data found in the CSV file.");
+      return keys;
     } catch (Exception ex) {
       throw new BadRequestException("Invalid CSV file. Please check the format and try again.");
     }
-    return List.of();
   }
 }

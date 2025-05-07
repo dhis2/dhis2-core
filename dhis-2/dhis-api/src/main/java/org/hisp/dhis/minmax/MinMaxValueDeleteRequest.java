@@ -31,4 +31,4 @@ package org.hisp.dhis.minmax;
 
 import java.util.List;
 
-public record MinMaxValueDeleteRequest(List<MinMaxValueKey> keys) {}
+public record MinMaxValueDeleteRequest(List<MinMaxValueKey> values) {}

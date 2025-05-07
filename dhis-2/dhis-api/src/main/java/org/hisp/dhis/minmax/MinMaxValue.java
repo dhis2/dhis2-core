@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -29,13 +29,7 @@
  */
 package org.hisp.dhis.minmax;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.experimental.Accessors;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
@@ -47,28 +41,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
  *
  * @author Lars Helge Overland
  */
-@Getter
-@Setter
-@Accessors(chain = true)
-@NoArgsConstructor
-@EqualsAndHashCode
-@ToString
-public class MinMaxValue {
-  @JsonProperty
-  @OpenApi.Property({UID.class, DataElement.class})
-  private UID dataElement;
-
-  @JsonProperty
-  @OpenApi.Property({UID.class, OrganisationUnit.class})
-  private UID orgUnit;
-
-  @JsonProperty
-  @OpenApi.Property({UID.class, CategoryOptionCombo.class})
-  private UID categoryOptionCombo;
-
-  @JsonProperty private Integer minValue;
-
-  @JsonProperty private Integer maxValue;
-
-  @JsonProperty private Boolean generated;
-}
+public record MinMaxValue(
+    @Nonnull @OpenApi.Property({UID.class, DataElement.class}) UID dataElement,
+    @Nonnull @OpenApi.Property({UID.class, OrganisationUnit.class}) UID orgUnit,
+    @Nonnull @OpenApi.Property({UID.class, CategoryOptionCombo.class}) UID optionCombo,
+    Integer minValue,
+    Integer maxValue,
+    Boolean generated) {}

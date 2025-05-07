@@ -106,11 +106,12 @@ public class DataValueDtoMapper {
    * @return a {@link MinMaxValue}.
    */
   public static MinMaxValue toDto(MinMaxDataElement value) {
-    return new MinMaxValue()
-        .setDataElement(UID.of(value.getDataElement().getUid()))
-        .setOrgUnit(UID.of(value.getSource().getUid()))
-        .setCategoryOptionCombo(UID.of(value.getOptionCombo().getUid()))
-        .setMinValue(value.getMin())
-        .setMaxValue(value.getMax());
+    return new MinMaxValue(
+        UID.of(value.getDataElement().getUid()),
+        UID.of(value.getSource().getUid()),
+        UID.of(value.getOptionCombo().getUid()),
+        value.getMin(),
+        value.getMax(),
+        null);
   }
 }

@@ -321,8 +321,8 @@ public class RestApiActions {
   }
 
   public ApiResponse postMultiPartFile(
-      File file, String fileContentType, QueryParamsBuilder queryParamsBuilder) {
-    String url = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
+      File file, String fileContentType, String resource, QueryParamsBuilder queryParamsBuilder) {
+    String params = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
 
     ApiResponse response =
         new ApiResponse(
@@ -330,7 +330,7 @@ public class RestApiActions {
                 .multiPart("file", file, fileContentType)
                 .contentType("multipart/form-data")
                 .when()
-                .post(url));
+                .post(resource + params));
 
     return response;
   }
