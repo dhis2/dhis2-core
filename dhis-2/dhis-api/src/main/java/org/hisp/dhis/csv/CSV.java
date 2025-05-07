@@ -1,3 +1,32 @@
+/*
+ * Copyright (c) 2004-2025, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.csv;
 
 import java.io.BufferedReader;
@@ -29,7 +58,6 @@ import org.intellij.lang.annotations.Language;
  * <p>This assumes all properties of the constructed POJOs are simple in nature.
  *
  * @author Jan Bernitt
- *
  * @since 2.43
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -47,9 +75,7 @@ public final class CSV {
     }
   }
 
-  /**
-   * Allows to configure the expected CSV formatting before starting to read the input.
-   */
+  /** Allows to configure the expected CSV formatting before starting to read the input. */
   public interface CsvConfig {
 
     @Nonnull
@@ -70,6 +96,7 @@ public final class CSV {
   private static <C> void add(Class<C> type, Function<String, C> deserializer) {
     DESERIALIZERS.put(type, deserializer);
   }
+
   static {
     add(String.class, Function.identity());
     add(Character.class, str -> str.isEmpty() ? null : str.charAt(0));
@@ -87,8 +114,8 @@ public final class CSV {
     add(UID.class, UID::of);
   }
 
-  private record Column<T>(String name, boolean required, Function<String, T> deserializer) {
-  }
+  private record Column<T>(String name, boolean required, Function<String, T> deserializer) {}
+
   private record Mapping<T extends Record>(Class<T> type, List<Column<?>> columns) {
 
     Function<List<String>, T> from(List<String> header) {
@@ -123,8 +150,14 @@ public final class CSV {
 
     private void checkRequired(int[] compIdxByColIdx) {
       List<String> required = columns.stream().filter(Column::required).map(Column::name).toList();
-      List<String> present = IntStream.of(compIdxByColIdx).filter(i -> i >= 0).mapToObj(columns::get).map(Column::name).toList();
-      if (!present.containsAll(required)) throw new IllegalArgumentException("Required columns are: "+required);
+      List<String> present =
+          IntStream.of(compIdxByColIdx)
+              .filter(i -> i >= 0)
+              .mapToObj(columns::get)
+              .map(Column::name)
+              .toList();
+      if (!present.containsAll(required))
+        throw new IllegalArgumentException("Required columns are: " + required);
     }
 
     private int[] compIdxByColIdx(List<String> columns) {
@@ -154,7 +187,9 @@ public final class CSV {
   }
 
   private static Class<?>[] getComponentTypes(Class<? extends Record> type) {
-    return Stream.of(type.getRecordComponents()).map(RecordComponent::getType).toArray(Class<?>[]::new);
+    return Stream.of(type.getRecordComponents())
+        .map(RecordComponent::getType)
+        .toArray(Class<?>[]::new);
   }
 
   @SuppressWarnings("unchecked")
@@ -183,7 +218,8 @@ public final class CSV {
     }
   }
 
-  private record Reader<T extends Record>(BufferedReader csv, Mapping<T> as) implements CsvReader<T> {
+  private record Reader<T extends Record>(BufferedReader csv, Mapping<T> as)
+      implements CsvReader<T> {
 
     @Nonnull
     @Override
@@ -210,5 +246,4 @@ public final class CSV {
       }
     }
   }
-
 }

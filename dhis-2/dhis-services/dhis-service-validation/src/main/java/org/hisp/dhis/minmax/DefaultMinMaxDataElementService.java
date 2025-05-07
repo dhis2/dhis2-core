@@ -187,13 +187,10 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
   }
 
   private static void validate(MinMaxValue value) throws BadRequestException {
-    if (value.dataElement() == null
-        || value.orgUnit() == null
-        || value.optionCombo() == null)
+    if (value.dataElement() == null || value.orgUnit() == null || value.optionCombo() == null)
       throw new BadRequestException(ErrorCode.E7801, value);
     if (value.minValue() == null || value.maxValue() == null)
       throw new BadRequestException(ErrorCode.E7801, value);
-    if (value.minValue() >= value.maxValue())
-      throw new BadRequestException(ErrorCode.E7802, value);
+    if (value.minValue() >= value.maxValue()) throw new BadRequestException(ErrorCode.E7802, value);
   }
 }
