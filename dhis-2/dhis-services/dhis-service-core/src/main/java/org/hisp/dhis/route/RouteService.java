@@ -397,7 +397,7 @@ public class RouteService {
 
       return outputStream.toByteArray();
     } else {
-      return null;
+      return new byte[] {};
     }
   }
 
