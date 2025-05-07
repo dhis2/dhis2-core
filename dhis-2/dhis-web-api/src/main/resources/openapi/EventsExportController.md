@@ -146,7 +146,7 @@ the last 2 days.
 
 ### `*.parameter.EventRequestParams.enrollmentEnrolledAfter`
 
-Get events with enrollments created after given date and time. This parameter is inclusive, so 
+Get events from enrollments created after given date and time. This parameter is inclusive, so 
 results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.EventRequestParams.enrollmentEnrolledBefore`
