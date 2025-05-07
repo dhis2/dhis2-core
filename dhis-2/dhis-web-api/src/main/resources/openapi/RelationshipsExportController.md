@@ -4,17 +4,17 @@
 
 ### `getRelationships`
 
-Get relationships matching the given query parameters.
+Get relationships matching the specified query parameters.
 
 Exactly one parameter of `trackedEntity`, `enrollment` or `event` has to be specified.
 
 ### `getRelationshipByUid`
 
-Get a relationship with the given UID.
+Get a relationship with the specified UID.
 
 ### `getRelationshipByUid.parameter.uid`
 
-Get a relationship with the given UID.
+Get a relationship with the specified UID.
 
 ### `getRelationshipByUid.parameter.fields`
 
@@ -27,24 +27,22 @@ for how to use it.
 
 ### `*.parameter.RelationshipRequestParams.trackedEntity`
 
-Get relationships where the given tracked entity is either the from or to side of the 
-relationship. Only relationships associated with the specified tracked entity will be returned.
+Get relationships where the specified tracked entity is either the from or to side of the 
+relationship.
 
 ### `*.parameter.RelationshipRequestParams.enrollment`
 
-Get relationships where the given enrollment is either the from or to side of the relationship. 
-Only relationships associated with the specified enrollment will be returned.
+Get relationships where the specified enrollment is either the from or to side of the relationship.
 
 ### `*.parameter.RelationshipRequestParams.event`
 
-Get relationships where the given event is either the from or to side of the relationship. Only 
-relationships associated with the specified event will be returned.
+Get relationships where the specified event is either the from or to side of the relationship. 
 
 ### `*.parameter.RelationshipRequestParams.order`
 
 `<propertyName1:sortDirection>[,<propertyName2:sortDirection>...]`
 
-Get relationships in given order. Relationships can be ordered by the following case-sensitive
+Get relationships in specified order. Relationships can be ordered by the following case-sensitive
 properties:
 
 * `createdAt`
@@ -53,14 +51,13 @@ properties:
 Valid `sortDirection`s are `asc` and `desc`. `sortDirection` is case-insensitive. `sortDirection`
 defaults to `asc` for properties without explicit `sortDirection` as in `order=createdAt`.
 
-Relationships are ordered by newest (internal id desc) by default meaning when no `order` parameter
+Relationships are ordered by newest (internal id desc) by default, when no `order` parameter
 is provided.
 
 ### `*.parameter.RelationshipRequestParams.fields`
 
 Get only the specified fields in the JSON response. This query parameter allows you to remove
-unnecessary fields from
-the JSON response and in some cases decrease the response time. Refer to
+unnecessary fields from the JSON response and in some cases decrease the response time. Refer to
 https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata.html#webapi_metadata_field_filter
 for how to use it.
 
