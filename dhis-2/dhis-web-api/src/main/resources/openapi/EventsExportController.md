@@ -78,11 +78,33 @@ Get events belonging to the specified `orgUnit`.
 
 Get events belonging to the organisation units referenced by the specified organisation unit 
 mode.
+- When `orgUnitMode=SELECTED`, `orgUnitMode=CHILDREN` or `orgUnitMode=DESCENDANTS`, the `orgUnit`
+  parameter is required to specify which events to return.
+- When `orgUnitMode=ALL` events will be returned irrespective of the organisation unit they
+  are owned by. To use this parameter, the user needs the `Search Tracked entity in all org units`
+  authority.
+- When `orgUnitMode=ACCESSIBLE` events owned by any organisation unit in the user's
+  effective search scope will be returned. Effective search scope is the union of user's defined
+  search scope and capture scope.
+- When `orgUnitMode=CAPTURE` events that have an event organisation unit in the user's
+  capture scope will be returned.
 
 ### `*.parameter.EventRequestParams.assignedUserMode`
 
 Get events assigned to users according to the specified user mode. By default,
 all events will be retrieved, regardless of whether a user is assigned.
+
+- When `assignedUserMode=ALL` or no `assignedUserMode`(default) is given, all events are
+  returned irrespective of whether they are assigned to a user or not.
+
+- When `assignedUserMode=CURRENT`, events that are assigned to the logged-in user will be returned.
+
+- When `assignedUserMode=ANY`, events that are assigned to any user will be returned.
+
+- When `assignedUserMode=NONE`, events that are not assigned to any user will be returned.
+
+- When `assignedUserMode=PROVIDED`, events that are assigned to the users specified in 
+  `assignedUsers` will be returned. `assignedUsers` is required for this mode.
 
 ### `*.parameter.EventRequestParams.assignedUsers`
 
@@ -304,3 +326,4 @@ behave in the same way.
 Valid unary operators are:
 - `null` - has no value
 - `!null` - has a value
+

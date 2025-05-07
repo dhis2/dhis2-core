@@ -76,8 +76,9 @@ Get enrollments using the given organisation unit selection mode.
 - When `orgUnitMode=ALL` enrollments will be returned irrespective of the organization unit they
   are owned by. To use this parameter, the user needs the `Search Tracked entity in all org units`
   authority.
-- When `orgUnitMode=ACCESSIBLE` enrollments owned by any organisation unit in the user's capture 
-  scope will be returned.
+- When `orgUnitMode=ACCESSIBLE` enrollments owned by any organisation unit in the user's 
+  effective search scope will be returned. Effective search scope is the union of user's defined 
+  search scope and capture scope.
 - When `orgUnitMode=CAPTURE` enrollments that have an enrollment organisation unit in the user's 
   capture scope will be returned.
 
