@@ -136,7 +136,10 @@ class MinMaxImportTest extends ApiTest {
 
     String action = delete ? "/delete" : "/upsert";
     return minMaxValuesActions.postMultiPartFile(
-        new File("src/test/resources/minmax/minmax.csv"), "application/csv", action, queryParamsBuilder);
+        new File("src/test/resources/minmax/minmax.csv"),
+        "application/csv",
+        action,
+        queryParamsBuilder);
   }
 
   @Test
