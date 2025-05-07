@@ -84,7 +84,7 @@ Get enrollments using the given organisation unit selection mode.
 
 ### `*.parameter.EnrollmentRequestParams.program`
 
-Get enrollments within the specified tracker program.
+Get enrollments from the specified tracker program.
 
 ### `*.parameter.EnrollmentRequestParams.status`
 
