@@ -55,22 +55,20 @@ final class LineBuffer {
 
   private LineBuffer(List<String> header) {
     this.header = header;
-    this.buf = new char[200 + 50 * header.size()];
+    this.buf = new char[50 * header.size()];
   }
 
   boolean readLine(BufferedReader csv) throws IOException {
     int c;
     to = 0;
-    while (!isEnd(c = csv.read())) buf[to++] = (char) c;
-    while (c != -1 && to == buf.length) {
-      // adjust buffer size
-      buf = Arrays.copyOf(buf, buf.length * 2);
-      while (!isEnd(c = csv.read())) buf[to++] = (char) c;
+    while (!isEOL(c = csv.read())) {
+      buf[to++] = (char) c;
+      if (to >= buf.length) buf = Arrays.copyOf(buf, buf.length * 2);
     }
     return to > 0;
   }
 
-  private boolean isEnd(int c) {
+  private boolean isEOL(int c) {
     return c == -1 || c == '\n' || c == '\r';
   }
 

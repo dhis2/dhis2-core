@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.csv;
 
+import static java.util.Spliterators.spliteratorUnknownSize;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,14 +40,16 @@ import java.io.UncheckedIOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.RecordComponent;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Spliterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -64,14 +68,16 @@ import org.intellij.lang.annotations.Language;
 public final class CSV {
 
   @FunctionalInterface
-  public interface CsvReader<T> {
+  public interface CsvReader<T> extends Iterable<T> {
 
     @Nonnull
-    List<T> list();
+    default List<T> list() {
+      return stream().toList();
+    }
 
     @Nonnull
     default Stream<T> stream() {
-      return list().stream();
+      return StreamSupport.stream(spliteratorUnknownSize(iterator(), Spliterator.ORDERED), false);
     }
   }
 
@@ -91,32 +97,32 @@ public final class CSV {
   }
 
   private static final Map<Class<?>, Function<String, ?>> DESERIALIZERS = new ConcurrentHashMap<>();
-  private static final Map<Class<?>, Mapping<?>> MAPPINGS = new ConcurrentHashMap<>();
+  private static final Map<Class<?>, Columns<?>> MAPPINGS = new ConcurrentHashMap<>();
 
-  private static <C> void add(Class<C> type, Function<String, C> deserializer) {
+  private static <C> void addDeserializer(Class<C> type, Function<String, C> deserializer) {
     DESERIALIZERS.put(type, deserializer);
   }
 
   static {
-    add(String.class, Function.identity());
-    add(Character.class, str -> str.isEmpty() ? null : str.charAt(0));
-    add(char.class, str -> str.charAt(0));
-    add(Integer.class, Integer::parseInt);
-    add(int.class, Integer::parseInt);
-    add(Long.class, Long::parseLong);
-    add(long.class, Long::parseLong);
-    add(Float.class, Float::parseFloat);
-    add(float.class, Float::parseFloat);
-    add(Double.class, Double::parseDouble);
-    add(double.class, Double::parseDouble);
-    add(Boolean.class, Boolean::parseBoolean);
-    add(boolean.class, Boolean::parseBoolean);
-    add(UID.class, UID::of);
+    addDeserializer(String.class, Function.identity());
+    addDeserializer(Character.class, str -> str.isEmpty() ? null : str.charAt(0));
+    addDeserializer(char.class, str -> str.charAt(0));
+    addDeserializer(Integer.class, Integer::parseInt);
+    addDeserializer(int.class, Integer::parseInt);
+    addDeserializer(Long.class, Long::parseLong);
+    addDeserializer(long.class, Long::parseLong);
+    addDeserializer(Float.class, Float::parseFloat);
+    addDeserializer(float.class, Float::parseFloat);
+    addDeserializer(Double.class, Double::parseDouble);
+    addDeserializer(double.class, Double::parseDouble);
+    addDeserializer(Boolean.class, Boolean::parseBoolean);
+    addDeserializer(boolean.class, Boolean::parseBoolean);
+    addDeserializer(UID.class, UID::of);
   }
 
   private record Column<T>(String name, boolean required, Function<String, T> deserializer) {}
 
-  private record Mapping<T extends Record>(Class<T> type, List<Column<?>> columns) {
+  private record Columns<T extends Record>(Class<T> type, List<Column<?>> columns) {
 
     Function<List<String>, T> from(List<String> header) {
       int[] compIdxByColIdx = compIdxByColIdx(header);
@@ -193,20 +199,22 @@ public final class CSV {
   }
 
   @SuppressWarnings("unchecked")
-  private static <T extends Record> Mapping<T> mapping(Class<T> type) {
-    return (Mapping<T>) MAPPINGS.computeIfAbsent(type, t -> new Mapping<>(type, columns(type)));
+  private static <T extends Record> Columns<T> toColumnsCached(Class<T> type) {
+    return (Columns<T>) MAPPINGS.computeIfAbsent(type, t -> new Columns<>(type, toColumns(type)));
   }
 
-  private static List<Column<?>> columns(Class<? extends Record> type) {
-    return List.copyOf(
-        Stream.of(type.getRecordComponents())
-            .map(
-                c ->
-                    new Column<>(
-                        c.getName(),
-                        c.getType().isPrimitive() || c.isAnnotationPresent(Nonnull.class),
-                        DESERIALIZERS.get(c.getType())))
-            .toList());
+  private static List<Column<?>> toColumns(Class<? extends Record> type) {
+    return List.copyOf(Stream.of(type.getRecordComponents()).map(CSV::toColumn).toList());
+  }
+
+  @Nonnull
+  private static Column<?> toColumn(RecordComponent c) {
+    Class<?> type = c.getType();
+    Function<String, ?> deserializer = DESERIALIZERS.get(type);
+    if (deserializer == null)
+      throw new UnsupportedOperationException("%s is not supported".formatted(type));
+    boolean required = type.isPrimitive() || c.isAnnotationPresent(Nonnull.class);
+    return new Column<>(c.getName(), required, deserializer);
   }
 
   private record Config(BufferedReader csv) implements CsvConfig {
@@ -214,36 +222,41 @@ public final class CSV {
     @Nonnull
     @Override
     public <T extends Record> CsvReader<T> as(Class<T> type) {
-      return new Reader<>(csv, mapping(type));
+      return new Reader<>(csv, toColumnsCached(type));
     }
   }
 
-  private record Reader<T extends Record>(BufferedReader csv, Mapping<T> as)
+  private record Reader<T extends Record>(BufferedReader csv, Columns<T> as)
       implements CsvReader<T> {
 
     @Nonnull
     @Override
-    public List<T> list() {
+    public Iterator<T> iterator() {
+      String header = null;
       try {
-        String header = csv.readLine();
-        if (header == null) throw new IllegalArgumentException("No header line provided.");
-        List<String> columns = List.of(header.split(","));
-        List<T> values = new ArrayList<>();
-        Function<List<String>, T> creator = as.from(columns);
-        LineBuffer buf = LineBuffer.of(columns);
-        while (buf.readLine(csv)) values.add(creator.apply(buf.split()));
-        return values;
+        header = csv.readLine();
       } catch (IOException e) {
         throw new UncheckedIOException(e);
-      } finally {
-        if (csv != null) {
+      }
+      if (header == null) throw new IllegalArgumentException("No header line provided.");
+      List<String> columns = List.of(header.split(","));
+      Function<List<String>, T> creator = as.from(columns);
+      LineBuffer buf = LineBuffer.of(columns);
+      return new Iterator<T>() {
+        @Override
+        public boolean hasNext() {
           try {
-            csv.close();
+            return buf.readLine(csv);
           } catch (IOException e) {
-            // ignore
+            throw new UncheckedIOException(e);
           }
         }
-      }
+
+        @Override
+        public T next() {
+          return creator.apply(buf.split());
+        }
+      };
     }
   }
 }
