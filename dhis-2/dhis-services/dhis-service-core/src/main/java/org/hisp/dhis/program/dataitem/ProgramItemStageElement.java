@@ -57,7 +57,6 @@ import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.system.util.SqlUtils;
 
 /**
  * Program indicator expression data item ProgramItemStageElement
@@ -216,7 +215,7 @@ public class ProgramItemStageElement extends ProgramExpressionItem {
                 .getProgramIndicatorEventColumnSql(
                     programStageId,
                     Integer.valueOf(stageOffset).toString(),
-                    SqlUtils.quote(dataElementId),
+                    visitor.getSqlBuilder().quote(dataElementId),
                     params.getReportingStartDate(),
                     params.getReportingEndDate(),
                     params.getProgramIndicator());

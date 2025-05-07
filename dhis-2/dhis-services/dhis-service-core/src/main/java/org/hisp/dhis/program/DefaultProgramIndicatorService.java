@@ -69,7 +69,6 @@ import org.hisp.dhis.parser.expression.ExpressionState;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.parser.expression.literal.SqlLiteral;
 import org.hisp.dhis.setting.SystemSettingsService;
-import org.hisp.dhis.system.util.SqlUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -391,7 +390,8 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
       String sql = StringUtils.EMPTY;
 
       for (String uid : uids) {
-        sql += SqlUtils.quote(uid) + " is not null or ";
+
+        sql += sqlBuilder.quote(uid) + " is not null or ";
       }
 
       return TextUtils.removeLastOr(sql).trim();
