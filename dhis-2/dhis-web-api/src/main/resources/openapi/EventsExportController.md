@@ -151,7 +151,7 @@ results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.EventRequestParams.enrollmentEnrolledBefore`
 
-Get events with enrollments that were created before given date and time. This parameter is 
+Get events from enrollments that were created before given date and time. This parameter is 
 inclusive, so results with the exact date and time specified will be included in the response.
 
 ### `*.parameter.EventRequestParams.status`
