@@ -141,6 +141,8 @@ public class PlaceholderParser {
     private static final int GROUP_BOUNDARY_HASH = 4;
     private static final int GROUP_PI_UID = 5;
 
+    private ProgramStageDataElementPlaceholderParser() {}
+
     private static Optional<PsDeFields> parse(String placeholder) {
       Matcher m = PATTERN.matcher(placeholder);
       if (!m.matches()) return Optional.empty();
@@ -155,6 +157,7 @@ public class PlaceholderParser {
   }
 
   public static final class D2FunctionPlaceholderParser {
+
     private static final Pattern PATTERN =
         Pattern.compile(
             // Match literal prefix and opening parenthesis
@@ -193,6 +196,8 @@ public class PlaceholderParser {
     private static final int GROUP_BOUNDARY_HASH = 6;
     private static final int GROUP_PI_UID = 7;
 
+    private D2FunctionPlaceholderParser() {}
+
     private static Optional<D2FuncFields> parse(String placeholder) {
       Matcher m = PATTERN.matcher(placeholder);
       if (!m.matches()) return Optional.empty();
@@ -221,6 +226,8 @@ public class PlaceholderParser {
     private static final int GROUP_OPERATOR = 2;
     private static final int GROUP_LITERAL = 3;
 
+    private FilterPlaceholderParser() {}
+
     private static Optional<FilterFields> parse(String expr) {
       Matcher m = PATTERN.matcher(expr);
       if (!m.matches()) return Optional.empty();
@@ -241,6 +248,8 @@ public class PlaceholderParser {
     private static final int GROUP_PI_UID = 3;
     private static final int GROUP_PS_UID = 4;
     private static final int GROUP_OFFSET = 5;
+
+    private VariablePlaceholderParser() {}
 
     private static Optional<VariableFields> parse(String expr) {
       Matcher m = PATTERN.matcher(expr);
