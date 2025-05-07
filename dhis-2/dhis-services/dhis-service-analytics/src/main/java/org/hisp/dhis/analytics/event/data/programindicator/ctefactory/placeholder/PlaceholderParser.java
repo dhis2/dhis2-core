@@ -40,179 +40,226 @@ import lombok.experimental.UtilityClass;
  */
 @UtilityClass
 public class PlaceholderParser {
-
-  private static final Pattern PSDE_PATTERN =
-      Pattern.compile(
-          "__PSDE_CTE_PLACEHOLDER__\\(psUid='([^']*)',\\s*deUid='([^']*)',\\s*offset='([^']*)',"
-              + "\\s*boundaryHash='([^']*)',\\s*piUid='([^']*)'\\)");
-
   /**
-   * Pattern to match simple filter expressions of the form: V{variableName} <operator>
-   * 'literalValue'
+   * Data structure for the parsed fields of a PS/DE placeholder.
    *
-   * <p>Where: - V{...} : Matches a variable placeholder (e.g., V{event_date}) - <operator> : One or
-   * two character comparison operators (=, !=, <, >, <=, >=, etc.) - 'literalValue' : A quoted
-   * literal value (single quotes, no escaped quotes handled)
-   *
-   * <p>Example matches: V{due_date} = '2023-01-01' V{age} >= '15' V{status} != 'COMPLETED'
-   *
-   * <p>Capturing groups: 1: variableName (inside V{...}) 2: operator (=, !=, <, >, <=, >=, etc.) 3:
-   * literalValue (without quotes)
+   * @param psUid program stage UID
+   * @param deUid data element UID
+   * @param offset offset
+   * @param boundaryHash hash containing the program indicator boundary
+   * @param piUid program indicator UID
    */
-  private static final Pattern FILTER_PATTERN =
-      Pattern.compile("V\\{([^}]+)\\}\\s*([=<>!]{1,2})\\s*'([^']+)'");
-
-  private static final Pattern D2_FUNC_PATTERN =
-      Pattern.compile(
-          // Match literal prefix and opening parenthesis
-          "__D2FUNC__\\("
-              +
-              // Capture 'func' value
-              "func='([^']*)',"
-              +
-              // Optional whitespace, capture 'ps' value
-              "\\s*ps='([^']*)',"
-              +
-              // Optional whitespace, capture 'de' value
-              "\\s*de='([^']*)',"
-              +
-              // argType (e.g., val64, condLit64, none)
-              "\\s*argType='([^']*)',"
-              +
-              // Optional whitespace, capture 'val64' value (Base64 chars: A-Z, a-z, 0-9, +, /, =)
-              "\\s*arg64='([A-Za-z0-9+/=]*)',"
-              + // More specific capture for Base64
-              // Optional whitespace, capture 'hash' value (Alphanumeric for SHA1/MD5 or includes
-              // '_')
-              "\\s*hash='([^']*)',"
-              +
-              // Optional whitespace, capture 'pi' value
-              "\\s*pi='([^']*)'"
-              +
-              // Match literal closing parenthesis and suffix
-              "\\)__");
-
-  private static final Pattern VARIABLE_PATTERN =
-      Pattern.compile(
-          "FUNC_CTE_VAR\\(\\s*type='([^']*)',\\s*column='([^']*)',"
-              + "\\s*piUid='([^']*)',\\s*psUid='([^']*)',\\s*offset='([^']*)'\\s*\\)");
-
-  /** Result object for PS/DE placeholders. */
   public record PsDeFields(
       String psUid, String deUid, int offset, String boundaryHash, String piUid) {}
 
+  /**
+   * Data structure for the parsed fields of a filter placeholder.
+   *
+   * @param variableName name of the variable
+   * @param operator operator used in the filter
+   * @param literal literal value used in the filter
+   */
   public record FilterFields(String variableName, String operator, String literal) {}
 
+  /**
+   * Data structure for the parsed fields of a D2 function placeholder.
+   *
+   * @param raw the entire matched placeholder
+   * @param func the function name
+   * @param psUid program stage UID
+   * @param deUid data element UID
+   * @param argType argument type
+   * @param valueSql SQL value (Base64 encoded)
+   * @param boundaryHash hash containing the the program indicator boundary
+   * @param piUid program indicator UID
+   */
   public record D2FuncFields(
-      String raw, // entire matched placeholder
+      String raw,
       String func,
       String psUid,
       String deUid,
       String argType,
-      String valueSql, // decoded from Base-64
+      String valueSql,
       String boundaryHash,
       String piUid) {}
 
+  /**
+   * Data structure for the parsed fields of a variable placeholder.
+   *
+   * @param type type of the variable
+   * @param column column name
+   * @param piUid program indicator UID
+   * @param psUid program stage UID (can be null)
+   * @param offset offset
+   */
   public record VariableFields(
-      String type,
-      String column,
-      String piUid,
-      String psUid, // Can be null
-      int offset) {}
+      String type, String column, String piUid, String psUid, int offset) {}
 
-  /**
-   * Attempts to parse a single placeholder string. Returns {@link Optional#empty()} when the string
-   * is malformed.
-   */
-  public static Optional<PsDeFields> parsePsDe(String placeholder) {
-    Matcher m = PSDE_PATTERN.matcher(placeholder);
-    if (!m.matches()) return Optional.empty();
-    return Optional.of(
-        new PsDeFields(m.group(1), m.group(2), toInteger(m.group(3)), m.group(4), m.group(5)));
-  }
-
-  /**
-   * Tries to parse a single simple-filter expression such as
-   *
-   * <pre>V{event_date} >= '2025-01-01'</pre>
-   *
-   * . Returns {@link Optional#empty()} when the string does **not** match the grammar.
-   */
-  public static Optional<FilterFields> parseFilter(String expr) {
-    Matcher m = FILTER_PATTERN.matcher(expr);
-    if (!m.matches()) {
-      return Optional.empty();
-    }
-    return Optional.of(
-        new FilterFields(
-            m.group(1), // variableName
-            m.group(2), // operator
-            m.group(3))); // literal (without quotes)
-  }
-
-  /**
-   * Parses a single `__D2FUNC__( … )__` token. Returns {@link Optional#empty()} when the string
-   * does not match *or* when the Base-64 cannot be decoded.
-   */
-  public static Optional<D2FuncFields> parseD2Func(String placeholder) {
-    Matcher m = D2_FUNC_PATTERN.matcher(placeholder);
-    if (!m.matches()) {
-      return Optional.empty();
-    }
-    try {
-      return Optional.of(
-          new D2FuncFields(
-              m.group(0), // raw
-              m.group(1), // func
-              m.group(2), // psUid
-              m.group(3), // deUid
-              m.group(4), // argType
-              m.group(5), // valueSql (encoded)
-              m.group(6), // boundaryHash
-              m.group(7))); // piUid
-    } catch (IllegalArgumentException ex) {
-      // Malformed Base-64 → treat as non-match
-      return Optional.empty();
-    }
-  }
-
-  public static Optional<VariableFields> parseVariable(String expr) {
-    Matcher m = VARIABLE_PATTERN.matcher(expr);
-    if (!m.matches()) {
-      return Optional.empty();
-    }
-    return Optional.of(
-        new VariableFields(
-            m.group(1),
-            m.group(2),
-            m.group(3),
-            "null".equals(m.group(4)) ? null : m.group(4),
-            toInteger(m.group(5))));
-  }
-
-  /** Expose the pattern so callers can iterate through a SQL blob efficiently. */
   public static Pattern psDePattern() {
-    return PSDE_PATTERN;
+    return ProgramStageDataElementPlaceholderParser.PATTERN;
   }
 
   public static Pattern filterPattern() {
-    return FILTER_PATTERN;
+    return FilterPlaceholderParser.PATTERN;
   }
 
-  /** Expose the compiled pattern so factories can iterate efficiently. */
   public static Pattern d2FuncPattern() {
-    return D2_FUNC_PATTERN;
+    return D2FunctionPlaceholderParser.PATTERN;
   }
 
   public static Pattern variablePattern() {
-    return VARIABLE_PATTERN;
+    return VariablePlaceholderParser.PATTERN;
   }
 
-  private int toInteger(String stringAsInt) {
+  // --- Public Parsers (Unchanged for API compatibility) ---
+
+  public static Optional<PsDeFields> parsePsDe(String placeholder) {
+    return ProgramStageDataElementPlaceholderParser.parse(placeholder);
+  }
+
+  public static Optional<FilterFields> parseFilter(String expr) {
+    return FilterPlaceholderParser.parse(expr);
+  }
+
+  public static Optional<D2FuncFields> parseD2Func(String placeholder) {
+    return D2FunctionPlaceholderParser.parse(placeholder);
+  }
+
+  public static Optional<VariableFields> parseVariable(String expr) {
+    return VariablePlaceholderParser.parse(expr);
+  }
+
+  public static final class ProgramStageDataElementPlaceholderParser {
+    private static final Pattern PATTERN =
+        Pattern.compile(
+            "__PSDE_CTE_PLACEHOLDER__\\(psUid='([^']*)',\\s*deUid='([^']*)',\\s*offset='([^']*)',"
+                + "\\s*boundaryHash='([^']*)',\\s*piUid='([^']*)'\\)");
+
+    private static final int GROUP_PS_UID = 1;
+    private static final int GROUP_DE_UID = 2;
+    private static final int GROUP_OFFSET = 3;
+    private static final int GROUP_BOUNDARY_HASH = 4;
+    private static final int GROUP_PI_UID = 5;
+
+    private static Optional<PsDeFields> parse(String placeholder) {
+      Matcher m = PATTERN.matcher(placeholder);
+      if (!m.matches()) return Optional.empty();
+      return Optional.of(
+          new PsDeFields(
+              m.group(GROUP_PS_UID),
+              m.group(GROUP_DE_UID),
+              toInteger(m.group(GROUP_OFFSET)),
+              m.group(GROUP_BOUNDARY_HASH),
+              m.group(GROUP_PI_UID)));
+    }
+  }
+
+  public static final class D2FunctionPlaceholderParser {
+    private static final Pattern PATTERN =
+        Pattern.compile(
+            // Match literal prefix and opening parenthesis
+            "__D2FUNC__\\("
+                +
+                // Capture 'func' value
+                "func='([^']*)',"
+                +
+                // Optional whitespace, capture 'ps' value
+                "\\s*ps='([^']*)',"
+                +
+                // Optional whitespace, capture 'de' value
+                "\\s*de='([^']*)',"
+                +
+                // argType (e.g., val64, condLit64, none)
+                "\\s*argType='([^']*)',"
+                +
+                // Optional whitespace, capture 'val64' value (Base64 chars: A-Z, a-z, 0-9, +, /, =)
+                "\\s*arg64='([A-Za-z0-9+/=]*)',"
+                + // More specific capture for Base64
+                // Optional whitespace, capture 'hash' value (Alphanumeric for SHA1/MD5 or includes
+                // '_')
+                "\\s*hash='([^']*)',"
+                +
+                // Optional whitespace, capture 'pi' value
+                "\\s*pi='([^']*)'"
+                +
+                // Match literal closing parenthesis and suffix
+                "\\)__");
+
+    private static final int GROUP_FUNC = 1;
+    private static final int GROUP_PS_UID = 2;
+    private static final int GROUP_DE_UID = 3;
+    private static final int GROUP_ARG_TYPE = 4;
+    private static final int GROUP_VALUE_SQL = 5;
+    private static final int GROUP_BOUNDARY_HASH = 6;
+    private static final int GROUP_PI_UID = 7;
+
+    private static Optional<D2FuncFields> parse(String placeholder) {
+      Matcher m = PATTERN.matcher(placeholder);
+      if (!m.matches()) return Optional.empty();
+      try {
+        return Optional.of(
+            new D2FuncFields(
+                m.group(0),
+                m.group(GROUP_FUNC),
+                m.group(GROUP_PS_UID),
+                m.group(GROUP_DE_UID),
+                m.group(GROUP_ARG_TYPE),
+                m.group(GROUP_VALUE_SQL),
+                m.group(GROUP_BOUNDARY_HASH),
+                m.group(GROUP_PI_UID)));
+      } catch (IllegalArgumentException ex) {
+        return Optional.empty();
+      }
+    }
+  }
+
+  public static final class FilterPlaceholderParser {
+    private static final Pattern PATTERN =
+        Pattern.compile("V\\{([^}]+)\\}\\s*([=<>!]{1,2})\\s*'([^']+)'");
+
+    private static final int GROUP_VARIABLE_NAME = 1;
+    private static final int GROUP_OPERATOR = 2;
+    private static final int GROUP_LITERAL = 3;
+
+    private static Optional<FilterFields> parse(String expr) {
+      Matcher m = PATTERN.matcher(expr);
+      if (!m.matches()) return Optional.empty();
+      return Optional.of(
+          new FilterFields(
+              m.group(GROUP_VARIABLE_NAME), m.group(GROUP_OPERATOR), m.group(GROUP_LITERAL)));
+    }
+  }
+
+  public static final class VariablePlaceholderParser {
+    private static final Pattern PATTERN =
+        Pattern.compile(
+            "FUNC_CTE_VAR\\(\\s*type='([^']*)',\\s*column='([^']*)',"
+                + "\\s*piUid='([^']*)',\\s*psUid='([^']*)',\\s*offset='([^']*)'\\s*\\)");
+
+    private static final int GROUP_TYPE = 1;
+    private static final int GROUP_COLUMN = 2;
+    private static final int GROUP_PI_UID = 3;
+    private static final int GROUP_PS_UID = 4;
+    private static final int GROUP_OFFSET = 5;
+
+    private static Optional<VariableFields> parse(String expr) {
+      Matcher m = PATTERN.matcher(expr);
+      if (!m.matches()) return Optional.empty();
+      return Optional.of(
+          new VariableFields(
+              m.group(GROUP_TYPE),
+              m.group(GROUP_COLUMN),
+              m.group(GROUP_PI_UID),
+              "null".equals(m.group(GROUP_PS_UID)) ? null : m.group(GROUP_PS_UID),
+              toInteger(m.group(GROUP_OFFSET))));
+    }
+  }
+
+  private static int toInteger(String value) {
     try {
-      return Integer.parseInt(stringAsInt);
+      return Integer.parseInt(value);
     } catch (NumberFormatException ex) {
-      throw new IllegalArgumentException("Invalid integer value: " + stringAsInt, ex);
+      throw new IllegalArgumentException("Invalid integer: " + value, ex);
     }
   }
 }
