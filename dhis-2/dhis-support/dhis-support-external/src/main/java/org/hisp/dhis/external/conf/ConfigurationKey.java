@@ -285,7 +285,7 @@ public enum ConfigurationKey {
 
   /**
    * Sets the maximum number of milliseconds that the Analytics Hikari pool will wait for a
-   * connection to be validated as alive. (default: 5ms)q
+   * connection to be validated as alive. (default: 5ms)
    */
   ANALYTICS_CONNECTION_POOL_VALIDATION_TIMEOUT(
       "analytics.connection.pool.validation_timeout", String.valueOf(SECONDS.toMillis(5)), false),
