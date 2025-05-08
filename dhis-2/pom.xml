@@ -7,19 +7,19 @@
   <packaging>pom</packaging>
   <name>DHIS2</name>
 
-  <description>DHIS2 is a free and open-source software platform for collecting, managing, 
-    analyzing, and sharing data. It supports online and offline data capture via web and mobile 
-    devices, and includes built-in features for data validation and visualization. The generic DHIS2 
-    data model supports both routine aggregate/statistical data collection and individual/event 
-    data, and can be applied to use cases in any sector, allowing decentralized access to data 
+  <description>DHIS2 is a free and open-source software platform for collecting, managing,
+    analyzing, and sharing data. It supports online and offline data capture via web and mobile
+    devices, and includes built-in features for data validation and visualization. The generic DHIS2
+    data model supports both routine aggregate/statistical data collection and individual/event
+    data, and can be applied to use cases in any sector, allowing decentralized access to data
     throughout an organizational hierarchy.
-    
+
     DHIS2 is fully customizable through the user interface without the need for coding skills,
-    and can be extended with custom applications, scripts, and integrations. Each DHIS2 instance and 
+    and can be extended with custom applications, scripts, and integrations. Each DHIS2 instance and
     the data stored within it are locally owned and managed.
 
-    DHIS2 is designed and developed by the HISP Centre at University of Oslo, with the goal of 
-    strengthening governance systems in low- and middle-income countries. It is shared as a Digital 
+    DHIS2 is designed and developed by the HISP Centre at University of Oslo, with the goal of
+    strengthening governance systems in low- and middle-income countries. It is shared as a Digital
     Public Good.</description>
 
   <url>https://dhis2.org</url>
@@ -166,7 +166,7 @@
     <itext.version>2.1.7</itext.version>
 
     <!-- GIS -->
-    <batik-transcoder.version>1.18</batik-transcoder.version>
+    <batik-transcoder.version>1.19</batik-transcoder.version>
     <fop.version>2.10</fop.version>
     <mapstruct.version>1.6.3</mapstruct.version>
     <geotools.version>29.6</geotools.version>
@@ -174,7 +174,7 @@
 
     <!-- Apache Artemis -->
     <artemis-jakarta.version>2.41.0</artemis-jakarta.version>
-    <netty-all.version>4.2.0.Final</netty-all.version>
+    <netty-all.version>4.2.1.Final</netty-all.version>
     <classgraph.version>4.8.179</classgraph.version>
 
     <!-- SMS/SMPP -->
@@ -204,6 +204,7 @@
     <commons-io.version>2.19.0</commons-io.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
+    <jakarta-email.version>1.6.7</jakarta-email.version>
     <httpcomponents-core.version>5.3.4</httpcomponents-core.version>
     <httpcomponents-client5.version>5.4.4</httpcomponents-client5.version>
     <kafka.version>4.0.0</kafka.version>
@@ -240,7 +241,7 @@
     <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
-    <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
+    <maven-dependency-plugin.version>3.8.1</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>2.6.1</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.18.0</versions-maven-plugin.version>
     <dependency-check-maven.version>12.1.1</dependency-check-maven.version>
@@ -951,6 +952,11 @@
         </exclusions>
       </dependency>
       <dependency>
+        <groupId>com.sun.mail</groupId>
+        <artifactId>jakarta.mail</artifactId>
+        <version>${jakarta-email.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.apache.httpcomponents.client5</groupId>
         <artifactId>httpclient5</artifactId>
         <version>${httpcomponents-client5.version}</version>
@@ -1375,6 +1381,11 @@
             <artifactId>xercesImpl</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-metadata</artifactId>
+        <version>${geotools.version}</version>
       </dependency>
       <dependency>
         <groupId>org.geotools</groupId>
@@ -2369,7 +2380,7 @@ jasperreports.version=${jasperreports.version}
     <!--
       <build><sourceDirectory> cannot be set in a profile, so it needs
       a custom property for overwriting it, see
-      https://github.com/awhitford/lombok.maven/issues/17#issuecomment-136606104 
+      https://github.com/awhitford/lombok.maven/issues/17#issuecomment-136606104
     -->
     <sourceDirectory>${sourceDir}</sourceDirectory>
   </build>
