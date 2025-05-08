@@ -120,7 +120,7 @@
     <lettuce.version>6.6.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>11.8.0</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>11.8.1</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <ehcache3.version>3.10.8</ehcache3.version>
     <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
@@ -167,7 +167,7 @@
 
     <!-- GIS -->
     <batik-transcoder.version>1.19</batik-transcoder.version>
-    <fop.version>2.10</fop.version>
+    <fop.version>2.11</fop.version>
     <mapstruct.version>1.6.3</mapstruct.version>
     <geotools.version>29.6</geotools.version>
     <jts.version>1.20.0</jts.version>
