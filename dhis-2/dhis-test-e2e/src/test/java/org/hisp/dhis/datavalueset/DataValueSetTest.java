@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,6 +64,15 @@ class DataValueSetTest extends ApiTest {
     metadataApiActions = new MetadataActions();
     dataValueSetActions = new RestApiActions("dataValueSets");
     loginActions.loginAsSuperUser();
+
+    // import metadata & data values
+    metadataApiActions.importMetadata(metadata()).validateStatus(200);
+    addDataValues();
+  }
+
+  @BeforeEach
+  public void setup() {
+    loginActions.loginAsSuperUser();
   }
 
   @AfterAll
@@ -74,22 +83,13 @@ class DataValueSetTest extends ApiTest {
         .validate();
   }
 
-  @BeforeEach
-  public void setup() {
-    loginActions.loginAsSuperUser();
-  }
-
   @Test
   @DisplayName("Getting data values in xml zip format returns a valid payload")
   void dataValueXmlZipTest() throws IOException {
-    // Given metadata & data value exist
-    metadataApiActions.importMetadata(metadata()).validateStatus(200);
-    addDataValues();
-
     // When a request for data values in xml zip format is sent
     Response zipPayload =
         dataValueSetActions
-            .get(dataValueSetXmlZipQueryParams())
+            .get(dataValueSetXmlZipQueryParams("xml"))
             .validate()
             .statusCode(200)
             .extract()
@@ -106,8 +106,34 @@ class DataValueSetTest extends ApiTest {
         mapZipEntryToStringContent(zipPayload.body().asByteArray())
             .get("dataValues_2024-01-01_2050-01-30.xml");
 
-    assertTrue(xmlString.contains("dataValueSet"));
-    assertTrue(xmlString.contains("data value 1"));
+    assertTrue(xmlString.contains("dataValueSet"), "unzipped value should contain 'dataValueSet'");
+    assertTrue(xmlString.contains("data value 1"), "unzipped value should contain 'data value 1'");
+  }
+
+  @Test
+  @DisplayName("Getting data values in adx+xml zip format returns a valid payload")
+  void dataValueAdxXmlZipTest() throws IOException {
+    // When a request for data values in xml zip format is sent
+    Response zipPayload =
+        dataValueSetActions
+            .get(dataValueSetXmlZipQueryParams("adx+xml"))
+            .validate()
+            .statusCode(200)
+            .extract()
+            .response();
+
+    // Then the expected headers & values are present
+    assertEquals(
+        "attachment; filename=dataValues_2024-01-01_2050-01-30.xml.zip",
+        zipPayload.getHeader("Content-Disposition"));
+    assertEquals("binary", zipPayload.getHeader("Content-Transfer-Encoding"));
+
+    // And when unzipping it has the expected values
+    String xmlString =
+        mapZipEntryToStringContent(zipPayload.body().asByteArray())
+            .get("dataValues_2024-01-01_2050-01-30.xml");
+
+    assertTrue(xmlString.contains("adx"), "unzipped value should contain 'adx'");
   }
 
   private void addDataValues() {
@@ -131,16 +157,16 @@ class DataValueSetTest extends ApiTest {
         .add("skipExistingCheck=false");
   }
 
-  private String dataValueSetXmlZipQueryParams() {
+  private String dataValueSetXmlZipQueryParams(String format) {
     return new QueryParamsBuilder()
         .add("orgUnit=%s")
         .add("startDate=2024-01-01")
         .add("endDate=2050-01-30")
         .add("dataElement=%s")
-        .add("format=xml")
+        .add("format=%s")
         .add("compression=zip")
         .build()
-        .formatted(ORG_UNIT_UID, DATA_ELEMENT_UID);
+        .formatted(ORG_UNIT_UID, DATA_ELEMENT_UID, format);
   }
 
   private JsonObject dataValueSetImport() {
