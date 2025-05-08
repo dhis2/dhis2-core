@@ -264,6 +264,12 @@ public enum ConfigurationKey {
   CONNECTION_POOL_TIMEOUT("connection.pool.timeout", String.valueOf(SECONDS.toMillis(30)), false),
 
   /**
+   * Hikari DB pool feature. Connection leak detection threshold: Set the maximum number of
+   * milliseconds that a connection can be out of the pool before a message is logged. (default: 0 -
+   * no leak detection)
+   */
+  CONNECTION_POOL_LEAK_THRESHOLD("connection.pool.leak.threshold", "0", false),
+  /**
    * Analytics Hikari DB pool feature. Connection pool timeout: Set the maximum number of
    * milliseconds that a client will wait for a connection from the pool. (default: 30s)
    */
@@ -279,7 +285,7 @@ public enum ConfigurationKey {
 
   /**
    * Sets the maximum number of milliseconds that the Analytics Hikari pool will wait for a
-   * connection to be validated as alive. (default: 5ms)
+   * connection to be validated as alive. (default: 5ms)q
    */
   ANALYTICS_CONNECTION_POOL_VALIDATION_TIMEOUT(
       "analytics.connection.pool.validation_timeout", String.valueOf(SECONDS.toMillis(5)), false),
