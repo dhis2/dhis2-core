@@ -132,7 +132,7 @@ class MinMaxImportTest extends ApiTest {
                 ]
                 }"""
             .formatted(dataSet, orgUnit, dataElement, orgUnit, defaultCOC);
-    ApiResponse response = minMaxValuesActions.post("/upsert",payload);
+    ApiResponse response = minMaxValuesActions.post("/upsert", payload);
     response
         .validate()
         .statusCode(400)
@@ -195,8 +195,7 @@ class MinMaxImportTest extends ApiTest {
         new File("src/test/resources/minmax/minmax.csv"),
         "application/csv",
         "/upsert",
-        new QueryParamsBuilder()
-            .add("dataSet", dataSet).add("orgUnit", orgUnit));
+        new QueryParamsBuilder().add("dataSet", dataSet).add("orgUnit", orgUnit));
   }
 
   private ApiResponse postDeleteCsv() {
@@ -204,7 +203,6 @@ class MinMaxImportTest extends ApiTest {
         new File("src/test/resources/minmax/minmax.csv"),
         "application/csv",
         "/delete",
-        new QueryParamsBuilder()
-    .add("dataSet", dataSet).add("orgUnit", orgUnit));
+        new QueryParamsBuilder().add("dataSet", dataSet).add("orgUnit", orgUnit));
   }
 }
