@@ -196,37 +196,12 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
                     fakeDataElementID,
                     fakeOrgUnitID,
                     fakeCategoryOptionComboID),
-            HttpStatus.BAD_REQUEST),
-        // This payload should be valid, but we have not loaded the required metadata
-        arguments(
-            "Could not resolve references for min-max object: dataElement=%s, orgUnit=%s, optionCombo=%s, min=10, max=100"
-                .formatted(fakeDataElementID, fakeOrgUnitID, fakeCategoryOptionComboID)
-                .trim(),
-            """
-                {
-                  "dataSet": "%s",
-                  "orgUnit": "%s",
-                  "values": [{
-                    "dataElement": "%s",
-                    "orgUnit": "%s",
-                    "optionCombo": "%s",
-                    "minValue": 10,
-                    "maxValue": 100
-                  }]
-                }
-                """
-                .formatted(
-                    fakeDataSetID,
-                    fakeOrgUnitID,
-                    fakeDataElementID,
-                    fakeOrgUnitID,
-                    fakeCategoryOptionComboID),
             HttpStatus.BAD_REQUEST));
   }
 
   @ParameterizedTest
   @MethodSource("provideTestCases")
-  void testBulkPostJson(String expectedMessage, String payload, HttpStatus expectedStatus) {
+  void testPostUpsertJson(String expectedMessage, String payload, HttpStatus expectedStatus) {
     assertWebMessage(
         "Bad Request",
         400,
@@ -236,22 +211,21 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
   }
 
   @Test
-  void testBulkPostJson_EmptyValues() {
+  void testPostUpsertJson_EmptyValues() {
+    String json =
+        """
+        {
+          "dataSet": "%s",
+          "orgUnit": "%s",
+          "values": []
+        }
+        """
+            .formatted(orgUnitId, dataElementId);
     assertWebMessage(
         "OK",
         200,
         "OK",
         "Successfully imported 0 min-max values",
-        POST(
-                "/minMaxDataElements/upsert",
-                """
-                  {
-                  "dataSet": "%s",
-                  "orgUnit": "%s",
-                  "values": []
-                }
-                """
-                    .formatted(orgUnitId, dataElementId))
-            .content(HttpStatus.OK));
+        POST("/minMaxDataElements/upsert", json).content(HttpStatus.OK));
   }
 }

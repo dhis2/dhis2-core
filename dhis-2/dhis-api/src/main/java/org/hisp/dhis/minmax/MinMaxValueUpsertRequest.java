@@ -29,8 +29,8 @@
  */
 package org.hisp.dhis.minmax;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 
 /**
@@ -38,7 +38,8 @@ import org.hisp.dhis.common.UID;
  *
  * @param dataSet all values must belong to this dataset
  * @param orgUnit all values must belong to this organisation unit
- * @param values the individual values
+ * @param values the individual values to insert or update, all of which must belong to the {@link
+ *     #orgUnit()} and a DE connected to the {@link #dataSet()}
  */
 public record MinMaxValueUpsertRequest(
-    @JsonProperty UID dataSet, @JsonProperty UID orgUnit, @JsonProperty List<MinMaxValue> values) {}
+    @Nonnull UID dataSet, @Nonnull UID orgUnit, @Nonnull List<MinMaxValue> values) {}

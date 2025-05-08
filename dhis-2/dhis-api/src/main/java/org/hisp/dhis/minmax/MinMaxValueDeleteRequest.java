@@ -30,5 +30,15 @@
 package org.hisp.dhis.minmax;
 
 import java.util.List;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 
-public record MinMaxValueDeleteRequest(List<MinMaxValueKey> values) {}
+/**
+ * @author Jan Bernitt
+ * @param dataSet all deleted values must belong to this dataset
+ * @param orgUnit all deleted values must belong to this organisation unit
+ * @param values please note that the name has to be identical to {@link
+ *     MinMaxValueUpsertRequest#values()} so that the same JSON can be used to run delete or upsert.
+ */
+public record MinMaxValueDeleteRequest(
+    @Nonnull UID dataSet, @Nonnull UID orgUnit, @Nonnull List<MinMaxValueKey> values) {}

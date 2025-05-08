@@ -44,6 +44,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Spliterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -60,6 +61,8 @@ import org.intellij.lang.annotations.Language;
  * A utility to read CSV into record POJOs.
  *
  * <p>This assumes all properties of the constructed POJOs are simple in nature.
+ *
+ * <p>Required properties either use a primitive type or are annotated with {@link Nonnull}.
  *
  * @author Jan Bernitt
  * @since 2.43
@@ -145,12 +148,15 @@ public final class CSV {
           }
           try {
             return c.newInstance(args);
-          } catch (Exception e) {
-            throw new RuntimeException(e);
+          } catch (Exception ex) {
+            // should be impossible as long as there is no custom validation in the constructor
+            // throwing an exception, in which case the arguments are not proper, so this wraps as:
+            throw new IllegalArgumentException(ex);
           }
         };
-      } catch (NoSuchMethodException e) {
-        throw new RuntimeException(e);
+      } catch (NoSuchMethodException ex) {
+        // should be impossible since it uses the record canonical constructor
+        throw new NoSuchElementException(ex);
       }
     }
 
@@ -242,11 +248,14 @@ public final class CSV {
       List<String> columns = List.of(header.split(","));
       Function<List<String>, T> creator = as.from(columns);
       LineBuffer buf = LineBuffer.of(columns);
-      return new Iterator<T>() {
+      return new Iterator<>() {
+        boolean next = false;
+
         @Override
         public boolean hasNext() {
           try {
-            return buf.readLine(csv);
+            next = buf.readLine(csv);
+            return next;
           } catch (IOException e) {
             throw new UncheckedIOException(e);
           }
@@ -254,6 +263,9 @@ public final class CSV {
 
         @Override
         public T next() {
+          if (!next)
+            throw new NoSuchElementException(
+                "hasNext() wasn't called or returned false before call to next()");
           return creator.apply(buf.split());
         }
       };

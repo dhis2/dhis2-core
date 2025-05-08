@@ -295,8 +295,8 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
                 stmt.setLong(1, de);
                 stmt.setObject(2, ou);
                 stmt.setObject(3, coc);
-                stmt.setObject(4, value.minValue());
-                stmt.setObject(5, value.maxValue());
+                stmt.setInt(4, value.minValue());
+                stmt.setInt(5, value.maxValue());
                 stmt.setObject(6, generated);
                 stmt.addBatch();
               }

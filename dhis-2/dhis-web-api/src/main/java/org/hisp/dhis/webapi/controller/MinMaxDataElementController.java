@@ -247,7 +247,7 @@ public class MinMaxDataElementController {
       @RequestParam UID orgUnit)
       throws BadRequestException {
 
-    return bulkDeleteJson(new MinMaxValueDeleteRequest(csvToKeys(file)));
+    return bulkDeleteJson(new MinMaxValueDeleteRequest(dataSet, orgUnit, csvToKeys(file)));
   }
 
   private static List<MinMaxValue> csvToEntries(MultipartFile file) throws BadRequestException {
