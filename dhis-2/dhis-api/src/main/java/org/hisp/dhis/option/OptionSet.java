@@ -53,6 +53,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -156,7 +157,7 @@ public class OptionSet implements IdentifiableObject, VersionedObject, MetadataO
 
   @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   @JoinColumn(name = "optionsetid", foreignKey = @ForeignKey(name = "fk_optionset_optionid"))
-  @OrderColumn(name = "sort_order")
+  @OrderBy(value = "sortOrder ASC")
   @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private List<Option> options = new ArrayList<>();
 
@@ -164,7 +165,7 @@ public class OptionSet implements IdentifiableObject, VersionedObject, MetadataO
   @AuditAttribute
   private AttributeValues attributeValues = AttributeValues.empty();
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "userid", foreignKey = @ForeignKey(name = "fk_optionset_userid"))
   private User createdBy;
 
@@ -493,7 +494,13 @@ public class OptionSet implements IdentifiableObject, VersionedObject, MetadataO
   }
 
   @Override
+  @Gist(included = Include.FALSE)
+  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
   @JsonProperty
+  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
+  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
+  @PropertyTransformer(UserPropertyTransformer.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public User getCreatedBy() {
     return createdBy;
   }

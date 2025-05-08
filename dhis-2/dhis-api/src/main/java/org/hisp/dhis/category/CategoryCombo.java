@@ -602,13 +602,20 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
     this.translations = translations;
   }
 
+  @JsonIgnore
   @Override
   public long getId() {
     return id;
   }
 
   @Override
+  @Gist(included = Include.FALSE)
+  @OpenApi.Property(UserPropertyTransformer.UserDto.class)
   @JsonProperty
+  @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
+  @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
+  @PropertyTransformer(UserPropertyTransformer.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public User getCreatedBy() {
     return createdBy;
   }
