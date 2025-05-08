@@ -74,19 +74,19 @@ public class RequestIdentifierFilter extends OncePerRequestFilter {
   protected void doFilterInternal(
       HttpServletRequest req, HttpServletResponse res, FilterChain chain)
       throws ServletException, IOException {
-    if (enabled) {
-      try {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null
-            && authentication.isAuthenticated()
-            && !authentication.getPrincipal().equals("anonymousUser")) {
-
-          MDC.put(SESSION_ID_KEY, IDENTIFIER_PREFIX + hashToBase64(req.getSession().getId()));
-        }
-      } catch (NoSuchAlgorithmException e) {
-        log.error(String.format("Invalid Hash algorithm provided (%s)", HASH_ALGO), e);
-      }
-    }
+//    if (enabled) {
+//      try {
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        if (authentication != null
+//            && authentication.isAuthenticated()
+//            && !authentication.getPrincipal().equals("anonymousUser")) {
+//
+//          MDC.put(SESSION_ID_KEY, IDENTIFIER_PREFIX + hashToBase64(req.getSession().getId()));
+//        }
+//      } catch (NoSuchAlgorithmException e) {
+//        log.error(String.format("Invalid Hash algorithm provided (%s)", HASH_ALGO), e);
+//      }
+//    }
 
     chain.doFilter(req, res);
   }
