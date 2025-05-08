@@ -31,10 +31,12 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.stream.Stream;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -221,11 +223,8 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
         }
         """
             .formatted(orgUnitId, dataElementId);
-    assertWebMessage(
-        "OK",
-        200,
-        "OK",
-        "Successfully imported 0 min-max values",
-        POST("/minMaxDataElements/upsert", json).content(HttpStatus.OK));
+
+    JsonObject response = POST("/minMaxDataElements/upsert", json).content(HttpStatus.OK);
+    assertEquals("Successfully imported 0 min-max values", response.getString("message").string());
   }
 }

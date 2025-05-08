@@ -51,6 +51,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ImportSuccessResponse;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
@@ -208,28 +209,36 @@ public class MinMaxDataElementController {
 
   @PostMapping(value = "/upsert", consumes = "application/json")
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
-  public @ResponseBody WebMessage bulkPostJson(@RequestBody MinMaxValueUpsertRequest request)
-      throws BadRequestException {
+  public @ResponseBody ImportSuccessResponse bulkPostJson(
+      @RequestBody MinMaxValueUpsertRequest request) throws BadRequestException {
 
     int imported = minMaxService.importAll(request);
 
-    return ok("Successfully imported %d min-max values".formatted(imported));
+    return ImportSuccessResponse.ok()
+        .message("Successfully imported %d min-max values".formatted(imported))
+        .successful(imported)
+        .ignored(request.values().size() - imported)
+        .build();
   }
 
   @PostMapping(value = "/delete", consumes = "application/json")
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
-  public @ResponseBody WebMessage bulkDeleteJson(@RequestBody MinMaxValueDeleteRequest request)
-      throws BadRequestException {
+  public @ResponseBody ImportSuccessResponse bulkDeleteJson(
+      @RequestBody MinMaxValueDeleteRequest request) throws BadRequestException {
 
     int deleted = minMaxService.deleteAll(request);
 
-    return ok("Successfully deleted %d min-max values".formatted(deleted));
+    return ImportSuccessResponse.ok()
+        .message("Successfully deleted %d min-max values".formatted(deleted))
+        .successful(deleted)
+        .ignored(request.values().size() - deleted)
+        .build();
   }
 
   @PostMapping(value = "/upsert", consumes = "multipart/form-data")
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @Maturity.Alpha
-  public @ResponseBody WebMessage bulkPostCsv(
+  public @ResponseBody ImportSuccessResponse bulkPostCsv(
       @RequestParam("file") MultipartFile file,
       @RequestParam UID dataSet,
       @RequestParam UID orgUnit)
@@ -241,7 +250,7 @@ public class MinMaxDataElementController {
   @PostMapping(value = "/delete", consumes = "multipart/form-data")
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @Maturity.Alpha
-  public @ResponseBody WebMessage bulkDeleteCsv(
+  public @ResponseBody ImportSuccessResponse bulkDeleteCsv(
       @RequestParam("file") MultipartFile file,
       @RequestParam UID dataSet,
       @RequestParam UID orgUnit)

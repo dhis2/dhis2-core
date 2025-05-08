@@ -207,11 +207,10 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
   private Map<String, Long> selectIdMapping(
       @Language("sql") String sql, String name, Stream<UID> values) {
     return mapIdToLong(
-        (List<Object[]>)
-            getSession()
-                .createNativeQuery(sql)
-                .setParameter(name, values.map(UID::getValue).toList())
-                .getResultList());
+        getSession()
+            .createNativeQuery(sql)
+            .setParameter(name, values.map(UID::getValue).toList())
+            .getResultList());
   }
 
   private static Map<String, Long> mapIdToLong(List<Object[]> results) {
