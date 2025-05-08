@@ -76,19 +76,25 @@ class MinMaxImportTest extends ApiTest {
 
   @Test
   void minMaxValuesCanBeImportedInBulk_JSON() {
-
-    ApiResponse response = postUpsertJson(orgUnit);
-    response
+    postUpsertJson(orgUnit)
         .validate()
         .statusCode(200)
         .body("message", containsString("Successfully imported 1 min-max values"));
   }
 
   @Test
+  void upsertJson_CountsActualRowsAffected() {
+    // using a non-existing OU ID has no effect
+    postUpsertJson("x0123456789")
+        .validate()
+        .statusCode(200)
+        .body("message", containsString("Successfully imported 0 min-max values"));
+  }
+
+  @Test
   void minMaxValuesCanBeDeletedInBulk_JSON() throws IOException {
     postUpsertJson(orgUnit);
-    ApiResponse response = postDeleteJson(orgUnit);
-    response
+    postDeleteJson(orgUnit)
         .validate()
         .statusCode(200)
         .body("message", containsString("Successfully deleted 1 min-max values"));
@@ -96,14 +102,16 @@ class MinMaxImportTest extends ApiTest {
 
   @Test
   void minMaxValueCanBeImportedInBulk_CSV() throws IOException {
-    postUpsertCsv().validate().statusCode(200);
+    postUpsertCsv()
+        .validate()
+        .statusCode(200)
+        .body("message", containsString("Successfully imported 4 min-max values"));
   }
 
   @Test
   void minMaxValueCanBeDeletedInBulk_CSV() throws IOException {
     postUpsertCsv().validate().statusCode(200);
-    ApiResponse response = postDeleteCsv();
-    response
+    postDeleteCsv()
         .validate()
         .statusCode(200)
         .body("message", containsString("Successfully deleted 4 min-max values"));
