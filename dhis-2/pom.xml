@@ -109,7 +109,7 @@
 
     <!-- Spring -->
     <spring.version>6.2.3</spring.version>
-    <spring-session-core.version>3.4.2</spring-session-core.version>
+    <spring-session-core.version>3.4.3</spring-session-core.version>
     <spring-data-redis.version>2.7.18</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.4</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
@@ -120,7 +120,7 @@
     <lettuce.version>6.6.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>11.8.0</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>11.8.1</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <ehcache3.version>3.10.8</ehcache3.version>
     <jaxb-runtime.version>4.0.5</jaxb-runtime.version>
@@ -131,7 +131,7 @@
     <postgresql-driver.version>42.7.5</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.10.1</datasource-proxy.version>
-    <mysql-connector-j.version>9.2.0</mysql-connector-j.version>
+    <mysql-connector-j.version>9.3.0</mysql-connector-j.version>
     <clickhouse-jdbc.version>0.8.5</clickhouse-jdbc.version>
 
     <!-- Servlet -->
@@ -167,7 +167,7 @@
 
     <!-- GIS -->
     <batik-transcoder.version>1.19</batik-transcoder.version>
-    <fop.version>2.10</fop.version>
+    <fop.version>2.11</fop.version>
     <mapstruct.version>1.6.3</mapstruct.version>
     <geotools.version>29.6</geotools.version>
     <jts.version>1.20.0</jts.version>
@@ -183,7 +183,7 @@
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
     <jsmpp.version>3.0.1</jsmpp.version>
     <json-path.version>2.9.0</json-path.version>
-    <jsoup.version>1.19.1</jsoup.version>
+    <jsoup.version>1.20.1</jsoup.version>
 
     <!-- Div. utils -->
     <guava.version>33.4.8-jre</guava.version>
