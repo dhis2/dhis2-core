@@ -108,8 +108,6 @@ class EventQueryParams {
 
   @Getter private CategoryOptionCombo categoryOptionCombo;
 
-  @Getter private boolean includeRelationships;
-
   /**
    * Events can be ordered by field names (given as {@link String}), data elements (given as {@link
    * DataElement}) and tracked entity attributes (given as {@link TrackedEntityAttribute}). It is
@@ -122,10 +120,6 @@ class EventQueryParams {
    * single List of {@link Order}.
    */
   private final List<Order> order = new ArrayList<>();
-
-  @Getter private boolean includeAttributes;
-
-  @Getter private boolean includeAllDataElements;
 
   @Getter private Set<UID> events = new HashSet<>();
 
@@ -146,11 +140,6 @@ class EventQueryParams {
   @Getter private Set<UID> accessiblePrograms;
 
   @Getter private Set<UID> accessibleProgramStages;
-
-  @Getter private boolean synchronizationQuery;
-
-  /** Indicates a point in the time used to decide the data that should not be synchronized */
-  @Getter private Date skipChangedBefore;
 
   @Getter private Set<UID> enrollments;
 
@@ -302,16 +291,6 @@ class EventQueryParams {
     return this;
   }
 
-  public EventQueryParams setIncludeAttributes(boolean includeAttributes) {
-    this.includeAttributes = includeAttributes;
-    return this;
-  }
-
-  public EventQueryParams setIncludeAllDataElements(boolean includeAllDataElements) {
-    this.includeAllDataElements = includeAllDataElements;
-    return this;
-  }
-
   public List<Order> getOrder() {
     return Collections.unmodifiableList(this.order);
   }
@@ -400,34 +379,9 @@ class EventQueryParams {
     return accessiblePrograms != null && accessibleProgramStages != null;
   }
 
-  public EventQueryParams setSynchronizationQuery(boolean synchronizationQuery) {
-    this.synchronizationQuery = synchronizationQuery;
-    return this;
-  }
-
-  public EventQueryParams setSkipChangedBefore(Date skipChangedBefore) {
-    this.skipChangedBefore = skipChangedBefore;
-    return this;
-  }
-
   public EventQueryParams setEnrollments(Set<UID> enrollments) {
     this.enrollments = enrollments;
     return this;
-  }
-
-  public EventQueryParams setIncludeRelationships(boolean includeRelationships) {
-    this.includeRelationships = includeRelationships;
-    return this;
-  }
-
-  public boolean isOrganisationUnitMode(OrganisationUnitSelectionMode mode) {
-    return orgUnitMode != null && orgUnitMode.equals(mode);
-  }
-
-  public boolean isPathOrganisationUnitMode() {
-    return orgUnitMode != null
-        && (OrganisationUnitSelectionMode.DESCENDANTS.equals(orgUnitMode)
-            || OrganisationUnitSelectionMode.CHILDREN.equals(orgUnitMode));
   }
 
   public EventQueryParams setIdSchemeParams(TrackerIdSchemeParams idSchemeParams) {

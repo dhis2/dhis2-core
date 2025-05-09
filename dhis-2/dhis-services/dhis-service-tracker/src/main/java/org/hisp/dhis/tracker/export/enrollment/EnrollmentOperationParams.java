@@ -53,9 +53,7 @@ import org.hisp.dhis.tracker.export.Order;
 @Builder(toBuilder = true)
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class EnrollmentOperationParams {
-  static final EnrollmentOperationParams EMPTY = EnrollmentOperationParams.builder().build();
-
-  @Builder.Default private final EnrollmentParams enrollmentParams = EnrollmentParams.FALSE;
+  @Builder.Default private final EnrollmentFields fields = EnrollmentFields.none();
 
   /** Set of te uids to explicitly select. */
   @Builder.Default private final Set<UID> enrollments = new HashSet<>();

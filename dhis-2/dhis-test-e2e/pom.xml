@@ -22,7 +22,7 @@
     <json-tree.version>1.8</json-tree.version>
     <epam-reportportal.version>5.2.1</epam-reportportal.version>
     <javafaker.version>1.0.2</javafaker.version>
-    <opencsv.version>5.10</opencsv.version>
+    <opencsv.version>5.11</opencsv.version>
     <owner.version>1.0.12</owner.version>
     <commons-collections4.version>4.5.0</commons-collections4.version>
     <commons-lang3.version>3.17.0</commons-lang3.version>
@@ -31,10 +31,10 @@
     <awaitility.version>4.3.0</awaitility.version>
     <lombok.version>1.18.38</lombok.version>
     <allure.version>2.29.1</allure.version>
-    <selenium-java.version>4.31.0</selenium-java.version>
+    <selenium-java.version>4.32.0</selenium-java.version>
     <slf4j-simple.version>2.0.17</slf4j-simple.version>
     <fluent-hc.version>4.5.14</fluent-hc.version>
-    <httpclient5.version>5.4.3</httpclient5.version>
+    <httpclient5.version>5.4.4</httpclient5.version>
     <commons-io.version>2.19.0</commons-io.version>
     <spring.version>6.2.6</spring.version>
     <subethasmtp-wiser.version>1.2</subethasmtp-wiser.version>
