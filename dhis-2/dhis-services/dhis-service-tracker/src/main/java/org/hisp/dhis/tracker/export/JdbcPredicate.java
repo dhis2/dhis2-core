@@ -240,18 +240,17 @@ public class JdbcPredicate {
   }
 
   /**
-   * Map a list of predicates to a compound predicate adding any named parameters to the given
-   * parameter source.
+   * Adds a list of predicates as a compound predicate into {@code sql} and adds any named
+   * parameters to the given parameter source.
    *
    * <p>You need to make sure to prefix the resulting SQL with {@code and} or suffix with a space or
    * {@code and} if needed.
    */
-  @Nonnull
-  public static <T extends ValueTypedDimensionalItemObject> String mapPredicatesToSql(
-      @Nonnull Map<T, List<JdbcPredicate>> predicates,
-      @Nonnull MapSqlParameterSource sqlParameters) {
+  public static <T extends ValueTypedDimensionalItemObject> void addPredicates(
+      @Nonnull StringBuilder sql,
+      @Nonnull MapSqlParameterSource sqlParameters,
+      @Nonnull Map<T, List<JdbcPredicate>> predicates) {
     boolean first = true;
-    StringBuilder sql = new StringBuilder();
     for (List<JdbcPredicate> values : predicates.values()) {
       for (JdbcPredicate predicate : values) {
         if (first) {
@@ -268,7 +267,5 @@ public class JdbcPredicate {
                     sqlParameters.addValue(parameter.name(), parameter.value()));
       }
     }
-
-    return sql.toString();
   }
 }

@@ -31,7 +31,7 @@ package org.hisp.dhis.tracker.export;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
-import static org.hisp.dhis.tracker.export.JdbcPredicate.mapPredicatesToSql;
+import static org.hisp.dhis.tracker.export.JdbcPredicate.addPredicates;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -353,26 +353,29 @@ lower("%s".value) like :"""
   }
 
   @Test
-  void shouldMapPredicatesMap() {
+  void shouldAddPredicatesMap() {
+    StringBuilder sql = new StringBuilder();
     MapSqlParameterSource params = new MapSqlParameterSource();
 
-    String sql = mapPredicatesToSql(Map.of(), params);
+    addPredicates(sql, params, Map.of());
 
-    assertEquals("", sql);
+    assertEquals("", sql.toString());
   }
 
   @Test
-  void shouldMapPredicatesMapWithEmptyPredicates() {
+  void shouldAddPredicatesMapWithEmptyPredicates() {
+    StringBuilder sql = new StringBuilder();
     TrackedEntityAttribute tea2 = trackedEntityAttribute();
     MapSqlParameterSource params = new MapSqlParameterSource();
 
-    String sql = mapPredicatesToSql(Map.of(tea, List.of(), tea2, List.of()), params);
+    addPredicates(sql, params, Map.of(tea, List.of(), tea2, List.of()));
 
-    assertEquals("", sql);
+    assertEquals("", sql.toString());
   }
 
   @Test
-  void shouldMapPredicates() {
+  void shouldAddPredicates() {
+    StringBuilder sql = new StringBuilder();
     QueryFilter notNull = new QueryFilter(QueryOperator.NNULL);
     TrackedEntityAttribute tea2 = trackedEntityAttribute();
     TrackedEntityAttribute tea3 = trackedEntityAttribute();
@@ -385,17 +388,18 @@ lower("%s".value) like :"""
 
     MapSqlParameterSource params = new MapSqlParameterSource();
 
-    String sql = mapPredicatesToSql(predicates, params);
+    addPredicates(sql, params, predicates);
 
     assertEquals(
 """
 lower("%s".value) is not null and lower("%s".value) is not null and lower("%s".value) is not null"""
             .formatted(tea.getUid(), tea.getUid(), tea2.getUid()),
-        sql);
+        sql.toString());
   }
 
   @Test
-  void shouldMapPredicateParameters() {
+  void shouldAddPredicateParameters() {
+    StringBuilder sql = new StringBuilder();
     QueryFilter eq = new QueryFilter(QueryOperator.EQ, "blue");
 
     // use LinkedHashMap for deterministic order so assertion is not flaky
@@ -405,13 +409,13 @@ lower("%s".value) is not null and lower("%s".value) is not null and lower("%s".v
 
     MapSqlParameterSource params = new MapSqlParameterSource();
 
-    String sql = mapPredicatesToSql(predicates, params);
+    addPredicates(sql, params, predicates);
 
     assertStartsWith(
 """
 lower("%s".value) = :"""
             .formatted(tea.getUid()),
-        sql);
+        sql.toString());
     assertTrue(predicate.getParameter().isPresent(), "expected a getParameter in the predicate");
     Parameter parameter = predicate.getParameter().get();
     assertTrue(
