@@ -31,7 +31,6 @@ package org.hisp.dhis.program.notification;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.time.Instant;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -50,6 +49,7 @@ import org.hisp.dhis.tracker.imports.job.NotificationSender;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -62,7 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class ProgramNotificationInstanceServiceTest extends PostgresIntegrationTestBase {
   private static final int TEST_USER_COUNT = 60;
-  private static final Date NOW = Date.from(Instant.now());
+  private static final Date DATE = DateUtils.parseDate("2025-01-01");
   private static final int EXPECTED_NOTIFICATIONS = 20;
 
   @Autowired private ProgramNotificationInstanceService programNotificationInstanceService;
@@ -71,6 +71,7 @@ class ProgramNotificationInstanceServiceTest extends PostgresIntegrationTestBase
 
   private OrganisationUnit organisationUnit;
   private UserGroup userGroup;
+  private int expectedNotifications;
 
   @BeforeEach
   void setUp() {
@@ -89,20 +90,37 @@ class ProgramNotificationInstanceServiceTest extends PostgresIntegrationTestBase
     Enrollment enrollment = createEnrollment(program, trackedEntity, organisationUnit);
     manager.save(enrollment);
 
-    getNotifications().forEach(n -> notificationSender.send(n, enrollment));
+    List<Notification> notifications = getNotifications();
+    expectedNotifications = notifications.size();
+    notifications.forEach(n -> notificationSender.send(n, enrollment));
   }
 
   @Test
   @DisplayName("Should fetch scheduled notifications within timeout")
-  void testScheduledNotificationShouldBeTriggeredBeforeTimeout() {
+  void shouldReturnProgramNotificationInstancesForGivenDate() {
     ProgramNotificationInstanceParam param =
-        ProgramNotificationInstanceParam.builder().scheduledAt(NOW).build();
+        ProgramNotificationInstanceParam.builder().scheduledAt(DATE).build();
+
     List<ProgramNotificationInstance> instances =
         programNotificationInstanceService.getProgramNotificationInstances(param);
+
     assertEquals(
-        EXPECTED_NOTIFICATIONS,
+        expectedNotifications,
         instances.size(),
-        "Expected " + EXPECTED_NOTIFICATIONS + " notification instances, but got " + instances);
+        () ->
+            String.format(
+                "Expected %d notification instances, but got %d. No instances were found for scheduledAt: %s. Instances: %s",
+                expectedNotifications, instances.size(), DATE, instances));
+
+    instances.forEach(
+        instance ->
+            assertEquals(
+                DATE,
+                instance.getScheduledAt(),
+                () ->
+                    String.format(
+                        "Expected scheduledAt=%s but got %s in instance: %s",
+                        DATE, instance.getScheduledAt(), instance)));
   }
 
   private String createNotification() {
@@ -134,7 +152,7 @@ class ProgramNotificationInstanceServiceTest extends PostgresIntegrationTestBase
   }
 
   List<Notification> getNotifications() {
-    return Stream.generate(() -> new Notification(UID.of(createNotification()), NOW))
+    return Stream.generate(() -> new Notification(UID.of(createNotification()), DATE))
         .limit(EXPECTED_NOTIFICATIONS)
         .toList();
   }
