@@ -109,11 +109,8 @@ class ProgramNotificationInstanceServiceTest extends PostgresIntegrationTestBase
         instances.size(),
         () ->
             String.format(
-                "Expected %d notification instances, but got %d.\nNo instances were found for scheduledAt: %s."
-                    + instances,
-                expectedNotifications,
-                instances.size(),
-                DATE));
+                "Expected %d notification instances, but got %d. No instances were found for scheduledAt: %s. Instances: %s",
+                expectedNotifications, instances.size(), DATE, instances));
 
     instances.forEach(
         instance ->
@@ -122,9 +119,8 @@ class ProgramNotificationInstanceServiceTest extends PostgresIntegrationTestBase
                 instance.getScheduledAt(),
                 () ->
                     String.format(
-                        "Expected scheduledAt=%s but got %s in " + instance,
-                        DATE,
-                        instance.getScheduledAt())));
+                        "Expected scheduledAt=%s but got %s in instance: %s",
+                        DATE, instance.getScheduledAt(), instance)));
   }
 
   private String createNotification() {
