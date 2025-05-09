@@ -105,7 +105,7 @@
     <spring-restdocs.version>2.0.8.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.4</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.5.5.RELEASE</lettuce.version>
+    <lettuce.version>6.6.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
     <flyway-core.version>9.22.3</flyway-core.version>
@@ -151,14 +151,14 @@
     <itext.version>2.1.7</itext.version>
 
     <!-- GIS -->
-    <batik-transcoder.version>1.18</batik-transcoder.version>
-    <fop.version>2.10</fop.version>
+    <batik-transcoder.version>1.19</batik-transcoder.version>
+    <fop.version>2.11</fop.version>
     <mapstruct.version>1.6.3</mapstruct.version>
     <geotools.version>29.6</geotools.version>
     <jts.version>1.20.0</jts.version>
 
     <!-- Apache Artemis -->
-    <artemis.version>2.40.0</artemis.version>
+    <artemis.version>2.41.0</artemis.version>
     <netty-all.version>4.2.0.Final</netty-all.version>
     <classgraph.version>4.8.179</classgraph.version>
 
@@ -168,7 +168,7 @@
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
     <jsmpp.version>3.0.1</jsmpp.version>
     <json-path.version>2.9.0</json-path.version>
-    <jsoup.version>1.19.1</jsoup.version>
+    <jsoup.version>1.20.1</jsoup.version>
     <jetty.version>10.0.24</jetty.version>
 
     <!-- Div. utils -->
