@@ -56,7 +56,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 /**
  * @author Morten Olav Hansen
@@ -79,7 +78,7 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
         RequestMethod.DELETE,
         RequestMethod.PATCH
       })
-  public ResponseEntity<StreamingResponseBody> run(
+  public ResponseEntity<byte[]> run(
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
@@ -96,7 +95,7 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
         RequestMethod.DELETE,
         RequestMethod.PATCH
       })
-  public ResponseEntity<StreamingResponseBody> runWithSubpath(
+  public ResponseEntity<byte[]> runWithSubpath(
       @PathVariable("id") String id,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
