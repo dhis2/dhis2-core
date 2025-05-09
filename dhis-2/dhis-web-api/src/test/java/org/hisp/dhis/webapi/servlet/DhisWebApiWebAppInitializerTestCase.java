@@ -44,10 +44,10 @@ import org.springframework.mock.web.MockFilterRegistration;
 import org.springframework.mock.web.MockServletContext;
 import org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter;
 
-public class DhisWebApiWebAppInitializerTestCase {
+class DhisWebApiWebAppInitializerTestCase {
 
   @Test
-  public void testOnStartUpSetsDispatchTypesToRequestAndAsyncForOpenEntityManagerInViewFilter() {
+  void testOnStartUpSetsDispatchTypesToRequestAndAsyncForOpenEntityManagerInViewFilter() {
     System.setProperty("dhis2.home", "src/test/resources");
 
     class DhisWebApiWebAppInitializerMockServletContext extends MockServletContext {
