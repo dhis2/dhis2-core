@@ -126,6 +126,8 @@ class ProgramNotificationServiceTest extends TestBase {
 
   @Mock private ApplicationEventPublisher applicationEventPublisher;
 
+  @Mock private ProgramNotificationInstanceService programNotificationInstanceService;
+
   private final NotificationTemplateMapper notificationTemplateMapper =
       new NotificationTemplateMapper();
 
@@ -190,7 +192,8 @@ class ProgramNotificationServiceTest extends TestBase {
             notificationTemplateMapper,
             entityManager,
             jdbcTemplate,
-            applicationEventPublisher);
+            applicationEventPublisher,
+            programNotificationInstanceService);
 
     setUpInstances();
   }
@@ -609,7 +612,7 @@ class ProgramNotificationServiceTest extends TestBase {
               return new BatchResponseStatus(Collections.emptyList());
             });
 
-    when(manager.getAll(ProgramNotificationInstance.class))
+    when(programNotificationInstanceService.getProgramNotificationInstances(any()))
         .thenReturn(Collections.singletonList(programNotificationInstaceForToday));
 
     when(programNotificationRenderer.render(any(Enrollment.class), any(NotificationTemplate.class)))
