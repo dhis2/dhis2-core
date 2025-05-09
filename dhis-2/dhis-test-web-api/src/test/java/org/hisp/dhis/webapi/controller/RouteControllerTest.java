@@ -215,7 +215,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
       HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
       MvcResult mvcResult =
-          webRequestWithMvcResult(
+          webRequestWithAsyncMvcResult(
               buildMockRequest(
                   HttpMethod.GET,
                   "/routes/"
@@ -242,7 +242,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
       HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
       MvcResult mvcResult =
-          webRequestWithMvcResult(
+          webRequestWithAsyncMvcResult(
               buildMockRequest(
                   HttpMethod.GET,
                   "/routes/"
@@ -271,7 +271,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
       HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
       MvcResult mvcResult =
-          webRequestWithMvcResult(
+          webRequestWithAsyncMvcResult(
               buildMockRequest(
                   HttpMethod.GET,
                   "/routes/"
@@ -366,7 +366,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     assertNull(oAuth2AuthorizedClientService.loadAuthorizedClient("john:" + tokenUri, "anonymous"));
 
     MvcResult mvcResult =
-        webRequestWithMvcResult(
+        webRequestWithAsyncMvcResult(
             buildMockRequest(
                 HttpMethod.GET,
                 "/routes/"
@@ -429,7 +429,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     String routeId = postHttpResponse.content().get("response.uid").as(JsonString.class).string();
 
     assertNull(oAuth2AuthorizedClientService.loadAuthorizedClient("tom:" + tokenUri, "anonymous"));
-    webRequestWithMvcResult(
+    webRequestWithAsyncMvcResult(
         buildMockRequest(
             HttpMethod.GET,
             "/routes/" + routeId + "/run",
@@ -481,7 +481,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     String routeId = postHttpResponse.content().get("response.uid").as(JsonString.class).string();
 
     assertNull(oAuth2AuthorizedClientService.loadAuthorizedClient("mary:" + tokenUri, "anonymous"));
-    webRequestWithMvcResult(
+    webRequestWithAsyncMvcResult(
         buildMockRequest(
             HttpMethod.GET,
             "/routes/" + routeId + "/run",
@@ -505,7 +505,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
     MvcResult mvcResult =
-        webRequestWithMvcResult(
+        webRequestWithAsyncMvcResult(
             buildMockRequest(
                 HttpMethod.GET,
                 "/routes/"
@@ -532,7 +532,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
 
     HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
     MvcResult mvcResult =
-        webRequestWithMvcResult(
+        webRequestWithAsyncMvcResult(
             buildMockRequest(
                 HttpMethod.GET,
                 "/routes/"

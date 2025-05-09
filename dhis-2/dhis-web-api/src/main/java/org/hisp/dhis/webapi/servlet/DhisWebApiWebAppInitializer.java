@@ -127,8 +127,10 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
         context.addFilter("openSessionInViewFilter", OpenEntityManagerInViewFilter.class);
     openSessionInViewFilter.setInitParameter(
         "entityManagerFactoryBeanName", "entityManagerFactory");
-    openSessionInViewFilter.addMappingForUrlPatterns(null, false, "/*");
-    openSessionInViewFilter.addMappingForServletNames(null, false, "dispatcher");
+    openSessionInViewFilter.addMappingForUrlPatterns(
+        EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC), false, "/*");
+    openSessionInViewFilter.addMappingForServletNames(
+        EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC), false, "dispatcher");
 
     FilterRegistration.Dynamic characterEncodingFilter =
         context.addFilter("characterEncodingFilter", CharacterEncodingFilter.class);

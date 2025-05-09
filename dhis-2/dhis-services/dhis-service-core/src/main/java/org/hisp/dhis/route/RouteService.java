@@ -33,7 +33,6 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 
 import io.netty.handler.timeout.ReadTimeoutException;
 import jakarta.servlet.http.HttpServletRequest;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -258,7 +257,7 @@ public class RouteService {
    * @throws IOException
    * @throws BadRequestException
    */
-  public ResponseEntity<byte[]> execute(
+  public ResponseEntity<StreamingResponseBody> execute(
       Route route, UserDetails userDetails, Optional<String> subPath, HttpServletRequest request)
       throws BadGatewayException {
 
@@ -309,7 +308,7 @@ public class RouteService {
         route.getUid());
 
     return new ResponseEntity<>(
-        bufferResponseBody(responseEntityFlux, route),
+        streamResponseBody(responseEntityFlux),
         filterResponseHeaders(responseEntityFlux.getHeaders()),
         responseEntityFlux.getStatusCode());
   }
@@ -386,23 +385,6 @@ public class RouteService {
     return requestHeadersSpec;
   }
 
-  protected byte[] bufferResponseBody(
-      ResponseEntity<Flux<DataBuffer>> responseEntityFlux, Route route) {
-    if (responseEntityFlux.hasBody()) {
-      ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-      Flux<DataBuffer> dataBufferFlux =
-          DataBufferUtils.write(responseEntityFlux.getBody(), outputStream)
-              .doOnNext(DataBufferUtils.releaseConsumer());
-      dataBufferFlux.blockLast(Duration.ofSeconds(route.getResponseTimeoutSeconds()));
-
-      return outputStream.toByteArray();
-    } else {
-      return new byte[] {};
-    }
-  }
-
-  // FIXME: unsafe since it leaks database connections (see
-  // https://dhis2.atlassian.net/browse/DHIS2-19556)
   protected StreamingResponseBody streamResponseBody(
       ResponseEntity<Flux<DataBuffer>> responseEntityFlux) {
     return out -> {
