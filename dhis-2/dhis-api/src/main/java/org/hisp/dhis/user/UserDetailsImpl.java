@@ -186,4 +186,36 @@ public class UserDetailsImpl implements UserDetails {
   public boolean isAuthorized(@Nonnull Authorities auth) {
     return isAuthorized(auth.toString());
   }
+
+  @Override public String toString() {
+    return "UserDetailsImpl{" +
+        "uid='" + uid + '\'' +
+        ", id=" + id +
+        ", code='" + code + '\'' +
+        ", username='" + username + '\'' +
+        ", firstName='" + firstName + '\'' +
+        ", surname='" + surname + '\'' +
+        ", password='" + password + '\'' +
+        ", externalAuth=" + externalAuth +
+        ", isTwoFactorEnabled=" + isTwoFactorEnabled +
+        ", twoFactorType=" + twoFactorType +
+        ", secret='" + secret + '\'' +
+        ", email='" + email + '\'' +
+        ", isEmailVerified=" + isEmailVerified +
+        ", enabled=" + enabled +
+        ", accountNonExpired=" + accountNonExpired +
+        ", accountNonLocked=" + accountNonLocked +
+        ", credentialsNonExpired=" + credentialsNonExpired +
+        ", authorities=" + authorities +
+        ", allAuthorities=" + allAuthorities +
+        ", allRestrictions=" + allRestrictions +
+        ", userGroupIds=" + userGroupIds +
+        ", userOrgUnitIds=" + userOrgUnitIds +
+        ", userDataOrgUnitIds=" + userDataOrgUnitIds +
+        ", userSearchOrgUnitIds=" + userSearchOrgUnitIds +
+        ", userEffectiveSearchOrgUnitIds=" + userEffectiveSearchOrgUnitIds +
+        ", isSuper=" + isSuper +
+        ", userRoleIds=" + userRoleIds +
+        '}';
+  }
 }
