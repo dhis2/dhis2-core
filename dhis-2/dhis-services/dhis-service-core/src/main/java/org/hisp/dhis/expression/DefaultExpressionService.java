@@ -47,38 +47,7 @@ import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_DESCRIPTIO
 import static org.hisp.dhis.parser.expression.ExpressionItem.ITEM_GET_EXPRESSION_INFO;
 import static org.hisp.dhis.parser.expression.ParserUtils.COMMON_EXPRESSION_ITEMS;
 import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.AGGREGATION_TYPE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.AVG;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.A_BRACE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.COUNT;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.DAYS;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D_BRACE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.HASH_BRACE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.I_BRACE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MAX;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MAX_DATE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MEDIAN;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MIN;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MIN_DATE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.NORM_DIST_CUM;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.NORM_DIST_DEN;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.N_BRACE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ORGUNIT_ANCESTOR;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ORGUNIT_DATASET;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ORGUNIT_GROUP;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ORGUNIT_PROGRAM;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.OUG_BRACE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PERCENTILE_CONT;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PERIOD_IN_YEAR;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PERIOD_OFFSET;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.R_BRACE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV_POP;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV_SAMP;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.SUB_EXPRESSION;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.SUM;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.YEARLY_PERIOD_COUNT;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.YEAR_TO_DATE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 import static org.springframework.util.ObjectUtils.isEmpty;
 
 import com.google.common.base.Suppliers;
@@ -156,6 +125,7 @@ import org.hisp.dhis.parser.expression.function.VectorStddevSamp;
 import org.hisp.dhis.parser.expression.function.VectorSum;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -181,6 +151,8 @@ public class DefaultExpressionService implements ExpressionService {
   private final IdentifiableObjectManager idObjectManager;
 
   private final I18nManager i18nManager;
+
+  private final SystemSettingsService settingsService;
 
   private final SqlBuilder sqlBuilder;
 
@@ -285,7 +257,8 @@ public class DefaultExpressionService implements ExpressionService {
       IdentifiableObjectManager idObjectManager,
       I18nManager i18nManager,
       CacheProvider cacheProvider,
-      SqlBuilder sqlBuilder) {
+      SqlBuilder sqlBuilder,
+      SystemSettingsService settingService) {
     checkNotNull(expressionStore);
     checkNotNull(constantService);
     checkNotNull(dimensionService);
@@ -293,6 +266,7 @@ public class DefaultExpressionService implements ExpressionService {
     checkNotNull(i18nManager);
     checkNotNull(cacheProvider);
     checkNotNull(sqlBuilder);
+    checkNotNull(settingService);
 
     this.expressionStore = expressionStore;
     this.constantService = constantService;
@@ -301,6 +275,7 @@ public class DefaultExpressionService implements ExpressionService {
     this.i18nManager = i18nManager;
     this.constantMapCache = cacheProvider.createAllConstantsCache();
     this.sqlBuilder = sqlBuilder;
+    this.settingsService = settingService;
   }
 
   // -------------------------------------------------------------------------
@@ -735,6 +710,8 @@ public class DefaultExpressionService implements ExpressionService {
         .info(params.getExpressionInfo())
         .state(initialParsingState)
         .sqlBuilder(sqlBuilder)
+        .useExperimentalSqlEngine(
+            this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine())
         .build();
   }
 

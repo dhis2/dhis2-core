@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,44 +27,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.function;
+package org.hisp.dhis.analytics.event.data.programindicator.ctefactory;
 
-import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
-import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_DOUBLE_VALUE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+import java.util.Date;
+import java.util.Map;
+import org.hisp.dhis.analytics.common.CteContext;
+import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.program.ProgramIndicator;
 
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+/** Strategy for finding a placeholder family and producing the substituted SQL */
+public interface CteSqlFactory {
 
-/**
- * Program indicator function: d2 count if value
- *
- * @author Jim Grace
- */
-public class D2CountIfValue extends ProgramCountFunction {
+  /** Returns {@code true} when {@code rawSql} contains this factory’s placeholder grammar. */
+  boolean supports(String rawSql);
 
-  static final String FUNCTION_NAME = "countIfValue";
-
-  @Override
-  public final Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
-    Object programStageElement = getProgramStageElementDescription(ctx, visitor);
-
-    Object value = visitor.visit(ctx.expr(0));
-
-    castClass(programStageElement.getClass(), value); // Check that we are
-    // comparing same
-    // data types.
-
-    return DEFAULT_DOUBLE_VALUE;
-  }
-
-  @Override
-  public String getConditionSql(
-      ExprContext ctx, CommonExpressionVisitor visitor, String baseColumn) {
-    return baseColumn + " = " + visitor.visit(ctx.expr(0));
-  }
-
-  @Override
-  protected String getFunctionName() {
-    return FUNCTION_NAME;
-  }
+  /**
+   * Replaces placeholders with “alias.value/coalesce(…)” and registers the required CTEs in {@code
+   * cteContext}.
+   *
+   * @param aliasMap caller-supplied map; implementation must add one entry per placeholder.
+   */
+  String process(
+      String rawSql,
+      ProgramIndicator programIndicator,
+      Date earliestStart,
+      Date latestEnd,
+      CteContext cteContext,
+      Map<String, String> aliasMap,
+      SqlBuilder sqlBuilder);
 }

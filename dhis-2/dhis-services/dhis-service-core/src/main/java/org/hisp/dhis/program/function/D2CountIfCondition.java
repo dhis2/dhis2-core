@@ -50,6 +50,8 @@ import org.hisp.dhis.program.ProgramIndicatorService;
  * @author Jim Grace
  */
 public class D2CountIfCondition extends ProgramCountFunction {
+  static final String FUNCTION_NAME = "countIfCondition";
+
   @Override
   public Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
     castDouble(getProgramStageElementDescription(ctx, visitor));
@@ -145,7 +147,6 @@ public class D2CountIfCondition extends ProgramCountFunction {
     // Extract the operator and right-hand side from the dummy SQL
     //    Example: If fullDummyConditionSql is "CAST(0 AS T) < CAST(11 AS T)"
     //             and dummyZeroSql is "CAST(0 AS T)", we want " < CAST(11 AS T)".
-    //    Use replaceFirst, ensuring pattern quoting.
     String operatorAndRightHandSide =
         fullDummyConditionSql
             .replaceFirst(
@@ -153,16 +154,18 @@ public class D2CountIfCondition extends ProgramCountFunction {
                 )
             .trim(); // Trim leading space if any
 
-    // 7. Generate the correctly quoted *and casted* SQL for the actual data element column
-    //    using the provided baseColumnName.
+    // Generate the correctly quoted *and casted* SQL for the actual
+    // data element column using the provided baseColumnName.
     String castedLeftHandSide = sqlBuilder.cast(baseColumnName, NUMERIC);
-
-    // Combine the casted left side with the operator and right side
-    // Add space
 
     // Return the complete condition predicate
     // e.g., "cast(`col` as DECIMAL) < CAST(11 AS DECIMAL)"
     return castedLeftHandSide + " " + operatorAndRightHandSide;
+  }
+
+  @Override
+  protected String getFunctionName() {
+    return FUNCTION_NAME;
   }
 
   // -------------------------------------------------------------------------
@@ -170,8 +173,8 @@ public class D2CountIfCondition extends ProgramCountFunction {
   // -------------------------------------------------------------------------
 
   /**
-   * Gets a complete expression that is used to test a condition (e.g. "<5") by putting a "0" in
-   * front to get a complete expression (e.g., "0<5").
+   * Gets a complete expression used to test a condition (e.g. "<5") by putting a "0" in front to
+   * get a complete expression (e.g., "0<5").
    *
    * @param ctx the expression context
    * @return the complete expression

@@ -82,7 +82,9 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -118,6 +120,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private OrganisationUnitResolver organisationUnitResolver;
 
+  @Mock private DataElementService dataElementService;
+
   @Mock private PiDisagInfoInitializer piDisagInfoInitializer;
 
   @Mock private PiDisagQueryGenerator piDisagQueryGenerator;
@@ -150,7 +154,11 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     EventTimeFieldSqlRenderer timeCoordinateSelector = new EventTimeFieldSqlRenderer(sqlBuilder);
     ProgramIndicatorService programIndicatorService = mock(ProgramIndicatorService.class);
     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
-        new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService, systemSettingsService);
+        new DefaultProgramIndicatorSubqueryBuilder(
+            programIndicatorService,
+            systemSettingsService,
+            new PostgreSqlBuilder(),
+            dataElementService);
 
     subject =
         new JdbcEventAnalyticsManager(

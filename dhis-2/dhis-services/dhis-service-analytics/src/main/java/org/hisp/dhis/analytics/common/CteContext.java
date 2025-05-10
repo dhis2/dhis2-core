@@ -35,6 +35,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
@@ -46,6 +47,7 @@ import org.hisp.dhis.program.ProgramStage;
  * additional information such as the program stage UID and other identifiers that are used to
  * generate the SQL query.
  */
+@Slf4j
 public class CteContext {
   private final Map<String, CteDefinition> cteDefinitions = new LinkedHashMap<>();
   public static final String ENROLLMENT_AGGR_BASE = "enrollment_aggr_base";
@@ -123,7 +125,37 @@ public class CteContext {
       ProgramIndicator programIndicator, String cteDefinition, boolean functionRequiresCoalesce) {
     cteDefinitions.put(
         programIndicator.getUid(),
-        new CteDefinition(programIndicator.getUid(), cteDefinition, functionRequiresCoalesce));
+        CteDefinition.forProgramIndicator(
+            programIndicator.getUid(), cteDefinition, functionRequiresCoalesce));
+  }
+
+  /**
+   * Adds a "Variable CTE" definition to the context. These CTEs are used to replace nested
+   * subqueries originating from V{...} variables in Program Indicators.
+   *
+   * @param key A unique key identifying this variable CTE instance (e.g.,
+   *     "varcte_column_piUid_offset").
+   * @param cteDefinitionSql The SQL body for the CTE.
+   * @param joinColumn The column to use when joining this CTE (e.g., "enrollment").
+   */
+  public void addVariableCte(String key, String cteDefinitionSql, String joinColumn) {
+    CteDefinition cteDef = CteDefinition.forVariable(key, cteDefinitionSql, joinColumn);
+    cteDefinitions.put(key, cteDef);
+  }
+
+  /**
+   * Adds a Program Stage / Data Element CTE definition to the context. This method now directly
+   * accepts a pre-constructed CteDefinition object.
+   *
+   * @param key The unique key identifying this PS/DE CTE instance.
+   * @param cteDefinition The fully constructed CteDefinition object.
+   */
+  public void addProgramStageDataElementCte(String key, CteDefinition cteDefinition) {
+    if (cteDefinition != null && key != null) {
+      cteDefinitions.put(key, cteDefinition);
+    } else {
+      log.error("Attempted to add null key or CteDefinition to CteContext");
+    }
   }
 
   /**
@@ -149,11 +181,43 @@ public class CteContext {
       ProgramStage programStage = item.getProgramStage();
       cteDefinitions.put(
           key,
-          new CteDefinition(
+          CteDefinition.forFilter(
               item.getItemId(),
               programStage == null ? null : programStage.getUid(),
-              cteDefinition,
-              true));
+              cteDefinition));
+    }
+  }
+
+  /**
+   * Adds a generic "Filter CTE" definition to the context, typically generated from analyzing PI
+   * filter strings.
+   *
+   * @param key A unique key identifying this filter CTE instance (e.g.,
+   *     "filtercte_column_op_value_piUid").
+   * @param cteDefinitionSql The SQL body for the CTE.
+   */
+  public void addFilterCte(String key, String cteDefinitionSql) {
+    // Use the existing constructor for Filter CTEs, providing the key as the 'itemId'
+    // and null for programStageUid, marking it as a filter.
+    CteDefinition cteDef =
+        CteDefinition.forFilter(
+            key, null, cteDefinitionSql); // key -> itemId, null -> psUid, true -> isFilter
+    cteDefinitions.put(key, cteDef);
+  }
+
+  /**
+   * Adds a D2 Function CTE definition to the context.
+   *
+   * @param key The unique key identifying this D2 Function CTE instance.
+   * @param cteDefinition The fully constructed CteDefinition object (should have type D2_FUNCTION).
+   */
+  public void addD2FunctionCte(String key, CteDefinition cteDefinition) {
+    if (cteDefinition != null
+        && key != null
+        && cteDefinition.getCteType() == CteDefinition.CteType.D2_FUNCTION) {
+      cteDefinitions.put(key, cteDefinition);
+    } else {
+      log.warn("Attempted to add invalid D2 Function CTE definition for key: {}", key);
     }
   }
 
@@ -171,8 +235,65 @@ public class CteContext {
     return cteDefinitions.entrySet().stream()
         .collect(
             LinkedHashMap::new,
-            (map, entry) -> map.put(entry.getKey(), entry.getValue().getCteDefinition()),
+            (map, entry) -> {
+              if (entry.getValue() != null) {
+                map.put(entry.getKey(), entry.getValue().getCteDefinition());
+              }
+            },
             Map::putAll);
+  }
+
+  /**
+   * Returns a map suitable for building the final SQL query's WITH clause. The map keys are the
+   * short, generated aliases for the CTEs, and the values are the corresponding CTE definition SQL
+   * bodies. Preserves insertion order.
+   *
+   * @return A map where key=short alias, value=cte definition Sql + cte type.
+   */
+  public Map<String, SqlWithCteType> getAliasAndDefinitionSqlMap() {
+    Map<String, SqlWithCteType> aliasMap = new LinkedHashMap<>();
+    for (Map.Entry<String, CteDefinition> entry : cteDefinitions.entrySet()) {
+      CteDefinition definition = entry.getValue();
+      if (definition != null) {
+        String alias = useKeyAsAlias(definition) ? entry.getKey() : definition.getAlias();
+        String definitionSql = definition.getCteDefinition();
+        if (alias != null && definitionSql != null) {
+          if (aliasMap.containsKey(alias)) {
+            // This should be rare with random aliases, but log if it happens
+            log.warn(
+                "Duplicate CTE alias encountered: '{}'. Overwriting previous definition for key '{}' with definition for key '{}'.",
+                alias,
+                findKeyForAlias(alias),
+                entry.getKey());
+          }
+          aliasMap.put(alias, new SqlWithCteType(definitionSql, definition.getCteType()));
+        } else {
+          log.warn("Skipping CTE with null alias or definition for key: {}", entry.getKey());
+        }
+      }
+    }
+    return aliasMap;
+  }
+
+  /**
+   * Determines whether to use the key as the alias for the CTE definition. We do want to use the
+   * key as the alias for program stages, program indicators, and filters. This simplifies the left
+   * join logic.
+   *
+   * @param definition the CTE definition
+   * @return true if the key should be used as the alias, false otherwise
+   */
+  private boolean useKeyAsAlias(CteDefinition definition) {
+    return definition.isProgramStage() || definition.isProgramIndicator() || definition.isFilter();
+  }
+
+  private String findKeyForAlias(String alias) {
+    for (Map.Entry<String, CteDefinition> entry : cteDefinitions.entrySet()) {
+      if (entry.getValue() != null && alias.equals(entry.getValue().getAlias())) {
+        return entry.getKey();
+      }
+    }
+    return null; // Should not happen if called after alias exists
   }
 
   public Set<String> getCteKeys() {
@@ -186,7 +307,19 @@ public class CteContext {
         .collect(java.util.stream.Collectors.toSet());
   }
 
+  /**
+   * Retrieves a CTE definition by its unique key.
+   *
+   * @param key the unique key of the CTE definition.
+   * @return the CteDefinition or null if not found.
+   */
+  public CteDefinition getDefinitionByKey(String key) {
+    return cteDefinitions.get(key);
+  }
+
   public boolean containsCte(String cteName) {
     return cteDefinitions.containsKey(cteName);
   }
+
+  public record SqlWithCteType(String cteDefinitionSql, CteDefinition.CteType cteType) {}
 }
