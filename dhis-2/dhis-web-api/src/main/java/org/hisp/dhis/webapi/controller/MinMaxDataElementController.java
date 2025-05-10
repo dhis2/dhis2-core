@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
@@ -47,21 +46,22 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.csv.CSV;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.feedback.ImportSuccessResponse;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
-import org.hisp.dhis.minmax.MinMaxCsvParser;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementQueryParams;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
-import org.hisp.dhis.minmax.MinMaxValueBatchRequest;
-import org.hisp.dhis.minmax.MinMaxValueDto;
+import org.hisp.dhis.minmax.MinMaxValue;
+import org.hisp.dhis.minmax.MinMaxValueDeleteRequest;
+import org.hisp.dhis.minmax.MinMaxValueKey;
+import org.hisp.dhis.minmax.MinMaxValueUpsertRequest;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -69,9 +69,7 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.util.ObjectUtils;
-import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -92,21 +90,12 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/minMaxDataElements")
 @AllArgsConstructor
 public class MinMaxDataElementController {
+
   private final ContextService contextService;
-
   private final MinMaxDataElementService minMaxService;
-
-  private final DataValidator dataValidator;
-
   private final FieldFilterService fieldFilterService;
-
   private final RenderService renderService;
-
   private final IdentifiableObjectManager manager;
-
-  // --------------------------------------------------------------------------
-  // GET
-  // --------------------------------------------------------------------------
 
   @GetMapping
   public @ResponseBody RootNode getObjectList(MinMaxDataElementQueryParams query)
@@ -218,60 +207,75 @@ public class MinMaxDataElementController {
 
   // Bulk import
 
-  @PostMapping(value = "/values", consumes = "application/json")
+  @PostMapping(value = "/upsert", consumes = "application/json")
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
-  public @ResponseBody WebMessage bulkPostJson(
-      @RequestBody MinMaxValueBatchRequest request,
-      @RequestParam(value = "importStrategy", defaultValue = "UPDATE") String importStrategy)
-      throws BadRequestException {
+  public @ResponseBody ImportSuccessResponse bulkPostJson(
+      @RequestBody MinMaxValueUpsertRequest request) throws BadRequestException {
 
-    int count;
+    int imported = minMaxService.importAll(request);
 
-    if ("DELETE".equalsIgnoreCase(importStrategy)) {
-      count = minMaxService.deleteFromJson(request);
-    } else {
-      count = minMaxService.importFromJson(request);
-    }
-
-    return new WebMessage()
-        .setStatus(Status.OK)
-        .setHttpStatus(HttpStatus.OK)
-        .setMessage(
-            "Successfully %s %d min-max values"
-                .formatted(
-                    importStrategy.equalsIgnoreCase("DELETE") ? "deleted" : "imported", count));
+    return ImportSuccessResponse.ok()
+        .message("Successfully imported %d min-max values".formatted(imported))
+        .successful(imported)
+        .ignored(request.values().size() - imported)
+        .build();
   }
 
-  @PostMapping(value = "/values", consumes = "multipart/form-data")
+  @PostMapping(value = "/delete", consumes = "application/json")
+  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
+  public @ResponseBody ImportSuccessResponse bulkDeleteJson(
+      @RequestBody MinMaxValueDeleteRequest request) throws BadRequestException {
+
+    int deleted = minMaxService.deleteAll(request);
+
+    return ImportSuccessResponse.ok()
+        .message("Successfully deleted %d min-max values".formatted(deleted))
+        .successful(deleted)
+        .ignored(request.values().size() - deleted)
+        .build();
+  }
+
+  @PostMapping(value = "/upsert", consumes = "multipart/form-data")
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @Maturity.Alpha
-  public @ResponseBody WebMessage importMinMaxCsv(
+  public @ResponseBody ImportSuccessResponse bulkPostCsv(
       @RequestParam("file") MultipartFile file,
       @RequestParam UID dataSet,
-      @RequestParam UID orgUnit,
-      @RequestParam(value = "importStrategy", defaultValue = "UPDATE") String importStrategy)
-      throws WebMessageException {
-    try (InputStream is = file.getInputStream()) {
-      int count = 0;
-      List<MinMaxValueDto> dtos = MinMaxCsvParser.parse(is);
-      if (dtos.isEmpty()) {
-        return WebMessageUtils.badRequest("No data found in the CSV file.");
-      }
-      if (importStrategy.equalsIgnoreCase("DELETE")) {
-        count = minMaxService.deleteFromJson(new MinMaxValueBatchRequest(dataSet, orgUnit, dtos));
-      } else {
-        count = minMaxService.importFromJson(new MinMaxValueBatchRequest(dataSet, orgUnit, dtos));
-      }
-      return new WebMessage()
-          .setStatus(Status.OK)
-          .setHttpStatus(HttpStatus.OK)
-          .setMessage(
-              "Successfully %s %d min-max values"
-                  .formatted(
-                      importStrategy.equalsIgnoreCase("DELETE") ? "deleted" : "imported", count));
-    } catch (Exception e) {
-      throw new WebMessageException(
-          badRequest("Invalid CSV file. Please check the format and try again."));
+      @RequestParam UID orgUnit)
+      throws BadRequestException {
+
+    return bulkPostJson(new MinMaxValueUpsertRequest(dataSet, orgUnit, csvToEntries(file)));
+  }
+
+  @PostMapping(value = "/delete", consumes = "multipart/form-data")
+  @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
+  @Maturity.Alpha
+  public @ResponseBody ImportSuccessResponse bulkDeleteCsv(
+      @RequestParam("file") MultipartFile file,
+      @RequestParam UID dataSet,
+      @RequestParam UID orgUnit)
+      throws BadRequestException {
+
+    return bulkDeleteJson(new MinMaxValueDeleteRequest(dataSet, orgUnit, csvToKeys(file)));
+  }
+
+  private static List<MinMaxValue> csvToEntries(MultipartFile file) throws BadRequestException {
+    try (InputStream in = file.getInputStream()) {
+      List<MinMaxValue> entries = CSV.of(in).as(MinMaxValue.class).list();
+      if (entries.isEmpty()) throw new BadRequestException("No data found in the CSV file.");
+      return entries;
+    } catch (Exception ex) {
+      throw new BadRequestException("Invalid CSV file. Please check the format and try again.");
+    }
+  }
+
+  private static List<MinMaxValueKey> csvToKeys(MultipartFile file) throws BadRequestException {
+    try (InputStream in = file.getInputStream()) {
+      List<MinMaxValueKey> keys = CSV.of(in).as(MinMaxValueKey.class).list();
+      if (keys.isEmpty()) throw new BadRequestException("No data found in the CSV file.");
+      return keys;
+    } catch (Exception ex) {
+      throw new BadRequestException("Invalid CSV file. Please check the format and try again.");
     }
   }
 }

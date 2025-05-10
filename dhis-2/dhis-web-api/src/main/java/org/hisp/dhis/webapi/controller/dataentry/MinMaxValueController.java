@@ -38,7 +38,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
-import org.hisp.dhis.minmax.MinMaxValueDto;
+import org.hisp.dhis.minmax.MinMaxValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
@@ -68,7 +68,7 @@ public class MinMaxValueController {
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @PostMapping("/minMaxValues")
   @ResponseStatus(value = HttpStatus.OK)
-  public void saveOrUpdateMinMaxValue(@RequestBody MinMaxValueDto valueDto) {
+  public void saveOrUpdateMinMaxValue(@RequestBody MinMaxValue valueDto) {
     saveOrUpdateMinMaxDataElement(valueDto);
   }
 
@@ -82,24 +82,24 @@ public class MinMaxValueController {
   /**
    * Saves or updates a {@link MinMaxDataElement}.
    *
-   * @param dto the {@link MinMaxValueDto}.
+   * @param dto the {@link MinMaxValue}.
    */
-  private void saveOrUpdateMinMaxDataElement(MinMaxValueDto dto) {
-    DataElement de = dataValidator.getAndValidateDataElement(dto.getDataElement());
-    OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit(dto.getOrgUnit());
+  private void saveOrUpdateMinMaxDataElement(MinMaxValue dto) {
+    DataElement de = dataValidator.getAndValidateDataElement(dto.dataElement().getValue());
+    OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit(dto.orgUnit().getValue());
     CategoryOptionCombo coc =
-        dataValidator.getAndValidateCategoryOptionCombo(dto.getCategoryOptionCombo());
-    dataValidator.validateMinMaxValues(dto.getMinValue(), dto.getMaxValue());
+        dataValidator.getAndValidateCategoryOptionCombo(dto.optionCombo().getValue());
+    dataValidator.validateMinMaxValues(dto.minValue(), dto.maxValue());
     MinMaxDataElement value = minMaxValueService.getMinMaxDataElement(ou, de, coc);
 
     if (value != null) {
-      value.setMin(dto.getMinValue());
-      value.setMax(dto.getMaxValue());
+      value.setMin(dto.minValue());
+      value.setMax(dto.maxValue());
       value.setGenerated(false);
 
       minMaxValueService.updateMinMaxDataElement(value);
     } else {
-      value = new MinMaxDataElement(de, ou, coc, dto.getMinValue(), dto.getMaxValue());
+      value = new MinMaxDataElement(de, ou, coc, dto.minValue(), dto.maxValue());
 
       minMaxValueService.addMinMaxDataElement(value);
     }

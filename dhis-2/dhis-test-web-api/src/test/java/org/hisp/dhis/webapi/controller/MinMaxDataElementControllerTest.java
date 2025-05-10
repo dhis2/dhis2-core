@@ -31,10 +31,12 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.stream.Stream;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -128,7 +130,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
   private static Stream<Arguments> provideTestCases() {
     return Stream.of(
         arguments(
-            "Missing required fields for min-max object: dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=10, max=null"
+            "Missing required fields for min-max object: MinMaxValue[dataElement=%s, orgUnit=%s, optionCombo=%s, minValue=10, maxValue=null, generated=null]"
                 .formatted(fakeDataElementID, fakeOrgUnitID, fakeCategoryOptionComboID)
                 .trim(),
             """
@@ -138,7 +140,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
                   "values": [{
                     "dataElement": "%s",
                     "orgUnit": "%s",
-                    "categoryOptionCombo": "%s",
+                    "optionCombo": "%s",
                     "minValue": 10
                   }]
                 }
@@ -151,7 +153,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
                     fakeCategoryOptionComboID),
             HttpStatus.BAD_REQUEST),
         arguments(
-            "Missing required fields for min-max object: dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=null, max=10"
+            "Missing required fields for min-max object: MinMaxValue[dataElement=%s, orgUnit=%s, optionCombo=%s, minValue=null, maxValue=10, generated=null]"
                 .formatted(fakeDataElementID, fakeOrgUnitID, fakeCategoryOptionComboID)
                 .trim(),
             """
@@ -161,7 +163,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
                   "values": [{
                     "dataElement": "%s",
                     "orgUnit": "%s",
-                    "categoryOptionCombo": "%s",
+                    "optionCombo": "%s",
                     "maxValue": 10
                   }]
                 }
@@ -174,7 +176,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
                     fakeCategoryOptionComboID),
             HttpStatus.BAD_REQUEST),
         arguments(
-            "Min value is greater than or equal to Max value for: dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=10, max=10"
+            "Min value is greater than or equal to Max value for: MinMaxValue[dataElement=%s, orgUnit=%s, optionCombo=%s, minValue=10, maxValue=10, generated=null]"
                 .formatted(fakeDataElementID, fakeOrgUnitID, fakeCategoryOptionComboID)
                 .trim(),
             """
@@ -184,34 +186,9 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
                   "values": [{
                     "dataElement": "%s",
                     "orgUnit": "%s",
-                    "categoryOptionCombo": "%s",
+                    "optionCombo": "%s",
                     "minValue": 10,
                     "maxValue": 10
-                  }]
-                }
-                """
-                .formatted(
-                    fakeDataSetID,
-                    fakeOrgUnitID,
-                    fakeDataElementID,
-                    fakeOrgUnitID,
-                    fakeCategoryOptionComboID),
-            HttpStatus.BAD_REQUEST),
-        // This payload should be valid, but we have not loaded the required metadata
-        arguments(
-            "Could not resolve references for min-max object: dataElement=%s, orgUnit=%s, categoryOptionCombo=%s, min=10, max=100"
-                .formatted(fakeDataElementID, fakeOrgUnitID, fakeCategoryOptionComboID)
-                .trim(),
-            """
-                {
-                  "dataSet": "%s",
-                  "orgUnit": "%s",
-                  "values": [{
-                    "dataElement": "%s",
-                    "orgUnit": "%s",
-                    "categoryOptionCombo": "%s",
-                    "minValue": 10,
-                    "maxValue": 100
                   }]
                 }
                 """
@@ -226,32 +203,28 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
 
   @ParameterizedTest
   @MethodSource("provideTestCases")
-  void testBulkPostJson(String expectedMessage, String payload, HttpStatus expectedStatus) {
+  void testPostUpsertJson(String expectedMessage, String payload, HttpStatus expectedStatus) {
     assertWebMessage(
         "Bad Request",
         400,
         "ERROR",
         expectedMessage,
-        POST("/minMaxDataElements/values", payload).content(expectedStatus));
+        POST("/minMaxDataElements/upsert", payload).content(expectedStatus));
   }
 
   @Test
-  void testBulkPostJson_EmptyValues() {
-    assertWebMessage(
-        "OK",
-        200,
-        "OK",
-        "Successfully imported 0 min-max values",
-        POST(
-                "/minMaxDataElements/values",
-                """
-                  {
-                  "dataSet": "%s",
-                  "orgUnit": "%s",
-                  "values": []
-                }
-                """
-                    .formatted(orgUnitId, dataElementId))
-            .content(HttpStatus.OK));
+  void testPostUpsertJson_EmptyValues() {
+    String json =
+        """
+        {
+          "dataSet": "%s",
+          "orgUnit": "%s",
+          "values": []
+        }
+        """
+            .formatted(orgUnitId, dataElementId);
+
+    JsonObject response = POST("/minMaxDataElements/upsert", json).content(HttpStatus.OK);
+    assertEquals("Successfully imported 0 min-max values", response.getString("message").string());
   }
 }

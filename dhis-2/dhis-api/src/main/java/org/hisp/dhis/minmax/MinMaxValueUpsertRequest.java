@@ -29,44 +29,17 @@
  */
 package org.hisp.dhis.minmax;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.OpenApi;
+import java.util.List;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
- * DTO which represents a min-max value.
+ * A bulk request to insert or update {@link MinMaxDataElement}s.
  *
- * @author Lars Helge Overland
+ * @param dataSet all values must belong to this dataset
+ * @param orgUnit all values must belong to this organisation unit
+ * @param values the individual values to insert or update, all of which must belong to the {@link
+ *     #orgUnit()} and a DE connected to the {@link #dataSet()}
  */
-@Getter
-@Setter
-@Accessors(chain = true)
-@NoArgsConstructor
-@EqualsAndHashCode
-public class MinMaxValueDto {
-  @JsonProperty
-  @OpenApi.Property({UID.class, DataElement.class})
-  private String dataElement;
-
-  @JsonProperty
-  @OpenApi.Property({UID.class, OrganisationUnit.class})
-  private String orgUnit;
-
-  @JsonProperty
-  @OpenApi.Property({UID.class, CategoryOptionCombo.class})
-  private String categoryOptionCombo;
-
-  @JsonProperty private Integer minValue;
-
-  @JsonProperty private Integer maxValue;
-
-  @JsonProperty private Boolean generated;
-}
+public record MinMaxValueUpsertRequest(
+    @Nonnull UID dataSet, @Nonnull UID orgUnit, @Nonnull List<MinMaxValue> values) {}

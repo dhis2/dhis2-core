@@ -29,25 +29,13 @@
  */
 package org.hisp.dhis.minmax;
 
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-import static org.hisp.dhis.minmax.MinMaxDataElementStore.ResolvedMinMaxDto;
-import static org.hisp.dhis.minmax.MinMaxDataElementUtils.formatDtoInfo;
-import static org.hisp.dhis.minmax.MinMaxDataElementUtils.validateMinMaxValues;
-import static org.hisp.dhis.minmax.MinMaxDataElementUtils.validateRequiredFields;
-
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -94,11 +82,6 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
   @Override
   public void updateMinMaxDataElement(MinMaxDataElement minMaxDataElement) {
     minMaxDataElementStore.update(minMaxDataElement);
-  }
-
-  @Override
-  public MinMaxDataElement getMinMaxDataElement(long id) {
-    return minMaxDataElementStore.get(id);
   }
 
   @Override
@@ -156,106 +139,27 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
    * @return the number of values processed.
    * @throws BadRequestException if any validation fails.
    */
-  @Transactional
   @Override
-  public int importFromJson(MinMaxValueBatchRequest request) throws BadRequestException {
-    List<MinMaxValueDto> dtos = Optional.ofNullable(request.values()).orElse(List.of());
+  @Transactional
+  public int importAll(MinMaxValueUpsertRequest request) throws BadRequestException {
+    List<MinMaxValue> values = Optional.ofNullable(request.values()).orElse(List.of());
+    if (values.isEmpty()) return 0;
 
-    if (dtos.isEmpty()) {
-      return 0;
-    }
+    for (MinMaxValue v : values) validate(v);
 
     log.info(
         "Starting min-max import: {} values for dataset={}, orgunit={}",
-        dtos.size(),
+        values.size(),
         request.dataSet(),
         request.orgUnit());
     long startTime = System.nanoTime();
-    List<ResolvedMinMaxDto> resolvedDtos = resolveAllValidDtos(dtos, true, minMaxDataElementStore);
-    minMaxDataElementStore.upsert(resolvedDtos);
+    int imported = minMaxDataElementStore.upsertValues(values);
     long elapsedMillis = (System.nanoTime() - startTime) / 1_000_000;
 
     log.info(
-        "Min-max import completed: {} values processed in {} ms",
-        resolvedDtos.size(),
-        elapsedMillis);
+        "Min-max import completed: {} values processed in {} ms", values.size(), elapsedMillis);
 
-    return resolvedDtos.size();
-  }
-
-  /**
-   * Resolves all valid DTOs and returns a list of {@link ResolvedMinMaxDto} objects. This helper
-   * method is responsible for transforming incoming DTO objects into a format suitable for direct
-   * database operations. Note that unresolvable DTOs will throw a BadRequestException.
-   *
-   * @param dtos the list of DTOs to resolve.
-   * @param requireValues whether to validate min/max values.
-   * @param minMaxDataElementStore the data element store.
-   * @return a list of resolved DTOs.
-   * @throws BadRequestException if any validation fails.
-   */
-  private static List<ResolvedMinMaxDto> resolveAllValidDtos(
-      List<MinMaxValueDto> dtos,
-      boolean requireValues,
-      MinMaxDataElementStore minMaxDataElementStore)
-      throws BadRequestException {
-
-    record Uids(UID de, UID ou, UID coc) {}
-
-    Map<MinMaxValueDto, Uids> uidMap = new HashMap<>();
-    Set<UID> dataElementUids = new HashSet<>();
-    Set<UID> orgUnitUids = new HashSet<>();
-    Set<UID> cocUids = new HashSet<>();
-
-    for (MinMaxValueDto dto : dtos) {
-      try {
-        UID de = UID.of(dto.getDataElement());
-        UID ou = UID.of(dto.getOrgUnit());
-        UID coc = UID.of(dto.getCategoryOptionCombo());
-
-        uidMap.put(dto, new Uids(de, ou, coc));
-        dataElementUids.add(de);
-        orgUnitUids.add(ou);
-        cocUids.add(coc);
-      } catch (IllegalArgumentException e) {
-        log.error("Invalid UID in min-max import: {}", formatDtoInfo(dto));
-        throw new BadRequestException(ErrorCode.E7805, formatDtoInfo(dto));
-      }
-    }
-
-    Map<UID, Long> dataElementMap = minMaxDataElementStore.getDataElementMap(dataElementUids);
-    Map<UID, Long> orgUnitMap = minMaxDataElementStore.getOrgUnitMap(orgUnitUids);
-    Map<UID, Long> cocMap = minMaxDataElementStore.getCategoryOptionComboMap(cocUids);
-
-    List<ResolvedMinMaxDto> resolvedDtos = new ArrayList<>();
-
-    for (MinMaxValueDto dto : dtos) {
-      validateRequiredFields(dto);
-      if (requireValues) {
-        validateMinMaxValues(dto);
-      }
-      Uids uids = uidMap.get(dto);
-
-      Long deId = dataElementMap.get(uids.de());
-      Long ouId = orgUnitMap.get(uids.ou());
-      Long cocId = cocMap.get(uids.coc());
-
-      if (deId == null || ouId == null || cocId == null) {
-        log.error("Missing required fields in min-max import: {}", formatDtoInfo(dto));
-        throw new BadRequestException(ErrorCode.E7803, formatDtoInfo(dto));
-      }
-
-      resolvedDtos.add(
-          new ResolvedMinMaxDto(
-              deId,
-              ouId,
-              cocId,
-              dto.getMinValue(),
-              dto.getMaxValue(),
-              defaultIfNull(dto.getGenerated(), true)));
-    }
-
-    return resolvedDtos;
+    return imported;
   }
 
   /**
@@ -265,26 +169,28 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
    * @param request the JSON request containing the min-max values to delete.
    * @return the number of values processed.
    */
-  @Transactional
   @Override
-  public int deleteFromJson(MinMaxValueBatchRequest request) throws BadRequestException {
-    List<MinMaxValueDto> dtos = Optional.ofNullable(request.values()).orElse(List.of());
-    if (dtos.isEmpty()) return 0;
+  @Transactional
+  public int deleteAll(MinMaxValueDeleteRequest request) throws BadRequestException {
+    List<MinMaxValueKey> keys = Optional.ofNullable(request.values()).orElse(List.of());
+    if (keys.isEmpty()) return 0;
 
-    log.info(
-        "Starting min-max delete: {} values for dataset={}, orgunit={}",
-        dtos.size(),
-        request.dataSet(),
-        request.orgUnit());
+    log.info("Starting min-max delete: {} values", keys.size());
     long startTime = System.nanoTime();
-    List<ResolvedMinMaxDto> resolvedDtos = resolveAllValidDtos(dtos, false, minMaxDataElementStore);
-    minMaxDataElementStore.delete(resolvedDtos);
+    int count = minMaxDataElementStore.deleteByKeys(keys);
     long elapsedMillis = (System.nanoTime() - startTime) / 1_000_000;
     log.info(
         "Min-max delete completed: {} values processed in {} ms",
-        resolvedDtos.size(),
+        request.values().size(),
         elapsedMillis);
+    return count;
+  }
 
-    return resolvedDtos.size();
+  private static void validate(MinMaxValue value) throws BadRequestException {
+    if (value.dataElement() == null || value.orgUnit() == null || value.optionCombo() == null)
+      throw new BadRequestException(ErrorCode.E7801, value);
+    if (value.minValue() == null || value.maxValue() == null)
+      throw new BadRequestException(ErrorCode.E7801, value);
+    if (value.minValue() >= value.maxValue()) throw new BadRequestException(ErrorCode.E7802, value);
   }
 }

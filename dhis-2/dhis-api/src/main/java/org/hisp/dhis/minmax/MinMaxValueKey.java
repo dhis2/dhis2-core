@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +27,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.e2e.actions.aggregate;
+package org.hisp.dhis.minmax;
 
-import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
- * @author Jason P. Pickering <jason@dhis2.org>
+ * A unique key combination for a {@link MinMaxDataElement} row.
+ *
+ * @param dataElement data element ID
+ * @param orgUnit organisation unit ID
+ * @param optionCombo category option combo ID
  */
-public class MinMaxValuesActions extends RestApiActions {
-  public MinMaxValuesActions() {
-    super("/minMaxDataElements");
-  }
-}
+public record MinMaxValueKey(
+    @OpenApi.Property({UID.class, OrganisationUnit.class}) @Nonnull UID dataElement,
+    @OpenApi.Property({UID.class, OrganisationUnit.class}) @Nonnull UID orgUnit,
+    @OpenApi.Property({UID.class, CategoryOptionCombo.class}) @Nonnull UID optionCombo) {}

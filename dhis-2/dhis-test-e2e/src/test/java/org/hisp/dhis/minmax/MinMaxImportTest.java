@@ -76,71 +76,45 @@ class MinMaxImportTest extends ApiTest {
 
   @Test
   void minMaxValuesCanBeImportedInBulk_JSON() {
-
-    ApiResponse response = postMinMaxJSONFile(false);
-    response
+    postUpsertJson(orgUnit)
         .validate()
         .statusCode(200)
         .body("message", containsString("Successfully imported 1 min-max values"));
   }
 
   @Test
+  void upsertJson_CountsActualRowsAffected() {
+    // using a non-existing OU ID has no effect
+    postUpsertJson("x0123456789")
+        .validate()
+        .statusCode(200)
+        .body("message", containsString("Successfully imported 0 min-max values"));
+  }
+
+  @Test
   void minMaxValuesCanBeDeletedInBulk_JSON() throws IOException {
-    postMinMaxJSONFile(false);
-    ApiResponse response = postMinMaxJSONFile(true);
-    response
+    postUpsertJson(orgUnit);
+    postDeleteJson(orgUnit)
         .validate()
         .statusCode(200)
         .body("message", containsString("Successfully deleted 1 min-max values"));
   }
 
-  private ApiResponse postMinMaxJSONFile(Boolean delete) {
-    String payload =
-        """
-        { "dataset": "%s",
-          "orgunit": "%s",
-          "values" : [{
-              "dataElement": "%s",
-              "orgUnit": "%s",
-              "categoryOptionCombo": "%s",
-                "minValue": 10,
-                "maxValue": 100
-            }]
-        }
-        """
-            .formatted(dataSet, orgUnit, dataElement, orgUnit, defaultCOC);
-
-    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-    if (delete) {
-      queryParamsBuilder.add("importStrategy", "DELETE");
-    }
-    return minMaxValuesActions.post("", payload, queryParamsBuilder);
-  }
-
   @Test
   void minMaxValueCanBeImportedInBulk_CSV() throws IOException {
-    postMinMaxCSVFile(false);
+    postUpsertCsv()
+        .validate()
+        .statusCode(200)
+        .body("message", containsString("Successfully imported 4 min-max values"));
   }
 
   @Test
   void minMaxValueCanBeDeletedInBulk_CSV() throws IOException {
-    postMinMaxCSVFile(false);
-    ApiResponse response = postMinMaxCSVFile(true);
-    response
+    postUpsertCsv().validate().statusCode(200);
+    postDeleteCsv()
         .validate()
         .statusCode(200)
         .body("message", containsString("Successfully deleted 4 min-max values"));
-  }
-
-  private ApiResponse postMinMaxCSVFile(Boolean delete) {
-    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-    queryParamsBuilder.add("dataSet", dataSet).add("orgUnit", orgUnit);
-    if (delete) {
-      queryParamsBuilder.add("importStrategy", "DELETE");
-    }
-
-    return minMaxValuesActions.postMultiPartFile(
-        new File("src/test/resources/minmax/minmax.csv"), "application/csv", queryParamsBuilder);
   }
 
   @Test
@@ -152,13 +126,13 @@ class MinMaxImportTest extends ApiTest {
                  "values" : [{
                     "dataElement": "%s",
                     "orgUnit": "%s",
-                    "categoryOptionCombo": "%s",
+                    "optionCombo": "%s",
                     "minValue": 10
                   }
                 ]
                 }"""
             .formatted(dataSet, orgUnit, dataElement, orgUnit, defaultCOC);
-    ApiResponse response = minMaxValuesActions.post(payload);
+    ApiResponse response = minMaxValuesActions.post("/upsert", payload);
     response
         .validate()
         .statusCode(400)
@@ -169,12 +143,66 @@ class MinMaxImportTest extends ApiTest {
   @AfterAll
   void tearDown() {
     loginActions.loginAsSuperUser();
-    postMinMaxCSVFile(true);
-    postMinMaxJSONFile(true);
+    postDeleteCsv();
+    postDeleteJson(orgUnit);
     ApiResponse response =
         metadataActions.importMetadata(
             new File("src/test/resources/minmax/metadata.json"),
             "async=false&importStrategy=DELETE");
     response.validate().statusCode(200);
+  }
+
+  private ApiResponse postUpsertJson(String orgUnit) {
+    String payload =
+        """
+        { "dataset": "%s",
+          "orgunit": "%s",
+          "values" : [{
+              "dataElement": "%s",
+              "orgUnit": "%s",
+              "optionCombo": "%s",
+                "minValue": 10,
+                "maxValue": 100
+            }]
+        }
+        """
+            .formatted(dataSet, orgUnit, dataElement, orgUnit, defaultCOC);
+
+    return minMaxValuesActions.post("/upsert", payload);
+  }
+
+  private ApiResponse postDeleteJson(String orgUnit) {
+    String payload =
+        """
+        { "dataset": "%s",
+          "orgunit": "%s",
+          "values" : [{
+              "dataElement": "%s",
+              "orgUnit": "%s",
+              "optionCombo": "%s",
+                "minValue": 10,
+                "maxValue": 100
+            }]
+        }
+        """
+            .formatted(dataSet, orgUnit, dataElement, orgUnit, defaultCOC);
+
+    return minMaxValuesActions.post("/delete", payload);
+  }
+
+  private ApiResponse postUpsertCsv() {
+    return minMaxValuesActions.postMultiPartFile(
+        new File("src/test/resources/minmax/minmax.csv"),
+        "application/csv",
+        "/upsert",
+        new QueryParamsBuilder().add("dataSet", dataSet).add("orgUnit", orgUnit));
+  }
+
+  private ApiResponse postDeleteCsv() {
+    return minMaxValuesActions.postMultiPartFile(
+        new File("src/test/resources/minmax/minmax.csv"),
+        "application/csv",
+        "/delete",
+        new QueryParamsBuilder().add("dataSet", dataSet).add("orgUnit", orgUnit));
   }
 }
