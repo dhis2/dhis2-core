@@ -88,7 +88,8 @@ public enum ProgramRuleActionType {
           ERRORONCOMPLETE,
           WARNINGONCOMPLETE,
           ASSIGN,
-          SETMANDATORYFIELD);
+          SETMANDATORYFIELD,
+          CREATEEVENT);
 
   ProgramRuleActionType(String value) {
     this.value = value;
