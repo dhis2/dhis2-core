@@ -58,6 +58,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,6 +68,13 @@ import org.slf4j.LoggerFactory;
  */
 public class AppBundler {
   private static final Logger logger = LoggerFactory.getLogger(AppBundler.class);
+
+  private static final Pattern REPO_PATTERN_PRE =
+      Pattern.compile("https://github.com/d2-ci/datastore-app#patch/2.42.0");
+
+
+
+
   private static final Pattern REPO_PATTERN =
       Pattern.compile("https://codeload.github.com/([^/]+)/([^/]+)/zip/refs/heads/([^/]+)");
   private static final int DOWNLOAD_POOL_SIZE = 25; // Number of concurrent downloads
@@ -78,7 +86,7 @@ public class AppBundler {
 
   private final String downloadDir;
   private final String artifactId;
-  private final String appListPath;
+  private final String appListFilePath;
   private final String defaultBranch;
   private final AppBundleInfo bundleInfo;
   private final String buildDir;
@@ -88,19 +96,19 @@ public class AppBundler {
    *
    * @param downloadDir the directory where the app ZIP files will be stored
    * @param artifactId the artifact ID for the bundle
-   * @param appListPath the path to the JSON file containing the list of apps to bundle
+   * @param appListFilePath the path to the JSON file containing the list of apps to bundle
    * @param defaultBranch the default branch to use if none is specified in the app URL
    */
   public AppBundler(
       String downloadDir,
       String buildDir,
       String artifactId,
-      String appListPath,
+      String appListFilePath,
       String defaultBranch) {
     this.downloadDir = downloadDir;
     this.buildDir = buildDir;
     this.artifactId = artifactId;
-    this.appListPath = appListPath;
+    this.appListFilePath = appListFilePath;
     this.defaultBranch = defaultBranch != null ? defaultBranch : DEFAULT_BRANCH;
     this.bundleInfo = new AppBundleInfo();
   }
@@ -115,7 +123,7 @@ public class AppBundler {
     logger.error("Download directory: {}", downloadDir);
     logger.error("Build directory: {}", buildDir);
     logger.error("Artifact ID: {}", artifactId);
-    logger.error("App list path: {}", appListPath);
+    logger.error("App list path: {}", appListFilePath);
     logger.error("Default branch: {}", defaultBranch);
 
     // Create download directory if it doesn't exist
@@ -123,24 +131,72 @@ public class AppBundler {
     Files.createDirectories(downloadDirPath);
 
     // Create download artifact directory
-    Path artifactDir = downloadDirPath.resolve(artifactId);
-    Files.createDirectories(artifactDir);
+    Path artifactDirPath = downloadDirPath.resolve(artifactId);
+    Files.createDirectories(artifactDirPath);
 
     // Create download checksums directory
-    Path checksumDir = artifactDir.resolve(CHECKSUM_DIR);
-    Files.createDirectories(checksumDir);
+    Path checksumDirPath = artifactDirPath.resolve(CHECKSUM_DIR);
+    Files.createDirectories(checksumDirPath);
 
     // Read app list
-    List<String> appUrls = readAppList();
+    List<String> appUrls = parseAppListUrls(appListFilePath);
     logger.error("Found {} apps to bundle", appUrls.size());
 
     // Download each app in parallel
+    downloadApps(appUrls, artifactDirPath, checksumDirPath);
+
+    // Copy downloaded apps to build directory
+    Path targetArtifactDir = copyApps(downloadDirPath);
+
+    // Write bundle info file
+    writeBundleFile(targetArtifactDir);
+  }
+
+  private void writeBundleFile(Path targetArtifactDir) throws IOException {
+    Path bundleInfoPath = targetArtifactDir.resolve(BUNDLE_INFO_FILE);
+    objectMapper.writerWithDefaultPrettyPrinter().writeValue(bundleInfoPath.toFile(), bundleInfo);
+    logger.error("Wrote bundle info to {}", bundleInfoPath);
+    logger.error("App bundling process completed successfully");
+  }
+
+  private @NotNull Path copyApps(Path downloadDirPath) throws IOException {
+    Path targetArtifactDir = Paths.get(buildDir).resolve(artifactId);
+    try {
+      Files.createDirectories(targetArtifactDir);
+      logger.error("Ensured target artifact directory exists: {}", targetArtifactDir);
+
+      for (AppBundleInfo.AppInfo app : bundleInfo.getApps()) {
+        Path sourceZipPath = downloadDirPath.resolve(artifactId).resolve(app.getName() + ".zip");
+        Path destZipPath = targetArtifactDir.resolve(app.getName() + ".zip");
+
+        if (Files.exists(sourceZipPath)) {
+          Files.copy(sourceZipPath, destZipPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+          logger.error("Copied {} to {}", sourceZipPath, destZipPath);
+        } else {
+          logger.warn(
+              "Source zip file not found, skipping copy for app {}: {}",
+              app.getName(),
+              sourceZipPath);
+        }
+      }
+      logger.error("Finished copying app bundles to build directory.");
+
+    } catch (IOException e) {
+      logger.error("Error copying app bundles to build directory: {}", e.getMessage(), e);
+      throw new IOException("Failed to copy app bundles to build directory", e);
+    }
+    // --- End Copying ---
+    return targetArtifactDir;
+  }
+
+  private void downloadApps(List<String> appUrls, Path artifactDirPath, Path checksumDirPath) {
     ExecutorService executor = Executors.newFixedThreadPool(DOWNLOAD_POOL_SIZE);
     List<Future<AppBundleInfo.AppInfo>> futures = new ArrayList<>();
 
     logger.error("Submitting download tasks for {} apps...", appUrls.size());
     for (String appUrl : appUrls) {
-      Callable<AppBundleInfo.AppInfo> task = () -> downloadApp(appUrl, artifactDir, checksumDir);
+      Callable<AppBundleInfo.AppInfo> task = () -> downloadApp(appUrl, artifactDirPath,
+          checksumDirPath);
       Future<AppBundleInfo.AppInfo> future = executor.submit(task);
       futures.add(future);
     }
@@ -181,40 +237,6 @@ public class AppBundler {
       Thread.currentThread().interrupt(); // Preserve interrupt status
     }
     logger.error("Download executor shut down.");
-
-    // --- Start Copying downloaded apps to build directory ---
-    Path targetArtifactDir = Paths.get(buildDir).resolve(artifactId);
-    try {
-      Files.createDirectories(targetArtifactDir);
-      logger.error("Ensured target artifact directory exists: {}", targetArtifactDir);
-
-      for (AppBundleInfo.AppInfo app : bundleInfo.getApps()) {
-        Path sourceZipPath = downloadDirPath.resolve(artifactId).resolve(app.getName() + ".zip");
-        Path destZipPath = targetArtifactDir.resolve(app.getName() + ".zip");
-
-        if (Files.exists(sourceZipPath)) {
-          Files.copy(sourceZipPath, destZipPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-          logger.error("Copied {} to {}", sourceZipPath, destZipPath);
-        } else {
-          logger.warn(
-              "Source zip file not found, skipping copy for app {}: {}",
-              app.getName(),
-              sourceZipPath);
-        }
-      }
-      logger.error("Finished copying app bundles to build directory.");
-
-    } catch (IOException e) {
-      logger.error("Error copying app bundles to build directory: {}", e.getMessage(), e);
-      throw new IOException("Failed to copy app bundles to build directory", e);
-    }
-    // --- End Copying ---
-
-    // Write bundle info file
-    Path bundleInfoPath = targetArtifactDir.resolve(BUNDLE_INFO_FILE);
-    objectMapper.writerWithDefaultPrettyPrinter().writeValue(bundleInfoPath.toFile(), bundleInfo);
-    logger.error("Wrote bundle info to {}", bundleInfoPath);
-    logger.error("App bundling process completed successfully");
   }
 
   /**
@@ -223,7 +245,7 @@ public class AppBundler {
    * @return a list of app URLs
    * @throws IOException if there's an error reading the file
    */
-  private List<String> readAppList() throws IOException {
+  private List<String> parseAppListUrls(String appListPath) throws IOException {
     File appListFile = new File(appListPath);
     CollectionType type =
         objectMapper.getTypeFactory().constructCollectionType(List.class, String.class);
@@ -247,7 +269,6 @@ public class AppBundler {
       logger.error("Invalid GitHub URL format, skipping: {}", appUrl);
       throw new IllegalArgumentException("Invalid GitHub URL: " + appUrl);
     }
-
     String owner = matcher.group(1);
     String repo = matcher.group(2);
     String branch = matcher.group(3) != null ? matcher.group(3) : defaultBranch;
