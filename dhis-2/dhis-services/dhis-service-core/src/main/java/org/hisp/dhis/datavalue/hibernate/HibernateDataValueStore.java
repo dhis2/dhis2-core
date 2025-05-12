@@ -215,7 +215,8 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
     String sql =
         """
-        select * from datavalue where dataelementid = :deid \
+        select * from datavalue \
+        where dataelementid = :deid \
         and periodid = :periodid \
         and attributeoptioncomboid = :attributeOptionCombo \
         and categoryoptioncomboid = :categoryOptionCombo \
@@ -364,7 +365,8 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             inner join dv.source ou \
             inner join dv.categoryOptionCombo co \
             inner join dv.attributeOptionCombo ao \
-            where de.id in (:dataElements) """);
+            where de.id in (:dataElements) \
+            """);
 
     if (!periods.isEmpty()) {
       hql.append("and pe.id in (:periods) ");
