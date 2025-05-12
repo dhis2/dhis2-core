@@ -32,6 +32,9 @@ package org.hisp.dhis.userdatastore.hibernate;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.copyOfRange;
 import static java.util.Collections.emptyList;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -51,8 +54,6 @@ import org.hisp.dhis.userdatastore.UserDatastoreStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.CriteriaBuilder;
 
 /**
  * @author Stian Sandvold
