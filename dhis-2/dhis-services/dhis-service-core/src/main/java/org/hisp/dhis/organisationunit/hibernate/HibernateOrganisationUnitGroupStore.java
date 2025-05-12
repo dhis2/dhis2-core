@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.organisationunit.hibernate;
 
-import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -40,6 +39,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import jakarta.persistence.EntityManager;
 
 /**
  * @author Lars Helge Overland
@@ -70,7 +70,10 @@ public class HibernateOrganisationUnitGroupStore
   public OrganisationUnitGroup getOrgUnitGroupInGroupSet(
       Set<OrganisationUnitGroup> groups, OrganisationUnitGroupSet groupSet) {
     return getQuery(
-            "select g from OrganisationUnitGroup g inner join g.groupSets gs where gs = :groupSet and g in :groups")
+            """
+            select g from OrganisationUnitGroup g \
+            inner join g.groupSets gs \
+            where gs = :groupSet and g in :groups""")
         .setParameter("groupSet", groupSet)
         .setParameter("groups", groups)
         .setMaxResults(1)

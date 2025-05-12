@@ -36,11 +36,6 @@ import static org.apache.commons.collections4.CollectionUtils.union;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
-
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -55,7 +50,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
-import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.Query;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -74,6 +68,11 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -215,11 +214,11 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
     String sql =
         """
-        select * from datavalue where dataelementid = :deid
-        and periodid = :periodid
-        and attributeoptioncomboid = :attributeOptionCombo
-        and categoryoptioncomboid = :categoryOptionCombo
-        and sourceid = :sourceid
+        select * from datavalue where dataelementid = :deid \
+        and periodid = :periodid \
+        and attributeoptioncomboid = :attributeOptionCombo \
+        and categoryoptioncomboid = :categoryOptionCombo \
+        and sourceid = :sourceid \
         and deleted is true""";
 
     return getSingleResult(
@@ -357,13 +356,14 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
       DataExportParams params, Set<Period> periods, Set<OrganisationUnit> organisationUnits) {
     StringBuilder hql =
         new StringBuilder(
-            "select dv from DataValue dv "
-                + "inner join dv.dataElement de "
-                + "inner join dv.period pe "
-                + "inner join dv.source ou "
-                + "inner join dv.categoryOptionCombo co "
-                + "inner join dv.attributeOptionCombo ao "
-                + "where de.id in (:dataElements) ");
+            """
+            select dv from DataValue dv \
+            inner join dv.dataElement de \
+            inner join dv.period pe \
+            inner join dv.source ou \
+            inner join dv.categoryOptionCombo co \
+            inner join dv.attributeOptionCombo ao \
+            where de.id in (:dataElements) """);
 
     if (!periods.isEmpty()) {
       hql.append("and pe.id in (:periods) ");
@@ -503,9 +503,10 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   /** getDeflatedDataValues - Adds SELECT clause and starts FROM clause. */
   private void getDdvSelectFrom(DataExportParams params, StringBuilder sql) {
     sql.append(
-            "select dv.dataelementid, dv.periodid, dv.sourceid"
-                + ", dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value"
-                + ", dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted")
+            """
+            select dv.dataelementid, dv.periodid, dv.sourceid, \
+            dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, \
+            dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted""")
         .append(params.needsOrgUnitDetails() ? ", ou.path" : "")
         .append(" from datavalue dv");
   }

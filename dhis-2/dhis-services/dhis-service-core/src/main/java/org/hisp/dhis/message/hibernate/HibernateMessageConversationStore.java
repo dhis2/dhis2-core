@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.message.hibernate;
 
-import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -46,6 +45,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
+import jakarta.persistence.EntityManager;
 
 /**
  * @author Lars Helge Overland
@@ -91,10 +91,11 @@ public class HibernateMessageConversationStore
     getSession().enableFilter("userMessageUser").setParameter("userid", user.getId());
 
     String hql =
-        "from MessageConversation mc "
-            + "inner join mc.userMessages as um "
-            + "left join mc.createdBy as ui "
-            + "left join mc.lastSender as ls ";
+        """
+        from MessageConversation mc \
+        inner join mc.userMessages as um \
+        left join mc.createdBy as ui \
+        left join mc.lastSender as ls """;
 
     if (status != null) {
       hql += "where status = :status ";

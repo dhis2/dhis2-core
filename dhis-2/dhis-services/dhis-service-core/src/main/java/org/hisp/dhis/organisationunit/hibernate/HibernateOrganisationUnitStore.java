@@ -31,8 +31,6 @@ package org.hisp.dhis.organisationunit.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toSet;
-
-import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -54,6 +52,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import jakarta.persistence.EntityManager;
 
 /**
  * @author Kristian Nordal
@@ -100,12 +99,11 @@ public class HibernateOrganisationUnitStore
 
   private static String getOrgUnitTablesUids(String username, String orgUnitTableName) {
     return """
-        SELECT ou.uid
-        FROM organisationunit ou
-                 JOIN %s um ON ou.organisationunitid = um.organisationunitid
-                 JOIN userinfo ui ON um.userinfoid = ui.userinfoid
-        WHERE ui.username = '%s';
-        """
+        select ou.uid
+        from organisationunit ou
+        join %s um ON ou.organisationunitid = um.organisationunitid
+        join userinfo ui ON um.userinfoid = ui.userinfoid
+        where ui.username = '%s';"""
         .formatted(orgUnitTableName, username);
   }
 
@@ -336,10 +334,9 @@ public class HibernateOrganisationUnitStore
     if (categoryOptions.isEmpty()) return List.of();
     return getQuery(
             """
-            select distinct ou from OrganisationUnit ou
-            join ou.categoryOptions co
-            where co.uid in :categoryOptions
-            """,
+            select distinct ou from OrganisationUnit ou \
+            join ou.categoryOptions co \
+            where co.uid in :categoryOptions""",
             OrganisationUnit.class)
         .setParameter("categoryOptions", categoryOptions)
         .getResultList();
