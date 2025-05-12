@@ -40,6 +40,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.test.utils.Assertions.assertNotEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.tracker.Assertions.assertNotes;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
@@ -64,6 +65,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
@@ -71,7 +73,6 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.AssignedUserQueryParam;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryFilter;
@@ -108,13 +109,13 @@ import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentFields;
+import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams.TrackedEntityOperationParamsBuilder;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -763,6 +764,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .organisationUnits(orgUnitA)
             .orgUnitMode(SELECTED)
             .program(programB)
+            .fields(TrackedEntityFields.builder().includeAttributes().build())
             .build();
 
     final List<TrackedEntity> trackedEntities =
@@ -782,6 +784,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .organisationUnits(orgUnitA)
             .orgUnitMode(SELECTED)
             .program(programA)
+            .fields(TrackedEntityFields.builder().includeAttributes().build())
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
@@ -1337,7 +1340,10 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     TrackedEntityFields fields =
         TrackedEntityFields.builder()
             .includeEnrollments(
-                EnrollmentFields.builder().includeAttributes().includeRelationships().build())
+                EnrollmentFields.builder()
+                    .includeAttributes()
+                    .includeRelationships(RelationshipFields.all())
+                    .build())
             .build();
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
@@ -1464,6 +1470,74 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldReturnTrackedEntityWithActiveEnrollments()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    TrackedEntityFields fields =
+        TrackedEntityFields.builder().includeEnrollments(EnrollmentFields.all()).build();
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnitA)
+            .orgUnitMode(SELECTED)
+            .trackedEntityType(trackedEntityTypeA)
+            .enrollmentStatus(EnrollmentStatus.ACTIVE)
+            .program(programA)
+            .fields(fields)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
+
+    assertNotEmpty(trackedEntities);
+    trackedEntities.forEach(
+        te -> {
+          AtomicBoolean hasEnrollment = new AtomicBoolean();
+          te.getEnrollments()
+              .forEach(
+                  enrollment -> {
+                    if (EnrollmentStatus.ACTIVE == enrollment.getStatus()) {
+                      hasEnrollment.set(true);
+                    }
+                  });
+          assertTrue(
+              hasEnrollment.get(),
+              "test expects each tracked entity to have at least one enrollment");
+        });
+  }
+
+  @Test
+  void shouldReturnTrackedEntityWithEnrollmentsMarkedForFollowUp()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    TrackedEntityFields fields =
+        TrackedEntityFields.builder().includeEnrollments(EnrollmentFields.all()).build();
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(orgUnitA)
+            .orgUnitMode(SELECTED)
+            .trackedEntityType(trackedEntityTypeA)
+            .followUp(true)
+            .program(programA)
+            .fields(fields)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
+
+    assertNotEmpty(trackedEntities);
+    trackedEntities.forEach(
+        te -> {
+          AtomicBoolean hasEnrollment = new AtomicBoolean();
+          te.getEnrollments()
+              .forEach(
+                  enrollment -> {
+                    if (Boolean.TRUE.equals(enrollment.getFollowup())) {
+                      hasEnrollment.set(true);
+                    }
+                  });
+          assertTrue(
+              hasEnrollment.get(),
+              "test expects each tracked entity to have at least one enrollment");
+        });
+  }
+
+  @Test
   void shouldReturnEventMappedCorrectly()
       throws ForbiddenException, NotFoundException, BadRequestException {
     final Date currentTime = new Date();
@@ -1519,7 +1593,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnTrackedEntityWithRelationshipsTe2Te()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    TrackedEntityFields fields = TrackedEntityFields.builder().includeRelationships().build();
+    TrackedEntityFields fields =
+        TrackedEntityFields.builder().includeRelationships(RelationshipFields.all()).build();
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(orgUnitA)
@@ -1671,7 +1746,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   @Test
   void returnTrackedEntityRelationshipsWithTe2Enrollment()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    TrackedEntityFields fields = TrackedEntityFields.builder().includeRelationships().build();
+    TrackedEntityFields fields =
+        TrackedEntityFields.builder().includeRelationships(RelationshipFields.all()).build();
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(orgUnitA)
@@ -1699,7 +1775,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityFields fields =
         TrackedEntityFields.builder()
-            .includeRelationships()
+            .includeRelationships(RelationshipFields.all())
             .includeEnrollments(EnrollmentFields.all())
             .build();
     TrackedEntityOperationParams operationParams =
@@ -1891,7 +1967,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldFailWhenRequestingSingleTEAndProvidedTEDoesNotExist() {
-    String notExistentTE = CodeGenerator.generateUid();
+    String notExistentTE = generateUid();
     NotFoundException exception =
         assertThrows(
             NotFoundException.class,
@@ -2181,7 +2257,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     user.setOrganisationUnits(Set.of(orgUnitB));
     injectSecurityContextUser(user);
 
-    Assertions.assertThrows(
+    assertThrows(
         NotFoundException.class,
         () ->
             trackedEntityService.getTrackedEntity(
@@ -2212,7 +2288,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
         trackedEntityB, programB, orgUnitB);
 
-    Assertions.assertThrows(
+    assertThrows(
         NotFoundException.class,
         () ->
             trackedEntityService.getTrackedEntity(
@@ -2252,7 +2328,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         trackedEntityB, programC, orgUnitB);
     injectSecurityContextUser(user);
 
-    Assertions.assertThrows(
+    assertThrows(
         NotFoundException.class,
         () ->
             trackedEntityService.getTrackedEntity(
@@ -2321,7 +2397,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     makeProgramMetadataInaccessible(programC);
     injectSecurityContextUser(user);
 
-    Assertions.assertThrows(
+    assertThrows(
         NotFoundException.class,
         () -> trackedEntityService.getTrackedEntity(UID.of(trackedEntityB.getUid())));
   }
@@ -2391,7 +2467,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         .trackedEntities(trackedEntity)
         .fields(
             TrackedEntityFields.builder()
-                .includeRelationships()
+                .includeRelationships(RelationshipFields.all())
                 .includeEnrollments(EnrollmentFields.all())
                 .build())
         .build();

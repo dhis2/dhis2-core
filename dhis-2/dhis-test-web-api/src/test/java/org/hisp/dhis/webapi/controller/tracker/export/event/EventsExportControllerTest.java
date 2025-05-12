@@ -66,6 +66,7 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonDiff.Mode;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.note.Note;
@@ -194,7 +195,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
             .getList("events", JsonEvent.class);
 
     assertHasSize(1, queryEvents.stream().toList());
-    assertNoDiff(pathEvent, queryEvents.get(0));
+    assertNoDiff(pathEvent, queryEvents.get(0), Mode.LENIENT);
   }
 
   @Test

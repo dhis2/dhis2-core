@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,28 +27,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oidc;
+package org.hisp.dhis.test.e2e.dependsOn.services;
 
-import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.util.Optional;
+import org.hisp.dhis.test.e2e.dependsOn.DependencySetupException;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public class OIDCLoginEnabledCondition extends PropertiesAwareConfigurationCondition {
-  @Override
-  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-    if (isTestRun(context)) {
-      return false;
-    }
-    String isEnabled = getConfiguration().getProperty(ConfigurationKey.OIDC_OAUTH2_LOGIN_ENABLED);
-    return isEnabled.equalsIgnoreCase("on");
-  }
+public interface ResourceService {
+  Optional<String> lookup(String code) throws DependencySetupException;
 
-  @Override
-  public ConfigurationPhase getConfigurationPhase() {
-    return ConfigurationPhase.PARSE_CONFIGURATION;
-  }
+  String create(JsonNode payload) throws DependencySetupException;
+
+  void delete(String uid) throws DependencySetupException;
 }

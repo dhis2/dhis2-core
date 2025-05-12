@@ -34,9 +34,10 @@ import javax.annotation.Nonnull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
 
 /**
- * EventFields indicates which of the tracked entity fields should be exported. This is used to save
+ * EventFields indicates which of the event fields should be exported. This is used to save
  * retrieval of data that is not needed. Be specific in what you need to save resources!
  */
 @Getter
@@ -44,27 +45,41 @@ import lombok.ToString;
 @EqualsAndHashCode
 public class EventFields {
   private final boolean includesRelationships;
+  private final RelationshipFields relationshipFields;
 
   private EventFields(Builder builder) {
     this.includesRelationships = builder.includesRelationships;
+    this.relationshipFields =
+        builder.includesRelationships ? builder.relationshipFields : RelationshipFields.none();
   }
 
-  private EventFields(Predicate<String> includesFields) {
-    this.includesRelationships = includesFields.test("relationships");
+  private EventFields(Predicate<String> includesFields, String pathSeparator) {
+    if (includesFields.test("relationships")) {
+      this.includesRelationships = true;
+      this.relationshipFields =
+          RelationshipFields.of(
+              f -> includesFields.test("relationships" + pathSeparator + f), pathSeparator);
+    } else {
+      this.includesRelationships = false;
+      this.relationshipFields = RelationshipFields.none();
+    }
   }
 
-  public static EventFields of(@Nonnull Predicate<String> includesFields) {
-    return new EventFields(includesFields);
+  public static EventFields of(
+      @Nonnull Predicate<String> includesFields, @Nonnull String pathSeparator) {
+    return new EventFields(includesFields, pathSeparator);
   }
 
   /** Use this if you do not want fields to be exported. */
   public static EventFields none() {
-    return new EventFields(f -> false);
+    // the path separator does not matter as the predicate returns false regardless of the path
+    return new EventFields(f -> false, "x");
   }
 
-  /** Use this if you do want fields to be exported. This is potentially expensive! */
+  /** Use this if you do want all fields to be exported. This is potentially expensive! */
   public static EventFields all() {
-    return new EventFields(f -> true);
+    // the path separator does not matter as the predicate returns true regardless of the path
+    return new EventFields(f -> true, "x");
   }
 
   public static Builder builder() {
@@ -73,11 +88,14 @@ public class EventFields {
 
   public static class Builder {
     private boolean includesRelationships;
+    private RelationshipFields relationshipFields;
 
     private Builder() {}
 
-    public Builder includeRelationships() {
+    /** Indicates that relationships should be exported with the given {@code fields}. */
+    public Builder includeRelationships(@Nonnull RelationshipFields fields) {
       this.includesRelationships = true;
+      this.relationshipFields = fields;
       return this;
     }
 

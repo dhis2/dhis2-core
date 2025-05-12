@@ -119,7 +119,7 @@ public class GlobalShellFilter extends OncePerRequestFilter {
 
     if (m.matches()) {
       String appName = m.group(1);
-      App app = appManager.getApp(appName);
+      App app = appManager.getApp(appName, baseUrl);
 
       String targetPath;
       if (app != null) {

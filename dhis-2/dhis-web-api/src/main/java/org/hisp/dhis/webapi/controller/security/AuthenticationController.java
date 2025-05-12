@@ -233,22 +233,15 @@ public class AuthenticationController {
 
   private String getRedirectUrl(
       Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
-    // Default redirect URL
-    String redirectUrl =
-        request.getContextPath()
-            + "/api/apps/"
-            + settingsProvider.getCurrentSettings().getStartModule();
-    // GlobalShellFilter prefer ending slash when we are using old style app name like:
-    if (!redirectUrl.endsWith("/")) {
-      redirectUrl += "/";
-    }
+    // Default redirect URL, let the index controller do the redirect to the start app
+    String redirectUrl = request.getContextPath() + "/";
 
     // Check enforce verified email, redirect to the profile page if email is not verified
     boolean enforceVerifiedEmail = settingsProvider.getCurrentSettings().getEnforceVerifiedEmail();
     if (enforceVerifiedEmail) {
       UserDetails userDetails = (UserDetails) authentication.getPrincipal();
       if (!userDetails.isEmailVerified()) {
-        return request.getContextPath() + "/api/apps/user-profile/#/profile";
+        return request.getContextPath() + "/dhis-web-user-profile/#/profile";
       }
     }
 
