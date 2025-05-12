@@ -37,7 +37,7 @@ import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-public class AzureProviderTest {
+class AzureProviderTest {
 
   @Test
   @DisplayName("AzureAdProvider issuer URI is present and has the expected format")
