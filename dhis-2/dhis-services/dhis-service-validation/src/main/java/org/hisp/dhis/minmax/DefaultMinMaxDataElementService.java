@@ -31,11 +31,12 @@ package org.hisp.dhis.minmax;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -142,22 +143,23 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
   @Override
   @Transactional
   public int importAll(MinMaxValueUpsertRequest request) throws BadRequestException {
-    List<MinMaxValue> values = Optional.ofNullable(request.values()).orElse(List.of());
-    if (values.isEmpty()) return 0;
+    if (request.values().isEmpty()) return 0;
 
-    for (MinMaxValue v : values) validate(v);
+    validate(request);
 
     log.info(
         "Starting min-max import: {} values for dataset={}, orgunit={}",
-        values.size(),
+        request.values().size(),
         request.dataSet(),
         request.orgUnit());
     long startTime = System.nanoTime();
-    int imported = minMaxDataElementStore.upsertValues(values);
+    int imported = minMaxDataElementStore.upsertValues(request.values());
     long elapsedMillis = (System.nanoTime() - startTime) / 1_000_000;
 
     log.info(
-        "Min-max import completed: {} values processed in {} ms", values.size(), elapsedMillis);
+        "Min-max import completed: {} values processed in {} ms",
+        request.values().size(),
+        elapsedMillis);
 
     return imported;
   }
@@ -172,12 +174,11 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
   @Override
   @Transactional
   public int deleteAll(MinMaxValueDeleteRequest request) throws BadRequestException {
-    List<MinMaxValueKey> keys = Optional.ofNullable(request.values()).orElse(List.of());
-    if (keys.isEmpty()) return 0;
+    if (request.values().isEmpty()) return 0;
 
-    log.info("Starting min-max delete: {} values", keys.size());
+    log.info("Starting min-max delete: {} values", request.values().size());
     long startTime = System.nanoTime();
-    int count = minMaxDataElementStore.deleteByKeys(keys);
+    int count = minMaxDataElementStore.deleteByKeys(request.values());
     long elapsedMillis = (System.nanoTime() - startTime) / 1_000_000;
     log.info(
         "Min-max delete completed: {} values processed in {} ms",
@@ -192,5 +193,17 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
     if (value.minValue() == null || value.maxValue() == null)
       throw new BadRequestException(ErrorCode.E7801, value);
     if (value.minValue() >= value.maxValue()) throw new BadRequestException(ErrorCode.E7802, value);
+  }
+
+  private void validate(MinMaxValueUpsertRequest request) throws BadRequestException {
+    for (MinMaxValue v : request.values()) validate(v);
+    Set<String> deIds =
+        Set.copyOf(minMaxDataElementStore.getDataElementsByDataSet(request.dataSet()));
+    UID ou = request.orgUnit();
+    for (MinMaxValue v : request.values()) {
+      if (!ou.equals(v.orgUnit())) throw new BadRequestException(ErrorCode.E7805, v.orgUnit());
+      if (!deIds.contains(v.dataElement().getValue()))
+        throw new BadRequestException(ErrorCode.E7805, v.dataElement());
+    }
   }
 }

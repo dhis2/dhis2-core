@@ -73,6 +73,9 @@ public interface MinMaxDataElementStore extends GenericStore<MinMaxDataElement> 
    */
   List<MinMaxDataElement> getByCategoryOptionCombo(@Nonnull Collection<UID> uids);
 
+  @SuppressWarnings("unchecked")
+  List<String> getDataElementsByDataSet(UID dataSet);
+
   int deleteByKeys(List<MinMaxValueKey> keys);
 
   int upsertValues(List<MinMaxValue> values);

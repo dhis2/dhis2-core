@@ -189,6 +189,19 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
         .executeUpdate();
   }
 
+  @SuppressWarnings("unchecked")
+  @Override
+  public List<String> getDataElementsByDataSet(UID dataSet) {
+    String sql =
+        """
+      SELECT de.uid
+      FROM dataset ds
+      JOIN datasetelement dse ON ds.datasetid = dse.datasetid
+      JOIN dataelement de ON dse.dataelementid = de.dataelementid
+      WHERE ds.uid = :uid""";
+    return getSession().createNativeQuery(sql).setParameter("uid", dataSet.getValue()).list();
+  }
+
   private Map<String, Long> getDataElementMap(Stream<UID> ids) {
     String sql = "SELECT uid, dataelementid FROM dataelement WHERE uid IN :ids";
     return selectIdMapping(sql, "ids", ids);
@@ -204,13 +217,14 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
     return selectIdMapping(sql, "ids", ids);
   }
 
+  @SuppressWarnings("unchecked")
   private Map<String, Long> selectIdMapping(
       @Language("sql") String sql, String name, Stream<UID> values) {
     return mapIdToLong(
         getSession()
             .createNativeQuery(sql)
             .setParameter(name, values.map(UID::getValue).toList())
-            .getResultList());
+            .list());
   }
 
   private static Map<String, Long> mapIdToLong(List<Object[]> results) {

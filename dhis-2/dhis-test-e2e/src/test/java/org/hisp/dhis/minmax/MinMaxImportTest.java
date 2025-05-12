@@ -121,8 +121,8 @@ class MinMaxImportTest extends ApiTest {
   void minMaxValuesCanErrorNoMaxValue_JSON() throws IOException {
     String payload =
         """
-                { "dataset": "%s",
-                    "orgunit": "%s",
+                { "dataSet": "%s",
+                    "orgUnit": "%s",
                  "values" : [{
                     "dataElement": "%s",
                     "orgUnit": "%s",
@@ -155,8 +155,8 @@ class MinMaxImportTest extends ApiTest {
   private ApiResponse postUpsertJson(String orgUnit) {
     String payload =
         """
-        { "dataset": "%s",
-          "orgunit": "%s",
+        { "dataSet": "%s",
+          "orgUnit": "%s",
           "values" : [{
               "dataElement": "%s",
               "orgUnit": "%s",
@@ -174,8 +174,8 @@ class MinMaxImportTest extends ApiTest {
   private ApiResponse postDeleteJson(String orgUnit) {
     String payload =
         """
-        { "dataset": "%s",
-          "orgunit": "%s",
+        { "dataSet": "%s",
+          "orgUnit": "%s",
           "values" : [{
               "dataElement": "%s",
               "orgUnit": "%s",
