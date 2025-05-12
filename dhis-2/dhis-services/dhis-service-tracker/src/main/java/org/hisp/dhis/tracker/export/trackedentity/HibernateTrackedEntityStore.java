@@ -542,18 +542,19 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
       sql.append(
           """
           inner join trackedentityprogramowner PO \
-           on PO.programid = :enrolledInTrackerProgram\
-           and PO.trackedentityid = TE.trackedentityid \
-           and P.programid = PO.programid""");
+          on PO.programid = :enrolledInTrackerProgram\
+          and PO.trackedentityid = TE.trackedentityid \
+          and P.programid = PO.programid""");
       sqlParameters.addValue(
           "enrolledInTrackerProgram", params.getEnrolledInTrackerProgram().getId());
       return;
     }
 
     sql.append(
-        "left join trackedentityprogramowner PO on "
-            + " PO.trackedentityid = TE.trackedentityid"
-            + " and P.programid = PO.programid");
+        """
+        left join trackedentityprogramowner PO on \
+        PO.trackedentityid = TE.trackedentityid \
+        and P.programid = PO.programid""");
   }
 
   /**
