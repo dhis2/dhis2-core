@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.dataelement.hibernate;
 
+import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -39,7 +40,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import jakarta.persistence.EntityManager;
 
 @Repository("org.hisp.dhis.dataelement.DataElementGroupStore")
 public class HibernateDataElementGroupStore
@@ -54,10 +54,13 @@ public class HibernateDataElementGroupStore
 
   @Override
   public List<DataElementGroup> getByDataElement(Collection<DataElement> dataElements) {
-    return getQuery("""
-        select deg from DataElementGroup deg \
-        join deg.members m \
-        where m in :dataElements \
-        group by deg.id""").setParameter("dataElements", dataElements).getResultList();
+    return getQuery(
+            """
+            select deg from DataElementGroup deg \
+            join deg.members m \
+            where m in :dataElements \
+            group by deg.id""")
+        .setParameter("dataElements", dataElements)
+        .getResultList();
   }
 }
