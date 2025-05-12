@@ -163,7 +163,6 @@ public class HibernateConfig {
     properties.put(
         "hibernate.current_session_context_class",
         "org.springframework.orm.hibernate5.SpringSessionContext");
-    properties.put(AvailableSettings.USE_ENTITY_WHERE_CLAUSE_FOR_COLLECTIONS, false);
 
     if ("true".equals(dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE))) {
       properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "true");

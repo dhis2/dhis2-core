@@ -148,8 +148,6 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
       parameters = {@Parameter(name = "clazz", value = "org.hisp.dhis.translation.Translation")})
   private Set<Translation> translations = new HashSet<>();
 
-  ;
-
   @ManyToMany(fetch = FetchType.LAZY)
   @JoinTable(
       name = "categorycombos_categories",
@@ -552,7 +550,6 @@ public class CategoryCombo implements SystemDefaultMetadataObject, IdentifiableO
 
   @Override
   public void setUser(User user) {
-    // TODO remove this after implementing functions for using Owner
     setCreatedBy(createdBy == null ? user : createdBy);
     setOwner(user != null ? user.getUid() : null);
   }
