@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,22 +27,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.notification.template.snapshot;
+package org.hisp.dhis.security.oidc.provider;
 
-import java.util.Set;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class OrganisationUnitSnapshot extends IdentifiableObjectSnapshot {
-  private String name;
+import java.util.List;
+import java.util.Properties;
+import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
-  private String description;
+class AzureProviderTest {
 
-  private String shortName;
+  @Test
+  @DisplayName("AzureAdProvider issuer URI is present and has the expected format")
+  void azureAdProviderIssuerUriTest() {
+    // given
+    Properties config = new Properties();
+    config.put("oidc.provider.azure.0.tenant", "123");
+    config.put("oidc.provider.azure.0.client_id", "id123");
+    config.put("oidc.provider.azure.0.client_secret", "secret123");
 
-  private OrganisationUnitSnapshot parent;
+    // when
+    List<DhisOidcClientRegistration> parse = AzureAdProvider.parse(config);
 
-  private Set<UserSnapshot> users;
+    // then
+    DhisOidcClientRegistration clientReg = parse.get(0);
+    String issuerUri = clientReg.getClientRegistration().getProviderDetails().getIssuerUri();
+    assertEquals("https://login.microsoftonline.com/123/v2.0", issuerUri);
+  }
 }
