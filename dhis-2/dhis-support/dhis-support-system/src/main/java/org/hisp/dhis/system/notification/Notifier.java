@@ -72,7 +72,7 @@ public interface Notifier {
 
   /**
    * @param gist when true, only the first and last message are included for each job. When {@code
-   *     null} the {@link SystemSettings#isNotifierGistOverview()} is used.
+   *     null} the {@link SystemSettings#getNotifierGistOverview()} is used.
    * @return a map with notifications for all job types and jobs
    */
   Map<JobType, Map<String, Deque<Notification>>> getNotifications(@CheckForNull Boolean gist);
@@ -82,7 +82,7 @@ public interface Notifier {
   /**
    * @param jobType include jobs of this type in the result
    * @param gist when true, only the first and last message are included for each job. When {@code
-   *     null} the {@link SystemSettings#isNotifierGistOverview()} is used.
+   *     null} the {@link SystemSettings#getNotifierGistOverview()} is used.
    * @return a map with notifications for all jobs of the provided type
    */
   Map<String, Deque<Notification>> getNotificationsByJobType(

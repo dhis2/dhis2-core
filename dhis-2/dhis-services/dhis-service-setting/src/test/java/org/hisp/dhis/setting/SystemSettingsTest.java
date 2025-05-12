@@ -100,6 +100,7 @@ class SystemSettingsTest {
     assertTrue(keys.contains("syncSkipSyncForDataChangedBefore"));
     assertTrue(keys.contains("keyTrackerDashboardLayout"));
     assertTrue(keys.contains("experimentalAnalyticsSqlEngineEnabled"));
+    assertTrue(keys.contains("notifierGistOverview"));
   }
 
   @Test
