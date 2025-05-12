@@ -44,7 +44,7 @@ services:
     volumes:
       - ./docker/dhis.conf:/opt/dhis2/dhis.conf:ro
     ports:
-      - "127.0.0.1:8080:8080" # DHIS2
+      # - "127.0.0.1:8080:8080" # DHIS2
       - "127.0.0.1:8081:8081" # Debugger: connect using commandline flag -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081
       - "127.0.0.1:9011:9011" # JMX port (for example for VisualVM)
     depends_on:
@@ -87,6 +87,15 @@ services:
     working_dir: /opt/dump
     volumes:
       - db-dump:/opt/dump
+
+  nginx:
+    image: nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - web
 
 volumes:
   db-dump: {}
