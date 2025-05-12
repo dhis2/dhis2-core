@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.message.hibernate;
 
+import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -45,7 +46,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
-import jakarta.persistence.EntityManager;
 
 /**
  * @author Lars Helge Overland
