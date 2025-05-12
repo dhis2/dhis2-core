@@ -71,6 +71,19 @@ public class FileUtil {
     return map;
   }
 
+  public static String mapGzipEntryToStringContent(byte[] buff) throws IOException {
+    String result;
+    try (final var gzIn = new GZIPInputStream(new ByteArrayInputStream(buff))) {
+      var outputStream = new ByteArrayOutputStream();
+      for (var c = gzIn.read(); c != -1; c = gzIn.read()) {
+        outputStream.write(c);
+      }
+      result = outputStream.toString(StandardCharsets.UTF_8);
+      outputStream.close();
+    }
+    return result;
+  }
+
   /**
    * @return uncompressed gzip string UTF8
    * @throws IOException gzip decompression exception
