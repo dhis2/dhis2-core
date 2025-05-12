@@ -64,6 +64,7 @@ import org.hisp.dhis.dataelement.DataElement;
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @JacksonXmlRootElement(localName = "dataSetElement", namespace = DxfNamespaces.DXF_2_0)
 public class DataSetElement implements EmbeddedObject, Serializable {
+
   /** The database internal identifier for this Object. */
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -72,9 +73,7 @@ public class DataSetElement implements EmbeddedObject, Serializable {
 
   /** Data set, never null. */
   @ManyToOne
-  @JoinColumn(
-      name = "datasetid",
-      foreignKey = @ForeignKey(name = "fk_datasetelement_datasetid"))
+  @JoinColumn(name = "datasetid", foreignKey = @ForeignKey(name = "fk_datasetelement_datasetid"))
   private DataSet dataSet;
 
   /** Data element, never null. */
