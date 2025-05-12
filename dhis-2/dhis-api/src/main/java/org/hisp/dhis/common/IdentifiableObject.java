@@ -107,7 +107,7 @@ public interface IdentifiableObject
   Sharing getSharing();
 
   void setSharing(Sharing sharing);
-  
+
   // -----------------------------------------------------------------------------
   // Utility methods
   // -----------------------------------------------------------------------------
