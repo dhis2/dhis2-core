@@ -163,7 +163,7 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
   }
 
   @Test
-  void testShouldGetAndSendScheduledNotificationInstanceWithoutTimeout() {
+  void shouldReturnProgramNotificationInstancesForGivenDate() {
     ProgramNotificationInstanceParam param =
         ProgramNotificationInstanceParam.builder().scheduledAt(DateUtils.parseDate(today)).build();
     List<ProgramNotificationInstance> instances =
