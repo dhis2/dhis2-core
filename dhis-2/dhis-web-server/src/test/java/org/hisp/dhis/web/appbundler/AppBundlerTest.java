@@ -59,8 +59,13 @@ class AppBundlerTest {
         .writeValue(
             appListFile,
             Arrays.asList(
-                "https://codeload.github.com/d2-ci/settings-app/zip/refs/heads/master",
-                "https://codeload.github.com/d2-ci/dashboard-app/zip/refs/heads/master"));
+                "https://github.com/d2-ci/data-quality-app#patch/2.42.0",
+                "https://github.com/d2-ci/aggregate-data-entry-app#v101.0.5"));
+
+
+//    Arrays.asList(
+//        "https://codeload.github.com/d2-ci/settings-app/zip/refs/heads/master",
+//        "https://codeload.github.com/d2-ci/dashboard-app/zip/refs/heads/master"));
 
     // Set up build directory
     buildDir = tempDir.resolve("build").toString();

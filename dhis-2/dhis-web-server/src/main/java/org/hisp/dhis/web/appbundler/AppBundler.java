@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -54,11 +54,11 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,17 +69,60 @@ import org.slf4j.LoggerFactory;
 public class AppBundler {
   private static final Logger logger = LoggerFactory.getLogger(AppBundler.class);
 
-  private static final Pattern REPO_PATTERN_PRE =
-      Pattern.compile("https://github.com/d2-ci/datastore-app#patch/2.42.0");
+  // Regex to parse standard GitHub URL: https://github.com/owner/repo#ref
+  private static final Pattern GITHUB_URL_PATTERN =
+      Pattern.compile("^https://github\\.com/([^/]+)/([^#]+)#(.+)$");
 
+  // Commenting out the old pattern as it's replaced by the parsing logic
+  // private static final Pattern REPO_PATTERN = Pattern
+  // .compile("https://codeload.github.com/([^/]+)/([^/]+)/zip/refs/heads/([^/]+)");
 
-
-
-  private static final Pattern REPO_PATTERN =
-      Pattern.compile("https://codeload.github.com/([^/]+)/([^/]+)/zip/refs/heads/([^/]+)");
   private static final int DOWNLOAD_POOL_SIZE = 25; // Number of concurrent downloads
-
   private static final String DEFAULT_BRANCH = "master";
+
+  /**
+   * Record to hold parsed information from a standard GitHub URL.
+   *
+   * @param owner The repository owner.
+   * @param repo The repository name.
+   * @param ref The branch, tag, or commit reference.
+   * @param originalUrl The original URL string from the input file.
+   * @param codeloadUrl The converted URL for downloading the ZIP archive.
+   */
+  private record AppRepoInfo(
+      String owner, String repo, String ref, String originalUrl, String codeloadUrl) {}
+
+  /**
+   * Converts a standard GitHub repository URL with a ref in the fragment (e.g.,
+   * https://github.com/owner/repo#branch) into the codeload.github.com URL format for downloading a
+   * ZIP archive.
+   *
+   * @param githubUrl The standard GitHub URL (e.g.,
+   *     "https://github.com/d2-ci/datastore-app#patch/2.42.0").
+   * @return The corresponding codeload URL (e.g.,
+   *     "https://codeload.github.com/d2-ci/datastore-app/zip/patch/2.42.0"), or null if the input
+   *     URL format is invalid.
+   */
+  public static String convertToCodeloadUrl(String githubUrl) {
+    if (githubUrl == null) {
+      return null;
+    }
+    Matcher matcher = GITHUB_URL_PATTERN.matcher(githubUrl);
+    if (matcher.matches()) {
+      String owner = matcher.group(1);
+      String repo = matcher.group(2);
+      String ref = matcher.group(3);
+      return String.format("https://codeload.github.com/%s/%s/zip/%s", owner, repo, ref);
+    } else {
+      // Use logger if available statically or pass instance if needed
+      // For simplicity here, using System.err, but logger is preferred
+      System.err.println("Invalid GitHub URL format for conversion: " + githubUrl);
+      // Consider changing logger level if this becomes noisy
+      // logger.warn("Invalid GitHub URL format for conversion: {}", githubUrl);
+      return null;
+    }
+  }
+
   private static final String CHECKSUM_DIR = "checksums";
   private static final String BUNDLE_INFO_FILE = "apps-bundle.json";
   private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -138,12 +181,13 @@ public class AppBundler {
     Path checksumDirPath = artifactDirPath.resolve(CHECKSUM_DIR);
     Files.createDirectories(checksumDirPath);
 
-    // Read app list
-    List<String> appUrls = parseAppListUrls(appListFilePath);
-    logger.error("Found {} apps to bundle", appUrls.size());
+    // Read app list - now returns List<AppRepoInfo>
+    List<AppRepoInfo> appRepoInfos =
+        parseAppListUrls(appListFilePath); // Changed variable name and type
+    logger.error("Found {} valid apps to bundle", appRepoInfos.size()); // Use the new list
 
-    // Download each app in parallel
-    downloadApps(appUrls, artifactDirPath, checksumDirPath);
+    // Download each app in parallel - pass the new list type
+    downloadApps(appRepoInfos, artifactDirPath, checksumDirPath); // Pass AppRepoInfo list
 
     // Copy downloaded apps to build directory
     Path targetArtifactDir = copyApps(downloadDirPath);
@@ -159,7 +203,7 @@ public class AppBundler {
     logger.error("App bundling process completed successfully");
   }
 
-  private @NotNull Path copyApps(Path downloadDirPath) throws IOException {
+  private @Nonnull Path copyApps(Path downloadDirPath) throws IOException {
     Path targetArtifactDir = Paths.get(buildDir).resolve(artifactId);
     try {
       Files.createDirectories(targetArtifactDir);
@@ -189,14 +233,18 @@ public class AppBundler {
     return targetArtifactDir;
   }
 
-  private void downloadApps(List<String> appUrls, Path artifactDirPath, Path checksumDirPath) {
+  // Update method signature to accept List<AppRepoInfo>
+  private void downloadApps(
+      List<AppRepoInfo> appRepoInfos, Path artifactDirPath, Path checksumDirPath) {
     ExecutorService executor = Executors.newFixedThreadPool(DOWNLOAD_POOL_SIZE);
     List<Future<AppBundleInfo.AppInfo>> futures = new ArrayList<>();
 
-    logger.error("Submitting download tasks for {} apps...", appUrls.size());
-    for (String appUrl : appUrls) {
-      Callable<AppBundleInfo.AppInfo> task = () -> downloadApp(appUrl, artifactDirPath,
-          checksumDirPath);
+    logger.error(
+        "Submitting download tasks for {} apps...", appRepoInfos.size()); // Use the new list size
+    for (AppRepoInfo repoInfo : appRepoInfos) { // Iterate over AppRepoInfo
+      // Pass the repoInfo object to the downloadApp task
+      Callable<AppBundleInfo.AppInfo> task =
+          () -> downloadApp(repoInfo, artifactDirPath, checksumDirPath);
       Future<AppBundleInfo.AppInfo> future = executor.submit(task);
       futures.add(future);
     }
@@ -211,7 +259,8 @@ public class AppBundler {
         }
       } catch (InterruptedException | ExecutionException e) {
         // Log the error and continue with other apps
-        // The specific failing app URL isn't directly available here without more complex tracking
+        // The specific failing app URL isn't directly available here without more
+        // complex tracking
         logger.error(
             "Error retrieving result for an app download task: {} - {}",
             e.getClass().getSimpleName(),
@@ -225,7 +274,8 @@ public class AppBundler {
     try {
       // Wait a reasonable time for existing tasks to terminate
       if (!executor.awaitTermination(5, TimeUnit.MINUTES)) {
-        logger.warn("Download executor did not terminate gracefully after 5 minutes, forcing shutdown.");
+        logger.warn(
+            "Download executor did not terminate gracefully after 5 minutes, forcing shutdown.");
         executor.shutdownNow();
         // Wait again for tasks to respond to being cancelled
         if (!executor.awaitTermination(60, TimeUnit.SECONDS))
@@ -242,75 +292,111 @@ public class AppBundler {
   /**
    * Reads the list of app URLs from the JSON file.
    *
-   * @return a list of app URLs
+   * <p>Reads the list of standard app URLs from the JSON file, parses them, converts them to
+   * codeload format, and returns structured info.
+   *
+   * @return a list of AppRepoInfo objects
    * @throws IOException if there's an error reading the file
    */
-  private List<String> parseAppListUrls(String appListPath) throws IOException {
+  private List<AppRepoInfo> parseAppListUrls(String appListPath) throws IOException {
     File appListFile = new File(appListPath);
-    CollectionType type =
+    CollectionType urlListType =
         objectMapper.getTypeFactory().constructCollectionType(List.class, String.class);
-    return objectMapper.readValue(appListFile, type);
+    List<String> rawUrls = objectMapper.readValue(appListFile, urlListType);
+
+    List<AppRepoInfo> appInfos = new ArrayList<>();
+    for (String rawUrl : rawUrls) {
+      Matcher matcher = GITHUB_URL_PATTERN.matcher(rawUrl);
+      if (matcher.matches()) {
+        String owner = matcher.group(1);
+        String repo = matcher.group(2);
+        String ref = matcher.group(3);
+        String codeloadUrl = convertToCodeloadUrl(rawUrl); // Use the static method
+
+        if (codeloadUrl != null) {
+          appInfos.add(new AppRepoInfo(owner, repo, ref, rawUrl, codeloadUrl));
+          logger.debug(
+              "Parsed app URL: owner={}, repo={}, ref={}, codeload={}",
+              owner,
+              repo,
+              ref,
+              codeloadUrl);
+        } else {
+          // Log error from convertToCodeloadUrl is sufficient
+          logger.error("Skipping app due to failed conversion from URL: {}", rawUrl);
+        }
+      } else {
+        logger.error("Skipping app due to invalid GitHub URL format: {}", rawUrl);
+      }
+    }
+    logger.info("Successfully parsed {} app URLs out of {}", appInfos.size(), rawUrls.size());
+    return appInfos;
   }
 
   /**
    * Downloads an app from GitHub as a ZIP file.
    *
-   * @param appUrl the GitHub URL of the app
+   * <p>Downloads an app from GitHub as a ZIP file using pre-parsed info.
+   *
+   * @param repoInfo the parsed repository information including the codeload URL
    * @param targetDir the directory where the app ZIP file will be stored
    * @param checksumDir the directory where the checksum files will be stored
-   * @return the downloaded AppBundleInfo.AppInfo object
+   * @return the downloaded AppBundleInfo.AppInfo object containing ETag etc.
    * @throws IOException if there's an error downloading the app
    */
-  private AppBundleInfo.AppInfo downloadApp(String appUrl, Path targetDir, Path checksumDir)
+  private AppBundleInfo.AppInfo downloadApp(AppRepoInfo repoInfo, Path targetDir, Path checksumDir)
       throws IOException {
-    Matcher matcher = REPO_PATTERN.matcher(appUrl);
-    if (!matcher.matches()) {
-      // Log and return null or throw a specific exception if preferred
-      logger.error("Invalid GitHub URL format, skipping: {}", appUrl);
-      throw new IllegalArgumentException("Invalid GitHub URL: " + appUrl);
-    }
-    String owner = matcher.group(1);
-    String repo = matcher.group(2);
-    String branch = matcher.group(3) != null ? matcher.group(3) : defaultBranch;
+    // No need to match pattern here, info is already parsed from AppRepoInfo
 
-    logger.error("Processing app: {}/{} (branch: {})", owner, repo, branch);
+    logger.error(
+        "Processing app: {}/{} (ref: {}) from {}",
+        repoInfo.owner(),
+        repoInfo.repo(),
+        repoInfo.ref(),
+        repoInfo.codeloadUrl());
 
-    // Generate a filename for the ZIP file
-    String zipName = repo + ".zip";
+    // Generate a filename for the ZIP file using info from the record
+    String zipName = repoInfo.repo() + ".zip";
     Path zipPath = targetDir.resolve(zipName);
 
-    // Create app info object
-    AppBundleInfo.AppInfo appInfo = new AppBundleInfo.AppInfo();
-    appInfo.setName(repo);
-    appInfo.setUrl(appUrl);
-    appInfo.setBranch(branch);
+    // Create app info object to store results (ETag etc.)
+    AppBundleInfo.AppInfo appBundleResultInfo = new AppBundleInfo.AppInfo();
+    appBundleResultInfo.setName(repoInfo.repo());
+    appBundleResultInfo.setUrl(repoInfo.originalUrl()); // Store original URL
+    appBundleResultInfo.setBranch(repoInfo.ref()); // Store the ref (branch/tag)
 
-    // Check if we already have the latest version
+    // Check if we already have the latest version using the codeload URL
     String etag = null;
-    Path checksumFile = checksumDir.resolve(repo + ".checksum");
+    // Use repo name from record for checksum file
+    Path checksumFile = checksumDir.resolve(repoInfo.repo() + ".checksum");
     try {
-      etag = downloadIfChanged(appUrl, zipPath, checksumFile);
+      // Use the pre-converted codeloadUrl for download check
+      etag = downloadIfChanged(repoInfo.codeloadUrl(), zipPath, checksumFile);
 
-      if (etag == null) { // Not modified or first time download failed ETag retrieval
+      if (etag == null) { // Not modified or download failed ETag retrieval
         if (Files.exists(checksumFile)) {
-          appInfo.setEtag(Files.readString(checksumFile, StandardCharsets.UTF_8));
-          logger.error("App {} is already up to date (ETag: {})", zipName, appInfo.getEtag());
+          appBundleResultInfo.setEtag(Files.readString(checksumFile, StandardCharsets.UTF_8));
+          logger.error(
+              "App {} is already up to date (ETag: {})", zipName, appBundleResultInfo.getEtag());
         } else {
           // This case might happen if download failed before ETag was written,
           // or if ETag header was missing. Log a warning.
           logger.warn("Could not determine ETag for app {}, checksum file missing.", zipName);
         }
       } else {
-        appInfo.setEtag(etag);
+        // Store the new ETag in the result object
+        appBundleResultInfo.setEtag(etag);
         logger.error("Downloaded app: {} (ETag: {})", zipName, etag);
       }
     } catch (IOException e) {
-      logger.error("Failed to download or process app {}: {}", appUrl, e.getMessage(), e);
+      // Log using the original URL for better context
+      logger.error(
+          "Failed to download or process app {}: {}", repoInfo.originalUrl(), e.getMessage(), e);
       // Propagate the exception so the Future captures it
       throw e;
     }
 
-    return appInfo; // Return the info instead of adding to shared list
+    return appBundleResultInfo; // Return the result info object
   }
 
   /**
@@ -328,15 +414,15 @@ public class AppBundler {
     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
     TrustManager[] trustAllCerts =
         new TrustManager[] {
-            new X509TrustManager() {
-              public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                return null;
-              }
-
-              public void checkClientTrusted(X509Certificate[] certs, String authType) {}
-
-              public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+          new X509TrustManager() {
+            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+              return null;
             }
+
+            public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+
+            public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+          }
         };
     SSLContext sc;
     try {
