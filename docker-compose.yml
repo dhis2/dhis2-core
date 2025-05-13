@@ -11,6 +11,7 @@ x-web-base: &web-base
       -Dcom.sun.management.jmxremote.local.only=false \
       -Dcom.sun.management.jmxremote.authenticate=false \
       -Dcom.sun.management.jmxremote.ssl=false"
+    CATALINA_OPTS: "${CONTEXT_PATH:+-Dcontext.path='${CONTEXT_PATH}'}"
     DHIS2_PORT: "${DHIS2_PORT:-8080}"
     DEBUG_PORT: "${DEBUG_PORT:-8081}"
     JMX_PORT: "${JMX_PORT:-9011}"
