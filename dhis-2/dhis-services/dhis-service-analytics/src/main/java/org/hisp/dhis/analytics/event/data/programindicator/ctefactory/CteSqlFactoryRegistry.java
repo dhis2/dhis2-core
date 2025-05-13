@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,44 +27,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.function;
+package org.hisp.dhis.analytics.event.data.programindicator.ctefactory;
 
-import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
-import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_DOUBLE_VALUE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import org.hisp.dhis.analytics.common.CteContext;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.program.ProgramIndicator;
 
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+public class CteSqlFactoryRegistry {
+  private final List<CteSqlFactory> factories;
 
-/**
- * Program indicator function: d2 count if value
- *
- * @author Jim Grace
- */
-public class D2CountIfValue extends ProgramCountFunction {
-
-  static final String FUNCTION_NAME = "countIfValue";
-
-  @Override
-  public final Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
-    Object programStageElement = getProgramStageElementDescription(ctx, visitor);
-
-    Object value = visitor.visit(ctx.expr(0));
-
-    castClass(programStageElement.getClass(), value); // Check that we are
-    // comparing same
-    // data types.
-
-    return DEFAULT_DOUBLE_VALUE;
+  public CteSqlFactoryRegistry(DataElementService dataElementService) {
+    factories =
+        List.of(
+            new VariableCteFactory(),
+            new FilterCteFactory(),
+            new ProgramStageDataElementCteFactory(dataElementService),
+            new D2FunctionCteFactory());
   }
 
-  @Override
-  public String getConditionSql(
-      ExprContext ctx, CommonExpressionVisitor visitor, String baseColumn) {
-    return baseColumn + " = " + visitor.visit(ctx.expr(0));
-  }
+  /** Fallback that performs no parsing and leaves the SQL untouched. */
+  private static final CteSqlFactory NOOP_FACTORY =
+      new CteSqlFactory() {
+        @Override
+        public boolean supports(String rawSql) {
+          return false;
+        }
 
-  @Override
-  protected String getFunctionName() {
-    return FUNCTION_NAME;
+        @Override
+        public String process(
+            String rawSql,
+            ProgramIndicator pi,
+            Date start,
+            Date end,
+            CteContext ctx,
+            Map<String, String> aliasMap,
+            SqlBuilder qb) {
+          // keep incoming SQL, do not touch context or alias map
+          return rawSql;
+        }
+      };
+
+  public CteSqlFactory factoryFor(String rawSql) {
+    return factories.stream().filter(f -> f.supports(rawSql)).findFirst().orElse(NOOP_FACTORY);
   }
 }

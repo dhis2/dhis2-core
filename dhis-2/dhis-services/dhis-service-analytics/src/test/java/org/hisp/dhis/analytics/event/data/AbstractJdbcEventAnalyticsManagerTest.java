@@ -99,8 +99,10 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
@@ -138,6 +140,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Mock private ExecutionPlanStore executionPlanStore;
 
   @Mock private OrganisationUnitService organisationUnitService;
+  @Mock private DataElementService dataElementService;
 
   @Mock private SystemSettingsService systemSettingsService;
 
@@ -147,7 +150,11 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Spy
   private ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
-      new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService, systemSettingsService);
+      new DefaultProgramIndicatorSubqueryBuilder(
+          programIndicatorService,
+          systemSettingsService,
+          new PostgreSqlBuilder(),
+          dataElementService);
 
   @Spy private AnalyticsSqlBuilder sqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
 
