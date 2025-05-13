@@ -38,6 +38,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -109,6 +110,17 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
     assertEquals(translatedName, dataElementA.getDisplayName());
     assertEquals(translatedShortName, dataElementA.getDisplayShortName());
     assertEquals(translatedDescription, dataElementA.getDisplayDescription());
+  }
+
+  @Test
+  void testGetTranslationCategoryCombo() {
+    CategoryCombo categoryCombo = createCategoryCombo('A');
+    manager.save(categoryCombo);
+    String translatedName = "translatedName";
+    Set<Translation> translations = new HashSet<>(categoryCombo.getTranslations());
+    translations.add(new Translation(locale.getLanguage(), "NAME", translatedName));
+    manager.updateTranslations(categoryCombo, translations);
+    assertEquals(translatedName, categoryCombo.getDisplayName());
   }
 
   @Test
