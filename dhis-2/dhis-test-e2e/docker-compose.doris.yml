@@ -4,6 +4,9 @@ services:
   web:
     environment:
       DHIS2_E2E_DATABASE: doris
+      DHIS2_E2E_DATABASE_CONNECTION: jdbc:mysql://localhost:9030/dhis2?useLegacyDatetimeCode=false&useUnicode=true&characterEncoding=UTF-8&useSSL=false
+      DHIS2_E2E_DATABASE_CONNECTION_USER: root
+      DHIS2_E2E_DATABASE_CONNECTION_PASSWORD:
     volumes:
       - ./config/dhis2_home/dhis.conf:/opt/dhis2/dhis.conf:ro
     depends_on:
