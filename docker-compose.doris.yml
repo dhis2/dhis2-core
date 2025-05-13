@@ -6,24 +6,21 @@ services:
       doris-be:
         condition: service_healthy
     networks:
-      doris_network:
-        ipv4_address: 192.168.100.9
+      - doris_network
 
   db:
     networks:
-      doris_network:
-        ipv4_address: 192.168.100.8
+      - doris_network
 
   doris-fe:
     image: apache/doris:fe-${DORIS_VERSION}
     networks:
-      doris_network:
-        ipv4_address: 192.168.100.10
+      - doris_network
     ports:
       - "${DORIS_FE_PORT_1:-9030}:9030"
       - "${DORIS_FE_PORT_2:-8030}:8030"
     environment:
-      - FE_SERVERS=fe1:192.168.100.10:9010
+      - FE_SERVERS=fe1:doris-fe:9010
       - FE_ID=1
     volumes:
       - ./docker/doris/postgresql-42.7.5.jar:/opt/apache-doris/fe/jdbc_drivers/postgresql.jar:ro
@@ -39,11 +36,10 @@ services:
   doris-be:
     image: apache/doris:be-${DORIS_VERSION}
     networks:
-      doris_network:
-        ipv4_address: 192.168.100.11
+      - doris_network
     environment:
-      - FE_SERVERS=fe1:192.168.100.10:9010
-      - BE_ADDR=192.168.100.11:9050
+      - FE_SERVERS=fe1:doris-fe:9010
+      - BE_ADDR=doris-be:9050
     ports:
       - "${DORIS_BE_PORT:-8041}:8040"
     depends_on:
@@ -68,6 +64,4 @@ volumes:
 
 networks:
   doris_network:
-    ipam:
-      config:
-        - subnet: 192.168.100.0/24
+    driver: bridge
