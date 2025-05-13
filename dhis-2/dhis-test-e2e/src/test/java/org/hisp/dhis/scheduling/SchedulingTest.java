@@ -38,6 +38,7 @@ import org.hisp.dhis.test.e2e.actions.SystemActions;
 import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -88,15 +89,22 @@ class SchedulingTest extends ApiTest {
     String jobId = jobConfigActions.post(jobConfig).validateStatus(201).extractUid();
 
     // when executing it manually
-    jobConfigActions.post("/" + jobId + "/execute", "null").validateStatus(200);
+    ApiResponse runJobResponse = jobConfigActions.post("/" + jobId + "/execute", "null");
 
-    // then it should complete without errors
-    ApiResponse apiResponse =
-        systemActions.waitUntilTaskCompleted("AGGREGATE_DATA_EXCHANGE", jobId, 24);
-    apiResponse
-        .validate()
-        .body("level[0]", equalTo("INFO"))
-        .body("message[0]", equalTo(""))
-        .body("completed[0]", equalTo(true));
+    // the job may already have been picked for execution so we check if it's already running or has
+    // been accepted for execution
+    if (runJobResponse.statusCode() == 200
+        || runJobResponse.extractString("message").contains("Job is already running")) {
+      // then it should complete without errors
+      ApiResponse apiResponse =
+          systemActions.waitUntilTaskCompleted("AGGREGATE_DATA_EXCHANGE", jobId, 24);
+      apiResponse
+          .validate()
+          .body("level[0]", equalTo("INFO"))
+          .body("message[0]", equalTo(""))
+          .body("completed[0]", equalTo(true));
+    } else {
+      Assertions.fail("Job execution failed for agg data exchange");
+    }
   }
 }
