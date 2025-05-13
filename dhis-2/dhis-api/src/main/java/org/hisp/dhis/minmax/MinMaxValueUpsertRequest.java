@@ -37,9 +37,7 @@ import org.hisp.dhis.common.UID;
  * A bulk request to insert or update {@link MinMaxDataElement}s.
  *
  * @param dataSet all values must belong to this dataset
- * @param orgUnit all values must belong to this organisation unit
- * @param values the individual values to insert or update, all of which must belong to the {@link
- *     #orgUnit()} and a DE connected to the {@link #dataSet()}
+ * @param values the individual values to insert or update, all of which must belong to a DE
+ *     connected to the {@link #dataSet()}
  */
-public record MinMaxValueUpsertRequest(
-    @Nonnull UID dataSet, @Nonnull UID orgUnit, @Nonnull List<MinMaxValue> values) {}
+public record MinMaxValueUpsertRequest(@Nonnull UID dataSet, @Nonnull List<MinMaxValue> values) {}

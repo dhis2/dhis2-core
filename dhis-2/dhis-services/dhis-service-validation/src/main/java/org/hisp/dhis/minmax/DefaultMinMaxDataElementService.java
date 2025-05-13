@@ -36,7 +36,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -148,12 +147,13 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
     validate(request);
 
     log.info(
-        "Starting min-max import: {} values for dataset={}, orgunit={}",
+        "Starting min-max import: {} values for dataset={}",
         request.values().size(),
-        request.dataSet(),
-        request.orgUnit());
+        request.dataSet());
     long startTime = System.nanoTime();
+
     int imported = minMaxDataElementStore.upsertValues(request.values());
+
     long elapsedMillis = (System.nanoTime() - startTime) / 1_000_000;
 
     log.info(
@@ -199,9 +199,7 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
     for (MinMaxValue v : request.values()) validate(v);
     Set<String> deIds =
         Set.copyOf(minMaxDataElementStore.getDataElementsByDataSet(request.dataSet()));
-    UID ou = request.orgUnit();
     for (MinMaxValue v : request.values()) {
-      if (!ou.equals(v.orgUnit())) throw new BadRequestException(ErrorCode.E7805, v.orgUnit());
       if (!deIds.contains(v.dataElement().getValue()))
         throw new BadRequestException(ErrorCode.E7805, v.dataElement());
     }

@@ -136,7 +136,6 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
             """
                 {
                   "dataSet": "%s",
-                  "orgUnit": "%s",
                   "values": [{
                     "dataElement": "%s",
                     "orgUnit": "%s",
@@ -146,11 +145,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
                 }
                 """
                 .formatted(
-                    fakeDataSetID,
-                    fakeOrgUnitID,
-                    fakeDataElementID,
-                    fakeOrgUnitID,
-                    fakeCategoryOptionComboID),
+                    fakeDataSetID, fakeDataElementID, fakeOrgUnitID, fakeCategoryOptionComboID),
             HttpStatus.BAD_REQUEST),
         arguments(
             "Missing required fields for min-max object: MinMaxValue[dataElement=%s, orgUnit=%s, optionCombo=%s, minValue=null, maxValue=10, generated=null]"
@@ -159,7 +154,6 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
             """
                 {
                   "dataSet": "%s",
-                  "orgUnit": "%s",
                   "values": [{
                     "dataElement": "%s",
                     "orgUnit": "%s",
@@ -169,11 +163,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
                 }
                 """
                 .formatted(
-                    fakeDataSetID,
-                    fakeOrgUnitID,
-                    fakeDataElementID,
-                    fakeOrgUnitID,
-                    fakeCategoryOptionComboID),
+                    fakeDataSetID, fakeDataElementID, fakeOrgUnitID, fakeCategoryOptionComboID),
             HttpStatus.BAD_REQUEST),
         arguments(
             "Min value is greater than or equal to Max value for: MinMaxValue[dataElement=%s, orgUnit=%s, optionCombo=%s, minValue=10, maxValue=10, generated=null]"
@@ -182,7 +172,6 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
             """
                 {
                   "dataSet": "%s",
-                  "orgUnit": "%s",
                   "values": [{
                     "dataElement": "%s",
                     "orgUnit": "%s",
@@ -193,11 +182,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
                 }
                 """
                 .formatted(
-                    fakeDataSetID,
-                    fakeOrgUnitID,
-                    fakeDataElementID,
-                    fakeOrgUnitID,
-                    fakeCategoryOptionComboID),
+                    fakeDataSetID, fakeDataElementID, fakeOrgUnitID, fakeCategoryOptionComboID),
             HttpStatus.BAD_REQUEST));
   }
 
@@ -218,11 +203,10 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest {
         """
         {
           "dataSet": "%s",
-          "orgUnit": "%s",
           "values": []
         }
         """
-            .formatted(orgUnitId, dataElementId);
+            .formatted(dataElementId);
 
     JsonObject response = POST("/minMaxDataElements/upsert", json).content(HttpStatus.OK);
     assertEquals("Successfully imported 0 min-max values", response.getString("message").string());

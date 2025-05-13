@@ -122,7 +122,6 @@ class MinMaxImportTest extends ApiTest {
     String payload =
         """
                 { "dataSet": "%s",
-                    "orgUnit": "%s",
                  "values" : [{
                     "dataElement": "%s",
                     "orgUnit": "%s",
@@ -131,7 +130,7 @@ class MinMaxImportTest extends ApiTest {
                   }
                 ]
                 }"""
-            .formatted(dataSet, orgUnit, dataElement, orgUnit, defaultCOC);
+            .formatted(dataSet, dataElement, orgUnit, defaultCOC);
     ApiResponse response = minMaxValuesActions.post("/upsert", payload);
     response
         .validate()
@@ -156,7 +155,6 @@ class MinMaxImportTest extends ApiTest {
     String payload =
         """
         { "dataSet": "%s",
-          "orgUnit": "%s",
           "values" : [{
               "dataElement": "%s",
               "orgUnit": "%s",
@@ -166,7 +164,7 @@ class MinMaxImportTest extends ApiTest {
             }]
         }
         """
-            .formatted(dataSet, orgUnit, dataElement, orgUnit, defaultCOC);
+            .formatted(dataSet, dataElement, orgUnit, defaultCOC);
 
     return minMaxValuesActions.post("/upsert", payload);
   }
@@ -175,7 +173,6 @@ class MinMaxImportTest extends ApiTest {
     String payload =
         """
         { "dataSet": "%s",
-          "orgUnit": "%s",
           "values" : [{
               "dataElement": "%s",
               "orgUnit": "%s",
@@ -185,7 +182,7 @@ class MinMaxImportTest extends ApiTest {
             }]
         }
         """
-            .formatted(dataSet, orgUnit, dataElement, orgUnit, defaultCOC);
+            .formatted(dataSet, dataElement, orgUnit, defaultCOC);
 
     return minMaxValuesActions.post("/delete", payload);
   }

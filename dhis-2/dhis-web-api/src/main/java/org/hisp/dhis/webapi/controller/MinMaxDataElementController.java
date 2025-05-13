@@ -239,24 +239,20 @@ public class MinMaxDataElementController {
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @Maturity.Alpha
   public @ResponseBody ImportSuccessResponse bulkPostCsv(
-      @RequestParam("file") MultipartFile file,
-      @RequestParam UID dataSet,
-      @RequestParam UID orgUnit)
+      @RequestParam("file") MultipartFile file, @RequestParam UID dataSet)
       throws BadRequestException {
 
-    return bulkPostJson(new MinMaxValueUpsertRequest(dataSet, orgUnit, csvToEntries(file)));
+    return bulkPostJson(new MinMaxValueUpsertRequest(dataSet, csvToEntries(file)));
   }
 
   @PostMapping(value = "/delete", consumes = "multipart/form-data")
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @Maturity.Alpha
   public @ResponseBody ImportSuccessResponse bulkDeleteCsv(
-      @RequestParam("file") MultipartFile file,
-      @RequestParam UID dataSet,
-      @RequestParam UID orgUnit)
+      @RequestParam("file") MultipartFile file, @RequestParam UID dataSet)
       throws BadRequestException {
 
-    return bulkDeleteJson(new MinMaxValueDeleteRequest(dataSet, orgUnit, csvToKeys(file)));
+    return bulkDeleteJson(new MinMaxValueDeleteRequest(dataSet, csvToKeys(file)));
   }
 
   private static List<MinMaxValue> csvToEntries(MultipartFile file) throws BadRequestException {
