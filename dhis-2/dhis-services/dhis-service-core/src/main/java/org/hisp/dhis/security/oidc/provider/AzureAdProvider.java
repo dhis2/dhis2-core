@@ -116,6 +116,7 @@ public class AzureAdProvider extends AbstractOidcProvider {
     builder.authorizationUri(tenantUriStart + "/oauth2/v2.0/authorize");
     builder.tokenUri(tenantUriStart + "/oauth2/v2.0/token");
     builder.jwkSetUri(tenantUriStart + "/discovery/v2.0/keys");
+    builder.issuerUri(tenantUriStart + "/v2.0");
     builder.userInfoUri("https://graph.microsoft.com/oidc/userinfo");
     builder.redirectUri(
         StringUtils.firstNonBlank(
