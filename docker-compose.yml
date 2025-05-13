@@ -11,6 +11,9 @@ x-web-base: &web-base
       -Dcom.sun.management.jmxremote.local.only=false \
       -Dcom.sun.management.jmxremote.authenticate=false \
       -Dcom.sun.management.jmxremote.ssl=false"
+    DHIS2_PORT: "${DHIS2_PORT:-8080}"
+    DEBUG_PORT: "${DEBUG_PORT:-8081}"
+    JMX_PORT: "${JMX_PORT:-9011}"
 
 x-db-base: &db-base
   image: ghcr.io/baosystems/postgis:12-3.3
@@ -24,6 +27,7 @@ x-db-base: &db-base
     POSTGRES_DB: dhis
     POSTGRES_PASSWORD: &postgres_password dhis
     PGPASSWORD: *postgres_password # needed by psql in healthcheck
+    DB_PORT: "${DB_PORT:-5432}"
   healthcheck:
     test:
       [
@@ -44,9 +48,9 @@ services:
     volumes:
       - ./docker/dhis.conf:/opt/dhis2/dhis.conf:ro
     ports:
-      - "127.0.0.1:8080:8080" # DHIS2
-      - "127.0.0.1:8081:8081" # Debugger: connect using commandline flag -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081
-      - "127.0.0.1:9011:9011" # JMX port (for example for VisualVM)
+      - "127.0.0.1:${DHIS2_PORT:-8080}:8080" # DHIS2
+      - "127.0.0.1:${DEBUG_PORT:-8081}:8081" # Debugger
+      - "127.0.0.1:${JMX_PORT:-9011}:9011" # JMX port
     depends_on:
       db:
         condition: service_healthy
@@ -54,7 +58,7 @@ services:
   db:
     <<: *db-base
     ports:
-      - "127.0.0.1:5432:5432"
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
 
   # Test synchronizing data and metadata between two DHIS2 instances
   # Run
@@ -66,9 +70,9 @@ services:
       - ./docker/dhis-sync.conf:/opt/dhis2/dhis.conf:ro
     profiles: [sync]
     ports:
-      - "127.0.0.1:8082:8080" # DHIS2
-      - "127.0.0.1:8083:8081" # Debugger: connect using commandline flag -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8083
-      - "127.0.0.1:9012:9010" # JMX port (for example for VisualVM)
+      - "127.0.0.1:${DHIS2_PORT_SYNC:-8082}:8080" # DHIS2
+      - "127.0.0.1:${DEBUG_PORT_SYNC:-8083}:8081" # Debugger
+      - "127.0.0.1:${JMX_PORT_SYNC:-9012}:9010" # JMX port
     depends_on:
       db-sync:
         condition: service_healthy
@@ -77,7 +81,7 @@ services:
     <<: *db-base
     profiles: [sync]
     ports:
-      - "127.0.0.1:5434:5432"
+      - "127.0.0.1:${DB_PORT_SYNC:-5434}:5432"
 
   db-dump:
     image: busybox # busybox wget version does not have --no-clobber, so we need to do the [ -f ] test

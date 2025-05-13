@@ -20,8 +20,8 @@ services:
       doris_network:
         ipv4_address: 192.168.100.10
     ports:
-      - "9030:9030"
-      - "8030:8030"
+      - "${DORIS_FE_PORT_1:-9030}:9030"
+      - "${DORIS_FE_PORT_2:-8030}:8030"
     environment:
       - FE_SERVERS=fe1:192.168.100.10:9010
       - FE_ID=1
@@ -45,7 +45,7 @@ services:
       - FE_SERVERS=fe1:192.168.100.10:9010
       - BE_ADDR=192.168.100.11:9050
     ports:
-      - 8041:8040
+      - "${DORIS_BE_PORT:-8041}:8040"
     depends_on:
       doris-fe:
         condition: service_healthy
