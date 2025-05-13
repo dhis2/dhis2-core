@@ -44,6 +44,7 @@ import java.util.Set;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
@@ -168,7 +169,7 @@ public class DataApprovalWorkflow extends BaseIdentifiableObject implements Meta
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public CategoryCombo getCategoryCombo() {
     return categoryCombo;

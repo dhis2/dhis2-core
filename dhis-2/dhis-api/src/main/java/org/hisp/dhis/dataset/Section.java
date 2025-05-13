@@ -43,6 +43,7 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataelement.DataElement;
@@ -98,7 +99,7 @@ public class Section extends BaseIdentifiableObject implements MetadataObject {
   }
 
   @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Set<CategoryCombo> getCategoryCombos() {
     Set<CategoryCombo> categoryCombos = new HashSet<>();
