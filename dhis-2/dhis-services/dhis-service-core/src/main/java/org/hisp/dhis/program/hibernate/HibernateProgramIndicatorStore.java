@@ -73,8 +73,7 @@ public class HibernateProgramIndicatorStore
             """
             select pi from ProgramIndicator pi
             where %s
-            group by pi
-            """
+            group by pi"""
                 .formatted(multiLike))
         .getResultList();
   }
@@ -88,8 +87,7 @@ public class HibernateProgramIndicatorStore
             """
             select pi from ProgramIndicator pi
             where %s
-            group by pi
-            """
+            group by pi"""
                 .formatted(multiLike))
         .getResultList();
   }

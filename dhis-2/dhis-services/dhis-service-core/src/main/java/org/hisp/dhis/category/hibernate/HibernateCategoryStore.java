@@ -97,8 +97,8 @@ public class HibernateCategoryStore extends HibernateIdentifiableObjectStore<Cat
     if (categoryOptions.isEmpty()) return List.of();
     return getQuery(
             """
-            select distinct c from Category c
-            join c.categoryOptions co
+            select distinct c from Category c \
+            join c.categoryOptions co \
             where co.uid in :categoryOptions
             """,
             Category.class)
