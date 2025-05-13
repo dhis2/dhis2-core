@@ -80,7 +80,6 @@ public class EnrollmentQueryDorisGenerator implements Generator {
 
   @Override
   public String getPackage() {
-    // Keep the same package or create a sub-package if preferred
     return "org.hisp.dhis.analytics.enrollment.query";
   }
 
