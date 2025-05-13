@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +27,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.notification.template.snapshot;
+package org.hisp.dhis;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import static org.junit.jupiter.api.Assertions.*;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class UserSnapshot extends IdentifiableObjectSnapshot {
-  private String name;
+import org.hisp.dhis.test.e2e.dependsOn.DependencyFile;
+import org.hisp.dhis.test.e2e.dependsOn.DependencySetupException;
+import org.hisp.dhis.test.e2e.dependsOn.JsonDependencyLoader;
+import org.hisp.dhis.test.e2e.dependsOn.ResourceType;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
-  private String username;
+public class JsonDependencyLoaderTest {
 
-  private String email;
+  @Test
+  @DisplayName("Valid PI file loads successfully")
+  void loadValidPi() {
+    DependencyFile df = JsonDependencyLoader.load("dependencies/pi-valid.json");
 
-  private String phoneNumber;
+    assertEquals(ResourceType.PROGRAM_INDICATOR, df.type(), "Type should be PI");
+    assertEquals("PI_TEST_001", df.payload().get("code").asText(), "Code should match JSON");
+  }
+
+  @Test
+  @DisplayName("Missing \"type\" attribute raises DependencySetupException")
+  void missingTypeThrows() {
+    assertThrows(
+        DependencySetupException.class,
+        () -> JsonDependencyLoader.load("dependencies/pi-missing-type.json"));
+  }
 }

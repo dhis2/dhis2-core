@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +27,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.notification.template.snapshot;
+package org.hisp.dhis.test.e2e.dependsOn.services;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.util.Optional;
+import org.hisp.dhis.test.e2e.dependsOn.DependencySetupException;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class UserSnapshot extends IdentifiableObjectSnapshot {
-  private String name;
+public interface ResourceService {
+  Optional<String> lookup(String code) throws DependencySetupException;
 
-  private String username;
+  String create(JsonNode payload) throws DependencySetupException;
 
-  private String email;
-
-  private String phoneNumber;
+  void delete(String uid) throws DependencySetupException;
 }

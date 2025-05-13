@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +27,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.notification.template.snapshot;
+package org.hisp.dhis.test.e2e.dependsOn.services;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+/** Wrapper around the DHIS2 Indicator REST endpoints. */
+public final class IndicatorService extends BaseResourceService {
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class UserSnapshot extends IdentifiableObjectSnapshot {
-  private String name;
-
-  private String username;
-
-  private String email;
-
-  private String phoneNumber;
+  public IndicatorService() {
+    super("/indicators", "indicators", "Indicator");
+  }
 }

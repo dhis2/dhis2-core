@@ -27,19 +27,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.notification.template.snapshot;
+package org.hisp.dhis.security.oidc;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class UserSnapshot extends IdentifiableObjectSnapshot {
-  private String name;
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+public class OidcLoginEnabledCondition extends PropertiesAwareConfigurationCondition {
+  @Override
+  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+    if (isTestRun(context)) {
+      return false;
+    }
+    return getConfiguration().isEnabled(ConfigurationKey.OIDC_OAUTH2_LOGIN_ENABLED);
+  }
 
-  private String username;
-
-  private String email;
-
-  private String phoneNumber;
+  @Override
+  public ConfigurationPhase getConfigurationPhase() {
+    return ConfigurationPhase.PARSE_CONFIGURATION;
+  }
 }

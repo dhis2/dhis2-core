@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,28 +27,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oidc;
+package org.hisp.dhis.security.oidc.provider;
 
-import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public class OIDCLoginEnabledCondition extends PropertiesAwareConfigurationCondition {
-  @Override
-  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-    if (isTestRun(context)) {
-      return false;
-    }
-    String isEnabled = getConfiguration().getProperty(ConfigurationKey.OIDC_OAUTH2_LOGIN_ENABLED);
-    return isEnabled.equalsIgnoreCase("on");
-  }
+import java.util.List;
+import java.util.Properties;
+import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
-  @Override
-  public ConfigurationPhase getConfigurationPhase() {
-    return ConfigurationPhase.PARSE_CONFIGURATION;
+class AzureProviderTest {
+
+  @Test
+  @DisplayName("AzureAdProvider issuer URI is present and has the expected format")
+  void azureAdProviderIssuerUriTest() {
+    // given
+    Properties config = new Properties();
+    config.put("oidc.provider.azure.0.tenant", "123");
+    config.put("oidc.provider.azure.0.client_id", "id123");
+    config.put("oidc.provider.azure.0.client_secret", "secret123");
+
+    // when
+    List<DhisOidcClientRegistration> parse = AzureAdProvider.parse(config);
+
+    // then
+    DhisOidcClientRegistration clientReg = parse.get(0);
+    String issuerUri = clientReg.getClientRegistration().getProviderDetails().getIssuerUri();
+    assertEquals("https://login.microsoftonline.com/123/v2.0", issuerUri);
   }
 }
