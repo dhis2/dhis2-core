@@ -103,4 +103,11 @@ class AppHubUtilsTest {
     HttpEntity<String> entity = AppHubUtils.getJsonRequestEntity();
     assertTrue(entity.getHeaders().getAccept().contains(MediaType.APPLICATION_JSON));
   }
+
+  @Test
+  void testSanitizeStartModule() {
+    assertEquals("climate-data", AppHubUtils.getSanitizedStartModule("apps/climate-data"));
+    assertEquals("dashboard", AppHubUtils.getSanitizedStartModule("dhis-web-dashboard"));
+    assertEquals("climate-data", AppHubUtils.getSanitizedStartModule("app:climate-data"));
+  }
 }

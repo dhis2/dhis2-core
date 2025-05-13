@@ -97,4 +97,19 @@ public class AppHubUtils {
     headers.setAccept(Lists.newArrayList(MediaType.APPLICATION_JSON));
     return new HttpEntity<>(headers);
   }
+
+  /** Sanitizes the start module name. Removes leading "dhis-web-", "app:" or "apps/". */
+  public static String getSanitizedStartModule(String moduleName) {
+    if (moduleName == null) {
+      return null;
+    }
+    if (moduleName.startsWith("dhis-web-")) {
+      return moduleName.substring(9);
+    } else if (moduleName.startsWith("app:")) {
+      return moduleName.substring(4);
+    } else if (moduleName.startsWith("apps/")) {
+      return moduleName.substring(5);
+    }
+    return moduleName;
+  }
 }

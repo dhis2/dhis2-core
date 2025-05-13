@@ -34,6 +34,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.apphub.AppHubUtils;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.common.OpenApi;
@@ -71,16 +72,9 @@ public class IndexController {
     String contextPath = contextService.getContextPath();
 
     String redirectUrl = contextPath + "/apps/"; // By default, redirect to the global shell root
-    String sanitizedStartModule = settings.getStartModule();
-    if (sanitizedStartModule != null) {
-      if (sanitizedStartModule.startsWith("dhis-web-")) {
-        sanitizedStartModule = sanitizedStartModule.substring(9);
-      } else if (sanitizedStartModule.startsWith("app:")) {
-        sanitizedStartModule = sanitizedStartModule.substring(4);
-      }
-
-      App app = appManager.getApp(sanitizedStartModule, contextPath);
-
+    String startModule = AppHubUtils.getSanitizedStartModule(settings.getStartModule());
+    if (startModule != null) {
+      App app = appManager.getApp(startModule, contextPath);
       if (app != null) {
         redirectUrl = app.getLaunchUrl();
       }
