@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -35,6 +37,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -62,6 +65,8 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest {
 
   @Autowired private TrackedEntityAttributeValueAuditService attributeValueAuditService;
 
+  @Autowired private DhisConfigurationProvider config;
+
   @Override
   protected void initTest() throws IOException {
     setUpMetadata("tracker/te_program_with_tea_allow_audit_metadata.json");
@@ -70,6 +75,7 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest {
 
   @Test
   void testTrackedEntityAttributeValueAuditCreate() throws IOException {
+    enableChangeLogs();
     assertNoErrors(
         trackerImportService.importTracker(fromJson("tracker/te_program_with_tea_data.json")));
 
@@ -96,6 +102,7 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest {
 
   @Test
   void testTrackedEntityAttributeValueAuditDelete() throws IOException {
+    enableChangeLogs();
     TrackerImportParams trackerImportParams = fromJson("tracker/te_program_with_tea_data.json");
 
     TrackerImportReport trackerImportReport =
@@ -129,5 +136,24 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest {
                 .setTrackedEntityInstances(trackedEntityInstances)
                 .setAuditTypes(List.of(AuditType.UPDATE)));
     assertEquals(1, attributeValueAudits.size());
+  }
+
+  @Test
+  void shouldNotLogChangesWhenChangeLogConfigDisabled() throws IOException {
+    disableChangeLogs();
+    assertNoErrors(
+        trackerImportService.importTracker(fromJson("tracker/te_program_with_tea_data.json")));
+
+    assertIsEmpty(
+        attributeValueAuditService.getTrackedEntityAttributeValueAudits(
+            new TrackedEntityAttributeValueAuditQueryParams()));
+  }
+
+  private void enableChangeLogs() {
+    config.getProperties().put(CHANGELOG_TRACKER.getKey(), "on");
+  }
+
+  private void disableChangeLogs() {
+    config.getProperties().put(CHANGELOG_TRACKER.getKey(), "off");
   }
 }

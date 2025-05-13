@@ -27,12 +27,14 @@
  */
 package org.hisp.dhis.test.integration;
 
+import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.BaseSpringTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.config.IntegrationTestConfig;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.Timeout;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Transactional
 public abstract class SingleSetupIntegrationTestBase extends BaseSpringTest {
+  @Timeout(value = 2, unit = TimeUnit.MINUTES)
   @BeforeAll
   public final void before() throws Exception {
     bindSession();

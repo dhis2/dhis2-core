@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,54 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.job;
+package org.hisp.dhis.apps;
 
-import java.io.IOException;
-import javax.jms.JMSException;
-import javax.jms.TextMessage;
-import org.hisp.dhis.artemis.MessageManager;
-import org.hisp.dhis.common.AsyncTaskExecutor;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.render.RenderService;
-import org.springframework.stereotype.Component;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
 
-/**
- * @author Zubair Asghar
- */
-@Component
-public abstract class BaseMessageManager {
-  private final MessageManager messageManager;
+import java.io.File;
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
-  private final AsyncTaskExecutor taskExecutor;
+class AppResourceTest extends ApiTest {
 
-  private final RenderService renderService;
+  private final RestApiActions appActions = new RestApiActions("/apps");
 
-  public BaseMessageManager(
-      MessageManager messageManager, AsyncTaskExecutor taskExecutor, RenderService renderService) {
-    this.messageManager = messageManager;
-    this.taskExecutor = taskExecutor;
-    this.renderService = renderService;
+  @Test
+  @DisplayName("Redirect location should have correct format")
+  void redirectLocationCorrectFormatTest() {
+    // given an app is installed
+    File file = new File("src/test/resources/apps/test-app-v1.zip");
+    appActions.postMultiPartFile(file).validateStatus(204);
+
+    // when
+    // called with missing trailing slash
+    ApiResponse response =
+        new ApiResponse(given().redirects().follow(false).get("/apps/test-minio"));
+
+    // then redirect should be returned with trailing slash
+    response.validate().header("location", equalTo("http://web:8080/api/apps/test-minio/"));
+    response.validate().statusCode(302);
   }
-
-  public String addJob(TrackerSideEffectDataBundle sideEffectDataBundle) {
-    String jobId = CodeGenerator.generateUid();
-    sideEffectDataBundle.setJobId(jobId);
-
-    messageManager.sendQueue(getTopic(), sideEffectDataBundle);
-
-    return jobId;
-  }
-
-  public void executeJob(Runnable runnable) {
-    taskExecutor.executeTask(runnable);
-  }
-
-  public TrackerSideEffectDataBundle toBundle(TextMessage message)
-      throws JMSException, IOException {
-    String payload = message.getText();
-
-    return renderService.fromJson(payload, TrackerSideEffectDataBundle.class);
-  }
-
-  public abstract String getTopic();
 }

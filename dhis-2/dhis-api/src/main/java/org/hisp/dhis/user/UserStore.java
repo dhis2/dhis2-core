@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -185,12 +186,13 @@ public interface UserStore extends IdentifiableObjectStore<User> {
   List<User> getHasAuthority(String authority);
 
   /**
-   * Retrieves all {@link User}s that have an entry for the {@link OrganisationUnit} in the given
+   * Retrieves all {@link User}s that have an entry for the {@link OrganisationUnit}s in the given
    * table
    *
    * @param orgUnitProperty {@link UserOrgUnitProperty} used to search
-   * @param uid {@link OrganisationUnit} uid to match on
+   * @param uids {@link OrganisationUnit}s uids to match on
    * @return matching {@link User}s
    */
-  List<User> getUsersWithOrgUnit(@Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull String uid);
+  List<User> getUsersWithOrgUnits(
+      @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull Set<String> uids);
 }

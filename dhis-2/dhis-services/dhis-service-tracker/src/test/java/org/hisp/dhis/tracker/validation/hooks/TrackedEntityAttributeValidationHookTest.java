@@ -437,7 +437,7 @@ class TrackedEntityAttributeValidationHookTest {
   @Test
   void shouldFailEncryptionStatus() {
     TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
-    trackedEntityAttribute.setValueType(ValueType.AGE);
+    trackedEntityAttribute.setValueType(ValueType.TEXT);
     trackedEntityAttribute.setConfidential(true);
 
     when(dhisConfigurationProvider.getEncryptionStatus())

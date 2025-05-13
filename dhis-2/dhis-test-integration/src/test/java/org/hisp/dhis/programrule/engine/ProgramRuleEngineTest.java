@@ -297,7 +297,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     ProgramRule programRule = setUpSendMessageForEnrollment();
     ProgramInstance programInstance = programInstanceService.getProgramInstance("UID-P1");
     List<RuleEffects> ruleEffects =
-        programRuleEngine.evaluateEnrollmentAndEvents(
+        programRuleEngine.evaluateEnrollmentAndTrackerEvents(
             programInstance, Sets.newHashSet(), Lists.newArrayList());
     assertEquals(1, ruleEffects.size());
     RuleEffects enrollmentRuleEffects = ruleEffects.get(0);
@@ -333,7 +333,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     setUpNotificationForD2HasValue();
     ProgramInstance programInstance = programInstanceService.getProgramInstance("UID-P2");
     List<RuleEffects> ruleEffects =
-        programRuleEngine.evaluateEnrollmentAndEvents(
+        programRuleEngine.evaluateEnrollmentAndTrackerEvents(
             programInstance, Sets.newHashSet(), Lists.newArrayList());
     assertEquals(1, ruleEffects.size());
     RuleEffects enrollmentRuleEffects = ruleEffects.get(0);
@@ -380,7 +380,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     ProgramStageInstance programStageInstance =
         programStageInstanceService.getProgramStageInstance("UID-PS1");
     List<RuleEffects> ruleEffects =
-        programRuleEngine.evaluateEnrollmentAndEvents(
+        programRuleEngine.evaluateEnrollmentAndTrackerEvents(
             programStageInstance.getProgramInstance(),
             Sets.newHashSet(programStageInstance),
             Lists.newArrayList());
@@ -500,7 +500,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     ProgramStageInstance programStageInstance =
         programStageInstanceService.getProgramStageInstance("UID-PS12");
     List<RuleEffects> ruleEffects =
-        programRuleEngine.evaluateEnrollmentAndEvents(
+        programRuleEngine.evaluateEnrollmentAndTrackerEvents(
             programStageInstance.getProgramInstance(),
             Sets.newHashSet(programStageInstance),
             Lists.newArrayList());

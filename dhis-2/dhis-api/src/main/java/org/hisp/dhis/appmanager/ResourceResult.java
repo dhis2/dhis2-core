@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,22 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.notification.template.snapshot;
+package org.hisp.dhis.appmanager;
 
-import java.util.Set;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+import org.springframework.core.io.Resource;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class OrganisationUnitSnapshot extends IdentifiableObjectSnapshot {
-  private String name;
+/**
+ * Models the potential results when trying to retrieve a Resource. <br>
+ * Can be one of:
+ *
+ * <ul>
+ *   <li>ResourceFound
+ *   <li>ResourceNotFound
+ *   <li>Redirect
+ * </ul>
+ *
+ * <p>This enables:
+ *
+ * <ul>
+ *   <li>clearer understanding of control flow & intent
+ *   <li>easier handling of multiple scenarios without having to deal with nulls or exceptions
+ *   <li>easier extension potential
+ * </ul>
+ */
+public interface ResourceResult {
+  @Data
+  @AllArgsConstructor
+  class ResourceFound implements ResourceResult {
+    private Resource resource;
+  }
 
-  private String description;
+  @Data
+  @AllArgsConstructor
+  class ResourceNotFound implements ResourceResult {
+    private String path;
+  }
 
-  private String shortName;
-
-  private OrganisationUnitSnapshot parent;
-
-  private Set<UserSnapshot> users;
+  @Data
+  @AllArgsConstructor
+  class Redirect implements ResourceResult {
+    private String path;
+  }
 }
