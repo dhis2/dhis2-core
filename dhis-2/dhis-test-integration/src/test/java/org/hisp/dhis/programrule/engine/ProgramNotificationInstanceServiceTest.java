@@ -27,10 +27,15 @@
  */
 package org.hisp.dhis.programrule.engine;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -52,6 +57,10 @@ import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -59,41 +68,36 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Zubair Asghar
  */
 class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
-
-  private Program program;
-
-  private ProgramRule programRule;
-
-  private ProgramRuleAction programRuleAction;
-
-  private ProgramNotificationTemplate programNotificationTemplate;
-
-  private OrganisationUnit organisationUnit;
-
-  private TrackedEntityInstance trackedEntityInstance;
-
-  private ProgramInstance programInstance;
-
-  private ProgramInstance programInstanceB;
+  private static final int TEST_USER_COUNT = 30;
 
   @Autowired private ProgramInstanceService programInstanceService;
-
   @Autowired private ProgramService programService;
-
   @Autowired private TrackedEntityInstanceService trackedEntityInstanceService;
-
   @Autowired private ProgramNotificationTemplateService programNotificationTemplateService;
-
   @Autowired private ProgramNotificationInstanceService programNotificationInstanceService;
-
   @Autowired private OrganisationUnitService organisationUnitService;
-
   @Autowired private IdentifiableObjectManager manager;
-
   @Autowired private ProgramRuleEngineService programRuleEngineService;
+  @Autowired private UserService _userService;
+
+  private Program program;
+  private ProgramRule programRule;
+  private ProgramRuleAction programRuleAction1;
+  private ProgramRuleAction programRuleAction2;
+  private ProgramNotificationTemplate programNotificationTemplateScheduledForToday;
+  private ProgramNotificationTemplate programNotificationTemplateScheduledForTomorrow;
+  private OrganisationUnit organisationUnit;
+  private TrackedEntityInstance trackedEntityInstance;
+  private ProgramInstance programInstance;
+  private ProgramInstance programInstanceB;
+  private UserGroup userGroup;
+
+  private String today = "'" + LocalDate.now() + "'";
+  private String tomorrow = "'" + LocalDate.now().plusDays(1) + "'";
 
   @Override
   protected void setUpTest() throws Exception {
+    userService = _userService;
     organisationUnit = createOrganisationUnit('O');
     organisationUnitService.addOrganisationUnit(organisationUnit);
     program = createProgram('P');
@@ -103,27 +107,51 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
     programRule = createProgramRule('R', program);
     programRule.setCondition("true");
     manager.save(programRule);
-    programNotificationTemplate =
+
+    userGroup = createUserGroup('U', new HashSet<>());
+    manager.save(userGroup);
+
+    createAndAddUsersToUserGroupAndOrgUnit();
+
+    programNotificationTemplateScheduledForToday =
         createProgramNotificationTemplate(
             "test", 1, NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.USER_GROUP);
-    programNotificationTemplate.setAutoFields();
-    programNotificationTemplateService.save(programNotificationTemplate);
-    programRuleAction = createProgramRuleAction('A');
-    programRuleAction.setProgramRuleActionType(ProgramRuleActionType.SCHEDULEMESSAGE);
-    programRuleAction.setTemplateUid(programNotificationTemplate.getUid());
-    programRuleAction.setData("'2020-12-12'");
-    manager.save(programRuleAction);
-    programRule.getProgramRuleActions().add(programRuleAction);
+    programNotificationTemplateScheduledForToday.setRecipientUserGroup(userGroup);
+    programNotificationTemplateScheduledForToday.setAutoFields();
+    programNotificationTemplateService.save(programNotificationTemplateScheduledForToday);
+
+    programNotificationTemplateScheduledForTomorrow =
+        createProgramNotificationTemplate(
+            "test", 1, NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.USER_GROUP);
+    programNotificationTemplateScheduledForTomorrow.setRecipientUserGroup(userGroup);
+    programNotificationTemplateScheduledForTomorrow.setAutoFields();
+    programNotificationTemplateService.save(programNotificationTemplateScheduledForTomorrow);
+
+    programRuleAction1 = createProgramRuleAction('A');
+    programRuleAction1.setProgramRuleActionType(ProgramRuleActionType.SCHEDULEMESSAGE);
+    programRuleAction1.setTemplateUid(programNotificationTemplateScheduledForToday.getUid());
+    programRuleAction1.setData(today);
+    manager.save(programRuleAction1);
+    programRule.getProgramRuleActions().add(programRuleAction1);
+
+    programRuleAction2 = createProgramRuleAction('B');
+    programRuleAction2.setProgramRuleActionType(ProgramRuleActionType.SCHEDULEMESSAGE);
+    programRuleAction2.setTemplateUid(programNotificationTemplateScheduledForTomorrow.getUid());
+    programRuleAction2.setData(tomorrow);
+    manager.save(programRuleAction2);
+    programRule.getProgramRuleActions().add(programRuleAction2);
+
     manager.update(programRule);
     programInstance = createProgramInstance(program, trackedEntityInstance, organisationUnit);
     programInstanceService.addProgramInstance(programInstance);
     programInstanceB = createProgramInstance(program, trackedEntityInstance, organisationUnit);
     programInstanceService.addProgramInstance(programInstanceB);
+
+    programRuleEngineService.evaluateEnrollmentAndRunEffects(programInstance.getId());
   }
 
   @Test
   void testGetProgramNotificationInstance() {
-    programRuleEngineService.evaluateEnrollmentAndRunEffects(programInstance.getId());
     List<ProgramNotificationInstance> programNotificationInstances =
         programNotificationInstanceService.getProgramNotificationInstances(
             ProgramNotificationInstanceParam.builder().programInstance(programInstance).build());
@@ -137,6 +165,18 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
   }
 
   @Test
+  void testShouldGetAndSendScheduledNotificationInstanceWithoutTimeout() {
+    ProgramNotificationInstanceParam param =
+        ProgramNotificationInstanceParam.builder()
+            .scheduledAt(DateUtils.removeTimeStamp(Date.from(Instant.now())))
+            .build();
+    List<ProgramNotificationInstance> instances =
+        programNotificationInstanceService.getProgramNotificationInstances(param);
+    assertEquals(
+        1, instances.size(), "Expected 1 notification for scheduled messages " + instances);
+  }
+
+  @Test
   void testDeleteProgramNotificationInstance() {
     programRuleEngineService.evaluateEnrollmentAndRunEffects(programInstanceB.getId());
     List<ProgramNotificationInstance> programNotificationInstances =
@@ -145,9 +185,18 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
     assertFalse(programNotificationInstances.isEmpty());
     assertSame(programInstanceB, programNotificationInstances.get(0).getProgramInstance());
     programNotificationInstanceService.delete(programNotificationInstances.get(0));
+    programNotificationInstanceService.delete(programNotificationInstances.get(1));
     List<ProgramNotificationInstance> instances =
         programNotificationInstanceService.getProgramNotificationInstances(
             ProgramNotificationInstanceParam.builder().programInstance(programInstanceB).build());
     assertTrue(instances.isEmpty());
+  }
+
+  private void createAndAddUsersToUserGroupAndOrgUnit() {
+    for (int i = 1; i <= TEST_USER_COUNT; i++) {
+      User user = createAndAddUser("user" + i, organisationUnit, "ALL");
+      userGroup.getMembers().add(user);
+      organisationUnit.getUsers().add(user);
+    }
   }
 }
