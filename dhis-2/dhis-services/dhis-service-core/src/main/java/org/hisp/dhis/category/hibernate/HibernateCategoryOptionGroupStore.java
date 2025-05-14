@@ -85,10 +85,9 @@ public class HibernateCategoryOptionGroupStore
     if (categoryOptions.isEmpty()) return List.of();
     return getQuery(
             """
-            select distinct cog from CategoryOptionGroup cog
-            join cog.members co
-            where co.uid in :categoryOptions
-            """,
+            select distinct cog from CategoryOptionGroup cog \
+            join cog.members co \
+            where co.uid in :categoryOptions""",
             CategoryOptionGroup.class)
         .setParameter("categoryOptions", categoryOptions)
         .getResultList();

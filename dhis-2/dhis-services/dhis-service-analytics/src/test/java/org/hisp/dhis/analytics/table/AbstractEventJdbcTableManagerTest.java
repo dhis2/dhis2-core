@@ -120,7 +120,7 @@ class AbstractEventJdbcTableManagerTest {
   void testGetSelectExpressionDate() {
     String expected =
         """
-        case when eventdatavalues #>> '{AL04Wbutskk, value}' ~* '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$' \
+        case when eventdatavalues #>> '{AL04Wbutskk, value}' ~* '^[0-9]{4}-[0-9]{2}-[0-9]{2}(\\s|T)?(([0-9]{2}:)([0-9]{2}:)?([0-9]{2}))?(|.([0-9]{3})|.([0-9]{3})Z)?$' \
         then cast(eventdatavalues #>> '{AL04Wbutskk, value}' as timestamp) \
         end""";
 
