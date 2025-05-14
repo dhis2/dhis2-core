@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,42 +27,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.webdomain.datavalue;
+package org.hisp.dhis.webapi.controller;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 
-/**
- * Object which encapsulates parameters for a min-max value query.
- *
- * @author Lars Helge Overland
- */
-@OpenApi.Shared
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class MinMaxValueQueryParams {
-  @JsonAlias("dataElement")
-  @OpenApi.Property({UID.class, DataElement.class})
-  private String de;
+import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.junit.jupiter.api.Test;
 
-  @JsonAlias("orgUnit")
-  @OpenApi.Property({UID.class, OrganisationUnit.class})
-  private String ou;
+class MinMaxValueControllerTest extends H2ControllerIntegrationTestBase {
 
-  @JsonAlias("optionCombo")
-  @OpenApi.Property({UID.class, CategoryOptionCombo.class})
-  private String co;
+  @Test
+  void testSaveOrUpdateMinMaxValue() {
+    String json =
+        """
+        {
+        "dataElement": null,
+        "orgUnit": "o1234567890",
+        "optionCombo": "c12345678900",
+        "minValue": 1,
+        "maxValue": 100
+        }
+        """;
+    assertStatus(HttpStatus.CREATED, POST("/dataEntry/minMaxValues", json));
+  }
 }

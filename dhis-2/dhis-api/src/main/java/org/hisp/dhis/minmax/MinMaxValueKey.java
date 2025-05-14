@@ -45,4 +45,5 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 public record MinMaxValueKey(
     @OpenApi.Property({UID.class, OrganisationUnit.class}) @Nonnull UID dataElement,
     @OpenApi.Property({UID.class, OrganisationUnit.class}) @Nonnull UID orgUnit,
-    @OpenApi.Property({UID.class, CategoryOptionCombo.class}) @Nonnull UID optionCombo) {}
+    @OpenApi.Property({UID.class, CategoryOptionCombo.class}) @Nonnull UID optionCombo)
+    implements MinMaxValueId {}

@@ -244,14 +244,14 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
         getCategoryOptionComboMap(keys.stream().map(MinMaxValueKey::optionCombo));
 
     Session session = entityManager.unwrap(Session.class);
+    String sql =
+        """
+      DELETE FROM minmaxdataelement
+      WHERE dataelementid = ? AND sourceid = ? AND categoryoptioncomboid = ?""";
 
     AtomicInteger deleted = new AtomicInteger();
     session.doWork(
         connection -> {
-          String sql =
-              """
-        DELETE FROM minmaxdataelement
-        WHERE dataelementid = ? AND sourceid = ? AND categoryoptioncomboid = ?""";
           try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             for (MinMaxValueKey key : keys) {
               Long de = des.get(key.dataElement().getValue());
@@ -284,19 +284,20 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
 
     Session session = entityManager.unwrap(Session.class);
 
+    String sql =
+        """
+      INSERT INTO minmaxdataelement
+      (dataelementid, sourceid, categoryoptioncomboid, minimumvalue, maximumvalue, generatedvalue)
+      VALUES (?, ?, ?, ?, ?, ?)
+      ON CONFLICT (sourceid, dataelementid, categoryoptioncomboid)
+      DO UPDATE SET
+        minimumvalue = EXCLUDED.minimumvalue,
+        maximumvalue = EXCLUDED.maximumvalue,
+        generatedvalue = EXCLUDED.generatedvalue""";
+
     AtomicInteger imported = new AtomicInteger();
     session.doWork(
         connection -> {
-          String sql =
-              """
-        INSERT INTO minmaxdataelement
-        (dataelementid, sourceid, categoryoptioncomboid, minimumvalue, maximumvalue, generatedvalue)
-        VALUES (?, ?, ?, ?, ?, ?)
-        ON CONFLICT (sourceid, dataelementid, categoryoptioncomboid)
-        DO UPDATE SET
-          minimumvalue = EXCLUDED.minimumvalue,
-          maximumvalue = EXCLUDED.maximumvalue,
-          generatedvalue = EXCLUDED.generatedvalue""";
           try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             for (MinMaxValue value : values) {
               Long de = des.get(value.dataElement().getValue());

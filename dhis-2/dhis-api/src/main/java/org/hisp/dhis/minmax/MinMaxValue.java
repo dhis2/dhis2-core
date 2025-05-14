@@ -47,4 +47,14 @@ public record MinMaxValue(
     @Nonnull @OpenApi.Property({UID.class, CategoryOptionCombo.class}) UID optionCombo,
     Integer minValue,
     Integer maxValue,
-    Boolean generated) {}
+    Boolean generated)
+    implements MinMaxValueId {
+
+  public MinMaxValue generated(boolean generated) {
+    return new MinMaxValue(dataElement, orgUnit, optionCombo, minValue, maxValue, generated);
+  }
+
+  public MinMaxValueKey key() {
+    return new MinMaxValueKey(dataElement, orgUnit, optionCombo);
+  }
+}

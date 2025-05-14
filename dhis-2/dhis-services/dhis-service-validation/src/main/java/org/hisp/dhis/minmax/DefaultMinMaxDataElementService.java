@@ -35,13 +35,10 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,17 +49,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.minmax.MinMaxDataElementService")
 public class DefaultMinMaxDataElementService implements MinMaxDataElementService {
+
   private final MinMaxDataElementStore minMaxDataElementStore;
-
-  private final DataElementService dataElementService;
-
-  private final OrganisationUnitService organisationUnitService;
-
-  private final CategoryService categoryService;
-
-  // -------------------------------------------------------------------------
-  // MinMaxDataElementService implementation
-  // -------------------------------------------------------------------------
 
   @Transactional
   @Override
@@ -131,6 +119,17 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
     minMaxDataElementStore.delete(dataElements, parent);
   }
 
+  @Override
+  @Transactional
+  public void importValue(MinMaxValue value) throws BadRequestException {
+    if (value.generated() == null) value = value.generated(false);
+
+    validateValue(value);
+
+    int imported = minMaxDataElementStore.upsertValues(List.of(value));
+    if (imported == 0) throw new BadRequestException(ErrorCode.E2047, value.key());
+  }
+
   /**
    * Imports a list of min-max values from a web service request. This method processes the incoming
    * JSON request, validates the data, and stores the min-max values in the database.
@@ -144,7 +143,7 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
   public int importAll(MinMaxValueUpsertRequest request) throws BadRequestException {
     if (request.values().isEmpty()) return 0;
 
-    validate(request);
+    validateRequest(request);
 
     log.info(
         "Starting min-max import: {} values for dataset={}",
@@ -164,6 +163,13 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
     return imported;
   }
 
+  @Override
+  public void deleteValue(MinMaxValueKey key) throws BadRequestException {
+    validateValueId(key);
+    int deleted = minMaxDataElementStore.deleteByKeys(List.of(key));
+    if (deleted == 0) throw new BadRequestException(ErrorCode.E2047, key);
+  }
+
   /**
    * Deletes a list of min-max values from a web service request. This method processes the incoming
    * JSON request and removes the specified min-max values from the database.
@@ -176,6 +182,8 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
   public int deleteAll(MinMaxValueDeleteRequest request) throws BadRequestException {
     if (request.values().isEmpty()) return 0;
 
+    validateRequest(request);
+
     log.info("Starting min-max delete: {} values", request.values().size());
     long startTime = System.nanoTime();
     int count = minMaxDataElementStore.deleteByKeys(request.values());
@@ -187,21 +195,31 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
     return count;
   }
 
-  private static void validate(MinMaxValue value) throws BadRequestException {
-    if (value.dataElement() == null || value.orgUnit() == null || value.optionCombo() == null)
-      throw new BadRequestException(ErrorCode.E7801, value);
-    if (value.minValue() == null || value.maxValue() == null)
-      throw new BadRequestException(ErrorCode.E7801, value);
-    if (value.minValue() >= value.maxValue()) throw new BadRequestException(ErrorCode.E7802, value);
+  private static void validateValue(MinMaxValue value) throws BadRequestException {
+    validateValueId(value);
+    if (value.minValue() == null) throw new BadRequestException(ErrorCode.E2042, value);
+    if (value.maxValue() == null) throw new BadRequestException(ErrorCode.E2043, value);
+    if (value.minValue() >= value.maxValue()) throw new BadRequestException(ErrorCode.E2044, value);
   }
 
-  private void validate(MinMaxValueUpsertRequest request) throws BadRequestException {
-    for (MinMaxValue v : request.values()) validate(v);
+  private static void validateValueId(MinMaxValueId value) throws BadRequestException {
+    if (value.dataElement() == null) throw new BadRequestException(ErrorCode.E1100, value);
+    if (value.orgUnit() == null) throw new BadRequestException(ErrorCode.E1102, value);
+    if (value.optionCombo() == null) throw new BadRequestException(ErrorCode.E1103, value);
+  }
+
+  private void validateRequest(MinMaxValueUpsertRequest request) throws BadRequestException {
+    for (MinMaxValue v : request.values()) validateValue(v);
+    if (request.dataSet() == null) return;
     Set<String> deIds =
         Set.copyOf(minMaxDataElementStore.getDataElementsByDataSet(request.dataSet()));
     for (MinMaxValue v : request.values()) {
       if (!deIds.contains(v.dataElement().getValue()))
-        throw new BadRequestException(ErrorCode.E7805, v.dataElement());
+        throw new BadRequestException(ErrorCode.E2021, request.dataSet(), v.dataElement());
     }
+  }
+
+  private void validateRequest(MinMaxValueDeleteRequest request) throws BadRequestException {
+    for (MinMaxValueKey v : request.values()) validateValueId(v);
   }
 }

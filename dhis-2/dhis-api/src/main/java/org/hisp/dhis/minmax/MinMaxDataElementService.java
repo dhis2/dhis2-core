@@ -64,7 +64,11 @@ public interface MinMaxDataElementService {
 
   void removeMinMaxDataElements(Collection<DataElement> dataElements, OrganisationUnit parent);
 
+  void importValue(MinMaxValue value) throws BadRequestException;
+
   int importAll(MinMaxValueUpsertRequest request) throws BadRequestException;
+
+  void deleteValue(MinMaxValueKey key) throws BadRequestException;
 
   int deleteAll(MinMaxValueDeleteRequest request) throws BadRequestException;
 }
