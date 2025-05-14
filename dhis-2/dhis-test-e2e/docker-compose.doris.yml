@@ -8,7 +8,7 @@ services:
       DHIS2_E2E_DATABASE_CONNECTION_USER: root
       DHIS2_E2E_DATABASE_CONNECTION_PASSWORD:
     volumes:
-      - ./config/dhis2_home/dhis.conf:/opt/dhis2/dhis.conf:ro
+      - ./config/dhis2_home/dhis-doris.conf:/opt/dhis2/dhis.conf:ro
     depends_on:
       doris-be:
         condition: service_healthy
