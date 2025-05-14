@@ -2,46 +2,72 @@ version: "3.8"
 
 services:
   web:
-    environment:
-      DHIS2_E2E_DATABASE: doris
-      DHIS2_E2E_DATABASE_CONNECTION: jdbc:mysql://localhost:9030/dhis2?useLegacyDatetimeCode=false&useUnicode=true&characterEncoding=UTF-8&useSSL=false
-      DHIS2_E2E_DATABASE_CONNECTION_USER: root
-      DHIS2_E2E_DATABASE_CONNECTION_PASSWORD:
+    image: "${DHIS2_IMAGE:-dhis2/core-dev:local}"
+    # Only container ports are specified, as the E2E tests run in parallel in Jenkins and using explicit host ports causes collision
+    ports:
+      - "8080" # DHIS2
+      - "8081" # Debugger: connect using commandline flag -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081
     volumes:
       - ./config/dhis2_home/dhis-doris.conf:/opt/dhis2/dhis.conf:ro
+    environment:
+      JAVA_OPTS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081"
     depends_on:
       doris-be:
         condition: service_healthy
-    networks:
-      doris_network:
-        ipv4_address: 192.168.100.9
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      minio:
+        condition: service_healthy
 
   db:
+    image: postgis/postgis:13-3.4-alpine
+    command: postgres -c max_locks_per_transaction=100
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: dhis
+      POSTGRES_DB: dhis
+      POSTGRES_PASSWORD: &postgres_password dhis
+      PGPASSWORD: *postgres_password # needed by psql in healthcheck
+      LC_COLLATE: C
+    healthcheck:
+      test: [ "CMD-SHELL", "psql --no-password --quiet --username $$POSTGRES_USER postgres://127.0.0.1/$$POSTGRES_DB -p 5432 --command \"SELECT 'ok'\" > /dev/null" ]
+      start_period: 120s
+      interval: 1s
+      timeout: 3s
+      retries: 5
     networks:
       doris_network:
         ipv4_address: 192.168.100.8
 
-  doris-fe:
-    image: apache/doris:fe-${DORIS_VERSION}
-    networks:
-      doris_network:
-        ipv4_address: 192.168.100.10
-    ports:
-      - "9030:9030"
-      - "8030:8030"
-    environment:
-      - FE_SERVERS=fe1:192.168.100.10:9010
-      - FE_ID=1
+  redis:
+    image: redis:5.0.5-alpine
     volumes:
-      - ../../docker/doris/postgresql-42.7.5.jar:/opt/apache-doris/fe/jdbc_drivers/postgresql.jar:ro
-      - ../../docker/doris/fe.conf:/opt/apache-doris/fe/conf/fe.conf
-      - doris-fe-meta:/opt/apache-doris/fe/doris-meta
-      - doris-fe-log:/opt/apache-doris/fe/log
+      - ./config/redis/redis.conf:/usr/local/etc/redis.conf
+    ports:
+      - "6379"
+
+  minio:
+    image: quay.io/minio/minio
+    command: server /data --console-address ":9090"
+    ports:
+      - "9000" # minio API
+      - "9090" # minio UI
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8030/home || exit 1"]
-      interval: 10s
+      test: [ "CMD", "mc", "ready", "local" ]
+      interval: 5s
       timeout: 5s
       retries: 5
+    environment:
+      MINIO_ROOT_USER: root
+      MINIO_ROOT_PASSWORD: dhisdhis
+
+  selenium:
+    image: "${SELENIUM_IMAGE:-selenium/standalone-chrome:latest}"
+    ports:
+      - "4444"
+      - "7900"
 
   doris-be:
     image: apache/doris:be-${DORIS_VERSION}
@@ -49,13 +75,9 @@ services:
       doris_network:
         ipv4_address: 192.168.100.11
     environment:
-      - FE_SERVERS=fe1:192.168.100.10:9010
       - BE_ADDR=192.168.100.11:9050
     ports:
       - 8041:8040
-    depends_on:
-      doris-fe:
-        condition: service_healthy
     volumes:
       - ../../docker/doris/postgresql-42.7.5.jar:/opt/apache-doris/be/jdbc_drivers/postgresql.jar:ro
       - ../../docker/doris/create-doris-database.sql:/docker-entrypoint-initdb.d/create-doris-database.sql:ro
@@ -68,8 +90,6 @@ services:
       retries: 5
 
 volumes:
-  doris-fe-meta:
-  doris-fe-log:
   doris-be-storage:
   doris-be-log:
 

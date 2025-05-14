@@ -1,0 +1,49 @@
+version: "3.8"
+
+services:
+  web-doris:
+    volumes:
+      - ./config/dhis2_home/dhis-doris.conf:/opt/dhis2/dhis.conf:ro
+    depends_on:
+      doris-be:
+        condition: service_healthy
+    networks:
+      doris_network:
+        ipv4_address: 192.168.100.9
+
+  db:
+    networks:
+      doris_network:
+        ipv4_address: 192.168.100.8
+
+  doris-be:
+    image: apache/doris:be-${DORIS_VERSION}
+    networks:
+      doris_network:
+        ipv4_address: 192.168.100.11
+    environment:
+      - BE_ADDR=192.168.100.11:9050
+    ports:
+      - 8041:8040
+    volumes:
+      - ../../docker/doris/postgresql-42.7.5.jar:/opt/apache-doris/be/jdbc_drivers/postgresql.jar:ro
+      - ../../docker/doris/create-doris-database.sql:/docker-entrypoint-initdb.d/create-doris-database.sql:ro
+      - doris-be-storage:/opt/apache-doris/be/storage
+      - doris-be-log:/opt/apache-doris/be/log
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8040/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - web
+
+volumes:
+  doris-be-storage:
+  doris-be-log:
+
+networks:
+  doris_network:
+    ipam:
+      config:
+        - subnet: 192.168.100.0/24
