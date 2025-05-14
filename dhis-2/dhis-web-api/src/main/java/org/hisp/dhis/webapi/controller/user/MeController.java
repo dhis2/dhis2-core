@@ -156,6 +156,7 @@ public class MeController {
 
   @GetMapping
   @OpenApi.Response(MeDto.class)
+  @OpenApi.EntityType(MeDto.class)
   public @ResponseBody ResponseEntity<JsonNode> getCurrentUser(
       @CurrentUser(required = true) User user, GetObjectParams params) {
 
