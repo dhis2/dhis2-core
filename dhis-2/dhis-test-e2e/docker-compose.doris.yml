@@ -9,6 +9,9 @@ services:
       - "8081" # Debugger: connect using commandline flag -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081
     volumes:
       - ./config/dhis2_home/dhis-doris.conf:/opt/dhis2/dhis.conf:ro
+    networks:
+      doris_network:
+        ipv4_address: 192.168.100.9
     environment:
       JAVA_OPTS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081"
     depends_on:
