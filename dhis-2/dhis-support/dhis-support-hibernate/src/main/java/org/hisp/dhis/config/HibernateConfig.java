@@ -123,9 +123,9 @@ public class HibernateConfig {
     adapter.setDatabasePlatform(dhisConfig.getProperty(ConfigurationKey.CONNECTION_DIALECT));
     LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
     factory.setJpaVendorAdapter(adapter);
+    factory.setDataSource(dataSource);
     factory.setPersistenceUnitName("dhis");
     factory.setPersistenceProviderClass(HibernatePersistenceProvider.class);
-    factory.setDataSource(dataSource);
     factory.setPackagesToScan("org.hisp.dhis");
     factory.setMappingResources(loadResources());
     factory.setJpaProperties(getAdditionalProperties(dhisConfig));

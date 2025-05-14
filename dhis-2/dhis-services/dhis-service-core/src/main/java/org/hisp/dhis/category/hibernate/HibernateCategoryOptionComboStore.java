@@ -124,13 +124,14 @@ public class HibernateCategoryOptionComboStore
   public List<CategoryOptionCombo> getCategoryOptionCombosByGroupUid(
       String groupUid, String dataElementUid) {
     final String hql =
-        "select coc from DataElement de "
-            + "join de.categoryCombo cc "
-            + "join cc.optionCombos coc "
-            + "join coc.categoryOptions co "
-            + "join co.groups cog "
-            + "where cog.uid = :groupUid "
-            + "and de.uid = :dataElementUid";
+        """
+        select coc from DataElement de \
+        join de.categoryCombo cc \
+        join cc.optionCombos coc \
+        join coc.categoryOptions co \
+        join co.groups cog \
+        where cog.uid = :groupUid \
+        and de.uid = :dataElementUid""";
 
     return getQuery(hql)
         .setParameter("groupUid", groupUid)
@@ -154,8 +155,8 @@ public class HibernateCategoryOptionComboStore
     if (categoryOptions.isEmpty()) return List.of();
     return getQuery(
             """
-            select distinct coc from CategoryOptionCombo coc
-            join coc.categoryOptions co
+            select distinct coc from CategoryOptionCombo coc \
+            join coc.categoryOptions co \
             where co.uid in :categoryOptions
             """,
             CategoryOptionCombo.class)

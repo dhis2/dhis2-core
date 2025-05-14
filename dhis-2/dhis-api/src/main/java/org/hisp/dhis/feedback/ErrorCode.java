@@ -76,7 +76,7 @@ public enum ErrorCode {
   E1128("Category combo {0} cannot have more than {1} combinations, but requires: {2}"),
 
   /* Org unit merge */
-  E1500("At least two source orgs unit must be specified"),
+  E1500("At least one source org unit must be specified"),
   E1501("Target org unit must be specified"),
   E1502("Target org unit cannot be a source org unit"),
   E1503("Source org unit does not exist: `{0}`"),

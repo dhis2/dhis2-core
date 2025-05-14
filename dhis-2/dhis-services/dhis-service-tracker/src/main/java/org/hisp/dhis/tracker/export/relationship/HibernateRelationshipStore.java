@@ -96,9 +96,9 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     @Language("hql")
     String hql =
         """
-                from TrackedEntity te
-                where te.uid = :trackedEntity
-                """;
+        from TrackedEntity te \
+        where te.uid = :trackedEntity \
+        """;
     if (!includeDeleted) {
       hql += "and te.deleted = false";
     }
@@ -113,9 +113,9 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     @Language("hql")
     String hql =
         """
-                from Enrollment e
-                where e.uid = :enrollment
-                """;
+        from Enrollment e \
+        where e.uid = :enrollment \
+        """;
     if (!includeDeleted) {
       hql += "and e.deleted = false";
     }
@@ -130,9 +130,9 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     @Language("hql")
     String hql =
         """
-                from Event e
-                where e.uid = :event
-                """;
+        from Event e \
+        where e.uid = :event \
+        """;
     if (!includeDeleted) {
       hql += "and e.deleted = false";
     }
@@ -160,10 +160,9 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     @Language("hql")
     String hql =
         """
-            from Relationship r
-            where r.deleted = false and (r.key in (:keys)
-            or (r.invertedKey in (:keys) and r.relationshipType.bidirectional = true))
-            """;
+        from Relationship r \
+        where r.deleted = false and (r.key in (:keys) \
+        or (r.invertedKey in (:keys) and r.relationshipType.bidirectional = true))""";
     List<String> relationshipKeysAsString =
         relationshipKeys.stream().map(RelationshipKey::asString).toList();
     return getQuery(hql, Relationship.class).setParameter("keys", relationshipKeysAsString).list();
@@ -174,13 +173,12 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     @Language("hql")
     String hql =
         """
-           select ri
-           from RelationshipItem ri
-           join ri.relationship r
-           join r.relationshipType rt
-           where
-            (r.from = ri or rt.bidirectional = true)
-            and ri.trackedEntity.uid = :trackedEntity
+        select ri \
+        from RelationshipItem ri \
+        join ri.relationship r \
+        join r.relationshipType rt \
+        where (r.from = ri or rt.bidirectional = true) \
+        and ri.trackedEntity.uid = :trackedEntity \
         """;
     if (!includeDeleted) {
       hql += "and r.deleted = false";
@@ -195,13 +193,12 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     @Language("hql")
     String hql =
         """
-          select ri
-          from RelationshipItem ri
-          join ri.relationship r
-          join r.relationshipType rt
-          where
-           (r.from = ri or rt.bidirectional = true)
-           and ri.enrollment.uid = :enrollment
+        select ri \
+        from RelationshipItem ri \
+        join ri.relationship r \
+        join r.relationshipType rt \
+        where (r.from = ri or rt.bidirectional = true) \
+        and ri.enrollment.uid = :enrollment \
         """;
     if (!includeDeleted) {
       hql += "and r.deleted = false";
@@ -215,13 +212,12 @@ class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relation
     @Language("hql")
     String hql =
         """
-          select ri
-          from RelationshipItem ri
-          join ri.relationship r
-          join r.relationshipType rt
-          where
-           (r.from = ri or rt.bidirectional = true)
-           and ri.event.uid = :event
+        select ri \
+        from RelationshipItem ri \
+        join ri.relationship r \
+        join r.relationshipType rt \
+        where (r.from = ri or rt.bidirectional = true) \
+        and ri.event.uid = :event \
         """;
     if (!includeDeleted) {
       hql += "and r.deleted = false";
