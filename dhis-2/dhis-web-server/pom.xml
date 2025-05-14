@@ -198,7 +198,7 @@
                 </property>
                 <property>
                   <key>APP_LIST</key>
-                  <value>${project.basedir}/apps_with_ver.json</value>
+                  <value>${project.basedir}/apps-to-bundle.json</value>
                 </property>
                 <property>
                   <key>DEFAULT_BRANCH</key>

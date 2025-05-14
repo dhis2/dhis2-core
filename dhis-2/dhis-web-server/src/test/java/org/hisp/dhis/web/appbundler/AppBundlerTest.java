@@ -59,13 +59,10 @@ class AppBundlerTest {
         .writeValue(
             appListFile,
             Arrays.asList(
+                "https://github.com/d2-ci/import-export-app",
                 "https://github.com/d2-ci/data-quality-app#patch/2.42.0",
+                "https://github.com/d2-ci/dashboard-app#v101.1.6",
                 "https://github.com/d2-ci/aggregate-data-entry-app#v101.0.5"));
-
-
-//    Arrays.asList(
-//        "https://codeload.github.com/d2-ci/settings-app/zip/refs/heads/master",
-//        "https://codeload.github.com/d2-ci/dashboard-app/zip/refs/heads/master"));
 
     // Set up build directory
     buildDir = tempDir.resolve("build").toString();
@@ -91,11 +88,15 @@ class AppBundlerTest {
     assertTrue(Files.exists(checksumDir), "Checksums directory should exist");
 
     // Settings app should be downloaded
-    Path settingsAppZip = downloadArtifactDir.resolve("settings-app.zip");
+    Path importExportAppZip = downloadArtifactDir.resolve("import-export-app.zip");
+    assertTrue(Files.exists(importExportAppZip), "Import export app ZIP should exist");
+
+    // Settings app should be downloaded
+    Path settingsAppZip = downloadArtifactDir.resolve("data-quality-app.zip");
     assertTrue(Files.exists(settingsAppZip), "Settings app ZIP should exist");
 
     // Dashboard app should be downloaded
-    Path dashboardAppZip = downloadArtifactDir.resolve("dashboard-app.zip");
+    Path dashboardAppZip = downloadArtifactDir.resolve("aggregate-data-entry-app.zip");
     assertTrue(Files.exists(dashboardAppZip), "Dashboard app ZIP should exist");
 
     // Check apps are copied to the build dir.

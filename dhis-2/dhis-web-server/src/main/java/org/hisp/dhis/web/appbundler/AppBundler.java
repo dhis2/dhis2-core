@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -71,11 +71,7 @@ public class AppBundler {
 
   // Regex to parse standard GitHub URL: https://github.com/owner/repo#ref
   private static final Pattern GITHUB_URL_PATTERN =
-      Pattern.compile("^https://github\\.com/([^/]+)/([^#]+)#(.+)$");
-
-  // Commenting out the old pattern as it's replaced by the parsing logic
-  // private static final Pattern REPO_PATTERN = Pattern
-  // .compile("https://codeload.github.com/([^/]+)/([^/]+)/zip/refs/heads/([^/]+)");
+      Pattern.compile("^https://github\\.com/([^/]+)/([^/#]+)(?:#(.+))?$");
 
   private static final int DOWNLOAD_POOL_SIZE = 25; // Number of concurrent downloads
   private static final String DEFAULT_BRANCH = "master";
@@ -112,11 +108,15 @@ public class AppBundler {
       String owner = matcher.group(1);
       String repo = matcher.group(2);
       String ref = matcher.group(3);
+      if (ref == null) {
+        ref = "refs/heads/master";
+      }
+
       return String.format("https://codeload.github.com/%s/%s/zip/%s", owner, repo, ref);
     } else {
       // Use logger if available statically or pass instance if needed
       // For simplicity here, using System.err, but logger is preferred
-      System.err.println("Invalid GitHub URL format for conversion: " + githubUrl);
+      logger.error("Invalid GitHub URL format for conversion: " + githubUrl);
       // Consider changing logger level if this becomes noisy
       // logger.warn("Invalid GitHub URL format for conversion: {}", githubUrl);
       return null;
