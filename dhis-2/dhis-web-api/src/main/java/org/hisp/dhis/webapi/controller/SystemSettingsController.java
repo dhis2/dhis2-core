@@ -142,10 +142,13 @@ public class SystemSettingsController {
   }
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<SystemSettings> getSystemSettingsJson() {
-    return ResponseEntity.ok()
-        .headers(noCacheNoStoreMustRevalidate())
-        .body(settingsService.getCurrentSettings());
+  @OpenApi.Response(SystemSettings.class)
+  public ResponseEntity<JsonMap<JsonMixed>> getSystemSettingsJson(
+      @RequestParam(required = false) Set<String> key) {
+    SystemSettings settings = settingsService.getCurrentSettings();
+    JsonMap<JsonMixed> res =
+        key == null || key.isEmpty() ? settings.toJson(false) : settings.toJson(true, key);
+    return ResponseEntity.ok().headers(noCacheNoStoreMustRevalidate()).body(res);
   }
 
   @GetMapping(value = "/{key}", produces = APPLICATION_JSON_VALUE)
