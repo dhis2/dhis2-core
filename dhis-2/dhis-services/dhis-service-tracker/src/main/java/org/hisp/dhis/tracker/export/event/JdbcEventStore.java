@@ -58,8 +58,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
@@ -506,7 +504,7 @@ class JdbcEventStore implements EventStore {
 
     StringBuilder sqlBuilder = new StringBuilder();
 
-    String ouTableName = getOuTableName(params);
+    String ouTableName = " evou";
 
     sqlBuilder.append(
         getIdSqlBasedOnIdScheme(
@@ -898,19 +896,6 @@ class JdbcEventStore implements EventStore {
     return selectBuilder.toString();
   }
 
-  private boolean checkForOwnership(EventQueryParams params) {
-    return Optional.ofNullable(params.getProgram())
-        .filter(
-            p ->
-                Objects.nonNull(p.getProgramType())
-                    && p.getProgramType() == ProgramType.WITH_REGISTRATION)
-        .isPresent();
-  }
-
-  private String getOuTableName(EventQueryParams params) {
-    return checkForOwnership(params) ? " evou" : " ou";
-  }
-
   private StringBuilder getFromWhereClause(
       EventQueryParams params,
       MapSqlParameterSource mapSqlParameterSource,
@@ -923,18 +908,13 @@ class JdbcEventStore implements EventStore {
             .append("inner join program p on p.programid=en.programid ")
             .append("inner join programstage ps on ps.programstageid=ev.programstageid ");
 
-    if (checkForOwnership(params)) {
-      fromBuilder
-          .append(
-              "left join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid) ")
-          .append(
-              "inner join organisationunit evou on (coalesce(po.organisationunitid, ev.organisationunitid)=evou.organisationunitid) ")
-          .append(
-              "inner join organisationunit ou on (ev.organisationunitid=ou.organisationunitid) ");
-    } else {
-      fromBuilder.append(
-          "inner join organisationunit ou on ev.organisationunitid=ou.organisationunitid ");
-    }
+    fromBuilder
+        .append(
+            "left join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
+        .append(
+            "inner join organisationunit evou on (coalesce(po.organisationunitid,"
+                + " ev.organisationunitid)=evou.organisationunitid) ")
+        .append("inner join organisationunit ou on (ev.organisationunitid=ou.organisationunitid) ");
 
     fromBuilder
         .append("left join trackedentity te on te.trackedentityid=en.trackedentityid ")

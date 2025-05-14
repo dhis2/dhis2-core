@@ -297,6 +297,25 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
     assertIsEmpty(relationships.stream().toList());
   }
 
+  @Test
+  void shouldGetPaginatedEventsFirstPage() {
+    JsonPage page =
+        GET(
+                "/tracker/events?events={uid}&program={programUid}&page=1&pageSize=1&totalPages=true",
+                event.getUid(),
+                event.getProgramStage().getProgram().getUid())
+            .content(HttpStatus.OK)
+            .asA(JsonPage.class);
+
+    assertEquals(1, page.getList("events", JsonEvent.class).toList(JsonEvent::getEvent).size());
+
+    JsonPager pager = page.getPager();
+    assertEquals(1, pager.getPage());
+    assertEquals(1, pager.getPageSize());
+    assertEquals(1, pager.getTotal());
+    assertEquals(1, pager.getPageCount());
+  }
+
   private TrackedEntity trackedEntity() {
     TrackedEntity te = trackedEntity(orgUnit);
     manager.save(te, false);
