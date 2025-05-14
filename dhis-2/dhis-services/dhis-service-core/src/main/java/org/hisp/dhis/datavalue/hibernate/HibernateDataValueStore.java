@@ -215,11 +215,12 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
     String sql =
         """
-        select * from datavalue where dataelementid = :deid
-        and periodid = :periodid
-        and attributeoptioncomboid = :attributeOptionCombo
-        and categoryoptioncomboid = :categoryOptionCombo
-        and sourceid = :sourceid
+        select * from datavalue \
+        where dataelementid = :deid \
+        and periodid = :periodid \
+        and attributeoptioncomboid = :attributeOptionCombo \
+        and categoryoptioncomboid = :categoryOptionCombo \
+        and sourceid = :sourceid \
         and deleted is true""";
 
     return getSingleResult(
@@ -357,13 +358,15 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
       DataExportParams params, Set<Period> periods, Set<OrganisationUnit> organisationUnits) {
     StringBuilder hql =
         new StringBuilder(
-            "select dv from DataValue dv "
-                + "inner join dv.dataElement de "
-                + "inner join dv.period pe "
-                + "inner join dv.source ou "
-                + "inner join dv.categoryOptionCombo co "
-                + "inner join dv.attributeOptionCombo ao "
-                + "where de.id in (:dataElements) ");
+            """
+            select dv from DataValue dv \
+            inner join dv.dataElement de \
+            inner join dv.period pe \
+            inner join dv.source ou \
+            inner join dv.categoryOptionCombo co \
+            inner join dv.attributeOptionCombo ao \
+            where de.id in (:dataElements) \
+            """);
 
     if (!periods.isEmpty()) {
       hql.append("and pe.id in (:periods) ");
@@ -503,9 +506,10 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
   /** getDeflatedDataValues - Adds SELECT clause and starts FROM clause. */
   private void getDdvSelectFrom(DataExportParams params, StringBuilder sql) {
     sql.append(
-            "select dv.dataelementid, dv.periodid, dv.sourceid"
-                + ", dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value"
-                + ", dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted")
+            """
+            select dv.dataelementid, dv.periodid, dv.sourceid, \
+            dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, \
+            dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted""")
         .append(params.needsOrgUnitDetails() ? ", ou.path" : "")
         .append(" from datavalue dv");
   }

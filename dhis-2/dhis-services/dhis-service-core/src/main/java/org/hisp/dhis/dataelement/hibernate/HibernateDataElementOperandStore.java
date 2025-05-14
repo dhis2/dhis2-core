@@ -76,9 +76,8 @@ public class HibernateDataElementOperandStore
   public List<DataElementOperand> getByDataElement(Collection<DataElement> dataElements) {
     return getQuery(
             """
-            from DataElementOperand deo
-            where deo.dataElement in :dataElements
-            """)
+            from DataElementOperand deo \
+            where deo.dataElement in :dataElements""")
         .setParameter("dataElements", dataElements)
         .list();
   }
@@ -88,10 +87,9 @@ public class HibernateDataElementOperandStore
     if (uids.isEmpty()) return List.of();
     return getQuery(
             """
-            select distinct deo from DataElementOperand deo
-            join deo.categoryOptionCombo coc
-            where coc.uid in :uids
-            """)
+            select distinct deo from DataElementOperand deo \
+            join deo.categoryOptionCombo coc \
+            where coc.uid in :uids""")
         .setParameter("uids", UID.toValueList(uids))
         .getResultList();
   }

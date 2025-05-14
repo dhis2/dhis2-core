@@ -101,42 +101,43 @@ public class HibernateTrackedEntityChangeLogStore {
 
     String hql =
         """
-                select tecl.trackedEntity,
-                       tecl.trackedEntityAttribute,
-                       tecl.previousValue,
-                       tecl.currentValue,
-                       tecl.changeLogType,
-                       tecl.created,
-                       tecl.createdByUsername,
-                       u.firstName,
-                       u.surname,
-                       u.uid
-                from TrackedEntityChangeLog tecl
-                join tecl.trackedEntity t
-                join tecl.trackedEntityAttribute tea
-                left join tecl.createdBy u
-            """;
+        select \
+            tecl.trackedEntity, \
+            tecl.trackedEntityAttribute, \
+            tecl.previousValue, \
+            tecl.currentValue, \
+            tecl.changeLogType, \
+            tecl.created, \
+            tecl.createdByUsername, \
+            u.firstName, \
+            u.surname, \
+            u.uid \
+        from TrackedEntityChangeLog tecl \
+        join tecl.trackedEntity t \
+        join tecl.trackedEntityAttribute tea \
+        left join tecl.createdBy u \
+        """;
 
     if (program != null) {
       hql +=
           """
-              join tecl.programAttribute pa
-              join pa.program p
-              where t.uid = :trackedEntity
-              and p.uid = :program
+          join tecl.programAttribute pa \
+          join pa.program p \
+          where t.uid = :trackedEntity \
+          and p.uid = :program \
           """;
 
     } else {
       hql +=
           """
-              where t.uid = :trackedEntity
+          where t.uid = :trackedEntity \
           """;
     }
 
     if (!attributes.isEmpty()) {
       hql +=
           """
-              and tea.uid in (:attributes)
+          and tea.uid in (:attributes) \
           """;
     }
 
