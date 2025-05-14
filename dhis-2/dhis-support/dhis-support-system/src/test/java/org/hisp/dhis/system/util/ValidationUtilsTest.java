@@ -590,7 +590,7 @@ class ValidationUtilsTest {
     assertEquals("false", normalizeBoolean("False", BOOLEAN));
     assertEquals("false", normalizeBoolean("FALSE", BOOLEAN));
     assertEquals("false", normalizeBoolean("F", BOOLEAN));
-    assertNull(null, normalizeBoolean(null, TRUE_ONLY));
+    assertNull(normalizeBoolean(null, TRUE_ONLY));
   }
 
   @Test
