@@ -63,6 +63,9 @@ public class CreateEventExecutor implements RuleActionExecutor<Event> {
     params.setScheduledAt(scheduledAt);
     params.setUserName(bundle.getUser().getUsername());
 
+    // TODO We need a mechanism to prevent duplicate event creation, similar to how we currently
+    // block duplicate notifications.
+
     JobConfiguration jobConfiguration =
         new JobConfiguration(JobType.TRACKER_IMPORT_EVENT_SCHEDULE_JOB);
     jobConfiguration.setExecutedBy(bundle.getUser().getUid());
