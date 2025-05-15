@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.web.appbundler;
 
+import static org.hisp.dhis.util.FileUtils.generateFileChecksum;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import java.io.File;
@@ -59,6 +61,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import org.hisp.dhis.appmanager.AppBundleInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -203,6 +206,11 @@ public class AppBundler {
     logger.error("App bundling process completed successfully");
   }
 
+  //  public AppBundleInfo getBundleInfo(String jsonFile) {
+  //    Path bundleInfoPath = Paths.get(jsonFile);
+  //    return objectMapper.readValue(bundleInfoPath.toFile(), AppBundleInfo.class);
+  //  }
+
   private @Nonnull Path copyApps(Path downloadDirPath) throws IOException {
     Path targetArtifactDir = Paths.get(buildDir).resolve(artifactId);
     try {
@@ -245,6 +253,7 @@ public class AppBundler {
       // Pass the repoInfo object to the downloadApp task
       Callable<AppBundleInfo.AppInfo> task =
           () -> downloadApp(repoInfo, artifactDirPath, checksumDirPath);
+
       Future<AppBundleInfo.AppInfo> future = executor.submit(task);
       futures.add(future);
     }
@@ -357,7 +366,7 @@ public class AppBundler {
 
     // Generate a filename for the ZIP file using info from the record
     String zipName = repoInfo.repo() + ".zip";
-    Path zipPath = targetDir.resolve(zipName);
+    Path zipFilePath = targetDir.resolve(zipName);
 
     // Create app info object to store results (ETag etc.)
     AppBundleInfo.AppInfo appBundleResultInfo = new AppBundleInfo.AppInfo();
@@ -367,11 +376,12 @@ public class AppBundler {
 
     // Check if we already have the latest version using the codeload URL
     String etag = null;
+
     // Use repo name from record for checksum file
     Path checksumFile = checksumDir.resolve(repoInfo.repo() + ".checksum");
     try {
       // Use the pre-converted codeloadUrl for download check
-      etag = downloadIfChanged(repoInfo.codeloadUrl(), zipPath, checksumFile);
+      etag = downloadIfChanged(repoInfo.codeloadUrl(), zipFilePath, checksumFile);
 
       if (etag == null) { // Not modified or download failed ETag retrieval
         if (Files.exists(checksumFile)) {
@@ -384,6 +394,9 @@ public class AppBundler {
           logger.warn("Could not determine ETag for app {}, checksum file missing.", zipName);
         }
       } else {
+        String zipFileChecksum = generateFileChecksum(zipFilePath.toFile());
+        appBundleResultInfo.setChecksum(zipFileChecksum);
+
         // Store the new ETag in the result object
         appBundleResultInfo.setEtag(etag);
         logger.error("Downloaded app: {} (ETag: {})", zipName, etag);

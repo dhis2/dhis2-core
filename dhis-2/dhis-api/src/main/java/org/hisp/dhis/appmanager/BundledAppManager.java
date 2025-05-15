@@ -29,11 +29,16 @@
  */
 package org.hisp.dhis.appmanager;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
+import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
@@ -47,9 +52,12 @@ import org.springframework.stereotype.Component;
  * the bundled apps directory and installs them using the AppManager.
  */
 @Component
-public class BundledAppInstaller implements ApplicationListener<ContextRefreshedEvent> {
-  private static final Logger logger = LoggerFactory.getLogger(BundledAppInstaller.class);
+public class BundledAppManager implements ApplicationListener<ContextRefreshedEvent> {
+  private static final Logger logger = LoggerFactory.getLogger(BundledAppManager.class);
   private static final String APPS_PATH = "classpath:/static/dhis-web-apps/*.zip";
+  private static final String APPS_BUNDLE_INFO_PATH =
+      "classpath:/static/dhis-web-apps/apps-bundle.json";
+  private static final ObjectMapper objectMapper = new ObjectMapper();
 
   //  private static final String APPS_PATH_LOCAL =
   // "file:./dhis-web-server/target/classes/static/dhis-web-apps/*.zip";
@@ -87,6 +95,29 @@ public class BundledAppInstaller implements ApplicationListener<ContextRefreshed
       } catch (Exception e) {
         logger.error("Error installing app from {}: {}", resource.getFilename(), e.getMessage(), e);
       }
+    }
+  }
+
+  public Map<String, Resource> getBundledApps() {
+    PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+    Resource[] resources = null;
+    try {
+      resources = resolver.getResources(APPS_PATH);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
+    return Arrays.stream(resources)
+        .collect(Collectors.toMap(Resource::getFilename, Function.identity()));
+  }
+
+  public AppBundleInfo getAppBundleInfo() {
+    try {
+      PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+      Resource[] resources = resolver.getResources(APPS_BUNDLE_INFO_PATH);
+      return objectMapper.readValue(resources[0].getInputStream(), AppBundleInfo.class);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 

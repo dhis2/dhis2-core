@@ -68,7 +68,7 @@ class DefaultAppManagerTest {
   @Mock private DefaultCacheBuilderProvider cacheBuilderProvider;
   @Mock private CacheBuilder cacheBuilder;
   @Mock private I18nManager i18nManager;
-  @Mock private BundledAppInstaller bundledAppInstaller;
+  @Mock private BundledAppManager bundledAppInstaller;
 
   private AppManager appManager;
 

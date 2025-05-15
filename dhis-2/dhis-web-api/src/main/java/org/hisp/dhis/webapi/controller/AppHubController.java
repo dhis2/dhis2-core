@@ -86,7 +86,7 @@ public class AppHubController {
   @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
   public ResponseEntity<App> installAppFromAppHub(@PathVariable UUID versionId)
       throws ConflictException {
-    App app = appManager.installApp(versionId);
+    App app = appManager.installAppByHubId(versionId);
     AppStatus status = app.getAppState();
 
     if (!status.ok()) {

@@ -98,7 +98,7 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetInstalledAppIndexHtml() throws IOException {
-    appManager.installApp(
+    appManager.installAppZipFile(
         new ClassPathResource("app/test-app-with-index-html.zip").getFile(),
         "test-app-with-index-html.zip");
 
@@ -111,7 +111,7 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testInstallReturnsAppInfo() throws IOException {
     var result =
-        appManager.installApp(
+        appManager.installAppZipFile(
             new ClassPathResource("app/test-app-with-index-html.zip").getFile(),
             "test-app-with-index-html.zip");
 
@@ -160,7 +160,7 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   @DisplayName("Redirect for bundled app has correct location header")
   void redirectLocationTest() throws IOException {
-    appManager.installApp(
+    appManager.installAppZipFile(
         new ClassPathResource("app/test-bundled-app.zip").getFile(), "test-bundled-app.zip");
 
     HttpResponse get = GET("/api/apps/cache-cleaner/index.html");
@@ -169,7 +169,7 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testInstalledAppReturnsShortcuts() throws IOException {
-    appManager.installApp(
+    appManager.installAppZipFile(
         new ClassPathResource("app/test-app-with-shortcuts.zip").getFile(),
         "test-app-with-shortcuts.zip");
 

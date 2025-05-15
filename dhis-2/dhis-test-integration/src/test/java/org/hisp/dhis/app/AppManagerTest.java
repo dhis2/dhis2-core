@@ -69,7 +69,7 @@ class AppManagerTest extends PostgresIntegrationTestBase {
   void canUpdateAppUsingFileSystemStorageTest() throws IOException {
     // install an app for the 1st time (version 1)
     App installedApp =
-        appManager.installApp(
+        appManager.installAppZipFile(
             new ClassPathResource("app/test-app-minio-v1.zip").getFile(), "test-app-minio-v1.zip");
 
     AppStatus appStatus = installedApp.getAppState();
@@ -81,7 +81,7 @@ class AppManagerTest extends PostgresIntegrationTestBase {
     App updatedApp =
         assertDoesNotThrow(
             () ->
-                appManager.installApp(
+                appManager.installAppZipFile(
                     new ClassPathResource("app/test-app-minio-v2.zip").getFile(),
                     "test-app-minio-v2.zip"));
 
@@ -110,7 +110,7 @@ class AppManagerTest extends PostgresIntegrationTestBase {
   void appPathRedirectTest(String path, String expectedPath) throws IOException {
     // given an app is installed in object storage
     App installedApp =
-        appManager.installApp(
+        appManager.installAppZipFile(
             new ClassPathResource("app/test-app-minio-v1.zip").getFile(), "test-app-minio-v1.zip");
 
     AppStatus appStatus = installedApp.getAppState();
@@ -132,7 +132,7 @@ class AppManagerTest extends PostgresIntegrationTestBase {
   void appPathNotFoundTest(String path) throws IOException {
     // given an app is installed in object storage
     App installedApp =
-        appManager.installApp(
+        appManager.installAppZipFile(
             new ClassPathResource("app/test-app-minio-v1.zip").getFile(), "test-app-minio-v1.zip");
 
     AppStatus appStatus = installedApp.getAppState();

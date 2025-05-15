@@ -42,6 +42,7 @@ import java.util.concurrent.Future;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.appmanager.AppBundleInfo.AppInfo;
 import org.hisp.dhis.cache.Cache;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -116,7 +117,7 @@ public class BundledAppStorageService implements AppStorageService {
   }
 
   @Override
-  public App installApp(File file, String fileName, Cache<App> appCache) {
+  public App installApp(File file, String fileName, Cache<App> appCache, AppInfo bundledAppInfo) {
     throw new UnsupportedOperationException("Bundled apps cannot be installed.");
   }
 
