@@ -65,7 +65,7 @@ public class OrgUnitMergeValidator {
    * @return an {@link ErrorMessage} if the validation failed, or null if validation was successful.
    */
   public ErrorMessage validateForErrorMessage(OrgUnitMergeRequest request) {
-    if (request.getSources().size() < 2) {
+    if (request.getSources().isEmpty()) {
       return new ErrorMessage(ErrorCode.E1500);
     }
     if (request.getTarget() == null) {
