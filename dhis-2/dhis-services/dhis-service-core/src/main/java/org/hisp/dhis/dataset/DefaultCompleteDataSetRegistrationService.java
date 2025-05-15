@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -82,6 +83,8 @@ public class DefaultCompleteDataSetRegistrationService
   @Override
   @Transactional
   public void saveCompleteDataSetRegistration(CompleteDataSetRegistration registration) {
+    checkCompulsoryConstraints(registration);
+
     Date date = new Date();
 
     if (!registration.hasDate()) {
@@ -113,9 +116,28 @@ public class DefaultCompleteDataSetRegistrationService
     notificationEventPublisher.publishEvent(registration);
   }
 
+  private void checkCompulsoryConstraints(CompleteDataSetRegistration registration) {
+    List<DataElementOperand> missingDataElementOperands =
+        getMissingCompulsoryFields(
+            registration.getDataSet(),
+            registration.getPeriod(),
+            registration.getSource(),
+            registration.getAttributeOptionCombo());
+    if (!missingDataElementOperands.isEmpty()) {
+      String allDeos =
+          missingDataElementOperands.stream()
+              .map(DataElementOperand::getDisplayName)
+              .collect(Collectors.joining(","));
+      throw new IllegalStateException(
+          "All compulsory data element operands need to be filled: [%s]".formatted(allDeos));
+    }
+  }
+
   @Override
   @Transactional
   public void updateCompleteDataSetRegistration(CompleteDataSetRegistration registration) {
+    checkCompulsoryConstraints(registration);
+
     registration.setLastUpdated(new Date());
 
     registration.setLastUpdatedBy(CurrentUserUtil.getCurrentUsername());
