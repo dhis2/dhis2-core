@@ -37,8 +37,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -48,7 +50,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.Page;
@@ -68,7 +69,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.tracker.export.enrollment.EnrollmentService")
 class DefaultEnrollmentService implements EnrollmentService {
-  private final HibernateEnrollmentStore enrollmentStore;
+  private final JdbcEnrollmentStore enrollmentStore;
+  // TODO Remove this usage
+  // private final HibernateEnrollmentStore enrollmentStore;
 
   private final EventService eventService;
 
@@ -236,14 +239,17 @@ class DefaultEnrollmentService implements EnrollmentService {
   }
 
   private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(Enrollment enrollment) {
-    Set<TrackedEntityAttribute> readableAttributes =
-        trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes(
-            List.of(enrollment.getProgram()), null);
+    Set<String> readableAttributes =
+        trackedEntityAttributeService
+            .getAllUserReadableTrackedEntityAttributes(List.of(enrollment.getProgram()), null)
+            .stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toSet());
     Set<TrackedEntityAttributeValue> attributeValues = new LinkedHashSet<>();
 
     for (TrackedEntityAttributeValue trackedEntityAttributeValue :
         enrollment.getTrackedEntity().getTrackedEntityAttributeValues()) {
-      if (readableAttributes.contains(trackedEntityAttributeValue.getAttribute())) {
+      if (readableAttributes.contains(trackedEntityAttributeValue.getAttribute().getUid())) {
         attributeValues.add(trackedEntityAttributeValue);
       }
     }

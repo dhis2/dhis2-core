@@ -49,6 +49,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.CodeGenerator;
@@ -78,17 +79,23 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.event.EventFields;
 import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
+import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
-@Transactional
+// TODO This needs to be transactional
+// @Transactional
 class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private EnrollmentService enrollmentService;
+
+  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
   @Autowired protected UserService _userService;
 
@@ -206,15 +213,20 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     trackedEntityAttributeValueA.setAttribute(trackedEntityAttributeA);
     trackedEntityAttributeValueA.setTrackedEntity(trackedEntityA);
     trackedEntityAttributeValueA.setValue("12");
+    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(trackedEntityAttributeValueA);
     trackedEntityA.setTrackedEntityAttributeValues(Set.of(trackedEntityAttributeValueA));
     manager.update(trackedEntityA);
 
-    programA.setProgramAttributes(
-        List.of(createProgramTrackedEntityAttribute(programA, trackedEntityAttributeA)));
+    // TODO Remove this
+    // programA.getProgramAttributes().clear();
+    programA
+        .getProgramAttributes()
+        .add(createProgramTrackedEntityAttribute(programA, trackedEntityAttributeA));
     manager.update(programA);
 
-    programB.setProgramAttributes(
-        List.of(createProgramTrackedEntityAttribute(programB, trackedEntityAttributeA)));
+    programB
+        .getProgramAttributes()
+        .add(createProgramTrackedEntityAttribute(programB, trackedEntityAttributeA));
     manager.update(programB);
 
     programStageA = createProgramStage('A', programA);
@@ -277,7 +289,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldGetEnrollmentWhenUserHasReadWriteAccessToProgramAndAccessToOrgUnit()
+  void shouldGetEnrollmentWhenUserHasWriteAccessToProgramAndAccessToOrgUnit()
       throws NotFoundException {
     programA.getSharing().setPublicAccess(AccessStringHelper.DATA_READ_WRITE);
     manager.updateNoAcl(programA);
@@ -724,7 +736,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnEmptyListFailWhenRequestingEnrollmentsAndTheyAreNotAccessible()
+  void shouldReturnEmptyListWhenRequestingEnrollmentsAndTheyAreNotAccessible()
       throws ForbiddenException {
     injectSecurityContextUser(admin);
     programA.getSharing().setPublicAccess("rw------");
@@ -742,7 +754,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     note.setCreator(CodeGenerator.generateUid());
     note.setNoteText("text");
     manager.save(note);
-    enrollmentA.setNotes(List.of(note));
+    enrollmentA.getNotes().add(note);
 
     manager.save(enrollmentA);
 
@@ -752,6 +764,20 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     assertFalse(enrollmentService.findEnrollment(UID.of(enrollmentA)).isPresent());
     assertTrue(manager.exists(Note.class, note.getUid()));
+  }
+
+  @Test
+  void shouldReturnEnrollmentWithGeometry() {
+    GeometryFactory geometryFactory = new GeometryFactory();
+    Point point = geometryFactory.createPoint(new Coordinate(13.4050, 52.5200));
+
+    enrollmentA.setGeometry(point);
+    manager.update(enrollmentA);
+
+    Optional<Enrollment> enrollment = enrollmentService.findEnrollment(UID.of(enrollmentA));
+
+    assertTrue(enrollment.isPresent());
+    assertEquals(enrollmentA.getGeometry(), enrollment.get().getGeometry());
   }
 
   private static List<String> attributeUids(Enrollment enrollment) {
