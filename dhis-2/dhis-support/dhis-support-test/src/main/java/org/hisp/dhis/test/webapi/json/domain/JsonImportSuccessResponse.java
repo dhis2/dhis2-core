@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +27,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.e2e.actions.aggregate;
+package org.hisp.dhis.test.webapi.json.domain;
 
-import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import org.hisp.dhis.jsontree.JsonObject;
 
-/**
- * @author Jason P. Pickering <jason@dhis2.org>
- */
-public class MinMaxValuesActions extends RestApiActions {
-  public MinMaxValuesActions() {
-    super("/minMaxDataElements");
+public interface JsonImportSuccessResponse extends JsonObject {
+
+  default String getMessage() {
+    return getString("message").string();
+  }
+
+  default int getSuccessful() {
+    return getNumber("successful").intValue();
+  }
+
+  default int getIgnored() {
+    return getNumber("ignored").intValue();
   }
 }

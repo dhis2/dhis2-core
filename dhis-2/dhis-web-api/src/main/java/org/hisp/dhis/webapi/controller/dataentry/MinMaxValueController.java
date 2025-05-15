@@ -38,6 +38,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.minmax.MinMaxValue;
 import org.hisp.dhis.minmax.MinMaxValueKey;
@@ -57,7 +58,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @OpenApi.Document(
     entity = DataValue.class,
-    classifiers = {"team:platform", "purpose:metadata"})
+    classifiers = {"team:platform", "purpose:data"})
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/dataEntry")
@@ -80,7 +81,7 @@ public class MinMaxValueController {
       @RequestParam(required = false) @OpenApi.Param({UID.class, DataElement.class}) UID de,
       @RequestParam(required = false) @OpenApi.Param({UID.class, OrganisationUnit.class}) UID ou,
       @RequestParam(required = false) @OpenApi.Param({UID.class, CategoryOptionCombo.class}) UID co)
-      throws BadRequestException {
+      throws BadRequestException, NotFoundException {
     if (key == null) key = new MinMaxValueKey(de, ou, co);
     minMaxValueService.deleteValue(key);
   }

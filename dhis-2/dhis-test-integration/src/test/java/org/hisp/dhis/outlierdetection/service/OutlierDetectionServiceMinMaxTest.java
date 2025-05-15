@@ -43,8 +43,10 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
+import org.hisp.dhis.minmax.MinMaxValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outlierdetection.OutlierDetectionAlgorithm;
 import org.hisp.dhis.outlierdetection.OutlierDetectionQuery;
@@ -138,7 +140,7 @@ class OutlierDetectionServiceMinMaxTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetOutlierValues() {
+  void testGetOutlierValues() throws Exception {
     addMinMaxValues(
         new MinMaxDataElement(deA, ouA, coc, 40, 60), new MinMaxDataElement(deB, ouA, coc, 45, 65));
     // 34, 39, 68, 91, 42, 45, 68, 87 are outlier values out of range
@@ -179,7 +181,7 @@ class OutlierDetectionServiceMinMaxTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testGetOutlierValue() {
+  void testGetOutlierValue() throws Exception {
     addMinMaxValues(
         new MinMaxDataElement(deA, ouA, coc, 40, 60), new MinMaxDataElement(deB, ouA, coc, 45, 65));
     addDataValues(
@@ -211,8 +213,8 @@ class OutlierDetectionServiceMinMaxTest extends PostgresIntegrationTestBase {
     Stream.of(periods).forEach(periodService::addPeriod);
   }
 
-  private void addMinMaxValues(MinMaxDataElement... minMaxValues) {
-    Stream.of(minMaxValues).forEach(minMaxService::addMinMaxDataElement);
+  private void addMinMaxValues(MinMaxDataElement... minMaxValues) throws BadRequestException {
+    for (MinMaxDataElement e : minMaxValues) minMaxService.importValue(MinMaxValue.of(e));
   }
 
   private void addDataValues(DataValue... dataValues) {

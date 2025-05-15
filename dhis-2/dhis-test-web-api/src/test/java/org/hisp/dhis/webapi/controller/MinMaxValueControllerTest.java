@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.http.HttpStatus.BAD_REQUEST;
 import static org.hisp.dhis.http.HttpStatus.CREATED;
+import static org.hisp.dhis.http.HttpStatus.NOT_FOUND;
 import static org.hisp.dhis.http.HttpStatus.NO_CONTENT;
 import static org.hisp.dhis.http.HttpStatus.OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -48,6 +49,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * Tests the {@link org.hisp.dhis.webapi.controller.dataentry.MinMaxValueController} endpoints.
+ *
+ * @author Jan Bernitt
+ */
 class MinMaxValueControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Autowired private ObjectMapper jsonMapper;
@@ -273,7 +279,7 @@ class MinMaxValueControllerTest extends PostgresControllerIntegrationTestBase {
     assertStatus(OK, POST("/dataEntry/minMaxValues", json.formatted(de, ou, coc)));
     JsonWebMessage response =
         DELETE("/dataEntry/minMaxValues?de={de}&ou={ou}&co={coc}", "de123456789", ou, coc)
-            .content(BAD_REQUEST)
+            .content(NOT_FOUND)
             .as(JsonWebMessage.class);
     assertEquals(ErrorCode.E2047, response.getErrorCode());
   }
@@ -283,7 +289,7 @@ class MinMaxValueControllerTest extends PostgresControllerIntegrationTestBase {
     assertStatus(OK, POST("/dataEntry/minMaxValues", json.formatted(de, ou, coc)));
     JsonWebMessage response =
         DELETE("/dataEntry/minMaxValues?de={de}&ou={ou}&co={coc}", de, "ou123456789", coc)
-            .content(BAD_REQUEST)
+            .content(NOT_FOUND)
             .as(JsonWebMessage.class);
     assertEquals(ErrorCode.E2047, response.getErrorCode());
   }
@@ -293,7 +299,7 @@ class MinMaxValueControllerTest extends PostgresControllerIntegrationTestBase {
     assertStatus(OK, POST("/dataEntry/minMaxValues", json.formatted(de, ou, coc)));
     JsonWebMessage response =
         DELETE("/dataEntry/minMaxValues?de={de}&ou={ou}&co={coc}", de, ou, "coc23456789")
-            .content(BAD_REQUEST)
+            .content(NOT_FOUND)
             .as(JsonWebMessage.class);
     assertEquals(ErrorCode.E2047, response.getErrorCode());
   }

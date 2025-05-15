@@ -29,27 +29,18 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.security.Authorities.F_MINMAX_DATAELEMENT_ADD;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 import com.google.common.collect.Lists;
-import jakarta.servlet.http.HttpServletRequest;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Objects;
 import lombok.AllArgsConstructor;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.csv.CSV;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ImportSuccessResponse;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
@@ -64,12 +55,10 @@ import org.hisp.dhis.minmax.MinMaxValueKey;
 import org.hisp.dhis.minmax.MinMaxValueUpsertRequest;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.QueryParserException;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -78,14 +67,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
 @OpenApi.Document(
-    entity = DataElement.class,
-    classifiers = {"team:platform", "purpose:metadata"})
+    entity = DataValue.class,
+    classifiers = {"team:platform", "purpose:data"})
 @Controller
 @RequestMapping("/api/minMaxDataElements")
 @AllArgsConstructor
@@ -94,8 +84,6 @@ public class MinMaxDataElementController {
   private final ContextService contextService;
   private final MinMaxDataElementService minMaxService;
   private final FieldFilterService fieldFilterService;
-  private final RenderService renderService;
-  private final IdentifiableObjectManager manager;
 
   @GetMapping
   public @ResponseBody RootNode getObjectList(MinMaxDataElementQueryParams query)
@@ -130,27 +118,9 @@ public class MinMaxDataElementController {
 
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
-  @ResponseBody
-  public WebMessage postJsonObject(HttpServletRequest request) throws Exception {
-    MinMaxDataElement minMax =
-        renderService.fromJson(request.getInputStream(), MinMaxDataElement.class);
-
-    validate(minMax);
-
-    minMax = getReferences(minMax);
-
-    MinMaxDataElement persisted =
-        minMaxService.getMinMaxDataElement(
-            minMax.getSource(), minMax.getDataElement(), minMax.getOptionCombo());
-
-    if (Objects.isNull(persisted)) {
-      minMaxService.addMinMaxDataElement(minMax);
-    } else {
-      persisted.mergeWith(minMax);
-      minMaxService.updateMinMaxDataElement(persisted);
-    }
-
-    return created();
+  @ResponseStatus(HttpStatus.CREATED)
+  public void postJsonObject(@RequestBody MinMaxDataElement body) throws Exception {
+    minMaxService.importValue(MinMaxValue.of(body));
   }
 
   // --------------------------------------------------------------------------
@@ -159,53 +129,14 @@ public class MinMaxDataElementController {
 
   @DeleteMapping(consumes = APPLICATION_JSON_VALUE)
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
-  @ResponseBody
-  public WebMessage deleteObject(HttpServletRequest request) throws Exception {
-    MinMaxDataElement minMax =
-        renderService.fromJson(request.getInputStream(), MinMaxDataElement.class);
-
-    validate(minMax);
-
-    minMax = getReferences(minMax);
-
-    MinMaxDataElement persisted =
-        minMaxService.getMinMaxDataElement(
-            minMax.getSource(), minMax.getDataElement(), minMax.getOptionCombo());
-
-    if (Objects.isNull(persisted)) {
-      return notFound("Can not find MinMaxDataElement.");
-    }
-
-    minMaxService.deleteMinMaxDataElement(persisted);
-
-    return ok("MinMaxDataElement deleted.");
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteObject(@RequestBody MinMaxDataElement body) throws Exception {
+    minMaxService.deleteValue(MinMaxValueKey.of(body));
   }
 
-  private void validate(MinMaxDataElement minMax) throws WebMessageException {
-    if (!ObjectUtils.allNonNull(
-        minMax.getDataElement(), minMax.getSource(), minMax.getOptionCombo())) {
-      throw new WebMessageException(
-          notFound("Missing required parameters : Source, DataElement, OptionCombo."));
-    }
-  }
-
-  private MinMaxDataElement getReferences(MinMaxDataElement m) throws WebMessageException {
-    try {
-      m.setDataElement(
-          Objects.requireNonNull(manager.get(DataElement.class, m.getDataElement().getUid())));
-      m.setSource(
-          Objects.requireNonNull(manager.get(OrganisationUnit.class, m.getSource().getUid())));
-      m.setOptionCombo(
-          Objects.requireNonNull(
-              manager.get(CategoryOptionCombo.class, m.getOptionCombo().getUid())));
-      return m;
-    } catch (NullPointerException e) {
-      throw new WebMessageException(
-          notFound("Invalid required parameters: source, dataElement, optionCombo"));
-    }
-  }
-
-  // Bulk import
+  /*
+  Bulk import
+  */
 
   @PostMapping(value = "/upsert", consumes = "application/json")
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)

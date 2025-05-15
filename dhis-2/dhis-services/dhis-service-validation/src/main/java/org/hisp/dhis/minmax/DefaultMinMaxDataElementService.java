@@ -38,6 +38,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,26 +52,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultMinMaxDataElementService implements MinMaxDataElementService {
 
   private final MinMaxDataElementStore minMaxDataElementStore;
-
-  @Transactional
-  @Override
-  public long addMinMaxDataElement(MinMaxDataElement minMaxDataElement) {
-    minMaxDataElementStore.save(minMaxDataElement);
-
-    return minMaxDataElement.getId();
-  }
-
-  @Transactional
-  @Override
-  public void deleteMinMaxDataElement(MinMaxDataElement minMaxDataElement) {
-    minMaxDataElementStore.delete(minMaxDataElement);
-  }
-
-  @Transactional
-  @Override
-  public void updateMinMaxDataElement(MinMaxDataElement minMaxDataElement) {
-    minMaxDataElementStore.update(minMaxDataElement);
-  }
 
   @Override
   public MinMaxDataElement getMinMaxDataElement(
@@ -164,10 +145,10 @@ public class DefaultMinMaxDataElementService implements MinMaxDataElementService
   }
 
   @Override
-  public void deleteValue(MinMaxValueKey key) throws BadRequestException {
+  public void deleteValue(MinMaxValueKey key) throws BadRequestException, NotFoundException {
     validateValueId(key);
     int deleted = minMaxDataElementStore.deleteByKeys(List.of(key));
-    if (deleted == 0) throw new BadRequestException(ErrorCode.E2047, key);
+    if (deleted == 0) throw new NotFoundException(ErrorCode.E2047, key);
   }
 
   /**

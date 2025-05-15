@@ -50,6 +50,17 @@ public record MinMaxValue(
     Boolean generated)
     implements MinMaxValueId {
 
+  @Nonnull
+  public static MinMaxValue of(@Nonnull MinMaxDataElement obj) {
+    return new MinMaxValue(
+        UID.of(obj.getDataElement().getUid()),
+        UID.of(obj.getSource().getUid()),
+        UID.of(obj.getOptionCombo().getUid()),
+        obj.getMin(),
+        obj.getMax(),
+        obj.isGenerated());
+  }
+
   public MinMaxValue generated(boolean generated) {
     return new MinMaxValue(dataElement, orgUnit, optionCombo, minValue, maxValue, generated);
   }

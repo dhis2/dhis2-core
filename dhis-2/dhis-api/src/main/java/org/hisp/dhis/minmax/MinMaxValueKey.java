@@ -46,4 +46,13 @@ public record MinMaxValueKey(
     @OpenApi.Property({UID.class, OrganisationUnit.class}) @Nonnull UID dataElement,
     @OpenApi.Property({UID.class, OrganisationUnit.class}) @Nonnull UID orgUnit,
     @OpenApi.Property({UID.class, CategoryOptionCombo.class}) @Nonnull UID optionCombo)
-    implements MinMaxValueId {}
+    implements MinMaxValueId {
+
+  @Nonnull
+  public static MinMaxValueKey of(@Nonnull MinMaxDataElement obj) {
+    return new MinMaxValueKey(
+        UID.of(obj.getDataElement().getUid()),
+        UID.of(obj.getSource().getUid()),
+        UID.of(obj.getOptionCombo().getUid()));
+  }
+}
