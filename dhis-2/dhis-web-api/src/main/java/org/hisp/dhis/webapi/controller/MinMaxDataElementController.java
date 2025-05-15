@@ -43,6 +43,7 @@ import org.hisp.dhis.csv.CSV;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ImportSuccessResponse;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
@@ -119,7 +120,7 @@ public class MinMaxDataElementController {
   @PostMapping(consumes = APPLICATION_JSON_VALUE)
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @ResponseStatus(HttpStatus.CREATED)
-  public void postJsonObject(@RequestBody MinMaxDataElement body) throws Exception {
+  public void postJsonObject(@RequestBody MinMaxDataElement body) throws BadRequestException {
     minMaxService.importValue(MinMaxValue.of(body));
   }
 
@@ -130,7 +131,8 @@ public class MinMaxDataElementController {
   @DeleteMapping(consumes = APPLICATION_JSON_VALUE)
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void deleteObject(@RequestBody MinMaxDataElement body) throws Exception {
+  public void deleteObject(@RequestBody MinMaxDataElement body)
+      throws BadRequestException, NotFoundException {
     minMaxService.deleteValue(MinMaxValueKey.of(body));
   }
 
