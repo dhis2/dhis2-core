@@ -62,8 +62,7 @@ public class HibernateProgramStageSectionStore
             select pss from ProgramStageSection pss
             join pss.dataElements de
             where de in :dataElements
-            group by pss
-            """)
+            group by pss""")
         .setParameter("dataElements", dataElements)
         .list();
   }

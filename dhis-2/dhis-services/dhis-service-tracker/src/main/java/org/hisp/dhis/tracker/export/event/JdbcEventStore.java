@@ -32,7 +32,7 @@ package org.hisp.dhis.tracker.export.event;
 import static java.util.Map.entry;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
-import static org.hisp.dhis.tracker.export.JdbcPredicate.mapPredicatesToSql;
+import static org.hisp.dhis.tracker.export.JdbcPredicate.addPredicates;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,8 +47,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -606,10 +604,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     // a TE in a tracker program, so we can filter out
     // event programs
 
-    String predicates = mapPredicatesToSql(params.getAttributes(), sqlParameters);
-    if (!predicates.isEmpty()) {
+    if (!params.getAttributes().isEmpty()) {
       sql.append(AND);
-      sql.append(predicates);
+      addPredicates(sql, sqlParameters, params.getAttributes());
       sql.append(SPACE);
     }
     return sql.toString();
@@ -772,15 +769,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     return selectBuilder.toString();
   }
 
-  private boolean checkForOwnership(EventQueryParams params) {
-    return Optional.ofNullable(params.getProgram())
-        .filter(
-            p ->
-                Objects.nonNull(p.getProgramType())
-                    && p.getProgramType() == ProgramType.WITH_REGISTRATION)
-        .isPresent();
-  }
-
   private StringBuilder getFromWhereClause(
       EventQueryParams params, MapSqlParameterSource sqlParameters, User user, SqlHelper hlp) {
     StringBuilder fromBuilder =
@@ -789,19 +777,13 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             .append("inner join program p on p.programid=en.programid ")
             .append("inner join programstage ps on ps.programstageid=ev.programstageid ");
 
-    if (checkForOwnership(params)) {
-      fromBuilder
-          .append(
-              "left join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid) ")
-          .append(
-              "inner join organisationunit evou on (coalesce(po.organisationunitid,"
-                  + " ev.organisationunitid)=evou.organisationunitid) ")
-          .append(
-              "inner join organisationunit ou on (ev.organisationunitid=ou.organisationunitid) ");
-    } else {
-      fromBuilder.append(
-          "inner join organisationunit ou on ev.organisationunitid=ou.organisationunitid ");
-    }
+    fromBuilder
+        .append(
+            "left join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
+        .append(
+            "inner join organisationunit evou on (coalesce(po.organisationunitid,"
+                + " ev.organisationunitid)=evou.organisationunitid) ")
+        .append("inner join organisationunit ou on (ev.organisationunitid=ou.organisationunitid) ");
 
     fromBuilder
         .append("left join trackedentity te on te.trackedentityid=en.trackedentityid ")
@@ -812,10 +794,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
     fromBuilder.append(getCategoryOptionComboQuery(user));
 
-    String predicates = mapPredicatesToSql(params.getDataElements(), sqlParameters);
-    if (!predicates.isEmpty()) {
+    if (!params.getDataElements().isEmpty()) {
       fromBuilder.append(AND);
-      fromBuilder.append(predicates);
+      addPredicates(fromBuilder, sqlParameters, params.getDataElements());
     }
     fromBuilder.append(SPACE);
 

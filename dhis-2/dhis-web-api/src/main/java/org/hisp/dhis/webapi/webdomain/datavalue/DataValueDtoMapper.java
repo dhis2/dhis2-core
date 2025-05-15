@@ -36,6 +36,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.minmax.MinMaxDataElement;
+import org.hisp.dhis.minmax.MinMaxValueDto;
 
 /**
  * Class which provides methods for mapping between domain objcets and DTOs.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,22 +27,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.notification.template.snapshot;
+package org.hisp.dhis.analytics.event.data.programindicator.ctefactory.coalesce;
 
-import java.util.Set;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.ValueType;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class OrganisationUnitSnapshot extends IdentifiableObjectSnapshot {
-  private String name;
+@RequiredArgsConstructor
+public enum ValueCoalescePolicy {
+  NUMBER("0"),
+  // use 0 for all boolean values, since "yes/no" data type is converted to 0/1 in
+  // analytics tables
+  BOOLEAN("0"),
+  TEXT("''"),
+  DATE(null);
 
-  private String description;
+  private final String defaultSqlLiteral;
 
-  private String shortName;
+  /**
+   * Renders either <code>alias.value</code> or <code>coalesce(alias.value,&nbsp;default)</code>.
+   */
+  public String render(String alias) {
+    if (defaultSqlLiteral == null) {
+      return alias + ".value";
+    }
+    return "coalesce(" + alias + ".value, " + defaultSqlLiteral + ")";
+  }
 
-  private OrganisationUnitSnapshot parent;
-
-  private Set<UserSnapshot> users;
+  /** Maps DHIS2 {@link ValueType} → policy. */
+  public static ValueCoalescePolicy from(ValueType vt) {
+    return switch (vt) {
+      case INTEGER,
+          NUMBER,
+          INTEGER_POSITIVE,
+          INTEGER_NEGATIVE,
+          INTEGER_ZERO_OR_POSITIVE,
+          PERCENTAGE,
+          UNIT_INTERVAL ->
+          NUMBER;
+      case BOOLEAN -> BOOLEAN;
+      case DATE, DATETIME -> DATE;
+      default -> TEXT;
+    };
+  }
 }

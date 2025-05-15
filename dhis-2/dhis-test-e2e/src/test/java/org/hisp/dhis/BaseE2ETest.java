@@ -80,7 +80,7 @@ public class BaseE2ETest {
   public static String serverApiUrl = "http://localhost:8080/api";
   public static String serverHostUrl = "http://localhost:8080/";
 
-  public static final String DEFAULT_DASHBOARD_PATH = "/api/apps/dashboard/";
+  public static final String DEFAULT_LOGIN_REDIRECT = "/";
   public static final String LOGIN_API_PATH = "/auth/login";
   public static final String SUPER_USER_ROLE_UID = "yrB6vc5Ip3r";
 
@@ -120,14 +120,14 @@ public class BaseE2ETest {
   public static String performInitialLogin(String username, String password) {
     ResponseEntity<LoginResponse> loginResponse =
         loginWithUsernameAndPassword(username, password, null);
-    assertLoginSuccess(loginResponse, DEFAULT_DASHBOARD_PATH);
+    assertLoginSuccess(loginResponse, DEFAULT_LOGIN_REDIRECT);
     return extractSessionCookie(loginResponse);
   }
 
   public static String loginWith2FA(String username, String password, String twoFACode) {
     ResponseEntity<LoginResponse> login2FAResp =
         loginWithUsernameAndPassword(username, password, twoFACode);
-    assertLoginSuccess(login2FAResp, DEFAULT_DASHBOARD_PATH);
+    assertLoginSuccess(login2FAResp, DEFAULT_LOGIN_REDIRECT);
     return extractSessionCookie(login2FAResp);
   }
 

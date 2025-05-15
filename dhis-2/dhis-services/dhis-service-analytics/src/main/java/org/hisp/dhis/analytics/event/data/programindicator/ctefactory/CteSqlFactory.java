@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,28 +27,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oidc;
+package org.hisp.dhis.analytics.event.data.programindicator.ctefactory;
 
-import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+import java.util.Date;
+import java.util.Map;
+import org.hisp.dhis.analytics.common.CteContext;
+import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.program.ProgramIndicator;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public class OIDCLoginEnabledCondition extends PropertiesAwareConfigurationCondition {
-  @Override
-  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-    if (isTestRun(context)) {
-      return false;
-    }
-    String isEnabled = getConfiguration().getProperty(ConfigurationKey.OIDC_OAUTH2_LOGIN_ENABLED);
-    return isEnabled.equalsIgnoreCase("on");
-  }
+/** Strategy for finding a placeholder family and producing the substituted SQL */
+public interface CteSqlFactory {
 
-  @Override
-  public ConfigurationPhase getConfigurationPhase() {
-    return ConfigurationPhase.PARSE_CONFIGURATION;
-  }
+  /** Returns {@code true} when {@code rawSql} contains this factory’s placeholder grammar. */
+  boolean supports(String rawSql);
+
+  /**
+   * Replaces placeholders with “alias.value/coalesce(…)” and registers the required CTEs in {@code
+   * cteContext}.
+   *
+   * @param aliasMap caller-supplied map; implementation must add one entry per placeholder.
+   */
+  String process(
+      String rawSql,
+      ProgramIndicator programIndicator,
+      Date earliestStart,
+      Date latestEnd,
+      CteContext cteContext,
+      Map<String, String> aliasMap,
+      SqlBuilder sqlBuilder);
 }
