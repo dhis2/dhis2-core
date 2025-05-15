@@ -123,6 +123,7 @@ class Property {
 
   private static List<Property> propertiesIn(Class<?> object) {
     if (JsonObject.class.isAssignableFrom(object)) return propertiesInJson(object);
+    if (JsonValue.class.isAssignableFrom(object)) return List.of();
     // map for order by name and avoiding duplicates
     Map<String, Property> properties = new TreeMap<>();
     Consumer<Property> add = property -> properties.putIfAbsent(property.name, property);
