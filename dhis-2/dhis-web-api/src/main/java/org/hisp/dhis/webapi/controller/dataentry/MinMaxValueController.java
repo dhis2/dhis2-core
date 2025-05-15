@@ -32,20 +32,23 @@ package org.hisp.dhis.webapi.controller.dataentry;
 import static org.hisp.dhis.security.Authorities.F_MINMAX_DATAELEMENT_ADD;
 
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.minmax.MinMaxValue;
 import org.hisp.dhis.minmax.MinMaxValueKey;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.webapi.webdomain.datavalue.MinMaxValueQueryParams;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -72,8 +75,13 @@ public class MinMaxValueController {
   @RequiresAuthority(anyOf = F_MINMAX_DATAELEMENT_ADD)
   @DeleteMapping("/minMaxValues")
   @ResponseStatus(value = HttpStatus.NO_CONTENT)
-  public void removeMinMaxValue(MinMaxValueQueryParams params) throws BadRequestException {
-    minMaxValueService.deleteValue(
-        new MinMaxValueKey(UID.of(params.getDe()), UID.of(params.getOu()), UID.of(params.getCo())));
+  public void removeMinMaxValue(
+      @RequestBody(required = false) MinMaxValueKey key,
+      @RequestParam(required = false) @OpenApi.Param({UID.class, DataElement.class}) UID de,
+      @RequestParam(required = false) @OpenApi.Param({UID.class, OrganisationUnit.class}) UID ou,
+      @RequestParam(required = false) @OpenApi.Param({UID.class, CategoryOptionCombo.class}) UID co)
+      throws BadRequestException {
+    if (key == null) key = new MinMaxValueKey(de, ou, co);
+    minMaxValueService.deleteValue(key);
   }
 }
