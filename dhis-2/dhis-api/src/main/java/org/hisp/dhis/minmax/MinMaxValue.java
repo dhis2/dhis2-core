@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +27,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.e2e.actions.aggregate;
+package org.hisp.dhis.minmax;
 
-import org.hisp.dhis.test.e2e.actions.RestApiActions;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
- * @author Jason P. Pickering <jason@dhis2.org>
+ * DTO which represents a {@link MinMaxDataElement} in the API.
+ *
+ * @author Lars Helge Overland
  */
-public class MinMaxValuesActions extends RestApiActions {
-  public MinMaxValuesActions() {
-    super("/minMaxDataElements/values");
+public record MinMaxValue(
+    @Nonnull @OpenApi.Property({UID.class, DataElement.class}) UID dataElement,
+    @Nonnull @OpenApi.Property({UID.class, OrganisationUnit.class}) UID orgUnit,
+    @Nonnull @OpenApi.Property({UID.class, CategoryOptionCombo.class}) UID optionCombo,
+    Integer minValue,
+    Integer maxValue,
+    Boolean generated)
+    implements MinMaxValueId {
+
+  @Nonnull
+  public static MinMaxValue of(@Nonnull MinMaxDataElement obj) {
+    return new MinMaxValue(
+        UID.of(obj.getDataElement().getUid()),
+        UID.of(obj.getSource().getUid()),
+        UID.of(obj.getOptionCombo().getUid()),
+        obj.getMin(),
+        obj.getMax(),
+        obj.isGenerated());
+  }
+
+  public MinMaxValue generated(boolean generated) {
+    return new MinMaxValue(dataElement, orgUnit, optionCombo, minValue, maxValue, generated);
+  }
+
+  public MinMaxValueKey key() {
+    return new MinMaxValueKey(dataElement, orgUnit, optionCombo);
   }
 }

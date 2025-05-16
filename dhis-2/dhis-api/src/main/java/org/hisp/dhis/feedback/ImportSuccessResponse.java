@@ -27,13 +27,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.minmax;
+package org.hisp.dhis.feedback;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.List;
-import org.hisp.dhis.common.UID;
+import lombok.Builder;
 
-public record MinMaxValueBatchRequest(
-    @JsonProperty("dataSet") UID dataSet,
-    @JsonProperty("orgUnit") UID orgUnit,
-    @JsonProperty("values") List<MinMaxValueDto> values) {}
+/**
+ * A simple response used for bulk imports in case of success.
+ *
+ * @author Jan Bernitt
+ * @param message a custom message to detail the outcome
+ * @param successful number of rows or objects that were successfully processed
+ * @param ignored number of rows or objects that were ignored due to wrong data or missing
+ *     permission
+ */
+@Builder(builderMethodName = "ok")
+public record ImportSuccessResponse(
+    @JsonProperty String message, @JsonProperty int successful, @JsonProperty int ignored) {}
