@@ -200,6 +200,9 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
       assertEquals(note.getValue(), dbNote.getNoteText());
       assertEquals(note.getStoredBy(), dbNote.getCreator());
       assertEquals(updatedBy.getUid(), dbNote.getLastUpdatedBy().getUid());
+      assertEquals(updatedBy.getUsername(), dbNote.getLastUpdatedBy().getUsername());
+      assertEquals(updatedBy.getFirstName(), dbNote.getLastUpdatedBy().getFirstName());
+      assertEquals(updatedBy.getSurname(), dbNote.getLastUpdatedBy().getSurname());
     }
   }
 

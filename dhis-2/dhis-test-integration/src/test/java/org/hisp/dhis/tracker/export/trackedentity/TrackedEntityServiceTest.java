@@ -689,8 +689,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     TrackedEntity te =
         trackedEntityService.getTrackedEntity(
             UID.of(trackedEntityA), UID.of(programA), TrackedEntityFields.all());
-    assertEquals(1, te.getEnrollments().size());
-    assertEquals(enrollmentA.getUid(), te.getEnrollments().stream().findFirst().get().getUid());
+    assertContainsOnly(Set.of(enrollmentA.getUid()), uids(te.getEnrollments()));
 
     final List<TrackedEntity> trackedEntities =
         trackedEntityService.findTrackedEntities(operationParams);

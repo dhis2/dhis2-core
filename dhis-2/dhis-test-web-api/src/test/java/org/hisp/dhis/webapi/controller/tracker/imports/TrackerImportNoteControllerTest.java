@@ -86,6 +86,10 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
 
     TrackedEntityType trackedEntityType = createTrackedEntityType('A');
     manager.save(trackedEntityType);
+    trackedEntityType
+        .getSharing()
+        .addUserAccess(new UserAccess(importUser, AccessStringHelper.DATA_READ));
+    manager.update(trackedEntityType);
 
     ProgramStage programStage = createProgramStage('A', program);
     programStage
@@ -170,7 +174,6 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
         POST(
                 "/tracker/enrollments/" + enrollment.getUid() + "/note",
                 """
-
                         {
                            "creator": "I am the creator"
                         }
@@ -187,7 +190,6 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
         POST(
                 "/tracker/enrollments/" + enrollment.getUid() + "/note",
                 """
-
                         {
                            "value": "This is a note"
                         }
@@ -206,7 +208,6 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
         POST(
                 "/tracker/enrollments/" + enrollment.getUid() + "/note",
                 """
-
                         {
                            "note": "%s",
                            "value": "This is a note"
