@@ -55,6 +55,7 @@ import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -85,7 +86,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
-@Component("org.hisp.dhis.tracker.export.enrollment.JdbcEnrollmentStore")
+@Slf4j
+@Component("org.hisp.dhis.tracker.export.enrollment.EnrollmentStore")
 @RequiredArgsConstructor
 public class JdbcEnrollmentStore {
 
@@ -460,8 +462,8 @@ public class JdbcEnrollmentStore {
         byte[] bytes = WKBReader.hexToBytes(geometry);
         return reader.read(bytes);
       } catch (ParseException e) {
-        // TODO Should this be runtime exceptions?
-        throw new RuntimeException(e);
+        log.error("Error mapping enrollment geometry: {}", geometry);
+        return null;
       }
     }
 
@@ -475,8 +477,8 @@ public class JdbcEnrollmentStore {
             .readerFor(new TypeReference<Sharing>() {})
             .readValue(jsonSharing);
       } catch (IOException e) {
-        // TODO Should this be illegal argument exception?
-        throw new IllegalArgumentException(e);
+        log.error("Error mapping enrollment sharing: {}", jsonSharing);
+        return null;
       }
     }
 
@@ -489,8 +491,8 @@ public class JdbcEnrollmentStore {
       try {
         return mapper.readValue(jsonUser, UserInfoSnapshot.class);
       } catch (JsonProcessingException e) {
-        // TODO Should this be runtime exceptions?
-        throw new RuntimeException(e);
+        log.error("Error mapping enrollment user info: {}", jsonUser);
+        return null;
       }
     }
 
@@ -500,8 +502,8 @@ public class JdbcEnrollmentStore {
       try {
         jdbcNotes = mapper.readValue(jsonNotes, new TypeReference<>() {});
       } catch (JsonProcessingException e) {
-        // TODO Should this be runtime exceptions?
-        throw new RuntimeException(e);
+        log.error("Error mapping enrollment notes: {}", jsonNotes);
+        return null;
       }
 
       List<Note> notes = new ArrayList<>();
