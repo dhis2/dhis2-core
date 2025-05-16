@@ -41,6 +41,8 @@ import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.math.NumberUtils.createDouble;
+import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.hisp.dhis.analytics.AggregationType.CUSTOM;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AnalyticsConstants.DATE_PERIOD_STRUCT_ALIAS;
@@ -54,6 +56,7 @@ import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUni
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getPeriodColumns;
 import static org.hisp.dhis.analytics.table.AbstractEventJdbcTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.table.AbstractEventJdbcTableManager.OU_NAME_COL_SUFFIX;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValue;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.replaceStringBetween;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
@@ -68,6 +71,7 @@ import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.feedback.ErrorCode.E7149;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
+import static org.hisp.dhis.system.util.MathUtils.getRoundedObject;
 import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -92,7 +96,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.analytics.AggregationType;
@@ -107,7 +110,6 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagDataHandler;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
-import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.analytics.util.sql.SqlConditionJoiner;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -711,7 +713,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       } else if (params.hasProgramIndicatorDimension()) {
         double value = rowSet.getDouble(COL_VALUE);
         ProgramIndicator indicator = params.getProgramIndicator();
-        row.add(AnalyticsUtils.getRoundedValue(params, indicator.getDecimals(), value));
+        row.add(getRoundedValue(params, indicator.getDecimals(), value));
       } else {
         int value = rowSet.getInt(COL_VALUE);
         row.add(value);
@@ -1060,33 +1062,17 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     if (Double.class.getName().equals(header.getType()) && !header.hasLegendSet()) {
       Object value = sqlRowSet.getObject(index);
 
-      boolean isDouble = value instanceof Double;
+      boolean isNumber = value instanceof Number;
 
-      if (value == null || (isDouble && Double.isNaN((Double) value))) {
+      if (value == null) {
         grid.addValue(EMPTY);
-      } else if (isDouble && !Double.isNaN((Double) value)) {
-        addGridDoubleTypeValue((Double) value, grid, header, params);
-      } else if (value instanceof BigDecimal) {
-        Optional<QueryItem> queryItem =
-            params.getItems().stream()
-                .filter(
-                    item ->
-                        item.isProgramIndicator() && header.getName().equals(item.getItemName()))
-                .findFirst();
+      } else if (isNumber) {
+        Double doubleValue = ((Number) value).doubleValue();
 
-        if (queryItem.isPresent()) {
-          grid.addValue(
-              BigDecimal.valueOf(
-                      AnalyticsUtils.getRoundedValue(
-                              params,
-                              ((ProgramIndicator) queryItem.get().getItem()).getDecimals(),
-                              ((BigDecimal) value))
-                          .doubleValue())
-                  .stripTrailingZeros()
-                  .toPlainString());
+        if (!Double.isNaN(doubleValue)) {
+          addGridDoubleTypeValue(doubleValue, grid, header, params);
         } else {
-          // toPlainString method prevents scientific notation (3E+2)
-          grid.addValue(((BigDecimal) value).stripTrailingZeros().toPlainString());
+          grid.addValue(EMPTY);
         }
       } else {
         grid.addValue(StringUtils.trimToNull(sqlRowSet.getString(index)));
@@ -1122,37 +1108,76 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * Option/value (double) fetched from database ("1" vs "1.0") By the equality (both are converted
    * to double) of both the Option/Code is used as a value.
    *
-   * @param value the value.
+   * @param number the value.
    * @param grid the {@link Grid}.
    * @param header the {@link GridHeader}.
    * @param params the {@link EventQueryParams}.
    */
   private void addGridDoubleTypeValue(
-      Double value, Grid grid, GridHeader header, EventQueryParams params) {
-    final int defaultScale = 10;
+      Double number, Grid grid, GridHeader header, EventQueryParams params) {
+    Optional<QueryItem> programIndicatorItem =
+        params.getItems().stream()
+            .filter(
+                item -> item.isProgramIndicator() && header.getName().equals(item.getItemName()))
+            .findFirst();
+
     if (header.hasOptionSet()) {
       Optional<Option> option =
           header.getOptionSetObject().getOptions().stream()
               .filter(
                   o ->
-                      NumberUtils.isCreatable(o.getCode())
-                          && MathUtils.isEqual(NumberUtils.createDouble(o.getCode()), value))
+                      isCreatable(o.getCode())
+                          && MathUtils.isEqual(createDouble(o.getCode()), number))
               .findFirst();
 
       if (option.isPresent()) {
         grid.addValue(option.get().getCode());
       } else {
-        grid.addValue(
-            params.isSkipRounding()
-                ? MathUtils.getRoundedObject(value, defaultScale)
-                : MathUtils.getRoundedObject(value));
+        grid.addValue(round(number, params.isSkipRounding()));
       }
+    } else if (programIndicatorItem.isPresent()) {
+      ProgramIndicator programIndicator = (ProgramIndicator) programIndicatorItem.get().getItem();
+
+      grid.addValue(round(number, params, programIndicator.getDecimals()));
     } else {
-      grid.addValue(
-          params.isSkipRounding()
-              ? MathUtils.getRoundedObject(value, defaultScale)
-              : MathUtils.getRoundedObject(value));
+      grid.addValue(round(number, params.isSkipRounding()));
     }
+  }
+
+  /**
+   * Based on the given number and arguments, this method will round respecting the number of
+   * decimals, or an internal pre-defined scale. It strips the trailing zeros from the final number.
+   *
+   * @param number the value to be rounded.
+   * @param params the current {@link EventQueryParams} object.
+   * @param decimals the number of decimals digits output.
+   * @return the rounded number, without trailing zeros.
+   */
+  private String round(Double number, EventQueryParams params, Integer decimals) {
+    double roundedNumber = getRoundedValue(params, decimals, number).doubleValue();
+    String noTrailingZerosValue =
+        BigDecimal.valueOf(roundedNumber).stripTrailingZeros().toPlainString();
+
+    return noTrailingZerosValue;
+  }
+
+  /**
+   * Based on the given number and boolean flag, this method will round the number to default
+   * internal scale, or a pre-defined "larger" scale. It strips the trailing zeros from the final
+   * number.
+   *
+   * @param number the value to be rounded.
+   * @param skipDefaultRounding skip the default rounding, if true.
+   * @return the rounded number, without trailing zeros.
+   */
+  private String round(Double number, boolean skipDefaultRounding) {
+    final int largerScale = 10;
+    Double roundedValue =
+        skipDefaultRounding ? getRoundedObject(number, largerScale) : getRoundedObject(number);
+    String noTrailingZerosValue =
+        BigDecimal.valueOf(roundedValue).stripTrailingZeros().toPlainString();
+
+    return noTrailingZerosValue;
   }
 
   protected String getQueryItemsAndFiltersWhereClause(EventQueryParams params, SqlHelper helper) {
