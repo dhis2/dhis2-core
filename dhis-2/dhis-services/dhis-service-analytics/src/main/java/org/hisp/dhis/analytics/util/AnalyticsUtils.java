@@ -51,7 +51,6 @@ import static org.springframework.util.Assert.isTrue;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -260,22 +259,6 @@ public final class AnalyticsUtils {
     } else {
       return getRounded(value);
     }
-  }
-
-  /**
-   * Rounds a value. If the given parameters has skip rounding, the value is rounded to {@link
-   * AnalyticsUtils#DECIMALS_NO_ROUNDING}. decimals. If the given number of decimals is specified,
-   * the value is rounded to the given decimals. Otherwise, default rounding is used. If 0 decimals
-   * is explicitly specified, this method returns a long value. Otherwise, a double value is
-   * returned.
-   *
-   * @param params the query parameters.
-   * @param decimals the number of decimals.
-   * @param value the value.
-   * @return a double.
-   */
-  public static Number getRoundedValue(DataQueryParams params, Integer decimals, BigDecimal value) {
-    return getRoundedValue(params, decimals, value.doubleValue());
   }
 
   /**

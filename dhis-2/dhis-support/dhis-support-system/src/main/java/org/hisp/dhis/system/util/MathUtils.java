@@ -120,10 +120,8 @@ public class MathUtils {
    *
    * @param value the value to return and potentially round off.
    */
-  public static Object getRoundedObject(Object value) {
-    return value != null && Double.class.equals(value.getClass())
-        ? getRounded((Double) value)
-        : value;
+  public static Double getRoundedObject(Double value) {
+    return value != null && Double.class.equals(value.getClass()) ? getRounded(value) : value;
   }
 
   /**
@@ -133,10 +131,8 @@ public class MathUtils {
    * @param value the value to return and potentially round off.
    * @param scale the rounding scale.
    */
-  public static Object getRoundedObject(Object value, int scale) {
-    return value != null && Double.class.equals(value.getClass())
-        ? getRounded((Double) value, scale)
-        : value;
+  public static Double getRoundedObject(Double value, int scale) {
+    return value != null ? Double.valueOf(getRounded(value, scale)) : null;
   }
 
   /**
