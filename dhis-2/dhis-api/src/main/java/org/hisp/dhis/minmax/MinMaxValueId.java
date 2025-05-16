@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,38 +27,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.webdomain.datavalue;
+package org.hisp.dhis.minmax;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 
-/**
- * Object which encapsulates parameters for a min-max value query.
- *
- * @author Lars Helge Overland
- */
-@OpenApi.Shared
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class MinMaxValueQueryParams {
-  @OpenApi.Property({UID.class, DataElement.class})
-  private String de;
+/** A key combination that points to a single row of a {@link MinMaxDataElement}. */
+public interface MinMaxValueId {
 
-  @OpenApi.Property({UID.class, OrganisationUnit.class})
-  private String ou;
+  UID dataElement();
 
-  @OpenApi.Property({UID.class, CategoryOptionCombo.class})
-  private String co;
+  UID orgUnit();
+
+  UID optionCombo();
 }
