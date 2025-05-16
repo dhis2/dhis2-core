@@ -33,6 +33,8 @@ import java.time.LocalDateTime;
 import org.hisp.dhis.jsontree.JsonBoolean;
 import org.hisp.dhis.jsontree.JsonDate;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMap;
+import org.hisp.dhis.jsontree.JsonMixed;
 
 /**
  * Web API equivalent of a {@link org.hisp.dhis.webapi.controller.user.MeDto}.
@@ -82,5 +84,9 @@ public interface JsonMeDto extends JsonIdentifiableObject {
 
   default String getTwoFactorType() {
     return getString("twoFactorType").string();
+  }
+
+  default JsonMap<JsonMixed> getSettings() {
+    return getMap("settings", JsonMixed.class);
   }
 }

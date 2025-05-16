@@ -40,11 +40,15 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.http.HttpStatus.Series;
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonMap;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
@@ -81,6 +85,16 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
   void testGetCurrentUser() {
     switchToAdminUser();
     assertEquals(getCurrentUser().getUid(), GET("/me").content().as(JsonMeDto.class).getId());
+  }
+
+  @Test
+  void testGetCurrentUser_Fields() {
+    JsonMeDto me = GET("/me?fields=name,settings[keyStyle]").content().as(JsonMeDto.class);
+    assertEquals(2, me.size());
+    assertEquals(Set.of("name", "settings"), Set.copyOf(me.names()));
+    JsonMap<JsonMixed> settings = me.getSettings();
+    assertEquals(1, settings.size());
+    assertEquals(List.of("keyStyle"), settings.names());
   }
 
   @Test
@@ -123,6 +137,15 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
     assertFalse(settings.isEmpty());
     assertTrue(settings.get("keyMessageSmsNotification").exists());
     assertEquals("en", settings.getString("keyUiLocale").string());
+  }
+
+  @Test
+  void testGetSettings_ByKey() {
+    JsonObject settings =
+        GET("/me/settings?key=keyStyle&key=keyAnalysisDisplayProperty").content(HttpStatus.OK);
+    assertTrue(settings.isObject());
+    assertEquals(2, settings.size());
+    assertEquals(Set.of("keyStyle", "keyAnalysisDisplayProperty"), Set.copyOf(settings.names()));
   }
 
   @Test

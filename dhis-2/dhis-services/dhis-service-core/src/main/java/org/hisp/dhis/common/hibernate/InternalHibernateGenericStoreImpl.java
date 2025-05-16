@@ -43,7 +43,7 @@ import java.util.Set;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.common.adapter.Sharing_;
 import org.hisp.dhis.common.collection.CollectionUtils;
@@ -65,7 +65,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * access permission.
  */
 @Slf4j
-public class InternalHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
+public class InternalHibernateGenericStoreImpl<T extends IdentifiableObject>
     extends HibernateGenericStore<T> implements InternalHibernateGenericStore<T> {
   protected AclService aclService;
 

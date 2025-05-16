@@ -32,6 +32,17 @@ package org.hisp.dhis.program.dataitem;
 import static org.hisp.dhis.parser.expression.ParserUtils.assumeStageElementSyntax;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.dataelement.DataElement;
@@ -39,17 +50,20 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.AnalyticsPeriodBoundary;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.system.util.SqlUtils;
 
 /**
  * Program indicator expression data item ProgramItemStageElement
  *
  * @author Jim Grace
  */
+@Slf4j
 public class ProgramItemStageElement extends ProgramExpressionItem {
   @Override
   public Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
@@ -88,6 +102,99 @@ public class ProgramItemStageElement extends ProgramExpressionItem {
 
   @Override
   public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    if (!visitor.isUseExperimentalSqlEngine()) {
+      return getSqlLegacy(ctx, visitor);
+    }
+
+    assumeStageElementSyntax(ctx);
+
+    ProgramExpressionParams progParams = visitor.getProgParams();
+    ProgramIndicator programIndicator = progParams.getProgramIndicator();
+    AnalyticsType analyticsType = programIndicator.getAnalyticsType();
+
+    if (AnalyticsType.ENROLLMENT == analyticsType) {
+      String programStageId = ctx.uid0.getText();
+      String dataElementId = ctx.uid1.getText();
+      Date reportingStartDate = progParams.getReportingStartDate();
+      Date reportingEndDate = progParams.getReportingEndDate();
+      int stageOffsetRaw = visitor.getState().getStageOffset();
+
+      // Treat MIN_VALUE (no explicit offset) as 0 (latest event)
+      int stageOffset = (stageOffsetRaw == Integer.MIN_VALUE) ? 0 : stageOffsetRaw;
+
+      // Generate boundary hash using the internal helper method
+      String boundaryHash =
+          generateBoundaryHash(programIndicator, reportingStartDate, reportingEndDate);
+
+      // Construct the placeholder string
+      return String.format(
+          "__PSDE_CTE_PLACEHOLDER__(psUid='%s', deUid='%s', offset='%d', boundaryHash='%s', piUid='%s')",
+          programStageId, dataElementId, stageOffset, boundaryHash, programIndicator.getUid());
+    } else { // no need to emit a placeholder for event analytics
+      return getSqlLegacy(ctx, visitor);
+    }
+  }
+
+  /**
+   * Generates a deterministic hash representation (SHA-1) of the program indicator's boundaries and
+   * their calculated dates for the given period. This ensures unique CTE keys when boundary
+   * configurations change.
+   *
+   * @param programIndicator The program indicator.
+   * @param reportingStartDate The reporting period start date.
+   * @param reportingEndDate The reporting period end date.
+   * @return A SHA-1 hash string representing the boundary configuration or "noboundaries" /
+   *     "hash_error".
+   */
+  private static String generateBoundaryHash(
+      ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate) {
+
+    Set<AnalyticsPeriodBoundary> boundaries = programIndicator.getAnalyticsPeriodBoundaries();
+
+    if (boundaries == null || boundaries.isEmpty()) {
+      return "noboundaries";
+    }
+
+    List<String> boundaryInfoList = new ArrayList<>();
+    SimpleDateFormat dateFormat = new SimpleDateFormat(Period.DEFAULT_DATE_FORMAT);
+
+    for (AnalyticsPeriodBoundary boundary : boundaries) {
+      if (boundary != null) {
+        Date boundaryDate = boundary.getBoundaryDate(reportingStartDate, reportingEndDate);
+        String dateString = (boundaryDate != null) ? dateFormat.format(boundaryDate) : "null";
+        // Include boundary type and operator for more uniqueness if needed
+        // For now, UID:Date should suffice
+        boundaryInfoList.add(boundary.getUid() + ":" + dateString);
+      }
+    }
+
+    // Sort to ensure consistent order
+    Collections.sort(boundaryInfoList);
+
+    // Concatenate sorted strings
+    String boundaryConfigString = String.join(";", boundaryInfoList);
+
+    // Generate SHA-1 Hash
+    try {
+      MessageDigest md = MessageDigest.getInstance("SHA-1");
+      byte[] messageDigest = md.digest(boundaryConfigString.getBytes(StandardCharsets.UTF_8));
+
+      // Convert byte array into signum representation
+      BigInteger no = new BigInteger(1, messageDigest);
+
+      // Convert message digest into hex value, padded to 40 chars for SHA-1
+
+      return String.format("%040x", no);
+
+    } catch (NoSuchAlgorithmException e) {
+      // Log the error appropriately in a real application
+      log.error("SHA-1 Algorithm not found for boundary hashing: {}", e.getMessage());
+      // Fallback to a simple hash code of the string - less unique but avoids invalid chars
+      return "hash_error_" + boundaryConfigString.hashCode();
+    }
+  }
+
+  public Object getSqlLegacy(ExprContext ctx, CommonExpressionVisitor visitor) {
     assumeStageElementSyntax(ctx);
 
     String programStageId = ctx.uid0.getText();
@@ -108,7 +215,7 @@ public class ProgramItemStageElement extends ProgramExpressionItem {
                 .getProgramIndicatorEventColumnSql(
                     programStageId,
                     Integer.valueOf(stageOffset).toString(),
-                    SqlUtils.quote(dataElementId),
+                    visitor.getSqlBuilder().quote(dataElementId),
                     params.getReportingStartDate(),
                     params.getReportingEndDate(),
                     params.getProgramIndicator());

@@ -32,7 +32,7 @@
 
     <join table="categorycombos_optioncombos">
       <key column="categoryoptioncomboid" />
-      <many-to-one name="categoryCombo" column="categorycomboid" not-null="true" />
+      <many-to-one name="categoryCombo" column="categorycomboid" not-null="true" class="org.hisp.dhis.category.CategoryCombo" />
     </join>
 
 
