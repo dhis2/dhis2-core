@@ -41,6 +41,7 @@ import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.apache.commons.lang3.math.NumberUtils.createDouble;
 import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.hisp.dhis.analytics.AggregationType.CUSTOM;
@@ -66,6 +67,8 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
+import static org.hisp.dhis.common.ValueType.DATETIME;
+import static org.hisp.dhis.common.ValueType.REFERENCE;
 import static org.hisp.dhis.commons.collection.ListUtils.union;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
@@ -1059,7 +1062,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   protected void addGridValue(
       Grid grid, GridHeader header, int index, SqlRowSet sqlRowSet, EventQueryParams params) {
-    if (Double.class.getName().equals(header.getType()) && !header.hasLegendSet()) {
+    if (header.isDoubleWithoutLegendSet()) {
       Object value = sqlRowSet.getObject(index);
 
       boolean isNumber = value instanceof Number;
@@ -1067,37 +1070,61 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       if (value == null) {
         grid.addValue(EMPTY);
       } else if (isNumber) {
-        Double doubleValue = ((Number) value).doubleValue();
-
-        if (!Double.isNaN(doubleValue)) {
-          addGridDoubleTypeValue(doubleValue, grid, header, params);
-        } else {
-          grid.addValue(EMPTY);
-        }
+        addNumberValue(grid, header, params, (Number) value);
       } else {
-        grid.addValue(StringUtils.trimToNull(sqlRowSet.getString(index)));
+        grid.addValue(trimToNull(sqlRowSet.getString(index)));
       }
-    } else if (header.getValueType() == ValueType.REFERENCE) {
-      String json = sqlRowSet.getString(index);
-      ObjectMapper mapper = new ObjectMapper();
-
-      try {
-        JsonNode jsonNode = mapper.readTree(json);
-
-        String uid = UUID.randomUUID().toString();
-
-        Reference referenceNode = new Reference(uid, jsonNode);
-
-        grid.addValue(uid);
-
-        grid.addReference(referenceNode);
-      } catch (Exception e) {
-        grid.addValue(json);
-      }
-    } else if (header.getValueType() == ValueType.DATETIME) {
+    } else if (header.hasValueType(REFERENCE)) {
+      addReferenceValue(grid, sqlRowSet.getString(index));
+    } else if (header.hasValueType(DATETIME)) {
       grid.addValue(sqlBuilder.renderTimestamp(sqlRowSet.getString(index)));
     } else {
-      grid.addValue(StringUtils.trimToNull(sqlRowSet.getString(index)));
+      // If the object is not a Number (e.g., a string from the DB),
+      // treat it as a default string value.
+      grid.addValue(trimToNull(sqlRowSet.getString(index)));
+    }
+  }
+
+  /**
+   * Adds the given number to the given {@link Grid}, respecting internal rules based on the
+   * arguments.
+   *
+   * @param grid the current {@link Grid}.
+   * @param header the current {@link GridHeader}.
+   * @param params the current {@link EventQueryParams}.
+   * @param number the number to be added.
+   */
+  private void addNumberValue(
+      Grid grid, GridHeader header, EventQueryParams params, Number number) {
+    Double doubleValue = number.doubleValue();
+
+    // NaN (Not-a-Number) is also treated as an empty/invalid value in this context.
+    if (!Double.isNaN(doubleValue)) {
+      addGridDoubleTypeValue(doubleValue, grid, header, params);
+    } else {
+      grid.addValue(EMPTY);
+    }
+  }
+
+  /**
+   * Extracts the "uid" and "reference" from the given JSON string and adds them to the current
+   * {@link Grid}. If something goes wrong, it adds the full JSON string to the grid.
+   *
+   * @param grid the current {@link Grid}.
+   * @param json the JSON string.
+   */
+  private void addReferenceValue(Grid grid, String json) {
+    ObjectMapper mapper = new ObjectMapper();
+
+    try {
+      JsonNode jsonNode = mapper.readTree(json);
+      String uid = UUID.randomUUID().toString();
+      Reference referenceNode = new Reference(uid, jsonNode);
+
+      grid.addValue(uid);
+      grid.addReference(referenceNode);
+    } catch (Exception e) {
+      grid.addValue(json);
     }
   }
 
