@@ -1,0 +1,15 @@
+{
+  "type": "program_indicator",
+  "code": "PI_CREATION_DATE",
+  "aggregationType":"AVERAGE",
+  "expression":"(#{A03MvHHogjR.UXz7xuGCEhU}/100)",
+  "filter":"d2:yearsBetween(V{creation_date}, V{enrollment_date}) > 1",
+  "name":"ENROLLMENT_CREATION_DATE",
+  "analyticsType":"ENROLLMENT",
+  "shortName":"ENROLLMENT_CREATION_DATE",
+  "program":{
+    "id":"IpHINAT79UW"
+  },
+  "analyticsPeriodBoundaries": [],
+  "legendSets": []
+}
