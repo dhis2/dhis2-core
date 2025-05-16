@@ -43,7 +43,6 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -61,7 +60,6 @@ import org.hisp.dhis.setting.SystemSettingsTranslationService;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.intellij.lang.annotations.Language;
 import org.springframework.http.MediaType;
@@ -85,7 +83,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
     classifiers = {"team:platform", "purpose:support"})
 @Controller
 @RequestMapping("/api/systemSettings")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
 public class SystemSettingsController {
 
@@ -145,10 +142,13 @@ public class SystemSettingsController {
   }
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<SystemSettings> getSystemSettingsJson() {
-    return ResponseEntity.ok()
-        .headers(noCacheNoStoreMustRevalidate())
-        .body(settingsService.getCurrentSettings());
+  @OpenApi.Response(SystemSettings.class)
+  public ResponseEntity<JsonMap<JsonMixed>> getSystemSettingsJson(
+      @RequestParam(required = false) Set<String> key) {
+    SystemSettings settings = settingsService.getCurrentSettings();
+    JsonMap<JsonMixed> res =
+        key == null || key.isEmpty() ? settings.toJson(false) : settings.toJson(true, key);
+    return ResponseEntity.ok().headers(noCacheNoStoreMustRevalidate()).body(res);
   }
 
   @GetMapping(value = "/{key}", produces = APPLICATION_JSON_VALUE)

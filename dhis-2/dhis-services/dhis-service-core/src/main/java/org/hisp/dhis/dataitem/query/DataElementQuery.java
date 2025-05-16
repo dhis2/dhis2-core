@@ -62,7 +62,7 @@ import java.util.List;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataitem.query.shared.OptionalFilterBuilder;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
@@ -199,7 +199,7 @@ public class DataElementQuery implements DataItemQuery {
   }
 
   @Override
-  public Class<? extends BaseIdentifiableObject> getRootEntity() {
+  public Class<? extends IdentifiableObject> getRootEntity() {
     return QueryableDataItem.DATA_ELEMENT.getEntity();
   }
 

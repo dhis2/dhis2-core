@@ -56,7 +56,6 @@ import java.util.zip.ZipOutputStream;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.Compression;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
@@ -78,7 +77,6 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotWritableException;
@@ -99,7 +97,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/api/dataValueSets")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class DataValueSetController {
 
   private final DataValueSetService dataValueSetService;
@@ -217,9 +214,8 @@ public class DataValueSetController {
     response.setContentType(contentType);
     setNoStore(response);
 
-    try {
-      OutputStream out =
-          compress(params, response, attachment, Compression.fromValue(compression), format);
+    try (OutputStream out =
+        compress(params, response, attachment, Compression.fromValue(compression), format)) {
       writeOutput.accept(params, out);
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);

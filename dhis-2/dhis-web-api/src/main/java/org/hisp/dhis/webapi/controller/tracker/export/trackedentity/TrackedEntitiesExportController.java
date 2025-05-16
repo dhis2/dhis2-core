@@ -48,7 +48,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -66,8 +65,8 @@ import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
@@ -78,7 +77,6 @@ import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
 import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -95,7 +93,6 @@ import org.springframework.web.bind.annotation.RestController;
     classifiers = {"team:tracker", "purpose:data"})
 @RestController
 @RequestMapping("/api/tracker/trackedEntities")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 class TrackedEntitiesExportController {
 
   protected static final String TRACKED_ENTITIES = "trackedEntities";
@@ -132,8 +129,6 @@ class TrackedEntitiesExportController {
 
   private final FieldFilterService fieldFilterService;
 
-  private final TrackedEntityFieldsParamMapper fieldsMapper;
-
   private final TrackedEntityChangeLogService trackedEntityChangeLogService;
 
   public TrackedEntitiesExportController(
@@ -142,14 +137,12 @@ class TrackedEntitiesExportController {
       CsvService<TrackedEntity> csvEventService,
       RequestHandler requestHandler,
       FieldFilterService fieldFilterService,
-      TrackedEntityFieldsParamMapper fieldsMapper,
       TrackedEntityChangeLogService trackedEntityChangeLogService) {
     this.trackedEntityService = trackedEntityService;
     this.paramsMapper = paramsMapper;
     this.entityCsvService = csvEventService;
     this.requestHandler = requestHandler;
     this.fieldFilterService = fieldFilterService;
-    this.fieldsMapper = fieldsMapper;
     this.trackedEntityChangeLogService = trackedEntityChangeLogService;
 
     assertUserOrderableFieldsAreSupported(
@@ -294,14 +287,16 @@ class TrackedEntitiesExportController {
           List<FieldPath> fields,
       TrackerIdSchemeParams idSchemeParams)
       throws ForbiddenException, NotFoundException, WebMessageException {
-    TrackedEntityParams trackedEntityParams = fieldsMapper.map(fields);
-
+    TrackedEntityFields trackedEntityFields =
+        TrackedEntityFields.of(
+            f -> fieldFilterService.filterIncludes(TrackedEntity.class, fields, f),
+            FieldPath.FIELD_PATH_SEPARATOR);
     MappingErrors errors = new MappingErrors(idSchemeParams);
     TrackedEntity trackedEntity =
         TRACKED_ENTITY_MAPPER.map(
             idSchemeParams,
             errors,
-            trackedEntityService.getTrackedEntity(uid, program, trackedEntityParams));
+            trackedEntityService.getTrackedEntity(uid, program, trackedEntityFields));
     ensureNoMappingErrors(errors);
 
     return ResponseEntity.ok(fieldFilterService.toObjectNode(trackedEntity, fields));
@@ -317,14 +312,17 @@ class TrackedEntitiesExportController {
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader,
       @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program)
       throws IOException, ForbiddenException, NotFoundException, WebMessageException {
-    TrackedEntityParams trackedEntityParams = fieldsMapper.map(CSV_FIELDS);
+    TrackedEntityFields trackedEntityFields =
+        TrackedEntityFields.of(
+            f -> fieldFilterService.filterIncludes(TrackedEntity.class, CSV_FIELDS, f),
+            FieldPath.FIELD_PATH_SEPARATOR);
 
     MappingErrors errors = new MappingErrors(idSchemeParams);
     TrackedEntity trackedEntity =
         TRACKED_ENTITY_MAPPER.map(
             idSchemeParams,
             errors,
-            trackedEntityService.getTrackedEntity(uid, program, trackedEntityParams));
+            trackedEntityService.getTrackedEntity(uid, program, trackedEntityFields));
     ensureNoMappingErrors(errors);
 
     OutputStream outputStream = response.getOutputStream();

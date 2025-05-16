@@ -36,8 +36,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
  * A utility to resolve the {@link Property} for a given path.
@@ -109,7 +109,7 @@ public final class RelativePropertyContext {
     return property;
   }
 
-  @Nullable
+  @CheckForNull
   public Property resolve(String path) {
     if (path.indexOf('.') < 0) {
       // just for performance do simple and common case first

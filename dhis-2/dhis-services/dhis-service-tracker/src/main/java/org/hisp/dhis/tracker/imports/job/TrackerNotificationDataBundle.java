@@ -38,7 +38,7 @@ import lombok.Builder;
 import lombok.Data;
 import org.hisp.dhis.artemis.Message;
 import org.hisp.dhis.artemis.MessageType;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
@@ -57,7 +57,7 @@ import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 public class TrackerNotificationDataBundle implements Message {
   @JsonProperty private String uid;
 
-  @JsonProperty private Class<? extends BaseIdentifiableObject> klass;
+  @JsonProperty private Class<? extends IdentifiableObject> klass;
 
   @JsonProperty private String object;
 

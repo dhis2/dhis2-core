@@ -747,7 +747,11 @@ public enum ConfigurationKey {
   /** Ehcache monitoring. (default: off) */
   MONITORING_EHCACHE_ENABLED("monitoring.ehcache.enabled", Constants.OFF, false),
 
-  CACHE_EHCACHE_CONFIG_FILE("cache.ehcache.config.file", "classpath:ehcache.xml", false);
+  CACHE_EHCACHE_CONFIG_FILE("cache.ehcache.config.file", "classpath:ehcache.xml", false),
+
+  // Enable saved requests, this will save the URL the user tries to access before they are logged
+  // in, and redirect to that URL after they are logged in.
+  LOGIN_SAVED_REQUESTS_ENABLE("login.saved.requests.enable", Constants.ON, false);
 
   private final String key;
 

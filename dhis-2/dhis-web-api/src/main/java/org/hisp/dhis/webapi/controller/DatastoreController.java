@@ -43,7 +43,6 @@ import java.util.Date;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.beanutils.BeanUtils;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Response.Status;
 import org.hisp.dhis.datastore.DatastoreEntry;
@@ -60,7 +59,6 @@ import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -82,7 +80,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
     classifiers = {"team:platform", "purpose:data"})
 @Controller
 @RequestMapping("/api/dataStore")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
 public class DatastoreController extends AbstractDatastoreController {
 

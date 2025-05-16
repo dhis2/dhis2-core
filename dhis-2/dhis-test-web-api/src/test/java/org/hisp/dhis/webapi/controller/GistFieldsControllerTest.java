@@ -118,7 +118,7 @@ class GistFieldsControllerTest extends AbstractGistControllerTest {
     JsonObject user0 = users.getObject(0);
     assertTrue(user0.has("id", "href"));
     assertEquals(
-        "/users/" + user0.getString("id").string() + "/gist", user0.getString("href").string());
+        "/api/users/" + user0.getString("id").string() + "/gist", user0.getString("href").string());
   }
 
   @Test

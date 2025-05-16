@@ -32,8 +32,8 @@ package org.hisp.dhis.tracker.deduplication;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
+import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
 @Data
 public class PotentialDuplicateCriteria {

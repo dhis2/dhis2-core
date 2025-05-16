@@ -35,7 +35,7 @@
       SELECT uid,name,valuetype,aggregationtype from dataelement
       where valuetype IN ('TEXT', 'LONG_TEXT', 'LETTER',
                       'PHONE_NUMBER','EMAIL','DATE','DATETIME','TIME','USERNAME',
-                      'TRACKER_ASSOCIATE','ORGANISATION_UNIT','REFERENCE','AGE','URL',
+                      'TRACKER_ASSOCIATE','COORDINATE','ORGANISATION_UNIT','REFERENCE','AGE','URL',
                       'FILE_RESOURCE','IMAGE','GEOJSON','MULTI_TEXT')
       AND aggregationtype != 'NONE' 
       AND domaintype = 'AGGREGATE'
@@ -47,7 +47,7 @@
       SELECT uid,name from dataelement
       where valuetype IN ('TEXT', 'LONG_TEXT', 'LETTER',
                       'PHONE_NUMBER','EMAIL','DATE','DATETIME','TIME','USERNAME',
-                      'TRACKER_ASSOCIATE','ORGANISATION_UNIT','REFERENCE','AGE','URL',
+                      'TRACKER_ASSOCIATE','COORDINATE','ORGANISATION_UNIT','REFERENCE','AGE','URL',
                       'FILE_RESOURCE','IMAGE','GEOJSON','MULTI_TEXT')
       AND aggregationtype != 'NONE'
         AND domaintype = 'AGGREGATE';

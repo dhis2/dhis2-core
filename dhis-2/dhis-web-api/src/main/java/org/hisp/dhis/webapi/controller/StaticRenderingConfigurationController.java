@@ -30,11 +30,9 @@
 package org.hisp.dhis.webapi.controller;
 
 import java.util.Set;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.render.ObjectValueTypeRenderingOption;
 import org.hisp.dhis.render.StaticRenderingConfiguration;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -44,7 +42,6 @@ import org.springframework.web.bind.annotation.RestController;
     classifiers = {"team:platform", "purpose:support"})
 @RestController
 @RequestMapping("/api/staticConfiguration/")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class StaticRenderingConfigurationController {
 
   /**

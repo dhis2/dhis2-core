@@ -47,6 +47,7 @@ import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 
 /**
@@ -175,7 +176,7 @@ public class Category extends BaseDimensionalObject implements SystemDefaultMeta
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "categoryCombos", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0)
   public Set<CategoryCombo> getCategoryCombos() {

@@ -103,8 +103,6 @@ public class DataQueryRequest {
 
   protected UserOrgUnitType userOrgUnitType;
 
-  protected DhisApiVersion apiVersion;
-
   protected String userOrganisationUnitCriteria;
 
   public boolean hasAggregationType() {
@@ -277,11 +275,6 @@ public class DataQueryRequest {
 
     public DataQueryRequestBuilder userOrgUnitType(UserOrgUnitType userOrgUnitType) {
       this.request.userOrgUnitType = userOrgUnitType;
-      return this;
-    }
-
-    public DataQueryRequestBuilder apiVersion(DhisApiVersion apiVersion) {
-      this.request.apiVersion = apiVersion;
       return this;
     }
 

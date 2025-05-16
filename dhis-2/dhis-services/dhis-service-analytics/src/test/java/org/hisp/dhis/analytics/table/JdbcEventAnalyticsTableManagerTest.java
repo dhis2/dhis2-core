@@ -153,7 +153,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
   private static final int OU_NAME_HIERARCHY_COUNT = 1;
 
-  private List<AnalyticsTableColumn> periodColumns =
+  private final List<AnalyticsTableColumn> periodColumns =
       PeriodType.getAvailablePeriodTypes().stream()
           .map(
               pt -> {
@@ -386,7 +386,7 @@ class JdbcEventAnalyticsTableManagerTest {
         when eventdatavalues #>> '{deabcdefghY, value}' = 'false' then 0 else null end as "deabcdefghY\"""";
     String aliasD4 =
         """
-        case when eventdatavalues #>> '{deabcdefghW, value}' ~* '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$' \
+        case when eventdatavalues #>> '{deabcdefghW, value}' ~* '^[0-9]{4}-[0-9]{2}-[0-9]{2}(\\s|T)?(([0-9]{2}:)([0-9]{2}:)?([0-9]{2}))?(|.([0-9]{3})|.([0-9]{3})Z)?$' \
         then cast(eventdatavalues #>> '{deabcdefghW, value}' as timestamp) end as "deabcdefghW\"""";
     String aliasD5 =
         "eventdatavalues #>> '{" + d5.getUid() + ", value}' as \"" + d5.getUid() + "\"";

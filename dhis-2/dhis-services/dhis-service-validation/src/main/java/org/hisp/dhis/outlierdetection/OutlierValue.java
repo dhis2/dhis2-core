@@ -79,6 +79,8 @@ public class OutlierValue {
 
   @JsonProperty private Double value;
 
+  @JsonProperty private String rawValue;
+
   @JsonProperty private Double mean;
 
   @JsonProperty private Double median;

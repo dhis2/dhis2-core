@@ -175,11 +175,10 @@ public class RouteService {
           "Allowed route URL is vulnerable to server-side request forgery (SSRF) attacks: {}. You should further restrict the allowed route URL such that it contains no wildcards",
           host);
     }
-    String urlWithoutPortNo =
-        host.substring(0, host.lastIndexOf(":") > 5 ? host.lastIndexOf(":") : host.length());
+
     URL url;
     try {
-      url = new URL(urlWithoutPortNo);
+      url = new URL(host);
     } catch (MalformedURLException e) {
       throw new IllegalStateException(e);
     }
@@ -210,9 +209,14 @@ public class RouteService {
     return route;
   }
 
-  protected boolean isRouteUrlAllowed(Route route) {
+  protected boolean isRouteUrlAllowed(URL routeUrl) {
+    String routeAddress =
+        routeUrl.getProtocol()
+            + "://"
+            + routeUrl.getHost()
+            + (routeUrl.getPort() > -1 ? ":" + routeUrl.getPort() : "");
     for (String regexRemoteServer : allowedRouteRegexRemoteServers) {
-      if (route.getUrl().matches(regexRemoteServer)) {
+      if (routeAddress.matches(regexRemoteServer)) {
         return true;
       }
     }
@@ -232,7 +236,7 @@ public class RouteService {
       throw new ConflictException("Route URL scheme must be either http or https");
     }
 
-    if (!isRouteUrlAllowed(route)) {
+    if (!isRouteUrlAllowed(url)) {
       throw new ConflictException("Route URL is not permitted");
     }
 
@@ -257,8 +261,13 @@ public class RouteService {
       Route route, UserDetails userDetails, Optional<String> subPath, HttpServletRequest request)
       throws BadGatewayException {
 
-    if (!isRouteUrlAllowed(route)) {
-      return new ResponseEntity<>(HttpStatusCode.valueOf(503));
+    try {
+      if (!isRouteUrlAllowed(new URL(route.getBaseUrl()))) {
+        return new ResponseEntity<>(HttpStatusCode.valueOf(503));
+      }
+    } catch (MalformedURLException e) {
+      log.error(e.getMessage(), e);
+      throw new BadGatewayException("An unexpected error occurred");
     }
 
     HttpHeaders headers = filterRequestHeaders(request);

@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.webapi.controller.trackedentity;
 
-import static org.hisp.dhis.common.DhisApiVersion.ALL;
-import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 import static org.hisp.dhis.security.Authorities.F_PERFORM_ANALYTICS_EXPLAIN;
 import static org.hisp.dhis.system.grid.GridUtils.toCsv;
@@ -66,15 +64,14 @@ import org.hisp.dhis.analytics.trackedentity.TrackedEntityAnalyticsQueryService;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityQueryRequestMapper;
 import org.hisp.dhis.analytics.trackedentity.TrackedEntityRequestParams;
-import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.dimension.DimensionFilteringAndPagingService;
 import org.hisp.dhis.webapi.dimension.DimensionMapperService;
+import org.hisp.dhis.webapi.dimension.DimensionsCriteria;
 import org.hisp.dhis.webapi.dimension.TrackedEntityAnalyticsPrefixStrategy;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -89,7 +86,6 @@ import org.springframework.web.bind.annotation.RestController;
 @OpenApi.Document(
     entity = DataValue.class,
     classifiers = {"team:analytics", "purpose:analytics"})
-@ApiVersion({DEFAULT, ALL})
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/analytics/trackedEntities")

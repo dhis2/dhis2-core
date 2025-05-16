@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller.user;
 
+import static org.hisp.dhis.fieldfiltering.FieldFilterParams.*;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.CacheControl.noStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -47,7 +48,6 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
@@ -60,6 +60,8 @@ import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.interpretation.InterpretationService;
+import org.hisp.dhis.jsontree.JsonMap;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.node.NodeService;
@@ -68,6 +70,7 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.query.GetObjectParams;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.acl.Access;
@@ -84,9 +87,9 @@ import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.Dashboard;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -112,7 +115,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
     group = OpenApi.Document.GROUP_QUERY,
     classifiers = {"team:platform", "purpose:metadata"})
 @Controller
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequestMapping("/api/me")
 @RequiredArgsConstructor
 public class MeController {
@@ -154,11 +156,14 @@ public class MeController {
 
   @GetMapping
   @OpenApi.Response(MeDto.class)
+  @OpenApi.EntityType(MeDto.class)
   public @ResponseBody ResponseEntity<JsonNode> getCurrentUser(
-      @CurrentUser(required = true) User user,
-      @RequestParam(defaultValue = "*") List<String> fields) {
+      @CurrentUser(required = true) User user, GetObjectParams params) {
 
     UserDetails userDetails = UserDetails.fromUser(user);
+
+    List<String> fields = params.getFields();
+    if (fields == null || fields.isEmpty()) fields = List.of("*");
 
     if (fieldsContains("access", fields)) {
       Access access = aclService.getAccess(user, user);
@@ -175,12 +180,19 @@ public class MeController {
 
     List<ApiToken> patTokens = apiTokenService.getAllOwning(user);
 
-    MeDto meDto = new MeDto(user, UserSettings.getCurrentSettings(), programs, dataSets, patTokens);
+    Set<String> settingKeys =
+        fields.stream()
+            .filter(f -> f.startsWith("settings["))
+            .findFirst()
+            .map(f -> Set.of(f.substring(9, f.length() - 1).split(",")))
+            .orElse(Set.of());
+    UserSettings settings = UserSettings.getCurrentSettings();
+    JsonMap<JsonMixed> s =
+        settingKeys.isEmpty() ? settings.toJson(false) : settings.toJson(true, settingKeys);
+    MeDto meDto = new MeDto(user, s, programs, dataSets, patTokens);
     determineUserImpersonation(meDto);
 
-    var params = org.hisp.dhis.fieldfiltering.FieldFilterParams.of(meDto, fields);
-
-    ObjectNode jsonNodes = fieldFilterService.toObjectNodes(params).get(0);
+    ObjectNode jsonNodes = fieldFilterService.toObjectNodes(of(meDto, fields)).get(0);
 
     return ResponseEntity.ok(jsonNodes);
   }
@@ -294,8 +306,13 @@ public class MeController {
   }
 
   @GetMapping(value = "/settings", produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody UserSettings getSettings() {
-    return UserSettings.getCurrentSettings();
+  @OpenApi.Response(UserSettings.class)
+  public ResponseEntity<JsonMap<JsonMixed>> getSettings(
+      @RequestParam(required = false) Set<String> key) {
+    UserSettings settings = UserSettings.getCurrentSettings();
+    JsonMap<JsonMixed> res =
+        key == null || key.isEmpty() ? settings.toJson(false) : settings.toJson(false, key);
+    return ResponseEntity.ok().cacheControl(CacheControl.noCache().cachePrivate()).body(res);
   }
 
   @GetMapping(value = "/settings/{key}", produces = APPLICATION_JSON_VALUE)
@@ -367,7 +384,6 @@ public class MeController {
   @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PostMapping(value = "/dashboard/interpretations/read")
   @ResponseStatus(value = HttpStatus.NO_CONTENT)
-  @ApiVersion(include = {DhisApiVersion.ALL, DhisApiVersion.DEFAULT})
   public void updateInterpretationsLastRead() {
     interpretationService.updateCurrentUserLastChecked();
   }

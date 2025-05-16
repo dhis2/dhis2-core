@@ -34,13 +34,14 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Objects;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.SortableObject;
 import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Property;
 
 /**
@@ -96,13 +97,15 @@ public class Option extends BaseNameableObject implements MetadataObject, Sortab
   @JsonProperty
   @JacksonXmlProperty(isAttribute = true)
   @Property(PropertyType.TEXT)
+  @Gist(order = 2)
   public String getCode() {
     return super.getCode();
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Gist(order = 1)
   public OptionSet getOptionSet() {
     return optionSet;
   }

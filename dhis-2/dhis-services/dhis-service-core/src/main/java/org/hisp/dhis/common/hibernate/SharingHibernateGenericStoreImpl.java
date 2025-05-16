@@ -31,7 +31,7 @@ package org.hisp.dhis.common.hibernate;
 
 import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.hibernate.SharingHibernateGenericStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -42,7 +42,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * access permission.
  */
 @Slf4j
-public class SharingHibernateGenericStoreImpl<T extends BaseIdentifiableObject>
+public class SharingHibernateGenericStoreImpl<T extends IdentifiableObject>
     extends InternalHibernateGenericStoreImpl<T> implements SharingHibernateGenericStore<T> {
   public SharingHibernateGenericStoreImpl(
       EntityManager entityManager,

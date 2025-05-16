@@ -73,7 +73,7 @@ import org.springframework.security.access.AccessDeniedException;
  * @author bobj
  */
 @Slf4j
-public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
+public class HibernateIdentifiableObjectStore<T extends IdentifiableObject>
     extends SharingHibernateGenericStoreImpl<T> implements GenericDimensionalObjectStore<T> {
   private static final Set<String> EXISTS_BY_USER_PROPERTIES = Set.of("createdBy", "lastUpdatedBy");
 
@@ -145,11 +145,11 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     if (aclService.isClassShareable(clazz)) {
       if (clearSharing) {
-        if (aclService.canMakePublic(userDetails, (BaseIdentifiableObject) object)) {
-          if (aclService.defaultPublic((BaseIdentifiableObject) object)) {
+        if (aclService.canMakePublic(userDetails, object)) {
+          if (aclService.defaultPublic(object)) {
             object.getSharing().setPublicAccess(AccessStringHelper.READ_WRITE);
           }
-        } else if (aclService.canMakePrivate(userDetails, (BaseIdentifiableObject) object)) {
+        } else if (aclService.canMakePrivate(userDetails, object)) {
           object.getSharing().setPublicAccess(AccessStringHelper.newInstance().build());
         }
       }

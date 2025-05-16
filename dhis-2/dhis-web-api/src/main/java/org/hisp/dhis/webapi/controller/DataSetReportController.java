@@ -37,7 +37,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
@@ -52,7 +51,6 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.system.grid.GridUtils;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -67,7 +65,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
     entity = DataSet.class,
     classifiers = {"team:platform", "purpose:metadata"})
 @Controller
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class DataSetReportController {
   private static final String RESOURCE_PATH = "/api/dataSetReport";
 

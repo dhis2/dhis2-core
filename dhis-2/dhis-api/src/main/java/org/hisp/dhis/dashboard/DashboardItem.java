@@ -55,6 +55,7 @@ import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.schema.annotation.PropertyTransformer;
 import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
+import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 
@@ -313,6 +314,13 @@ public class DashboardItem extends BaseIdentifiableObject implements EmbeddedObj
   @JacksonXmlProperty(namespace = DXF_2_0)
   public String getText() {
     return text;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "text")
+  public String getDisplayText() {
+    return getTranslation("TEXT", getText());
   }
 
   public void setText(String text) {

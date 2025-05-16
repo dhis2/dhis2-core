@@ -121,4 +121,40 @@ public interface IdentifiableObject
   default boolean hasSharing() {
     return getSharing() != null;
   }
+
+  // -----------------------------------------------------------------------------
+  // Temporary setters until hibernate upgrade is complete
+  // -----------------------------------------------------------------------------
+
+  void setId(long id);
+
+  void setUid(String uid);
+
+  void setName(String name);
+
+  void setCode(String code);
+
+  void setOwner(String owner);
+
+  void setTranslations(Set<Translation> translations);
+
+  void setLastUpdated(Date lastUpdated);
+
+  void setLastUpdatedBy(User user);
+
+  void setCreated(Date created);
+
+  default void setAutoFields() {
+    if (getUid() == null || getUid().isEmpty()) {
+      setUid(CodeGenerator.generateUid());
+    }
+
+    Date date = new Date();
+
+    if (getCreated() == null) {
+      setCreated(date);
+    }
+
+    setLastUpdated(date);
+  }
 }

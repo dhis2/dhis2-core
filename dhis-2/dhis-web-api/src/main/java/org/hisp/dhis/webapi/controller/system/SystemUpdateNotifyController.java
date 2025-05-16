@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.controller.system;
 
 import com.vdurmont.semver4j.Semver;
 import java.util.Map;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -39,7 +38,6 @@ import org.hisp.dhis.dxf2.webmessage.responses.SoftwareUpdateResponse;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.system.SystemUpdateNotificationService;
 import org.hisp.dhis.webapi.controller.Server;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,7 +53,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
     classifiers = {"team:platform", "purpose:support"})
 @Controller
 @RequestMapping("/api/systemUpdates")
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class SystemUpdateNotifyController {
   public static final String RESOURCE_PATH = "";
 

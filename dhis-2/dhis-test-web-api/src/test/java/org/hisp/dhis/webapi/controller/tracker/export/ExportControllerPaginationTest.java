@@ -288,9 +288,10 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
   void shouldGetPaginatedEventsFirstPage() {
     JsonPage page =
         GET(
-                "/tracker/events?events={uid},{uid}&page=1&pageSize=1&totalPages=true",
+                "/tracker/events?events={uid},{uid}&program={programUid}&page=1&pageSize=1&totalPages=true",
                 event1.getUid(),
-                event2.getUid())
+                event2.getUid(),
+                "BFcipDERJnf")
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
