@@ -179,6 +179,7 @@ class EventRequestParamsMapperTest {
   @Test
   void testMappingDoesNotFetchOptionalEmptyQueryParametersFromDB() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
 
     mapper.map(eventRequestParams, idSchemeParams);
 
@@ -186,6 +187,13 @@ class EventRequestParamsMapperTest {
     verifyNoInteractions(programStageService);
     verifyNoInteractions(organisationUnitService);
     verifyNoInteractions(trackedEntityService);
+  }
+
+  @Test
+  void shouldFailMappingParamsWithoutMandatoryProgram() {
+    EventRequestParams eventRequestParams = new EventRequestParams();
+
+    assertThrows(BadRequestException.class, () -> mapper.map(eventRequestParams, idSchemeParams));
   }
 
   @Test
@@ -201,6 +209,7 @@ class EventRequestParamsMapperTest {
   @Test
   void shouldMapOrgUnitModeGivenOrgUnitModeParam() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
     eventRequestParams.setOrgUnit(UID.of(orgUnit));
     eventRequestParams.setOrgUnitMode(SELECTED);
 
@@ -212,6 +221,7 @@ class EventRequestParamsMapperTest {
   @Test
   void shouldFailIfDeprecatedAndNewEnrollmentStatusParameterIsSet() {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
     eventRequestParams.setProgramStatus(EnrollmentStatus.ACTIVE);
     eventRequestParams.setEnrollmentStatus(EnrollmentStatus.ACTIVE);
 
@@ -226,6 +236,7 @@ class EventRequestParamsMapperTest {
   @Test
   void shouldReturnOrgUnitWhenCorrectOrgUnitMapped() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
     eventRequestParams.setOrgUnit(UID.of(orgUnit));
 
     EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
@@ -236,6 +247,7 @@ class EventRequestParamsMapperTest {
   @Test
   void testMappingTrackedEntity() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
     eventRequestParams.setTrackedEntity(UID.of("qnR1RK4cTIZ"));
 
     EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
@@ -246,6 +258,7 @@ class EventRequestParamsMapperTest {
   @Test
   void testMappingOccurredAfterBefore() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
 
     StartDateTime occurredAfter = StartDateTime.of("2020-01-01");
     eventRequestParams.setOccurredAfter(occurredAfter);
@@ -261,6 +274,7 @@ class EventRequestParamsMapperTest {
   @Test
   void testMappingScheduledAfterBefore() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
 
     StartDateTime scheduledAfter = StartDateTime.of("2021-01-01");
     eventRequestParams.setScheduledAfter(scheduledAfter);
@@ -276,6 +290,7 @@ class EventRequestParamsMapperTest {
   @Test
   void shouldMapAfterAndBeforeDatesWhenSupplied() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
 
     StartDateTime updatedAfter = StartDateTime.of("2022-01-01");
     eventRequestParams.setUpdatedAfter(updatedAfter);
@@ -291,6 +306,7 @@ class EventRequestParamsMapperTest {
   @Test
   void shouldMapUpdatedWithinDateWhenSupplied() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
     String updatedWithin = "6m";
     eventRequestParams.setUpdatedWithin(updatedWithin);
 
@@ -302,6 +318,7 @@ class EventRequestParamsMapperTest {
   @Test
   void shouldFailWithBadRequestExceptionWhenTryingToMapAllUpdateDatesTogether() {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
 
     StartDateTime updatedAfter = StartDateTime.of("2022-01-01");
     eventRequestParams.setUpdatedAfter(updatedAfter);
@@ -322,6 +339,7 @@ class EventRequestParamsMapperTest {
   @Test
   void testMappingEnrollmentEnrolledAtDates() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
 
     EndDateTime enrolledBefore = EndDateTime.of("2022-01-01");
     eventRequestParams.setEnrollmentEnrolledBefore(enrolledBefore);
@@ -337,6 +355,7 @@ class EventRequestParamsMapperTest {
   @Test
   void testMappingEnrollmentOccurredAtDates() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
 
     EndDateTime enrolledBefore = EndDateTime.of("2022-01-01");
     eventRequestParams.setEnrollmentOccurredBefore(enrolledBefore);
@@ -352,6 +371,7 @@ class EventRequestParamsMapperTest {
   @Test
   void testMappingEnrollments() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
 
     eventRequestParams.setEnrollments(Set.of(UID.of("NQnuK2kLm6e")));
 
@@ -363,6 +383,7 @@ class EventRequestParamsMapperTest {
   @Test
   void testMappingEvents() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
     eventRequestParams.setEvents(UID.of("XKrcfuM4Hcw", "M4pNmLabtXl"));
 
     EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
@@ -373,6 +394,7 @@ class EventRequestParamsMapperTest {
   @Test
   void testMappingEventIsNull() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
 
     EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
 
@@ -382,6 +404,7 @@ class EventRequestParamsMapperTest {
   @Test
   void testMappingAssignedUsers() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
     eventRequestParams.setAssignedUsers(UID.of("IsdLBTOBzMi", "l5ab8q5skbB"));
     eventRequestParams.setAssignedUserMode(AssignedUserSelectionMode.PROVIDED);
 
@@ -394,6 +417,7 @@ class EventRequestParamsMapperTest {
   @Test
   void testMutualExclusionOfEventsAndFilter() {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
     eventRequestParams.setFilter(DE_1_UID + ":ge:1:le:2");
     eventRequestParams.setEvents(UID.of("XKrcfuM4Hcw", "M4pNmLabtXl"));
 
@@ -407,6 +431,7 @@ class EventRequestParamsMapperTest {
   @Test
   void shouldMapDataElementFilters() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
     eventRequestParams.setFilter(DE_1_UID + ":eq:2," + DE_2_UID + ":like:foo");
 
     EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
@@ -425,6 +450,7 @@ class EventRequestParamsMapperTest {
   @Test
   void shouldMapDataElementFiltersWhenDataElementHasMultipleFilters() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
     eventRequestParams.setFilter(DE_1_UID + ":gt:10:lt:20");
 
     EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
@@ -442,6 +468,7 @@ class EventRequestParamsMapperTest {
   @Test
   void shouldMapDataElementFiltersWhenQueryFilterHasUIDOnly() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
     eventRequestParams.setFilter(DE_1_UID.getValue());
 
     EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
@@ -456,6 +483,7 @@ class EventRequestParamsMapperTest {
   @Test
   void shouldMapDataElementFiltersToDefaultIfNoneSet() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
 
     EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
 
@@ -468,6 +496,7 @@ class EventRequestParamsMapperTest {
   @Test
   void shouldMapAttributeFilters() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
     eventRequestParams.setFilterAttributes(TEA_1_UID + ":eq:2," + TEA_2_UID + ":like:foo");
 
     EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
@@ -486,6 +515,7 @@ class EventRequestParamsMapperTest {
   @Test
   void shouldMapAttributeFiltersWhenAttributeHasMultipleFilters() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
     eventRequestParams.setFilterAttributes(TEA_1_UID + ":gt:10:lt:20");
 
     EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
@@ -503,6 +533,7 @@ class EventRequestParamsMapperTest {
   @Test
   void shouldMapAttributeFiltersWhenOnlyGivenUID() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
     eventRequestParams.setFilterAttributes(TEA_1_UID.getValue());
 
     EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
@@ -517,6 +548,7 @@ class EventRequestParamsMapperTest {
   @Test
   void shouldMapAttributeFiltersToDefaultIfNoneSet() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
 
     EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
 
@@ -529,6 +561,7 @@ class EventRequestParamsMapperTest {
   @Test
   void shouldMapOrderParameterInGivenOrderWhenFieldsAreOrderable() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
     eventRequestParams.setOrder(
         OrderCriteria.fromOrderString(
             "createdAt:asc,zGlzbfreTOH,programStage:desc,scheduledAt:asc"));
@@ -547,6 +580,7 @@ class EventRequestParamsMapperTest {
   @Test
   void shouldFailGivenInvalidOrderFieldName() {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
     eventRequestParams.setOrder(
         OrderCriteria.fromOrderString("unsupportedProperty1:asc,enrolledAt:asc"));
 
@@ -561,6 +595,7 @@ class EventRequestParamsMapperTest {
   @Test
   void shouldMapSelectedOrgUnitModeWhenOrgUnitModeNotProvided() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
     eventRequestParams.setOrgUnit(UID.of(orgUnit));
 
     EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
@@ -572,6 +607,7 @@ class EventRequestParamsMapperTest {
   void shouldMapAccessibleOrgUnitModeWhenOrgUnitModeNorOrgUnitProvided()
       throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
 
     EventOperationParams params = mapper.map(eventRequestParams, idSchemeParams);
 
@@ -587,6 +623,7 @@ class EventRequestParamsMapperTest {
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
 
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
     eventRequestParams.setOrgUnit(UID.of(orgUnit));
     eventRequestParams.setOrgUnitMode(orgUnitMode);
 
@@ -605,6 +642,7 @@ class EventRequestParamsMapperTest {
   void shouldFailWhenNoOrgUnitSuppliedAndOrgUnitModeNeedsOrgUnit(
       OrganisationUnitSelectionMode orgUnitMode) {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
     eventRequestParams.setOrgUnitMode(orgUnitMode);
 
     Exception exception =
@@ -619,6 +657,7 @@ class EventRequestParamsMapperTest {
   @Test
   void shouldMapEventParamsTrueWhenFieldPathIncludeRelationships() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
+    eventRequestParams.setProgram(PROGRAM_UID);
     List<FieldPath> fieldPaths = FieldFilterParser.parse("relationships");
     eventRequestParams.setFields(fieldPaths);
     when(fieldFilterService.filterIncludes(Event.class, fieldPaths, "relationships"))
@@ -633,6 +672,7 @@ class EventRequestParamsMapperTest {
   void shouldMapEventParamsFalseWhenFieldPathIncludeRelationships() throws BadRequestException {
     EventRequestParams eventRequestParams = new EventRequestParams();
     List<FieldPath> fieldPaths = FieldFilterParser.parse("relationships");
+    eventRequestParams.setProgram(PROGRAM_UID);
     eventRequestParams.setFields(fieldPaths);
     when(fieldFilterService.filterIncludes(Event.class, fieldPaths, "relationships"))
         .thenReturn(false);

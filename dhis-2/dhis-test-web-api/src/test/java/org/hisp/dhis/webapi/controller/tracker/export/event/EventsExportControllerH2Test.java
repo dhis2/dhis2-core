@@ -77,27 +77,27 @@ class EventsExportControllerH2Test extends H2ControllerIntegrationTestBase {
       shouldMatchContentTypeAndAttachment_whenEndpointForCompressedEventJsonIsInvoked() {
     return Stream.of(
         arguments(
-            "/tracker/events.json.zip",
+            "/tracker/events.json.zip?program=bMcwwoVnbSR",
             "application/json+zip",
             "attachment; filename=events.json.zip",
             "binary"),
         arguments(
-            "/tracker/events.json.gz",
+            "/tracker/events.json.gz?program=bMcwwoVnbSR",
             "application/json+gzip",
             "attachment; filename=events.json.gz",
             "binary"),
         arguments(
-            "/tracker/events.csv",
+            "/tracker/events.csv?program=bMcwwoVnbSR",
             "application/csv; charset=UTF-8",
             "attachment; filename=events.csv",
             null),
         arguments(
-            "/tracker/events.csv.gz",
+            "/tracker/events.csv.gz?program=bMcwwoVnbSR",
             "application/csv+gzip",
             "attachment; filename=events.csv.gz",
             "binary"),
         arguments(
-            "/tracker/events.csv.zip",
+            "/tracker/events.csv.zip?program=bMcwwoVnbSR",
             "application/csv+zip",
             "attachment; filename=events.csv.zip",
             "binary"));

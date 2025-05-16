@@ -931,7 +931,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         && !params.getEvents().isEmpty()
         && !params.hasDataElementFilter()) {
       sqlParameters.addValue(COLUMN_EVENT_UID, UID.toValueSet(params.getEvents()));
-      fromBuilder.append(hlp.whereAnd()).append(" (ev.uid in (").append(":ev_uid").append(")) ");
+      fromBuilder.append(hlp.whereAnd()).append(" ev.uid in (").append(":ev_uid").append(") ");
     }
 
     if (params.getAssignedUserQueryParam().hasAssignedUsers()) {

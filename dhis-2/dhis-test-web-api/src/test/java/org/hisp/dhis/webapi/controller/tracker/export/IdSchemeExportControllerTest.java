@@ -233,7 +233,7 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
         "test expects both events to have at least one data value for the same data element");
 
     JsonList<JsonEvent> jsonEvents =
-        GET("/tracker/events?events=QRYjLTiJTrA,kWjSezkXHVp&fields=event,dataValues&dataElementIdScheme=NAME")
+        GET("/tracker/events?events=QRYjLTiJTrA,kWjSezkXHVp&program=iS7eutanDry&fields=event,dataValues&dataElementIdScheme=NAME")
             .content(HttpStatus.OK)
             .getList("events", JsonEvent.class);
 
@@ -294,7 +294,12 @@ class IdSchemeExportControllerTest extends PostgresControllerIntegrationTestBase
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"/{id}?", "?events={id}&paging=true&", "?events={id}&paging=false&"})
+  @ValueSource(
+      strings = {
+        "/{id}?",
+        "?events={id}&program=iS7eutanDry&paging=true&",
+        "?events={id}&program=iS7eutanDry&paging=false&"
+      })
   void shouldReportEventMetadataWhichDoesNotHaveAnIdentifierForGivenIdScheme(String urlPortion) {
     Event event = get(Event.class, "QRYjLTiJTrA");
 
