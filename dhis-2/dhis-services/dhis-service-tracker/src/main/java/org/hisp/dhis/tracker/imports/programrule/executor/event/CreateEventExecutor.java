@@ -29,11 +29,18 @@
  */
 package org.hisp.dhis.tracker.imports.programrule.executor.event;
 
+import java.util.Date;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
+import org.hisp.dhis.notification.logging.NotificationLoggingService;
+import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
+import org.hisp.dhis.notification.logging.NotificationValidationResult;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobExecutionService;
 import org.hisp.dhis.scheduling.JobType;
@@ -49,11 +56,21 @@ import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
 @RequiredArgsConstructor
 public class CreateEventExecutor implements RuleActionExecutor<Event> {
   private final JobExecutionService jobExecutionService;
+  private final NotificationLoggingService notificationLoggingService;
   private final UID programStage;
   private final String scheduledAt;
 
   @Override
   public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
+    ProgramStage stage = bundle.getPreheat().getProgramStage(programStage.getValue());
+    Enrollment enrollment = bundle.getPreheat().getEnrollment(event.getEnrollment());
+
+    NotificationValidationResult result = validate(stage, enrollment);
+
+    if (!result.isValid()) {
+      return Optional.empty();
+    }
+
     TrackerEventScheduleParams params = new TrackerEventScheduleParams();
     params.setEnrollment(event.getEnrollment().getValue());
     params.setOrgUnit(event.getOrgUnit().getIdentifier());
@@ -62,9 +79,6 @@ public class CreateEventExecutor implements RuleActionExecutor<Event> {
     params.setProgramStage(programStage.getValue());
     params.setScheduledAt(scheduledAt);
     params.setUserName(bundle.getUser().getUsername());
-
-    // TODO We need a mechanism to prevent duplicate event creation, similar to how we currently
-    // block duplicate notifications.
 
     JobConfiguration jobConfiguration =
         new JobConfiguration(JobType.TRACKER_IMPORT_EVENT_SCHEDULE_JOB);
@@ -77,6 +91,47 @@ public class CreateEventExecutor implements RuleActionExecutor<Event> {
       throw new RuntimeException(e);
     }
 
+    if (result.needsToCreateLogEntry()) {
+      createLogEntry(stage, enrollment);
+    }
+
     return Optional.empty();
+  }
+
+  private NotificationValidationResult validate(ProgramStage programStage, Enrollment enrollment) {
+    if (programStage == null) {
+      return NotificationValidationResult.invalid();
+    }
+
+    if (enrollment == null || enrollment.getProgram().isWithoutRegistration()) {
+      return NotificationValidationResult.validAndNoNeedForLogEntries();
+    }
+
+    ExternalNotificationLogEntry logEntry =
+        notificationLoggingService.getByKey(generateKey(programStage, enrollment));
+
+    if (logEntry != null && !logEntry.isAllowMultiple()) {
+      return NotificationValidationResult.invalid();
+    }
+
+    return logEntry == null
+        ? NotificationValidationResult.validAndNeedsLogEntries()
+        : NotificationValidationResult.validAndNoNeedForLogEntries();
+  }
+
+  private void createLogEntry(ProgramStage programStage, Enrollment enrollment) {
+    String key = generateKey(programStage, enrollment);
+    ExternalNotificationLogEntry entry = new ExternalNotificationLogEntry();
+    entry.setLastSentAt(new Date());
+    entry.setKey(key);
+    entry.setNotificationTemplateUid(programStage.getUid());
+    entry.setNotificationTriggeredBy(NotificationTriggerEvent.PROGRAM_STAGE);
+    entry.setAllowMultiple(programStage.getRepeatable());
+
+    notificationLoggingService.save(entry);
+  }
+
+  private String generateKey(ProgramStage programStage, Enrollment enrollment) {
+    return programStage.getUid() + enrollment.getUid();
   }
 }
