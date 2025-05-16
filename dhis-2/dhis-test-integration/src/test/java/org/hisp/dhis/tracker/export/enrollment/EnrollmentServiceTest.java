@@ -88,9 +88,10 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 // TODO This needs to be transactional
-// @Transactional
+@Transactional
 class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private EnrollmentService enrollmentService;
@@ -137,6 +138,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   private OrganisationUnit orgUnitChildA;
 
+  private User user;
+
   @BeforeEach
   void setUp() {
     admin = getAdminUser();
@@ -154,8 +157,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     OrganisationUnit orgUnitZ = createOrganisationUnit('Z');
     manager.save(orgUnitZ, false);
 
-    User user =
-        createAndAddUser(false, "user", Set.of(orgUnitA), Set.of(orgUnitA), "F_EXPORT_DATA");
+    user = createAndAddUser(false, "user", Set.of(orgUnitA), Set.of(orgUnitA), "F_EXPORT_DATA");
     user.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB, orgUnitC));
     userWithOrgUnitZ = createUserWithAuth("userWithoutOrgUnit");
     userWithOrgUnitZ.setTeiSearchOrganisationUnits(Set.of(orgUnitZ));
@@ -285,6 +287,9 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
         createEnrollment(programA, trackedEntityGrandchildA, orgUnitGrandchildA);
     manager.save(enrollmentGrandchildA);
 
+    manager.flush();
+    manager.clear();
+
     injectSecurityContextUser(user);
   }
 
@@ -352,8 +357,13 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldGetEnrollmentWithoutRelationshipsWhenUserHasAccessToThem() throws NotFoundException {
+    injectSecurityContextUser(admin);
     relationshipTypeA.getSharing().setOwner(admin);
     relationshipTypeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    manager.update(relationshipTypeA);
+    manager.flush();
+    manager.clear();
+    injectSecurityContextUser(user);
 
     EnrollmentFields fields =
         EnrollmentFields.builder().includeRelationships(RelationshipFields.all()).build();
@@ -379,6 +389,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     trackedEntityTypeA.getSharing().setOwner(admin);
     trackedEntityTypeA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.updateNoAcl(trackedEntityTypeA);
+    manager.flush();
+    manager.clear();
 
     assertFalse(enrollmentService.findEnrollment(UID.of(enrollmentA)).isPresent());
   }
@@ -418,6 +430,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   void shouldFailGettingEnrollmentWhenUserHasNoAccessToProgramButAccessToOrgUnit() {
     programA.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
     manager.updateNoAcl(programA);
+    manager.flush();
+    manager.clear();
 
     assertFalse(enrollmentService.findEnrollment(UID.of(enrollmentA)).isPresent());
   }
@@ -741,6 +755,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(admin);
     programA.getSharing().setPublicAccess("rw------");
     manager.update(programA);
+    manager.flush();
+    manager.clear();
 
     injectSecurityContextUser(authorizedUser);
     List<Enrollment> enrollments =
@@ -761,6 +777,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     assertTrue(enrollmentService.findEnrollment(UID.of(enrollmentA)).isPresent());
 
     manager.delete(enrollmentA);
+    manager.flush();
+    manager.clear();
 
     assertFalse(enrollmentService.findEnrollment(UID.of(enrollmentA)).isPresent());
     assertTrue(manager.exists(Note.class, note.getUid()));
@@ -773,6 +791,8 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
     enrollmentA.setGeometry(point);
     manager.update(enrollmentA);
+    manager.flush();
+    manager.clear();
 
     Optional<Enrollment> enrollment = enrollmentService.findEnrollment(UID.of(enrollmentA));
 

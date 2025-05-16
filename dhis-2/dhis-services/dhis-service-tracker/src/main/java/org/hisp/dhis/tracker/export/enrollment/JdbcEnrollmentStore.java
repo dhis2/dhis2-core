@@ -155,7 +155,9 @@ public class JdbcEnrollmentStore {
         join program p on p.programid = e.programid
         left join lateral (
           select json_agg(json_build_object('uid', n.uid, 'text', n.notetext,
-            'creator', n.creator, 'created', n.created, 'lastupdatedby', u.uid)) as jsonnotes
+            'creator', n.creator, 'created', n.created, 'updatedByUid', u.uid,
+            'updatedByUsername', u.username, 'updatedByFirstname', u.firstname,
+            'updatedBySurname', u.surname, 'updatedByName', u.name)) as jsonnotes
             from enrollment_notes en
             join note n on n.noteid = en.noteid
             join userinfo u on u.userinfoid = n.lastupdatedby
@@ -168,9 +170,9 @@ public class JdbcEnrollmentStore {
           """
           left join lateral (
               select json_agg(json_build_object('uid', tea.uid, 'name', tea.name,
-              'code', tea.code, 'value', teav.value, 'encryptedvalue', teav.encryptedvalue,
-              'valuetype', tea.valuetype, 'confidential', tea.confidential, 'created', teav.created,
-              'lastupdated', teav.lastupdated, 'storedby', teav.storedby)) as jsonattributes
+              'code', tea.code, 'value', teav.value, 'encryptedValue', teav.encryptedvalue,
+              'valueType', tea.valuetype, 'confidential', tea.confidential, 'created', teav.created,
+              'lastUpdated', teav.lastupdated, 'storedBy', teav.storedby)) as jsonattributes
               from trackedentityattributevalue teav
               join trackedentityattribute tea ON tea.trackedentityattributeid = teav.trackedentityattributeid
               where teav.trackedentityid = e.trackedentityid
@@ -468,7 +470,11 @@ public class JdbcEnrollmentStore {
         note.setCreator(jdbcNote.getCreator());
         note.setCreated(formatDate(jdbcNote.getCreated()));
         User user = new User();
-        user.setUid(jdbcNote.getLastupdatedby());
+        user.setUid(jdbcNote.getUpdatedByUid());
+        user.setUsername(jdbcNote.getUpdatedByUsername());
+        user.setFirstName(jdbcNote.getUpdatedByFirstname());
+        user.setSurname(jdbcNote.getUpdatedBySurname());
+        user.setName(jdbcNote.getUpdatedByName());
         note.setLastUpdatedBy(user);
         notes.add(note);
       }
@@ -491,15 +497,15 @@ public class JdbcEnrollmentStore {
         TrackedEntityAttributeValue teav = new TrackedEntityAttributeValue();
         TrackedEntityAttribute tea = new TrackedEntityAttribute();
         tea.setUid(attribute.getUid());
-        tea.setValueType(ValueType.valueOf(attribute.getValuetype()));
+        tea.setValueType(ValueType.valueOf(attribute.getValueType()));
         tea.setName(attribute.getName());
         tea.setCode(attribute.getCode());
         tea.setConfidential(attribute.isConfidential());
         teav.setAttribute(tea);
-        teav.setStoredBy(attribute.getStoredby());
+        teav.setStoredBy(attribute.getStoredBy());
         teav.setCreated(formatDate(attribute.getCreated()));
-        teav.setLastUpdated(formatDate(attribute.getLastupdated()));
-        teav.setEncryptedValue(attribute.getEncryptedvalue());
+        teav.setLastUpdated(formatDate(attribute.getLastUpdated()));
+        teav.setEncryptedValue(attribute.getEncryptedValue());
         teav.setPlainValue(attribute.getValue());
         teav.setTrackedEntity(trackedEntity);
 
@@ -540,7 +546,11 @@ public class JdbcEnrollmentStore {
     private String text;
     private String creator;
     private String created;
-    private String lastupdatedby;
+    private String updatedByUid;
+    private String updatedByUsername;
+    private String updatedByFirstname;
+    private String updatedBySurname;
+    private String updatedByName;
   }
 
   @Getter
@@ -550,12 +560,12 @@ public class JdbcEnrollmentStore {
     private String name;
     private String code;
     private String value;
-    private String encryptedvalue;
-    private String valuetype;
+    private String encryptedValue;
+    private String valueType;
     private boolean confidential;
     private String created;
-    private String lastupdated;
-    private String storedby;
+    private String lastUpdated;
+    private String storedBy;
   }
 
   @Getter
