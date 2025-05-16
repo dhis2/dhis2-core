@@ -83,7 +83,7 @@ public class DefaultCompleteDataSetRegistrationService
   @Override
   @Transactional
   public void saveCompleteDataSetRegistration(CompleteDataSetRegistration registration) {
-    checkCompulsoryConstraints(registration);
+    checkCompulsoryDeOperands(registration);
 
     Date date = new Date();
 
@@ -116,7 +116,7 @@ public class DefaultCompleteDataSetRegistrationService
     notificationEventPublisher.publishEvent(registration);
   }
 
-  private void checkCompulsoryConstraints(CompleteDataSetRegistration registration) {
+  private void checkCompulsoryDeOperands(CompleteDataSetRegistration registration) {
     List<DataElementOperand> missingDataElementOperands =
         getMissingCompulsoryFields(
             registration.getDataSet(),
@@ -124,19 +124,19 @@ public class DefaultCompleteDataSetRegistrationService
             registration.getSource(),
             registration.getAttributeOptionCombo());
     if (!missingDataElementOperands.isEmpty()) {
-      String allDeos =
+      String deos =
           missingDataElementOperands.stream()
               .map(DataElementOperand::getDisplayName)
               .collect(Collectors.joining(","));
       throw new IllegalStateException(
-          "All compulsory data element operands need to be filled: [%s]".formatted(allDeos));
+          "All compulsory data element operands need to be filled: [%s]".formatted(deos));
     }
   }
 
   @Override
   @Transactional
   public void updateCompleteDataSetRegistration(CompleteDataSetRegistration registration) {
-    checkCompulsoryConstraints(registration);
+    checkCompulsoryDeOperands(registration);
 
     registration.setLastUpdated(new Date());
 
