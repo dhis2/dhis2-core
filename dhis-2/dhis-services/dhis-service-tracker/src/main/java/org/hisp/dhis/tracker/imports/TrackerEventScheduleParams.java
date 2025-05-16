@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,34 +27,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.programrule.engine;
+package org.hisp.dhis.tracker.imports;
 
-import java.util.Arrays;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.scheduling.JobParameters;
 
-public enum ValidationAction {
-  ASSIGN("ASSIGN"),
-  SET_MANDATORY_FIELD("SETMANDATORYFIELD"),
-  SHOW_ERROR("SHOWERROR"),
-  SHOW_WARNING("SHOWWARNING"),
-  SHOW_ERROR_ON_COMPLETE("ERRORONCOMPLETE"),
-  SHOW_WARNING_ON_COMPLETE("WARNINGONCOMPLETE"),
-  RAISE_ERROR("ERROR"),
-  CREATE_EVENT("CREATEEVENT");
+/**
+ * Job parameters required to initiate event scheduling job.
+ *
+ * @author Zubair Asghar
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TrackerEventScheduleParams implements JobParameters {
 
-  public static boolean contains(String ruleEngineName) {
-    return Arrays.stream(values()).anyMatch(v -> v.ruleEngineName.equalsIgnoreCase(ruleEngineName));
-  }
+  /** ProgramRule UID which triggered event scheduling. */
+  @JsonProperty private String rule;
 
-  public static ValidationAction fromName(String ruleEngineName) {
-    return Arrays.stream(values())
-        .filter(v -> v.ruleEngineName.equalsIgnoreCase(ruleEngineName))
-        .findAny()
-        .orElseThrow();
-  }
+  /** ProgramStage UID which event is created for. */
+  @JsonProperty private String programStage;
 
-  private final String ruleEngineName;
+  /** Enrollment UID which event belongs to. */
+  @JsonProperty private String enrollment;
 
-  ValidationAction(String ruleEngineName) {
-    this.ruleEngineName = ruleEngineName;
-  }
+  /** OrganisationUnit UID which event belongs to. */
+  @JsonProperty private String orgUnit;
+
+  /** CategoryOptionCombo UID which belong to ProgramStage. */
+  @JsonProperty private String attributeOptionCombo;
+
+  /** Date at which event needs to be scheduled. */
+  @JsonProperty private String scheduledAt;
+
+  /** User who initiated actual import. */
+  @JsonProperty private String userName;
 }
