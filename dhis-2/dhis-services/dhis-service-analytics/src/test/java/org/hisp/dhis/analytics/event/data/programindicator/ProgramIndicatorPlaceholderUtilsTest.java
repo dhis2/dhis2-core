@@ -54,6 +54,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import org.hisp.dhis.analytics.common.AnalyticsQueryType;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
 import org.hisp.dhis.dataelement.DataElement;
@@ -99,7 +100,7 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
     programIndicator.setUid(piUid);
     programIndicator.setProgram(program);
 
-    cteContext = new CteContext();
+    cteContext = new CteContext(AnalyticsQueryType.ENROLLMENT);
     variableAliasMap = new HashMap<>();
 
     sqlBuilder = new PostgreSqlBuilder();

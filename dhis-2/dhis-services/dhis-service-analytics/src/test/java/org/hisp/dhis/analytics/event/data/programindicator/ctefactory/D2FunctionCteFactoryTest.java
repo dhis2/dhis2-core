@@ -36,6 +36,7 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import org.hisp.dhis.analytics.common.AnalyticsQueryType;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
 import org.hisp.dhis.analytics.event.data.programindicator.ctefactory.placeholder.PlaceholderParser;
@@ -64,7 +65,7 @@ class D2FunctionCteFactoryTest extends TestBase {
     Program p = createProgram('A');
     pi = createProgramIndicator('A', p, DUMMY_EXPRESSION, "");
     qb = new PostgreSqlBuilder();
-    ctx = new CteContext();
+    ctx = new CteContext(AnalyticsQueryType.ENROLLMENT);
     factory = new D2FunctionCteFactory();
     alias = new HashMap<>();
     start = new Date(0);

@@ -55,6 +55,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.common.AnalyticsQueryType;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -115,7 +116,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     programIndicator.setProgram(program);
     programIndicator.setAnalyticsType(AnalyticsType.ENROLLMENT); // Focus on enrollment context
 
-    cteContext = new CteContext();
+    cteContext = new CteContext(AnalyticsQueryType.ENROLLMENT);
 
     program = new Program();
     program.setUid(programUid);
@@ -746,7 +747,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
 
   @Test
   void testBuildLeftJoins_HandlesDifferentCteTypes() {
-    CteContext localCteContext = new CteContext();
+    CteContext localCteContext = new CteContext(AnalyticsQueryType.ENROLLMENT);
     String varKey = "varKey1";
     String psdeKey1 = "psdeKey1";
     String psdeKey2 = "psdeKey2";

@@ -38,10 +38,15 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.fail;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.OptionalInt;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.experimental.UtilityClass;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
@@ -117,10 +122,20 @@ public class ValidationHelper {
     int expectedSize =
         expectPostgis ? expectedHeaderCountWithPostgis : expectedHeaderCountWithoutPostgis;
 
+    List<String> currentHeaders = (List) response.extract("headers");
+    if (expectedSize != currentHeaders.size()) {
+      fail(
+          "Expected "
+              + expectedSize
+              + " headers, but got "
+              + currentHeaders.size()
+              + ". Headers: "
+              + currentHeaders);
+    }
+
     response
         .validate()
         .statusCode(200)
-        .body("headers", hasSize(expectedSize))
         .body("rows", hasSize(expectedRowCount))
         .body("height", equalTo(expectedRowCount))
         .body("width", equalTo(expectedSize))
@@ -492,15 +507,55 @@ public class ValidationHelper {
         .body("rowContext." + rowIndex + "." + colIndex + ".valueStatus", equalTo(valueStatus));
   }
 
-  /**
-   * Validate/assert that all values of the given row are present in the given response.
-   *
-   * @param response
-   * @param rowIndex
-   * @param expectedValues
-   */
+  /** Validate/assert that all values of the given row are present in the given response. */
   public static void validateRow(ApiResponse response, int rowIndex, List<String> expectedValues) {
-    response.validate().body("rows[" + rowIndex + "]", equalTo(expectedValues));
+    try {
+      // Extract the actual row values
+      List<String> actualValues = (List<String>) response.extract("rows[" + rowIndex + "]");
+
+      // Check if the row exists
+      if (actualValues == null) {
+        throw new AssertionError("Row at index " + rowIndex + " does not exist in the response");
+      }
+
+      // Check if the size matches
+      if (actualValues.size() != expectedValues.size()) {
+        throw new AssertionError(
+            "Size mismatch for row "
+                + rowIndex
+                + ": expected "
+                + expectedValues.size()
+                + " columns but found "
+                + actualValues.size()
+                + " columns");
+      }
+
+      // Compare each value
+      for (int i = 0; i < expectedValues.size(); i++) {
+        String expected = expectedValues.get(i);
+        String actual = actualValues.get(i);
+
+        if (!Objects.equals(actual, expected)) {
+          throw new AssertionError(
+              "Mismatch at row "
+                  + rowIndex
+                  + ", column "
+                  + i
+                  + ": expected '"
+                  + expected
+                  + "' but found '"
+                  + actual
+                  + "'");
+        }
+      }
+
+      // If we get here, all values match
+    } catch (AssertionError ae) {
+      throw ae;
+    } catch (Exception e) {
+      // Handle other exceptions that might occur during extraction
+      throw new AssertionError("Error validating row " + rowIndex + ": " + e.getMessage(), e);
+    }
   }
 
   /**
@@ -542,4 +597,69 @@ public class ValidationHelper {
                     hasEntry("value", value),
                     hasEntry("categoryOptionCombo", categoryOptionCombo))));
   }
+
+  public static List<String> setRowData(List<String> data, Set<Integer> excludeSet) {
+
+    if (excludeSet.isEmpty()) {
+      return data;
+    }
+
+    List<String> result = new ArrayList<>();
+
+    // Add only the elements with indices not in the exclude set
+    for (int i = 0; i < data.size(); i++) {
+      if (!excludeSet.contains(i)) {
+        result.add(data.get(i));
+      }
+    }
+
+    return result;
+  }
+
+  public static List<Map<String, Object>> getHeadersFromResponse(ApiResponse response) {
+
+    return response.extractList("headers", Map.class).stream()
+        .map(obj -> (Map<String, Object>) obj)
+        .collect(Collectors.toList());
+  }
+
+  public static String handleDecimals(boolean isPostgres, String value) {
+    if (isPostgres) {
+      return value;
+    }
+    if (value == null || value.isEmpty()) {
+      return value;
+    }
+
+    int dotIndex = value.indexOf('.');
+    if (dotIndex == -1) {
+      // No decimal point in the string
+      return value;
+    }
+
+    // Get the part before the decimal point
+    String integerPart = value.substring(0, dotIndex);
+
+    // Get up to 10 digits after the decimal point
+    String decimalPart = value.substring(dotIndex + 1);
+    if (decimalPart.length() > 10) {
+      decimalPart = decimalPart.substring(0, 10);
+    }
+
+    // Remove trailing zeros
+    int lastNonZeroIndex = decimalPart.length() - 1;
+    while (lastNonZeroIndex >= 0 && decimalPart.charAt(lastNonZeroIndex) == '0') {
+      lastNonZeroIndex--;
+    }
+
+    // If all digits after decimal are zeros, return just the integer part
+    if (lastNonZeroIndex < 0) {
+      return integerPart;
+    }
+
+    // Otherwise, return the integer part plus the decimal part without trailing zeros
+    decimalPart = decimalPart.substring(0, lastNonZeroIndex + 1);
+    return integerPart + "." + decimalPart;
+  }
+>>>>>>> ce852c43c62e (fix: Events analytics query now running in Doris)
 }

@@ -50,6 +50,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataType;
+import org.hisp.dhis.analytics.common.AnalyticsQueryType;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
@@ -222,7 +223,8 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
             processedSql.processedExpressionSql(),
             innerJoinSql,
             leftJoinSql,
-            whereClause);
+            whereClause,
+            cteContext.getAnalyticsQueryType());
 
     // 7. Register Main PI CTE
     cteContext.addProgramIndicatorCte(
@@ -371,7 +373,8 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
       String finalProcessedExpressionSql,
       String innerJoinSql,
       String leftJoinSql,
-      String whereClause) {
+      String whereClause,
+      AnalyticsQueryType analyticsQueryType) {
 
     String function =
         TextUtils.emptyIfEqual(
@@ -388,16 +391,21 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
     if (requiresTableAlias(function, finalProcessedExpressionSql)) {
       finalProcessedExpressionSql = SUBQUERY_TABLE_ALIAS + "." + finalProcessedExpressionSql;
     }
-
-    return String.format(
-        "select %s.enrollment, %s(%s) as value from %s as %s %s group by %s.enrollment",
-        SUBQUERY_TABLE_ALIAS,
-        function,
-        finalProcessedExpressionSql,
-        tableName,
-        SUBQUERY_TABLE_ALIAS,
-        joinsAndWhere, // Combined joins and where
-        SUBQUERY_TABLE_ALIAS);
+    if (analyticsQueryType == AnalyticsQueryType.ENROLLMENT) {
+      return String.format(
+          "select %s.enrollment, %s(%s) as value from %s as %s %s group by %s.enrollment",
+          SUBQUERY_TABLE_ALIAS,
+          function,
+          finalProcessedExpressionSql,
+          tableName,
+          SUBQUERY_TABLE_ALIAS,
+          joinsAndWhere,
+          SUBQUERY_TABLE_ALIAS);
+    } else {
+      return String.format(
+          "select %s(%s) as value from %s as %s %s",
+          function, finalProcessedExpressionSql, tableName, SUBQUERY_TABLE_ALIAS, joinsAndWhere);
+    }
   }
 
   /**
@@ -565,7 +573,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
         condition = useExperimentalAnalyticsQueryEngine() ? "" : "enrollment = ax.enrollment";
       } else {
         if (AnalyticsType.EVENT == programIndicator.getAnalyticsType()) {
-          condition = useExperimentalAnalyticsQueryEngine() ? "" : "event = ax.event";
+          condition = "event = ax.event";
         }
       }
     }
