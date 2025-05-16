@@ -503,7 +503,7 @@ public class JdbcEnrollmentStore {
         jdbcNotes = mapper.readValue(jsonNotes, new TypeReference<>() {});
       } catch (JsonProcessingException e) {
         log.error("Error mapping enrollment notes: {}", jsonNotes);
-        return null;
+        return List.of();
       }
 
       List<Note> notes = new ArrayList<>();
@@ -533,7 +533,8 @@ public class JdbcEnrollmentStore {
       try {
         attributes = mapper.readValue(jsonAttributes, new TypeReference<>() {});
       } catch (JsonProcessingException e) {
-        throw new RuntimeException(e);
+        log.error("Error mapping enrollment attributes: {}", jsonAttributes);
+        return Set.of();
       }
 
       Set<TrackedEntityAttributeValue> trackedEntityAttributeValues = new HashSet<>();
