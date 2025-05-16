@@ -70,8 +70,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.tracker.export.enrollment.EnrollmentService")
 class DefaultEnrollmentService implements EnrollmentService {
   private final JdbcEnrollmentStore enrollmentStore;
-  // TODO Remove this usage
-  // private final HibernateEnrollmentStore enrollmentStore;
 
   private final EventService eventService;
 

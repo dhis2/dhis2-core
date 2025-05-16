@@ -90,7 +90,6 @@ import org.locationtech.jts.geom.Point;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-// TODO This needs to be transactional
 @Transactional
 class EnrollmentServiceTest extends PostgresIntegrationTestBase {
 
@@ -219,8 +218,6 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     trackedEntityA.setTrackedEntityAttributeValues(Set.of(trackedEntityAttributeValueA));
     manager.update(trackedEntityA);
 
-    // TODO Remove this
-    // programA.getProgramAttributes().clear();
     programA
         .getProgramAttributes()
         .add(createProgramTrackedEntityAttribute(programA, trackedEntityAttributeA));

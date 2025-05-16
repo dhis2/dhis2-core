@@ -52,7 +52,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -63,7 +62,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
-import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -104,39 +102,31 @@ public class JdbcEnrollmentStore {
   private final JdbcTemplate jdbcTemplate;
 
   public List<Enrollment> getEnrollments(EnrollmentQueryParams params) {
-    String sql = buildEnrollmentSql(params).getFullQuery();
-    return jdbcTemplate.query(sql, new EnrollmentRowMapper(params.isIncludeAttributes()));
+    return jdbcTemplate.query(
+        getQuery(params), new EnrollmentRowMapper(params.isIncludeAttributes()));
   }
 
-  public Page<Enrollment> getEnrollments(EnrollmentQueryParams params, PageParams pageParams) {
-    String sql = buildEnrollmentSql(params).getFullQuery();
-    sql +=
-        String.format(" LIMIT %d OFFSET %d", pageParams.getPageSize() + 1, pageParams.getOffset());
+  private String getQuery(EnrollmentQueryParams params) {
+    StringBuilder sql = new StringBuilder();
+    addSelect(sql, params);
+    addEnrollmentFromItem(sql, params);
+    addOrderBy(sql, params);
 
-    List<Enrollment> enrollments =
-        jdbcTemplate.query(sql, new EnrollmentRowMapper(params.isIncludeAttributes()));
-    return new Page<>(enrollments, pageParams, () -> countEnrollments(params));
+    return sql.toString();
   }
 
-  private long countEnrollments(EnrollmentQueryParams params) {
-    String sql = buildCountEnrollmentSql(params);
-    return jdbcTemplate.queryForObject(sql, Long.class);
-  }
-
-  private QueryWithOrderBy buildEnrollmentSql(EnrollmentQueryParams params) {
-    StringBuilder sql =
-        new StringBuilder(
-            // language=sql
-            """
-                select e.*,
-                p.programid as program_id, p.uid as program_uid, p.name as program_name, p.code as program_code, p.sharing as program_sharing,
-                p.description as program_description, p.created as program_created, p.lastupdated as program_lastupdated,
-                p.shortname as program_short_name, p.type as program_type, p.accesslevel as program_accesslevel,
-                te.uid as tracked_entity_uid, te.code as tracked_entity_code,
-                en_ou.uid as en_org_unit_uid, en_ou.path as en_org_unit_path,
-                te_ou.uid as te_org_unit_uid, te_ou.path as te_org_unit_path,
-                tet.uid as tet_uid, tet.sharing as tet_sharing, notes.jsonnotes as notes
-            """);
+  private void addSelect(StringBuilder sql, EnrollmentQueryParams params) {
+    sql.append(
+        """
+            select e.*,
+            p.programid as program_id, p.uid as program_uid, p.name as program_name, p.code as program_code, p.sharing as program_sharing,
+            p.description as program_description, p.created as program_created, p.lastupdated as program_lastupdated,
+            p.shortname as program_short_name, p.type as program_type, p.accesslevel as program_accesslevel,
+            te.uid as tracked_entity_uid, te.code as tracked_entity_code,
+            en_ou.uid as en_org_unit_uid, en_ou.path as en_org_unit_path,
+            te_ou.uid as te_org_unit_uid, te_ou.path as te_org_unit_path,
+            tet.uid as tet_uid, tet.sharing as tet_sharing, notes.jsonnotes as notes
+        """);
 
     if (params.isIncludeAttributes()) {
       sql.append(
@@ -144,27 +134,50 @@ public class JdbcEnrollmentStore {
           , attrs.jsonattributes as attributes
           """);
     }
+  }
 
+  private void addEnrollmentFromItem(StringBuilder sql, EnrollmentQueryParams params) {
+    sql.append(" from enrollment e ");
+    addInnerJoins(sql);
+    addLeftLateralNoteJoin(sql);
+    addLeftLateralAttributeJoin(sql, params);
+
+    SqlHelper hlp = new SqlHelper(true);
+    addLastUpdatedConditions(sql, params, hlp);
+    addOrgUnitConditions(sql, params, hlp);
+    addProgramConditions(sql, params, hlp);
+    addEnrollmentConditions(sql, params, hlp);
+    addTrackedEntityConditions(sql, params, hlp);
+  }
+
+  private void addInnerJoins(StringBuilder sql) {
     sql.append(
         """
-        from enrollment e
-        join trackedentity te on te.trackedentityid = e.trackedentityid
-        join trackedentitytype tet on tet.trackedentitytypeid = te.trackedentitytypeid
-        join organisationunit en_ou on en_ou.organisationunitid = e.organisationunitid
-        join organisationunit te_ou on te_ou.organisationunitid = te.organisationunitid
-        join program p on p.programid = e.programid
-        left join lateral (
-          select json_agg(json_build_object('uid', n.uid, 'text', n.notetext,
-            'creator', n.creator, 'created', n.created, 'updatedByUid', u.uid,
-            'updatedByUsername', u.username, 'updatedByFirstname', u.firstname,
-            'updatedBySurname', u.surname, 'updatedByName', u.name)) as jsonnotes
-            from enrollment_notes en
-            join note n on n.noteid = en.noteid
-            join userinfo u on u.userinfoid = n.lastupdatedby
-            where en.enrollmentid = e.enrollmentid
-        ) notes on true
-        """);
+      join trackedentity te on te.trackedentityid = e.trackedentityid
+      join trackedentitytype tet on tet.trackedentitytypeid = te.trackedentitytypeid
+      join organisationunit en_ou on en_ou.organisationunitid = e.organisationunitid
+      join organisationunit te_ou on te_ou.organisationunitid = te.organisationunitid
+      join program p on p.programid = e.programid
+      """);
+  }
 
+  private void addLeftLateralNoteJoin(StringBuilder sql) {
+    sql.append(
+        """
+      left join lateral (
+        select json_agg(json_build_object('uid', n.uid, 'text', n.notetext,
+          'creator', n.creator, 'created', n.created, 'updatedByUid', u.uid,
+          'updatedByUsername', u.username, 'updatedByFirstname', u.firstname,
+          'updatedBySurname', u.surname, 'updatedByName', u.name)) as jsonnotes
+          from enrollment_notes en
+          join note n on n.noteid = en.noteid
+          join userinfo u on u.userinfoid = n.lastupdatedby
+          where en.enrollmentid = e.enrollmentid
+      ) notes on true
+    """);
+  }
+
+  private void addLeftLateralAttributeJoin(StringBuilder sql, EnrollmentQueryParams params) {
     if (params.isIncludeAttributes()) {
       sql.append(
           """
@@ -179,16 +192,10 @@ public class JdbcEnrollmentStore {
           ) attrs on true
           """);
     }
+  }
 
-    SqlHelper hlp = new SqlHelper(true);
-
-    if (params.hasEnrollmentUids()) {
-      sql.append(hlp.whereAnd())
-          .append("e.uid in (")
-          .append(getQuotedCommaDelimitedString(UID.toValueList(params.getEnrollments())))
-          .append(")");
-    }
-
+  private void addLastUpdatedConditions(
+      StringBuilder sql, EnrollmentQueryParams params, SqlHelper hlp) {
     if (params.hasLastUpdatedDuration()) {
       sql.append(hlp.whereAnd())
           .append("e.lastupdated >= '")
@@ -200,19 +207,15 @@ public class JdbcEnrollmentStore {
           .append(toLongDateWithMillis(params.getLastUpdated()))
           .append("'");
     }
+  }
 
-    if (params.hasTrackedEntity()) {
-      sql.append(hlp.whereAnd())
-          .append("te.uid = '")
-          .append(params.getTrackedEntity().getUid())
-          .append("'");
-    }
-
+  private void addOrgUnitConditions(
+      StringBuilder sql, EnrollmentQueryParams params, SqlHelper hlp) {
     if (params.hasOrganisationUnits()) {
       if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.DESCENDANTS)) {
         sql.append(hlp.whereAnd()).append(getDescendantsQuery(params.getOrganisationUnits()));
       } else if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.CHILDREN)) {
-        sql.append(hlp.whereAnd()).append(getChildrenQuery(hlp, params.getOrganisationUnits()));
+        sql.append(hlp.whereAnd()).append(getChildrenQuery(params.getOrganisationUnits()));
       } else {
         sql.append(hlp.whereAnd())
             .append("en_ou.uid IN (")
@@ -220,28 +223,20 @@ public class JdbcEnrollmentStore {
             .append(")");
       }
     }
+  }
+
+  private void addProgramConditions(
+      StringBuilder sql, EnrollmentQueryParams params, SqlHelper hlp) {
+    sql.append(hlp.whereAnd())
+        .append("p.type = '")
+        .append(ProgramType.WITH_REGISTRATION)
+        .append("'");
 
     if (params.hasProgram()) {
       sql.append(hlp.whereAnd())
           .append("p.uid = '")
           .append(params.getProgram().getUid())
           .append("'");
-    }
-
-    sql.append(hlp.whereAnd())
-        .append("p.type = '")
-        .append(ProgramType.WITH_REGISTRATION)
-        .append("'");
-
-    if (params.hasEnrollmentStatus()) {
-      sql.append(hlp.whereAnd())
-          .append("e.status = '")
-          .append(params.getEnrollmentStatus())
-          .append("'");
-    }
-
-    if (params.hasFollowUp()) {
-      sql.append(hlp.whereAnd()).append("e.followup = ").append(params.getFollowUp());
     }
 
     if (params.hasProgramStartDate()) {
@@ -257,20 +252,69 @@ public class JdbcEnrollmentStore {
           .append(toLongDateWithMillis(params.getProgramEndDate()))
           .append("'");
     }
+  }
+
+  private void addEnrollmentConditions(
+      StringBuilder sql, EnrollmentQueryParams params, SqlHelper hlp) {
+    if (params.hasEnrollmentUids()) {
+      sql.append(hlp.whereAnd())
+          .append("e.uid in (")
+          .append(getQuotedCommaDelimitedString(UID.toValueList(params.getEnrollments())))
+          .append(")");
+    }
+
+    if (params.hasEnrollmentStatus()) {
+      sql.append(hlp.whereAnd())
+          .append("e.status = '")
+          .append(params.getEnrollmentStatus())
+          .append("'");
+    }
+
+    if (params.hasFollowUp()) {
+      sql.append(hlp.whereAnd()).append("e.followup = ").append(params.getFollowUp());
+    }
 
     if (!params.isIncludeDeleted()) {
       sql.append(hlp.whereAnd()).append("e.deleted = false");
     }
-
-    return QueryWithOrderBy.builder()
-        .query(sql.toString())
-        .orderBy(orderBy(params.getOrder()))
-        .build();
   }
 
-  private String buildCountEnrollmentSql(EnrollmentQueryParams params) {
-    return buildEnrollmentSql(params)
-        .getQuery()
+  private void addTrackedEntityConditions(
+      StringBuilder sql, EnrollmentQueryParams params, SqlHelper hlp) {
+    if (params.hasTrackedEntity()) {
+      sql.append(hlp.whereAnd())
+          .append(" te.uid = '")
+          .append(params.getTrackedEntity().getUid())
+          .append("' ");
+    }
+  }
+
+  private void addOrderBy(StringBuilder sql, EnrollmentQueryParams params) {
+    sql.append(" order by ");
+    sql.append(orderBy(params.getOrder()));
+  }
+
+  public Page<Enrollment> getEnrollments(EnrollmentQueryParams params, PageParams pageParams) {
+    String sql = getQuery(params);
+    sql +=
+        String.format(" LIMIT %d OFFSET %d", pageParams.getPageSize() + 1, pageParams.getOffset());
+
+    List<Enrollment> enrollments =
+        jdbcTemplate.query(sql, new EnrollmentRowMapper(params.isIncludeAttributes()));
+    return new Page<>(enrollments, pageParams, () -> countEnrollments(params));
+  }
+
+  private long countEnrollments(EnrollmentQueryParams params) {
+    String sql = getCountQuery(params);
+    return jdbcTemplate.queryForObject(sql, Long.class);
+  }
+
+  private String getCountQuery(EnrollmentQueryParams params) {
+    StringBuilder sql = new StringBuilder();
+    addSelect(sql, params);
+    addEnrollmentFromItem(sql, params);
+
+    return sql.toString()
         .replaceFirst(
             "(?s)^.*?from enrollment e", "select count(distinct e.uid) from enrollment e");
   }
@@ -293,7 +337,8 @@ public class JdbcEnrollmentStore {
     return ouClause.toString();
   }
 
-  private String getChildrenQuery(SqlHelper hlp, Set<OrganisationUnit> organisationUnits) {
+  private String getChildrenQuery(Set<OrganisationUnit> organisationUnits) {
+    SqlHelper hlp = new SqlHelper(true);
     StringBuilder orgUnits = new StringBuilder();
     for (OrganisationUnit organisationUnit : organisationUnits) {
       orgUnits
@@ -386,9 +431,6 @@ public class JdbcEnrollmentStore {
       enrollmentOrgUnit.setUid(rs.getString("en_org_unit_uid"));
       enrollmentOrgUnit.setPath(rs.getString("en_org_unit_path"));
       enrollment.setOrganisationUnit(enrollmentOrgUnit);
-
-      // TODO Map messages?
-      List<MessageConversation> messageConversations = new ArrayList<>();
 
       String jsonNotes = rs.getString("notes");
       if (jsonNotes != null) {
@@ -566,19 +608,5 @@ public class JdbcEnrollmentStore {
     private String created;
     private String lastUpdated;
     private String storedBy;
-  }
-
-  @Getter
-  @Builder(toBuilder = true)
-  private static class QueryWithOrderBy {
-    private final String query;
-    private final String orderBy;
-
-    public String getFullQuery() {
-      if (orderBy == null || orderBy.isEmpty()) {
-        return query;
-      }
-      return query + " ORDER BY " + orderBy;
-    }
   }
 }
