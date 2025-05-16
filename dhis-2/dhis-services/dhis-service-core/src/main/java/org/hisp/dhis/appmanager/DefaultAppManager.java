@@ -362,14 +362,13 @@ public class DefaultAppManager implements AppManager {
   }
 
   @Override
-  public App installAppZipFile(File file, String fileName) {
-    return installAppZipFile(file, fileName);
+  public App installApp(File file, String fileName) {
+    return installAppZipFile(file, fileName, null);
   }
 
-  @Override
-  public App installAppZipFile(File file, String fileName, AppInfo bundledAppInfo) {
+  private App installAppZipFile(File file, String fileName, AppInfo bundledAppInfo) {
     App app = jCloudsAppStorageService.installApp(file, fileName, appCache, bundledAppInfo);
-    log.info(
+    log.debug(
         String.format(
             "Installed App with AppHub ID %s (status: %s)", app.getAppHubId(), app.getAppState()));
     cacheApp(app);
@@ -415,7 +414,7 @@ public class DefaultAppManager implements AppManager {
 
       String filename = FilenameUtils.getName(downloadUrl);
 
-      return installAppZipFile(getFile(url), filename);
+      return installApp(getFile(url), filename);
 
     } catch (IOException ex) {
       log.info(String.format("No version found for id %s", appHubId));
@@ -525,11 +524,8 @@ public class DefaultAppManager implements AppManager {
               installedApps.put(key, app);
             });
 
-    //    Map<String, App> installedApps = jCloudsAppStorageService.discoverInstalledApps();
-
     // Install bundled apps, overwrite already installed if not manually installed and if checksums
     // differ.
-
     bundledAppsInfo.forEach(
         (k, appInfo) -> {
           String appChecksum = appInfo.getChecksum();

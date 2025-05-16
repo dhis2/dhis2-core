@@ -95,7 +95,7 @@ class DatastoreControllerIntegrationTest extends PostgresControllerIntegrationTe
     assertEquals(
         AppStatus.OK,
         appManager
-            .installAppZipFile(new ClassPathResource("app/test-app.zip").getFile(), "test-app.zip")
+            .installApp(new ClassPathResource("app/test-app.zip").getFile(), "test-app.zip")
             .getAppState());
     // by default we are an app manager
     switchToNewUser("app-admin", Authorities.M_DHIS_WEB_APP_MANAGEMENT.toString());

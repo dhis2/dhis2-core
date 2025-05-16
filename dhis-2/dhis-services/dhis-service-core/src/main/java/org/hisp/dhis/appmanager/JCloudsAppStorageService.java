@@ -41,7 +41,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -98,8 +97,6 @@ public class JCloudsAppStorageService implements AppStorageService {
       log.debug("Found potential app: {}", resource.getName());
 
       // Found potential app
-      Blob bundledAppInfo = jCloudsStore.getBlob(resource.getName() + "bundled-app-info.json");
-
       Blob manifest = jCloudsStore.getBlob(resource.getName() + "manifest.webapp");
 
       if (manifest == null) {
@@ -115,6 +112,7 @@ public class JCloudsAppStorageService implements AppStorageService {
         app.setAppStorageSource(AppStorageSource.JCLOUDS);
         app.setFolderName(resource.getName());
 
+        Blob bundledAppInfo = jCloudsStore.getBlob(resource.getName() + "bundled-app-info.json");
         if (bundledAppInfo != null) {
           InputStream bundledAppInfoStream = bundledAppInfo.getPayload().openStream();
           AppInfo appInfo = mapper.readValue(bundledAppInfoStream, AppInfo.class);
@@ -209,7 +207,7 @@ public class JCloudsAppStorageService implements AppStorageService {
   @Override
   public App installApp(File file, String filename, Cache<App> appCache, AppInfo bundledAppInfo) {
     App app = new App();
-    log.info("Installing new app: {}", filename);
+    log.debug("Installing new app: {}", filename);
 
     try (ZipFile zip = new ZipFile(file)) {
       // -----------------------------------------------------------------
@@ -282,7 +280,6 @@ public class JCloudsAppStorageService implements AppStorageService {
         jsonMapper.writerWithDefaultPrettyPrinter().writeValue(baos, bundledAppInfo);
         byte[] bundledAppInfoBytes = baos.toByteArray();
         ByteArrayInputStream bais = new ByteArrayInputStream(bundledAppInfoBytes);
-
         String name = dest + File.separator + "bundled-app-info.json";
         Blob bundledAppInfoBlob =
             jCloudsStore
@@ -292,21 +289,22 @@ public class JCloudsAppStorageService implements AppStorageService {
                 .contentLength(bundledAppInfoBytes.length)
                 .build();
         jCloudsStore.putBlob(bundledAppInfoBlob);
-
         bais.close();
         baos.close();
       }
 
-      // make sure any other version of same app is removed
-      List<App> otherVersions = new ArrayList<>();
-      String key = app.getKey();
-      String version = app.getVersion();
-      discoverInstalledApps(
-          other -> {
-            if (key.equals(other.getKey()) && !version.equals(other.getVersion()))
-              otherVersions.add(other);
-          });
-      otherVersions.forEach(this::deleteAppAsync);
+      // TODO: Cant see this is needed anymore, apps are saved to same folder anyway, regardless of
+      // version
+      //      // make sure any other version of same app is removed
+      //      List<App> otherVersions = new ArrayList<>();
+      //      String key = app.getKey();
+      //      String version = app.getVersion();
+      //      discoverInstalledApps(
+      //          other -> {
+      //            if (key.equals(other.getKey()) && !version.equals(other.getVersion()))
+      //              otherVersions.add(other);
+      //          });
+      //      otherVersions.forEach(this::deleteAppAsync);
 
       String namespace = app.getActivities().getDhis().getNamespace();
 

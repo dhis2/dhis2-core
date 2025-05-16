@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.hisp.dhis.appmanager.AppBundleInfo.AppInfo;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.springframework.core.io.Resource;
 
@@ -170,9 +169,7 @@ public interface AppManager {
    * @param fileName the name of the app file.
    * @return the installed app instance
    */
-  App installAppZipFile(File file, String fileName, AppInfo bundledAppInfo);
-
-  App installAppZipFile(File file, String fileName);
+  App installApp(File file, String fileName);
 
   /**
    * Installs an app from the AppHub with the given ID.
