@@ -425,6 +425,7 @@ public class DefaultAppManager implements AppManager {
     return app;
   }
 
+  @Nonnull
   public App installBundledAppResource(Resource resource, String fileName, AppInfo bundledAppInfo) {
     try {
       Path tempFile = Files.createTempFile("tmp-bundled-app-", fileName);
@@ -438,6 +439,7 @@ public class DefaultAppManager implements AppManager {
     }
   }
 
+  @Nonnull
   public App installAppByHubId(UUID appHubId) {
     App installedApp = new App();
     if (appHubId == null) {

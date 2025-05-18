@@ -530,6 +530,7 @@ public class App implements Serializable {
   }
 
   @JsonIgnore
+  @Nonnull
   public AppInfo getBundledAppInfo() {
     return bundledAppInfo;
   }
