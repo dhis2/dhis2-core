@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.Future;
+import org.hisp.dhis.appmanager.AppBundleInfo.AppInfo;
 import org.hisp.dhis.appmanager.ResourceResult.Redirect;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
@@ -62,9 +63,10 @@ public interface AppStorageService {
    * @param file the zip file containing the app
    * @param filename The name of the file
    * @param appCache The app cache
+   * @param bundledAppInfo bundled app info
    * @return The status of the installation
    */
-  App installApp(File file, String filename, Cache<App> appCache);
+  App installApp(File file, String filename, Cache<App> appCache, AppInfo bundledAppInfo);
 
   /**
    * Deletes an app from the AppHubService.

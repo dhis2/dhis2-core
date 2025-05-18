@@ -38,6 +38,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
 import java.util.*;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.appmanager.AppBundleInfo.AppInfo;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.datastore.DatastoreNamespace;
 
@@ -107,6 +108,8 @@ public class App implements Serializable {
   private AppStatus appState = AppStatus.OK;
 
   private List<AppShortcut> shortcuts = new ArrayList<>();
+
+  private AppInfo bundledAppInfo;
 
   // -------------------------------------------------------------------------
   // Logic
@@ -519,5 +522,16 @@ public class App implements Serializable {
     return additionalNamespaces.stream()
         .flatMap(ns -> ns.getAllAuthorities().stream())
         .collect(toUnmodifiableSet());
+  }
+
+  @JsonIgnore
+  public void setBundledAppInfo(AppInfo bundledAppInfo) {
+    this.bundledAppInfo = bundledAppInfo;
+  }
+
+  @JsonIgnore
+  @Nonnull
+  public AppInfo getBundledAppInfo() {
+    return bundledAppInfo;
   }
 }
