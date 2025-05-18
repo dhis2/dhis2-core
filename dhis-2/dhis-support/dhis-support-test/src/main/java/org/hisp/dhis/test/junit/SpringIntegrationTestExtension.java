@@ -34,8 +34,14 @@ import static org.junit.platform.commons.util.AnnotationUtils.findAnnotation;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.FlushMode;
@@ -98,6 +104,43 @@ public class SpringIntegrationTestExtension
 
   @Override
   public void beforeAll(ExtensionContext context) throws Exception {
+
+    try {
+      // Get the root of the classpath
+      URL resource = SpringIntegrationTestExtension.class.getClassLoader().getResource("");
+      if (resource == null) {
+        throw new RuntimeException("Cannot find classpath root");
+      }
+      Path classpathRoot = Paths.get(resource.toURI());
+
+      // Define the path to the apps-bundle.json file
+      Path appsBundleDir = classpathRoot.resolve("static/dhis-web-apps");
+      Path appsBundleFile = appsBundleDir.resolve("apps-bundle.json");
+
+      // Create directories if they don't exist
+      Files.createDirectories(appsBundleDir);
+
+      String jsonContent =
+          """
+      {
+        "buildDate" : "Mon May 19 02:53:54 PST 2025",
+        "apps" : []
+      }
+      """;
+
+      // Write the content to the file
+      Files.write(appsBundleFile, jsonContent.getBytes());
+
+      log.debug("Successfully created temporary apps-bundle.json at: " + appsBundleFile.toString());
+
+    } catch (IOException | URISyntaxException e) {
+      log.error("Failed to create temporary apps-bundle.json", e);
+      // Depending on the test requirements, you might want to re-throw this as a runtime exception
+      // or handle it in a way that makes the test fail clearly.
+      // For now, just logging the error.
+      throw new RuntimeException("Failed to create temporary apps-bundle.json", e);
+    }
+
     if (isTestLifecyclePerMethod(context)) {
       return;
     }
