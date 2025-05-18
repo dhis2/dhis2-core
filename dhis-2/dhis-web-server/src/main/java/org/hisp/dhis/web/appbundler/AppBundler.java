@@ -29,10 +29,7 @@
  */
 package org.hisp.dhis.web.appbundler;
 
-import static org.hisp.dhis.util.FileUtils.generateFileChecksum;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.CollectionType;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -43,12 +40,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -57,10 +50,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.hisp.dhis.appmanager.AppBundleInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,61 +61,13 @@ import org.slf4j.LoggerFactory;
  * the previous process that used Git to clone the apps.
  */
 public class AppBundler {
-  private static final Logger logger = LoggerFactory.getLogger(AppBundler.class);
+  private static Logger log = LoggerFactory.getLogger(AppBundler.class);
 
   // Regex to parse standard GitHub URL: https://github.com/owner/repo#ref
   private static final Pattern GITHUB_URL_PATTERN =
       Pattern.compile("^https://github\\.com/([^/]+)/([^/#]+)(?:#(.+))?$");
-
   private static final int DOWNLOAD_POOL_SIZE = 25; // Number of concurrent downloads
   private static final String DEFAULT_BRANCH = "master";
-
-  /**
-   * Record to hold parsed information from a standard GitHub URL.
-   *
-   * @param owner The repository owner.
-   * @param repo The repository name.
-   * @param ref The branch, tag, or commit reference.
-   * @param originalUrl The original URL string from the input file.
-   * @param codeloadUrl The converted URL for downloading the ZIP archive.
-   */
-  private record AppRepoInfo(
-      String owner, String repo, String ref, String originalUrl, String codeloadUrl) {}
-
-  /**
-   * Converts a standard GitHub repository URL with a ref in the fragment (e.g.,
-   * https://github.com/owner/repo#branch) into the codeload.github.com URL format for downloading a
-   * ZIP archive.
-   *
-   * @param githubUrl The standard GitHub URL (e.g.,
-   *     "https://github.com/d2-ci/datastore-app#patch/2.42.0").
-   * @return The corresponding codeload URL (e.g.,
-   *     "https://codeload.github.com/d2-ci/datastore-app/zip/patch/2.42.0"), or null if the input
-   *     URL format is invalid.
-   */
-  public static String convertToCodeloadUrl(String githubUrl) {
-    if (githubUrl == null) {
-      return null;
-    }
-    Matcher matcher = GITHUB_URL_PATTERN.matcher(githubUrl);
-    if (matcher.matches()) {
-      String owner = matcher.group(1);
-      String repo = matcher.group(2);
-      String ref = matcher.group(3);
-      if (ref == null) {
-        ref = "refs/heads/master";
-      }
-
-      return String.format("https://codeload.github.com/%s/%s/zip/%s", owner, repo, ref);
-    } else {
-      // Use logger if available statically or pass instance if needed
-      // For simplicity here, using System.err, but logger is preferred
-      logger.error("Invalid GitHub URL format for conversion: " + githubUrl);
-      // Consider changing logger level if this becomes noisy
-      // logger.warn("Invalid GitHub URL format for conversion: {}", githubUrl);
-      return null;
-    }
-  }
 
   private static final String CHECKSUM_DIR = "checksums";
   private static final String BUNDLE_INFO_FILE = "apps-bundle.json";
@@ -160,19 +103,25 @@ public class AppBundler {
   }
 
   /**
+   * Record to hold parsed information from a standard GitHub URL.
+   *
+   * @param owner The repository owner.
+   * @param repo The repository name.
+   * @param ref The branch, tag, or commit reference.
+   * @param originalUrl The original URL string from the input file.
+   * @param codeloadUrl The converted URL for downloading the ZIP archive.
+   */
+  private record AppGithubRepo(
+      String owner, String repo, String ref, String originalUrl, String codeloadUrl) {}
+
+  /**
    * Executes the app bundling process.
    *
    * @throws IOException if there's an error reading the app list or downloading the apps
    */
   public void execute() throws IOException {
-    logger.error("Starting app bundling process");
-    logger.error("Download directory: {}", downloadDir);
-    logger.error("Build directory: {}", buildDir);
-    logger.error("Artifact ID: {}", artifactId);
-    logger.error("App list path: {}", appListFilePath);
-    logger.error("Default branch: {}", defaultBranch);
+    log.debug("Starting app bundling process");
 
-    // Create download directory if it doesn't exist
     Path downloadDirPath = Paths.get(downloadDir);
     Files.createDirectories(downloadDirPath);
 
@@ -180,14 +129,14 @@ public class AppBundler {
     Path artifactDirPath = downloadDirPath.resolve(artifactId);
     Files.createDirectories(artifactDirPath);
 
-    // Create download checksums directory
+    // Create download checksums/etag directory
     Path checksumDirPath = artifactDirPath.resolve(CHECKSUM_DIR);
     Files.createDirectories(checksumDirPath);
 
     // Read app list - now returns List<AppRepoInfo>
-    List<AppRepoInfo> appRepoInfos =
+    List<AppGithubRepo> appRepoInfos =
         parseAppListUrls(appListFilePath); // Changed variable name and type
-    logger.error("Found {} valid apps to bundle", appRepoInfos.size()); // Use the new list
+    log.info("Found {} valid apps to bundle", appRepoInfos.size()); // Use the new list
 
     // Download each app in parallel - pass the new list type
     downloadApps(appRepoInfos, artifactDirPath, checksumDirPath); // Pass AppRepoInfo list
@@ -197,80 +146,31 @@ public class AppBundler {
 
     // Write bundle info file
     writeBundleFile(targetArtifactDir);
+
+    log.debug("App bundling process completed successfully");
   }
 
-  private void writeBundleFile(Path targetArtifactDir) throws IOException {
-    Path bundleInfoPath = targetArtifactDir.resolve(BUNDLE_INFO_FILE);
-    objectMapper.writerWithDefaultPrettyPrinter().writeValue(bundleInfoPath.toFile(), bundleInfo);
-    logger.error("Wrote bundle info to {}", bundleInfoPath);
-    logger.error("App bundling process completed successfully");
-  }
-
-  //  public AppBundleInfo getBundleInfo(String jsonFile) {
-  //    Path bundleInfoPath = Paths.get(jsonFile);
-  //    return objectMapper.readValue(bundleInfoPath.toFile(), AppBundleInfo.class);
-  //  }
-
-  private @Nonnull Path copyApps(Path downloadDirPath) throws IOException {
-    Path targetArtifactDir = Paths.get(buildDir).resolve(artifactId);
-    try {
-      Files.createDirectories(targetArtifactDir);
-      logger.error("Ensured target artifact directory exists: {}", targetArtifactDir);
-
-      for (AppBundleInfo.AppInfo app : bundleInfo.getApps()) {
-        Path sourceZipPath = downloadDirPath.resolve(artifactId).resolve(app.getName() + ".zip");
-        Path destZipPath = targetArtifactDir.resolve(app.getName() + ".zip");
-
-        if (Files.exists(sourceZipPath)) {
-          Files.copy(sourceZipPath, destZipPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-          logger.error("Copied {} to {}", sourceZipPath, destZipPath);
-        } else {
-          logger.warn(
-              "Source zip file not found, skipping copy for app {}: {}",
-              app.getName(),
-              sourceZipPath);
-        }
-      }
-      logger.error("Finished copying app bundles to build directory.");
-
-    } catch (IOException e) {
-      logger.error("Error copying app bundles to build directory: {}", e.getMessage(), e);
-      throw new IOException("Failed to copy app bundles to build directory", e);
-    }
-    // --- End Copying ---
-    return targetArtifactDir;
-  }
-
-  // Update method signature to accept List<AppRepoInfo>
   private void downloadApps(
-      List<AppRepoInfo> appRepoInfos, Path artifactDirPath, Path checksumDirPath) {
+      List<AppGithubRepo> appRepoInfos, Path artifactDirPath, Path checksumDirPath) {
+    log.debug("Submitting download tasks for {} apps...", appRepoInfos.size());
+
     ExecutorService executor = Executors.newFixedThreadPool(DOWNLOAD_POOL_SIZE);
+
     List<Future<AppBundleInfo.AppInfo>> futures = new ArrayList<>();
-
-    logger.error(
-        "Submitting download tasks for {} apps...", appRepoInfos.size()); // Use the new list size
-    for (AppRepoInfo repoInfo : appRepoInfos) { // Iterate over AppRepoInfo
-      // Pass the repoInfo object to the downloadApp task
-      Callable<AppBundleInfo.AppInfo> task =
-          () -> downloadApp(repoInfo, artifactDirPath, checksumDirPath);
-
-      Future<AppBundleInfo.AppInfo> future = executor.submit(task);
-      futures.add(future);
+    for (AppGithubRepo repoInfo : appRepoInfos) {
+      futures.add(executor.submit(() -> downloadApp(repoInfo, artifactDirPath, checksumDirPath)));
     }
 
-    logger.error("Collecting download results...");
     for (Future<AppBundleInfo.AppInfo> future : futures) {
       try {
         AppBundleInfo.AppInfo appInfo = future.get(); // Blocks until completion
         if (appInfo != null) {
           bundleInfo.addApp(appInfo);
-          logger.error("Successfully processed app: {}", appInfo.getName());
+          log.debug("Successfully processed app: {}", appInfo.getName());
         }
+
       } catch (InterruptedException | ExecutionException e) {
-        // Log the error and continue with other apps
-        // The specific failing app URL isn't directly available here without more
-        // complex tracking
-        logger.error(
+        log.error(
             "Error retrieving result for an app download task: {} - {}",
             e.getClass().getSimpleName(),
             e.getMessage(),
@@ -278,138 +178,26 @@ public class AppBundler {
       }
     }
 
-    logger.error("Shutting down download executor...");
+    log.debug("Shutting down download executor...");
     executor.shutdown();
+
     try {
       // Wait a reasonable time for existing tasks to terminate
       if (!executor.awaitTermination(5, TimeUnit.MINUTES)) {
-        logger.warn(
+        log.error(
             "Download executor did not terminate gracefully after 5 minutes, forcing shutdown.");
         executor.shutdownNow();
         // Wait again for tasks to respond to being cancelled
         if (!executor.awaitTermination(60, TimeUnit.SECONDS))
-          logger.error("Download executor did not terminate even after forced shutdown.");
+          log.error("Download executor did not terminate even after forced shutdown.");
       }
+
     } catch (InterruptedException ie) {
-      logger.error("Interrupted while waiting for executor termination, forcing shutdown.", ie);
+      log.error("Interrupted while waiting for executor termination, forcing shutdown.", ie);
       executor.shutdownNow();
       Thread.currentThread().interrupt(); // Preserve interrupt status
     }
-    logger.error("Download executor shut down.");
-  }
-
-  /**
-   * Reads the list of app URLs from the JSON file.
-   *
-   * <p>Reads the list of standard app URLs from the JSON file, parses them, converts them to
-   * codeload format, and returns structured info.
-   *
-   * @return a list of AppRepoInfo objects
-   * @throws IOException if there's an error reading the file
-   */
-  private List<AppRepoInfo> parseAppListUrls(String appListPath) throws IOException {
-    File appListFile = new File(appListPath);
-    CollectionType urlListType =
-        objectMapper.getTypeFactory().constructCollectionType(List.class, String.class);
-    List<String> rawUrls = objectMapper.readValue(appListFile, urlListType);
-
-    List<AppRepoInfo> appInfos = new ArrayList<>();
-    for (String rawUrl : rawUrls) {
-      Matcher matcher = GITHUB_URL_PATTERN.matcher(rawUrl);
-      if (matcher.matches()) {
-        String owner = matcher.group(1);
-        String repo = matcher.group(2);
-        String ref = matcher.group(3);
-        String codeloadUrl = convertToCodeloadUrl(rawUrl); // Use the static method
-
-        if (codeloadUrl != null) {
-          appInfos.add(new AppRepoInfo(owner, repo, ref, rawUrl, codeloadUrl));
-          logger.debug(
-              "Parsed app URL: owner={}, repo={}, ref={}, codeload={}",
-              owner,
-              repo,
-              ref,
-              codeloadUrl);
-        } else {
-          // Log error from convertToCodeloadUrl is sufficient
-          logger.error("Skipping app due to failed conversion from URL: {}", rawUrl);
-        }
-      } else {
-        logger.error("Skipping app due to invalid GitHub URL format: {}", rawUrl);
-      }
-    }
-    logger.info("Successfully parsed {} app URLs out of {}", appInfos.size(), rawUrls.size());
-    return appInfos;
-  }
-
-  /**
-   * Downloads an app from GitHub as a ZIP file.
-   *
-   * <p>Downloads an app from GitHub as a ZIP file using pre-parsed info.
-   *
-   * @param repoInfo the parsed repository information including the codeload URL
-   * @param targetDir the directory where the app ZIP file will be stored
-   * @param checksumDir the directory where the checksum files will be stored
-   * @return the downloaded AppBundleInfo.AppInfo object containing ETag etc.
-   * @throws IOException if there's an error downloading the app
-   */
-  private AppBundleInfo.AppInfo downloadApp(AppRepoInfo repoInfo, Path targetDir, Path checksumDir)
-      throws IOException {
-    // No need to match pattern here, info is already parsed from AppRepoInfo
-
-    logger.error(
-        "Processing app: {}/{} (ref: {}) from {}",
-        repoInfo.owner(),
-        repoInfo.repo(),
-        repoInfo.ref(),
-        repoInfo.codeloadUrl());
-
-    // Generate a filename for the ZIP file using info from the record
-    String zipName = repoInfo.repo() + ".zip";
-    Path zipFilePath = targetDir.resolve(zipName);
-
-    // Create app info object to store results (ETag etc.)
-    AppBundleInfo.AppInfo appBundleResultInfo = new AppBundleInfo.AppInfo();
-    appBundleResultInfo.setName(repoInfo.repo());
-    appBundleResultInfo.setUrl(repoInfo.originalUrl()); // Store original URL
-    appBundleResultInfo.setBranch(repoInfo.ref()); // Store the ref (branch/tag)
-
-    // Check if we already have the latest version using the codeload URL
-    String etag = null;
-
-    // Use repo name from record for checksum file
-    Path checksumFile = checksumDir.resolve(repoInfo.repo() + ".checksum");
-    try {
-      // Use the pre-converted codeloadUrl for download check
-      etag = downloadIfChanged(repoInfo.codeloadUrl(), zipFilePath, checksumFile);
-
-      if (etag == null) { // Not modified or download failed ETag retrieval
-        if (Files.exists(checksumFile)) {
-          appBundleResultInfo.setEtag(Files.readString(checksumFile, StandardCharsets.UTF_8));
-          logger.error(
-              "App {} is already up to date (ETag: {})", zipName, appBundleResultInfo.getEtag());
-        } else {
-          // This case might happen if download failed before ETag was written,
-          // or if ETag header was missing. Log a warning.
-          logger.warn("Could not determine ETag for app {}, checksum file missing.", zipName);
-        }
-      } else {
-        String zipFileChecksum = generateFileChecksum(zipFilePath.toFile());
-        appBundleResultInfo.setChecksum(zipFileChecksum);
-
-        // Store the new ETag in the result object
-        appBundleResultInfo.setEtag(etag);
-        logger.error("Downloaded app: {} (ETag: {})", zipName, etag);
-      }
-    } catch (IOException e) {
-      // Log using the original URL for better context
-      logger.error(
-          "Failed to download or process app {}: {}", repoInfo.originalUrl(), e.getMessage(), e);
-      // Propagate the exception so the Future captures it
-      throw e;
-    }
-
-    return appBundleResultInfo; // Return the result info object
+    log.debug("Download executor shut down.");
   }
 
   /**
@@ -423,59 +211,30 @@ public class AppBundler {
    */
   private String downloadIfChanged(String fileUrl, Path outputPath, Path checksumPath)
       throws IOException {
-    URL url = new URL(fileUrl);
-    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-    TrustManager[] trustAllCerts =
-        new TrustManager[] {
-          new X509TrustManager() {
-            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-              return null;
-            }
+    log.debug("Checking/Downloading {} to {}", fileUrl, outputPath);
+    log.debug("Checksum file: {}", checksumPath);
 
-            public void checkClientTrusted(X509Certificate[] certs, String authType) {}
-
-            public void checkServerTrusted(X509Certificate[] certs, String authType) {}
-          }
-        };
-    SSLContext sc;
-    try {
-      sc = SSLContext.getInstance("TLS");
-      sc.init(null, trustAllCerts, new java.security.SecureRandom());
-    } catch (NoSuchAlgorithmException e) {
-      throw new RuntimeException(e);
-    } catch (KeyManagementException e) {
-      throw new RuntimeException(e);
-    }
-    HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-
-    connection.setRequestMethod("GET");
-
-    logger.debug("Checking/Downloading {} to {}", fileUrl, outputPath);
-    logger.debug("Checksum file: {}", checksumPath);
+    HttpURLConnection connection = getHttpURLConnection(fileUrl);
 
     // Check if we have a previous ETag
     if (Files.exists(checksumPath)) {
-      String previousEtag = new String(Files.readAllBytes(checksumPath), StandardCharsets.UTF_8);
-      logger.debug("Previous ETag: {}", previousEtag);
+      String previousEtag = Files.readString(checksumPath);
       connection.setRequestProperty("If-None-Match", "\"" + previousEtag + "\"");
     }
 
     connection.connect();
+
     int responseCode = connection.getResponseCode();
-
-    logger.debug("Response code for {}: {}", fileUrl, responseCode);
-
+    log.debug("Response code for {}: {}", fileUrl, responseCode);
     if (responseCode == HttpURLConnection.HTTP_NOT_MODIFIED) {
-      // File hasn't changed
-      logger.debug("File not modified (HTTP 304): {}", fileUrl);
-      return null; // Indicate no download occurred, use existing checksum
+      log.debug("File not modified (HTTP 304): {}", fileUrl);
+      return null;
     }
-
     if (responseCode != HttpURLConnection.HTTP_OK) {
       throw new IOException("HTTP error code: " + responseCode + " for URL: " + fileUrl);
     }
 
-    // Get the ETag from the response
+    // Get the ETag from the response header
     String etag = connection.getHeaderField("ETag");
     if (etag != null) {
       etag = etag.replaceAll("\"", ""); // Remove quotes from ETag
@@ -493,10 +252,174 @@ public class AppBundler {
 
     // Save the ETag for future comparisons
     if (etag != null) {
-      Files.write(checksumPath, etag.getBytes(StandardCharsets.UTF_8));
+      Files.writeString(checksumPath, etag);
+    }
+    return etag;
+  }
+
+  private void writeBundleFile(Path targetArtifactDir) throws IOException {
+    Path bundleInfoPath = targetArtifactDir.resolve(BUNDLE_INFO_FILE);
+    objectMapper.writerWithDefaultPrettyPrinter().writeValue(bundleInfoPath.toFile(), bundleInfo);
+    log.info("Wrote bundle info to: {}", bundleInfoPath);
+  }
+
+  private @Nonnull Path copyApps(Path downloadDirPath) throws IOException {
+    Path targetArtifactDir = Paths.get(buildDir).resolve(artifactId);
+    try {
+      Files.createDirectories(targetArtifactDir);
+      log.debug("Ensured target artifact directory exists: {}", targetArtifactDir);
+      for (AppBundleInfo.AppInfo app : bundleInfo.getApps()) {
+        Path sourceZipPath = downloadDirPath.resolve(artifactId).resolve(app.getName() + ".zip");
+        Path destZipPath = targetArtifactDir.resolve(app.getName() + ".zip");
+
+        if (Files.exists(sourceZipPath)) {
+          Files.copy(sourceZipPath, destZipPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+          log.debug("Copied {} to {}", sourceZipPath, destZipPath);
+        } else {
+          log.error(
+              "Source zip file not found, skipping copy for app {}: {}",
+              app.getName(),
+              sourceZipPath);
+        }
+      }
+      log.info("Finished copying app bundles to build directory.");
+
+    } catch (IOException e) {
+      log.error("Error copying app bundles to build directory: {}", e.getMessage(), e);
+      throw new IOException("Failed to copy app bundles to build directory", e);
+    }
+    return targetArtifactDir;
+  }
+
+  /**
+   * Reads the list of app URLs from the JSON file.
+   *
+   * <p>Reads the list of standard app URLs from the JSON file, parses them, converts them to
+   * codeload format, and returns structured info.
+   *
+   * @return a list of AppRepoInfo objects
+   * @throws IOException if there's an error reading the file
+   */
+  private List<AppGithubRepo> parseAppListUrls(String appListPath) throws IOException {
+    List<String> rawUrls =
+        objectMapper.readValue(
+            new File(appListPath),
+            objectMapper.getTypeFactory().constructCollectionType(List.class, String.class));
+
+    List<AppGithubRepo> appInfos = new ArrayList<>();
+
+    for (String rawUrl : rawUrls) {
+      Matcher matcher = GITHUB_URL_PATTERN.matcher(rawUrl);
+      if (matcher.matches()) {
+        String owner = matcher.group(1);
+        String repo = matcher.group(2);
+        String ref = matcher.group(3);
+
+        String codeloadUrl = convertToCodeloadUrl(rawUrl);
+        if (codeloadUrl != null) {
+          appInfos.add(new AppGithubRepo(owner, repo, ref, rawUrl, codeloadUrl));
+        } else {
+          log.error("Skipping app due to failed conversion from URL: {}", rawUrl);
+        }
+      } else {
+        log.error("Skipping app due to invalid GitHub URL format: {}", rawUrl);
+      }
+    }
+    log.debug("Successfully parsed {} app URLs out of {}", appInfos.size(), rawUrls.size());
+    return appInfos;
+  }
+
+  /**
+   * Downloads an app from GitHub as a ZIP file.
+   *
+   * <p>Downloads an app from GitHub as a ZIP file using pre-parsed info.
+   *
+   * @param repoInfo the parsed repository information including the codeload URL
+   * @param targetDir the directory where the app ZIP file will be stored
+   * @param checksumDir the directory where the checksum files will be stored
+   * @return the downloaded AppBundleInfo.AppInfo object containing ETag etc.
+   * @throws IOException if there's an error downloading the app
+   */
+  private AppBundleInfo.AppInfo downloadApp(
+      AppGithubRepo repoInfo, Path targetDir, Path checksumDir) throws IOException {
+    log.debug(
+        "Processing app: {}/{} (ref: {}) from {}",
+        repoInfo.owner(),
+        repoInfo.repo(),
+        repoInfo.ref(),
+        repoInfo.codeloadUrl());
+
+    AppBundleInfo.AppInfo appBundleResultInfo = new AppBundleInfo.AppInfo();
+    appBundleResultInfo.setName(repoInfo.repo());
+    appBundleResultInfo.setUrl(repoInfo.originalUrl());
+    appBundleResultInfo.setBranch(repoInfo.ref());
+
+    try {
+      String zipName = repoInfo.repo() + ".zip";
+      Path zipFilePath = targetDir.resolve(zipName);
+      Path etagFile = checksumDir.resolve(repoInfo.repo() + ".checksum");
+
+      String etag = downloadIfChanged(repoInfo.codeloadUrl(), zipFilePath, etagFile);
+      if (etag == null) { // Not modified or download failed ETag retrieval
+        if (Files.exists(etagFile)) {
+          appBundleResultInfo.setEtag(Files.readString(etagFile, StandardCharsets.UTF_8));
+          log.info(
+              "App {} is already up to date (ETag: {})", zipName, appBundleResultInfo.getEtag());
+
+        } else {
+          // This case might happen if download failed before ETag was written,
+          // or if ETag header was missing. Log a warning.
+          log.error("Could not determine ETag for app {}, checksum file missing.", zipName);
+        }
+      } else {
+        appBundleResultInfo.setEtag(etag);
+        log.info("Downloaded app: {} (ETag: {})", zipName, etag);
+      }
+    } catch (IOException e) {
+      log.error(
+          "Failed to download or process app {}: {}", repoInfo.originalUrl(), e.getMessage(), e);
+      throw e;
     }
 
-    return etag;
+    return appBundleResultInfo;
+  }
+
+  private static @Nonnull HttpURLConnection getHttpURLConnection(String fileUrl)
+      throws IOException {
+    URL url = new URL(fileUrl);
+    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+    connection.setRequestMethod("GET");
+    return connection;
+  }
+
+  /**
+   * Converts a standard GitHub repository URL format "https://github.com/owner/repo#branch" into
+   * "codeload.github.com/owner/repo/zip/branch" URL format for downloading a ZIP archive.
+   *
+   * @param githubUrl The standard GitHub URL (e.g.,
+   *     "https://github.com/d2-ci/datastore-app#patch/2.42.0").
+   * @return The corresponding codeload URL (e.g.,
+   *     "https://codeload.github.com/d2-ci/datastore-app/zip/patch/2.42.0"), or null if the input
+   *     URL format is invalid.
+   */
+  private static String convertToCodeloadUrl(String githubUrl) {
+    if (githubUrl == null) {
+      return null;
+    }
+    Matcher matcher = GITHUB_URL_PATTERN.matcher(githubUrl);
+    if (matcher.matches()) {
+      String owner = matcher.group(1);
+      String repo = matcher.group(2);
+      String ref = matcher.group(3);
+      if (ref == null) {
+        ref = "refs/heads/master";
+      }
+
+      return String.format("https://codeload.github.com/%s/%s/zip/%s", owner, repo, ref);
+    } else {
+      log.error("Invalid GitHub URL format for conversion: " + githubUrl);
+      return null;
+    }
   }
 
   /**
@@ -505,30 +428,30 @@ public class AppBundler {
    * @param args command-line arguments
    */
   public static void main(String[] args) {
+    // Force INFO level, so we can see what's going on with Maven
+    Configurator.setRootLevel(Level.INFO);
+
     try {
-      // Read properties using System.getProperty
       String downloadDir = System.getProperty("DOWNLOAD_DIR");
       String buildDir = System.getProperty("BUILD_DIR");
       String artifactId = System.getProperty("ARTIFACT_ID");
       String appListPath = System.getProperty("APP_LIST");
       String defaultBranch = System.getProperty("DEFAULT_BRANCH");
-      // log all the properties
-      logger.error("DOWNLOAD_DIR: {}", downloadDir);
-      logger.error("BUILD_DIR: {}", buildDir);
-      logger.error("ARTIFACT_ID: {}", artifactId);
-      logger.error("APP_LIST: {}", appListPath);
-      logger.error("DEFAULT_BRANCH: {}", defaultBranch);
+      log.info("DOWNLOAD_DIR: {}", downloadDir);
+      log.info("BUILD_DIR: {}", buildDir);
+      log.info("ARTIFACT_ID: {}", artifactId);
+      log.info("APP_LIST: {}", appListPath);
+      log.info("DEFAULT_BRANCH: {}", defaultBranch);
+
       if (downloadDir == null || buildDir == null || artifactId == null || appListPath == null) {
-        logger.error(
-            "System properties DOWNLOAD_DIR, BUILD_DIR, ARTIFACT_ID, and APPS must be set");
+        log.error("System properties DOWNLOAD_DIR, BUILD_DIR, ARTIFACT_ID, and APPS must be set");
         System.exit(1);
       }
-
       AppBundler bundler =
           new AppBundler(downloadDir, buildDir, artifactId, appListPath, defaultBranch);
       bundler.execute();
     } catch (Exception e) {
-      logger.error("Error executing app bundler: {}", e.getMessage(), e);
+      log.error("Error executing app bundler: {}", e.getMessage(), e);
       System.exit(1);
     }
   }

@@ -31,123 +31,64 @@ package org.hisp.dhis.appmanager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.function.TriConsumer;
+import org.hisp.dhis.appmanager.AppBundleInfo.AppInfo;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
 
 /**
- * Component that installs bundled app ZIP files during server startup. This detects ZIP files in
- * the bundled apps directory and installs them using the AppManager.
+ * Component that installs bundled app ZIP files during server startup.
+ *
+ * <p>It detects .zip files in the bundled apps directory and installs them using the AppManager.
  */
+@Slf4j
 @Component
-public class BundledAppManager implements ApplicationListener<ContextRefreshedEvent> {
-  private static final Logger logger = LoggerFactory.getLogger(BundledAppManager.class);
+public class BundledAppManager {
   private static final String APPS_PATH = "classpath:/static/dhis-web-apps/*.zip";
   private static final String APPS_BUNDLE_INFO_PATH =
       "classpath:/static/dhis-web-apps/apps-bundle.json";
   private static final ObjectMapper objectMapper = new ObjectMapper();
 
-  //  private static final String APPS_PATH_LOCAL =
-  // "file:./dhis-web-server/target/classes/static/dhis-web-apps/*.zip";
-  //  "file:./dhis-web-apps/target/dhis-web-apps/"
+  public void installBundledApps(TriConsumer<String, AppInfo, Resource> consumer) {
+    AppBundleInfo appBundleInfo = getAppBundleInfo();
+    Map<String, AppInfo> bundledAppsInfo =
+        appBundleInfo.getApps().stream()
+            .collect(Collectors.toMap(AppInfo::getName, Function.identity()));
 
-  @Override
-  public void onApplicationEvent(ContextRefreshedEvent event) {
-    logger.info("Checking for bundled app ZIP files to install");
-    //        try {
-    //            installBundledApps();
-    //        } catch (Exception e) {
-    //            logger.error("Error installing bundled apps: {}", e.getMessage(), e);
-    //        }
+    Map<String, Resource> bundledAppsResources = getBundledApps();
+
+    bundledAppsInfo.forEach(
+        (k, appInfo) -> {
+          String filename = k + ".zip";
+          Resource resource = bundledAppsResources.get(filename);
+          consumer.accept(k, appInfo, resource);
+        });
   }
 
-  /**
-   * Installs all bundled app ZIP files found in the classpath.
-   *
-   * @throws IOException if there's an error accessing the bundled app files
-   */
-  public void installBundledApps(Consumer<Resource> consumer) {
+  private Map<String, Resource> getBundledApps() {
     PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-    Resource[] resources = null;
     try {
-      resources = resolver.getResources(APPS_PATH);
+      Resource[] resources = resolver.getResources(APPS_PATH);
+      return Arrays.stream(resources)
+          .collect(Collectors.toMap(Resource::getFilename, Function.identity()));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-
-    logger.info("Found {} bundled app ZIP files", resources.length);
-
-    for (Resource resource : resources) {
-      try {
-        consumer.accept(resource);
-      } catch (Exception e) {
-        logger.error("Error installing app from {}: {}", resource.getFilename(), e.getMessage(), e);
-      }
-    }
   }
 
-  public Map<String, Resource> getBundledApps() {
-    PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-    Resource[] resources = null;
-    try {
-      resources = resolver.getResources(APPS_PATH);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-
-    return Arrays.stream(resources)
-        .collect(Collectors.toMap(Resource::getFilename, Function.identity()));
-  }
-
-  public AppBundleInfo getAppBundleInfo() {
+  private AppBundleInfo getAppBundleInfo() {
     try {
       PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
       Resource[] resources = resolver.getResources(APPS_BUNDLE_INFO_PATH);
       return objectMapper.readValue(resources[0].getInputStream(), AppBundleInfo.class);
     } catch (IOException e) {
       throw new RuntimeException(e);
-    }
-  }
-
-  /**
-   * Installs an app from a resource.
-   *
-   * @param resource the resource containing the app ZIP file
-   * @throws IOException if there's an error accessing the resource
-   */
-  private void installAppFromResource(Resource resource) throws IOException {
-    String fileName = resource.getFilename();
-    if (fileName == null) {
-      logger.warn("Skipping resource with no filename");
-      return;
-    }
-
-    logger.info("Installing bundled app: {}", fileName);
-
-    // Create a temporary file from the resource
-    Path tempFile = Files.createTempFile("bundled-app-", fileName);
-    Files.copy(resource.getInputStream(), tempFile, StandardCopyOption.REPLACE_EXISTING);
-
-    // Install the app using the AppManager
-    //    appManager.installApp(tempFile.toFile(), fileName);
-
-    // Clean up the temporary file
-    try {
-      Files.deleteIfExists(tempFile);
-    } catch (IOException e) {
-      logger.warn("Failed to delete temporary file: {}", tempFile, e);
     }
   }
 }

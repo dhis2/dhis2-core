@@ -59,7 +59,6 @@ public class AppBundleInfo {
     @JsonProperty private String url;
     @JsonProperty private String branch;
     @JsonProperty private String etag;
-    @JsonProperty private String checksum;
     @JsonProperty private String downloadDate;
 
     public AppInfo() {

@@ -108,6 +108,7 @@ public class App implements Serializable {
   private AppStatus appState = AppStatus.OK;
 
   private List<AppShortcut> shortcuts = new ArrayList<>();
+
   private AppInfo bundledAppInfo;
 
   // -------------------------------------------------------------------------
