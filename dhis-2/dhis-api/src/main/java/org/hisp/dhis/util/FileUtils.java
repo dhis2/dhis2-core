@@ -30,20 +30,14 @@
 package org.hisp.dhis.util;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
 public class FileUtils {
   private FileUtils() {
     throw new IllegalStateException("Utility class");
@@ -64,25 +58,6 @@ public class FileUtils {
           BufferedReader reader = new BufferedReader(isr)) {
         return reader.lines().collect(Collectors.joining(System.lineSeparator()));
       }
-    }
-  }
-
-  public static String generateFileChecksum(File file) {
-    try {
-      MessageDigest digest = MessageDigest.getInstance("SHA-256");
-      byte[] hash = digest.digest(Files.readAllBytes(file.toPath()));
-      StringBuilder hexString = new StringBuilder(2 * hash.length);
-      for (byte b : hash) {
-        String hex = Integer.toHexString(0xff & b);
-        if (hex.length() == 1) {
-          hexString.append('0');
-        }
-        hexString.append(hex);
-      }
-      return hexString.toString();
-    } catch (NoSuchAlgorithmException | IOException e) {
-      log.error("Failed to calculate checksum for app: {}", file.getAbsoluteFile(), e);
-      return null;
     }
   }
 }

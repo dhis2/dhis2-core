@@ -120,40 +120,35 @@ public class AppBundler {
    * @throws IOException if there's an error reading the app list or downloading the apps
    */
   public void execute() throws IOException {
-    log.debug("Starting app bundling process");
+    log.info("Starting app bundling process");
 
     Path downloadDirPath = Paths.get(downloadDir);
     Files.createDirectories(downloadDirPath);
 
-    // Create download artifact directory
     Path artifactDirPath = downloadDirPath.resolve(artifactId);
     Files.createDirectories(artifactDirPath);
 
-    // Create download checksums/etag directory
     Path checksumDirPath = artifactDirPath.resolve(CHECKSUM_DIR);
     Files.createDirectories(checksumDirPath);
 
-    // Read app list - now returns List<AppRepoInfo>
-    List<AppGithubRepo> appRepoInfos =
-        parseAppListUrls(appListFilePath); // Changed variable name and type
-    log.info("Found {} valid apps to bundle", appRepoInfos.size()); // Use the new list
+    List<AppGithubRepo> appRepoInfos = parseAppListUrls(appListFilePath);
 
-    // Download each app in parallel - pass the new list type
-    downloadApps(appRepoInfos, artifactDirPath, checksumDirPath); // Pass AppRepoInfo list
+    log.info("Found {} valid apps to bundle", appRepoInfos.size());
+
+    // Download each app in parallel
+    downloadApps(appRepoInfos, artifactDirPath, checksumDirPath);
 
     // Copy downloaded apps to build directory
-    Path targetArtifactDir = copyApps(downloadDirPath);
+    Path targetArtifactDir = copyAppsToBuildDir(downloadDirPath);
 
     // Write bundle info file
     writeBundleFile(targetArtifactDir);
 
-    log.debug("App bundling process completed successfully");
+    log.info("App bundling process completed successfully");
   }
 
   private void downloadApps(
       List<AppGithubRepo> appRepoInfos, Path artifactDirPath, Path checksumDirPath) {
-    log.debug("Submitting download tasks for {} apps...", appRepoInfos.size());
-
     ExecutorService executor = Executors.newFixedThreadPool(DOWNLOAD_POOL_SIZE);
 
     List<Future<AppBundleInfo.AppInfo>> futures = new ArrayList<>();
@@ -166,7 +161,6 @@ public class AppBundler {
         AppBundleInfo.AppInfo appInfo = future.get(); // Blocks until completion
         if (appInfo != null) {
           bundleInfo.addApp(appInfo);
-          log.debug("Successfully processed app: {}", appInfo.getName());
         }
 
       } catch (InterruptedException | ExecutionException e) {
@@ -178,7 +172,6 @@ public class AppBundler {
       }
     }
 
-    log.debug("Shutting down download executor...");
     executor.shutdown();
 
     try {
@@ -211,9 +204,6 @@ public class AppBundler {
    */
   private String downloadIfChanged(String fileUrl, Path outputPath, Path checksumPath)
       throws IOException {
-    log.debug("Checking/Downloading {} to {}", fileUrl, outputPath);
-    log.debug("Checksum file: {}", checksumPath);
-
     HttpURLConnection connection = getHttpURLConnection(fileUrl);
 
     // Check if we have a previous ETag
@@ -225,9 +215,7 @@ public class AppBundler {
     connection.connect();
 
     int responseCode = connection.getResponseCode();
-    log.debug("Response code for {}: {}", fileUrl, responseCode);
     if (responseCode == HttpURLConnection.HTTP_NOT_MODIFIED) {
-      log.debug("File not modified (HTTP 304): {}", fileUrl);
       return null;
     }
     if (responseCode != HttpURLConnection.HTTP_OK) {
@@ -263,18 +251,17 @@ public class AppBundler {
     log.info("Wrote bundle info to: {}", bundleInfoPath);
   }
 
-  private @Nonnull Path copyApps(Path downloadDirPath) throws IOException {
+  private @Nonnull Path copyAppsToBuildDir(Path downloadDirPath) throws IOException {
     Path targetArtifactDir = Paths.get(buildDir).resolve(artifactId);
     try {
       Files.createDirectories(targetArtifactDir);
-      log.debug("Ensured target artifact directory exists: {}", targetArtifactDir);
+
       for (AppBundleInfo.AppInfo app : bundleInfo.getApps()) {
         Path sourceZipPath = downloadDirPath.resolve(artifactId).resolve(app.getName() + ".zip");
         Path destZipPath = targetArtifactDir.resolve(app.getName() + ".zip");
 
         if (Files.exists(sourceZipPath)) {
           Files.copy(sourceZipPath, destZipPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-          log.debug("Copied {} to {}", sourceZipPath, destZipPath);
         } else {
           log.error(
               "Source zip file not found, skipping copy for app {}: {}",
@@ -342,13 +329,6 @@ public class AppBundler {
    */
   private AppBundleInfo.AppInfo downloadApp(
       AppGithubRepo repoInfo, Path targetDir, Path checksumDir) throws IOException {
-    log.debug(
-        "Processing app: {}/{} (ref: {}) from {}",
-        repoInfo.owner(),
-        repoInfo.repo(),
-        repoInfo.ref(),
-        repoInfo.codeloadUrl());
-
     AppBundleInfo.AppInfo appBundleResultInfo = new AppBundleInfo.AppInfo();
     appBundleResultInfo.setName(repoInfo.repo());
     appBundleResultInfo.setUrl(repoInfo.originalUrl());
